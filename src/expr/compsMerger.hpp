@@ -91,7 +91,7 @@ namespace nissa
 #undef PROVIDE_MERGED_EXPR
     
     static constexpr bool mergedCompHasDynamicSize=
-      ThisMergedComp::sizeIsKnownAtCompileTime;
+      not ThisMergedComp::sizeIsKnownAtCompileTime;
     
     /// Extra dynamic comp w.r.t merged expression
     using ExtraDynamicComps=
