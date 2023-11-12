@@ -180,9 +180,12 @@ namespace nissa
 	  else								\
 	    return std::make_tuple(c);					\
 	};								\
-      									\
+									\
       return								\
-      std::apply(mergedExpr().eval,std::tuple_cat(procComp(cs)...));	\
+	std::apply([this](const auto&...c) ->decltype(auto)		\
+	{								\
+	  return mergedExpr().eval(c...);				\
+	},std::tuple_cat(procComp(cs)...));				\
     }
     
     PROVIDE_EVAL(const);
