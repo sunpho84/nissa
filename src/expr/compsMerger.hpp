@@ -176,7 +176,7 @@ namespace nissa
 	[this]<typename Ui>(const Ui& c)				\
 	{								\
 	  if constexpr(std::is_same_v<Ui,ThisMergedComp>)		\
-	    c.decompose(extraDynamicSizes);				\
+	    return c.decompose(mergedExpr().getDynamicSizes());		\
 	  else								\
 	    return std::make_tuple(c);					\
 	};								\
