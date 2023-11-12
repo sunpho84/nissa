@@ -135,7 +135,7 @@ namespace nissa
 	      ENABLE_THIS_TEMPLATE_IF(sizeof...(MCS)>1 and canHardMedge<MCL>), \
 	      typename ResComps=CompsMerge<MCL,CompsList<C...>>,	\
 	      typename Res=DynamicTens<ResComps,ATTRIB _Fund,MT,true>>	\
-    Res mergeCompsa()	ATTRIB						\
+    Res mergeComps()	ATTRIB						\
     {									\
       using MC=								\
 	MergedComp<MCL>;						\
