@@ -13,6 +13,7 @@
 
 #include <base/debug.hpp>
 #include <expr/bindComps.hpp>
+#include <expr/compsMerger.hpp>
 // #include <expr/comps/compLoops.hpp>
 // #include <expr/assign/deviceAssign.hpp>
 // #include <expr/assign/directAssign.hpp>
@@ -93,11 +94,14 @@ namespace nissa
     
 #define PROVIDE_MERGE_COMPS(ATTRIB)				\
     /*! Provides possibility to merge a list of components  */	\
-      template <typename...MC>					\
+      template <typename MCL>					\
 	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
-	auto mergeComps() ATTRIB				\
+	decltype(auto) mergeComps() ATTRIB			\
       {								\
-	return mergeComps<MC...>(~*this);			\
+	if constexpr(std::tuple_size_v<MCL> <=1)		\
+	  return ~*this;					\
+	else							\
+	  return nissa::mergeComps<MCL>(~*this);		\
       }
     
     PROVIDE_MERGE_COMPS(const);
