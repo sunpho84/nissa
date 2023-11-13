@@ -130,11 +130,10 @@ namespace nissa
     using Base::mergeComps;
     
 #define PROVIDE_MERGE_COMPS(ATTRIB)					\
-    template <typename...MCS,						\
-	      typename MCL=CompsList<MCS...>,				\
-	      ENABLE_THIS_TEMPLATE_IF(sizeof...(MCS)>1 and canHardMedge<MCL>), \
+    template <typename MCL,						\
 	      typename ResComps=CompsMerge<MCL,CompsList<C...>>,	\
 	      typename Res=DynamicTens<ResComps,ATTRIB _Fund,MT,true>>	\
+    requires(std::tuple_size_v<MCL> >1 and canHardMedge<MCL>)		\
     Res mergeComps()	ATTRIB						\
     {									\
       using MC=								\
