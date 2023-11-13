@@ -52,7 +52,7 @@ namespace nissa
     using Base::operator=;
     
     /// Copy assign
-    INLINE_FUNCTION
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     DynamicTens& operator=(const DynamicTens& oth)
     {
       //master_printf("Assigning through copy constructor\n");
@@ -63,7 +63,7 @@ namespace nissa
     }
     
     /// Move assign
-    INLINE_FUNCTION
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     DynamicTens& operator=(DynamicTens&& oth)
     {
       //master_printf("Assigning through move constructor\n");
@@ -223,9 +223,8 @@ namespace nissa
     }
     
     /// Allocate the storage
-    template <bool B=IsRef,
-	      typename...T,
-	      ENABLE_THIS_TEMPLATE_IF(not B)>
+    template <typename...T>
+    requires (not IsRef)
     INLINE_FUNCTION
     void allocate(const CompFeat<T>&...td)
     {
@@ -235,9 +234,8 @@ namespace nissa
     /// Initialize the tensor with the knowledge of the dynamic sizes as a list
     ///
     /// Can only be allocated on host
-    template <bool B=IsRef,
-	      typename...T,
-	      ENABLE_THIS_TEMPLATE_IF(not B)>
+    template <typename...T>
+    requires (not IsRef)
     INLINE_FUNCTION constexpr
     explicit DynamicTens(const CompFeat<T>&...td)
     {
@@ -247,9 +245,8 @@ namespace nissa
     /// Initialize the tensor with the knowledge of the dynamic sizes
     ///
     /// Can only be allocated on host
-    template <DerivedFromComp...Cs,
-	      bool B=IsRef,
-	      ENABLE_THIS_TEMPLATE_IF(not B)>
+    template <DerivedFromComp...Cs>
+    requires (not IsRef)
     INLINE_FUNCTION constexpr
     explicit DynamicTens(const CompsList<Cs...>& td)
     {
@@ -257,9 +254,12 @@ namespace nissa
     }
     
     /// Default constructor
-    INLINE_FUNCTION constexpr
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     DynamicTens()
     {
+#ifndef COMPILING_FOR_DEVICE
+      verbosity_lv3_master_printf("Default constructor DynamicTens\n");
+#endif
       if constexpr(DynamicCompsProvider<Comps>::nDynamicComps==0)
 	allocate(std::tuple<>());
       // else
@@ -268,22 +268,28 @@ namespace nissa
     /// Create from another node
     template <typename TOth,
 	      typename Co>
-    constexpr INLINE_FUNCTION
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     explicit DynamicTens(const Node<TOth,Co>& oth) :
       DynamicTens(DE_CRTPFY(const TOth,&oth).getDynamicSizes())
     {
+#ifndef COMPILING_FOR_DEVICE
+      verbosity_lv3_master_printf("Constructing DynamicTens from another node\n");
+#endif
       (*this)=DE_CRTPFY(const TOth,&oth);
     }
     
     /// Copy constructor
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     DynamicTens(const DynamicTens& oth) :
       dynamicSizes(oth.getDynamicSizes())
     {
+#ifndef COMPILING_FOR_DEVICE
+      verbosity_lv3_master_printf("Using copy constructor of DynamicTens, isRef: %d\n",IsRef);
+#endif
+      
       if constexpr(not IsRef)
 	{
 #ifndef COMPILING_FOR_DEVICE
-	  verbosity_lv3_master_printf("Using copy constructor of DynamicTens\n");
 	  allocate(dynamicSizes);
 	  (*this)=oth;
 #else
@@ -304,18 +310,23 @@ namespace nissa
       storage(storage),
       nElements(nElements)
     {
+#ifndef COMPILING_FOR_DEVICE
+	  verbosity_lv3_master_printf("Using copy constructor of DynamicTens, from sizes, storage and nelements\n");
+#endif
     }
     
     /// Copy constructor when reference
-    template <typename O,
-	      bool B=IsRef,
-	      ENABLE_THIS_TEMPLATE_IF(B and isDynamicTens<O>)>
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    DynamicTens(O&& oth) :
-      DynamicTens(oth.getDynamicSizes(),
-		  oth.storage,
-		  oth.nElements)
+    template <typename O>
+    requires IsRef and isDynamicTens<O>
+     CUDA_HOST_AND_DEVICE
+    DynamicTens(O&& oth)  :
+		    DynamicTens(oth.getDynamicSizes(),
+				oth.storage,
+				oth.nElements)
     {
+#ifndef COMPILING_FOR_DEVICE
+      verbosity_lv3_master_printf("Copy constructor DynamicTens as a reference\n");
+#endif
     }
     
     /// Return a copy on the given memory space
@@ -343,14 +354,15 @@ namespace nissa
 #undef PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED
     
     /// Move constructor
-    INLINE_FUNCTION
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     DynamicTens(DynamicTens&& oth) :
       dynamicSizes(oth.dynamicSizes),
       storage(oth.storage),
       nElements(oth.nElements)
     {
+#ifndef COMPILING_FOR_DEVICE
       verbosity_lv3_master_printf("Using move constructor of DynamicTens\n");
-      
+#endif
       oth.storage=nullptr;
     }
     
@@ -360,6 +372,9 @@ namespace nissa
     DynamicTens(const DynamicTens<Comps,Fund,OES>& oth) :
       DynamicTens(oth.getDynamicSizes())
     {
+#ifndef COMPILING_FOR_DEVICE
+      verbosity_lv3_master_printf("Copying DynamicTens from another space\n");
+#endif
       (*this)=oth;
     }
     
