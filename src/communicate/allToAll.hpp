@@ -224,12 +224,18 @@ namespace nissa
       
       decltype(auto) hostOutBuf=
 	outBuf.template copyToMemorySpaceIfNeeded<MemoryType::CPU>();
-      const auto mergedHostOutBuf=
-	hostOutBuf.template mergeComps<DstRedComps>();
+      
+      decltype(auto) mergedHostOutBuf=
+	mergeComps<DstRedComps>(hostOutBuf);
+      
+      using MergedHostOutBufExtraComps=
+	TupleFilterAllTypes<typename decltype(mergedHostOutBuf)::Comps,CompsList<BufComp>>;
       
       DynamicTens<BufComps,Fund,MemoryType::CPU> hostInBuf(std::tuple_cat(std::make_tuple(getInBufSize()),out.getDynamicSizes()));
       auto mergedHostInBuf=
 	hostInBuf.template mergeComps<DstRedComps>();
+      using MergedHostInBufExtraComps=
+	TupleFilterAllTypes<typename decltype(mergedHostInBuf)::Comps,CompsList<BufComp>>;
       
       const int nReqs=nSendToRank.size()+nRecvFrRank.size();
       MPI_Request reqs[nReqs];
@@ -237,7 +243,13 @@ namespace nissa
       const auto nDof=mergedHostOutBuf.template getCompSize<MergedComp<DstRedComps>>()();
       for(BufComp sendOffset=0;const auto& [dstRank,nEl] : nSendToRank)
 	{
-	  MPI_Isend(&mergedHostOutBuf(sendOffset,MergedComp<DstRedComps>(0)),
+	  const Fund& ptr=
+	    invokeWithTypesOfTuple<MergedHostOutBufExtraComps>([&mergedHostOutBuf,
+								&sendOffset]<DerivedFromComp...C>()->const Fund&
+							       {
+								 return mergedHostOutBuf(sendOffset,C(0)...);
+							       });
+	  MPI_Isend(&ptr,
 		    nEl*nDof*sizeof(Fund),
 		    MPI_CHAR,dstRank(),0,MPI_COMM_WORLD,req++);
 	  sendOffset+=nEl;
@@ -245,7 +257,13 @@ namespace nissa
       
       for(BufComp recvOffset=0;const auto& [rcvRank,nEl] : nRecvFrRank)
 	{
-	  MPI_Irecv(&mergedHostInBuf(recvOffset,MergedComp<DstRedComps>(0)),
+	  Fund& ptr=
+	    invokeWithTypesOfTuple<MergedHostInBufExtraComps>([&mergedHostInBuf,
+							       &recvOffset]<DerivedFromComp...C>()->Fund&
+							      {
+								return mergedHostInBuf(recvOffset,C(0)...);
+							      });
+	  MPI_Irecv(&ptr,
 		    nEl*nDof*sizeof(Fund),
 		    MPI_CHAR,rcvRank(),0,MPI_COMM_WORLD,req++);
 	  recvOffset+=nEl;
