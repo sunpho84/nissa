@@ -219,9 +219,7 @@ namespace nissa
 				TO_WRITE(outBuf)),
 			iIn,
 			{
-			  const BufComp iOutBuf=outBufOfSrc(iIn);
-			  
-			  outBuf(iOutBuf)=in(iIn);
+			  outBuf(outBufOfSrc(iIn))=in(iIn);
 			});
       
       decltype(auto) hostOutBuf=

@@ -13,7 +13,6 @@
 #include <expr/mergedComps.hpp>
 #include <expr/nodeDeclaration.hpp>
 #include <expr/scalar.hpp>
-#include <expr/subNodes.hpp>
 #include <metaprogramming/detectableAs.hpp>
 #include <metaprogramming/templateEnabler.hpp>
 #include <routines/ios.hpp>
@@ -34,7 +33,7 @@ namespace nissa
   struct CompsMerger;
   
 #define THIS					\
-  CompsMerger<CompsList<Mc...>,std::tuple<_E...>,CompsList<C...>,_Fund>
+  CompsMerger<CompsList<Mc...>,_E,CompsList<C...>,_Fund>
   
 #define BASE					\
   Node<THIS,CompsList<C...>>
@@ -42,12 +41,11 @@ namespace nissa
   /// Components merger
   ///
   template <typename...Mc,
-	    typename..._E,
+	    typename _E,
 	    typename...C,
 	    typename _Fund>
   struct THIS :
     DetectableAsCompsMerger,
-    SubNodes<_E...>,
     BASE
   {
     /// Import the base expression
@@ -59,8 +57,6 @@ namespace nissa
     
 #undef THIS
     
-    static_assert(sizeof...(_E)==1,"Expecting 1 argument");
-    
     /// Components
     using Comps=
       CompsList<C...>;
@@ -71,24 +67,9 @@ namespace nissa
     /// Fundamental tye
     using Fund=_Fund;
     
-    IMPORT_SUBNODE_TYPES;
+    NodeRefOrVal<_E> mergedExpr;
     
-    /// Merged type
-    using MergedExpr=SubNode<0>;
-    
-#define PROVIDE_MERGED_EXPR(ATTRIB)			\
-    /*! Returns the merged expression */		\
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
-    ATTRIB MergedExpr& mergedExpr() ATTRIB		\
-    {							\
-      return SUBNODE(0);				\
-    }
-    
-    PROVIDE_MERGED_EXPR(/* non const */);
-    
-    PROVIDE_MERGED_EXPR(const);
-    
-#undef PROVIDE_MERGED_EXPR
+    using MergedExpr=std::remove_reference_t<decltype(mergedExpr)>;
     
     static constexpr bool mergedCompHasDynamicSize=
       not ThisMergedComp::sizeIsKnownAtCompileTime;
@@ -105,14 +86,14 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
-      return tupleGetSubset<typename CompsMerger::DynamicComps>(std::tuple_cat(mergedExpr().getDynamicSizes(),extraDynamicSizes));
+      return tupleGetSubset<typename CompsMerger::DynamicComps>(std::tuple_cat(mergedExpr.getDynamicSizes(),extraDynamicSizes));
     }
     
     /// Returns whether can assign
     INLINE_FUNCTION
     bool canAssign()
     {
-      return mergedExpr().canAssign();
+      return mergedExpr.canAssign();
     }
     
     /// This is a lightweight object
@@ -156,7 +137,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return recreateFromExprs(mergedExpr().getRef());		\
+      return recreateFromExprs(mergedExpr.getRef());		\
     }
     
     PROVIDE_GET_REF(const);
@@ -176,7 +157,7 @@ namespace nissa
 	[this]<typename Ui>(const Ui& c)				\
 	{								\
 	  if constexpr(std::is_same_v<Ui,ThisMergedComp>)		\
-	    return c.decompose(mergedExpr().getDynamicSizes());		\
+	    return c.decompose(mergedExpr.getDynamicSizes());		\
 	  else								\
 	    return std::make_tuple(c);					\
 	};								\
@@ -184,7 +165,7 @@ namespace nissa
       return								\
 	std::apply([this](const auto&...c) ->decltype(auto)		\
 	{								\
-	  return mergedExpr().eval(c...);				\
+	  return mergedExpr.eval(c...);				\
 	},std::tuple_cat(procComp(cs)...));				\
     }
     
@@ -195,20 +176,18 @@ namespace nissa
 #undef PROVIDE_EVAL
     
     /// Construct
-    template <typename T>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    CompsMerger(T&& arg) :
-      SubNodes<_E...>(std::forward<T>(arg))
+    CompsMerger(_E& arg) :
+      mergedExpr{arg}
     {
       if constexpr(mergedCompHasDynamicSize)
-	std::get<ThisMergedComp>(extraDynamicSizes)=mergedExpr().template getMergedCompsSize<CompsList<Mc...>>();
+	std::get<ThisMergedComp>(extraDynamicSizes)=mergedExpr.template getMergedCompsSize<CompsList<Mc...>>();
     }
   };
   
   /// Merges a subset of components
   template <typename MC,
-	    typename _E,
-	    ENABLE_THIS_TEMPLATE_IF(isNode<_E>)>
+	    DerivedFromNode _E>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
   auto mergeComps(_E&& e)
   {
@@ -226,7 +205,7 @@ namespace nissa
     
     return
       CompsMerger<MC,
-		  std::tuple<decltype(e)>,
+		  _E,
 		  Comps,
 		  Fund>(std::forward<_E>(e));
   }
