@@ -16,7 +16,7 @@
 
 namespace nissa
 {
-  PROVIDE_DETECTABLE_AS(MirroredNode);
+  PROVIDE_FEATURE(MirroredNode);
   
   /// Mirrored Node
   ///
@@ -40,7 +40,7 @@ namespace nissa
 	    typename _Fund>
   struct THIS :
     BASE,
-    DetectableAsMirroredNode
+    MirroredNodeFeat<THIS>
   {
     using This=THIS;
     

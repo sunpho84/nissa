@@ -13,7 +13,6 @@
 #include <expr/mergedComps.hpp>
 #include <expr/nodeDeclaration.hpp>
 #include <expr/scalar.hpp>
-#include <metaprogramming/detectableAs.hpp>
 #include <metaprogramming/templateEnabler.hpp>
 #include <routines/ios.hpp>
 #include <tuples/tupleFilter.hpp>
@@ -21,7 +20,7 @@
 
 namespace nissa
 {
-  PROVIDE_DETECTABLE_AS(CompsMerger);
+  PROVIDE_FEATURE(CompsMerger);
   
   /// Components merger
   ///
@@ -45,7 +44,7 @@ namespace nissa
 	    typename...C,
 	    typename _Fund>
   struct THIS :
-    DetectableAsCompsMerger,
+    CompsMergerFeat<THIS>,
     BASE
   {
     /// Import the base expression

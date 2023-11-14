@@ -18,7 +18,7 @@
 
 namespace nissa
 {
-  PROVIDE_DETECTABLE_AS(Transposer);
+  PROVIDE_FEATURE(Transposer);
   
   /// Transposer
   ///
@@ -40,7 +40,7 @@ namespace nissa
 	    DerivedFromComp...C,
 	    typename _Fund>
   struct THIS :
-    DetectableAsTransposer,
+    TransposerFeat<THIS>,
     BASE
   {
     /// Import the base expression

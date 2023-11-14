@@ -29,7 +29,7 @@ namespace nissa
     struct Classify
     {
       static constexpr bool isTraced=
-	isTransposable<T> and
+	isTransposableComp<T> and
 	(std::is_same_v<T,Tc> or...) and
 	(std::is_same_v<typename T::Transp,Tc> or...);
       
@@ -50,7 +50,7 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  PROVIDE_DETECTABLE_AS(Tracer);
+  PROVIDE_FEATURE(Tracer);
   
   /// Tracer
   ///
@@ -74,7 +74,7 @@ namespace nissa
 	    DerivedFromComp...C,
 	    typename _Fund>
   struct THIS :
-    DetectableAsTracer,
+    TracerFeat<THIS>,
     BASE
   {
     /// Import the base expression

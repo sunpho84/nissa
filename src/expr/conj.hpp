@@ -11,7 +11,6 @@
 #include <expr/comps.hpp>
 #include <expr/node.hpp>
 #include <expr/stackTens.hpp>
-#include <metaprogramming/detectableAs.hpp>
 #include <metaprogramming/universalReference.hpp>
 
 namespace nissa
@@ -44,7 +43,7 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  PROVIDE_DETECTABLE_AS(Conjugator);
+  PROVIDE_FEATURE(Conjugator);
   
   /// Conjugator
   ///
@@ -66,7 +65,7 @@ namespace nissa
 	    DerivedFromComp...C,
 	    typename _Fund>
   struct THIS :
-    DetectableAsConjugator,
+    ConjugatorFeat<THIS>,
     BASE
   {
     /// Import the base expression

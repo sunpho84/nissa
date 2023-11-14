@@ -36,7 +36,7 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  PROVIDE_DETECTABLE_AS(EoField2);
+  PROVIDE_FEATURE(EoField2);
   
 #define EO_FIELD2_COMPS_PROVIDER EoField2CompsProvider<CompsList<C...>,_Fund,FL>
   
@@ -56,7 +56,7 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     DynamicCompsProvider<FIELD_COMPS>,
-    DetectableAsEoField2,
+    EoField2Feat<THIS>,
     BASE
   {
     /// Import the base expression

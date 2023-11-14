@@ -101,7 +101,7 @@ namespace nissa
 	    MemoryType MT,
 	    bool IsRef>
   struct THIS :
-    DetectableAsField2,
+    Field2Feat<THIS>,
     BASE
   {
     /// Import the base expression

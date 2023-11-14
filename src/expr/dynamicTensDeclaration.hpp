@@ -8,12 +8,9 @@
 /// \file expr/dynamicTensorDeclaration.hpp
 
 #include <base/memory_manager.hpp>
-#include <metaprogramming/detectableAs.hpp>
 
 namespace nissa
 {
-  PROVIDE_DETECTABLE_AS(DynamicTens);
-  
   /// Tensor
   ///
   /// Forward declaration
@@ -22,6 +19,8 @@ namespace nissa
 	    MemoryType MT=MemoryType::CPU,
 	    bool IsRef=false>
   struct DynamicTens;
+  
+  PROVIDE_FEATURE(DynamicTens);
 }
 
 #endif

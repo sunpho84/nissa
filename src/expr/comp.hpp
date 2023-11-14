@@ -13,7 +13,6 @@
 #include <base/debug.hpp>
 #include <expr/baseComp.hpp>
 #include <expr/compRwCl.hpp>
-#include <metaprogramming/detectableAs.hpp>
 
 namespace nissa
 {
@@ -43,7 +42,7 @@ namespace nissa
   {									\
     return DE_CRTPFY(ATTRIB N,this)(TYPE(i));				\
   }									\
-
+  
   /// Specialize the component subscriber to support a method named FACTORY, subscribint type TYPE
 #define DECLARE_COMPONENT_SUBSCRIBER(FACTORY,TYPE)			\
   /* Provide FACTORY as member function subscribing index i */		\
@@ -64,8 +63,7 @@ namespace nissa
   template <RwCl _RC=RwCl::ROW>					\
   struct NAME ## RwOrCl :					\
     BaseComp<NAME ## RwOrCl<_RC>,TYPE,SIZE>,			\
-    TransposableCompFeat<NAME ## RwOrCl<_RC>>,			\
-    DetectableAsTransposable					\
+    TransposableCompFeat<NAME ## RwOrCl<_RC>>			\
   {								\
     using Base=							\
       BaseComp<NAME ## RwOrCl<_RC>,				\

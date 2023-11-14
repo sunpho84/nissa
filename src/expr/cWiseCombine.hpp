@@ -19,7 +19,7 @@
 
 namespace nissa
 {
-  PROVIDE_DETECTABLE_AS(CWiseCombiner);
+  PROVIDE_FEATURE(CWiseCombiner);
   
   /// CWiseCombiner
   ///
@@ -45,7 +45,7 @@ namespace nissa
 	    typename _Comb,
 	    int...Is>
   struct THIS :
-    DetectableAsCWiseCombiner,
+    CWiseCombinerFeat<THIS>,
     BASE
   {
     /// Import the base expression

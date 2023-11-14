@@ -10,7 +10,6 @@
 #include <expr/exprRefOrVal.hpp>
 #include <expr/nodeDeclaration.hpp>
 #include <expr/scalar.hpp>
-#include <metaprogramming/detectableAs.hpp>
 #include <metaprogramming/templateEnabler.hpp>
 #include <routines/ios.hpp>
 #include <tuples/tupleFilter.hpp>
@@ -18,7 +17,7 @@
 
 namespace nissa
 {
-  PROVIDE_DETECTABLE_AS(CompsBinder);
+  PROVIDE_FEATURE(CompsBinder);
   
   /// Component binder
   ///
@@ -42,7 +41,7 @@ namespace nissa
 	    typename...C,
 	    typename _Fund>
   struct THIS :
-    DetectableAsCompsBinder,
+    CompsBinderFeat<THIS>,
     BASE
   {
     /// Import the base expression

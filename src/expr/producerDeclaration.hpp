@@ -9,11 +9,11 @@
 
 #include <utility>
 
-#include <metaprogramming/detectableAs.hpp>
+#include <metaprogramming/feature.hpp>
 
 namespace nissa
 {
-  PROVIDE_DETECTABLE_AS(Producer);
+  PROVIDE_FEATURE(Producer);
   
   /// Producer
   ///

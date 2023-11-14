@@ -41,8 +41,7 @@ namespace nissa
   };
   
   /// Catch exp(node)
-  template <typename E,
-	    ENABLE_THIS_TEMPLATE_IF(isNode<E>)>
+  template <DerivedFromNode E>
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
   auto exp(E&& e)
   {

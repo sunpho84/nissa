@@ -47,7 +47,7 @@ namespace nissa
     {
       static constexpr bool isContracted()
       {
-	if constexpr(isTransposable<C>)
+	if constexpr(isTransposableComp<C>)
 	  return (C::RC==RC and (std::is_same_v<typename C::Transp,O> or...));
 	else
 	  return false;
@@ -89,7 +89,7 @@ namespace nissa
 	    typename _Fund,
 	    int...Is>
   struct THIS :
-    DetectableAsProducer,
+    ProducerFeat<THIS>,
     BASE
   {
     /// Import the base expression

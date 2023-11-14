@@ -9,14 +9,11 @@
 ///
 /// \brief Implements a tensor comp row or column type
 
-#include <metaprogramming/detectableAs.hpp>
 #include <metaprogramming/feature.hpp>
 
 namespace nissa
 {
   PROVIDE_FEATURE(TransposableComp);
-  
-  PROVIDE_DETECTABLE_AS(Transposable);
   
   /// Row or column
   enum class RwCl{ROW,CLN};
@@ -48,7 +45,7 @@ namespace nissa
     static constexpr
     bool _transposableCompIsOfRwCl()
     {
-      if constexpr(isTransposable<T>)
+      if constexpr(isTransposableComp<T>)
 	return (T::RC==RC);
       else
 	return false;

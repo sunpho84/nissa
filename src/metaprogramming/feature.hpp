@@ -26,6 +26,7 @@ namespace nissa
     }							\
   };							\
   							\
+  /*! Determine if the type T is deriving from NAME */	\
   template <typename T>					\
   inline constexpr bool is ## NAME =			\
     std::is_base_of_v<NAME ## Feat<std::decay_t<T>>,	\

@@ -14,7 +14,7 @@
 
 namespace nissa
 {
-  PROVIDE_DETECTABLE_AS(FuncExpr);
+  PROVIDE_FEATURE(FuncExpr);
   
   /// Functional expression
   ///
@@ -37,7 +37,7 @@ namespace nissa
 	    typename...C,
 	    typename _Fund>
   struct FuncExpr<_Func,CompsList<C...>,_Fund> :
-    DetectableAsFuncExpr,
+    FuncExprFeat<THIS>,
     BASE
   {
     /// Import the base expression

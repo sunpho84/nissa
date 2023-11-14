@@ -9,7 +9,7 @@
 
 namespace nissa
 {
-  PROVIDE_DETECTABLE_AS(Shifter);
+  PROVIDE_FEATURE(Shifter);
   
   /// Conjugator
   ///
@@ -31,7 +31,7 @@ namespace nissa
 	    DerivedFromComp...C,
 	    typename _Fund>
   struct THIS :
-    DetectableAsShifter,
+    ShifterFeat<THIS>,
     BASE
   {
     /// Import the base expression

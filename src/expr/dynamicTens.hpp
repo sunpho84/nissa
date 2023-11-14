@@ -35,7 +35,7 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     BASE,
-    DetectableAsDynamicTens
+    DynamicTensFeat<THIS>
   {
     using This=THIS;
     
