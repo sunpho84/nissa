@@ -87,7 +87,21 @@ namespace nissa
       /// Get J-th type of the tuple
       template <std::size_t J>
 	using ElementType=
-	decltype(std::declval<_Tuple>().template get<J>());
+	decltype(tupleGet<J>(std::declval<_Tuple>()));
+      
+#define PROVIDE_APPLY_TO(ATTRIB)		\
+      /*! Pass the tuple arguments to the passed function */	\
+      template <typename F>			\
+	decltype(auto) applyTo(F&& f) ATTRIB	\
+      {						\
+	f(_TupleElementProvider<I,T>::t...);	\
+      }
+      
+      PROVIDE_APPLY_TO(const);
+      
+      PROVIDE_APPLY_TO(/* non const */);
+      
+#undef PROVIDE_APPLY_TO
     };
   }
   

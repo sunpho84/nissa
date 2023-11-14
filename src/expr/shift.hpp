@@ -198,17 +198,16 @@ namespace nissa
     if constexpr(isField2<T>)
       // {
       // 	printf("%s updating halo\n",demangle(typeid(t).name()).c_str());
-	t.updateHalo();
-      // }
+      t.updateHalo();
+    // }
     else
-      if constexpr(hasMember_subNodes<T>)
+      {
+	t.subExprs.applyTo([&t](auto&& s){printf("%s updating subexprs halo %s\n",demangle(typeid(t).name()).c_str(),demangle(typeid(s).name()).c_str());});
+	t.subExprs.applyTo([](auto&& s)
 	{
-	  // std::apply([](auto&& s){printf("%s updating subexprs halo %s\n",demangle(typeid(t).name()).c_str(),demangle(typeid(s).name()).c_str());},t.subNodes);
-	  std::apply([](auto&& s)
-	  {
-	    updateHaloForShift(s);
-	  },t.subNodes);
-	}
+	  updateHaloForShift(s);
+	});
+      }
   }
   
   /// Create a shifter
