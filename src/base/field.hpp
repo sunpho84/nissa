@@ -300,7 +300,7 @@ namespace nissa
 	    FieldCoverage FC,
 	    FieldLayout FL=defaultFieldLayout>
   struct Field :
-    FieldFeat<Field<T,FC,FL>>,
+    FieldFeat,
     FieldSizes<FC>
   {
     /// Coefficient which divides the space time, if the field is covering only half the space
@@ -1009,8 +1009,8 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   /// Hack
-  template <typename F>
-  void set_borders_invalid(FieldFeat<F>& field)
+  template <DerivedFromField F>
+  void set_borders_invalid(F& field)
   {
     static_cast<F*>(&field)->invalidateHalo();
   }

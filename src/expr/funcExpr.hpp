@@ -37,7 +37,7 @@ namespace nissa
 	    typename...C,
 	    typename _Fund>
   struct FuncExpr<_Func,CompsList<C...>,_Fund> :
-    FuncExprFeat<THIS>,
+    FuncExprFeat,
     BASE
   {
     /// Import the base expression

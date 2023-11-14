@@ -10,7 +10,6 @@
 #include <expr/exprRefOrVal.hpp>
 #include <expr/nodeDeclaration.hpp>
 #include <expr/scalar.hpp>
-#include <metaprogramming/templateEnabler.hpp>
 #include <routines/ios.hpp>
 #include <tuples/tupleFilter.hpp>
 #include <tuples/tupleHasType.hpp>
@@ -41,7 +40,7 @@ namespace nissa
 	    typename...C,
 	    typename _Fund>
   struct THIS :
-    CompsBinderFeat<THIS>,
+    CompsBinderFeat,
     BASE
   {
     /// Import the base expression

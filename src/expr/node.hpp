@@ -26,7 +26,6 @@
 // #include <expr/assign/threadAssign.hpp>
 // #include <ios/logger.hpp>
 #include <metaprogramming/crtp.hpp>
-#include <metaprogramming/templateEnabler.hpp>
 #include <tuples/tupleHasType.hpp>
 #include <tuples/tupleFilter.hpp>
 
@@ -52,7 +51,8 @@ namespace nissa
   template <typename T,
 	    typename...Ci>
   struct THIS :
-    NodeFeat<T>,
+    NodeFeat,
+    Crtp<THIS,T>,
     MemberCompSubscribeProvider<T,Ci>...,
     DynamicCompsProvider<CompsList<Ci...>>
   {
@@ -74,7 +74,7 @@ namespace nissa
     
 #undef PROVIDE_AUTOMATIC_CAST_TO_FUND
     
-    using NodeFeat<T>::operator~;
+    using Crtp<This,T>::operator~;
     
     // /// Define the move-assignment operator
     // INLINE_FUNCTION
@@ -118,16 +118,15 @@ namespace nissa
     }
     
     /// Assert assignability
-    template <typename U>
+    template <DerivedFromNode U>
       INLINE_FUNCTION
-      constexpr void assertCanAssign(const NodeFeat<U>& _rhs)
+      constexpr void assertCanAssign(const U& rhs)
     {
       //static_assert(tuplesContainsSameTypes<typename T::Comps,typename U::Comps>,"Cannot assign two expressions which differ for the components");
       
       static_assert(T::canAssignAtCompileTime,"Trying to assign to a non-assignable expression");
       
       auto& lhs=~*this;
-      const auto& rhs=~_rhs;
       
       if constexpr(not T::canAssignAtCompileTime)
 	crash("Trying to assign to a non-assignable expression");
@@ -142,9 +141,9 @@ namespace nissa
     
     /// Assign from another expression
     template <typename OP=DirectAssign,
-	      typename Rhs>
+	      DerivedFromNode Rhs>
     constexpr INLINE_FUNCTION
-      T& assign(const NodeFeat<Rhs>& u)
+      T& assign(const Rhs& u)
     {
       this->assertCanAssign(u);
       
@@ -182,12 +181,12 @@ namespace nissa
 #define PROVIDE_ASSIGN_VARIATION(SYMBOL,OP)				\
     									\
     /*! Assign from another expression */				\
-      template <typename Rhs>						\
+      template <DerivedFromNode Rhs>					\
 	requires(not std::is_same_v<T,Rhs>)				\
 	constexpr INLINE_FUNCTION					\
-	T& operator SYMBOL(const NodeFeat<Rhs>& u)			\
+	T& operator SYMBOL(const Rhs& u)				\
       {									\
-	return (~*this).template assign<OP>(~u);			\
+	return (~*this).template assign<OP>(u);				\
       }									\
       									\
     									\
@@ -279,9 +278,9 @@ namespace nissa
     }
     
 #define PROVIDE_CALL(ATTRIB)						\
-    template <typename...C>						\
+    template <DerivedFromComp...C>					\
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
-    decltype(auto) operator()(const CompFeat<C>&...cs) ATTRIB		\
+      decltype(auto) operator()(const C&...cs) ATTRIB			\
     {									\
       using Comps=typename T::Comps;					\
 									\
@@ -294,9 +293,9 @@ namespace nissa
 	TupleFilterAllTypes<Comps,SubsComps>;				\
       									\
       if constexpr(std::tuple_size_v<ResidualComps> ==0)		\
-	return (~*this).eval(~cs...);					\
+	return (~*this).eval(cs...);					\
       else								\
-	return bindComps(~*this,std::make_tuple(~cs...));		\
+	return bindComps(~*this,std::make_tuple(cs...));		\
     }
     
     PROVIDE_CALL(const);
@@ -308,11 +307,11 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
 #define PROVIDE_SUBSCRIBE(ATTRIB)					\
-    template <typename C>						\
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
-    decltype(auto) operator[](const CompFeat<C>& c) ATTRIB		\
+    template <DerivedFromComp C>					\
+      constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+      decltype(auto) operator[](const C& c) ATTRIB			\
     {									\
-      return (~*this)(~c);						\
+      return (~*this)(c);						\
     }
     
     PROVIDE_SUBSCRIBE(const);

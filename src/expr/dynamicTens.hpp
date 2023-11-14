@@ -35,7 +35,7 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     BASE,
-    DynamicTensFeat<THIS>
+    DynamicTensFeat
   {
     using This=THIS;
     
@@ -222,10 +222,10 @@ namespace nissa
     }
     
     /// Allocate the storage
-    template <typename...T>
+    template <DerivedFromComp...T>
     requires (not IsRef)
     INLINE_FUNCTION
-    void allocate(const CompFeat<T>&...td)
+    void allocate(const T&...td)
     {
       allocate(DynamicCompsProvider<Comps>::filterDynamicComps(td...));
     }
@@ -233,10 +233,10 @@ namespace nissa
     /// Initialize the tensor with the knowledge of the dynamic sizes as a list
     ///
     /// Can only be allocated on host
-    template <typename...T>
+    template <DerivedFromComp...T>
     requires (not IsRef)
     INLINE_FUNCTION constexpr
-    explicit DynamicTens(const CompFeat<T>&...td)
+    explicit DynamicTens(const T&...td)
     {
       allocate(DynamicCompsProvider<Comps>::filterDynamicComps(td...));
     }

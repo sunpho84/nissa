@@ -46,11 +46,11 @@ namespace nissa
     }
     
     /// Returns dynamic comps from a list
-    template <typename...T>
+    template <DerivedFromComp...T>
     INLINE_FUNCTION
-    static DynamicComps filterDynamicComps(const CompFeat<T>&...td)
+    static DynamicComps filterDynamicComps(const T&...td)
     {
-      return filterDynamicComps(std::make_tuple(~td...));
+      return filterDynamicComps(std::make_tuple(td...));
     }
   };
 }

@@ -13,6 +13,7 @@
 #include <base/debug.hpp>
 #include <expr/baseComp.hpp>
 #include <expr/compRwCl.hpp>
+#include <expr/nodeDeclaration.hpp>
 
 namespace nissa
 {
@@ -63,7 +64,7 @@ namespace nissa
   template <RwCl _RC=RwCl::ROW>					\
   struct NAME ## RwOrCl :					\
     BaseComp<NAME ## RwOrCl<_RC>,TYPE,SIZE>,			\
-    TransposableCompFeat<NAME ## RwOrCl<_RC>>			\
+    TransposableCompFeat					\
   {								\
     using Base=							\
       BaseComp<NAME ## RwOrCl<_RC>,				\
@@ -100,7 +101,7 @@ namespace nissa
 #define DECLARE_UNTRANSPOSABLE_COMP(NAME,TYPE,SIZE,FACTORY)	\
   struct NAME :							\
     BaseComp<NAME,TYPE,SIZE>,					\
-    UntransposableCompFeat<NAME>				\
+    UntransposableCompFeat					\
   {								\
     using Base=							\
       BaseComp<NAME,						\
@@ -124,8 +125,8 @@ namespace nissa
 #define DECLARE_PARALLELIZABLE_COMP(NAME,TYPE,FACTORY)		\
   struct NAME :							\
     BaseComp<NAME,TYPE,0>,					\
-    ParallelizableCompFeat<NAME>,				\
-    UntransposableCompFeat<NAME>				\
+    ParallelizableCompFeat,					\
+    UntransposableCompFeat					\
   {								\
     using Base=							\
       BaseComp<NAME,						\
@@ -154,29 +155,29 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  template <typename T>
+  template <DerivedFromTransposableComp T>
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-  typename T::Transp transp(const TransposableCompFeat<T>& t)
+  typename T::Transp transp(const T& t)
   {
-    return (~t)();
+    return t();
   }
   
-  template<typename T>
+  template<DerivedFromUntransposableComp T>
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-  const T& transp(const UntransposableCompFeat<T>& t)
+  const T& transp(const T& t)
   {
-    return ~t;
+    return t;
   }
   
   /////////////////////////////////////////////////////////////////
   
   template <typename Tout,
 	    typename Tin,
-	    typename F>
+	    DerivedFromComp F>
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-  const F& compCast(const CompFeat<F>& t)
+  const F& compCast(const F& t)
   {
-    return ~t;
+    return t;
   }
   
   template <typename Tout,
@@ -190,10 +191,10 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   /// Converting the component into a descriptive string
-  template <typename E>
-  auto compConvertToString(const CompFeat<E>& e)
+  template <DerivedFromNode E>
+  auto compConvertToString(const E& e)
   {
-    return (std::string)"("+demangle(typeid(E).name())+" "+std::to_string((~e)())+")";
+    return (std::string)"("+demangle(typeid(E).name())+" "+std::to_string(e())+")";
   }
   
   /// Returns the underlying type if comp

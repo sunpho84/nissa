@@ -37,13 +37,13 @@ namespace nissa
       CompsList<Cp...>;
     
     /// Returns the merged component from the unmerged one
-    template <typename...D,
-	      typename...E>
+    template <DerivedFromComp...D,
+	      DerivedFromComp...C>
     static INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     MergedComp merge(const std::tuple<D...>& dynamicSizes,
-		     const CompFeat<E>&...e)
+		     const C&...c)
     {
-      return orderedIndex<Cp...>(dynamicSizes,~e...);
+      return orderedIndex<Cp...>(dynamicSizes,c...);
     }
     
     /// Gets the components of a merged component
@@ -71,19 +71,19 @@ namespace nissa
     }
     
     /// Initialize from dynamicSizes and components
-    template <typename...D,
-	      typename...E>
+    template <DerivedFromComp...D,
+	      DerivedFromComp...E>
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     MergedComp(const std::tuple<D...>& dynamicSizes,
-	       const CompFeat<E>&...e) :
+	       const E&...e) :
       MergedComp(MergedComp::merge(dynamicSizes,e...))
     {
     }
     
     /// Initialize from components
-    template <typename...E>
+    template <DerivedFromComp...E>
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-    MergedComp(const CompFeat<E>&...e) :
+    MergedComp(const E&...e) :
       MergedComp(std::tuple<>{},e...)
     {
     }

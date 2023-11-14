@@ -124,25 +124,25 @@ namespace nissa
   namespace impl
   {
     template <typename F,
-	      typename...Dc,
-	      typename...ProcessedComps>
+	      DerivedFromComp...Dc,
+	      DerivedFromComp...ProcessedComps>
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     void _compsLoop(F f,
 		    const CompsList<Dc...>& dynamicComps,
-		    const CompFeat<ProcessedComps>&...pc)
+		    const ProcessedComps&...pc)
     {
-      f(*pc...);
+      f(pc...);
     }
     
-    template <typename Head,
-	      typename...Tail,
+    template <DerivedFromComp Head,
+	      DerivedFromComp...Tail,
 	      typename F,
-	      typename...Dc,
-	      typename...ProcessedComps>
+	      DerivedFromComp...Dc,
+	      DerivedFromComp...ProcessedComps>
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     void _compsLoop(F f,
 		    const CompsList<Dc...>& dynamicComps,
-		    const CompFeat<ProcessedComps>&...pc)
+		    const ProcessedComps&...pc)
     {
       auto iter=
 	[f,&dynamicComps,&pc...](const Head& val) CONSTEXPR_INLINE_ATTRIBUTE
@@ -150,9 +150,9 @@ namespace nissa
 	  (void)dynamicComps; // avoid warning
 	  
 	  if constexpr(sizeof...(Tail))
-	    return _compsLoop<Tail...>(f,dynamicComps,~pc...,val);
+	    return _compsLoop<Tail...>(f,dynamicComps,pc...,val);
 	  else
-	    f(~pc...,val);
+	    f(pc...,val);
 	};
       
       constexpr auto s=Head::sizeAtCompileTime;
@@ -200,8 +200,8 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   /// Convert components to string
-  template <typename...E>
-  auto compsConvertToString(const CompFeat<E>&...e)
+  template <DerivedFromComp...E>
+  auto compsConvertToString(const E&...e)
   {
     return (compConvertToString(e)+...+"");
   }

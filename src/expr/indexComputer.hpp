@@ -18,11 +18,11 @@ namespace nissa
   /// Dispatch the internal index calculation
   ///
   /// This works when the passed components are already well ordered
-  template <typename...D,
-	    typename...C>
+  template <DerivedFromComp...D,
+	    DerivedFromComp...C>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   auto index(const CompsList<D...>& dynamicSizes,
-	     const CompFeat<C>&...comps)
+	     const C&...comps)
   {
     if constexpr(sizeof...(C)==0)
       return 0;
@@ -30,7 +30,7 @@ namespace nissa
       {
 	/// Returned type
 	using GlbIndex=
-	  std::common_type_t<int,std::decay_t<decltype((~comps)())>...>;
+	  std::common_type_t<int,std::decay_t<decltype(comps())>...>;
 	
 	/// Recursive computer
 	auto index=
@@ -93,22 +93,22 @@ namespace nissa
   /// Dispatch the internal index calculation
   ///
   /// In this case we have no dynamic component
-  template <typename...C>
+  template <DerivedFromComp...C>
   constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   auto index(const std::tuple<>&,
-	     const CompFeat<C>&...comps)
+	     const C&...comps)
   {
     /// Returned type
     using GlbIndex=
-      std::common_type_t<int,std::decay_t<decltype((~comps)())>...>;
+      std::common_type_t<int,std::decay_t<decltype(comps)>...>;
     
-    return (GlbIndex(0)%...%impl::_StackIndTerm(~comps));
+    return (GlbIndex(0)%...%impl::_StackIndTerm(comps));
   }
   
   /// Returns the index after reordering elements
   template <typename...O,
 	    typename DynamicComps,
-	    typename...U>
+	    DerivedFromComp...U>
   constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   auto orderedIndex(const DynamicComps& dynamicSizes,
 		    const U&...cs)

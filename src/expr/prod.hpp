@@ -89,7 +89,7 @@ namespace nissa
 	    typename _Fund,
 	    int...Is>
   struct THIS :
-    ProducerFeat<THIS>,
+    ProducerFeat,
     BASE
   {
     /// Import the base expression

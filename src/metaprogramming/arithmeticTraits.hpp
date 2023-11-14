@@ -16,7 +16,6 @@
 //#include <ios/logger.hpp>
 #include <metaprogramming/inline.hpp>
 #include <metaprogramming/operatorExists.hpp>
-#include <metaprogramming/templateEnabler.hpp>
 
 namespace nissa
 {

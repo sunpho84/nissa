@@ -56,7 +56,7 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     DynamicCompsProvider<FIELD_COMPS>,
-    EoField2Feat<THIS>,
+    EoField2Feat,
     BASE
   {
     /// Import the base expression

@@ -45,7 +45,7 @@ namespace nissa
 	    typename _Comb,
 	    int...Is>
   struct THIS :
-    CWiseCombinerFeat<THIS>,
+    CWiseCombinerFeat,
     BASE
   {
     /// Import the base expression

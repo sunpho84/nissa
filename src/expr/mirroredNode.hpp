@@ -40,7 +40,7 @@ namespace nissa
 	    typename _Fund>
   struct THIS :
     BASE,
-    MirroredNodeFeat<THIS>
+    MirroredNodeFeat
   {
     using This=THIS;
     
@@ -77,11 +77,11 @@ namespace nissa
     using Base::operator=;
     
     /// Assign a node
-    template <typename O>
+    template <DerivedFromNode O>
     INLINE_FUNCTION
-    MirroredNode& operator=(const NodeFeat<O>& oth)
+    MirroredNode& operator=(const O& oth)
     {
-      this->hostVal=~oth;
+      this->hostVal=oth;
       
       return *this;
     }

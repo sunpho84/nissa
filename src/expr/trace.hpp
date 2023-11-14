@@ -74,7 +74,7 @@ namespace nissa
 	    DerivedFromComp...C,
 	    typename _Fund>
   struct THIS :
-    TracerFeat<THIS>,
+    TracerFeat,
     BASE
   {
     /// Import the base expression

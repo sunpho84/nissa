@@ -162,7 +162,6 @@
 #include <metaprogramming/feature.hpp>
 #include <metaprogramming/hasMember.hpp>
 #include <metaprogramming/inline.hpp>
-#include <metaprogramming/templateEnabler.hpp>
 
 #include <new_types/complex.hpp>
 #include <new_types/dirac.hpp>

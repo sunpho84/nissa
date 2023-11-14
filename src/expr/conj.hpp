@@ -65,7 +65,7 @@ namespace nissa
 	    DerivedFromComp...C,
 	    typename _Fund>
   struct THIS :
-    ConjugatorFeat<THIS>,
+    ConjugatorFeat,
     BASE
   {
     /// Import the base expression

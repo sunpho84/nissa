@@ -16,9 +16,9 @@ namespace nissa
 {
   void paste_eo_parts_into_lx_vector_internal(void *out_lx,eo_ptr<void> in_eo,size_t bps);
   
-  template <typename LX,
+  template <DerivedFromField LX,
 	    typename EO>
-  void paste_eo_parts_into_lx_vector(FieldFeat<LX>& _outLx,
+  void paste_eo_parts_into_lx_vector(LX& _outLx,
 				     const EO& inEo)
   {
     START_TIMING(remap_time,nremap);
@@ -27,7 +27,7 @@ namespace nissa
     FOR_BOTH_PARITIES(par,
     {
       PAR(0,locVolh,
-	  CAPTURE(par,outLx=(~_outLx).getWritable(),
+	  CAPTURE(par,outLx=_outLx.getWritable(),
 		  TO_READ(inEo)),
 	  eo,
 	  {

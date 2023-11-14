@@ -40,7 +40,7 @@ namespace nissa
 	    DerivedFromComp...C,
 	    typename _Fund>
   struct THIS :
-    TransposerFeat<THIS>,
+    TransposerFeat,
     BASE
   {
     /// Import the base expression

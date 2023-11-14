@@ -23,7 +23,7 @@ namespace nissa
 	    typename _Index,
 	    _Index SizeATCompileTime>
   struct BaseComp :
-    CompFeat<_C>,
+    CompFeat,
     ArithmeticOperators<_Index,_C>
   {
     /// Value type

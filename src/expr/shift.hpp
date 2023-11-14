@@ -3,7 +3,6 @@
 
 #include <expr/field.hpp>
 #include <expr/node.hpp>
-#include <metaprogramming/templateEnabler.hpp>
 #include <metaprogramming/universalReference.hpp>
 #include <tuples/tupleSwapTypes.hpp>
 
@@ -31,7 +30,7 @@ namespace nissa
 	    DerivedFromComp...C,
 	    typename _Fund>
   struct THIS :
-    ShifterFeat<THIS>,
+    ShifterFeat,
     BASE
   {
     /// Import the base expression

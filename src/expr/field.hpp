@@ -101,7 +101,7 @@ namespace nissa
 	    MemoryType MT,
 	    bool IsRef>
   struct THIS :
-    Field2Feat<THIS>,
+    Field2Feat,
     BASE
   {
     /// Import the base expression
@@ -195,21 +195,21 @@ namespace nissa
     }
     
     /// Assigns another node
-    template <typename O>
+    template <DerivedFromNode O>
     INLINE_FUNCTION
-    Field2& operator=(const NodeFeat<O>& oth)
+    Field2& operator=(const O& oth)
     {
-      assign(~oth);
+      assign(oth);
       
       return *this;
     }
     
     /// Sumassigns another node
-    template <typename O>
+    template <DerivedFromNode O>
     INLINE_FUNCTION
-    Field2& operator+=(const NodeFeat<O>& oth)
+    Field2& operator+=(const O& oth)
     {
-      assign<SumAssign>(~oth);
+      assign<SumAssign>(oth);
       
       return *this;
     }
@@ -633,12 +633,12 @@ namespace nissa
     }
     
     /// Assign another expression
-    template <typename O>
+    template <DerivedFromNode O>
     INLINE_FUNCTION
-    explicit Field2(const NodeFeat<O>& oth) :
+    explicit Field2(const O& oth) :
       Field2()
     {
-      assign<DirectAssign>(~oth);
+      assign<DirectAssign>(oth);
     }
     
     /// Assign from fund
