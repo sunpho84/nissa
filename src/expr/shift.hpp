@@ -14,25 +14,24 @@ namespace nissa
   /// Conjugator
   ///
   /// Forward declaration to capture the components
-  template <typename _E,
+  template <DerivedFromNode _E,
 	    typename _Comps,
 	    typename _Fund>
   struct Shifter;
   
 #define THIS					\
-  Shifter<std::tuple<_E...>,CompsList<C...>,_Fund>
+  Shifter<_E,CompsList<C...>,_Fund>
   
 #define BASE					\
   Node<THIS,CompsList<C...>>
   
   /// Shifter
   ///
-  template <typename..._E,
-	    typename...C,
+  template <DerivedFromNode _E,
+	    DerivedFromComp...C,
 	    typename _Fund>
   struct THIS :
     DetectableAsShifter,
-    SubNodes<_E...>,
     BASE
   {
     /// Import the base expression
@@ -44,7 +43,10 @@ namespace nissa
     
 #undef THIS
     
-    IMPORT_SUBNODE_TYPES;
+    /// Shifted expression
+    NodeRefOrVal<_E> shiftedExpr;
+    
+    using ShiftedExpr=NodeRefOrVal<_E>;
     
     /// Components
     using Comps=
@@ -57,28 +59,11 @@ namespace nissa
     // static constexpr ExecSpace execSpace=
     //   SubNode<0>::execSpace;
     
-    /// Type of the conjugated expression
-    using ShiftedExpr=SubNode<0>;
-    
-#define PROVIDE_SHIFTED_EXPR(ATTRIB)			\
-    /*! Returns the shifted expression */		\
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
-    ATTRIB SubNode<0>& shiftedExpr() ATTRIB		\
-    {							\
-      return SUBNODE(0);				\
-    }
-    
-    PROVIDE_SHIFTED_EXPR(const);
-    
-    PROVIDE_SHIFTED_EXPR(/* non const */);
-    
-#undef PROVIDE_SHIFTED_EXPR
-    
     /// Returns the dynamic sizes
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
-      return SUBNODE(0).getDynamicSizes();
+      return shiftedExpr.getDynamicSizes();
     }
     
     /// Returns whether can assign
@@ -97,8 +82,8 @@ namespace nissa
       master_printf("%sShifter %s address %p\n",pref.c_str(),demangle(typeid(*this).name()).c_str(),this);
       master_printf("%s Orientation: %d\n",pref.c_str(),ori());
       master_printf("%s Direction: %d\n",pref.c_str(),dir());
-      master_printf("%s Shifted quantity %s, description:\n",pref.c_str(),demangle(typeid(SubNode<0>).name()).c_str());
-      SUBNODE(0).describe(pref+" ");
+      master_printf("%s Shifted quantity %s, description:\n",pref.c_str(),demangle(typeid(ShiftedExpr).name()).c_str());
+      shiftedExpr.describe(pref+" ");
       master_printf("%sEnd of shifter\n",pref.c_str());
     }
     
@@ -131,7 +116,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return recreateFromExprs(SUBNODE(0).getRef());		\
+      return recreateFromExprs(shiftedExpr.getRef());		\
     }
     
     PROVIDE_GET_REF(const);
@@ -193,12 +178,11 @@ namespace nissa
     }
     
     /// Construct
-    template <typename T>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    Shifter(T&& arg,
+    Shifter(_E arg,
 	    const Ori& ori,
 	    const Dir& dir) :
-      SubNodes<_E...>(std::forward<T>(arg)),
+      shiftedExpr{arg},
       ori(ori),
       dir(dir)
     {
@@ -228,9 +212,8 @@ namespace nissa
   }
   
   /// Create a shifter
-  template <typename _E,
-	    bool SyncHalo=true,
-	    ENABLE_THIS_TEMPLATE_IF(isNode<_E>)>
+  template <DerivedFromNode _E,
+	    bool SyncHalo=true>
   INLINE_FUNCTION constexpr
   decltype(auto) shift(_E&& e,
 		       const Ori& ori,
@@ -250,7 +233,7 @@ namespace nissa
     if constexpr(tupleHasType<Comps,LocLxSite> or tupleHasType<Comps,LocEoSite>)
       {
 	updateHaloForShift(e);
-	return Shifter<std::tuple<_E>,Comps,Fund>(std::forward<_E>(e),ori,dir);
+	return Shifter<_E,Comps,Fund>(std::forward<_E>(e),ori,dir);
       }
     else
       if constexpr(tupleHasType<Comps,LocEvnSite> or tupleHasType<Comps,LocOddSite>)
@@ -260,7 +243,7 @@ namespace nissa
 	  using OutComps=
 	    TupleSwapTypes<Comps,LocEvnSite,LocOddSite>;
 	  
-	  return Shifter<std::tuple<_E>,OutComps,Fund>(std::forward<_E>(e),ori,dir);
+	  return Shifter<_E,OutComps,Fund>(std::forward<_E>(e),ori,dir);
 	}
       else
 	return e;
@@ -268,8 +251,7 @@ namespace nissa
   
 #define PROVIDE_ORIENTED_SHIFTER(NAME,ORI)	\
   /*! Create a shifter in ORI direction*/	\
-  template <typename E,				\
-	    ENABLE_THIS_TEMPLATE_IF(isNode<E>)>	\
+  template <DerivedFromNode E>				\
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE\
   decltype(auto) shift ## NAME(E&& e,		\
 			       const Dir& dir)	\

@@ -9,7 +9,6 @@
 
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
-#include <expr/subNodes.hpp>
 #include <expr/node.hpp>
 #include <metaprogramming/arithmeticOperatorsViaCast.hpp>
 #include <tuples/tupleCat.hpp>
@@ -57,26 +56,25 @@ namespace nissa
   ///
   /// Forward declaration to capture the components
   template <typename Tc,
-	    typename _E,
+	    DerivedFromNode _E,
 	    typename _Comps,
 	    typename _Fund>
   struct Tracer;
   
 #define THIS					\
-  Tracer<CompsList<Tc...>,std::tuple<_E...>,CompsList<C...>,_Fund>
+  Tracer<CompsList<Tc...>,_E,CompsList<C...>,_Fund>
   
 #define BASE					\
   Node<THIS,CompsList<C...>>
   
   /// Tracer
   ///
-  template <typename...Tc,
-	    typename..._E,
-	    typename...C,
+  template <DerivedFromComp...Tc,
+	    DerivedFromNode _E,
+	    DerivedFromComp...C,
 	    typename _Fund>
   struct THIS :
     DetectableAsTracer,
-    SubNodes<_E...>,
     BASE
   {
     /// Import the base expression
@@ -87,8 +85,6 @@ namespace nissa
 #undef BASE
     
 #undef THIS
-    
-    static_assert(sizeof...(_E)==1,"Expecting 1 argument");
     
     /// Components
     using TracedComps=
@@ -101,7 +97,8 @@ namespace nissa
     /// Fundamental tye
     using Fund=_Fund;
     
-    IMPORT_SUBNODE_TYPES;
+    /// Expression to trace
+    NodeRefOrVal<_E> tracedExpr;
     
     // /// Executes where allocated
     // static constexpr ExecSpace execSpace=
@@ -111,7 +108,7 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
-      return SUBNODE(0).getDynamicSizes();
+      return tracedExpr.getDynamicSizes();
     }
     
     /// Returns whether can assign
@@ -147,7 +144,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return trace(SUBNODE(0).getRef());			\
+      return trace(tracedExpr.getRef());			\
     }
     
     PROVIDE_GET_REF(const);
@@ -173,36 +170,33 @@ namespace nissa
 	  {
 	    /// First argument
 	    res+=
-	      this->template subNode<0>()(nTCs...,tCs...,transp(tCs)...);
+	      this->tracedExpr(nTCs...,tCs...,transp(tCs)...);
 	  },getDynamicSizes());
 	  
 	  return
 	    res;
 	}
       else
-	return this->template subNode<0>()(nTCs...);
+	return this->tracedExpr(nTCs...);
     }
     
     /// Construct
-    template <typename T,
-	      ENABLE_THIS_TEMPLATE_IF(not isTracer<T>)>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    Tracer(T&& arg) :
-      SubNodes<_E...>(std::forward<T>(arg))
+    Tracer(_E arg) :
+      tracedExpr(arg)
     {
     }
     
     /// Copy constructor
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Tracer(const Tracer& oth) :
-      SubNodes<_E...>(oth.template subNode<0>())
+      tracedExpr(oth.tracedExpr)
     {
     }
   };
   
   /// Trace an expression
-  template <typename _E,
-	    ENABLE_THIS_TEMPLATE_IF(isNode<_E>)>
+  template <DerivedFromNode _E>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
   decltype(auto) trace(_E&& e)
   {
@@ -220,7 +214,7 @@ namespace nissa
     using Fund=typename E::Fund;
     
     return
-      Tracer<TracedComps,std::tuple<_E>,Comps,Fund>(std::forward<_E>(e));
+      Tracer<TracedComps,_E,Comps,Fund>(std::forward<_E>(e));
   }
 }
 

@@ -14,7 +14,6 @@
 #include <expr/comp.hpp>
 #include <expr/comps.hpp>
 #include <expr/node.hpp>
-#include <expr/subNodes.hpp>
 #include <metaprogramming/universalReference.hpp>
 
 namespace nissa
@@ -24,25 +23,24 @@ namespace nissa
   /// Transposer
   ///
   /// Forward declaration to capture the components
-  template <typename _E,
+  template <DerivedFromNode _E,
 	    typename _Comps,
 	    typename _Fund>
   struct Transposer;
   
 #define THIS					\
-  Transposer<std::tuple<_E...>,CompsList<C...>,_Fund>
+  Transposer<_E,CompsList<C...>,_Fund>
   
 #define BASE					\
   Node<THIS,CompsList<C...>>
   
   /// Transposer
   ///
-  template <typename..._E,
-	    typename...C,
+  template <DerivedFromNode _E,
+	    DerivedFromComp...C,
 	    typename _Fund>
   struct THIS :
     DetectableAsTransposer,
-    SubNodes<_E...>,
     BASE
   {
     /// Import the base expression
@@ -54,8 +52,6 @@ namespace nissa
     
 #undef THIS
     
-    static_assert(sizeof...(_E)==1,"Expecting 1 argument");
-    
     /// Components
     using Comps=
       CompsList<C...>;
@@ -63,7 +59,11 @@ namespace nissa
     /// Fundamental tye
     using Fund=_Fund;
     
-    IMPORT_SUBNODE_TYPES;
+    /// Transposed expression
+    NodeRefOrVal<_E> transpExpr;
+    
+    /// Type of the transposed expression
+    using TranspExpr=NodeRefOrVal<_E>;
     
     // /// Executes where allocated
     // static constexpr ExecSpace execSpace=
@@ -73,14 +73,14 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
-      return SUBNODE(0).getDynamicSizes();
+      return transpExpr.getDynamicSizes();
     }
     
     /// Returns whether can assign
     INLINE_FUNCTION
     bool canAssign()
     {
-      return SUBNODE(0).canAssign();
+      return transpExpr.canAssign();
     }
     
     /// This is a lightweight object
@@ -91,7 +91,7 @@ namespace nissa
     
     /// Return whether can be assigned at compile time
     static constexpr bool canAssignAtCompileTime=
-      SubNode<0>::canAssignAtCompileTime;
+      TranspExpr::canAssignAtCompileTime;
     
     /////////////////////////////////////////////////////////////////
     
@@ -110,7 +110,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return transp(SUBNODE(0).getRef());			\
+      return transp(transpExpr.getRef());			\
     }
     
     PROVIDE_GET_REF(const);
@@ -126,22 +126,19 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Fund eval(const TD&...td) const
     {
-      return SUBNODE(0)(transp(td)...);
+      return transpExpr(transp(td)...);
     }
     
     /// Construct
-    template <typename T>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    Transposer(T&& arg,
-	       UNIVERSAL_CONSTRUCTOR_IDENTIFIER) :
-      SubNodes<_E...>(std::forward<T>(arg))
+    Transposer(_E arg) :
+      transpExpr{arg}
     {
     }
   };
   
   /// Transpose an expression
-  template <typename _E,
-	    ENABLE_THIS_TEMPLATE_IF(isNode<_E>)>
+  template <DerivedFromNode _E>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
   decltype(auto) transp(_E&& e)
   {
@@ -154,7 +151,7 @@ namespace nissa
       std::decay_t<_E>;
     
     if constexpr(isTransposer<E>)
-      return e.template subNode<0>;
+      return e.transpExpr;
     else
       {
 	using ArgComps=
@@ -179,8 +176,7 @@ namespace nissa
 	      typename E::Fund;
 	    
 	    return
-	      Transposer<std::tuple<_E>,Comps,Fund>(std::forward<_E>(e),
-						    UNIVERSAL_CONSTRUCTOR_CALL);
+	      Transposer<_E,Comps,Fund>(std::forward<_E>(e));
 	  }
       }
   }

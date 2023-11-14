@@ -177,7 +177,7 @@ namespace nissa
     
     /// Construct
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    CompsMerger(_E& arg) :
+    CompsMerger(_E arg) :
       mergedExpr{arg}
     {
       if constexpr(mergedCompHasDynamicSize)

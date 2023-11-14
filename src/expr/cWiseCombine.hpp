@@ -12,8 +12,8 @@
 #include <expr/comps.hpp>
 #include <expr/conj.hpp>
 #include <expr/node.hpp>
-#include <expr/subNodes.hpp>
 #include <metaprogramming/arithmeticTraits.hpp>
+#include <tuples/tuple.hpp>
 #include <tuples/tupleCat.hpp>
 #include <tuples/uniqueTupleFromTuple.hpp>
 
@@ -46,7 +46,6 @@ namespace nissa
 	    int...Is>
   struct THIS :
     DetectableAsCWiseCombiner,
-    SubNodes<_E...>,
     BASE
   {
     /// Import the base expression
@@ -58,7 +57,12 @@ namespace nissa
     
 #undef THIS
     
-    IMPORT_SUBNODE_TYPES;
+    /// Subexpressions
+    Tuple<NodeRefOrVal<_E>...> subExprs;
+    
+    /// Type of I-th element
+    template <size_t I>
+    using SubExpr=decltype(subExprs.template get<I>());
     
     /// Components
     using Comps=
@@ -103,17 +107,17 @@ namespace nissa
     /// Return whether can be assigned at compile time
     static constexpr bool canAssignAtCompileTime=false;
     
-    /// Determine if coefficient-wise combination can be simdified - to be extended
-    static constexpr bool simdifyCase()
-    {
-      return
-	(SubNode<Is>::canSimdify and...) and
-	std::is_same_v<typename SubNode<Is>::SimdifyingComp...>;
-    }
+    // /// Determine if coefficient-wise combination can be simdified - to be extended
+    // static constexpr bool simdifyCase()
+    // {
+    //   return
+    // 	(SubNode<Is>::canSimdify and...) and
+    // 	std::is_same_v<typename SubNode<Is>::SimdifyingComp...>;
+    // }
     
-    /// States whether the tensor can be simdified
-    static constexpr bool canSimdify=
-      simdifyCase();
+    // /// States whether the tensor can be simdified
+    // static constexpr bool canSimdify=
+    //   simdifyCase();
     
     /// Type of the combining function
     using Comb=_Comb;
@@ -143,7 +147,7 @@ namespace nissa
     auto getRef() ATTRIB					\
     {								\
       return							\
-	Comb::compute(SUBNODE(Is).getRef()...);			\
+	Comb::compute(subExprs.template get<Is>().getRef()...);	\
     }
     
     PROVIDE_GET_REF(const);
@@ -158,7 +162,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     static auto getCompsForSubexpr(const Cs&...cs)
     {
-      return tupleGetSubset<typename SubNode<I>::Comps>(std::make_tuple(cs...));
+      return tupleGetSubset<typename SubExpr<I>::Comps>(std::make_tuple(cs...));
     }
     
     /// Evaluate
@@ -167,24 +171,22 @@ namespace nissa
     Fund eval(const Cs&...cs) const
     {
       return
-	Comb::compute(std::apply(SUBNODE(Is),getCompsForSubexpr<Is>(cs...))...);
+	Comb::compute(std::apply(subExprs.template get<Is>(),getCompsForSubexpr<Is>(cs...))...);
     }
     
     /// Construct
-    template <typename...T>
+    template <DerivedFromNode...T>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     CWiseCombiner(const DynamicComps& dynamicSizes,
-		   UNIVERSAL_CONSTRUCTOR_IDENTIFIER,
-		   T&&...addends) :
-      SubNodes<_E...>(addends...),
+		  T&&...addends) :
+      subExprs{addends...},
       dynamicSizes(dynamicSizes)
     {
     }
   };
   
   template <typename Comb,
-	    typename..._E,
-	    ENABLE_THIS_TEMPLATE_IF(isNode<_E> and...)>
+	    DerivedFromNode..._E>
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
   auto cWiseCombine(_E&&...e)
   {
@@ -198,7 +200,7 @@ namespace nissa
     
     /// Resulting type
     using Res=
-      CWiseCombiner<std::tuple<decltype(e)...>,
+      CWiseCombiner<std::tuple<_E...>,
 		    Comps,
 		    Fund,
 		    Comb>;
@@ -208,7 +210,7 @@ namespace nissa
       dynamicCompsCombiner<typename Res::DynamicComps>(e.getDynamicSizes()...);
     
     return
-      Res(dc,UNIVERSAL_CONSTRUCTOR_CALL,std::forward<_E>(e)...);
+      Res(dc,std::forward<_E>(e)...);
   }
   
 #define CATCH_BINARY_OPERATOR(OP,NAMED_OP)					\

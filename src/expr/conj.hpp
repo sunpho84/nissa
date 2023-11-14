@@ -11,7 +11,6 @@
 #include <expr/comps.hpp>
 #include <expr/node.hpp>
 #include <expr/stackTens.hpp>
-#include <expr/subNodes.hpp>
 #include <metaprogramming/detectableAs.hpp>
 #include <metaprogramming/universalReference.hpp>
 
@@ -50,25 +49,24 @@ namespace nissa
   /// Conjugator
   ///
   /// Forward declaration to capture the components
-  template <typename _E,
+  template <DerivedFromNode _E,
 	    typename _Comps,
 	    typename _Fund>
   struct Conjugator;
   
 #define THIS					\
-  Conjugator<std::tuple<_E...>,CompsList<C...>,_Fund>
+  Conjugator<_E,CompsList<C...>,_Fund>
   
 #define BASE					\
   Node<THIS,CompsList<C...>>
   
   /// Conjugator
   ///
-  template <typename..._E,
-	    typename...C,
+  template <DerivedFromNode _E,
+	    DerivedFromComp...C,
 	    typename _Fund>
   struct THIS :
     DetectableAsConjugator,
-    SubNodes<_E...>,
     BASE
   {
     /// Import the base expression
@@ -79,8 +77,6 @@ namespace nissa
 #undef BASE
     
 #undef THIS
-    
-    IMPORT_SUBNODE_TYPES;
     
     /// Components
     using Comps=
@@ -93,28 +89,17 @@ namespace nissa
     // static constexpr ExecSpace execSpace=
     //   SubNode<0>::execSpace;
     
+    /// Conugated expression
+    NodeRefOrVal<_E> conjExpr;
+    
     /// Type of the conjugated expression
-    using ConjExpr=SubNode<0>;
-    
-#define PROVIDE_CONJ_EXPR(ATTRIB)			\
-    /*! Returns the conj expression */		\
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
-    ATTRIB SubNode<0>& conjExpr() ATTRIB		\
-    {							\
-      return SUBNODE(0);				\
-    }
-    
-    PROVIDE_CONJ_EXPR(const);
-    
-    PROVIDE_CONJ_EXPR(/* non const */);
-    
-#undef PROVIDE_CONJ_EXPR
+    using ConjExpr=NodeRefOrVal<_E>;
     
     /// Returns the dynamic sizes
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
-      return SUBNODE(0).getDynamicSizes();
+      return conjExpr.getDynamicSizes();
     }
     
     /// Returns whether can assign
@@ -150,7 +135,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return conj(SUBNODE(0).getRef());				\
+      return conj(conjExpr.getRef());				\
     }
     
     PROVIDE_GET_REF(const);
@@ -170,7 +155,7 @@ namespace nissa
       
       /// Nested result
       const Fund nestedRes=
-	SUBNODE(0)(td...);
+	conjExpr(td...);
       
       if(reIm==0)
 	return nestedRes;
@@ -179,18 +164,15 @@ namespace nissa
     }
     
     /// Construct
-    template <typename T>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    Conjugator(T&& arg,
-	       UNIVERSAL_CONSTRUCTOR_IDENTIFIER) :
-      SubNodes<_E...>(std::forward<T>(arg))
+    Conjugator(_E arg) :
+      _E{arg}
     {
     }
   };
   
   /// Conjugate an expression
-  template <typename _E,
-	    ENABLE_THIS_TEMPLATE_IF(isNode<_E>)>
+  template <DerivedFromNode _E>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
   decltype(auto) conj(_E&& e)
   {
@@ -199,7 +181,7 @@ namespace nissa
       std::decay_t<_E>;
     
     if constexpr(isConjugator<E>)
-      return e.template subNode<0>;
+      return e.conjExpr;
     else
       {
 	/// Components
@@ -215,7 +197,7 @@ namespace nissa
 	      typename E::Fund;
 	    
 	    return
-	      Conjugator<std::tuple<_E>,Comps,Fund>(std::forward<_E>(e),UNIVERSAL_CONSTRUCTOR_CALL);
+	      Conjugator<_E,Comps,Fund>(std::forward<_E>(e));
 	  }
       }
   }

@@ -12,11 +12,11 @@
 #include <expr/node.hpp>
 //#include <expr/comps/prodCompsDeducer.hpp>
 #include <expr/producerDeclaration.hpp>
-#include <expr/subNodes.hpp>
 #include <metaprogramming/arithmeticTraits.hpp>
 //#include <metaprogramming/asConstexpr.hpp>
 #include <metaprogramming/asConstexpr.hpp>
 #include <routines/ios.hpp>
+#include <tuples/tuple.hpp>
 #include <tuples/tupleCat.hpp>
 #include <tuples/uniqueTupleFromTuple.hpp>
 
@@ -34,9 +34,10 @@ namespace nissa
   struct ProdCompsDeducer;
   
   /// Product component deducer
-  template <typename...TA,
-	    typename...TB>
-  struct ProdCompsDeducer<CompsList<TA...>,CompsList<TB...>>
+  template <DerivedFromComp...TA,
+	    DerivedFromComp...TB>
+  struct ProdCompsDeducer<CompsList<TA...>,
+			  CompsList<TB...>>
   {
     /// Check if a certain component is contracted or visible
     template <RwCl RC,
@@ -89,7 +90,6 @@ namespace nissa
 	    int...Is>
   struct THIS :
     DetectableAsProducer,
-    SubNodes<_E...>,
     BASE
   {
     /// Import the base expression
@@ -103,8 +103,13 @@ namespace nissa
     
     static_assert(sizeof...(_E)==2,"Expecting 2 factors");
     
-    IMPORT_SUBNODE_TYPES;
+    /// Subexpressions
+    Tuple<NodeRefOrVal<_E>...> subExprs;
     
+    /// Type of I-th element
+    template <size_t I>
+    using SubExpr=decltype(subExprs.template get<I>());
+      
     /// Components
     using Comps=
       CompsList<C...>;
@@ -164,10 +169,10 @@ namespace nissa
     void describe(const std::string pref="") const
     {
       master_printf("%sProducer %s address %p\n",pref.c_str(),demangle(typeid(*this).name()).c_str(),this);
-      master_printf("%s First factor %s, description:\n",pref.c_str(),demangle(typeid(SubNode<0>).name()).c_str());
-      SUBNODE(0).describe(pref+" ");
-      master_printf("%s Second factor %s, description:\n",pref.c_str(),demangle(typeid(SubNode<1>).name()).c_str());
-      SUBNODE(1).describe(pref+" ");
+      master_printf("%s First factor %s, description:\n",pref.c_str(),demangle(typeid(SubExpr<0>).name()).c_str());
+      subExprs.template get<0>().describe(pref+" ");
+      master_printf("%s Second factor %s, description:\n",pref.c_str(),demangle(typeid(SubExpr<1>).name()).c_str());
+      subExprs.template get<1>().describe(pref+" ");
       master_printf("%sEnd of producer\n",pref.c_str());
     }
     
@@ -179,7 +184,7 @@ namespace nissa
     auto getRef() ATTRIB					\
     {								\
       return							\
-	(SUBNODE(Is).getRef()*...);				\
+	(subExprs.template get<Is>().getRef()*...);		\
     }
     
     PROVIDE_GET_REF(const);
@@ -213,7 +218,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     static auto getCompsForFact(const CompsList<NCcs...>& nccs)
     {
-      using FreeC=TupleFilterAllTypes<typename SubNode<I>::Comps,FC>;
+      using FreeC=TupleFilterAllTypes<typename SubExpr<I>::Comps,FC>;
       
       return tupleGetSubset<FreeC>(nccs);
     }
@@ -268,7 +273,7 @@ namespace nissa
 		
 		/// Result
 		const auto res=
-		  std::apply(SUBNODE(I),std::tuple_cat(ccs,nccs,std::make_tuple(maybeReIm...)));
+		  std::apply(subExprs.template get<I>(),std::tuple_cat(ccs,nccs,std::make_tuple(maybeReIm...)));
 		
 		return res;
 	      };
@@ -301,19 +306,17 @@ namespace nissa
     }
     
     /// Construct
-    template <typename...T>
+    template <DerivedFromNode...T>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Producer(const DynamicComps& dynamicSizes,
-	     UNIVERSAL_CONSTRUCTOR_IDENTIFIER,
 	     T&&...facts) :
-      SubNodes<_E...>(facts...),
+      subExprs{facts...},
       dynamicSizes(dynamicSizes)
     {
     }
   };
   
-  template <typename..._E,
-	    ENABLE_THIS_TEMPLATE_IF(isNode<_E> and...)>
+  template <DerivedFromNode..._E>
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
   auto prod(_E&&...e)
   {
@@ -345,13 +348,12 @@ namespace nissa
       dynamicCompsCombiner<typename Res::DynamicComps>(e.getDynamicSizes()...);
     
     return
-      Res(dc,UNIVERSAL_CONSTRUCTOR_CALL,std::forward<_E>(e)...);
+      Res(dc,std::forward<_E>(e)...);
   }
   
   /// Catch the product operator
-  template <typename E1,
-	    typename E2,
-	    ENABLE_THIS_TEMPLATE_IF(isNode<E1> and isNode<E2>)>
+  template <DerivedFromNode E1,
+	    DerivedFromNode E2>
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
   auto operator*(E1&& e1,
 		 E2&& e2)
@@ -361,9 +363,8 @@ namespace nissa
   }
   
   /// Catch the self-product operator
-  template <typename E1,
-	    typename E2,
-	    ENABLE_THIS_TEMPLATE_IF(isNode<E1> and isNode<E2>)>
+  template <DerivedFromNode E1,
+	    DerivedFromNode E2>
   INLINE_FUNCTION constexpr // CUDA_HOST_AND_DEVICE
   auto operator*=(E1&& e1,
 		  E2&& e2)
