@@ -122,8 +122,8 @@ namespace nissa
     
     template <FieldLayout OFL,
 	      MemoryType OES,
-	      bool OIR,
-	      ENABLE_THIS_TEMPLATE_IF(OFL!=FL or OES!=MT)>
+	      bool OIR>
+    requires(OFL!=FL or OES!=MT)
     INLINE_FUNCTION
     Field2& operator=(const Field2<CompsList<C...>,_Fund,FC,OFL,OES,OIR>& oth)
     {
@@ -695,8 +695,8 @@ namespace nissa
     
     /// Copy construct, taking as input a non-reference when this is a reference
     template <typename O,
-	      bool B=IsRef,
-	      ENABLE_THIS_TEMPLATE_IF(B and isField2<O>)>
+	      bool B=IsRef>
+    requires(B and isField2<O>)
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     Field2(O&& oth) :
       Field2(std::forward<O>(oth),(_CopyConstructInternalDispatcher*)nullptr)
@@ -727,8 +727,8 @@ namespace nissa
     /// Construct from another exec space and/or field layout
     template <FieldLayout OFL,
 	      MemoryType OES,
-	      bool OIR,
-	      ENABLE_THIS_TEMPLATE_IF(OFL!=FL or OES!=MT)>
+	      bool OIR>
+    requires(OFL!=FL or OES!=MT)
     INLINE_FUNCTION
     Field2(const Field2<CompsList<C...>,_Fund,FC,OFL,OES,OIR>& oth) :
       Field2(oth.haloEdgesPresence)

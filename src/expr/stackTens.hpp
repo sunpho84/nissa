@@ -180,19 +180,6 @@ namespace nissa
       },std::tuple<>{});
     }
     
-    // /// Construct from an invocable
-    // template <typename F,
-    // 	      ENABLE_THIS_TEMPLATE_IF(not isNode<F> and std::is_invocable_v<F,C...>)>
-    // constexpr INLINE_FUNCTION
-    // explicit StackTens(// InitializerFunction,
-    // 		       F f) : storage{}
-    // {
-    //   loopOnAllComps<Comps>({},[this,f](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
-    //   {
-    // 	new(&((*this)(c...))) _Fund(f(c...));
-    //   });
-    // }
-    
     /// Initialize from list
     template <typename...Tail>
     constexpr INLINE_FUNCTION

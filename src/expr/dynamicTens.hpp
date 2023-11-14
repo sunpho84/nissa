@@ -205,8 +205,8 @@ namespace nissa
     
     /// Allocate the storage
     template <bool B=IsRef,
-	      typename...T,
-	      ENABLE_THIS_TEMPLATE_IF(tupleHaveTypes<std::tuple<T...>,DynamicComps> and not B)>
+	      DerivedFromComp...T>
+    requires(tupleHaveTypes<std::tuple<T...>,DynamicComps> and not B)
     void allocate(const std::tuple<T...>& _dynamicSizes)
     {
       static_assert(not IsRef,"Cannot allocate a reference");

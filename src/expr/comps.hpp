@@ -207,8 +207,7 @@ namespace nissa
   }
   
   /// Convert components to string
-  template <typename...E,
-	    ENABLE_THIS_TEMPLATE_IF((isComp<E> and...))>
+  template <DerivedFromComp...E>
   auto compsConvertToString(const std::tuple<E...>& e)
   {
     return std::apply(compsConvertToString<E...>,e);

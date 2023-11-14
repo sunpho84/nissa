@@ -225,9 +225,8 @@ namespace nissa
   };  									\
   									\
   /*! Catch the OP operator */						\
-  template <typename E1,						\
-	    typename E2,						\
-	    ENABLE_THIS_TEMPLATE_IF(isNode<E1> and isNode<E2>)>		\
+  template <DerivedFromNode E1,						\
+	    DerivedFromNode E2>						\
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
   auto operator OP(E1&& e1,						\
 		   E2&& e2)						\
@@ -271,14 +270,13 @@ namespace nissa
   };  									\
   									\
   /*! Catch the OP operator */						\
-  template <typename E,							\
-	    ENABLE_THIS_TEMPLATE_IF(isNode<E>)>				\
+  template <DerivedFromNode E>						\
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
   auto operator OP(E&& e)						\
   {									\
 									\
     return								\
-      cWiseCombine<NAMED_OP>(std::forward<E>(e)); \
+      cWiseCombine<NAMED_OP>(std::forward<E>(e));			\
   }
   
   CATCH_UNARY_OPERATOR(+,uPlus);

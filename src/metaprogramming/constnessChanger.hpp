@@ -9,7 +9,7 @@
 ///
 /// \brief Provides several changes in the constness of a quantity
 
-#include <metaprogramming/templateEnabler.hpp>
+#include <type_traits>
 
 namespace nissa
 {
@@ -21,8 +21,8 @@ namespace nissa
   }
   
   /// Remove \c const qualifier from any reference
-  template <typename T,
-	    ENABLE_THIS_TEMPLATE_IF(not std::is_pointer<T>::value)>
+  template <typename T>
+  requires(not std::is_pointer<T>::value)
   constexpr T& asMutable(const T& v) noexcept
   {
     return const_cast<T&>(v);

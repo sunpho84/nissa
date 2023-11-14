@@ -182,23 +182,23 @@ namespace nissa
 #define PROVIDE_ASSIGN_VARIATION(SYMBOL,OP)				\
     									\
     /*! Assign from another expression */				\
-      template <typename Rhs,						\
-    ENABLE_THIS_TEMPLATE_IF(not std::is_same_v<T,Rhs>)>			\
-    constexpr INLINE_FUNCTION						\
+      template <typename Rhs>						\
+	requires(not std::is_same_v<T,Rhs>)				\
+	constexpr INLINE_FUNCTION					\
 	T& operator SYMBOL(const NodeFeat<Rhs>& u)			\
-    {									\
-      return (~*this).template assign<OP>(~u);				\
-    }									\
-									\
-									\
-    /*! Assign from a scalar */						\
-    template <typename Oth,						\
-	      ENABLE_THIS_TEMPLATE_IF(std::is_arithmetic_v<Oth>)>	\
-    constexpr INLINE_FUNCTION						\
-    T& operator SYMBOL(const Oth& value)				\
-    {									\
-      return (~*this) SYMBOL scalar(value);				\
-    }
+      {									\
+	return (~*this).template assign<OP>(~u);			\
+      }									\
+      									\
+    									\
+      /*! Assign from a scalar */					\
+      template <typename Oth>						\
+	requires(std::is_arithmetic_v<Oth>)				\
+	constexpr INLINE_FUNCTION					\
+	T& operator SYMBOL(const Oth& value)				\
+      {									\
+	return (~*this) SYMBOL scalar(value);				\
+      }
     
     PROVIDE_ASSIGN_VARIATION(=,DirectAssign);
     PROVIDE_ASSIGN_VARIATION(+=,SumAssign);
@@ -341,25 +341,25 @@ namespace nissa
 #define PROVIDE_CATCH_OP_WITH_ARITHMETIC(OP)				\
 									\
   /* Catch operator OP between a node and an arithmetic type */		\
-  template <typename T,							\
-	    typename Oth,						\
-	    ENABLE_THIS_TEMPLATE_IF(std::is_arithmetic_v<Oth>)>		\
+  template <DerivedFromNode T,						\
+	    typename Oth>						\
+  requires(std::is_arithmetic_v<Oth>)					\
   constexpr INLINE_FUNCTION						\
-  auto operator OP(const NodeFeat<T>& node,				\
+  auto operator OP(const T& node,					\
 		   const Oth& value)					\
   {									\
-    return (~node) OP scalar(value);					\
+    return node OP scalar(value);					\
   }									\
   									\
   /* Catch operator OP between an arithmetic type and a node */		\
-  template <typename T,							\
-	    typename Oth,						\
-	    ENABLE_THIS_TEMPLATE_IF(std::is_arithmetic_v<Oth>)>		\
+  template <DerivedFromNode T,						\
+	    typename Oth>						\
+  requires(std::is_arithmetic_v<Oth>)					\
   constexpr INLINE_FUNCTION						\
   auto operator OP(const Oth& value,					\
-		   const NodeFeat<T>& node)				\
+		   const T& node)					\
   {									\
-    return scalar(value) OP (~node);					\
+    return scalar(value) OP node;					\
   }
   
   PROVIDE_CATCH_OP_WITH_ARITHMETIC(+);

@@ -186,8 +186,8 @@ namespace nissa
   
   /// Assign two elements
   template <typename T1,
-	    typename T2,
-	    ENABLE_THIS_TEMPLATE_IF(canAssign<T1,T2>)>
+	    typename T2>
+  requires(canAssign<T1,T2>)
   constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
   T1& assign(T1& lhs,
 	     const T2& rhs)

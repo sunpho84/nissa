@@ -12,7 +12,6 @@
 #include <metaprogramming/arithmeticOperatorsViaCast.hpp>
 #include <metaprogramming/feature.hpp>
 #include <metaprogramming/inline.hpp>
-#include <metaprogramming/templateEnabler.hpp>
 #include <metaprogramming/typeConversion.hpp>
 
 namespace nissa
@@ -63,10 +62,11 @@ namespace nissa
     BaseComp(const BaseComp&)=default;
     
     /// Init from value
-    template <typename T=Index,
-	      ENABLE_THIS_TEMPLATE_IF(isSafeNumericConversion<Index,T>)>
+    template <typename T=Index>
+    requires(isSafeNumericConversion<Index,T>)
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
-    BaseComp(T&& i) : i(i)
+    BaseComp(T&& i) :
+      i(i)
     {
     }
     

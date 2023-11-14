@@ -5,7 +5,7 @@
 # include <config.hpp>
 #endif
 
-/// \file expr/operations/dagger.hpp
+/// \file expr/dagger.hpp
 
 #include <expr/conj.hpp>
 #include <expr/node.hpp>
@@ -14,8 +14,7 @@
 namespace nissa
 {
   /// Take the dagger of an expression
-  template <typename _E,
-	    ENABLE_THIS_TEMPLATE_IF(isNode<_E>)>
+  template <DerivedFromNode _E>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
   decltype(auto) dag(_E&& e)
   {

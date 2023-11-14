@@ -13,8 +13,6 @@
 
 #include <metaprogramming/hasMember.hpp>
 #include <metaprogramming/inline.hpp>
-#include <metaprogramming/templateEnabler.hpp>
-
 
 namespace nissa
 {
@@ -60,22 +58,15 @@ namespace nissa
   
   PROVIDE_HAS_MEMBER(toPod);
   
-  /// Convert to Pod: generic case doing nothing
-  template <typename T,
-	    ENABLE_THIS_TEMPLATE_IF(not hasMember_toPod<T>)>
+  /// Convert to Pod if possible
+  template <typename T>
   INLINE_FUNCTION CUDA_HOST_AND_DEVICE
   decltype(auto) toPod(T&& t)
   {
-    return std::forward<T>(t);
-  }
-  
-  /// Convert to Pod: generic case doing nothing
-  template <typename T,
-	    ENABLE_THIS_TEMPLATE_IF(hasMember_toPod<T>)>
-  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-  decltype(auto) toPod(T&& t)
-  {
-    return t.toPod();
+    if constexpr(hasMember_toPod<T>)
+      return t.toPod();
+    else
+      return std::forward<T>(t);
   }
 }
 
