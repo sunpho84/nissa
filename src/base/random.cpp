@@ -10,7 +10,7 @@
 # include "base/random.hpp"
 
 #include "base/debug.hpp"
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "base/random.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
@@ -388,7 +388,7 @@ namespace nissa
 	});
   }
   
-  void generate_fully_undiluted_eo_source(EoField<color0>& source,
+  void generate_fully_undiluted_eo_source(OldEoField<color0>& source,
 					  const rnd_t& rtype,
 					  const int& twall,
 					  const int& dir)
@@ -416,7 +416,7 @@ namespace nissa
 	});
   }
   
-  void generate_fully_undiluted_eo_source(EoField<spincolor>& source,
+  void generate_fully_undiluted_eo_source(OldEoField<spincolor>& source,
 					  const rnd_t& rtype,
 					  const int& twall,
 					  const int& dir)
@@ -452,7 +452,7 @@ namespace nissa
   }
   
   //generate a delta source
-  void generate_delta_eo_source(EoField<su3>& source,
+  void generate_delta_eo_source(OldEoField<su3>& source,
 				const coords_t& x)
   {
     //reset

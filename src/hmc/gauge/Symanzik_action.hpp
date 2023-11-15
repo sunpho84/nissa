@@ -1,7 +1,7 @@
 #ifndef _SYMANZIK_ACTION_HPP
 #define _SYMANZIK_ACTION_HPP
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/su3.hpp"
 

@@ -1,7 +1,7 @@
 #ifndef _DIRAC_OPERATOR_TMCLOVQ_HPP
 #define _DIRAC_OPERATOR_TMCLOVQ_HPP
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "new_types/su3.hpp"
 
 namespace nissa

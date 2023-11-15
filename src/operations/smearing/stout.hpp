@@ -7,7 +7,7 @@
 
 #include <sstream>
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3_op.hpp"
@@ -74,8 +74,8 @@ namespace nissa
   //eo
   void stout_smear_whole_stack(eo_ptr<quad_su3> *out,eo_ptr<quad_su3> in,stout_pars_t *stout_pars,const which_dir_t& dirs=all_dirs);
   
-  void stout_smear(EoField<quad_su3>& ext_out,
-		   const EoField<quad_su3>& ext_in,
+  void stout_smear(OldEoField<quad_su3>& ext_out,
+		   const OldEoField<quad_su3>& ext_in,
 		   const stout_pars_t& stout_pars,
 		   const which_dir_t& dirs=all_dirs);
   

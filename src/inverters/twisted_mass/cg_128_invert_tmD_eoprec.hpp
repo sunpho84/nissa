@@ -3,7 +3,7 @@
 
 #include <optional>
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/su3.hpp"
 
@@ -11,7 +11,7 @@ namespace nissa
 {
   void inv_tmDkern_eoprec_square_eos_cg_128(OddField<spincolor>& sol,
 					    std::optional<OddField<spincolor>> guess,
-					    const EoField<quad_su3>& conf,
+					    const OldEoField<quad_su3>& conf,
 					    const double& kappa,
 					    const double& mu,
 					    const int& niter,

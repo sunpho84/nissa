@@ -39,7 +39,7 @@ namespace nissa
   
   //Prepare the source according to Equation (8.b)
   void inv_tmD_cg_eoprec_prepare_source(OddField<spincolor>& varphi,
-					const EoField<quad_su3>& conf_eos,
+					const OldEoField<quad_su3>& conf_eos,
 					const EvnField<spincolor>& eq8a,
 					const OddField<spincolor>& source_odd)
   {
@@ -63,7 +63,7 @@ namespace nissa
   //invert Koo defined in equation (7)
   void inv_tmDkern_eoprec_square_eos_cg(OddField<spincolor>& sol,
 					std::optional<OddField<spincolor>> guess,
-					const EoField<quad_su3>& conf,
+					const OldEoField<quad_su3>& conf,
 					const double& kappa,
 					const double& mass,
 					const int& nitermax,
@@ -81,7 +81,7 @@ namespace nissa
   
   //Eq.(11) up to last piece
   void inv_tmD_cg_eoprec_almost_reco_sol(EvnField<spincolor>& varphi,
-					 const EoField<quad_su3>& conf_eos,
+					 const OldEoField<quad_su3>& conf_eos,
 					 const OddField<spincolor>& sol_odd,
 					 const EvnField<spincolor>& source_evn)
   {
@@ -112,14 +112,14 @@ namespace nissa
     if(not use_eo_geom) crash("eo geometry needed to use cg_eoprec");
     
     //prepare the e/o split version of the source
-    EoField<spincolor> source_eos("source_eos",WITH_HALO);
+    OldEoField<spincolor> source_eos("source_eos",WITH_HALO);
     split_lx_vector_into_eo_parts(source_eos,source_lx);
     
     //prepare the e/o split version of the solution
-    EoField<spincolor> solution_eos("solution_eos",WITH_HALO);
+    OldEoField<spincolor> solution_eos("solution_eos",WITH_HALO);
     
     //prepare the e/o split version of the conf
-    EoField<quad_su3> conf_eos("conf_eos",WITH_HALO);
+    OldEoField<quad_su3> conf_eos("conf_eos",WITH_HALO);
     split_lx_vector_into_eo_parts(conf_eos,conf_lx);
     
     ///////////////////////////////////// invert with e/o preconditioning ///////////////////////////////////

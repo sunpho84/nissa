@@ -19,7 +19,7 @@
 # include <cuda_runtime.h>
 #endif
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/float_128.hpp"
 #include "routines/ios.hpp"
@@ -265,7 +265,7 @@ namespace nissa
   
   void testEoHaloExchange()
   {
-    EoField<int> test("testEoHalo",WITH_HALO);
+    OldEoField<int> test("testEoHalo",WITH_HALO);
     
     FOR_BOTH_PARITIES(par,
 		      PAR(0,locVolh,
@@ -359,7 +359,7 @@ namespace nissa
   
   void testEoEdgesExchange()
   {
-    EoField<int> test("testEoEdge",WITH_HALO_EDGES);
+    OldEoField<int> test("testEoEdge",WITH_HALO_EDGES);
     FOR_BOTH_PARITIES(par,
 		      PAR(0,locVolh,
 			  CAPTURE(par,test=test[par].getWritable()),i,

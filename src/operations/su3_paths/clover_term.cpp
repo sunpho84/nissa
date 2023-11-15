@@ -110,8 +110,8 @@ namespace nissa
 	});
   }
   
-  void chromo_operator(EoField<clover_term_t>& Cl_eo,
-		       const EoField<quad_su3>& conf_eo)
+  void chromo_operator(OldEoField<clover_term_t>& Cl_eo,
+		       const OldEoField<quad_su3>& conf_eo)
   {
     LxField<quad_su3> conf_lx("conf_lx",WITH_HALO_EDGES);
     LxField<clover_term_t> Cl_lx("Cl_lx");

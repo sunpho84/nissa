@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #include <base/bench.hpp>
-#include <base/field.hpp>
+#include <base/old_field.hpp>
 #include <geometry/geometry_eo.hpp>
 #include <new_types/su3.hpp>
 

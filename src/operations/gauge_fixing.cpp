@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include <base/debug.hpp>
-#include <base/field.hpp>
+#include <base/old_field.hpp>
 #include <base/random.hpp>
 #include <base/vectors.hpp>
 #include <communicate/borders.hpp>
@@ -64,9 +64,9 @@ namespace nissa
   }
   
   //e/o version
-  void gauge_transform_conf(EoField<quad_su3>& uout,
-			    const EoField<su3>& g,
-			    const EoField<quad_su3>& uin)
+  void gauge_transform_conf(OldEoField<quad_su3>& uout,
+			    const OldEoField<su3>& g,
+			    const OldEoField<quad_su3>& uin)
   {
     //communicate borders
     g.updateHalo();
@@ -820,12 +820,12 @@ namespace nissa
     gauge_transform_conf(conf_out,fixm,conf_in);
   }
   
-  void perform_random_gauge_transform(EoField<quad_su3>& conf_out,
-				      const EoField<quad_su3>& conf_in)
+  void perform_random_gauge_transform(OldEoField<quad_su3>& conf_out,
+				      const OldEoField<quad_su3>& conf_in)
   {
     
     //allocate fixing matrix
-    EoField<su3> fixm("fixm",WITH_HALO);
+    OldEoField<su3> fixm("fixm",WITH_HALO);
     
     //extract random SU(3) matrix
     PAR(0,locVol,

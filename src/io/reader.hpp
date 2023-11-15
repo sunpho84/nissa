@@ -143,7 +143,7 @@ namespace nissa
   }
   
   //read an ildg conf and split it into e/o parts
-  inline void read_ildg_gauge_conf_and_split_into_eo_parts(EoField<quad_su3>& eo_conf,
+  inline void read_ildg_gauge_conf_and_split_into_eo_parts(OldEoField<quad_su3>& eo_conf,
 							   const std::string& path,
 							   ILDG_message* mess=nullptr)
   {

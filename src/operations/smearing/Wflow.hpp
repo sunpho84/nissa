@@ -204,7 +204,7 @@ namespace nissa
     
     //add or remove backfield
     void add_or_rem_backfield_to_confs(const bool& add_rem,
-				       const EoField<quad_u1>& u1)
+				       const OldEoField<quad_u1>& u1)
     {
       for(int i=0;i<nint_steps;i++)
 	add_or_rem_backfield_with_or_without_stagphases_to_conf(conf[i],add_rem,u1,true);

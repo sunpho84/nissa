@@ -1,7 +1,7 @@
 #ifndef _DIRAC_OPERATOR_TMCLOVQ2_HPP
 #define _DIRAC_OPERATOR_TMCLOVQ2_HPP
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include <dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp>
 
 namespace nissa

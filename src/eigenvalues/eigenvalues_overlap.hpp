@@ -1,7 +1,7 @@
 #ifndef _EIGENVALUES_OVERLAP_HPP
 #define _EIGENVALUES_OVERLAP_HPP
 
-#include <base/field.hpp>
+#include <base/old_field.hpp>
 #include <eigenvalues/eigenvalues.hpp>
 #include <new_types/rat_approx.hpp>
 #include <new_types/su3.hpp>

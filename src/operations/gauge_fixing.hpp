@@ -3,7 +3,7 @@
 
 #include <sstream>
 
-#include <base/field.hpp>
+#include <base/old_field.hpp>
 #include <io/input.hpp>
 #include <new_types/su3.hpp>
 #include <routines/ios.hpp>

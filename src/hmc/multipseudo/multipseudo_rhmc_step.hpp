@@ -262,8 +262,8 @@ namespace nissa
     }
   };
   
-  double multipseudo_rhmc_step(EoField<quad_su3>& out_conf,
-			       const EoField<quad_su3>& in_conf,
+  double multipseudo_rhmc_step(OldEoField<quad_su3>& out_conf,
+			       const OldEoField<quad_su3>& in_conf,
 			       theory_pars_t &theory_pars,
 			       hmc_evol_pars_t &simul_pars,
 			       std::vector<rat_approx_t> &rat_appr,

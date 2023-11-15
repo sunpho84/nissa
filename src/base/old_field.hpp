@@ -1,5 +1,5 @@
-#ifndef _FIELD_HPP
-#define _FIELD_HPP
+#ifndef _OLD_FIELD_HPP
+#define _OLD_FIELD_HPP
 
 #ifdef HAVE_CONFIG_H
 # include "config.hpp"
@@ -197,7 +197,7 @@ namespace nissa
   
   /// Field
   template <typename F>
-  struct FieldRef
+  struct OldFieldRef
   {
     using Comps=typename F::Comps;
     
@@ -220,7 +220,7 @@ namespace nissa
 	  _data[site];							\
       else								\
 	return								\
-	  SubscribedField<CONST FieldRef,				\
+	  SubscribedField<CONST OldFieldRef,				\
 	  std::remove_extent_t<Comps>>(*this,site,nullptr);		\
     }
     
@@ -258,7 +258,7 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     /// Construct from field
-    FieldRef(F& f) :
+    OldFieldRef(F& f) :
       f(f),
       externalSize(f.externalSize),
       _data(f._data)
@@ -268,7 +268,7 @@ namespace nissa
     
     /// Copy constructor
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    FieldRef(const FieldRef& oth) :
+    OldFieldRef(const OldFieldRef& oth) :
       f(oth.f),
       externalSize(oth.externalSize),
       _data(oth._data)
@@ -280,7 +280,7 @@ namespace nissa
     
     /// Destructor
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    ~FieldRef()
+    ~OldFieldRef()
     {
 #ifndef COMPILING_FOR_DEVICE
       f.nRef--;
@@ -299,7 +299,7 @@ namespace nissa
   template <typename T,
 	    FieldCoverage FC,
 	    FieldLayout FL=defaultFieldLayout>
-  struct Field :
+  struct OldField :
     FieldFeat,
     FieldSizes<FC>
   {
@@ -393,7 +393,7 @@ namespace nissa
     // }
     
 #define PROVIDE_SELFOP(OP)						\
-    Field& operator OP ## =(const Field& oth)				\
+    OldField& operator OP ## =(const OldField& oth)			\
     {									\
       PAR(0,this->nSites(),						\
 	  CAPTURE(t=this->getWritable(),				\
@@ -413,7 +413,7 @@ namespace nissa
 #undef PROVIDE_SELFOP
     
 #define PROVIDE_SELF_SCALOP(OP)						\
-    Field& operator OP ## =(const Fund& oth)				\
+    OldField& operator OP ## =(const Fund& oth)				\
     {									\
       PAR(0,this->nSites(),						\
 	  CAPTURE(oth,							\
@@ -447,7 +447,7 @@ namespace nissa
     /// Squared norm
     double norm2() const
     {
-      Field<Fund,FC> buf("buf");
+      OldField<Fund,FC> buf("buf");
       
       PAR(0,this->nSites(),
 	  CAPTURE(t=this->getReadable(),
@@ -468,7 +468,7 @@ namespace nissa
     
     void reduce(T& out) const
     { //hack
-      Field tmp("tmp");
+      OldField tmp("tmp");
       tmp=*this;
       
       int64_t n=this->nSites();
@@ -501,9 +501,9 @@ namespace nissa
     
     /// (*this,out)
     void scalarProdWith(complex& out,
-			const Field& oth) const
+			const OldField& oth) const
     {
-      Field<complex,FC> buf("buf");
+      OldField<complex,FC> buf("buf");
       
       using NT=Fund[nInternalDegs][2];
       const auto& l=castComponents<NT>();
@@ -527,9 +527,9 @@ namespace nissa
     }
     
     /// Re(*this,out)
-    double realPartOfScalarProdWith(const Field& oth) const
+    double realPartOfScalarProdWith(const OldField& oth) const
     {
-      Field<double,FC> buf("buf");
+      OldField<double,FC> buf("buf");
       
       PAR(0,this->nSites(),
 	  CAPTURE(TO_WRITE(buf),
@@ -553,24 +553,24 @@ namespace nissa
     /* Cast to a different fieldCoverage */				\
     template <FieldCoverage NFC,					\
 	      bool Force=false>						\
-    CONST Field<T,NFC,FL>& castFieldCoverage() CONST			\
+    CONST OldField<T,NFC,FL>& castFieldCoverage() CONST			\
     {									\
       if constexpr(not (Force or FC== EVEN_OR_ODD_SITES))	\
 	static_assert(NFC==EVEN_SITES or NFC==ODD_SITES, \
 		      "incompatible fieldCoverage! Force the change if needed"); \
 									\
-      return *(CONST Field<T,NFC,FL>*)this;				\
+      return *(CONST OldField<T,NFC,FL>*)this;				\
     }									\
 									\
     /* Cast to a different comps */					\
     template <typename NT,						\
 	      bool Force=false>						\
-    CONST Field<NT,FC,FL>& castComponents() CONST			\
+    CONST OldField<NT,FC,FL>& castComponents() CONST			\
     {									\
       static_assert(Force or sizeof(T)==sizeof(NT),			\
 		    "incompatible components! Force the change if needed"); \
       									\
-      return *(CONST Field<NT,FC,FL>*)this;				\
+      return *(CONST OldField<NT,FC,FL>*)this;				\
     }
     
     PROVIDE_CASTS(const);
@@ -580,7 +580,7 @@ namespace nissa
 #undef PROVIDE_CASTS
     
     /// Constructor
-    Field(const char *name,
+    OldField(const char *name,
 	  const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
       nRef(0),
       name(name),
@@ -594,7 +594,7 @@ namespace nissa
     }
     
     /// Move constructor
-    Field(Field&& oth) :
+    OldField(OldField&& oth) :
       nRef(oth.nRef),
       name(oth.name),
       haloEdgesPresence(oth.haloEdgesPresence),
@@ -608,15 +608,15 @@ namespace nissa
     }
     
     /// Copy constructor
-    Field(const Field& oth) :
-      Field(oth.name,oth.haloEdgesPresence)
+    OldField(const OldField& oth) :
+      OldField(oth.name,oth.haloEdgesPresence)
     {
       *this=oth;
     }
     
     /// Destructor
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    ~Field()
+    ~OldField()
     {
 #ifndef COMPILING_FOR_DEVICE
       master_printf("Deallocating field %s\n",name);
@@ -639,7 +639,7 @@ namespace nissa
 	  _data[site];							\
       else								\
 	return								\
-	  SubscribedField<CONST Field,					\
+	  SubscribedField<CONST OldField,					\
 	  std::remove_extent_t<T>>(*this,site,nullptr);			\
     }
     
@@ -650,13 +650,13 @@ namespace nissa
 #undef PROVIDE_SUBSCRIBE_OPERATOR
     
     constexpr INLINE_FUNCTION
-    FieldRef<Field> getWritable()
+    OldFieldRef<OldField> getWritable()
     {
       return *this;
     }
     
     constexpr INLINE_FUNCTION
-    FieldRef<const Field> getReadable() const
+    OldFieldRef<const OldField> getReadable() const
     {
       return *this;
     }
@@ -714,7 +714,7 @@ namespace nissa
     {
       fillSendingBufWith([] CUDA_DEVICE(const int& i) INLINE_ATTRIBUTE
       {
-	return Field::surfSiteOfHaloSite(i);
+	return OldField::surfSiteOfHaloSite(i);
       },bord_vol/divCoeff);
     }
     
@@ -723,7 +723,7 @@ namespace nissa
     {
       fillSendingBufWith([] CUDA_DEVICE(const int& i) INLINE_ATTRIBUTE
       {
-	return Field::surfSiteOfEdgeSite(i);
+	return OldField::surfSiteOfEdgeSite(i);
       },edge_vol/divCoeff);
     }
     
@@ -744,7 +744,7 @@ namespace nissa
 		  iHaloOriDir+bord_offset[mu]/divCoeff;
 		
 		const int iSurf=
-		  Field::surfSiteOfHaloSite(iHalo);
+		  OldField::surfSiteOfHaloSite(iHalo);
 		
 		f(t[iSurf],
 		  ((B*)recv_buf)[iHalo],
@@ -843,7 +843,7 @@ namespace nissa
       /// Pending requests
       std::vector<MPI_Request> requests;
       
-      assertCanCommunicate(Field::nHaloSites());
+      assertCanCommunicate(OldField::nHaloSites());
       
       //take time and write some debug output
       START_TIMING(tot_comm_time,ntot_comm);
@@ -887,7 +887,7 @@ namespace nissa
       /// Pending requests
       std::vector<MPI_Request> requests;
       
-      assertCanCommunicate(Field::nEdgesSites());
+      assertCanCommunicate(OldField::nEdgesSites());
       
       //take time and write some debug output
       START_TIMING(tot_comm_time,ntot_comm);
@@ -957,14 +957,14 @@ namespace nissa
     
     /// Compare
     INLINE_FUNCTION
-    bool operator==(const Field& oth) const
+    bool operator==(const OldField& oth) const
     {
       return _data==oth._data;
     }
     
     /// Negate comparison
     INLINE_FUNCTION
-    bool operator!=(const Field& oth) const
+    bool operator!=(const OldField& oth) const
     {
       return not ((*this)==oth);
     }
@@ -988,7 +988,7 @@ namespace nissa
     /// Assigns from a different layout
     template <FieldLayout OFl>
     INLINE_FUNCTION
-    Field& operator=(const Field<T,FC,OFl>& oth)
+    OldField& operator=(const OldField<T,FC,OFl>& oth)
     {
       assign(oth);
       
@@ -997,7 +997,7 @@ namespace nissa
     
     /// Assign the same layout
     INLINE_FUNCTION
-    Field& operator=(const Field& oth)
+    OldField& operator=(const OldField& oth)
     {
       if(this!=&oth)
 	assign(oth);
@@ -1020,22 +1020,22 @@ namespace nissa
   /// Lexicographic field
   template <typename T,
 	    FieldLayout FL=defaultFieldLayout>
-  using LxField=Field<T,FULL_SPACE,FL>;
+  using LxField=OldField<T,FULL_SPACE,FL>;
   
   /// Field over even sites
   template <typename T,
 	    FieldLayout FL=defaultFieldLayout>
-  using EvnField=Field<T,EVEN_SITES,FL>;
+  using EvnField=OldField<T,EVEN_SITES,FL>;
   
   /// Field over odd sites
   template <typename T,
 	    FieldLayout FL=defaultFieldLayout>
-  using OddField=Field<T,ODD_SITES,FL>;
+  using OddField=OldField<T,ODD_SITES,FL>;
   
   /// Field over even or odd sites
   template <typename T,
 	    FieldLayout FL=defaultFieldLayout>
-  using EvenOrOddField=Field<T,EVEN_OR_ODD_SITES,FL>;
+  using EvenOrOddField=OldField<T,EVEN_OR_ODD_SITES,FL>;
   
   /////////////////////////////////////////////////////////////////
   
@@ -1064,13 +1064,13 @@ namespace nissa
   /// Structure to hold an even/old field
   template <typename T,
 	    FieldLayout FL=defaultFieldLayout,
-	    typename Fevn=Field<T,EVEN_SITES,FL>,
-	    typename Fodd=Field<T,ODD_SITES,FL>>
-  struct EoField
+	    typename Fevn=OldField<T,EVEN_SITES,FL>,
+	    typename Fodd=OldField<T,ODD_SITES,FL>>
+  struct OldEoField
   {
     /// Type representing a pointer to type T
     template <FieldCoverage EO>
-    using F=Field<T,EO,FL>;
+    using F=OldField<T,EO,FL>;
     
     Fevn evenPart;
     
@@ -1104,7 +1104,7 @@ namespace nissa
     CONST auto& operator[](const int eo) CONST				\
     {									\
       using EOOF=							\
-	CONST Field<T,EVEN_OR_ODD_SITES,FL>;		\
+	CONST OldField<T,EVEN_OR_ODD_SITES,FL>;				\
       									\
       EOOF* t[2]={(EOOF*)&evenPart,(EOOF*)&oddPart};			\
       									\
@@ -1120,25 +1120,25 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     constexpr INLINE_FUNCTION
-    EoField<T,FL,
-	    FieldRef<Field<T,EVEN_SITES,FL>>,
-	    FieldRef<Field<T,ODD_SITES,FL>>>
+    OldEoField<T,FL,
+	    OldFieldRef<OldField<T,EVEN_SITES,FL>>,
+	    OldFieldRef<OldField<T,ODD_SITES,FL>>>
     getWritable()
     {
       return {evenPart,oddPart};
     }
     
     constexpr INLINE_FUNCTION
-    EoField<T,FL,
-	    FieldRef<const Field<T,EVEN_SITES,FL>>,
-	    FieldRef<const Field<T,ODD_SITES,FL>>>
+    OldEoField<T,FL,
+	    OldFieldRef<const OldField<T,EVEN_SITES,FL>>,
+	    OldFieldRef<const OldField<T,ODD_SITES,FL>>>
     getReadable() const
     {
       return {evenPart,oddPart};
     }
     
     /// Constructor
-    EoField(Fevn&& ev,
+    OldEoField(Fevn&& ev,
 	    Fodd&& od) :
       evenPart(ev),
       oddPart(od)
@@ -1146,7 +1146,7 @@ namespace nissa
     }
     
     /// Constructor
-    EoField(const char* name,
+    OldEoField(const char* name,
 	    const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
       evenPart(name,haloEdgesPresence),
       oddPart(name,haloEdgesPresence)
@@ -1154,7 +1154,7 @@ namespace nissa
     }
     
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    ~EoField()
+    ~OldEoField()
     {
     }
     
@@ -1210,21 +1210,21 @@ namespace nissa
     
     /// Compare
     INLINE_FUNCTION
-    bool operator==(const EoField& oth) const
+    bool operator==(const OldEoField& oth) const
     {
       return evenPart==oth.evenPart and oddPart==oth.oddPart;
     }
     
     /// Negate comparison
     INLINE_FUNCTION
-    bool operator!=(const EoField& oth) const
+    bool operator!=(const OldEoField& oth) const
     {
       return not ((*this)==oth);
     }
     
     /// Assign
     INLINE_FUNCTION
-    EoField& operator=(const EoField& oth)
+    OldEoField& operator=(const OldEoField& oth)
     {
       evenPart=oth.evenPart;
       oddPart=oth.oddPart;

@@ -1,7 +1,7 @@
 #ifndef _FOURIER_TRANSFORM_HPP
 #define _FOURIER_TRANSFORM_HPP
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
 

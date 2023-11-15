@@ -1,7 +1,7 @@
 #ifndef _TLSYM_GAUGE_PROPAGATOR_HPP
 #define _TLSYM_GAUGE_PROPAGATOR_HPP
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "free_theory_types.hpp"
 #include "new_types/spin.hpp"
 

@@ -1,7 +1,7 @@
 #ifndef _CONF_HPP
 #define _CONF_HPP
 
-#include <base/field.hpp>
+#include <base/old_field.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <new_types/su3.hpp>
 

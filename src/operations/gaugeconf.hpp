@@ -154,8 +154,8 @@ namespace nissa
 				 const int& putonedges=false);
   
   void cool_lx_conf(quad_su3 *conf,gauge_sweeper_t *sweeper);
-  void generate_cold_eo_conf(EoField<quad_su3>& conf);
-  void generate_hot_eo_conf(EoField<quad_su3>& conf);
+  void generate_cold_eo_conf(OldEoField<quad_su3>& conf);
+  void generate_hot_eo_conf(OldEoField<quad_su3>& conf);
   
   /// Generate an identical conf
   template <typename C>

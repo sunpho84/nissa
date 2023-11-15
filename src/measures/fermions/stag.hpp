@@ -66,34 +66,34 @@ namespace nissa
     void fill_source(eo_ptr<color0> src,int twall,rnd_t noise_type);
     void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color0> left,eo_ptr<quad_su3> conf,int mu,eo_ptr<color0> right,complex *point_result);
     
-    void mult_Minv(EoField<color0>& prop,
-		   EoField<quad_su3> conf,
-		   const EoField<quad_u1>& u1b,
+    void mult_Minv(OldEoField<color0>& prop,
+		   OldEoField<quad_su3> conf,
+		   const OldEoField<quad_u1>& u1b,
 		   const double& m,
 		   const double& residue,
-		   const EoField<color0>& source);
+		   const OldEoField<color0>& source);
     
-    void mult_Minv(EoField<color0>& prop,
-		   const EoField<quad_su3>& conf,
+    void mult_Minv(OldEoField<color0>& prop,
+		   const OldEoField<quad_su3>& conf,
 		   const theory_pars_t& pars,
 		   const int& iflav,
 		   const double& residue,
-		   const EoField<color0>& source);
+		   const OldEoField<color0>& source);
     
-    void mult_dMdmu(EoField<color0>& out,
+    void mult_dMdmu(OldEoField<color0>& out,
 		    const theory_pars_t& theory_pars,
-		    EoField<quad_su3> conf,
+		    OldEoField<quad_su3> conf,
 		    const int& iflav,
 		    const int& ord,
-		    const EoField<color0>& in);
+		    const OldEoField<color0>& in);
     
     void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars);
     void insert_vector_vertex(eo_ptr<color0> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color0> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,int ieo,int mu,void *pars),int t,void *pars=NULL);
     
     void summ_the_trace(complex& out,
 			LxField<complex>& point_result,
-			const EoField<color0>& A,
-			const EoField<color0>& B);
+			const OldEoField<color0>& A,
+			const OldEoField<color0>& B);
     
     enum shift_orie_t{UP,DW,BOTH};
     void apply_covariant_shift(eo_ptr<color0> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color0> in,shift_orie_t side=BOTH);

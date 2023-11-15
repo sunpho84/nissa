@@ -1,7 +1,7 @@
 #ifndef _DIRAC_OPERATOR_OVERLAP_KERNEL2_HPP
 #define _DIRAC_OPERATOR_OVERLAP_KERNEL2_HPP
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "new_types/su3.hpp"
 #include "new_types/rat_approx.hpp"
 

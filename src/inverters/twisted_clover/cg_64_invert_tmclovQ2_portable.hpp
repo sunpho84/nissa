@@ -5,7 +5,7 @@
 #include <cmath>
 #include <optional>
 
-#include <base/field.hpp>
+#include <base/old_field.hpp>
 #include <dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp>
 #include <inverters/templates/cg_invert_template_threaded.hpp>
 

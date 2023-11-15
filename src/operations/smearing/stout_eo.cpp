@@ -64,8 +64,8 @@ namespace nissa
   }
   
   //smear the configuration according to Peardon paper
-  void stout_smear_single_level(EoField<quad_su3>& out,
-				const EoField<quad_su3>& in,
+  void stout_smear_single_level(OldEoField<quad_su3>& out,
+				const OldEoField<quad_su3>& in,
 				const double& rho,
 				const which_dir_t& dirs)
   {
@@ -101,8 +101,8 @@ namespace nissa
   }
   
   //smear n times, using only one additional vectors
-  void stout_smear(EoField<quad_su3>& out,
-		   const EoField<quad_su3>& in,
+  void stout_smear(OldEoField<quad_su3>& out,
+		   const OldEoField<quad_su3>& in,
 		   const stout_pars_t& stout_pars,
 		   const which_dir_t& dirs)
   {
@@ -117,7 +117,7 @@ namespace nissa
 	if(stout_pars.nlevels>1)
 	  {
 	    //allocate temp
-	    EoField<quad_su3> tmp("tmp",WITH_HALO);
+	    OldEoField<quad_su3> tmp("tmp",WITH_HALO);
 	    
 	    for(int i=1;i<stout_pars.nlevels;i++)
 	      {

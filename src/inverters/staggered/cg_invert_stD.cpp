@@ -4,7 +4,7 @@
 
 #include "cg_invert_evn_stD.hpp"
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 // #include "base/quda_bridge.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "geometry/geometry_lx.hpp"

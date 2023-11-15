@@ -10,7 +10,7 @@ namespace nissa
 {
   inline void inv_tmDkern_eoprec_square_eos_cg_64(OddField<spincolor>& sol,
 						  std::optional<OddField<spincolor>> guess,
-						  const EoField<quad_su3>& conf,
+						  const OldEoField<quad_su3>& conf,
 						  const double& kappa,
 						  const double& mu,
 						  const int& niter,

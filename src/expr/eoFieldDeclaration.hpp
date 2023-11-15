@@ -5,7 +5,7 @@
 # include "config.hpp"
 #endif
 
-#include <base/field.hpp>
+#include <base/old_field.hpp>
 #include <base/memory_manager.hpp>
 #include <expr/field.hpp>
 

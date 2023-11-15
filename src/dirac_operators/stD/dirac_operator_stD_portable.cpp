@@ -2,7 +2,7 @@
  #include "config.hpp"
 #endif
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/su3_op.hpp"

@@ -99,7 +99,7 @@ namespace nissa
     }
     
     /// Constructor
-    tm_corr_op(EoField<quad_su3>& ext_conf,
+    tm_corr_op(OldEoField<quad_su3>& ext_conf,
 	       const double& residue,
 	       const theory_pars_t& tp) :
       conf("conf",WITH_HALO_EDGES),

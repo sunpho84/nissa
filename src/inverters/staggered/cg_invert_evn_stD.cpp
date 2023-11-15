@@ -4,7 +4,7 @@
 
 #include <optional>
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "inverters/staggered/cg_invert_stD2ee_m2.hpp"
 #include "new_types/su3.hpp"

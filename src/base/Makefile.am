@@ -16,7 +16,7 @@ BUILT_SOURCES+= \
 __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/bench.cpp \
 	%D%/debug.cpp \
-	%D%/field.cpp \
+	%D%/old_field.cpp \
 	%D%/init.cpp \
 	%D%/memory_manager.cpp \
 	%D%/multiGridParams.cpp \
@@ -28,7 +28,7 @@ include_HEADERS+= \
 	%D%/close.hpp \
 	%D%/cuda_test.hpp \
 	%D%/debug.hpp \
-	%D%/field.hpp \
+	%D%/old_field.hpp \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
 	%D%/memory_manager.hpp \

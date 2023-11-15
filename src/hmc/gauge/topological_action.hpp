@@ -31,7 +31,7 @@ namespace nissa
     
     stout_pars_t stout_pars;
     
-    void store_if_needed(const EoField<quad_su3>& ext_conf,
+    void store_if_needed(const OldEoField<quad_su3>& ext_conf,
 			 const int& iconf) const
       {
 	crash("reimplement");
@@ -135,7 +135,7 @@ namespace nissa
   }
   
   //Compute the topological action
-  inline double topotential_action(const EoField<quad_su3>& conf,
+  inline double topotential_action(const OldEoField<quad_su3>& conf,
 				   const topotential_pars_t &pars)
   {
     crash("reimplent");
@@ -171,7 +171,7 @@ namespace nissa
 			    const topotential_pars_t &pars)
   {
     //allocate
-    EoField<quad_su3> eo_conf("stout_conf",WITH_HALO_EDGES);
+    OldEoField<quad_su3> eo_conf("stout_conf",WITH_HALO_EDGES);
     
     //split and compute
     split_lx_vector_into_eo_parts(eo_conf,lx_conf);

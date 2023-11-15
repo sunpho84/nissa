@@ -2,7 +2,7 @@
 #define _COVARIANT_DERIVATIVE_HPP
 
 #include "base/vectors.hpp"
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <base/field.hpp>
+#include <base/old_field.hpp>
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "hmc/quark_pars.hpp"
@@ -63,10 +63,10 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
 
   //initialize an u(1) field to unity
-  void init_backfield_to_id(EoField<quad_u1>& S);
+  void init_backfield_to_id(OldEoField<quad_u1>& S);
   
   //multiply a background field by the imaginary chemical potential
-  void add_im_pot_to_backfield(EoField<quad_u1>& S,
+  void add_im_pot_to_backfield(OldEoField<quad_u1>& S,
 			       const quark_content_t& quark_content);
   
   //compute args for non-present quantization
@@ -87,7 +87,7 @@ namespace nissa
 								   const int& nu);
   //multiply a background field by a constant em field
   //mu nu refers to the entry of F_mu_nu involved
-  void add_em_field_to_backfield(EoField<quad_u1>& S,
+  void add_em_field_to_backfield(OldEoField<quad_u1>& S,
 				 const quark_content_t& quark_content,
 				 const double& em_str,
 				 const int& quantization,
@@ -95,27 +95,27 @@ namespace nissa
 				 const int& nu);
   
   //set up all the 6 components
-  void add_em_field_to_backfield(EoField<quad_u1>& S,
+  void add_em_field_to_backfield(OldEoField<quad_u1>& S,
 				 const quark_content_t& quark_content,
 				 const em_field_pars_t& em_field_pars);
   
   // Add the antiperiodic condition on the on dir mu
-  void add_antiperiodic_condition_to_backfield(EoField<quad_u1>& S,
+  void add_antiperiodic_condition_to_backfield(OldEoField<quad_u1>& S,
 					       const int& mu);
   
   //multiply the configuration for stagphases
-  void add_or_rem_stagphases_to_conf(EoField<quad_su3>& conf);
+  void add_or_rem_stagphases_to_conf(OldEoField<quad_su3>& conf);
   
   //multiply the configuration for an additional U(1) field and possibly stagphases
-  void add_or_rem_backfield_with_or_without_stagphases_to_conf(EoField<quad_su3>& conf,
+  void add_or_rem_backfield_with_or_without_stagphases_to_conf(OldEoField<quad_su3>& conf,
 							       const bool& add_rem,
-							       const EoField<quad_u1>& u1,
+							       const OldEoField<quad_u1>& u1,
 							       const bool& with_without);
   
   //multiply the configuration for an additional U(1) field and possibly stagphases
   void add_or_rem_backfield_with_or_without_stagphases_to_conf(LxField<quad_su3>& conf,
 							       const bool& add_rem,
-							       const EoField<quad_u1>& u1,
+							       const OldEoField<quad_u1>& u1,
 							       const bool& with_without);
   
   //include or remove with stagphases

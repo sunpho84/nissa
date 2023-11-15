@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "new_types/su3_op.hpp"
 
 namespace nissa

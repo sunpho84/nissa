@@ -26,7 +26,7 @@ namespace nissa
       return WILSON_GAUGE_ACTION;
     }
     
-    std::vector<EoField<quad_u1>> backfield;
+    std::vector<OldEoField<quad_u1>> backfield;
     
     std::vector<quark_content_t> quarks;
     

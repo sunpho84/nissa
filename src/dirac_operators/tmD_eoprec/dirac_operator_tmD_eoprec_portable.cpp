@@ -1,6 +1,6 @@
 #pragma once
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "new_types/su3_op.hpp"
@@ -35,7 +35,7 @@ namespace nissa
   //implement Koo defined in equation (7)
   void tmDkern_eoprec_eos(OddField<spincolor>& out,
 			  EvnField<spincolor>& temp,
-			  const EoField<quad_su3>& conf,
+			  const OldEoField<quad_su3>& conf,
 			  const double& kappa,
 			  const double& mu,
 			  const OddField<spincolor>& in)
@@ -53,7 +53,7 @@ namespace nissa
   void tmDkern_eoprec_square_eos(OddField<spincolor>& out,
 				 OddField<spincolor>& temp1,
 				 EvnField<spincolor>& temp2,
-				 const EoField<quad_su3>& conf,
+				 const OldEoField<quad_su3>& conf,
 				 const double& kappa,
 				 const double& mu,
 				 const OddField<spincolor>& in)

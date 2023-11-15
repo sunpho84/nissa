@@ -44,7 +44,7 @@ namespace nissa
   //invert Koo defined in equation (7)
   void inv_tmclovDkern_eoprec_square_eos_cg(OddField<spincolor>& sol,
 					    std::optional<OddField<spincolor>> guess,
-					    const EoField<quad_su3>& conf,
+					    const OldEoField<quad_su3>& conf,
 					    const double& kappa,
 					    const double& cSW,
 					    const OddField<clover_term_t>& Cl_odd,
@@ -90,14 +90,14 @@ namespace nissa
     const LxField<inv_clover_term_t> invCl_lx=*_invCl_lx;
     
     //prepare the e/o split version of the source
-    EoField<spincolor> source_eos("source_eos",WITH_HALO);
+    OldEoField<spincolor> source_eos("source_eos",WITH_HALO);
     split_lx_vector_into_eo_parts(source_eos,source_lx);
     
     //prepare the e/o split version of the solution
-    EoField<spincolor> solution_eos("solution_eos",WITH_HALO);
+    OldEoField<spincolor> solution_eos("solution_eos",WITH_HALO);
     
     //prepare the e/o split version of the conf
-    EoField<quad_su3> conf_eos("conf_eos",WITH_HALO);
+    OldEoField<quad_su3> conf_eos("conf_eos",WITH_HALO);
     split_lx_vector_into_eo_parts(conf_eos,conf_lx);
     
     //prepare the e/o split version of the clover term

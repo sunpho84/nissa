@@ -1,7 +1,7 @@
 #ifndef _DIRAC_OPERATOR_STD_HPP
 #define _DIRAC_OPERATOR_STD_HPP
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/su3.hpp"
 
@@ -20,34 +20,34 @@ namespace nissa
   // void apply_AdamsII(eo_ptr<color> out,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double m_Adams,eo_ptr<color> temp,eo_ptr<color> in);
   
   void apply_st2Doe(OddField<color0>& out,
-		    const EoField<quad_su3>& conf,
+		    const OldEoField<quad_su3>& conf,
 		    const EvnField<color0>& in);
   
   //put the 0.5 factor
   void apply_stDoe(OddField<color0>& out,
-		   const EoField<quad_su3>& conf,
+		   const OldEoField<quad_su3>& conf,
 		   const EvnField<color0>& in);
   
   void apply_stDeo_half(EvnField<color0>& out,
-			const EoField<quad_su3>& conf,
+			const OldEoField<quad_su3>& conf,
 			const OddField<color0>& in);
   
   void apply_stD2ee_m2(EvnField<color0>& out,
-		       const EoField<quad_su3>& conf,
+		       const OldEoField<quad_su3>& conf,
 		       OddField<color0>& temp,
 		       const double& mass2,
 		       const EvnField<color0>& in);
   
   void evn_apply_stD(EvnField<color0>& out,
-		     const EoField<quad_su3>& conf,
+		     const OldEoField<quad_su3>& conf,
 		     const double m,
-		     const EoField<color0>& in,
+		     const OldEoField<color0>& in,
 		     const double sign=1);
   
   void evn_apply_stD_dag(EvnField<color0>& out,
-			 const EoField<quad_su3>& conf,
+			 const OldEoField<quad_su3>& conf,
 			 const double m,
-			 const EoField<color0>& in);
+			 const OldEoField<color0>& in);
 }
 
 #endif

@@ -10,7 +10,7 @@
 #include <geometry/geometry_mix.hpp>
 #include <io/ILDG_File.hpp>
 #include <new_types/su3_op.hpp>
-#include <base/field.hpp>
+#include <base/old_field.hpp>
 
 namespace nissa
 {
@@ -151,7 +151,7 @@ namespace nissa
   }
   
   inline void paste_eo_parts_and_write_ildg_gauge_conf(const std::string& path,
-						       const EoField<quad_su3>& eo_conf,
+						       const OldEoField<quad_su3>& eo_conf,
 						       const size_t& prec,
 						       ILDG_message *mess=nullptr)
   {

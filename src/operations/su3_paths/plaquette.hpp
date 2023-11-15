@@ -1,7 +1,7 @@
 #ifndef _PLAQUETTE_HPP
 #define _PLAQUETTE_HPP
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "linalgs/reduce.hpp"

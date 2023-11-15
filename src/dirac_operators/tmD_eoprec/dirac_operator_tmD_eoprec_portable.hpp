@@ -5,14 +5,14 @@
 # include "config.hpp"
 #endif
 
-#include "base/field.hpp"
+#include "base/old_field.hpp"
 #include "new_types/su3_op.hpp"
 
 namespace nissa
 {
   void tmDkern_eoprec_eos(OddField<spincolor>& out,
 			  EvnField<spincolor>& temp,
-			  const EoField<quad_su3>& conf,
+			  const OldEoField<quad_su3>& conf,
 			  const double& kappa,
 			  const double& mu,
 			  const OddField<spincolor>& in);
@@ -20,7 +20,7 @@ namespace nissa
   void tmDkern_eoprec_square_eos(OddField<spincolor>& out,
 				 OddField<spincolor>& temp1,
 				 EvnField<spincolor>& temp2,
-				 const EoField<quad_su3>& conf,
+				 const OldEoField<quad_su3>& conf,
 				 const double& kappa,
 				 const double& mu,
 				 const OddField<spincolor>& in);
@@ -32,7 +32,7 @@ namespace nissa
   template <typename O,
 	    typename I>
   void tmn2Deo_or_tmn2Doe_eos(O& out,
-			      const EoField<quad_su3>& conf,
+			      const OldEoField<quad_su3>& conf,
 			      const I& in)
   {
     constexpr int xPar=O::fieldCoverage;

@@ -41,8 +41,8 @@ namespace nissa
   void chromo_operator(LxField<clover_term_t>& Cl,
 		       const LxField<quad_su3>& conf);
   
-  void chromo_operator(EoField<clover_term_t>& Cl_eo,
-		       const EoField<quad_su3>& conf_eo);
+  void chromo_operator(OldEoField<clover_term_t>& Cl_eo,
+		       const OldEoField<quad_su3>& conf_eo);
   
   //include the factor cSW - note that we include the factor "-1/4" here
   inline double chromo_operator_factor(const double& cSW)
@@ -58,7 +58,7 @@ namespace nissa
     Cl*=chromo_operator_factor(cSW_new)/chromo_operator_factor(cSW_old);
   }
   
-  inline void chromo_operator_adjust_cSW(EoField<clover_term_t>& Cl,
+  inline void chromo_operator_adjust_cSW(OldEoField<clover_term_t>& Cl,
 					 const double& cSW_new,
 					 const double& cSW_old)
   {

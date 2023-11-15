@@ -4,7 +4,7 @@
 
 #include <optional>
 
-#include <base/field.hpp>
+#include <base/old_field.hpp>
 #include <inverters/templates/cg_invert_template_threaded.hpp>
 #include <dirac_operators/stD/dirac_operator_stD.hpp>
 

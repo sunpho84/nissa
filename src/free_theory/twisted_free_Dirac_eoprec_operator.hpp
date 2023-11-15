@@ -5,7 +5,7 @@
 # include "config.hpp"
 #endif
 
-#include <base/field.hpp>
+#include <base/old_field.hpp>
 #include <free_theory/free_theory_types.hpp>
 #include <new_types/spin.hpp>
 

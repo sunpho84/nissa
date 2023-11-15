@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <base/field.hpp>
+#include <base/old_field.hpp>
 #include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <new_types/su3_op.hpp>
@@ -97,7 +97,7 @@ namespace nissa
 					  const int& par,
 					  const int& dir=0);
   
-  void generate_fully_undiluted_eo_source(EoField<color0>& source,
+  void generate_fully_undiluted_eo_source(OldEoField<color0>& source,
 					  const rnd_t& rtype,
 					  const int& twall,
 					  const int& dir=0);
@@ -109,7 +109,7 @@ namespace nissa
 					  const int& par,
 					  const int& dir=0);
   
-  void generate_fully_undiluted_eo_source(EoField<spincolor>& source,
+  void generate_fully_undiluted_eo_source(OldEoField<spincolor>& source,
 					  const rnd_t& rtype,
 					  const int& twall,
 					  const int& dir=0);
@@ -118,7 +118,7 @@ namespace nissa
   void generate_delta_source(LxField<su3spinspin>& source,
 			     const coords_t& x);
   
-  void generate_delta_eo_source(EoField<su3>& source,
+  void generate_delta_eo_source(OldEoField<su3>& source,
 				const coords_t& x);
 
   // void generate_delta_eo_source(eo_ptr<su3> source,int *x);

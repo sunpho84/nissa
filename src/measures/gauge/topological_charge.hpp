@@ -89,7 +89,7 @@ namespace nissa
   };
   
   void measure_topology_eo_conf(const top_meas_pars_t &pars,
-				const EoField<quad_su3>& unsmoothed_conf_eo,
+				const OldEoField<quad_su3>& unsmoothed_conf_eo,
 				const int& iconf,
 				const bool& conf_created);
   

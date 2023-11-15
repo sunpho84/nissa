@@ -45,7 +45,7 @@ namespace nissa
   //implement Koo defined in equation (7)
   void tmclovDkern_eoprec_eos(OddField<spincolor>& out,
 			      EvnField<spincolor>& tmp,
-			      const EoField<quad_su3>& conf,
+			      const OldEoField<quad_su3>& conf,
 			      const double& kappa,
 			      const OddField<clover_term_t>& Cl_odd,
 			      const EvnField<inv_clover_term_t>& invCl_evn,
@@ -70,7 +70,7 @@ namespace nissa
   void tmclovDkern_eoprec_square_eos(OddField<spincolor>& out,
 				     OddField<spincolor>& temp1,
 				     EvnField<spincolor>& temp2,
-				     const EoField<quad_su3>& conf,
+				     const OldEoField<quad_su3>& conf,
 				     const double& kappa,
 				     const OddField<clover_term_t>& Cl_odd,
 				     const EvnField<inv_clover_term_t>& invCl_evn,

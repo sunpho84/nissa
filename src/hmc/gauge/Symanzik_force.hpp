@@ -1,7 +1,7 @@
 #ifndef _SYMANZIK_FORCE_HPP
 #define _SYMANZIK_FORCE_HPP
 
-#include <base/field.hpp>
+#include <base/old_field.hpp>
 
 namespace nissa
 {

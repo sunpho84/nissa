@@ -10,7 +10,7 @@ namespace nissa
 {
   inline void inv_tmclovDkern_eoprec_square_eos_cg_64_portable(OddField<spincolor>& sol,
 							       std::optional<OddField<spincolor>> guess,
-							       const EoField<quad_su3>& conf,
+							       const OldEoField<quad_su3>& conf,
 							       const double& kappa,
 							       const OddField<clover_term_t>& Cl_odd,
 							       const EvnField<inv_clover_term_t>& invCl_evn,
@@ -44,7 +44,7 @@ namespace nissa
   //wrapper
   inline void inv_tmclovDkern_eoprec_square_eos_cg_64(OddField<spincolor>& sol,
 						      std::optional<OddField<spincolor>> guess,
-						      const EoField<quad_su3>& conf,
+						      const OldEoField<quad_su3>& conf,
 						      const double& kappa,
 						      const OddField<clover_term_t>& Cl_odd,
 						      const EvnField<inv_clover_term_t>& invCl_evn,
