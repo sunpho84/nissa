@@ -8,5 +8,4 @@ include_HEADERS+= \
 	%D%/extent.hpp \
 	%D%/feature.hpp \
 	%D%/hasMember.hpp \
-	%D%/inline.hpp \
-	%D%/templateEnabler.hpp
+	%D%/inline.hpp

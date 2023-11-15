@@ -235,8 +235,8 @@ namespace nissa
 	  }
   }
   
-  template <DerivedFromField InvClF,
-	    DerivedFromField ClF>
+  template <DerivedFromOldField InvClF,
+	    DerivedFromOldField ClF>
    void invert_twisted_clover_term(InvClF& invCl,
 				   const double& mass,
 				   const double& kappa,

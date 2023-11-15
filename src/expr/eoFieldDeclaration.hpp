@@ -17,7 +17,7 @@ namespace nissa
 	    FieldLayout FL=defaultFieldLayout,
 	    MemoryType MT=defaultMemoryType,
 	    bool IsRef=false>
-  struct EoField2;
+  struct EoField;
 }
 
 #endif

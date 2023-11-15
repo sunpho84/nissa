@@ -194,7 +194,7 @@ namespace nissa
   INLINE_FUNCTION
   static void updateHaloForShift(T&& t)
   {
-    if constexpr(isField2<T>)
+    if constexpr(isField<T>)
       // {
       // 	printf("%s updating halo\n",demangle(typeid(t).name()).c_str());
       t.updateHalo();

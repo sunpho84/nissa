@@ -47,9 +47,9 @@ namespace nissa
 	    FieldLayout FL=defaultFieldLayout,
 	    MemoryType MT=defaultMemoryType,
 	    bool IsRef=false>
-  struct Field2;
+  struct Field;
   
-  PROVIDE_FEATURE(Field2);
+  PROVIDE_FEATURE(Field);
 }
 
 #endif

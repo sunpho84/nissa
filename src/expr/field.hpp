@@ -1,5 +1,5 @@
-#ifndef _FIELD2_HPP
-#define _FIELD2_HPP
+#ifndef _FIELD_HPP
+#define _FIELD_HPP
 
 #ifdef HAVE_CONFIG_H
 # include <config.hpp>
@@ -88,7 +88,7 @@ namespace nissa
 #define FIELD_COMPS typename FIELD_COMPS_PROVIDER::Comps
   
 #define THIS						\
-  Field2<CompsList<C...>,_Fund,FC,FL,MT,IsRef>
+  Field<CompsList<C...>,_Fund,FC,FL,MT,IsRef>
   
 #define BASE					\
   Node<THIS,FIELD_COMPS>
@@ -101,7 +101,7 @@ namespace nissa
 	    MemoryType MT,
 	    bool IsRef>
   struct THIS :
-    Field2Feat,
+    FieldFeat,
     BASE
   {
     /// Import the base expression
@@ -118,14 +118,14 @@ namespace nissa
     
     ///  Equivalent Field on device
     using DeviceEquivalent=
-      Field2<CompsList<C...>,_Fund,FC,FieldLayout::GPU,maybeGpuMemoryType,IsRef>;
+      Field<CompsList<C...>,_Fund,FC,FieldLayout::GPU,maybeGpuMemoryType,IsRef>;
     
     template <FieldLayout OFL,
 	      MemoryType OES,
 	      bool OIR>
     requires(OFL!=FL or OES!=MT)
     INLINE_FUNCTION
-    Field2& operator=(const Field2<CompsList<C...>,_Fund,FC,OFL,OES,OIR>& oth)
+    Field& operator=(const Field<CompsList<C...>,_Fund,FC,OFL,OES,OIR>& oth)
     {
       if(this->getDynamicSizes()!=oth.getDynamicSizes())
 	crash("trying to assign fields on different memory space, having different dynamic sizes");
@@ -174,7 +174,7 @@ namespace nissa
     
     /// Copy assign
     INLINE_FUNCTION
-    Field2& operator=(const Field2& oth)
+    Field& operator=(const Field& oth)
     {
       assign(oth);
       
@@ -183,7 +183,7 @@ namespace nissa
     
     /// Move assign
     INLINE_FUNCTION
-    Field2& operator=(Field2&& oth)
+    Field& operator=(Field&& oth)
     {
       std::swap(nTotalAllocatedSites,oth.nTotalAllocatedSites);
       std::swap(data,oth.data);
@@ -197,7 +197,7 @@ namespace nissa
     /// Assigns another node
     template <DerivedFromNode O>
     INLINE_FUNCTION
-    Field2& operator=(const O& oth)
+    Field& operator=(const O& oth)
     {
       assign(oth);
       
@@ -207,7 +207,7 @@ namespace nissa
     /// Sumassigns another node
     template <DerivedFromNode O>
     INLINE_FUNCTION
-    Field2& operator+=(const O& oth)
+    Field& operator+=(const O& oth)
     {
       assign<SumAssign>(oth);
       
@@ -215,7 +215,7 @@ namespace nissa
     }
     
     // /// Assigns a scalar
-    // Field2& operator=(const _Fund& oth)
+    // Field& operator=(const _Fund& oth)
     // {
     //   *this=Scalar<_Fund>(oth);
       
@@ -430,10 +430,10 @@ namespace nissa
     static constexpr bool canAssignAtCompileTime=
       not std::is_const_v<Fund>;
     
-    /// Describe a field2
+    /// Describe a field
     void describe(const std::string& pref="") const
     {
-      master_printf("%sField2 %s address %p\n",pref.c_str(),demangle(typeid(*this).name()).c_str(),this);
+      master_printf("%sField %s address %p\n",pref.c_str(),demangle(typeid(*this).name()).c_str(),this);
       master_printf("%s Components:\n",pref.c_str());
       (master_printf("%s  %s\n",pref.c_str(),demangle(typeid(C).name()).c_str()),...);
       master_printf("%s Site type: %s\n",pref.c_str(),demangle(typeid(decltype(this->nSites())).name()).c_str());
@@ -443,14 +443,14 @@ namespace nissa
       master_printf("%s MemoryType: %d\n",pref.c_str(),MT);
       master_printf("%s FieldLayout: %d\n",pref.c_str(),FL);
       master_printf("%s IsRef: %d\n",pref.c_str(),IsRef);
-      master_printf("%sEnd of Field2\n",pref.c_str());
+      master_printf("%sEnd of Field\n",pref.c_str());
     }
     /////////////////////////////////////////////////////////////////
     
     /// Computes the squared norm, overloading default expression
     Fund norm2() const
     {
-      Field2<CompsList<>,_Fund,FC,FL,MT> buf;
+      Field<CompsList<>,_Fund,FC,FL,MT> buf;
       
       PAR(0,this->nSites(),
 	  CAPTURE(t=this->getReadable(),
@@ -497,7 +497,7 @@ namespace nissa
       //verbosity_lv2_master_printf("n: %d, nori: %d\n",n(),nOri());
       
       /// Make spacetime the external component
-      Field2<CompsList<C...>,Fund,FieldCoverage::FULL_SPACE,FieldLayout::CPU,execSpace> buf(*this);
+      Field<CompsList<C...>,Fund,FieldCoverage::FULL_SPACE,FieldLayout::CPU,execSpace> buf(*this);
       buf.selfReduce();
       
       StackTens<CompsList<C...>,Fund> res;
@@ -522,7 +522,7 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
 #define PROVIDE_GET_REF(ATTRIB)						\
-    Field2<CompsList<C...>,ATTRIB _Fund,FC,FL,MT,true> getRef() ATTRIB	\
+    Field<CompsList<C...>,ATTRIB _Fund,FC,FL,MT,true> getRef() ATTRIB	\
     {									\
       return *this;							\
     }
@@ -540,7 +540,7 @@ namespace nissa
 #define PROVIDE_FLATTEN(ATTRIB)						\
     ATTRIB auto& flatten() ATTRIB					\
     {									\
-      return *((Field2<CompsList<FlattenedInnerComp>,ATTRIB _Fund,FC,FL,MT,true>*)this); \
+      return *((Field<CompsList<FlattenedInnerComp>,ATTRIB _Fund,FC,FL,MT,true>*)this); \
     }
     
     PROVIDE_FLATTEN(const);
@@ -567,7 +567,7 @@ namespace nissa
     
     /// Type to define the closing of the expression
     using ClosingType=
-      Field2<CompsList<C...>,std::decay_t<_Fund>,FC,FL,MT>;
+      Field<CompsList<C...>,std::decay_t<_Fund>,FC,FL,MT>;
     
     /// Parameters to recreate an equivalent storage
     auto getEquivalentStoragePars() const
@@ -608,7 +608,7 @@ namespace nissa
     }
     
     /// Default constructor
-    Field2(const DoNotAllocate)
+    Field(const DoNotAllocate)
     {
       master_printf("avoiding allocation\n");
       
@@ -625,7 +625,7 @@ namespace nissa
     }
     
     /// Create a field
-    Field2(const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO)
+    Field(const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO)
     {
       static_assert(not IsRef,"Can allocate only if not a reference");
       
@@ -635,16 +635,16 @@ namespace nissa
     /// Assign another expression
     template <DerivedFromNode O>
     INLINE_FUNCTION
-    explicit Field2(const O& oth) :
-      Field2()
+    explicit Field(const O& oth) :
+      Field()
     {
       assign<DirectAssign>(oth);
     }
     
     /// Assign from fund
     INLINE_FUNCTION
-    explicit Field2(const Fund& oth) :
-      Field2()
+    explicit Field(const Fund& oth) :
+      Field()
     {
       assign<DirectAssign>(scalar(oth));
     }
@@ -655,7 +655,7 @@ namespace nissa
     /// Copy constructor, internal implementation
     template <typename O>
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-    Field2(O&& oth,
+    Field(O&& oth,
 	   _CopyConstructInternalDispatcher*) :
       nTotalAllocatedSites(oth.nTotalAllocatedSites),
       data(oth.data),
@@ -665,15 +665,15 @@ namespace nissa
     {
 #ifndef COMPILING_FOR_DEVICE
       if constexpr(not IsRef)
-	verbosity_lv3_master_printf("Using copy constructor of Field2, isRef: %d\n",IsRef);
+	verbosity_lv3_master_printf("Using copy constructor of Field, isRef: %d\n",IsRef);
 #endif
     }
     
     /// Return a copy on the given memory space
     template <MemoryType OES>
-    Field2<CompsList<C...>,_Fund,FC,FL,OES> copyToMemorySpace() const
+    Field<CompsList<C...>,_Fund,FC,FL,OES> copyToMemorySpace() const
     {
-      Field2<CompsList<C...>,_Fund,FC,FL,OES> res(haloEdgesPresence);
+      Field<CompsList<C...>,_Fund,FC,FL,OES> res(haloEdgesPresence);
       res.data=data;
       
       return res;
@@ -682,7 +682,7 @@ namespace nissa
     /* Return a copy on the given memory space, only if needed */
 #define PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(ATTRIB)			\
     template <MemoryType OES>						\
-    RefIf<OES==execSpace,ATTRIB Field2<CompsList<C...>,_Fund,FC,FL,OES>> copyToMemorySpaceIfNeeded() ATTRIB \
+    RefIf<OES==execSpace,ATTRIB Field<CompsList<C...>,_Fund,FC,FL,OES>> copyToMemorySpaceIfNeeded() ATTRIB \
     {									\
       return *this;							\
     }
@@ -694,25 +694,24 @@ namespace nissa
 #undef PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED
     
     /// Copy construct, taking as input a non-reference when this is a reference
-    template <typename O,
-	      bool B=IsRef>
-    requires(B and isField2<O>)
+    template <DerivedFromField O>
+    requires(IsRef)
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-    Field2(O&& oth) :
-      Field2(std::forward<O>(oth),(_CopyConstructInternalDispatcher*)nullptr)
+    Field(O&& oth) :
+      Field(std::forward<O>(oth),(_CopyConstructInternalDispatcher*)nullptr)
     {
     }
     
     /// Copy constructor
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    Field2(const Field2& oth) :
-      Field2(oth,(_CopyConstructInternalDispatcher*)nullptr)
+    Field(const Field& oth) :
+      Field(oth,(_CopyConstructInternalDispatcher*)nullptr)
     {
     }
     
     /// Move constructor
     INLINE_FUNCTION
-    Field2(Field2&& oth) :
+    Field(Field&& oth) :
       nTotalAllocatedSites(oth.nTotalAllocatedSites),
       data(oth.data),
       haloEdgesPresence(oth.haloEdgesPresence),
@@ -720,7 +719,7 @@ namespace nissa
       edgesAreValid(oth.edgesAreValid)
     {
 #ifndef COMPILING_FOR_DEVICE
-      verbosity_lv3_master_printf("Using move constructor of Field2\n");
+      verbosity_lv3_master_printf("Using move constructor of Field\n");
 #endif
     }
     
@@ -730,8 +729,8 @@ namespace nissa
 	      bool OIR>
     requires(OFL!=FL or OES!=MT)
     INLINE_FUNCTION
-    Field2(const Field2<CompsList<C...>,_Fund,FC,OFL,OES,OIR>& oth) :
-      Field2(oth.haloEdgesPresence)
+    Field(const Field<CompsList<C...>,_Fund,FC,OFL,OES,OIR>& oth) :
+      Field(oth.haloEdgesPresence)
     {
       if constexpr(OES!=execSpace)
 	(*this)=oth.template copyToMemorySpace<execSpace>();
@@ -743,8 +742,8 @@ namespace nissa
     template <FieldLayout OFL,
 	      bool OIR>
     INLINE_FUNCTION
-    Field2(const Field2<CompsList<C...>,_Fund,FC,OFL,MT,OIR>& oth) :
-      Field2(oth.haloEdgesPresence)
+    Field(const Field<CompsList<C...>,_Fund,FC,OFL,MT,OIR>& oth) :
+      Field(oth.haloEdgesPresence)
     {
       (*this)=oth;
     }
@@ -939,7 +938,7 @@ namespace nissa
       /// Pending requests
       std::vector<MPI_Request> requests;
       
-      assertCanCommunicate(Field2::nHaloSites());
+      assertCanCommunicate(Field::nHaloSites());
       
       //take time and write some debug output
       START_TIMING(tot_comm_time,ntot_comm);
@@ -983,7 +982,7 @@ namespace nissa
       /// Pending requests
       std::vector<MPI_Request> requests;
       
-      assertCanCommunicate(Field2::nEdgesSites());
+      assertCanCommunicate(Field::nEdgesSites());
       
       //take time and write some debug output
       START_TIMING(tot_comm_time,ntot_comm);

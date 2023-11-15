@@ -13,13 +13,13 @@ namespace nissa
   template <typename TP,
 	    typename F,
 	    FieldLayout FL>
-  struct EoField2CompsProvider;
+  struct EoFieldCompsProvider;
   
-#define PROVIDE_EO_FIELD2_COMPS_PROVIDER(LAYOUT,SITE,TYPES...)		\
+#define PROVIDE_EO_FIELD_COMPS_PROVIDER(LAYOUT,SITE,TYPES...)		\
   									\
   template <typename...C,						\
 	    typename F>							\
-  struct EoField2CompsProvider<CompsList<C...>,F,			\
+  struct EoFieldCompsProvider<CompsList<C...>,F,			\
 			       FieldLayout::LAYOUT>			\
   {									\
     using Comps=CompsList<TYPES>;					\
@@ -29,21 +29,21 @@ namespace nissa
     using Fund=F;							\
   }
   
-  PROVIDE_EO_FIELD2_COMPS_PROVIDER(CPU,LocEoSite,Parity,LocEoSite,C...);
-  PROVIDE_EO_FIELD2_COMPS_PROVIDER(GPU,LocEoSite,Parity,C...,LocEoSite);
+  PROVIDE_EO_FIELD_COMPS_PROVIDER(CPU,LocEoSite,Parity,LocEoSite,C...);
+  PROVIDE_EO_FIELD_COMPS_PROVIDER(GPU,LocEoSite,Parity,C...,LocEoSite);
   
-#undef PROVIDE_EO_FIELD2_COMPS_PROVIDER
+#undef PROVIDE_EO_FIELD_COMPS_PROVIDER
   
   /////////////////////////////////////////////////////////////////
   
-  PROVIDE_FEATURE(EoField2);
+  PROVIDE_FEATURE(EoField);
   
-#define EO_FIELD2_COMPS_PROVIDER EoField2CompsProvider<CompsList<C...>,_Fund,FL>
+#define EO_FIELD_COMPS_PROVIDER EoFieldCompsProvider<CompsList<C...>,_Fund,FL>
   
-#define FIELD_COMPS typename EO_FIELD2_COMPS_PROVIDER::Comps
+#define FIELD_COMPS typename EO_FIELD_COMPS_PROVIDER::Comps
   
 #define THIS						\
-  EoField2<CompsList<C...>,_Fund,FL,MT,IsRef>
+  EoField<CompsList<C...>,_Fund,FL,MT,IsRef>
   
 #define BASE					\
   Node<THIS,CompsList<C...>>
@@ -56,7 +56,7 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     DynamicCompsProvider<FIELD_COMPS>,
-    EoField2Feat,
+    EoFieldFeat,
     BASE
   {
     /// Import the base expression
@@ -70,7 +70,7 @@ namespace nissa
     
     /// Type representing a pointer to type T
     template <FieldCoverage EO>
-    using _F=Field2<CompsList<C...>,_Fund,EO,FL,MT,IsRef>;
+    using _F=Field<CompsList<C...>,_Fund,EO,FL,MT,IsRef>;
     
     using Fevn=_F<EVEN_SITES>;
     
@@ -91,14 +91,14 @@ namespace nissa
       typename DynamicCompsProvider<FIELD_COMPS>::DynamicComps;
     
     /// Type used for the site
-    using Site=typename EO_FIELD2_COMPS_PROVIDER::Site;
+    using Site=typename EO_FIELD_COMPS_PROVIDER::Site;
     
     /// Fundamental tye
-    using Fund=typename EO_FIELD2_COMPS_PROVIDER::Fund;
+    using Fund=typename EO_FIELD_COMPS_PROVIDER::Fund;
     
 #undef FIELD_COMPS
     
-#undef EO_FIELD2_COMPS_PROVIDER
+#undef EO_FIELD_COMPS_PROVIDER
     
     /// Returns the dynamic sizes
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
@@ -142,7 +142,7 @@ namespace nissa
     
 #define PROVIDE_GET_REF(CONST_ATTRIB)					\
     INLINE_FUNCTION constexpr						\
-    EoField2<CompsList<C...>,CONST_ATTRIB _Fund,FL,MT,true> getRef() CONST_ATTRIB\
+    EoField<CompsList<C...>,CONST_ATTRIB _Fund,FL,MT,true> getRef() CONST_ATTRIB\
     {							\
       return {evenPart.getRef(),oddPart.getRef()};	\
     }
@@ -166,7 +166,7 @@ namespace nissa
     }
     
     /// Constructor
-    EoField2(Fevn&& ev,
+    EoField(Fevn&& ev,
 	     Fodd&& od) :
       evenPart(ev),
       oddPart(od)
@@ -174,14 +174,14 @@ namespace nissa
     }
     
     /// Constructor
-    EoField2(const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
+    EoField(const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
       evenPart(haloEdgesPresence),
       oddPart(haloEdgesPresence)
     {
     }
     
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    ~EoField2()
+    ~EoField()
     {
     }
     

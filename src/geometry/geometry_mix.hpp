@@ -16,7 +16,7 @@ namespace nissa
 {
   void paste_eo_parts_into_lx_vector_internal(void *out_lx,eo_ptr<void> in_eo,size_t bps);
   
-  template <DerivedFromField LX,
+  template <DerivedFromOldField LX,
 	    typename EO>
   void paste_eo_parts_into_lx_vector(LX& _outLx,
 				     const EO& inEo)
