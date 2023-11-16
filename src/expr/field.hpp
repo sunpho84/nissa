@@ -17,10 +17,6 @@
 #include <geometry/geometry_eo.hpp>
 #include <threads/threads.hpp>
 
-// #include <lattice/parityProvider.hpp>
-// #include <lattice/lattice.hpp>
-// #include <resources/Mpi.hpp>
-
 /// \todo: Components must all be provided externally
 
 namespace nissa

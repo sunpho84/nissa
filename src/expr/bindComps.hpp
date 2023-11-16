@@ -63,7 +63,7 @@ namespace nissa
     NodeRefOrVal<_E> boundExpr;
     
     /// Bound type
-    using BoundExpr=NodeRefOrVal<_E>;
+    using BoundExpr=std::decay_t<_E>;
     
     /// Returns the dynamic sizes
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
