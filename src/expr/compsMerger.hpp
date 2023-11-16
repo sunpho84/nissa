@@ -192,6 +192,10 @@ namespace nissa
     /// Base passed type
     using E=
       std::decay_t<_E>;
+
+#ifndef COMPILING_FOR_DEVICE
+    master_printf("getting a lvalue: %d rvalue: %d\n",std::is_lvalue_reference_v<decltype(e)>,std::is_rvalue_reference_v<decltype(e)>);
+#endif
     
     /// Type returned when evaluating the expression
     using Fund=

@@ -123,19 +123,33 @@ namespace nissa
     int64_t nElements;
     
     /// Determine whether can hard-medge a set of components
-    template <typename...MC>
-    static constexpr bool canHardMedge=
-      typesAreConsecutiveInTuple<CompsList<MC...>,Comps>;
+    template <typename MCL>
+    static constexpr bool canHardMerge=
+      typesAreConsecutiveInTuple<MCL,Comps>;
     
     using Base::mergeComps;
     
-#define PROVIDE_MERGE_COMPS(ATTRIB)					\
+    void test() const &
+    {
+      crash("");
+    }
+    
+    void test() &&
+    {
+      master_printf("Correct\n");
+    }
+    
+#define PROVIDE_MERGE_COMPS(CONSTNESS,LRVAL,RES_IS_REF)			\
     template <typename MCL,						\
-	      typename ResComps=CompsMerge<MCL,CompsList<C...>>,	\
-	      typename Res=DynamicTens<ResComps,ATTRIB _Fund,MT,true>>	\
-    requires(std::tuple_size_v<MCL> >1 and canHardMedge<MCL>)		\
-    Res mergeComps()	ATTRIB						\
+	      typename ResComps=CompsMerge<MCL,Comps>,	\
+	      typename Res=DynamicTens<ResComps,std::remove_reference_t<CONSTNESS _Fund>,MT,RES_IS_REF>> \
+    Res hardMergeComps() CONSTNESS LRVAL				\
     {									\
+      static_assert(canHardMerge<MCL>, \
+		    "This DynamicTens cannot be merged");		\
+									\
+      master_printf("hardMerged");					\
+      									\
       using MC=								\
 	MergedComp<MCL>;						\
 									\
@@ -144,12 +158,28 @@ namespace nissa
 	(std::tuple_cat(this->getDynamicSizes(),			\
 			std::tuple<MC>(this->template getMergedCompsSize<MCL>()))); \
       									\
-      return {ds,this->storage,nElements};				\
+      auto resStorage=storage;						\
+      									\
+      auto resNElements=nElements;					\
+      									\
+      if constexpr(not RES_IS_REF)					\
+	  storage=nullptr;						\
+      									\
+      return {ds,resStorage,resNElements};				\
+    }									\
+									\
+    template <typename MCL>						\
+    requires( canHardMerge<MCL>)					\
+    auto mergeComps() CONSTNESS LRVAL					\
+    {									\
+      return this->hardMergeComps<MCL>();				\
     }
     
-    PROVIDE_MERGE_COMPS(const);
+    PROVIDE_MERGE_COMPS(const,&,true);
     
-    PROVIDE_MERGE_COMPS(/* non const */);
+    PROVIDE_MERGE_COMPS(/* non const */,&,true);
+    
+    PROVIDE_MERGE_COMPS(/* non const */,&&,false);
     
 #undef PROVIDE_MERGE_COMPS
     
@@ -204,9 +234,8 @@ namespace nissa
     static constexpr bool storeByRef=not IsRef;
     
     /// Allocate the storage
-    template <bool B=IsRef,
-	      DerivedFromComp...T>
-    requires(tupleHaveTypes<std::tuple<T...>,DynamicComps> and not B)
+    template <DerivedFromComp...T>
+    requires(tupleHaveTypes<std::tuple<T...>,DynamicComps> and not IsRef)
     void allocate(const std::tuple<T...>& _dynamicSizes)
     {
       static_assert(not IsRef,"Cannot allocate a reference");

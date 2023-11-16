@@ -161,13 +161,16 @@ namespace nissa
 	    nSendToRank.emplace_back(sendRank,s);
 	}
       
+      // Assigning the destination of all incoming buffer
       dstOfInBuf.allocate((BufComp)(int64_t)buildDstOfInBuf.size());
       for(BufComp bc=0;const CDst& cDst : buildDstOfInBuf)
 	dstOfInBuf[bc++]=cDst;
       
+      // Ensure that the tables are updated on the device
       dstOfInBuf.updateDeviceCopy();
       outBufOfSrc.updateDeviceCopy();
       
+      // Verify that the destination is assigned only once
       std::vector<BufComp> inBufOfDest(getNDst()(),-1);
       for(BufComp i=0;i<getInBufSize();i++)
 	{
@@ -185,32 +188,46 @@ namespace nissa
     void communicate(_DstExpr&& out,
 		     const SrcExpr& in) const
     {
+      /// Actual type of the destination expression
       using DstExpr=std::decay_t<_DstExpr>;
       
+      // Basic tests on presence of the asked components in the expressions
       static_assert(tupleHasType<typename DstExpr::Comps,CDst>,"Destination does not have the destination component");
       static_assert(tupleHasType<typename SrcExpr::Comps,CSrc>,"Source does not have the source component");
       
-      constexpr MemoryType dstExecSpace=DstExpr::execSpace;
-      constexpr MemoryType srcExecSpace=SrcExpr::execSpace;
-      constexpr MemoryType execSpace=srcExecSpace;
+      /// Determine the execution space of the expression
+      constexpr MemoryType execSpace=SrcExpr::execSpace;
       
-      static_assert(dstExecSpace==srcExecSpace,"Needs to have same exec space for src and dest");
+      static_assert(DstExpr::execSpace==execSpace,"Needs to have same exec space for src and dest");
       
-      using DstRedComps=TupleFilterAllTypes<typename DstExpr::Comps,std::tuple<CDst>>;
-      using SrcRedComps=TupleFilterAllTypes<typename SrcExpr::Comps,std::tuple<CSrc>>;
+      /// Components in the destination apart from CDSt
+      using DstRedComps=
+	TupleFilterAllTypes<typename DstExpr::Comps,std::tuple<CDst>>;
+      
+      /// Components in the source apart from CSrc
+      using SrcRedComps=
+	TupleFilterAllTypes<typename SrcExpr::Comps,std::tuple<CSrc>>;
+      
       static_assert(tupleHaveTypes<DstRedComps,SrcRedComps>,"Components in the source must be the same apart from CDst and CSrc");
       
-      using Fund=DstExpr::Fund;
+      /// Using destination Fund
+      using Fund=
+	DstExpr::Fund;
       
+      /// Build the components of the buffer
       using BufComps=
 	TupleCat<DstRedComps,CompsList<BufComp>>;
       
+      /// Instantiate the buffer
       DynamicTens<BufComps,Fund,execSpace> outBuf(std::tuple_cat(std::make_tuple(getOutBufSize()),in.getDynamicSizes()));
       
-      const CSrc nSrc=in.template getCompSize<CSrc>();
+      /// Check that the out buffer size has the same length of the source
+      const CSrc nSrc=
+	in.template getCompSize<CSrc>();
       if(nSrc()!=getOutBufSize()())
 	crash("Size of the in epxression %ld different from expected %ld\n",(int64_t)nSrc(),(int64_t)getOutBufSize()());
       
+      // Fills the output buffer
       PAR_ON_EXEC_SPACE(execSpace,
 			0,
 			nSrc,
@@ -222,12 +239,11 @@ namespace nissa
 			  outBuf(outBufOfSrc(iIn))=in(iIn);
 			});
       
-      decltype(auto) hostOutBuf=
-	outBuf.template copyToMemorySpaceIfNeeded<MemoryType::CPU>();
-      
+      /// Copy the output buffer to CPU, if needed
       decltype(auto) mergedHostOutBuf=
-	mergeComps<DstRedComps>(hostOutBuf);
+	outBuf.template copyToMemorySpace<MemoryType::CPU>().template mergeComps<DstRedComps>();
       
+      /// Extra components of the host copy of the output buffer
       using MergedHostOutBufExtraComps=
 	TupleFilterAllTypes<typename decltype(mergedHostOutBuf)::Comps,CompsList<BufComp>>;
       
@@ -285,8 +301,7 @@ namespace nissa
 			  
 			  out(iOut)=inBuf(iInBuf);
 			});
-      
-    }
+    }      
   };
 }
 

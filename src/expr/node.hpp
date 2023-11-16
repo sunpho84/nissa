@@ -60,7 +60,7 @@ namespace nissa
 #undef THIS
     
 #define PROVIDE_AUTOMATIC_CAST_TO_FUND(ATTRIB)			\
-    /*! Provide automatic cast to fund if needed */		\
+    /*! Provide automatic cast to fund if needed. How cool! */	\
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
     operator decltype(auto)() ATTRIB				\
     {								\
@@ -92,7 +92,7 @@ namespace nissa
     /// Unless explicitly overloaded
     static constexpr bool canAssignAtCompileTime=false;
     
-#define PROVIDE_MERGE_COMPS(ATTRIB)				\
+#define PROVIDE_MERGE_COMPS(ATTRIB,WHAT_TO_PASS)		\
     /*! Provides possibility to merge a list of components  */	\
       template <typename MCL>					\
 	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
@@ -101,12 +101,14 @@ namespace nissa
 	if constexpr(std::tuple_size_v<MCL> <=1)		\
 	  return ~*this;					\
 	else							\
-	  return nissa::mergeComps<MCL>(~*this);		\
+	  return nissa::mergeComps<MCL>(WHAT_TO_PASS);		\
       }
     
-    PROVIDE_MERGE_COMPS(const);
+    PROVIDE_MERGE_COMPS(const&,~*this);
     
-    PROVIDE_MERGE_COMPS(/* non const */);
+    PROVIDE_MERGE_COMPS(/* non const */&,~*this);
+    
+    PROVIDE_MERGE_COMPS(/* non const */&&,std::move(~*this));
     
 #undef PROVIDE_MERGE_COMPS
     
@@ -209,22 +211,24 @@ namespace nissa
     constexpr INLINE_FUNCTION
     Node& operator=(const Node& oth)
     {
-      return this->assign(oth);
+      return (~*this).assign(~oth);
     }
     
     /// Gets a writeable reference
     constexpr INLINE_FUNCTION
-    auto getWritable()
+    auto getWritable() &
     {
       return (~*this).getRef();
     }
     
     /// Gets a read-only reference
     constexpr INLINE_FUNCTION
-    auto getReadable() const
+    auto getReadable() const&
     {
       return (~*this).getRef();
     }
+    
+    auto getReadable() && = delete;
     
     /// Returns the size of the component
     template <typename Comp>
@@ -277,7 +281,7 @@ namespace nissa
       return res;
     }
     
-#define PROVIDE_CALL(ATTRIB)						\
+#define PROVIDE_CALL(ATTRIB,WHAT_TO_PASS)				\
     template <DerivedFromComp...C>					\
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
       decltype(auto) operator()(const C&...cs) ATTRIB			\
@@ -295,28 +299,32 @@ namespace nissa
       if constexpr(std::tuple_size_v<ResidualComps> ==0)		\
 	return (~*this).eval(cs...);					\
       else								\
-	return bindComps(~*this,std::make_tuple(cs...));		\
+	return bindComps(WHAT_TO_PASS,std::make_tuple(cs...));		\
     }
     
-    PROVIDE_CALL(const);
+    PROVIDE_CALL(const&,~*this);
     
-    PROVIDE_CALL(/* non const */);
+    PROVIDE_CALL(/* non const */&,~*this);
+    
+    PROVIDE_CALL(/* non const */&&,std::move(~*this));
     
 #undef PROVIDE_CALL
     
     /////////////////////////////////////////////////////////////////
     
-#define PROVIDE_SUBSCRIBE(ATTRIB)					\
+#define PROVIDE_SUBSCRIBE(ATTRIB,WHAT_TO_PASS)				\
     template <DerivedFromComp C>					\
       constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
       decltype(auto) operator[](const C& c) ATTRIB			\
     {									\
-      return (~*this)(c);						\
+      return (WHAT_TO_PASS)(c);						\
     }
     
-    PROVIDE_SUBSCRIBE(const);
+    PROVIDE_SUBSCRIBE(const &,~*this);
     
-    PROVIDE_SUBSCRIBE(/* non const */);
+    PROVIDE_SUBSCRIBE(/* non const */&,~*this);
+    
+    PROVIDE_SUBSCRIBE(/* non const */&&,std::move(~*this));
     
 #undef PROVIDE_SUBSCRIBE
     
