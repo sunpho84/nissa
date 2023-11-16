@@ -247,18 +247,33 @@ namespace nissa
       using MergedHostOutBufExtraComps=
 	TupleFilterAllTypes<typename decltype(mergedHostOutBuf)::Comps,CompsList<BufComp>>;
       
+      /// Allocate input buffer
       DynamicTens<BufComps,Fund,MemoryType::CPU> hostInBuf(std::tuple_cat(std::make_tuple(getInBufSize()),out.getDynamicSizes()));
-      auto mergedHostInBuf=
+      
+      /// Gets a merged view of the input buffer
+      decltype(auto) mergedHostInBuf=
 	hostInBuf.template mergeComps<DstRedComps>();
+      
+      /// Extra components of the merged input buffer
       using MergedHostInBufExtraComps=
 	TupleFilterAllTypes<typename decltype(mergedHostInBuf)::Comps,CompsList<BufComp>>;
       
+      /// Number of requests to be spawned by MPI
       const int nReqs=nSendToRank.size()+nRecvFrRank.size();
+      
+      /// Requests to be spawned
       MPI_Request reqs[nReqs];
-      MPI_Request* req=reqs;
+      
+      /// Number of degrees of freedom for extra components
       const auto nDof=mergedHostOutBuf.template getCompSize<MergedComp<DstRedComps>>()();
+      
+      /// Request under process
+      MPI_Request* req=reqs;
+      
+      // Spawn the send requests
       for(BufComp sendOffset=0;const auto& [dstRank,nEl] : nSendToRank)
 	{
+	  /// Pointer to location where the chunk for dstRank starts
 	  const Fund& ptr=
 	    invokeWithTypesOfTuple<MergedHostOutBufExtraComps>([&mergedHostOutBuf,
 								&sendOffset]<DerivedFromComp...C>()->const Fund&
@@ -273,6 +288,7 @@ namespace nissa
       
       for(BufComp recvOffset=0;const auto& [rcvRank,nEl] : nRecvFrRank)
 	{
+	  /// Pointer to location where the chunk from recvRank starts
 	  Fund& ptr=
 	    invokeWithTypesOfTuple<MergedHostInBufExtraComps>([&mergedHostInBuf,
 							       &recvOffset]<DerivedFromComp...C>()->Fund&
@@ -284,11 +300,15 @@ namespace nissa
 		    MPI_CHAR,rcvRank(),0,MPI_COMM_WORLD,req++);
 	  recvOffset+=nEl;
 	}
+      
+      // Waits all communications
       MPI_Waitall(nReqs,reqs,MPI_STATUS_IGNORE);
       
+      /// Ensure that the incoming buffer can be accessed in the device
       decltype(auto) inBuf=
 	hostInBuf.template copyToMemorySpaceIfNeeded<execSpace>();
       
+      // Fills the destination
       PAR_ON_EXEC_SPACE(execSpace,
 			0,
 			getInBufSize(),
@@ -301,7 +321,7 @@ namespace nissa
 			  
 			  out(iOut)=inBuf(iInBuf);
 			});
-    }      
+    }
   };
 }
 

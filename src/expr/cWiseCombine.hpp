@@ -144,7 +144,7 @@ namespace nissa
 #define PROVIDE_GET_REF(ATTRIB)					\
     /*! Returns a reference */					\
     INLINE_FUNCTION						\
-    auto getRef() ATTRIB&					\
+    auto getRef() ATTRIB					\
     {								\
       return							\
 	Comb::compute(subExprs.template get<Is>().getRef()...);	\
