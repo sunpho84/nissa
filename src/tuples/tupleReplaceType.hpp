@@ -31,7 +31,8 @@ namespace nissa
   
   /// Replace type TIn with type TOut inside tuple Tp
   template <typename Tp,typename TIn,typename TOut>
-  using TupleReplaceType=details::_TupleReplaceType<Tp,TIn,TOut>;
+  using TupleReplaceType=
+    typename details::_TupleReplaceType<Tp,TIn,TOut>::type;
 }
 
 #endif
