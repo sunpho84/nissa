@@ -17,6 +17,7 @@
 #include <expr/mirroredNode.hpp>
 #include <threads/threads.hpp>
 #include <tuples/tupleCat.hpp>
+#include <tuples/tupleReplaceType.hpp>
 
 namespace nissa
 {
@@ -281,7 +282,8 @@ namespace nissa
       MPI_Request reqs[nReqs];
       
       /// Number of degrees of freedom for extra components
-      const auto nDof=mergedHostOutBuf.template getCompSize<MergedComp<DstRedComps>>()();
+      const auto nDof=
+	mergedHostOutBuf.template getCompSize<MergedComp<DstRedComps>>()();
       
       /// Request under process
       MPI_Request* req=reqs;
@@ -338,7 +340,84 @@ namespace nissa
 			  out(iOut)=inBuf(iInBuf);
 			});
     }
+    
+    /// Communicate the expression, building the result
+    template <DerivedFromNode SrcExpr,
+	      DerivedFromNode DestExpr=DynamicTens<TupleReplaceType<typename SrcExpr::Comps,CSrc,CDst>,typename SrcExpr::Fund,SrcExpr::execSpace>>
+    DestExpr communicate(const SrcExpr& in) const
+    {
+      DestExpr out(std::tuple_cat(in.getDynamicSizes(),std::make_tuple(getNDst())));
+      
+      communicate(out,in);
+      
+      return out;
+    }
+    
+    /// Type of the inverse communicator
+    using Inverse=AllToAllComm<CSrc,CDst>;
+    
+    /// Returns an inverse communicator
+    AllToAllComm<CSrc,CDst> inverse() const
+    {
+      /// Result
+      Inverse res;
+      
+      /// Number of elments in the current source
+      const CSrc nThisSrc=
+	outBufOfSrc.template getCompSize<CSrc>();
+      
+      res.dstOfInBuf.allocate(nThisSrc.template castTo<typename Inverse::BufComp>());
+      
+      for(CSrc src=0;src<nThisSrc;src++)
+       	res.dstOfInBuf(outBufOfSrc(src).template castTo<typename Inverse::BufComp>())=src;
+      
+      /// Number of elements in the current destination
+      const BufComp nThisBufOut=
+	dstOfInBuf.template getCompSize<BufComp>();
+      
+      res.outBufOfSrc.allocate(nThisBufOut.template castTo<CDst>());
+      for(BufComp outBuf=0;outBuf<nThisBufOut;outBuf++)
+	res.outBufOfSrc(dstOfInBuf(outBuf).template castTo<CDst>())=outBuf.template castTo<typename Inverse::BufComp>();
+      
+      res.dstOfInBuf.updateDeviceCopy();
+      res.outBufOfSrc.updateDeviceCopy();
+      
+      res.nSendToRank=nRecvFrRank;
+      res.nRecvFrRank=nSendToRank;
+      
+      verify();
+      
+      res.inited=true;
+      
+      return res;
+    }
   };
+  
+  /// Product of two communicators
+  template <DerivedFromComp CDst,
+	    DerivedFromComp CTmp,
+	    DerivedFromComp CSrc>
+  void operator*(const AllToAllComm<CDst,CTmp>& second,
+		 const AllToAllComm<CTmp,CSrc>& first)
+  {
+    const CSrc nSrc=
+      first.getNSrc();
+    
+    DynamicTens<CompsList<CSrc>,std::tuple<MpiRank,CSrc>,MemoryType::CPU> identity((MpiRank)nranks,nSrc);
+    
+    for(CSrc src=0;src<nSrc;src++)
+      identity(src)=std::make_tuple(rank,src);
+    
+    const auto tmp=
+      first.communicate(identity);
+    // const auto initSrc=
+    //   second.communicate(first.communicate(identity));
+    
+    // AllToAllComm<CSrc,CDst> inverseRes([&initSrc](const CDst& inverseDest)
+    // {
+    //   return initSrc(inverseDest);
+    // });
+  }
 }
 
 #endif
