@@ -99,6 +99,22 @@ namespace nissa
       return outBufOfSrc.template getCompSize<CSrc>()();
     }
     
+    // Verify that the destination is assigned only once
+    void verify() const
+    {
+      /// Buffer where to check destination usage
+      std::vector<BufComp> inBufOfDest(getNDst()(),-1);
+      
+      for(BufComp i=0;i<getInBufSize();i++)
+	{
+	  auto& p=inBufOfDest[dstOfInBuf[i]()];
+	  if(p!=-1)
+	    crash("On rank %d destination %ld is filled by %ld and at least %ld at the same time",
+		  rank,(int64_t)dstOfInBuf[i](),(int64_t)p(),(int64_t)i());
+	  p=i;
+	}
+    }
+    
     /// Initializes the AllToAll communicator
     template <typename F>
     void init(const CSrc& nSrc,
@@ -179,16 +195,7 @@ namespace nissa
       dstOfInBuf.updateDeviceCopy();
       outBufOfSrc.updateDeviceCopy();
       
-      // Verify that the destination is assigned only once
-      std::vector<BufComp> inBufOfDest(getNDst()(),-1);
-      for(BufComp i=0;i<getInBufSize();i++)
-	{
-	  auto& p=inBufOfDest[dstOfInBuf[i]()];
-	  if(p!=-1)
-	    crash("On rank %d destination %ld is filled by %ld and at least %ld at the same time",
-		  rank,(int64_t)dstOfInBuf[i](),(int64_t)p(),(int64_t)i());
-	  p=i;
-	}
+      verify();
     }
     
     /// Communicate the expression
