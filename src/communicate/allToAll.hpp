@@ -346,7 +346,9 @@ namespace nissa
 	      DerivedFromNode DestExpr=DynamicTens<TupleReplaceType<typename SrcExpr::Comps,CSrc,CDst>,typename SrcExpr::Fund,SrcExpr::execSpace>>
     DestExpr communicate(const SrcExpr& in) const
     {
-      DestExpr out(std::tuple_cat(in.getDynamicSizes(),std::make_tuple(getNDst())));
+      /// Create the result
+      /// \todo possibly will fail if CSrc is not dynamic
+      DestExpr out(std::tuple_cat(tupleFilterAllTypes<CompsList<CSrc>>(in.getDynamicSizes()),std::make_tuple(getNDst())));
       
       communicate(out,in);
       
