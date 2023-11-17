@@ -187,29 +187,34 @@ namespace nissa
   template <typename MC,
 	    DerivedFromNode _E>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-  auto mergeComps(_E&& e)
+  decltype(auto) mergeComps(_E&& e)
   {
-    /// Base passed type
-    using E=
-      std::decay_t<_E>;
-
+    if constexpr(std::tuple_size_v<MC> <=1)
+      return (NodeRefOrVal<_E>)e;
+    else
+      {
+	/// Base passed type
+	using E=
+	  std::decay_t<_E>;
+	
 #ifndef COMPILING_FOR_DEVICE
-    master_printf("getting a lvalue: %d rvalue: %d\n",std::is_lvalue_reference_v<decltype(e)>,std::is_rvalue_reference_v<decltype(e)>);
+	master_printf("getting a lvalue: %d rvalue: %d\n",std::is_lvalue_reference_v<decltype(e)>,std::is_rvalue_reference_v<decltype(e)>);
 #endif
-    
-    /// Type returned when evaluating the expression
-    using Fund=
-      typename E::Fund;
-    
-    /// Visible components
-    using Comps=
-      CompsMerge<MC,typename E::Comps>;
-    
-    return
-      CompsMerger<MC,
-		  _E,
-		  Comps,
-		  Fund>(std::forward<_E>(e));
+	
+	/// Type returned when evaluating the expression
+	using Fund=
+	  typename E::Fund;
+	
+	/// Visible components
+	using Comps=
+	  CompsMerge<MC,typename E::Comps>;
+	
+	return
+	  CompsMerger<MC,
+		      _E,
+		      Comps,
+		      Fund>(std::forward<_E>(e));
+      }
   }
 }
 
