@@ -215,6 +215,17 @@ namespace nissa
 	    typename Filter>
   using TupleFilterAllTypes=
     typename details::_TupleFilterAllTypes<ToBeFiltered,Filter>::type;
+  
+  /// Remove all F types from tp
+  template <typename F,
+	    typename TP>
+  auto tupleFilterAllTypes(const TP& tp)
+  {
+    /// Returning type
+    using Res=TupleFilterAllTypes<TP,F>;
+    
+    return tupleGetSubset<Res>(tp);
+  }
 }
 
 #endif
