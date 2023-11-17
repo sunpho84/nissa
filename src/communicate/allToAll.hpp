@@ -258,7 +258,7 @@ namespace nissa
       
       /// Copy the output buffer to CPU, if needed
       decltype(auto) mergedHostOutBuf=
-	outBuf.template copyToMemorySpace<MemoryType::CPU>().template mergeComps<DstRedComps>();
+	outBuf.template copyToMemorySpaceIfNeeded<MemoryType::CPU>().template mergeComps<DstRedComps>();
       
       /// Extra components of the host copy of the output buffer
       using MergedHostOutBufExtraComps=
