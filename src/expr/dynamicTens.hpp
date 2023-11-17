@@ -125,7 +125,7 @@ namespace nissa
     /// Determine whether can hard-medge a set of components
     template <typename MCL>
     static constexpr bool canHardMerge=
-      typesAreConsecutiveInTuple<MCL,Comps>;
+      typesAreConsecutiveInTuple<MCL,Comps> and std::tuple_size_v<MCL> > 1;
     
     using Base::mergeComps;
     
