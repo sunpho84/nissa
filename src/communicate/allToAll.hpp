@@ -50,6 +50,15 @@ namespace nissa
     {
     }
     
+    /// Construct and initialize
+    template <typename F>
+    AllToAllComm(const CSrc &nSrc,
+		 F&& f) :
+      AllToAllComm()
+    {
+      init(nSrc,f);
+    }
+    
     /// Destination of the source, in the buffer
     MirroredTens<CompsList<CSrc>,BufComp,IsRef> outBufOfSrc;
     
