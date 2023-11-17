@@ -131,7 +131,7 @@ namespace nissa
     
 #define PROVIDE_MERGE_COMPS(CONSTNESS,LRVAL,RES_IS_REF)			\
     template <typename MCL,						\
-	      typename ResComps=CompsMerge<MCL,Comps>,	\
+	      typename ResComps=CompsMerge<MCL,Comps>,			\
 	      typename Res=DynamicTens<ResComps,std::remove_reference_t<CONSTNESS _Fund>,MT,RES_IS_REF>> \
     Res hardMergeComps() CONSTNESS LRVAL				\
     {									\
@@ -159,7 +159,7 @@ namespace nissa
     }									\
 									\
     template <typename MCL>						\
-    requires( canHardMerge<MCL>)					\
+    requires(canHardMerge<MCL>)						\
     auto mergeComps() CONSTNESS LRVAL					\
     {									\
       return this->hardMergeComps<MCL>();				\
