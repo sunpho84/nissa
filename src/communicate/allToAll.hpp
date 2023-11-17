@@ -261,7 +261,7 @@ namespace nissa
       
       /// Extra components of the host copy of the output buffer
       using MergedHostOutBufExtraComps=
-	TupleFilterAllTypes<typename decltype(mergedHostOutBuf)::Comps,CompsList<BufComp>>;
+	TupleFilterAllTypes<typename std::decay_t<decltype(mergedHostOutBuf)>::Comps,CompsList<BufComp>>;
       
       /// Allocate input buffer
       DynamicTens<BufComps,Fund,MemoryType::CPU> hostInBuf(std::tuple_cat(std::make_tuple(getInBufSize()),out.getDynamicSizes()));
@@ -272,7 +272,7 @@ namespace nissa
       
       /// Extra components of the merged input buffer
       using MergedHostInBufExtraComps=
-	TupleFilterAllTypes<typename decltype(mergedHostInBuf)::Comps,CompsList<BufComp>>;
+	TupleFilterAllTypes<typename std::decay_t<decltype(mergedHostInBuf)>::Comps,CompsList<BufComp>>;
       
       /// Number of requests to be spawned by MPI
       const int nReqs=nSendToRank.size()+nRecvFrRank.size();
