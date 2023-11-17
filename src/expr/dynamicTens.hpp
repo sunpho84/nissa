@@ -129,16 +129,6 @@ namespace nissa
     
     using Base::mergeComps;
     
-    void test() const &
-    {
-      crash("");
-    }
-    
-    void test() &&
-    {
-      master_printf("Correct\n");
-    }
-    
 #define PROVIDE_MERGE_COMPS(CONSTNESS,LRVAL,RES_IS_REF)			\
     template <typename MCL,						\
 	      typename ResComps=CompsMerge<MCL,Comps>,	\
