@@ -396,29 +396,38 @@ namespace nissa
   };
   
   /// Product of two communicators
+  ///
+  /// The trick is to communicate the original rank and position
+  /// twice, us it to define the inverse of the product of the
+  /// application, and invert it
   template <DerivedFromComp CDst,
 	    DerivedFromComp CTmp,
 	    DerivedFromComp CSrc>
-  void operator*(const AllToAllComm<CDst,CTmp>& second,
+  auto operator*(const AllToAllComm<CDst,CTmp>& second,
 		 const AllToAllComm<CTmp,CSrc>& first)
   {
+    /// Number of elements in the source
     const CSrc nSrc=
       first.getNSrc();
     
+    /// Needed to follow the application of first and second operator forward
     DynamicTens<CompsList<CSrc>,std::tuple<MpiRank,CSrc>,MemoryType::CPU> identity((MpiRank)nranks,nSrc);
     
     for(CSrc src=0;src<nSrc;src++)
       identity(src)=std::make_tuple(rank,src);
     
-    const auto tmp=
-      first.communicate(identity);
-    // const auto initSrc=
-    //   second.communicate(first.communicate(identity));
+    /// Gets the initial position of the ultimate destination of the product
+    const auto initSrc=
+      second.communicate(first.communicate(identity));
     
-    // AllToAllComm<CSrc,CDst> inverseRes([&initSrc](const CDst& inverseDest)
-    // {
-    //   return initSrc(inverseDest);
-    // });
+    /// Fillss the inverse communicator
+    AllToAllComm<CSrc,CDst> inverseRes(nSrc,
+				       [&initSrc](const CDst& inverseDest)
+    {
+      return initSrc(inverseDest);
+    });
+    
+    return inverseRes.inverse();
   }
 }
 
