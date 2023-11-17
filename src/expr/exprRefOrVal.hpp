@@ -11,7 +11,7 @@
 
 namespace nissa
 {
-  namespace internal
+  namespace impl
   {
     /// Helper to determine all parameters to implement reference inside a node
     template <typename ACTUAL_TYPE> /// corresponding to decltype(e)
@@ -35,7 +35,7 @@ namespace nissa
       static constexpr bool canBeCopyConstructed=
 	std::is_copy_constructible_v<E>;
       
-      static constexpr bool passAsConst=
+      static constexpr bool passedAsConst=
 	std::is_const_v<std::remove_reference_t<ACTUAL_TYPE>>;
       
       static_assert(canBeMoveConstructed or not needsToBeMoveConstructed,"Would need to move-construct, but the move constructor is not available");
@@ -45,7 +45,7 @@ namespace nissa
       
       using type=
 	RefIf<storeByRef
-	      ,ConstIf<passAsConst,E>>;
+	      ,ConstIf<passedAsConst,E>>;
     };
   }
   
@@ -54,7 +54,7 @@ namespace nissa
   /// The passed type _E must correspond to decltype(e)
   template <typename _E>
   using NodeRefOrVal=
-    typename internal::_NodeRefOrVal<_E>::type;
+    typename impl::_NodeRefOrVal<_E>::type;
 }
 
 #endif
