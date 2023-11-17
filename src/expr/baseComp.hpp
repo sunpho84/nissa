@@ -102,6 +102,13 @@ namespace nissa
     
 #undef PROVIDE_CAST_TO_VALUE
     
+    /// Cast to a different component
+    template <DerivedFromComp D>
+    D castTo() const
+    {
+      return (*this)();
+    }
+    
     /// Convert to actual reference with const attribute
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     const Index& operator()() const
