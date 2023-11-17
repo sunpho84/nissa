@@ -98,10 +98,7 @@ namespace nissa
 	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
 	decltype(auto) mergeComps() ATTRIB			\
       {								\
-	if constexpr(std::tuple_size_v<MCL> <=1)		\
-	  return ~*this;					\
-	else							\
-	  return nissa::mergeComps<MCL>(WHAT_TO_PASS);		\
+	return nissa::mergeComps<MCL>(WHAT_TO_PASS);		\
       }
     
     PROVIDE_MERGE_COMPS(const&,~*this);
