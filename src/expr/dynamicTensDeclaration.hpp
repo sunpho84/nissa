@@ -16,7 +16,7 @@ namespace nissa
   /// Forward declaration
   template <typename C,
 	    typename Fund,
-	    MemoryType MT=MemoryType::CPU,
+	    MemoryType MT=defaultMemoryType,
 	    bool IsRef=false>
   struct DynamicTens;
   

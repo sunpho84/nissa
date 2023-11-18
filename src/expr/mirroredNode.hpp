@@ -42,6 +42,15 @@ namespace nissa
     BASE,
     MirroredNodeFeat
   {
+  private:
+    H hostVal;
+    
+#ifdef USE_CUDA
+    D deviceVal;
+#endif
+    
+  public:
+    
     using This=THIS;
     
     using Base=BASE;
@@ -57,14 +66,9 @@ namespace nissa
 #endif
       ;
     
-    H hostVal;
-    
-#ifdef USE_CUDA
-    D deviceVal;
-#endif
-    
     /// Components
-    using Comps=CompsList<C...>;
+    using Comps=
+      CompsList<C...>;
     
     /// Fundamental type
     using Fund=_Fund;
@@ -73,57 +77,24 @@ namespace nissa
     using DynamicComps=
       typename Base::DynamicComps;
     
-    /// Importing assignment operator from Node
-    using Base::operator=;
-    
-    /// Assign a node
-    template <DerivedFromNode O>
-    INLINE_FUNCTION
-    MirroredNode& operator=(const O& oth)
+    template <MemoryType ES>
+    decltype(auto) getRefForExecSpace() const
     {
-      this->hostVal=oth;
-      
-      return *this;
-    }
-    
 #ifdef USE_CUDA
-# define PROVIDE_GET_REF_FOR_EXEC_SPACE_BODY	\
-    if constexpr(ES==MemoryType::GPU)		\
-      return deviceVal.getRef();		\
-    else
-#else
-# define PROVIDE_GET_REF_FOR_EXEC_SPACE_BODY
+      if constexpr(ES==MemoryType::GPU)
+	return deviceVal.getRef();
+      else
 #endif
-    
-#define PROVIDE_GET_REF_FOR_EXEC_SPACE(ATTRIB)	\
-    template <MemoryType ES>			\
-    decltype(auto) getRefForExecSpace() ATTRIB	\
-    {						\
-      PROVIDE_GET_REF_FOR_EXEC_SPACE_BODY	\
-	return hostVal.getRef();		\
+	return hostVal.getRef();
     }
-    
-    PROVIDE_GET_REF_FOR_EXEC_SPACE(const);
-    
-    PROVIDE_GET_REF_FOR_EXEC_SPACE(/* non const */);
-    
-#undef PROVIDE_GET_REF_FOR_EXEC_SPACE
-#undef PROVIDE_GET_REF_FOR_EXEC_SPACE_BODY
     
     /////////////////////////////////////////////////////////////////
     
-#define PROVIDE_GET_FOR_CURRENT_CONTEXT(ATTRIB)		\
-							\
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
-    ATTRIB auto& getForCurrentContext() ATTRIB		\
-    {							\
-      return CONCAT(COMPILATION_CONTEXT,Val);		\
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    const auto& getForCurrentContext() const
+    {
+      return hostVal;
     }
-    
-    PROVIDE_GET_FOR_CURRENT_CONTEXT(const);
-    PROVIDE_GET_FOR_CURRENT_CONTEXT(/* non const */);
-    
-#undef PROVIDE_GET_FOR_CURRENT_CONTEXT
     
 #define DELEGATE_TO_CONTEXT(METHOD_NAME,ARGS,FORWARDING,CONST_METHOD)	\
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
@@ -133,11 +104,19 @@ namespace nissa
     }
     
     DELEGATE_TO_CONTEXT(getDynamicSizes,,,const);
-    DELEGATE_TO_CONTEXT(canAssign,,,const);
+    
     DELEGATE_TO_CONTEXT(isAllocated,,,const);
     
+    /// Cannot assign
     static constexpr bool canAssignAtCompileTime=
-      ContextNode::canAssignAtCompileTime;
+      false;
+    
+    /// Cannot assign
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    bool canAssign() const
+    {
+      return false;
+    }
     
     template <typename...U>
     DELEGATE_TO_CONTEXT(eval,const U&...cs,cs...,const);
@@ -166,6 +145,16 @@ namespace nissa
     {
     }
     
+    MirroredNode(const MirroredNode&) =delete;
+    
+    MirroredNode(MirroredNode&& oth) :
+      hostVal(std::move(oth.hostVal))
+#ifdef USE_CUDA
+      ,deviceVal(std::move(oth.deviceVal))
+#endif
+    {
+    }
+    
     INLINE_FUNCTION constexpr
     void updateDeviceCopy()
     {
@@ -182,6 +171,45 @@ namespace nissa
 #ifdef USE_CUDA
       deviceVal.allocate(t...);
 #endif
+    }
+    
+    /// Proxy to fill the tables
+    struct FillableProxy
+    {
+      /// Takes the reference to a MirroredNode
+      MirroredNode& ref;
+      
+      /// Subscribe operator
+      template <DerivedFromComp T>
+      decltype(auto) operator[](T&& t)
+      {
+	return ref.hostVal[std::forward<T>(t)];
+      }
+      
+      /// Callable operator
+      template <DerivedFromComp...T>
+      decltype(auto) operator()(T&&...t)
+      {
+	return ref.hostVal(std::forward<T>(t)...);
+      }
+      
+      /// Construct taking a reference
+      FillableProxy(MirroredNode& ref) :
+	ref(ref)
+      {
+      }
+      
+      /// Destroy updating the device copy
+      ~FillableProxy()
+      {
+	ref.updateDeviceCopy();
+      }
+    };
+    
+    /// Returns a view which can be filled
+    FillableProxy getFillable()
+    {
+      return *this;
     }
   };
 }
