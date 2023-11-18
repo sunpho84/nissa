@@ -42,7 +42,7 @@ namespace nissa
   
   /// Field, forward declaration
   template <typename InnerComps,
-	    typename Fund,
+	    typename Fund=double,
 	    FieldCoverage FC=FieldCoverage::FULL_SPACE,
 	    FieldLayout FL=defaultFieldLayout,
 	    MemoryType MT=defaultMemoryType,
