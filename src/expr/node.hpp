@@ -294,7 +294,7 @@ namespace nissa
 	TupleFilterAllTypes<Comps,SubsComps>;				\
       									\
       if constexpr(std::tuple_size_v<ResidualComps> ==0)		\
-	return (~*this).eval(cs...);					\
+	return (constIf<not T::canAssignAtCompileTime>(~*this).eval(cs...)); \
       else								\
 	return bindComps(WHAT_TO_PASS,std::make_tuple(cs...));		\
     }
