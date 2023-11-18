@@ -10,6 +10,9 @@
 /// \brief Provides several changes in the constness of a quantity
 
 #include <type_traits>
+#include <utility>
+
+#include <metaprogramming/inline.hpp>
 
 namespace nissa
 {
@@ -40,6 +43,15 @@ namespace nissa
 	    typename T>
   using ConstIf=
     std::conditional_t<B,const T,T>;
+  
+  /// Return the type with or not the const
+  template <bool B,
+	    typename T>
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  ConstIf<B,T> constIf(T&& t)
+  {
+    return std::forward<T>(t);
+  }
   
   /// Return the type T or T& if B is true
   template <bool B,
