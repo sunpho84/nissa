@@ -603,12 +603,11 @@ namespace nissa
       return canAssignAtCompileTime;
     }
     
-    /// Default constructor
+    /// Constructor avoiding allocation
     Field(const DoNotAllocate)
+    requires(not IsRef)
     {
       master_printf("avoiding allocation\n");
-      
-      static_assert(not IsRef,"Can avoid allocate only if not a reference (check trueness)");
     }
     
     void allocate(const HaloEdgesPresence& _haloEdgesPresence=WITHOUT_HALO)
@@ -621,7 +620,8 @@ namespace nissa
     }
     
     /// Create a field
-    Field(const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO)
+    Field(const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
+      haloEdgesPresence(haloEdgesPresence)
     {
       static_assert(not IsRef,"Can allocate only if not a reference");
       
