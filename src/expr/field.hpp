@@ -676,16 +676,21 @@ namespace nissa
     }
     
     /* Return a copy on the given memory space, only if needed */
-#define PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(ATTRIB)			\
+#define PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(ATTRIB,REF,RETURNED_IN_SAME_ES_CASE)	\
     template <MemoryType OES>						\
-    RefIf<OES==execSpace,ATTRIB Field<CompsList<C...>,_Fund,FC,FL,OES>> copyToMemorySpaceIfNeeded() ATTRIB \
+    std::conditional_t<OES==execSpace,					\
+		       RETURNED_IN_SAME_ES_CASE,			\
+		       Field<CompsList<C...>,Fund,FC,FL,OES>>		\
+    copyToMemorySpaceIfNeeded() ATTRIB REF				\
     {									\
       return *this;							\
     }
     
-    PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(const);
+    PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(const,&,const Field&);
     
-    PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(/* non const */);
+    PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(/* non const */,&,Field&);
+    
+    PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(/* non const */,&&,Field);
     
 #undef PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED
     
