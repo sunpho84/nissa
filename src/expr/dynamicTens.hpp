@@ -354,10 +354,10 @@ namespace nissa
       return *this;
     }
     
-#define PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(ATTRIB)			\
+#define PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(ATTRIB,TYPE_TO_RETURN)	\
     /* Return a copy on the given memory space, only if needed */	\
     template <MemoryType OES>						\
-    decltype(auto) copyToMemorySpaceIfNeeded() ATTRIB			\
+    TYPE_TO_RETURN copyToMemorySpaceIfNeeded() ATTRIB			\
     {									\
       if constexpr(OES==execSpace)					\
 	return *this;							\
@@ -365,9 +365,11 @@ namespace nissa
 	return copyToMemorySpace<OES>();				\
     }
     
-    PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(const);
+    PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(const&,const auto&);
     
-    PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(/* non const */);
+    PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(/* non const */&,auto&);
+    
+    PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(/* non const */&&,auto );
     
 #undef PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED
     

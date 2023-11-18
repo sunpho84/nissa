@@ -42,6 +42,7 @@ namespace nissa
       BaseComp<BufComp,int64_t,0>
     {
       using Base=BaseComp<BufComp,int64_t,0>;
+      
       using Base::Base;
     };
     
