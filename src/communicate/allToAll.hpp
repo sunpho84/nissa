@@ -150,6 +150,10 @@ namespace nissa
       /// Progressive storage of the dst
       std::vector<CDst> buildDstOfInBuf;
       
+      /// Fillable view on the mirrored node
+      auto fillableOutBufOfSrc=
+	outBufOfSrc.getFillable();
+      
       BufComp nOutBuf=0;
       for(int dRank=0;dRank<nranks;dRank++)
 	{
@@ -160,7 +164,8 @@ namespace nissa
 	  for(const CSrc& locSrc : locSrcsGroupedByDstRank[sendRank])
 	    {
 	      // printf("AllToAll Rank %d filling %zu with nOutBuf %zu to be sent to rank %d\n",rank,locSrc(),nOutBuf(),sendRank);
-	      outBufOfSrc[locSrc]=nOutBuf++;
+	      
+	      fillableOutBufOfSrc[locSrc]=nOutBuf++;
 	    }
 	  
 	  /// Rank from which to receive
@@ -190,12 +195,13 @@ namespace nissa
       
       // Assigning the destination of all incoming buffer
       dstOfInBuf.allocate((BufComp)(int64_t)buildDstOfInBuf.size());
-      for(BufComp bc=0;const CDst& cDst : buildDstOfInBuf)
-	dstOfInBuf[bc++]=cDst;
       
-      // Ensure that the tables are updated on the device
-      dstOfInBuf.updateDeviceCopy();
-      outBufOfSrc.updateDeviceCopy();
+      /// Gets a fillable view on dstOfInBuf
+      auto fillableDstOfInBuf=
+	dstOfInBuf.getFillable();
+      
+      for(BufComp bc=0;const CDst& cDst : buildDstOfInBuf)
+	fillableDstOfInBuf[bc++]=cDst;
       
       verify();
     }
@@ -371,19 +377,25 @@ namespace nissa
       
       res.dstOfInBuf.allocate(nThisSrc.template castTo<typename Inverse::BufComp>());
       
+      /// Gets fillable version of res.dstOfInBuf
+      auto resDstOfInBuf=
+	res.dstOfInBuf.getFillable();
+      
       for(CSrc src=0;src<nThisSrc;src++)
-       	res.dstOfInBuf(outBufOfSrc(src).template castTo<typename Inverse::BufComp>())=src;
+       	resDstOfInBuf(outBufOfSrc(src).template castTo<typename Inverse::BufComp>())=src;
       
       /// Number of elements in the current destination
       const BufComp nThisBufOut=
 	dstOfInBuf.template getCompSize<BufComp>();
       
       res.outBufOfSrc.allocate(nThisBufOut.template castTo<CDst>());
-      for(BufComp outBuf=0;outBuf<nThisBufOut;outBuf++)
-	res.outBufOfSrc(dstOfInBuf(outBuf).template castTo<CDst>())=outBuf.template castTo<typename Inverse::BufComp>();
       
-      res.dstOfInBuf.updateDeviceCopy();
-      res.outBufOfSrc.updateDeviceCopy();
+      /// Gets fillable version of res.outBufOsSrc
+      auto resOutBufOfSrc=
+	res.outBufOfSrc.getFillable();
+      
+      for(BufComp outBuf=0;outBuf<nThisBufOut;outBuf++)
+	resOutBufOfSrc(dstOfInBuf(outBuf).template castTo<CDst>())=outBuf.template castTo<typename Inverse::BufComp>();
       
       res.nSendToRank=nRecvFrRank;
       res.nRecvFrRank=nSendToRank;
