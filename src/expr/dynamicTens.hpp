@@ -138,7 +138,7 @@ namespace nissa
       static_assert(canHardMerge<MCL>, \
 		    "This DynamicTens cannot be merged");		\
 									\
-      master_printf("hardMerged");					\
+      master_printf("hardMerged\n");					\
       									\
       using MC=								\
 	MergedComp<MCL>;						\
