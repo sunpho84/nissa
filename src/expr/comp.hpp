@@ -143,6 +143,17 @@ namespace nissa
 								\
   DECLARE_COMPONENT_FACTORY_AND_SUBSCRIBER_MEMBER(FACTORY,NAME)
   
+  /// Declare a simple dynamic comp
+#define DECLARE_DYNAMIC_COMP(NAME)			\
+  struct NAME :						\
+    BaseComp<NAME,int64_t,0>				\
+  {							\
+    using Base=						\
+      BaseComp<NAME,int64_t,0>;				\
+    							\
+    using Base::Base;					\
+  }
+  
   /////////////////////////////////////////////////////////////////
   
   /// Predicate if a certain component has known size at compile time

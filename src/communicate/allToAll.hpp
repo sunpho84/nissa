@@ -37,14 +37,7 @@ namespace nissa
     /// Status: is the communicator inited?
     bool inited;
     
-    /// Component to be used for the buffer
-    struct BufComp :
-      BaseComp<BufComp,int64_t,0>
-    {
-      using Base=BaseComp<BufComp,int64_t,0>;
-      
-      using Base::Base;
-    };
+    DECLARE_DYNAMIC_COMP(BufComp);
     
     /// Default constructor
     AllToAllComm() :
