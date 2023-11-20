@@ -481,9 +481,9 @@ namespace nissa::fft
     
     auto iter=
       [getBuf]<Dir D,
-	       DerivedFromNode E>(auto iter,
-				  E&& e,
-				  std::integral_constant<Dir,D>)
+		    DerivedFromNode E>(auto iter,
+				       const E& e,
+				       std::integral_constant<Dir,D>)
       {
 	static_assert(D>=0 and D<=NDIM,"FFTing on weird dim");
 	
@@ -492,38 +492,34 @@ namespace nissa::fft
 	if constexpr(D==NDIM)
 	  {
 	    R res;
-	    lastLocDirUnmaker->communicate(res,iter(iter,std::forward<E>(e),Next()));
-	    
-	    // master_printf("Last iter %lg\n",res.data.storage[20]);
+	    lastLocDirUnmaker->communicate(res,iter(iter,e,Next()));
 	    
 	    return res;
 	  }
 	else
 	  {
+	    decltype(auto) in=
+	      [&e=e,iter]()
+	      {(void)iter;
+		if constexpr(D==0)
+		  return e;
+		else
+		  return iter(iter,e,Next());
+	      }();
+	    
+	    const auto& comm=
+	      []()->const auto&
+	      {
+		if constexpr(D==0)
+		  return *firstLocDirMaker;
+		else
+		  return locDirChanger[D()-1];
+	      }();
+	    
 	    auto tmp=
 	      getBuf(D);
 	    
-	    // decltype(auto) mTmp=
-	    //   tmp.template mergeComps<CompsList<OrthoSpaceTime,FullLocDirCoord>>();
-	    
-	    if constexpr(D==0)
-	      {
-		master_printf("Begin %d %lg\n",D(),e.data.storage[20]);
-		for(int i=0;i<locVol*6;i++)
-		  master_printf("%d %lg\n",i,e.data.storage[i]);
-		firstLocDirMaker->communicate(tmp,std::forward<E>(e));
-	      }
-	    else
-	      {
-		auto inTmp=
-		  iter(iter,std::forward<E>(e),Next());
-		
-		locDirChanger[D()-1].communicate(tmp,inTmp);
-	      }
-	    
-	    master_printf("Iter %d %lg\n",D(),tmp.storage[20]);
-	    for(int i=0;i<locVol*6;i++)
-	      master_printf("%d %lg\n",i,tmp.storage[i]);
+	    comm.communicate(tmp,in);
 	    
 	    return tmp;
 	  }
