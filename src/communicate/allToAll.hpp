@@ -282,7 +282,8 @@ namespace nissa
 	TupleFilterAllTypes<typename std::decay_t<decltype(mergedHostInBuf)>::Comps,CompsList<BufComp>>;
       
       /// Number of requests to be spawned by MPI
-      const int nReqs=nSendToRank.size()+nRecvFrRank.size();
+      const int nReqs=
+	nSendToRank.size()+nRecvFrRank.size();
       
       /// Requests to be spawned
       MPI_Request reqs[nReqs];
@@ -295,7 +296,8 @@ namespace nissa
       MPI_Request* req=reqs;
       
       // Spawn the send requests
-      for(BufComp sendOffset=0;const auto& [dstRank,nEl] : nSendToRank)
+      for(BufComp sendOffset=0;
+	  const auto& [dstRank,nEl] : nSendToRank)
 	{
 	  /// Pointer to location where the chunk for dstRank starts
 	  const Fund& ptr=
@@ -310,7 +312,8 @@ namespace nissa
 	  sendOffset+=nEl;
 	}
       
-      for(BufComp recvOffset=0;const auto& [rcvRank,nEl] : nRecvFrRank)
+      for(BufComp recvOffset=0;
+	  const auto& [rcvRank,nEl] : nRecvFrRank)
 	{
 	  /// Pointer to location where the chunk from recvRank starts
 	  Fund& ptr=

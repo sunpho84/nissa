@@ -1,8 +1,9 @@
 #include <nissa.hpp>
 
-// #include "base/quda_bridge.hpp"
+#include <tuples/tuple.hpp>
 
 using namespace nissa;
+
 StackTens<OfComps<ComplId>,double> fd;
 
 // double rel_diff_norm(spincolor *test,spincolor *ref)
@@ -15,6 +16,8 @@ StackTens<OfComps<ComplId>,double> fd;
 //   return res;
 // }
 
+
+
 namespace nissa
 {
   DECLARE_TRANSPOSABLE_COMP(Spin,int,NDIRAC,spin);
@@ -22,31 +25,31 @@ namespace nissa
   DECLARE_TRANSPOSABLE_COMP(Fuf,int,1,fuf);
 }
 
-template <typename F,
-	  typename Float=typename F::Fund>
-Float plaquette(const F& conf)
-{
-  ASM_BOOKMARK_BEGIN("plaq");
+// template <typename F,
+// 	  typename Float=typename F::Fund>
+// Float plaquette(const F& conf)
+// {
+//   ASM_BOOKMARK_BEGIN("plaq");
   
-  Field2<OfComps<ColorRow,ColorCln,ComplId>,Float> temp1,temp2;
-  Field2<OfComps<>,Float> squares(0.0);
+//   Field2<OfComps<ColorRow,ColorCln,ComplId>,Float> temp1,temp2;
+//   Field2<OfComps<>,Float> squares(0.0);
   
-  for(Dir mu=0;mu<NDIM;mu++)
-    for(Dir nu=mu+1;nu<NDIM;nu++)
-      {
-	temp1=(conf(mu)*shift(conf(nu),bw,mu));
-	temp2=(conf(nu)*shift(conf(mu),bw,nu));
+//   for(Dir mu=0;mu<NDIM;mu++)
+//     for(Dir nu=mu+1;nu<NDIM;nu++)
+//       {
+// 	temp1=(conf(mu)*shift(conf(nu),bw,mu));
+// 	temp2=(conf(nu)*shift(conf(mu),bw,nu));
 	
-	squares+=real(trace(temp1*dag(temp2)));
-      }
+// 	squares+=real(trace(temp1*dag(temp2)));
+//       }
   
-  const Float plaq=
-    squares.glbReduce()/glbVol/(2*NCOL*NCOL);
+//   const Float plaq=
+//     squares.glbReduce()/glbVol/(2*NCOL*NCOL);
   
-  ASM_BOOKMARK_END("plaq");
+//   ASM_BOOKMARK_END("plaq");
   
-  return plaq;
-}
+//   return plaq;
+// }
 
 // namespace nissa
 // {
@@ -352,6 +355,208 @@ Float plaquette(const F& conf)
 // #endif
 //   ;
 
+namespace nissa::fft
+{
+  DECLARE_DYNAMIC_COMP(OrthoSpaceTime);
+  
+  DECLARE_DYNAMIC_COMP(FullLocDirCoord);
+  
+  using MC=
+    MergedComp<CompsList<OrthoSpaceTime,FullLocDirCoord>>;
+  
+  using LocDirMaker=
+    AllToAllComm<MC,LocLxSite>;
+  
+  using LocDirChanger=
+    AllToAllComm<MC,MC>;
+  
+  using LocDirUnmaker=
+    AllToAllComm<LocLxSite,MC>;
+  
+  LocDirMaker* firstLocDirMaker;
+  
+  std::vector<LocDirChanger> locDirChanger;
+  
+  LocDirUnmaker* lastLocDirUnmaker;
+  
+  bool initialized{false};
+  
+  StackTens<CompsList<Dir>,std::tuple<FullLocDirCoord,OrthoSpaceTime>> dimensions;
+  
+  std::tuple<FullLocDirCoord,OrthoSpaceTime> computeDimensions(const Dir& dir)
+  {
+    const FullLocDirCoord fcSize=
+      glbSizes[dir()];
+    
+    const OrthoSpaceTime glbOsdSize=
+      glbVol/glbSizes[dir()];
+    
+    const OrthoSpaceTime locOsdSize=
+      (glbOsdSize+nranks-1)/nranks;
+    
+    return {fcSize,locOsdSize};
+  }
+  
+  LocDirMaker getLocDirMaker(const Dir& dir)
+  {
+    return {LocLxSite(locVol),
+	    [&dir](const LocLxSite& locLxSite)
+	    {
+	      const auto& [fcSize,locOsdSize]=dimensions[dir];
+	      
+	      const FullLocDirCoord fc=
+		glbCoordOfLoclx[locLxSite()][dir()];
+	      
+	      int64_t glbOsd=0;
+	      for(Dir pDir=0;pDir<NDIM-1;pDir++)
+		{
+		  const Dir jDir=perp_dir[dir()][pDir()];
+		  glbOsd=glbSizes[jDir()]*glbOsd+glbCoordOfLoclx[locLxSite()][jDir()];
+		}
+	      
+	      const MpiRank orthoRank=
+		(int)(glbOsd/locOsdSize());
+	      
+	      const OrthoSpaceTime locOsd=
+		glbOsd-orthoRank()*locOsdSize();
+	      
+	      const auto mc=
+		MC::merge(std::make_tuple(fcSize,locOsdSize),fc,OrthoSpaceTime(locOsd));
+	      
+	      return std::make_tuple(orthoRank,mc);
+	    }};
+  }
+  
+  void init()
+  {
+    for(Dir dir=0;dir<NDIM;dir++)
+      dimensions[dir]=computeDimensions(dir);
+    
+    std::vector<LocDirMaker> locDirMaker;
+    for(Dir dir=0;dir<NDIM;dir++)
+      locDirMaker.push_back(getLocDirMaker(dir));
+    
+    std::vector<LocDirUnmaker> locDirUnmaker;
+    for(Dir dir=0;dir<NDIM;dir++)
+      locDirUnmaker.push_back(locDirMaker[dir()].inverse());
+    
+    for(Dir dir=1;dir<NDIM;dir++)
+      locDirChanger.push_back(locDirMaker[dir()]*locDirUnmaker[dir()-1]);
+    
+    firstLocDirMaker=new LocDirMaker(std::move(locDirMaker.front()));
+    
+    lastLocDirUnmaker=new LocDirUnmaker(std::move(locDirUnmaker.back()));
+    
+    initialized=true;
+  }
+  
+  template <DerivedFromNode _D,
+	    typename F,
+	    DerivedFromNode R=std::decay_t<_D>>
+  requires(tupleHasType<typename std::decay_t<_D>::Comps,ComplId>)
+  R doFFt(_D&& d,
+	  F f)
+  {
+    using D=
+      std::decay_t<_D>;
+    
+    using Fund=
+      typename D::Fund;
+    
+    using OthComps=
+      TupleFilterAllTypes<typename D::Comps,CompsList<LocLxSite,ComplId>>;
+    
+    auto getBuf=
+      [&d](const Dir& dir)
+      {
+	using Comps=
+	  TupleCat<OthComps,CompsList<OrthoSpaceTime,FullLocDirCoord,ComplId>>;
+	
+	const auto dynamicCompsSize=
+	  std::tuple_cat(d.getDynamicSizes(),dimensions[dir]);
+	
+	return
+	  DynamicTens<Comps,Fund,D::execSpace>(dynamicCompsSize).template mergeComps<CompsList<OrthoSpaceTime,FullLocDirCoord>>();
+      };
+    
+    auto iter=
+      [getBuf]<Dir D,
+	       DerivedFromNode E>(auto iter,
+				  E&& e,
+				  std::integral_constant<Dir,D>)
+      {
+	static_assert(D>=0 and D<=NDIM,"FFTing on weird dim");
+	
+	using Next=std::integral_constant<Dir,D-1>;
+	
+	if constexpr(D==NDIM)
+	  {
+	    R res;
+	    lastLocDirUnmaker->communicate(res,iter(iter,std::forward<E>(e),Next()));
+	    
+	    // master_printf("Last iter %lg\n",res.data.storage[20]);
+	    
+	    return res;
+	  }
+	else
+	  {
+	    auto tmp=
+	      getBuf(D);
+	    
+	    // decltype(auto) mTmp=
+	    //   tmp.template mergeComps<CompsList<OrthoSpaceTime,FullLocDirCoord>>();
+	    
+	    if constexpr(D==0)
+	      {
+		master_printf("Begin %d %lg\n",D(),e.data.storage[20]);
+		for(int i=0;i<locVol*6;i++)
+		  master_printf("%d %lg\n",i,e.data.storage[i]);
+		firstLocDirMaker->communicate(tmp,std::forward<E>(e));
+	      }
+	    else
+	      {
+		auto inTmp=
+		  iter(iter,std::forward<E>(e),Next());
+		
+		locDirChanger[D()-1].communicate(tmp,inTmp);
+	      }
+	    
+	    master_printf("Iter %d %lg\n",D(),tmp.storage[20]);
+	    for(int i=0;i<locVol*6;i++)
+	      master_printf("%d %lg\n",i,tmp.storage[i]);
+	    
+	    return tmp;
+	  }
+      };
+    
+    if constexpr(std::tuple_size_v<OthComps> >1)
+      ;
+    else
+      {
+      }
+    // f(a,Dir(0));
+    
+    // for(Dir dir=0;dir<NDIM-1;dir++)
+    //   {
+    //   }
+    
+    // /// Fills the result
+    
+    return iter(iter,d,std::integral_constant<Dir,(Dir)NDIM>());
+  }
+  
+  /// Release the communicators
+  void dealloc()
+  {
+    if(initialized)
+      {
+	delete firstLocDirMaker;
+	locDirChanger.clear();
+	delete lastLocDirUnmaker;
+      }
+    initialized=false;
+  }
+}
 
 void in_main(int narg,char **arg)
 {
@@ -359,263 +564,365 @@ void in_main(int narg,char **arg)
   
   init_grid(T,L);
   
-  AllToAllComm<LocLxSite,GlbLxSite> aa;
+  fft::init();
   
-  aa.init(LocLxSite(locVol),
-	  [](const LocLxSite& locLxSite) -> CompsList<MpiRank,GlbLxSite>
-	  {
-	    return {0,glblxOfLoclx[locLxSite()]};
-	  });
-  
-  return ;
-  //constexpr Float128 a=(1e-60);
-  //const double c=(a<0.5)?std::log1p(-a.roundDown()):log((1-a).roundDown());
-  
-  // for(Float128 b=(Float128)0+(1e-60);b<=1;b*=1.1)
-  //   {
-  //     const Float128 c=(0.25+b)*2;
-  //     const double d=
-  // 	((c>=1.0/4 and c<3.0/4) or (c>=5.0/4 and c<7.0/4))?
-  // 	sin(M_PI*(0.5-c).roundUp()):
-  // 	cos(M_PI*c.roundDown());
-  //     printf("%.017lg %.017lg  %.017lg %.017lg\n",b.roundDown(),b.roundDown()*2*M_PI,d,cos(M_PI*c.roundDown()));
-  //   }
-
-  // auto uu=[](const uint64_t& seed)
-  // {
-  //   Rng r(seed);
-  //   auto u=[&r](const int i)
-  //   {
-  //     return r.encrypter.key[i];
-  //   };
-  //   printf("%lu %lu %lu %lu %lu\n",u(0),u(1),u(2),u(3),u(4));
-  // };
-
-  // uu(0);
-  // uu(1);
-  // uu(353252626);
-  // uu(353252627);
-  
-  // StackTens<OfComps<Fuf>,double> er;
-  // er=0.0;
-  // const double ee=er;
-  
-  RngState state(32534643);
-  printf("%lu\n",state.counter[0]);
-  const auto view=state.getNormalDistr(2);
-  printf("%lu\n",state.counter[0]);
-  const auto view2=state.getNormalDistr(2);
-  printf("%lu\n",state.counter[0]);
-  PAR(0,1,CAPTURE(view,view2),i,
+  Field<CompsList<ColorRow,ComplId>> e;
+  PAR(0,
+      LocLxSite(locVol),
+      CAPTURE(TO_WRITE(e)),
+      site,
       {
-	printf("%lg\n",view.draw(i));
-	printf("%lg\n",view2.draw(i));
+	for(ColorRow cr=0;cr<3;cr++)
+	  for(ComplId ri=0;ri<2;ri++)
+	    e(site,cr,ri)=ri()+2*cr();//glblxOfLoclx[site()];
       });
+  
+  decltype(auto) ori=
+    fft::doFFt(e,[]<DerivedFromDynamicTens D>(D&& d,
+		    const Dir& dir)
+    {
+    }).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
+  master_printf("test outside %lg\n",ori.data.storage[20]);
+  for(LocLxSite site=0;
+      site<locVol;
+      site++)
+    for(ColorRow cr=0;cr<NCOL;cr++)
+      for(ComplId ri=0;ri<2;ri++)
+    if(ori(site).colorRow(cr).reIm(ri)!=glblxOfLoclx[site()])
+      master_printf("site %ld col %d ri %d differ: %d %lg\n",site(),cr(),ri(),glblxOfLoclx[site()],ori(site).colorRow(cr).reIm(ri));
+  
+  fft::dealloc();
+  
+  // DynamicTens<OfComps<SpinRow,LocEoSite>,double,MemoryType::CPU>
+  // din(std::make_tuple(locEoSite(locVolh))); din=0;
 
-  constexpr uint32_t bbb=(1u<<31)+(1u<<30);
-  const double d=ProbDistr::NormalRngDistr::transformCos({~0u-1,bbb-1});
-  const double e=ProbDistr::NormalRngDistr::transformCos({~0u,bbb-1});
-  const double f=ProbDistr::NormalRngDistr::transformCos({0u,bbb});
-  const double g=ProbDistr::NormalRngDistr::transformCos({1u,bbb});
-  printf("d d d %.017lg\n",d);
-  printf("d d d %.017lg\n",e);
-  printf("d d d %.017lg\n",f);
-  printf("d d d %.017lg\n",g);
+  //     using MC=MergedComp<CompsList<SpinRow,LocEoSite>>;
+  //     auto
+  //     mc=MC::merge(std::make_tuple(LocEoSite(locVolh)),spinRow(2),locEoSite(34));
+  //     ein=124;
+  //     ein(mc)=23124;
+  //     master_printf("%lg\n",din.spinRow(2).locEoSite(34));
 
-  master_printf("/////////////////////////// defining //////////////////////////////////////\n");
-  MirroredNode<CompsList<LocLxSite,ComplId>,Field2<CompsList<ComplId>,double,FieldCoverage::FULL_SPACE,FieldLayout::CPU,MemoryType::CPU>> a(doNotAllocate);
-  master_printf("//////////////////////////// allocating /////////////////////////////////////\n");
-  a.allocate(WITH_HALO);
-  master_printf("//////////////////////////// assigning /////////////////////////////////////\n");
-  a=1;
-  master_printf("///////////////////////////// updating the copy ////////////////////////////////////\n");
-  a.updateDeviceCopy();
-  master_printf("/////////////////////////////////////////////////////////////////\n");
-  master_printf("Is 1? %lg\n",a.locLxSite(0).reIm(0));
+  //     invokeWithTypesOfTuple<CompsList<SpinRow,LocEoSite>>([&din]<typename...T>()
+  // 							 {
+  // 							   ((master_printf("original comp %s size
+  // %d\n",demangle(typeid(T).name()).c_str(),din.getCompSize<T>())),...);
+  // 							 });
+  //     invokeWithTypesOfTuple<decltype(ein)::DynamicComps>([&ein]<typename
+  //     T>()
+  // 						      {
+  // 							master_printf("merged comp %s size
+  // %d\n",demangle(typeid(T).name()).c_str(),ein.getCompSize<T>());
+  // 						      });
 
-  // auto b=a.deviceVal.template copyToMemorySpace<MemoryType::CPU>();
-  // master_printf("Is 1? %lg\n",b.locLxSite(0).reIm(0));
-  // crash("");
+  //     {
+  AllToAllComm<GlbLxSite, LocLxSite> aa;
 
-  // printf("%lu\n",state.counter.val[0]);
-  // RngGaussDistrView gaussDistr(state,2);
-  // printf("%lu\n",state.counter.val[0]);
-  // printf("%lg\n",gaussDistr.draw(0));
-  // printf("%lg\n",gaussDistr.draw(1));
-  // printf("%lg\n",gaussDistr.draw(2));
-  // double min=1;
-  // for(uint64_t i=0;i<100000000000;i++)
-  //   {
-  //     double x=Rng::transform32bitsListIntoUniform(i,i>>32).roundDown();
-  //     // if(x<min)
-  //     // 	{
-  //     printf("%lu sss %lg\n",i,x);
-  // 	//   min=x;
-  // 	// }
-  //   }
-  
-  //return ;
-  LxField<quad_su3> conf("conf");
-  {
-    DynamicTens<OfComps<SpinRow,LocEoSite>,double, MemoryType::CPU> d(std::make_tuple(locEoSite(locVolh)));
-    auto e=d.getReadable();
-    // e(spinRow(1))=1.0;
-  }
-  
-  {
-    // verbosity_lv=3;
-    // Field2<OfComps<SpinRow,ComplId>,double> df(WITH_HALO);
+  auto ff = [](const LocLxSite &locLxSite) -> CompsList<MpiRank, GlbLxSite> {
+    return {0, glblxOfLoclx[locLxSite()]};
+  };
+  master_printf("%s\n", demangle(typeid(ff).name()).c_str());
+
+  constexpr MemoryType execSpace = MemoryType::
+#ifdef USE_CUDA
+      GPU
+#else
+      CPU
+#endif
+      ;
+      
+      DynamicTens<OfComps<SpinRow,LocLxSite,ColorCln>,double,MemoryType::CPU> _in(std::make_tuple(LocLxSite(locVol)));
+       
+       aa.init(LocLxSite(locVol),
+ 	      ff);
+      
+      for(LocLxSite locLxSite=0;locLxSite<locVol;locLxSite++)
+	_in(locLxSite)=glblxOfLoclx[locLxSite()];
+      
+      decltype(auto) in=_in.template copyToMemorySpaceIfNeeded<execSpace>();
+      auto _out=aa.communicate(in);
+      
+      decltype(auto) out=_out.template copyToMemorySpaceIfNeeded<MemoryType::CPU>();
+      if(rank==0)
+	for(GlbLxSite glbLxSite=0;glbLxSite<glbVol;glbLxSite++)
+	  if(const double o=out(glbLxSite).spinRow(0).colorCln(0),g=glbLxSite();o!=g)
+	    crash("%lg %lg\n",o,g);
+      master_printf("alright!\n");
+      
+      auto bb=aa.inverse();
+      DynamicTens<OfComps<SpinRow,LocLxSite,ColorCln>,double,execSpace> _back(std::make_tuple(LocLxSite(locVol)));
+      bb.communicate(_back,_out);
+      decltype(auto) back=_back.template copyToMemorySpaceIfNeeded<MemoryType::CPU>();
+      
+      for(LocLxSite locLxSite=0;locLxSite<locVol;locLxSite++)
+	if(const double b=back(locLxSite).spinRow(0).colorCln(0),g=glblxOfLoclx[locLxSite()];b!=g)
+	    crash("%lg %lg\n",b,g);
+      master_printf("alright2!\n");
+      
+      auto cc=bb*aa;
+      decltype(auto) shouldBeId=cc.communicate(in).template copyToMemorySpaceIfNeeded<MemoryType::CPU>();
+      for(LocLxSite locLxSite=0;locLxSite<locVol;locLxSite++)
+	if(const double s=shouldBeId(locLxSite).spinRow(0).colorCln(0),
+	   i=_in(locLxSite).spinRow(0).colorCln(0);
+	   s!=i)
+	    crash("%lg %lg\n",s,i);
+      master_printf("alright3!\n");
+      
+      
+//     //int aa=(time(0)%2)?[](){printf("This\n");return 0;}():[](){printf("That\n");return 1;}();
     
-    // for(int loclxsite=0;loclxsite<locVol;loclxsite++)
-    //   df(LocLxSite(loclxsite),Spin(0),Re)=loclxsite;
-    // printf("%lg %d\n",shift(conj(df),bw,Dir(2))(LocLxSite(0),Spin(0),Re),loclxNeighup[0][2]);
-    // printf("%lg %d\n",shift(df,fw,Dir(2))(LocLxSite(0),Spin(0),Re),loclxNeighdw[0][2]);
+//   return ;
+//   //constexpr Float128 a=(1e-60);
+//   //const double c=(a<0.5)?std::log1p(-a.roundDown()):log((1-a).roundDown());
+  
+//   // for(Float128 b=(Float128)0+(1e-60);b<=1;b*=1.1)
+//   //   {
+//   //     const Float128 c=(0.25+b)*2;
+//   //     const double d=
+//   // 	((c>=1.0/4 and c<3.0/4) or (c>=5.0/4 and c<7.0/4))?
+//   // 	sin(M_PI*(0.5-c).roundUp()):
+//   // 	cos(M_PI*c.roundDown());
+//   //     printf("%.017lg %.017lg  %.017lg %.017lg\n",b.roundDown(),b.roundDown()*2*M_PI,d,cos(M_PI*c.roundDown()));
+//   //   }
+
+//   // auto uu=[](const uint64_t& seed)
+//   // {
+//   //   Rng r(seed);
+//   //   auto u=[&r](const int i)
+//   //   {
+//   //     return r.encrypter.key[i];
+//   //   };
+//   //   printf("%lu %lu %lu %lu %lu\n",u(0),u(1),u(2),u(3),u(4));
+//   // };
+
+//   // uu(0);
+//   // uu(1);
+//   // uu(353252626);
+//   // uu(353252627);
+  
+//   // StackTens<OfComps<Fuf>,double> er;
+//   // er=0.0;
+//   // const double ee=er;
+  
+//   RngState state(32534643);
+//   printf("%lu\n",state.counter[0]);
+//   const auto view=state.getNormalDistr(2);
+//   printf("%lu\n",state.counter[0]);
+//   const auto view2=state.getNormalDistr(2);
+//   printf("%lu\n",state.counter[0]);
+//   PAR(0,1,CAPTURE(view,view2),i,
+//       {
+// 	printf("%lg\n",view.draw(i));
+// 	printf("%lg\n",view2.draw(i));
+//       });
+
+//   constexpr uint32_t bbb=(1u<<31)+(1u<<30);
+//   const double d=ProbDistr::NormalRngDistr::transformCos({~0u-1,bbb-1});
+//   const double e=ProbDistr::NormalRngDistr::transformCos({~0u,bbb-1});
+//   const double f=ProbDistr::NormalRngDistr::transformCos({0u,bbb});
+//   const double g=ProbDistr::NormalRngDistr::transformCos({1u,bbb});
+//   printf("d d d %.017lg\n",d);
+//   printf("d d d %.017lg\n",e);
+//   printf("d d d %.017lg\n",f);
+//   printf("d d d %.017lg\n",g);
+
+//   master_printf("/////////////////////////// defining //////////////////////////////////////\n");
+//   MirroredNode<CompsList<LocLxSite,ComplId>,Field2<CompsList<ComplId>,double,FieldCoverage::FULL_SPACE,FieldLayout::CPU,MemoryType::CPU>> a(doNotAllocate);
+//   master_printf("//////////////////////////// allocating /////////////////////////////////////\n");
+//   a.allocate(WITH_HALO);
+//   master_printf("//////////////////////////// assigning /////////////////////////////////////\n");
+//   a=1;
+//   master_printf("///////////////////////////// updating the copy ////////////////////////////////////\n");
+//   a.updateDeviceCopy();
+//   master_printf("/////////////////////////////////////////////////////////////////\n");
+//   master_printf("Is 1? %lg\n",a.locLxSite(0).reIm(0));
+
+//   // auto b=a.deviceVal.template copyToMemorySpace<MemoryType::CPU>();
+//   // master_printf("Is 1? %lg\n",b.locLxSite(0).reIm(0));
+//   // crash("");
+
+//   // printf("%lu\n",state.counter.val[0]);
+//   // RngGaussDistrView gaussDistr(state,2);
+//   // printf("%lu\n",state.counter.val[0]);
+//   // printf("%lg\n",gaussDistr.draw(0));
+//   // printf("%lg\n",gaussDistr.draw(1));
+//   // printf("%lg\n",gaussDistr.draw(2));
+//   // double min=1;
+//   // for(uint64_t i=0;i<100000000000;i++)
+//   //   {
+//   //     double x=Rng::transform32bitsListIntoUniform(i,i>>32).roundDown();
+//   //     // if(x<min)
+//   //     // 	{
+//   //     printf("%lu sss %lg\n",i,x);
+//   // 	//   min=x;
+//   // 	// }
+//   //   }
+
+//   //return ;
+//   LxField<quad_su3> conf("conf");
+//   {
+//     DynamicTens<OfComps<SpinRow,LocEoSite>,double,MemoryType::CPU> d(std::make_tuple(locEoSite(locVolh)));
+//     auto dd=mergeComps<CompsList<SpinRow,LocEoSite>>(d);
+//     auto e=d.mergeComps<CompsList<SpinRow,LocEoSite>>();
+//     e=1;
     
-    LxField<quad_su3> gcr("gcr",WITH_HALO);
-    read_ildg_gauge_conf(gcr,"../test/data/L4T8conf");
-    Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double,FULL_SPACE,FieldLayout::GPU,MemoryType::CPU> gcH(WITH_HALO);
+//     // e(spinRow(1))=1.0;
+//   }
+  
+//   {
+//     // verbosity_lv=3;
+//     // Field2<OfComps<SpinRow,ComplId>,double> df(WITH_HALO);
     
-    gcH.locLxSite(2);
-    ASM_BOOKMARK_BEGIN("expI");
-    StackTens<OfComps<Dir>,double> phases{1,0,0,0};
-    StackTens<OfComps<Dir>,int> glbSizes{8,4,4,4};
-    StackTens<OfComps<Dir,ComplId>,double> expI=exp(I*M_PI*phases/glbSizes);
-    ASM_BOOKMARK_END("expI");
+//     // for(int loclxsite=0;loclxsite<locVol;loclxsite++)
+//     //   df(LocLxSite(loclxsite),Spin(0),Re)=loclxsite;
+//     // printf("%lg %d\n",shift(conj(df),bw,Dir(2))(LocLxSite(0),Spin(0),Re),loclxNeighup[0][2]);
+//     // printf("%lg %d\n",shift(df,fw,Dir(2))(LocLxSite(0),Spin(0),Re),loclxNeighdw[0][2]);
     
-    master_printf("Let's see if we complain: %lg %lg\n",real(I),imag(I));
-    master_printf("Let's see if we complain: %lg %lg\n",real(expI)(Dir(0)),imag(expI)(Dir(0)));
+//     LxField<quad_su3> gcr("gcr",WITH_HALO);
+//     read_ildg_gauge_conf(gcr,"../test/data/L4T8conf");
+//     Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double,FULL_SPACE,FieldLayout::GPU,MemoryType::CPU> gcH(WITH_HALO);
     
-    master_printf("Copying the conf to field2\n");
-    for(LocLxSite site=0;site<locVol;site++)
-      for(Dir mu=0;mu<NDIM;mu++)
-	for(ColorRow cr=0;cr<NCOL;cr++)
-	  for(ColorCln cc=0;cc<NCOL;cc++)
-	    for(ComplId reIm=0;reIm<2;reIm++)
-	      gcH(site,mu,cr,cc,reIm)=gcr[site()][mu()][cr()][cc()][reIm()];
-    Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double> gc(WITH_HALO);
-    master_printf("Copying the conf from host to device\n");
-    gc=gcH;
-    master_printf("plaq with new method: %.16lg\n",plaquette(gc));
-    Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double> gcp(WITH_HALO);
+//     gcH.locLxSite(2);
+//     ASM_BOOKMARK_BEGIN("expI");
+//     StackTens<OfComps<Dir>,double> phases{1,0,0,0};
+//     StackTens<OfComps<Dir>,int> glbSizes{8,4,4,4};
+//     StackTens<OfComps<Dir,ComplId>,double> expI=exp(I*M_PI*phases/glbSizes);
+//     ASM_BOOKMARK_END("expI");
     
-    // auto rrr=(gc*expI).template closeAs<std::decay_t<decltype(gc.createCopy())>>();
-    gc*=expI;
+//     master_printf("Let's see if we complain: %lg %lg\n",real(I),imag(I));
+//     master_printf("Let's see if we complain: %lg %lg\n",real(expI)(Dir(0)),imag(expI)(Dir(0)));
     
-    auto e=(gc*expI).closeAs(gc);
+//     master_printf("Copying the conf to field2\n");
+//     for(LocLxSite site=0;site<locVol;site++)
+//       for(Dir mu=0;mu<NDIM;mu++)
+// 	for(ColorRow cr=0;cr<NCOL;cr++)
+// 	  for(ColorCln cc=0;cc<NCOL;cc++)
+// 	    for(ComplId reIm=0;reIm<2;reIm++)
+// 	      gcH(site,mu,cr,cc,reIm)=gcr[site()][mu()][cr()][cc()][reIm()];
+//     Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double> gc(WITH_HALO);
+//     master_printf("Copying the conf from host to device\n");
+//     gc=gcH;
+//     master_printf("plaq with new method: %.16lg\n",plaquette(gc));
+//     Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double> gcp(WITH_HALO);
     
+//     // auto rrr=(gc*expI).template closeAs<std::decay_t<decltype(gc.createCopy())>>();
+//     gc*=expI;
     
-    
-    
-    //gcH=s;
-    master_printf("plaq after phasing: %.16lg\n",plaquette(gc));
-    master_printf("plaq after phasing: %.16lg\n",plaquette(e));
-    // FFT<std::decay_t<decltype(e)>>::fft(e);
-    // master_printf("after fft %lg\n",);
-    
-// memcpy(gc.data.storage,gcr._data,sizeof(quad_su3)*locVol);
-    // Field2<OfComps<>,double> t(WITH_HALO);
-    // Field2<OfComps<>,double> u;
-    // t=0.875;
-    // u=shift(t,fw,Dir(0))*shift(t,fw,Dir(0));
-    // printf("u: %lg\n",u(LocLxSite(0)));
+//     auto e=(gc*expI).closeAs(gc);
     
     
-    // df.updateHalo();
-    // auto fl=df.flatten();
-    // fl(decltype(df)::FlattenedInnerComp(0));
-    // Field2<OfComps<ComplId>,double> ds;
-    // // EoField2<OfComps<SpinRow>,double> df2;
-    // //auto rdf=df.getWritable();
-    // // auto rdf2=df2.getWritable();
-    // df=I;
-    // master_printf("written 0? %lg\n",df(locLxSite(0),spinRow(0),reIm(0)));
-    // master_printf("written 1? %lg\n",df(locLxSite(0),spinRow(0),reIm(1)));
-    // df=df+I;
-    // ds=trace(dag(df(spinRow(0))));
-    // master_printf("written 2? %lg\n",df(locLxSite(0),spinRow(0),reIm(1)));
-    // master_printf("copied -2? %lg\n",ds(locLxSite(0),reIm(1)));
-    // rdf(spinRow(0),locLxSite(0))=1.0;
-    // rdf2(parity(0),spinRow(0),locEoSite(0))=1.0;
-  }
+    
+    
+//     //gcH=s;
+//     master_printf("plaq after phasing: %.16lg\n",plaquette(gc));
+//     master_printf("plaq after phasing: %.16lg\n",plaquette(e));
+//     // FFT<std::decay_t<decltype(e)>>::fft(e);
+//     // master_printf("after fft %lg\n",);
+    
+// // memcpy(gc.data.storage,gcr._data,sizeof(quad_su3)*locVol);
+//     // Field2<OfComps<>,double> t(WITH_HALO);
+//     // Field2<OfComps<>,double> u;
+//     // t=0.875;
+//     // u=shift(t,fw,Dir(0))*shift(t,fw,Dir(0));
+//     // printf("u: %lg\n",u(LocLxSite(0)));
+    
+    
+//     // df.updateHalo();
+//     // auto fl=df.flatten();
+//     // fl(decltype(df)::FlattenedInnerComp(0));
+//     // Field2<OfComps<ComplId>,double> ds;
+//     // // EoField2<OfComps<SpinRow>,double> df2;
+//     // //auto rdf=df.getWritable();
+//     // // auto rdf2=df2.getWritable();
+//     // df=I;
+//     // master_printf("written 0? %lg\n",df(locLxSite(0),spinRow(0),reIm(0)));
+//     // master_printf("written 1? %lg\n",df(locLxSite(0),spinRow(0),reIm(1)));
+//     // df=df+I;
+//     // ds=trace(dag(df(spinRow(0))));
+//     // master_printf("written 2? %lg\n",df(locLxSite(0),spinRow(0),reIm(1)));
+//     // master_printf("copied -2? %lg\n",ds(locLxSite(0),reIm(1)));
+//     // rdf(spinRow(0),locLxSite(0))=1.0;
+//     // rdf2(parity(0),spinRow(0),locEoSite(0))=1.0;
+//   }
   
-//  crash("");
-//  
-//  auto u=mergedComp<CompsList<Spin,ComplId>>(0);
-//  
-//  /////////////////////////////////////////////////////////////////
-//  
-//  master_printf("allocated in %p\n",conf._data);
-//  {
-//    auto c=conf.getWritable();
-//    master_printf("allocated in %p\n",c._data);
-//    double& e=c[locVol-1][3][2][2][1];
-//    master_printf("end: %p, should be %p\n",&e,c._data+locVol*4*3*3*2-1);
-//  }
-//  
-//  PAR(0,locVol,
-//      CAPTURE(TO_WRITE(conf)),
-//      ivol,
-//      {
-//	su3_put_to_id(conf[ivol][0]);
-//      });
+// //  crash("");
+// //  
+// //  auto u=mergedComp<CompsList<Spin,ComplId>>(0);
+// //  
+// //  /////////////////////////////////////////////////////////////////
+// //  
+// //  master_printf("allocated in %p\n",conf._data);
+// //  {
+// //    auto c=conf.getWritable();
+// //    master_printf("allocated in %p\n",c._data);
+// //    double& e=c[locVol-1][3][2][2][1];
+// //    master_printf("end: %p, should be %p\n",&e,c._data+locVol*4*3*3*2-1);
+// //  }
+// //  
+// //  PAR(0,locVol,
+// //      CAPTURE(TO_WRITE(conf)),
+// //      ivol,
+// //      {
+// //	su3_put_to_id(conf[ivol][0]);
+// //      });
   
-  // start_loc_rnd_gen(235235);
+//   // start_loc_rnd_gen(235235);
   
-  // spincolor *in=nissa_malloc("in",locVol+bord_vol,spincolor);
-  // spincolor *out=nissa_malloc("out",locVol+bord_vol,spincolor);
-  // spincolor *tmp=nissa_malloc("tmp",locVol+bord_vol,spincolor);
+//   // spincolor *in=nissa_malloc("in",locVol+bord_vol,spincolor);
+//   // spincolor *out=nissa_malloc("out",locVol+bord_vol,spincolor);
+//   // spincolor *tmp=nissa_malloc("tmp",locVol+bord_vol,spincolor);
   
-  // /// First test: load a spincolor and unload it
-  // generate_undiluted_source(in,RND_Z2,-1);
+//   // /// First test: load a spincolor and unload it
+//   // generate_undiluted_source(in,RND_Z2,-1);
   
-  // quda_iface::remap_nissa_to_quda(tmp,in);
-  // quda_iface::remap_quda_to_nissa(out,tmp);
+//   // quda_iface::remap_nissa_to_quda(tmp,in);
+//   // quda_iface::remap_quda_to_nissa(out,tmp);
   
-  // master_printf("testing map and unmap, residue: %lg\n",rel_diff_norm(out,in));
+//   // master_printf("testing map and unmap, residue: %lg\n",rel_diff_norm(out,in));
   
-  // /// Second test: apply the dirac operator
+//   // /// Second test: apply the dirac operator
   
-  // quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
-  // spincolor *out_nissa=nissa_malloc("out_nissa",locVol+bord_vol,spincolor);
+//   // quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
+//   // spincolor *out_nissa=nissa_malloc("out_nissa",locVol+bord_vol,spincolor);
   
-  // generate_hot_lx_conf(conf);
-  // master_printf("plaq: %lg\n",global_plaquette_lx_conf(conf));
+//   // generate_hot_lx_conf(conf);
+//   // master_printf("plaq: %lg\n",global_plaquette_lx_conf(conf));
   
-  // vector_reset(in);
-  // in[0][0][0][0]=1.0;
+//   // vector_reset(in);
+//   // in[0][0][0][0]=1.0;
   
-  // const double kappa=0.1325,csw=1.345,mu=0.243;
-  // quda_iface::apply_tmD(out,conf,kappa,csw,mu,in);
+//   // const double kappa=0.1325,csw=1.345,mu=0.243;
+//   // quda_iface::apply_tmD(out,conf,kappa,csw,mu,in);
   
-  // clover_term_t *Cl=nissa_malloc("Cl",locVol,clover_term_t);
-  // inv_clover_term_t *invCl=nissa_malloc("invCl",locVol,inv_clover_term_t);
-  // clover_term(Cl,csw,conf);
-  // invert_twisted_clover_term(invCl,mu*tau3[0],kappa,Cl);
-  // apply_tmclovQ(out_nissa,conf,kappa,Cl,mu,in);
-  // nissa_free(invCl);
-  // nissa_free(Cl);
+//   // clover_term_t *Cl=nissa_malloc("Cl",locVol,clover_term_t);
+//   // inv_clover_term_t *invCl=nissa_malloc("invCl",locVol,inv_clover_term_t);
+//   // clover_term(Cl,csw,conf);
+//   // invert_twisted_clover_term(invCl,mu*tau3[0],kappa,Cl);
+//   // apply_tmclovQ(out_nissa,conf,kappa,Cl,mu,in);
+//   // nissa_free(invCl);
+//   // nissa_free(Cl);
   
-  // safe_dirac_prod_spincolor(out_nissa,base_gamma[5],out_nissa);
+//   // safe_dirac_prod_spincolor(out_nissa,base_gamma[5],out_nissa);
   
-  // master_printf("comparing\n");
-  // for(int ivol=0;ivol<locVol;ivol++)
-  //   for(int id=0;id<NDIRAC;id++)
-  //     for(int ic=0;ic<NCOL;ic++)
-  // 	for(int ri=0;ri<2;ri++)
-  // 	  {
-  // 	    const double n=out_nissa[ivol][id][ic][ri];
-  // 	    const double q=out[ivol][id][ic][ri];
-  // 	    if(fabs(n)>1e-10 or fabs(q)>1e-10)
-  // 	      master_printf("out,[nissa,quda][ivol=%d,id=%d,ic=%d,ri=%d]: %lg %lg\n",
-  // 			    ivol,id,ic,ri,n,q);
-  // 	  }
-  // master_printf("testing tmD, residue: %lg\n",rel_diff_norm(out,out_nissa));
+//   // master_printf("comparing\n");
+//   // for(int ivol=0;ivol<locVol;ivol++)
+//   //   for(int id=0;id<NDIRAC;id++)
+//   //     for(int ic=0;ic<NCOL;ic++)
+//   // 	for(int ri=0;ri<2;ri++)
+//   // 	  {
+//   // 	    const double n=out_nissa[ivol][id][ic][ri];
+//   // 	    const double q=out[ivol][id][ic][ri];
+//   // 	    if(fabs(n)>1e-10 or fabs(q)>1e-10)
+//   // 	      master_printf("out,[nissa,quda][ivol=%d,id=%d,ic=%d,ri=%d]: %lg %lg\n",
+//   // 			    ivol,id,ic,ri,n,q);
+//   // 	  }
+//   // master_printf("testing tmD, residue: %lg\n",rel_diff_norm(out,out_nissa));
   
-  // nissa_free(tmp);
-  // nissa_free(in);
-  // nissa_free(out);
-  // nissa_free(out_nissa);
-  // nissa_free(conf);
+//   // nissa_free(tmp);
+//   // nissa_free(in);
+//   // nissa_free(out);
+//   // nissa_free(out_nissa);
+//   // nissa_free(conf);
 }
 
 int main(int narg,char **arg)
