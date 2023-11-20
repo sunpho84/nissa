@@ -77,6 +77,7 @@ namespace nissa
     using DynamicComps=
       typename Base::DynamicComps;
     
+    /// Gets a reference for the given exectution space
     template <MemoryType ES>
     decltype(auto) getRefForExecSpace() const
     {
@@ -90,10 +91,17 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    /// Gets the data structure for the appropriate context
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     const auto& getForCurrentContext() const
     {
-      return hostVal;
+      return
+#ifdef USE_CUDA
+	deviceVal
+#else
+	hostVal
+#endif
+	;
     }
     
 #define DELEGATE_TO_CONTEXT(METHOD_NAME,ARGS,FORWARDING,CONST_METHOD)	\
@@ -118,9 +126,11 @@ namespace nissa
       return false;
     }
     
+    /// Evaluate in the const case
     template <typename...U>
     DELEGATE_TO_CONTEXT(eval,const U&...cs,cs...,const);
     
+    /// Evaluate in the non const case
     template <typename...U>
     DELEGATE_TO_CONTEXT(eval,const U&...cs,cs...,/* non const*/);
     
@@ -145,8 +155,10 @@ namespace nissa
     {
     }
     
+    /// Forbids copy constructor for cleaness
     MirroredNode(const MirroredNode&) =delete;
     
+    /// Move constructor
     MirroredNode(MirroredNode&& oth) :
       hostVal(std::move(oth.hostVal))
 #ifdef USE_CUDA
@@ -155,6 +167,7 @@ namespace nissa
     {
     }
     
+    /// Updates the device copy
     INLINE_FUNCTION constexpr
     void updateDeviceCopy()
     {
@@ -163,6 +176,7 @@ namespace nissa
 #endif
     }
     
+    /// Allocates the data structures
     template <typename...T>
     INLINE_FUNCTION constexpr
     void allocate(const T&...t)
