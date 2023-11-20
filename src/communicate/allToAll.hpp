@@ -263,11 +263,15 @@ namespace nissa
       /// Instantiate the buffer
       DynamicTens<BufComps,Fund,execSpace> outBuf(std::tuple_cat(std::make_tuple(getOutBufSize()),in.getDynamicSizes()));
       
+      // Set the out buffer to an awkward value to detect possible errors
+      // if constexpr(std::is_same_v<Fund,double>)
+      // outBuf=-10;
+      
       /// Check that the out buffer size has the same length of the source
       const CSrc nSrc=
 	in.template getCompSize<CSrc>();
       if(nSrc()!=getOutBufSize()())
-	crash("Size of the in epxression %ld different from expected %ld\n",(int64_t)nSrc(),(int64_t)getOutBufSize()());
+	crash("Size of the in expression %ld different from expected %ld\n",(int64_t)nSrc(),(int64_t)getOutBufSize()());
       
       // Fills the output buffer
       PAR_ON_EXEC_SPACE(execSpace,
@@ -291,6 +295,10 @@ namespace nissa
       
       /// Allocate input buffer
       DynamicTens<BufComps,Fund,MemoryType::CPU> hostInBuf(std::tuple_cat(std::make_tuple(getInBufSize()),out.getDynamicSizes()));
+      
+      // Set the in buffer to an awkward value to detect possible errors
+      // if constexpr(std::is_same_v<Fund,double>)
+      // hostInBuf=-9;
       
       /// Gets a merged view of the input buffer
       decltype(auto) mergedHostInBuf=
