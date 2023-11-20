@@ -114,6 +114,19 @@ namespace nissa
 		  rank,(int64_t)dstOfInBuf[i](),(int64_t)p(),(int64_t)i());
 	  p=i;
 	}
+      
+      /// Buffer where to check source usage
+      std::vector<CSrc> srcOfOutBuf(getNSrc()(),-1);
+      
+      for(CSrc i=0;i<getNSrc();i++)
+	{
+	  auto& p=srcOfOutBuf[outBufOfSrc[i]()];
+	  if(p!=-1)
+	    crash("On rank %d source %ld is filling %ld and at least %ld at the same time",
+		  rank,(int64_t)outBufOfSrc[i](),(int64_t)p(),(int64_t)i());
+	  p=i;
+	}
+      
     }
     
     /// Initializes the AllToAll communicator
@@ -230,6 +243,12 @@ namespace nissa
       /// Components in the source apart from CSrc
       using SrcRedComps=
 	TupleFilterAllTypes<typename SrcExpr::Comps,std::tuple<CSrc>>;
+      
+      // if constexpr(not tupleHaveTypes<DstRedComps,SrcRedComps>)
+      // 	{
+      // 	  DstRedComps& aaa="let the error";
+      // 	  SrcRedComps& bbb="get prompte!d";
+      // 	}
       
       static_assert(tupleHaveTypes<DstRedComps,SrcRedComps>,"Components in the source must be the same apart from CDst and CSrc");
       
