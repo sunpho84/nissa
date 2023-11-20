@@ -371,9 +371,7 @@ namespace nissa
 				TO_WRITE(out)),
 			iInBuf,
 			{
-			  const CDst iOut=dstOfInBuf(iInBuf);
-			  
-			  out(iOut)=inBuf(iInBuf);
+			  out(dstOfInBuf(iInBuf))=inBuf(iInBuf);
 			});
     }
     
@@ -429,7 +427,7 @@ namespace nissa
       res.nSendToRank=nRecvFrRank;
       res.nRecvFrRank=nSendToRank;
       
-      verify();
+      res.verify();
       
       res.inited=true;
       
@@ -468,6 +466,8 @@ namespace nissa
     {
       return initSrc(inverseDest);
     });
+    
+    inverseRes.verify();
     
     return inverseRes.inverse();
   }
