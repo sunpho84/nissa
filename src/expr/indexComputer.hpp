@@ -83,7 +83,7 @@ namespace nissa
     template <typename I,
 	      typename T>
     constexpr INLINE_FUNCTION
-    auto operator%(const I lhs,
+    auto operator%(const I& lhs,
 		   const _StackIndTerm<T>& rhs)
     {
       return rhs.value()+T::sizeAtCompileTime*lhs;
@@ -100,7 +100,7 @@ namespace nissa
   {
     /// Returned type
     using GlbIndex=
-      std::common_type_t<int,std::decay_t<decltype(comps)>...>;
+      std::common_type_t<int,std::decay_t<decltype(comps())>...>;
     
     return (GlbIndex(0)%...%impl::_StackIndTerm(comps));
   }
