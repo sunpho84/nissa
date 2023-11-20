@@ -2,7 +2,7 @@
 #define _MEMORY_MANAGER_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <map>
@@ -313,6 +313,8 @@ namespace nissa
     /// Print to a stream
     void printStatistics()
     {
+      master_printf("Maximal memory used: %ld bytes, currently used: %ld bytes, number of allocation: %ld\n",
+		   usedSize.extreme(),(Size)usedSize,nAlloc);
       master_printf("Maximal memory cached: %ld bytes, currently used: %ld bytes, number of reused: %ld\n",
 		    cachedSize.extreme(),(Size)cachedSize,nCachedReused);
     }
@@ -454,7 +456,7 @@ namespace nissa
   PROVIDE_CUDA_MEMCPY_KIND_FOR_TRANSFER(CPU,GPU,Host,Device);
   PROVIDE_CUDA_MEMCPY_KIND_FOR_TRANSFER(GPU,CPU,Device,Host);
   PROVIDE_CUDA_MEMCPY_KIND_FOR_TRANSFER(GPU,GPU,Device,Device);
-
+  
 #undef PROVIDE_CUDA_MEMCPY_KIND_FOR_TRANSFER
   
 #endif
