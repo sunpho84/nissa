@@ -127,43 +127,49 @@ namespace nissa
     static constexpr bool canHardMerge=
       typesAreConsecutiveInTuple<MCL,Comps> and std::tuple_size_v<MCL> > 1;
     
+    /// Gets mergeComps method from base, to default when cannot hard-merdge
     using Base::mergeComps;
     
 #define PROVIDE_MERGE_COMPS(CONSTNESS,LRVAL,RES_IS_REF)			\
-    template <typename MCL,						\
-	      typename ResComps=CompsMerge<MCL,Comps>,			\
-	      typename Res=DynamicTens<ResComps,std::remove_reference_t<CONSTNESS _Fund>,MT,RES_IS_REF>> \
-    Res hardMergeComps() CONSTNESS LRVAL				\
+    /*! Merge the components when they can hard-merdged */		\
+    template <typename MCL>						\
+    requires(canHardMerge<MCL>)						\
+    auto mergeComps() CONSTNESS LRVAL					\
     {									\
-      static_assert(canHardMerge<MCL>, \
-		    "This DynamicTens cannot be merged");		\
-									\
-      master_printf("hardMerged\n");					\
+      /*! Components of the result */					\
+      using ResComps=							\
+	CompsMerge<MCL,Comps>;						\
       									\
+      /*! Type of the result */						\
+      using Res=							\
+	DynamicTens<ResComps,std::remove_reference_t<CONSTNESS _Fund>,MT,RES_IS_REF>; \
+									\
+      if constexpr(0)							\
+	master_printf("hardMerged " #CONSTNESS " " #LRVAL " " #RES_IS_REF"\n"); \
+      									\
+      /*! Merged component */						\
       using MC=								\
 	MergedComp<MCL>;						\
-									\
+      									\
+      /*! Dynamic components */						\
       const auto ds=							\
 	tupleGetSubset<typename Res::DynamicComps>			\
 	(std::tuple_cat(this->getDynamicSizes(),			\
 			std::tuple<MC>(this->template getMergedCompsSize<MCL>()))); \
       									\
-      auto resStorage=storage;						\
-      									\
-      auto resNElements=nElements;					\
+      /*! Result storage, to be passed according to being ref */	\
+      auto resStorage=							\
+	storage;							\
       									\
       if constexpr(not RES_IS_REF)					\
 	  storage=nullptr;						\
-      									\
-      return {ds,resStorage,resNElements};				\
-    }									\
 									\
-    template <typename MCL>						\
-    requires(canHardMerge<MCL>)						\
-    auto mergeComps() CONSTNESS LRVAL					\
-    {									\
-      return this->hardMergeComps<MCL>();				\
-    }
+      /*! Number of elments in the result */				\
+      auto resNElements=						\
+	nElements;							\
+									\
+      return Res{ds,resStorage,resNElements};				\
+    }									\
     
     PROVIDE_MERGE_COMPS(const,&,true);
     
