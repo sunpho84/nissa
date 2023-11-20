@@ -48,6 +48,9 @@ namespace nissa
     /// Default move constructor
     AllToAllComm(AllToAllComm&& oth)=default;
     
+    /// Move assign
+    AllToAllComm& operator=(AllToAllComm&& oth)=default;
+    
     /// Construct and initialize
     template <typename F>
     AllToAllComm(const CSrc &nSrc,
