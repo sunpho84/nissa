@@ -116,6 +116,22 @@ namespace nissa
       return i;
     }
   };
+  
+#define PROVIDE_OPERATOR(OP)						\
+  template <DerivedFromComp C>						\
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+  C operator OP(const typename C::Index& a,				\
+			 const C& b)					\
+    {									\
+      return a*b.i;							\
+    }
+    
+  PROVIDE_OPERATOR(+);
+  PROVIDE_OPERATOR(-);
+  PROVIDE_OPERATOR(*);
+  PROVIDE_OPERATOR(/);
+  
+#undef PROVIDE_OPERATOR
 }
 
 #endif
