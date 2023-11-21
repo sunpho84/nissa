@@ -361,52 +361,70 @@ namespace nissa::fft
   
   DECLARE_DYNAMIC_COMP(FullLocDirCoord);
   
+  /// Merged component for the temporary storage
   using MC=
     MergedComp<CompsList<OrthoSpaceTime,FullLocDirCoord>>;
   
+  /// Type of the communicator which makes local a given direction
   using LocDirMaker=
     AllToAllComm<MC,LocLxSite>;
   
+  /// Type for the communicator which changes the current local direction to another one
   using LocDirChanger=
     AllToAllComm<MC,MC>;
   
+  /// Type for the communicator which makes ordinary a local direction
   using LocDirUnmaker=
     AllToAllComm<LocLxSite,MC>;
   
+  /// Communicator ehich makes local the first direction
   LocDirMaker* firstLocDirMaker;
   
+  /// Communicators which transform the local direction to the next in list
   std::vector<LocDirChanger> locDirChanger;
   
+  /// Communicator which brings back the local direction to lexicograèhic
   LocDirUnmaker* lastLocDirUnmaker;
   
+  /// Store whether the fft has been initialized
   bool initialized{false};
   
+  /// Dimensions to be used for the temporary storage
   StackTens<CompsList<Dir>,std::tuple<FullLocDirCoord,OrthoSpaceTime>> dimensions;
   
+  /// Computes the dimension for each direction
   std::tuple<FullLocDirCoord,OrthoSpaceTime> computeDimensions(const Dir& dir)
   {
+    /// Fully local size in a given direction is the global size
     const FullLocDirCoord fcSize=
       glbSizes[dir()];
     
+    /// Perpendicular size across the whole lattice
     const OrthoSpaceTime glbOsdSize=
       glbVol/glbSizes[dir()];
     
+    /// Portion of the perpendicular size relative to each lattice
     const OrthoSpaceTime locOsdSize=
       (glbOsdSize+nranks-1)/nranks;
     
     return {fcSize,locOsdSize};
   }
   
+  /// Creates the communicator which makes local a given direction
   LocDirMaker getLocDirMaker(const Dir& dir)
   {
     return {LocLxSite(locVol),
 	    [&dir](const LocLxSite& locLxSite)
 	    {
-	      const auto& [fcSize,locOsdSize]=dimensions[dir];
+	      /// Dimensions of the current direction
+	      const auto& [fcSize,locOsdSize]=
+		dimensions[dir];
 	      
+	      /// Coordinate in the current direction of the requires site
 	      const FullLocDirCoord fc=
 		glbCoordOfLoclx[locLxSite()][dir()];
 	      
+	      /// Global index in the space perpendicular to the current direction
 	      int64_t glbOsd=0;
 	      for(Dir pDir=0;pDir<NDIM-1;pDir++)
 		{
@@ -414,12 +432,15 @@ namespace nissa::fft
 		  glbOsd=glbSizes[jDir()]*glbOsd+glbCoordOfLoclx[locLxSite()][jDir()];
 		}
 	      
+	      /// Rank hosting global site
 	      const MpiRank orthoRank=
 		(int)(glbOsd/locOsdSize());
 	      
+	      /// Local index in the rank
 	      const OrthoSpaceTime locOsd=
 		glbOsd-orthoRank()*locOsdSize();
 	      
+	      /// Merges the components
 	      const auto mc=
 		MC::merge(std::make_tuple(fcSize,locOsdSize),fc,OrthoSpaceTime(locOsd));
 	      
@@ -427,15 +448,18 @@ namespace nissa::fft
 	    }};
   }
   
+  /// Initializes the communicators
   void init()
   {
     for(Dir dir=0;dir<NDIM;dir++)
       dimensions[dir]=computeDimensions(dir);
     
+    /// Communicators which make a given direction local
     std::vector<LocDirMaker> locDirMaker;
     for(Dir dir=0;dir<NDIM;dir++)
       locDirMaker.push_back(getLocDirMaker(dir));
     
+    /// Inverse localizer
     std::vector<LocDirUnmaker> locDirUnmaker;
     for(Dir dir=0;dir<NDIM;dir++)
       locDirUnmaker.push_back(locDirMaker[dir()].inverse());
@@ -450,35 +474,25 @@ namespace nissa::fft
     initialized=true;
   }
   
+  /// Internal implementation making a dimension local in turn
   template <DerivedFromNode In,
 	    DerivedFromNode Out=In>
   struct _Transform
   {
     /// Components different from those related to fft
     using OthComps=
-      TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite>>;
+      TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite,ComplId>>;
     
     /// Buffer components
     using BufComps=
-      TupleCat<OthComps,CompsList<OrthoSpaceTime,FullLocDirCoord>>;
+      TupleCat<OthComps,CompsList<OrthoSpaceTime,FullLocDirCoord,ComplId>>;
     
     /// Fundamental type of the expression to fft
     using Fund=
       typename In::Fund;
     
-    static constexpr Dir NDim=NDIM;
-    
-    static auto getBuf(const Dir& D,
-		       const In& ori)
-    {
-      /// Dynamical components of the buffer
-      const auto dynamicSizes=
-	std::tuple_cat(ori.getDynamicSizes(),dimensions[D]);
-	
-      return DynamicTens<BufComps,Fund,In::execSpace>(dynamicSizes).template mergeComps<CompsList<OrthoSpaceTime,FullLocDirCoord>>();
-    }
-    
-    template <Dir D=NDim,
+    /// Iteration
+    template <Dir D=nDim,
 	      DerivedFromNode Ori,
 	      DerivedFromNode N>
     static decltype(auto) iter(const Ori&ori,
@@ -486,7 +500,8 @@ namespace nissa::fft
     {
       static_assert(D>=0 and D<=NDIM,"FFTing on weird dim");
       
-      decltype(auto) in=
+      /// Inner part to be used
+      decltype(auto) inner=
 	[&ori](const N& n)
 	{(void)ori;
 	  if constexpr(D==0)
@@ -495,6 +510,7 @@ namespace nissa::fft
 	    return iter<D-1>(ori,n);
 	}(n);
       
+      /// Communicator to be used
       const auto& comm=
 	[]()->const auto&
 	{
@@ -504,22 +520,29 @@ namespace nissa::fft
 	    return locDirChanger[D()-1];
 	}();
       
-      auto tmp=
-	getBuf(D,ori);
+      /// Dynamical components of the result
+      const auto dynamicSizes=
+	std::tuple_cat(ori.getDynamicSizes(),dimensions[D]);
       
-      comm.communicate(tmp,in);
+      /// Returned result
+      auto res=
+	DynamicTens<BufComps,Fund,In::execSpace>(dynamicSizes).template mergeComps<CompsList<OrthoSpaceTime,FullLocDirCoord>>();
       
-      return tmp;
+      comm.communicate(res,inner);
+      
+      return res;
     }
   };
   
+  /// Executes the FFt with f function
   template <DerivedFromNode E,
 	    typename F,
 	    DerivedFromNode R=E>
-  //requires(tupleHasType<typename std::decay_t<_D>::Comps,ComplId>)
+  requires(tupleHasType<typename E::Comps,ComplId>)
   R doFFt(const E& e,
 	  F f)
   {
+    /// Result
     R res;
     lastLocDirUnmaker->communicate(res,_Transform<E,R>::template iter<(Dir)NDIM-1>(e,e));
     
