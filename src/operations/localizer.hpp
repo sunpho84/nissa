@@ -87,22 +87,33 @@ namespace nissa::localizer
     using Buf=
       DynamicTens<BufComps,Fund,In::execSpace>;
     
+    /// Types needed to store extra dynamic sizes
     using ExtraDynamicComps=
       In::DynamicComps;
     
+    /// Extra dynamic sizes
     const ExtraDynamicComps extraDynamicSizes;
     
+    /// Construct taking extra dynamic sizes
     _Transform(const ExtraDynamicComps& extraDynamicSizes) :
       extraDynamicSizes(extraDynamicSizes)
     {
     }
     
-    auto prepare(const In& in) const
+    /// Prepare for the first iteration
+    template <typename F>
+    auto prepare(const In& in,
+		 const F& f) const
     {
-      auto first=getBuf(0);
-      firstLocDirMaker->communicate(first,in);
+      /// Result
+      auto res=
+	getBuf(nDim-1);
       
-      return first;
+      firstLocDirMaker->communicate(res,in);
+      
+      f(res,std::integral_constant<Dir,Dir(0)>());
+      
+      return res;
     }
     
     template <DerivedFromComp...Dc>
@@ -124,25 +135,23 @@ namespace nissa::localizer
     decltype(auto) iter(N&& n,
 			const F& f) const
     {
+      /// This direction in a constant form 
       constexpr auto DIC=
 	std::integral_constant<Dir,D>();
       
-      if constexpr(D==0)
-	{
-	  f(n,DIC);
-	  
-	  return prepare(std::forward<N>(n));
-	}
+      if constexpr(D==nDim-1)
+	return prepare(std::forward<N>(n),f);
       else
 	{
 	  /// Inner part to be used
 	  const auto inner=
-	    iter<D-1>(n,f);
+	    iter<D+1>(n,f);
 	  
+	  /// Returned result
 	  auto res=
 	    getBuf(D);
 	  
-	  locDirChanger[D()-1].communicate(res,inner);
+	  locDirChanger[D()].communicate(res,inner);
 	  
 	  f(res,DIC);
 	  
@@ -155,7 +164,7 @@ namespace nissa::localizer
 	       const In& in,
 	       const F& f)
     {
-      lastLocDirUnmaker->communicate(out,iter<(nDim-1)>(in,f));
+      lastLocDirUnmaker->communicate(out,iter<Dir(0)>(in,f));
     }
   };
 }

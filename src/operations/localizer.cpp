@@ -79,12 +79,12 @@ namespace nissa::localizer
     for(Dir dir=0;dir<NDIM;dir++)
       locDirUnmaker.push_back(locDirMaker[dir()].inverse());
     
-    for(Dir dir=1;dir<NDIM;dir++)
-      locDirChanger.push_back(locDirMaker[dir()]*locDirUnmaker[dir()-1]);
+    for(Dir dir=0;dir<nDim-1;dir++)
+      locDirChanger.push_back(locDirMaker[dir()]*locDirUnmaker[dir()+1]);
     
-    firstLocDirMaker=new LocDirMaker(std::move(locDirMaker.front()));
+    firstLocDirMaker=new LocDirMaker(std::move(locDirMaker.back()));
     
-    lastLocDirUnmaker=new LocDirUnmaker(std::move(locDirUnmaker.back()));
+    lastLocDirUnmaker=new LocDirUnmaker(std::move(locDirUnmaker.front()));
     
     initialized=true;
   }

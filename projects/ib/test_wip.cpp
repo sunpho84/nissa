@@ -363,12 +363,17 @@ void doFFt(Out&& out,
   /// Components different from those related to fft
   using OthComps=
     TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite,ComplId>>;
-
+  
   auto f=
-    []<Dir D>(auto& b,
+    []<DerivedFromNode B,
+       Dir D>(B& b,
 	      const std::integral_constant<Dir,D>&)
     {
+      master_printf("%s\n",demangle(typeid(B).name()).c_str());
+      
       master_printf("Cycling on Dir %d\n",D());
+      
+
     };
   
   cycleOnAllLocalDirections<OthComps,CompsList<ComplId>>(std::forward<Out>(out),in,f,in.getDynamicSizes());
@@ -406,7 +411,6 @@ void in_main(int narg,char **arg)
   decltype(auto) ori=
     doFFt(e).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
   
-  master_printf("test outside %lg\n",ori.data.storage[20]);
   for(LocLxSite site=0;
       site<locVol;
       site++)
