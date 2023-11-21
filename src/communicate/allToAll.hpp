@@ -460,8 +460,8 @@ namespace nissa
     const auto initSrc=
       second.communicate(first.communicate(identity));
     
-    /// Fillss the inverse communicator
-    AllToAllComm<CSrc,CDst> inverseRes(nSrc,
+    /// Fills the inverse communicator
+    AllToAllComm<CSrc,CDst> inverseRes(initSrc.template getCompSize<CSrc>(),
 				       [&initSrc](const CDst& inverseDest)
     {
       return initSrc(inverseDest);
