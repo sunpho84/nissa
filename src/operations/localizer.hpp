@@ -89,7 +89,7 @@ namespace nissa::localizer
     
     using ExtraDynamicComps=
       In::DynamicComps;
-
+    
     const ExtraDynamicComps extraDynamicSizes;
     
     _Transform(const ExtraDynamicComps& extraDynamicSizes) :
@@ -131,7 +131,7 @@ namespace nissa::localizer
 	{
 	  f(n,DIC);
 	  
-	  return n;
+	  return prepare(std::forward<N>(n));
 	}
       else
 	{
@@ -155,14 +155,14 @@ namespace nissa::localizer
 	       const In& in,
 	       const F& f)
     {
-      lastLocDirUnmaker->communicate(out,iter<(nDim-1)>(prepare(in),f));
+      lastLocDirUnmaker->communicate(out,iter<(nDim-1)>(in,f));
     }
   };
 }
 
 namespace nissa
 {
-  /// Executes the FFt with f function
+  /// Cycle making each direction local in turn, executing the function f
   template <typename BufCompsBef,
 	    typename BufCompsAft,
 	    DerivedFromNode Out,
@@ -178,7 +178,7 @@ namespace nissa
     cycler.cycle(out,in,f);
   }
 }
-  
+
 #undef EXTERN_LOCALIZER
 #undef INITIALIZE_LOCALIZER_TO
 
