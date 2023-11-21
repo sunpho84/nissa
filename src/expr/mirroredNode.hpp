@@ -96,7 +96,7 @@ namespace nissa
     const auto& getForCurrentContext() const
     {
       return
-#ifdef USE_CUDA
+#ifdef COMPILING_FOR_DEVICE
 	deviceVal
 #else
 	hostVal
