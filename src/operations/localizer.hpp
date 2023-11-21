@@ -111,7 +111,7 @@ namespace nissa::localizer
       
       firstLocDirMaker->communicate(res,in);
       
-      f(res,std::integral_constant<Dir,Dir(0)>());
+      f(res,std::integral_constant<Dir,nDim-1>());
       
       return res;
     }
@@ -135,7 +135,7 @@ namespace nissa::localizer
     decltype(auto) iter(N&& n,
 			const F& f) const
     {
-      /// This direction in a constant form 
+      /// This direction in a constant form
       constexpr auto DIC=
 	std::integral_constant<Dir,D>();
       
