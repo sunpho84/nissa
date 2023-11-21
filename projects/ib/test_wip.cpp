@@ -357,34 +357,96 @@ namespace nissa
 
 template <DerivedFromNode Out,
 	  DerivedFromNode In>
-void doFFt(Out&& out,
+void bareCycle(Out&& out,
 	   const In& in)
 {
   /// Components different from those related to fft
   using OthComps=
-    TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite,ComplId>>;
+    TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite>>;
   
   auto f=
     []<DerivedFromNode B,
        Dir D>(B& b,
 	      const std::integral_constant<Dir,D>&)
     {
+      compsLoop<typename B::Comps>([&b]<DerivedFromComp...Dc>(const Dc&...dc)
+      {
+	if(b(dc...)<0)
+	  master_printf("bogus value %lg on %s\n",b(dc...),([]<DerivedFromComp Dci>(const Dci& c)
+	    {
+	      return "("+demangle(typeid(Dci).name())+"="+std::to_string(c())+") ";
+	    }(dc)+...).c_str());
+      },b.getDynamicSizes());
+      
       master_printf("%s\n",demangle(typeid(B).name()).c_str());
       
       master_printf("Cycling on Dir %d\n",D());
-      
+    };
+  
+  cycleOnAllLocalDirections<OthComps,CompsList<>>(std::forward<Out>(out),in,f,in.getDynamicSizes());
+}
 
+template <DerivedFromNode In>
+auto bareCycle(const In& in)
+{
+  In out;
+  
+  bareCycle(out,in);
+  
+  return out;
+}
+
+#include <fftw3.h>
+
+template <DerivedFromNode Out,
+	  DerivedFromNode In>
+void fft(Out&& out,
+	 const int& sign,
+	 const In& in)
+{
+  /// Components different from those related to fft
+  using OthComps=
+    TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite,ComplId>>;
+  
+  auto f=
+    [sign]<DerivedFromNode B,
+       Dir D>(B& buf,
+	      const std::integral_constant<Dir,D>&)
+    {
+      fftw_complex* b=
+      (fftw_complex*)buf.storage;
+      
+      fftw_plan plan=
+      fftw_plan_many_dft(1,&glbSizes[D()],1,b,nullptr,1,1,b,nullptr,1,1,sign,FFTW_ESTIMATE);
+      
+      const int nFft=
+      buf.nElements/glbSizes[D()]/2;
+      PAR(0,
+	  nFft,
+	  CAPTURE(b,
+		  plan,
+		  g=glbSizes[D()]),
+	  ioff,
+	  {
+	    fftw_execute_dft(plan,b+ioff*g,b+ioff*g);
+	  });
+      
+      fftw_destroy_plan(plan);
+      master_printf("%s\n",demangle(typeid(B).name()).c_str());
+      
+      master_printf("FFTing on Dir %d nFft=%d\n",D(),nFft);
     };
   
   cycleOnAllLocalDirections<OthComps,CompsList<ComplId>>(std::forward<Out>(out),in,f,in.getDynamicSizes());
 }
 
 template <DerivedFromNode In>
-auto doFFt(const In& in)
+auto fft(const int& sign,
+	 const In& in)
 {
   In out;
   
-  doFFt(out,in);
+  fft(out,sign,in);
   
   return out;
 }
@@ -396,8 +458,9 @@ void in_main(int narg,char **arg)
   init_grid(T,L);
   
   localizer::init();
-  
-  Field<CompsList<ColorRow,ComplId>> e;
+
+  {
+    Field<CompsList<ColorRow,ComplId>> e;
   PAR(0,
       LocLxSite(locVol),
       CAPTURE(TO_WRITE(e)),
