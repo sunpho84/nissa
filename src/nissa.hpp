@@ -181,6 +181,7 @@
 #include <operations/fourier_transform.hpp>
 #include <operations/gauge_fixing.hpp>
 #include <operations/gaugeconf.hpp>
+#include <operations/localizer.hpp>
 #include <operations/remap_vector.hpp>
 #include <operations/remez/remez_algorithm.hpp>
 #include <operations/shift.hpp>

@@ -6,6 +6,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/fourier_transform.cpp \
 	%D%/gauge_fixing.cpp \
 	%D%/gaugeconf.cpp \
+	%D%/localizer.cpp \
 	%D%/remap_vector.cpp \
 	%D%/source.cpp \
 	%D%/smearing/hex.cpp \
@@ -27,6 +28,7 @@ include_HEADERS+= \
 	%D%/fourier_transform.hpp \
 	%D%/gauge_fixing.hpp \
 	%D%/gaugeconf.hpp \
+	%D%/localizer.hpp \
 	%D%/remap_vector.hpp \
 	%D%/shift.hpp \
 	%D%/source.hpp \

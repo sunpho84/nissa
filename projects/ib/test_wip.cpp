@@ -355,211 +355,33 @@ namespace nissa
 // #endif
 //   ;
 
-namespace nissa::fft
+template <DerivedFromNode Out,
+	  DerivedFromNode In>
+void doFFt(Out&& out,
+	   const In& in)
 {
-  DECLARE_DYNAMIC_COMP(OrthoSpaceTime);
-  
-  DECLARE_DYNAMIC_COMP(FullLocDirCoord);
-  
-  /// Merged component for the temporary storage
-  using MC=
-    MergedComp<CompsList<OrthoSpaceTime,FullLocDirCoord>>;
-  
-  /// Type of the communicator which makes local a given direction
-  using LocDirMaker=
-    AllToAllComm<MC,LocLxSite>;
-  
-  /// Type for the communicator which changes the current local direction to another one
-  using LocDirChanger=
-    AllToAllComm<MC,MC>;
-  
-  /// Type for the communicator which makes ordinary a local direction
-  using LocDirUnmaker=
-    AllToAllComm<LocLxSite,MC>;
-  
-  /// Communicator ehich makes local the first direction
-  LocDirMaker* firstLocDirMaker;
-  
-  /// Communicators which transform the local direction to the next in list
-  std::vector<LocDirChanger> locDirChanger;
-  
-  /// Communicator which brings back the local direction to lexicograèhic
-  LocDirUnmaker* lastLocDirUnmaker;
-  
-  /// Store whether the fft has been initialized
-  bool initialized{false};
-  
-  /// Dimensions to be used for the temporary storage
-  StackTens<CompsList<Dir>,std::tuple<FullLocDirCoord,OrthoSpaceTime>> dimensions;
-  
-  /// Computes the dimension for each direction
-  std::tuple<FullLocDirCoord,OrthoSpaceTime> computeDimensions(const Dir& dir)
-  {
-    /// Fully local size in a given direction is the global size
-    const FullLocDirCoord fcSize=
-      glbSizes[dir()];
-    
-    /// Perpendicular size across the whole lattice
-    const OrthoSpaceTime glbOsdSize=
-      glbVol/glbSizes[dir()];
-    
-    /// Portion of the perpendicular size relative to each lattice
-    const OrthoSpaceTime locOsdSize=
-      (glbOsdSize+nranks-1)/nranks;
-    
-    return {fcSize,locOsdSize};
-  }
-  
-  /// Creates the communicator which makes local a given direction
-  LocDirMaker getLocDirMaker(const Dir& dir)
-  {
-    return {LocLxSite(locVol),
-	    [&dir](const LocLxSite& locLxSite)
-	    {
-	      /// Dimensions of the current direction
-	      const auto& [fcSize,locOsdSize]=
-		dimensions[dir];
-	      
-	      /// Coordinate in the current direction of the requires site
-	      const FullLocDirCoord fc=
-		glbCoordOfLoclx[locLxSite()][dir()];
-	      
-	      /// Global index in the space perpendicular to the current direction
-	      int64_t glbOsd=0;
-	      for(Dir pDir=0;pDir<NDIM-1;pDir++)
-		{
-		  const Dir jDir=perp_dir[dir()][pDir()];
-		  glbOsd=glbSizes[jDir()]*glbOsd+glbCoordOfLoclx[locLxSite()][jDir()];
-		}
-	      
-	      /// Rank hosting global site
-	      const MpiRank orthoRank=
-		(int)(glbOsd/locOsdSize());
-	      
-	      /// Local index in the rank
-	      const OrthoSpaceTime locOsd=
-		glbOsd-orthoRank()*locOsdSize();
-	      
-	      /// Merges the components
-	      const auto mc=
-		MC::merge(std::make_tuple(fcSize,locOsdSize),fc,OrthoSpaceTime(locOsd));
-	      
-	      return std::make_tuple(orthoRank,mc);
-	    }};
-  }
-  
-  /// Initializes the communicators
-  void init()
-  {
-    for(Dir dir=0;dir<NDIM;dir++)
-      dimensions[dir]=computeDimensions(dir);
-    
-    /// Communicators which make a given direction local
-    std::vector<LocDirMaker> locDirMaker;
-    for(Dir dir=0;dir<NDIM;dir++)
-      locDirMaker.push_back(getLocDirMaker(dir));
-    
-    /// Inverse localizer
-    std::vector<LocDirUnmaker> locDirUnmaker;
-    for(Dir dir=0;dir<NDIM;dir++)
-      locDirUnmaker.push_back(locDirMaker[dir()].inverse());
-    
-    for(Dir dir=1;dir<NDIM;dir++)
-      locDirChanger.push_back(locDirMaker[dir()]*locDirUnmaker[dir()-1]);
-    
-    firstLocDirMaker=new LocDirMaker(std::move(locDirMaker.front()));
-    
-    lastLocDirUnmaker=new LocDirUnmaker(std::move(locDirUnmaker.back()));
-    
-    initialized=true;
-  }
-  
-  /// Internal implementation making a dimension local in turn
-  template <DerivedFromNode In,
-	    DerivedFromNode Out=In>
-  struct _Transform
-  {
-    /// Components different from those related to fft
-    using OthComps=
-      TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite,ComplId>>;
-    
-    /// Buffer components
-    using BufComps=
-      TupleCat<OthComps,CompsList<OrthoSpaceTime,FullLocDirCoord,ComplId>>;
-    
-    /// Fundamental type of the expression to fft
-    using Fund=
-      typename In::Fund;
-    
-    /// Iteration
-    template <Dir D=nDim,
-	      DerivedFromNode Ori,
-	      DerivedFromNode N>
-    static decltype(auto) iter(const Ori&ori,
-			       const N& n)
+  /// Components different from those related to fft
+  using OthComps=
+    TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite,ComplId>>;
+
+  auto f=
+    []<Dir D>(auto& b,
+	      const std::integral_constant<Dir,D>&)
     {
-      static_assert(D>=0 and D<=NDIM,"FFTing on weird dim");
-      
-      /// Inner part to be used
-      decltype(auto) inner=
-	[&ori](const N& n)
-	{(void)ori;
-	  if constexpr(D==0)
-	    return n;
-	  else
-	    return iter<D-1>(ori,n);
-	}(n);
-      
-      /// Communicator to be used
-      const auto& comm=
-	[]()->const auto&
-	{
-	  if constexpr(D==0)
-	    return *firstLocDirMaker;
-	  else
-	    return locDirChanger[D()-1];
-	}();
-      
-      /// Dynamical components of the result
-      const auto dynamicSizes=
-	std::tuple_cat(ori.getDynamicSizes(),dimensions[D]);
-      
-      /// Returned result
-      auto res=
-	DynamicTens<BufComps,Fund,In::execSpace>(dynamicSizes).template mergeComps<CompsList<OrthoSpaceTime,FullLocDirCoord>>();
-      
-      comm.communicate(res,inner);
-      
-      return res;
-    }
-  };
+      master_printf("Cycling on Dir %d\n",D());
+    };
   
-  /// Executes the FFt with f function
-  template <DerivedFromNode E,
-	    typename F,
-	    DerivedFromNode R=E>
-  requires(tupleHasType<typename E::Comps,ComplId>)
-  R doFFt(const E& e,
-	  F f)
-  {
-    /// Result
-    R res;
-    lastLocDirUnmaker->communicate(res,_Transform<E,R>::template iter<(Dir)NDIM-1>(e,e));
-    
-    return res;
-  }
+  cycleOnAllLocalDirections<OthComps,CompsList<ComplId>>(std::forward<Out>(out),in,f,in.getDynamicSizes());
+}
+
+template <DerivedFromNode In>
+auto doFFt(const In& in)
+{
+  In out;
   
-  /// Release the communicators
-  void dealloc()
-  {
-    if(initialized)
-      {
-	delete firstLocDirMaker;
-	locDirChanger.clear();
-	delete lastLocDirUnmaker;
-      }
-    initialized=false;
-  }
+  doFFt(out,in);
+  
+  return out;
 }
 
 void in_main(int narg,char **arg)
@@ -568,7 +390,7 @@ void in_main(int narg,char **arg)
   
   init_grid(T,L);
   
-  fft::init();
+  localizer::init();
   
   Field<CompsList<ColorRow,ComplId>> e;
   PAR(0,
@@ -582,10 +404,8 @@ void in_main(int narg,char **arg)
       });
   
   decltype(auto) ori=
-    fft::doFFt(e,[]<DerivedFromDynamicTens D>(D&& d,
-		    const Dir& dir)
-    {
-    }).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
+    doFFt(e).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
+  
   master_printf("test outside %lg\n",ori.data.storage[20]);
   for(LocLxSite site=0;
       site<locVol;
@@ -595,7 +415,7 @@ void in_main(int narg,char **arg)
 	if(ori(site).colorRow(cr).reIm(ri)!=glblxOfLoclx[site()])
 	  master_printf("site %ld differ: %d %lg\n",site(),glblxOfLoclx[site()],ori(site));
   
-  fft::dealloc();
+  localizer::dealloc();
   
   // DynamicTens<OfComps<SpinRow,LocEoSite>,double,MemoryType::CPU>
   // din(std::make_tuple(locEoSite(locVolh))); din=0;
