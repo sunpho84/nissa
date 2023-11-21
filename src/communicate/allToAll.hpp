@@ -16,6 +16,7 @@
 #include <expr/dynamicTens.hpp>
 #include <expr/mirroredNode.hpp>
 #include <threads/threads.hpp>
+#include <tuples/invokeWithTypesOfTuple.hpp>
 #include <tuples/tupleCat.hpp>
 #include <tuples/tupleReplaceType.hpp>
 
