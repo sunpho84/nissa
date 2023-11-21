@@ -50,7 +50,7 @@ namespace nissa::localizer
   /// Communicator which brings back the local direction to lexicograèhic
   EXTERN_LOCALIZER LocDirUnmaker* lastLocDirUnmaker;
   
-  /// Store whether the fft has been initialized
+  /// Store whether the cycler has been initialized
   EXTERN_LOCALIZER bool initialized INITIALIZE_LOCALIZER_TO({false});
   
   /// Dimensions to be used for the temporary storage
