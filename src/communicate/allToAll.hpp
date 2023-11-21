@@ -259,7 +259,7 @@ namespace nissa
       
       /// Build the components of the buffer
       using BufComps=
-	TupleCat<DstRedComps,CompsList<BufComp>>;
+	TupleCat<CompsList<BufComp>,DstRedComps>;
       
       /// Instantiate the buffer
       DynamicTens<BufComps,Fund,execSpace> outBuf(std::tuple_cat(std::make_tuple(getOutBufSize()),in.getDynamicSizes()));
@@ -334,6 +334,7 @@ namespace nissa
 							       {
 								 return mergedHostOutBuf(sendOffset,C(0)...);
 							       });
+	  //master_printf("Sending nel %d ndof %d %d bytes to rank %d\n",nEl,nDof,nEl*nDof*sizeof(Fund),dstRank());
 	  MPI_Isend(&ptr,
 		    nEl*nDof*sizeof(Fund),
 		    MPI_CHAR,dstRank(),0,MPI_COMM_WORLD,req++);
@@ -350,6 +351,7 @@ namespace nissa
 							      {
 								return mergedHostInBuf(recvOffset,C(0)...);
 							      });
+	  //master_printf("Receiving %d bytes from rank %d ptr %p\n",nEl*nDof*sizeof(Fund),rcvRank(),&ptr);
 	  MPI_Irecv(&ptr,
 		    nEl*nDof*sizeof(Fund),
 		    MPI_CHAR,rcvRank(),0,MPI_COMM_WORLD,req++);
