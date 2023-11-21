@@ -450,95 +450,80 @@ namespace nissa::fft
     initialized=true;
   }
   
-  template <DerivedFromNode _D,
+  template <DerivedFromNode In,
+	    DerivedFromNode Out=In>
+  struct _Transform
+  {
+    /// Components different from those related to fft
+    using OthComps=
+      TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite>>;
+    
+    /// Buffer components
+    using BufComps=
+      TupleCat<OthComps,CompsList<OrthoSpaceTime,FullLocDirCoord>>;
+    
+    /// Fundamental type of the expression to fft
+    using Fund=
+      typename In::Fund;
+    
+    static constexpr Dir NDim=NDIM;
+    
+    static auto getBuf(const Dir& D,
+		       const In& ori)
+    {
+      /// Dynamical components of the buffer
+      const auto dynamicSizes=
+	std::tuple_cat(ori.getDynamicSizes(),dimensions[D]);
+	
+      return DynamicTens<BufComps,Fund,In::execSpace>(dynamicSizes).template mergeComps<CompsList<OrthoSpaceTime,FullLocDirCoord>>();
+    }
+    
+    template <Dir D=NDim,
+	      DerivedFromNode Ori,
+	      DerivedFromNode N>
+    static decltype(auto) iter(const Ori&ori,
+			       const N& n)
+    {
+      static_assert(D>=0 and D<=NDIM,"FFTing on weird dim");
+      
+      decltype(auto) in=
+	[&ori](const N& n)
+	{(void)ori;
+	  if constexpr(D==0)
+	    return n;
+	  else
+	    return iter<D-1>(ori,n);
+	}(n);
+      
+      const auto& comm=
+	[]()->const auto&
+	{
+	  if constexpr(D==0)
+	    return *firstLocDirMaker;
+	  else
+	    return locDirChanger[D()-1];
+	}();
+      
+      auto tmp=
+	getBuf(D,ori);
+      
+      comm.communicate(tmp,in);
+      
+      return tmp;
+    }
+  };
+  
+  template <DerivedFromNode E,
 	    typename F,
-	    DerivedFromNode R=std::decay_t<_D>>
-  requires(tupleHasType<typename std::decay_t<_D>::Comps,ComplId>)
-  R doFFt(_D&& d,
+	    DerivedFromNode R=E>
+  //requires(tupleHasType<typename std::decay_t<_D>::Comps,ComplId>)
+  R doFFt(const E& e,
 	  F f)
   {
-    using D=
-      std::decay_t<_D>;
+    R res;
+    lastLocDirUnmaker->communicate(res,_Transform<E,R>::template iter<(Dir)NDIM-1>(e,e));
     
-    using Fund=
-      typename D::Fund;
-    
-    using OthComps=
-      TupleFilterAllTypes<typename D::Comps,CompsList<LocLxSite,ComplId>>;
-    
-    auto getBuf=
-      [&d](const Dir& dir)
-      {
-	using Comps=
-	  TupleCat<OthComps,CompsList<OrthoSpaceTime,FullLocDirCoord,ComplId>>;
-	
-	const auto dynamicCompsSize=
-	  std::tuple_cat(d.getDynamicSizes(),dimensions[dir]);
-	
-	return
-	  DynamicTens<Comps,Fund,D::execSpace>(dynamicCompsSize).template mergeComps<CompsList<OrthoSpaceTime,FullLocDirCoord>>();
-      };
-    
-    auto iter=
-      [getBuf]<Dir D,
-		    DerivedFromNode E>(auto iter,
-				       const E& e,
-				       std::integral_constant<Dir,D>)
-      {
-	static_assert(D>=0 and D<=NDIM,"FFTing on weird dim");
-	
-	using Next=std::integral_constant<Dir,D-1>;
-	
-	if constexpr(D==NDIM)
-	  {
-	    R res;
-	    lastLocDirUnmaker->communicate(res,iter(iter,e,Next()));
-	    
-	    return res;
-	  }
-	else
-	  {
-	    decltype(auto) in=
-	      [&e=e,iter]()
-	      {(void)iter;
-		if constexpr(D==0)
-		  return e;
-		else
-		  return iter(iter,e,Next());
-	      }();
-	    
-	    const auto& comm=
-	      []()->const auto&
-	      {
-		if constexpr(D==0)
-		  return *firstLocDirMaker;
-		else
-		  return locDirChanger[D()-1];
-	      }();
-	    
-	    auto tmp=
-	      getBuf(D);
-	    
-	    comm.communicate(tmp,in);
-	    
-	    return tmp;
-	  }
-      };
-    
-    if constexpr(std::tuple_size_v<OthComps> >1)
-      ;
-    else
-      {
-      }
-    // f(a,Dir(0));
-    
-    // for(Dir dir=0;dir<NDIM-1;dir++)
-    //   {
-    //   }
-    
-    // /// Fills the result
-    
-    return iter(iter,d,std::integral_constant<Dir,(Dir)NDIM>());
+    return res;
   }
   
   /// Release the communicators
@@ -570,7 +555,7 @@ void in_main(int narg,char **arg)
       {
 	for(ColorRow cr=0;cr<3;cr++)
 	  for(ComplId ri=0;ri<2;ri++)
-	    e(site,cr,ri)=ri()+2*cr();//glblxOfLoclx[site()];
+	    e(site,cr,ri)=glblxOfLoclx[site()];
       });
   
   decltype(auto) ori=
@@ -584,8 +569,8 @@ void in_main(int narg,char **arg)
       site++)
     for(ColorRow cr=0;cr<NCOL;cr++)
       for(ComplId ri=0;ri<2;ri++)
-    if(ori(site).colorRow(cr).reIm(ri)!=glblxOfLoclx[site()])
-      master_printf("site %ld col %d ri %d differ: %d %lg\n",site(),cr(),ri(),glblxOfLoclx[site()],ori(site).colorRow(cr).reIm(ri));
+	if(ori(site).colorRow(cr).reIm(ri)!=glblxOfLoclx[site()])
+	  master_printf("site %ld differ: %d %lg\n",site(),glblxOfLoclx[site()],ori(site));
   
   fft::dealloc();
   
