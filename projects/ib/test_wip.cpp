@@ -405,22 +405,61 @@ void in_main(int narg,char **arg)
       {
 	for(ColorRow cr=0;cr<3;cr++)
 	  for(ComplId ri=0;ri<2;ri++)
-	    e(site,cr,ri)=glblxOfLoclx[site()];
+	    e(site ,cr,ri
+	      )=glblxOfLoclx[site()];
       });
   
   decltype(auto) ori=
-    doFFt(e).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
+    bareCycle(e).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
   
   for(LocLxSite site=0;
       site<locVol;
       site++)
     for(ColorRow cr=0;cr<NCOL;cr++)
       for(ComplId ri=0;ri<2;ri++)
-	if(ori(site).colorRow(cr).reIm(ri)!=glblxOfLoclx[site()])
-	  master_printf("site %ld differ: %d %lg\n",site(),glblxOfLoclx[site()],ori(site));
+	//if(ori(site).colorRow(cr).reIm(ri)!=glblxOfLoclx[site()])
+	master_printf("site %ld differ cr %d ri %d: %d %lg\n",site(), cr(),ri(),
+		      glblxOfLoclx[site()],ori(site) .colorRow(cr).reIm(ri));
+}  
+  Field<CompsList<ColorRow,ComplId>> e;
+  PAR(0,
+      LocLxSite(locVol),
+      CAPTURE(TO_WRITE(e)),
+      site,
+      {
+	for(ColorRow cr=0;cr<3;cr++)
+	  for(ComplId ri=0;ri<2;ri++)
+	    e(site,cr,ri)=glblxOfLoclx[site()]==0 and ri==0;
+      });
+  
+  decltype(auto) fDone=
+    fft(+1,e).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
+  
+  for(LocLxSite site=0;
+      site<locVol;
+      site++)
+    {
+      auto p=fDone.locLxSite(site);
+      auto c=p.colorRow(0);
+      auto g=glb_coord_of_glblx(glblxOfLoclx[site()]);
+      master_printf("site %ld (%d,%d,%d,%d): %lg %lg\n",
+		    site(),g[0],g[1],g[2],g[3],c.reIm(0),c.reIm(1));
+
+      // double r=0;
+      // for(Dir d=0;d<nDim;d++)
+      // 	r+=M_PI*glbCoordOfLoclx[site()][d()];
+      
+      for(ColorRow cr=0;cr<3;cr++)
+	for(ComplId ri=0;ri<2;ri++)
+	  if(p(cr,ri)!=c(ri))
+	    master_printf("site %ld cr %d ri %d: %lg %lg vs %lg %lg\n",site(),cr(),ri(),p(cr).reIm(0),p(cr).reIm(1),c.reIm(0),c.reIm(1));
+	    
+    }
   
   localizer::dealloc();
   
+  
+
   // DynamicTens<OfComps<SpinRow,LocEoSite>,double,MemoryType::CPU>
   // din(std::make_tuple(locEoSite(locVolh))); din=0;
 
