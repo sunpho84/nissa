@@ -36,6 +36,9 @@ namespace nissa
   /// Forward
 #define fw Ori(1)
   
+  /// Number of dimensions
+#define nDim Dir(NDIM)
+  
   DECLARE_PARALLELIZABLE_COMP(LocLxSite,int64_t,locLxSite);
   DECLARE_PARALLELIZABLE_COMP(LocEoSite,int64_t,locEoSite);
   DECLARE_PARALLELIZABLE_COMP(LocEvnSite,int64_t,locEvnSite);
