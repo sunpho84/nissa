@@ -50,7 +50,7 @@ namespace nissa
     uint16_t version;
     uint16_t mbme_flag;
     uint64_t data_length;
-    char type[128];
+    char type[128]={};
   };
   
   //store messages
