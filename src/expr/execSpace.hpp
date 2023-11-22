@@ -90,6 +90,9 @@ namespace nissa
   
   constexpr ExecSpace execOnGPU(MemoryType::GPU);
   
+  constexpr ExecSpace execOnCPUAndGPU=
+	      execOnCPU+execOnGPU;
+  
   constexpr ExecSpace currentExecSpace=
 	      compilingForDevice?execOnGPU:execOnCPU;
   
