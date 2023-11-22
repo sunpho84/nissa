@@ -398,6 +398,71 @@ auto bareCycle(const In& in)
 
 #include <fftw3.h>
 
+#ifdef USE_CUDA
+# include <cufft.h>
+#endif
+
+namespace nissa::impl
+{
+  template <MemoryType ES>
+  struct _FFT1D;
+  
+  template <>
+  struct _FFT1D<MemoryType::CPU>
+  {
+    static void exec(void* buf,
+		     const int& n,
+		     const int& sign,
+		     const int& nFft)
+    {
+      auto b=
+	(fftw_complex*)buf;
+      
+      fftw_plan plan=
+	fftw_plan_many_dft(1,&n,1,b,nullptr,1,1,b,nullptr,1,1,sign,FFTW_ESTIMATE);
+      
+      HOST_PARALLEL_LOOP(0,
+	  nFft,
+	  CAPTURE(b,
+		  plan,
+		  n),
+	  ioff,
+	  {
+	    fftw_execute_dft(plan,b+ioff*n,b+ioff*n);
+	  });
+      
+      fftw_destroy_plan(plan);
+    }
+  };
+  
+  template <>
+  struct _FFT1D<MemoryType::GPU>
+  {
+    static void exec(void* buf,
+		     int n,
+		     const int& sign,
+		     const int& nFft)
+    {
+      auto b=
+	(cufftDoubleComplex*)buf;
+
+      int inembed=n;
+      int istride=1;
+      int idist=n;
+      int onembed=n;
+      int ostride=1;
+      int odist=n;
+      int batch=nFft;
+      cufftHandle plan;
+      cufftPlanMany(&plan,1,&n,&inembed,istride,idist,&onembed,ostride,odist,CUFFT_Z2Z,batch);
+      
+      cufftExecZ2Z(plan,b,b,CUFFT_FORWARD);
+      
+      cufftDestroy(plan);
+    }
+  };
+}
+
 template <DerivedFromNode Out,
 	  DerivedFromNode In>
 void fft(Out&& out,
@@ -413,25 +478,10 @@ void fft(Out&& out,
        Dir D>(B& buf,
 	      const std::integral_constant<Dir,D>&)
     {
-      fftw_complex* b=
-      (fftw_complex*)buf.storage;
+      const int nCompl=glbSizes[D()];
+      const int nFft=buf.nElements/nCompl/2;
+      impl::_FFT1D<B::execSpace>::exec(buf.storage,nCompl,sign,nFft);
       
-      fftw_plan plan=
-      fftw_plan_many_dft(1,&glbSizes[D()],1,b,nullptr,1,1,b,nullptr,1,1,sign,FFTW_ESTIMATE);
-      
-      const int nFft=
-      buf.nElements/glbSizes[D()]/2;
-      PAR(0,
-	  nFft,
-	  CAPTURE(b,
-		  plan,
-		  g=glbSizes[D()]),
-	  ioff,
-	  {
-	    fftw_execute_dft(plan,b+ioff*g,b+ioff*g);
-	  });
-      
-      fftw_destroy_plan(plan);
       master_printf("%s\n",demangle(typeid(B).name()).c_str());
       
       master_printf("FFTing on Dir %d nFft=%d\n",D(),nFft);
@@ -459,31 +509,31 @@ void in_main(int narg,char **arg)
   
   localizer::init();
 
-  {
-    Field<CompsList<ColorRow,ComplId>> e;
-  PAR(0,
-      LocLxSite(locVol),
-      CAPTURE(TO_WRITE(e)),
-      site,
-      {
-	for(ColorRow cr=0;cr<3;cr++)
-	  for(ComplId ri=0;ri<2;ri++)
-	    e(site ,cr,ri
-	      )=glblxOfLoclx[site()];
-      });
+//   {
+//     Field<CompsList<ColorRow,ComplId>> e;
+//   PAR(0,
+//       LocLxSite(locVol),
+//       CAPTURE(TO_WRITE(e)),
+//       site,
+//       {
+// 	for(ColorRow cr=0;cr<3;cr++)
+// 	  for(ComplId ri=0;ri<2;ri++)
+// 	    e(site ,cr,ri
+// 	      )=glblxOfLoclx[site()];
+//       });
   
-  decltype(auto) ori=
-    bareCycle(e).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
+//   decltype(auto) ori=
+//     bareCycle(e).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
   
-  for(LocLxSite site=0;
-      site<locVol;
-      site++)
-    for(ColorRow cr=0;cr<NCOL;cr++)
-      for(ComplId ri=0;ri<2;ri++)
-	//if(ori(site).colorRow(cr).reIm(ri)!=glblxOfLoclx[site()])
-	master_printf("site %ld differ cr %d ri %d: %d %lg\n",site(), cr(),ri(),
-		      glblxOfLoclx[site()],ori(site) .colorRow(cr).reIm(ri));
-}  
+//   for(LocLxSite site=0;
+//       site<locVol;
+//       site++)
+//     for(ColorRow cr=0;cr<NCOL;cr++)
+//       for(ComplId ri=0;ri<2;ri++)
+// 	//if(ori(site).colorRow(cr).reIm(ri)!=glblxOfLoclx[site()])
+// 	master_printf("site %ld differ cr %d ri %d: %d %lg\n",site(), cr(),ri(),
+// 		      glblxOfLoclx[site()],ori(site) .colorRow(cr).reIm(ri));
+// }  
   Field<CompsList<ColorRow,ComplId>> e;
   PAR(0,
       LocLxSite(locVol),
