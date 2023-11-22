@@ -142,13 +142,12 @@ void inMain(int narg,char **arg)
       
       if(su3Path)
 	{
-	  master_printf("\n");
 	  quad_su3* conf=nissa_malloc("conf",locVol,quad_su3);
 	  read_ildg_gauge_conf(conf,su3Path);
 	  
 	  const double pSU3=global_plaquette_lx_conf(conf);
 	  
-	  master_printf("Plaquette of the conf without the u1 phase: %lg\n",pSU3);
+	  master_printf("\nPlaquette of the conf without the u1 phase: %.16lg\n",pSU3);
 	  
 	  NISSA_PARALLEL_LOOP(loclx,0,locVol)
 	    {
@@ -160,12 +159,12 @@ void inMain(int narg,char **arg)
 	  
 	  const double pU3=global_plaquette_lx_conf(conf);
 	  
-	  master_printf("Plaquette of the conf with the u1 phase: %lg\n",pU3);
+	  master_printf("Plaquette of the conf with the u1 phase: %.16lg\n",pU3);
 	  
 	  nissa_free(conf);
 	}
       
-      master_printf("Plaquette of the u1 phase: %lg\n",pU1);
+      master_printf("Plaquette of the u1 phase: %.16lg\n\n",pU1);
       
       nissa_free(u1);
     }
