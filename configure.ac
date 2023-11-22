@@ -212,6 +212,7 @@ AX_SUBPACKAGE(ssl,openssl/ssl.h,crypto ssl,MD5_Final,SSL)
 #################### ffw ####################
 
 AX_SUBPACKAGE(fftw,fftw3.h,fftw3,fftw_plan_dft_r2c_2d,FFTW)
+AX_SUBPACKAGE(fftw_threaded,fftw3.h,fftw3_threads,fftw_init_threads,FFTW_THREADED)
 
 #fast fourier type
 AC_DEFINE([NATIVE_FFT],[0],["Native implementation"])
