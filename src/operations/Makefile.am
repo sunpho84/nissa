@@ -11,7 +11,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 # %D%/source.cpp \
 # %D%/covariant_derivative.cpp \
 # %D%/gaugeconf.cpp \
-# %D%/fourier_transform.cpp \
 # %D%/smearing/hex.cpp \
 # %D%/smearing/HYP.cpp \
 # %D%/smearing/smooth.cpp \

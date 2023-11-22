@@ -120,16 +120,16 @@ namespace nissa
       Field<CompsList<C...>,_Fund,FC,FieldLayout::GPU,maybeGpuMemoryType,IsRef>;
     
     template <FieldLayout OFL,
-	      MemoryType OES,
+	      MemoryType OMT,
 	      bool OIR>
-    requires(OFL!=FL or OES!=MT)
+    requires(OFL!=FL or OMT!=MT)
     INLINE_FUNCTION
-    Field& operator=(const Field<CompsList<C...>,_Fund,FC,OFL,OES,OIR>& oth)
+    Field& operator=(const Field<CompsList<C...>,_Fund,FC,OFL,OMT,OIR>& oth)
     {
       if(this->getDynamicSizes()!=oth.getDynamicSizes())
 	crash("trying to assign fields on different memory space, having different dynamic sizes");
       
-      this->assign(oth.template copyToMemorySpaceIfNeeded<execSpace>());
+      this->assign(oth.template copyToMemorySpaceIfNeeded<MT>());
       
       invalidateHalo();
       
@@ -261,7 +261,7 @@ namespace nissa
       DynamicTens<Comps,Fund,MT,IsRef>;
     
     /// Executes where allocated
-    static constexpr MemoryType execSpace=MT;
+    static constexpr ExecSpace exacSpace{MT};
     
     /////////////////////////////////////////////////////////////////
     
@@ -496,11 +496,11 @@ namespace nissa
       //verbosity_lv2_master_printf("n: %d, nori: %d\n",n(),nOri());
       
       /// Make spacetime the external component
-      Field<CompsList<C...>,Fund,FieldCoverage::FULL_SPACE,FieldLayout::CPU,execSpace> buf(*this);
+      Field<CompsList<C...>,Fund,FieldCoverage::FULL_SPACE,FieldLayout::CPU,MT> buf(*this);
       buf.selfReduce();
       
       StackTens<CompsList<C...>,Fund> res;
-      memcpy<MemoryType::CPU,execSpace>(res.storage,buf.data.storage,res.nElements*sizeof(Fund));
+      memcpy<MemoryType::CPU,MT>(res.storage,buf.data.storage,res.nElements*sizeof(Fund));
       
       return res;
     }
@@ -669,21 +669,21 @@ namespace nissa
     }
     
     /// Return a copy on the given memory space
-    template <MemoryType OES>
-    Field<CompsList<C...>,_Fund,FC,FL,OES> copyToMemorySpace() const
+    template <MemoryType OMT>
+    Field<CompsList<C...>,_Fund,FC,FL,OMT> copyToMemorySpace() const
     {
-      Field<CompsList<C...>,_Fund,FC,FL,OES> res(haloEdgesPresence);
+      Field<CompsList<C...>,_Fund,FC,FL,OMT> res(haloEdgesPresence);
       res.data=data;
       
       return res;
     }
     
     /* Return a copy on the given memory space, only if needed */
-#define PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(ATTRIB,REF,RETURNED_IN_SAME_ES_CASE)	\
-    template <MemoryType OES>						\
-    std::conditional_t<OES==execSpace,					\
-		       RETURNED_IN_SAME_ES_CASE,			\
-		       Field<CompsList<C...>,Fund,FC,FL,OES>>		\
+#define PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(ATTRIB,REF,RETURNED_IN_SAME_MT_CASE)	\
+    template <MemoryType OMT>						\
+    std::conditional_t<OMT==MT,						\
+		       RETURNED_IN_SAME_MT_CASE,			\
+		       Field<CompsList<C...>,Fund,FC,FL,OMT>>		\
     copyToMemorySpaceIfNeeded() ATTRIB REF				\
     {									\
       return *this;							\
@@ -729,15 +729,15 @@ namespace nissa
     
     /// Construct from another exec space and/or field layout
     template <FieldLayout OFL,
-	      MemoryType OES,
+	      MemoryType OMT,
 	      bool OIR>
-    requires(OFL!=FL or OES!=MT)
+    requires(OFL!=FL or OMT!=MT)
     INLINE_FUNCTION
-    Field(const Field<CompsList<C...>,_Fund,FC,OFL,OES,OIR>& oth) :
+    Field(const Field<CompsList<C...>,_Fund,FC,OFL,OMT,OIR>& oth) :
       Field(oth.haloEdgesPresence)
     {
-      if constexpr(OES!=execSpace)
-	(*this)=oth.template copyToMemorySpace<execSpace>();
+      if constexpr(OMT!=MT)
+	(*this)=oth.template copyToMemorySpace<MT>();
       else
 	(*this)=oth;
     }

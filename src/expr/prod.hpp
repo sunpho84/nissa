@@ -9,6 +9,7 @@
 
 #include <expr/comps.hpp>
 #include <expr/conj.hpp>
+#include <expr/execSpace.hpp>
 #include <expr/node.hpp>
 //#include <expr/comps/prodCompsDeducer.hpp>
 #include <expr/producerDeclaration.hpp>
@@ -121,9 +122,9 @@ namespace nissa
     /// Fundamental tye
     using Fund=_Fund;
     
-    // /// Execution space
-    // static constexpr ExecSpace execSpace=
-    //   commonExecSpace<std::remove_reference_t<_E>::execSpace...>();
+    /// Execution space
+    static constexpr ExecSpace exacSpace=
+      (std::remove_reference_t<_E>::exacSpace*...);
     
     // static_assert(execSpace!=ExecSpace::HOST_DEVICE,"Cannot define product in undefined exec space");
     
@@ -310,7 +311,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Producer(const DynamicComps& dynamicSizes,
 	     T&&...facts) :
-      subExprs{facts...},
+      subExprs{{facts}...},
       dynamicSizes(dynamicSizes)
     {
     }

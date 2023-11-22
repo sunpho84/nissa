@@ -186,14 +186,15 @@ namespace nissa
 
 #ifdef USE_CUDA
 # define PAR_ON_EXEC_SPACE(EXEC_SPACE,MIN,MAX,CAPTURES,INDEX,BODY...)	\
-  if constexpr(EXEC_SPACE==MemoryType::CPU)				\
+  static_assert(EXEC_SPACE.hasUniqueExecSpace(),"Not uinique exec space!"); \
+  if constexpr(EXEC_SPACE==execOnCPU)					\
     HOST_PARALLEL_LOOP(MIN,MAX,CAPTURE(CAPTURES),INDEX,BODY);		\
   else									\
     DEVICE_PARALLEL_LOOP(MIN,MAX,CAPTURE(CAPTURES),INDEX,BODY)
   
 #else
 # define PAR_ON_EXEC_SPACE(EXEC_SPACE,MIN,MAX,CAPTURES,INDEX,BODY...)	\
-  static_assert(EXEC_SPACE==MemoryType::CPU,"Not compiled for Cuda!");	\
+  static_assert(EXEC_SPACE.hasUniqueExecSpace(),"Not uinique exec space!"); \
   HOST_PARALLEL_LOOP(MIN,MAX,CAPTURE(CAPTURES),INDEX,BODY)
 #endif
 }

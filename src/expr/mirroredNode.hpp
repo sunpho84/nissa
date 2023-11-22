@@ -12,6 +12,7 @@
 /// Mirrored node exec normally on cpu, the device part is a mere mirror
 
 #include <expr/comps.hpp>
+#include <expr/execSpace.hpp>
 #include <expr/node.hpp>
 
 namespace nissa
@@ -78,11 +79,12 @@ namespace nissa
       typename Base::DynamicComps;
     
     /// Gets a reference for the given exectution space
-    template <MemoryType ES>
+    template <ExecSpace ES>
+    requires UniqueExecSpace<ES>
     decltype(auto) getRefForExecSpace() const
     {
 #ifdef USE_CUDA
-      if constexpr(ES==MemoryType::GPU)
+      if constexpr(ES==execOnGPU)
 	return deviceVal.getRef();
       else
 #endif

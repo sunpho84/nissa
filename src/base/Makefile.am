@@ -15,8 +15,8 @@ BUILT_SOURCES+= \
 
 __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/bench.cpp \
-	%D%/debug.cpp \
 	%D%/old_field.cpp \
+	%D%/debug.cpp \
 	%D%/init.cpp \
 	%D%/memory_manager.cpp \
 	%D%/multiGridParams.cpp \

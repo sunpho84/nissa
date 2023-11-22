@@ -396,19 +396,19 @@ auto bareCycle(const In& in)
   return out;
 }
 
-
-
-
-
-
 void in_main(int narg,char **arg)
 {
+  // constexpr ExecSpace ex(MemoryType::CPU);
+  // constexpr MemoryType mt=getMemoryType<ex>();
+  // constexpr bool t=ex.template runOn<MemoryType::CPU>();
+  // constexpr int m=(execOnCPU*execOnGPU).hasUniqueExecSpace();
   const int T=8,L=4;
   
   init_grid(T,L);
   
   localizer::init();
-
+  initFftw();
+  
 //   {
 //     Field<CompsList<ColorRow,ComplId>> e;
 //   PAR(0,
@@ -434,17 +434,24 @@ void in_main(int narg,char **arg)
 // 	master_printf("site %ld differ cr %d ri %d: %d %lg\n",site(), cr(),ri(),
 // 		      glblxOfLoclx[site()],ori(site) .colorRow(cr).reIm(ri));
 // }  
+  
+    Field<CompsList<ColorRow>> r;
+    constexpr StackTens<CompsList<ComplId>,double> complOne{1,0};
+  Field<CompsList<ColorRow,ComplId>> rc;
+  // fft(rc,+1,(r*complOne));
+
   Field<CompsList<ColorRow,ComplId>> e;
+  const int s=glblx_of_coord({1,0,0,0});
   PAR(0,
       LocLxSite(locVol),
-      CAPTURE(TO_WRITE(e)),
+      CAPTURE(TO_WRITE(e),s),
       site,
       {
 	for(ColorRow cr=0;cr<3;cr++)
 	  for(ComplId ri=0;ri<2;ri++)
-	    e(site,cr,ri)=glblxOfLoclx[site()]==0 and ri==0;
+	    e(site,cr,ri)=glblxOfLoclx[site()]==s and ri==0;
       });
-  
+
   decltype(auto) fDone=
     fft(+1,e).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
   
@@ -470,7 +477,7 @@ void in_main(int narg,char **arg)
     }
   
   localizer::dealloc();
-  
+  fftwFinalize();
   
 
   // DynamicTens<OfComps<SpinRow,LocEoSite>,double,MemoryType::CPU>

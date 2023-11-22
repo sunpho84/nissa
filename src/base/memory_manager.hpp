@@ -35,11 +35,8 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  enum class MemoryType{CPU ///< Memory allocated on CPU side
-#ifdef USE_CUDA
-			,GPU ///< Memory allocated on GPU side
-#endif
-  };
+  enum class MemoryType{CPU=1,  ///< Memory allocated on CPU side
+			GPU=2}; ///< Memory allocated on GPU side
   
   /// Default memory to be used
   constexpr MemoryType defaultMemoryType=

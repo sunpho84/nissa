@@ -26,6 +26,7 @@ namespace nissa
     fftw_init_threads();
     fftw_plan_with_nthreads(omp_get_max_threads());
 #endif
+    
     fftwInitialized=true;
   }
   
@@ -93,7 +94,7 @@ namespace nissa
   {
     const double startTime=
       take_time();
-    
+
     auto b=
       (cufftDoubleComplex*)buf;
     

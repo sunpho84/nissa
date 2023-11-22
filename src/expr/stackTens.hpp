@@ -12,6 +12,7 @@
 //#include <expr/nodes/baseTens.hpp>
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
+#include <expr/execSpace.hpp>
 //#include <expr/assign/executionSpace.hpp>
 #include <expr/node.hpp>
 #include <expr/indexComputer.hpp>
@@ -83,9 +84,9 @@ namespace nissa
     static constexpr bool canAssignAtCompileTime=
       not std::is_const_v<Fund>;
     
-    // /// Executes where allocated
-    // static constexpr auto execSpace=
-    //   ExecSpace::HOST;
+    /// Executes where running
+    static constexpr ExecSpace exacSpace=
+      currentExecSpace;
     
     /// Always allocated
     static constexpr bool allocated=

@@ -24,9 +24,10 @@ namespace nissa
   void fftwFinalize();
   
   void fftExecUsingFftw(void* buf,const int& n,const int& sign,const int& nFft);
-
+  
   void fftExecUsingCuFFT(void* buf,int n,const int& sign,const int& nFft);
   
+  /// Performs fft of in  with given sign putting the result in out
   template <DerivedFromNode Out,
 	    DerivedFromNode In>
   void fft(Out&& out,
@@ -46,7 +47,7 @@ namespace nissa
 	const int nFft=buf.nElements/nCompl/2;
 	
 #ifdef USE_CUDA
-	if constexpr(B::execSpace==MemoryType::GPU)
+	if constexpr(B::exacSpace==execOnGPU)
 	  fftExecUsingCuFFT(buf.storage,nCompl,sign,nFft);
 	else
 #endif
@@ -62,14 +63,14 @@ namespace nissa
   
   template <DerivedFromNode In>
   auto fft(const int& sign,
-	 const In& in)
+	   const In& in)
   {
-  In out;
-  
-  fft(out,sign,in);
-  
-  return out;
-  }  
+    In out;
+    
+    fft(out,sign,in);
+    
+    return out;
+  }
 }
 
 #undef EXTERN_FFT

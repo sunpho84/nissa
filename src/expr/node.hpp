@@ -252,7 +252,7 @@ namespace nissa
     /// Returns the expression as a dynamic tensor
     auto fillDynamicTens() const
     {
-      DynamicTens<typename T::Comps,typename T::Fund,T::execSpace> res((~*this).getDynamicSizes());
+      DynamicTens<typename T::Comps,typename T::Fund,T::exacSpace> res((~*this).getDynamicSizes());
       
       res=~*this;
       

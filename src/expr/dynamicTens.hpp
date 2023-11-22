@@ -13,6 +13,7 @@
 #include <expr/comp.hpp>
 #include <expr/comps.hpp>
 #include <expr/dynamicTensDeclaration.hpp>
+#include <expr/execSpace.hpp>
 #include <expr/mergedComps.hpp>
 #include <expr/node.hpp>
 #include <expr/indexComputer.hpp>
@@ -85,16 +86,16 @@ namespace nissa
     using DynamicComps=
       typename Base::DynamicComps;
     
-    /// Assign from different execution space
-    template <MemoryType OES,
+    /// Assign from different memory
+    template <MemoryType OMT,
 	      bool OIR>
     INLINE_FUNCTION
-    DynamicTens& operator=(const DynamicTens<Comps,Fund,OES,OIR>& oth)
+    DynamicTens& operator=(const DynamicTens<Comps,Fund,OMT,OIR>& oth)
     {
       if(dynamicSizes!=oth.dynamicSizes)
 	crash("trying to assign different dynamic sized tensor");
       
-      memcpy<execSpace,OES>(storage,oth.storage,nElements*sizeof(Fund));
+      memcpy<MT,OMT>(storage,oth.storage,nElements*sizeof(Fund));
       
       return *this;
     }
@@ -104,7 +105,7 @@ namespace nissa
       not std::is_const_v<Fund>;
     
     /// Executes where allocated
-    static constexpr MemoryType execSpace=MT;
+    static constexpr ExecSpace exacSpace{MT};
     
     /// Sizes of the dynamic components
     DynamicComps dynamicSizes;
@@ -202,7 +203,7 @@ namespace nissa
 #ifdef USE_CUDA
 # ifdef COMPILING_FOR_DEVICE
       if constexpr(MT==MemoryType::CPU)
-	assert(execSpace==MemoryType::GPU);
+	assert(MT==MemoryType::GPU);
 # else
       if constexpr(MT==MemoryType::GPU)
 	crash("Cannot evaluate on CPU");
@@ -354,21 +355,21 @@ namespace nissa
     }
     
     /// Return a copy on the given memory space
-    template <MemoryType OES>
-    DynamicTens<Comps,Fund,OES> copyToMemorySpace() const
+    template <MemoryType OMT>
+    DynamicTens<Comps,Fund,OMT> copyToMemorySpace() const
     {
       return *this;
     }
     
 #define PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(ATTRIB,TYPE_TO_RETURN)	\
     /* Return a copy on the given memory space, only if needed */	\
-    template <MemoryType OES>						\
+    template <MemoryType OMT>						\
     TYPE_TO_RETURN copyToMemorySpaceIfNeeded() ATTRIB			\
     {									\
-      if constexpr(OES==execSpace)					\
+      if constexpr(OMT==MT)					\
 	return *this;							\
       else								\
-	return copyToMemorySpace<OES>();				\
+	return copyToMemorySpace<OMT>();				\
     }
     
     PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(const&,decltype(auto));
@@ -393,9 +394,9 @@ namespace nissa
     }
     
     /// Construct from another exec space
-    template <MemoryType OES>
+    template <MemoryType OMT>
     INLINE_FUNCTION
-    DynamicTens(const DynamicTens<Comps,Fund,OES>& oth) :
+    DynamicTens(const DynamicTens<Comps,Fund,OMT>& oth) :
       DynamicTens(oth.getDynamicSizes())
     {
 #ifndef COMPILING_FOR_DEVICE
