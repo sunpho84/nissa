@@ -438,8 +438,8 @@ void in_main(int narg,char **arg)
     Field<CompsList<ColorRow>> r;
     constexpr StackTens<CompsList<ComplId>,double> complOne{1,0};
   Field<CompsList<ColorRow,ComplId>> rc;
-  // fft(rc,+1,(r*complOne));
-
+   fft(rc,+1,(r*complOne));
+  
   Field<CompsList<ColorRow,ComplId>> e;
   const int s=glblx_of_coord({1,0,0,0});
   PAR(0,
