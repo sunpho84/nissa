@@ -171,6 +171,8 @@ AH_VERBATIM([COMPILING_FOR_DEVICE],
 #endif
 )
 
+AX_SUBPACKAGE(cufft,cufft.h,cufft,cufftDestroy,CUFFT)
+
 ####################################
 
 #endianness specification
