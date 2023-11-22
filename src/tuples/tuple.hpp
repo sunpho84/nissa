@@ -67,7 +67,7 @@ namespace nissa
 	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
 	decltype(auto) get() ATTRIB					\
       {									\
-	return this->get(std::integral_constant<std::size_t,J>());	\
+	return this->_get(std::integral_constant<std::size_t,J>());	\
       }									\
 									\
       /*! Get the component via type */					\
@@ -75,7 +75,7 @@ namespace nissa
 	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
 	decltype(auto) get() ATTRIB					\
       {									\
-	return this->get((std::decay_t<M>*)nullptr);			\
+	return this->_get((std::decay_t<M>*)nullptr);			\
       }
       
       PROVIDE_GET(const);
