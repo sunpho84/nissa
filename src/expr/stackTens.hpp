@@ -86,7 +86,7 @@ namespace nissa
     
     /// Executes where running
     static constexpr ExecSpace exacSpace=
-      currentExecSpace;
+      execOnCPUAndGPU;
     
     /// Always allocated
     static constexpr bool allocated=
