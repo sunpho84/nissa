@@ -1,78 +1,78 @@
 #ifndef _FFT_HPP
 #define _FFT_HPP
 
-#include "base/old_field.hpp"
-// #include "new_types/complex.hpp"
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
+#ifndef EXTERN_FFT
+# define EXTERN_FFT extern
+# define INITIALIZE_FFT_TO(ARGS...)
+#else
+# define INITIALIZE_FFT_TO(ARGS...) ARGS
+#endif
+
+#include <expr/conj.hpp>
+#include <expr/field.hpp>
 
 namespace nissa
 {
-  enum{FFT_NO_NORMALIZE=0,FFT_NORMALIZE=1};
-#define FFT_PLUS +1.0
-#define FFT_MINUS -1.0
+  EXTERN_FFT bool fftwInitialized INITIALIZE_FFT_TO({false});
   
-  // int bitrev(int in,int l2n);
-  // int find_max_pow2(int a);
-  // void data_coordinate_order_shift(complex *data,int ncpp,int mu0);
+  void initFftw();
   
-  void fft4d(complex *out,
-	     const complex *in,
-	     const which_dir_t& dirs,
-	     const int& ncpp,
-	     const double& sign,
-	     const bool& normalize);
+  void fftwFinalize();
   
-  inline void fft4d(complex *out,
-		     const complex *in,
-		     const int& ncpp,
-		     const double& sign,
-		     const bool& normalize)
-   {
-     fft4d(out,in,all_dirs,ncpp,sign,normalize);
-   }
+  void fftExecUsingFftw(void* buf,const int& n,const int& sign,const int& nFft);
+
+  void fftExecUsingCuFFT(void* buf,int n,const int& sign,const int& nFft);
   
-  template <typename T>
-  void fft4d(T *out,
-	     const T *in,
-	     const double& sign,
-	     int normalize)
+  template <DerivedFromNode Out,
+	    DerivedFromNode In>
+  void fft(Out&& out,
+	   const int& sign,
+	   const In& in)
   {
-    fft4d((complex*)out,(const complex*)in,all_dirs,sizeof(T)/sizeof(complex),sign,normalize);
-  }
-  
-  // template <class T>
-  // void fft4d(T *x,double sign,int normalize)
-  // {fft4d(x,x,sign,normalize);}
-  
-  template <typename T>
-  void fft4d(T *x,
-	     const double& sign,
-	     const bool normalize)
-  {
-    fft4d(x,x,sign,normalize);
-  }
-  
-  /// Fourier transform of the field
-  template <typename T,
-	    FieldLayout FL>
-  void fft4d(LxField<T,FL>& f,
-	const double& sign,
-	const bool& normalize)
-  {
-    LxField<T,FieldLayout::CPU> tmp("tmp");
-    tmp=f;
+    /// Components different from those related to fft
+    using OthComps=
+      TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite,ComplId>>;
     
-    fft4d(tmp,sign,normalize);
+    auto f=
+      [sign]<DerivedFromNode B,
+	     Dir D>(B& buf,
+		    const std::integral_constant<Dir,D>&)
+      {
+	const int nCompl=glbSizes[D()];
+	const int nFft=buf.nElements/nCompl/2;
+	
+#ifdef USE_CUDA
+	if constexpr(B::execSpace==MemoryType::GPU)
+	  fftExecUsingCuFFT(buf.storage,nCompl,sign,nFft);
+	else
+#endif
+	  fftExecUsingFftw(buf.storage,nCompl,sign,nFft);
+	
+	master_printf("%s\n",demangle(typeid(B).name()).c_str());
+	
+	master_printf("FFTing on Dir %d nFft=%d\n",D(),nFft);
+      };
     
-    f=tmp;
+    cycleOnAllLocalDirections<OthComps,CompsList<ComplId>>(std::forward<Out>(out),in,f,in.getDynamicSizes());
   }
   
-  template <typename T>
-  void fft4d(LxField<T,FieldLayout::CPU>& f,
-	const double& sign,
-	const bool& normalize)
+  template <DerivedFromNode In>
+  auto fft(const int& sign,
+	 const In& in)
   {
-    fft4d(f._data,sign,normalize);
-  }
+  In out;
+  
+  fft(out,sign,in);
+  
+  return out;
+  }  
 }
+
+#undef EXTERN_FFT
+#undef INITIALIZE_FFT_TO
 
 #endif
