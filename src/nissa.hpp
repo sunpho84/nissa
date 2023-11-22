@@ -36,20 +36,20 @@
 #include <communicate/communicate.hpp>
 #include <communicate/edges.hpp>
 
-#include <dirac_operators/stD/dirac_operator_stD.hpp>
-#include <dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp>
-#include <dirac_operators/tmQ/dirac_operator_tmQ.hpp>
-#include <dirac_operators/tmQ/dirac_operator_tmQ_128.hpp>
-#include <dirac_operators/tmQ/reconstruct_tm_doublet.hpp>
-#include <dirac_operators/tmQ2/dirac_operator_tmQ2.hpp>
-#include <dirac_operators/tmQ2/dirac_operator_tmQ2_128.hpp>
-#include <dirac_operators/overlap/dirac_operator_overlap_kernel_portable.hpp>
-#include <dirac_operators/overlap/dirac_operator_overlap_kernel2.hpp>
-#include <dirac_operators/overlap/dirac_operator_overlap.hpp>
-#include <dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp>
-#include <dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp>
-#include <dirac_operators/tmclovQ/reconstruct_tmclov_doublet.hpp>
-#include <dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp>
+// #include <dirac_operators/stD/dirac_operator_stD.hpp>
+// #include <dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp>
+// #include <dirac_operators/tmQ/dirac_operator_tmQ.hpp>
+// #include <dirac_operators/tmQ/dirac_operator_tmQ_128.hpp>
+// #include <dirac_operators/tmQ/reconstruct_tm_doublet.hpp>
+// #include <dirac_operators/tmQ2/dirac_operator_tmQ2.hpp>
+// #include <dirac_operators/tmQ2/dirac_operator_tmQ2_128.hpp>
+// #include <dirac_operators/overlap/dirac_operator_overlap_kernel_portable.hpp>
+// #include <dirac_operators/overlap/dirac_operator_overlap_kernel2.hpp>
+// #include <dirac_operators/overlap/dirac_operator_overlap.hpp>
+// #include <dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp>
+// #include <dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp>
+// #include <dirac_operators/tmclovQ/reconstruct_tmclov_doublet.hpp>
+// #include <dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp>
 
 #include <eigenvalues/eigenvalues.hpp>
 
@@ -185,23 +185,23 @@
 #include <operations/remap_vector.hpp>
 #include <operations/remez/remez_algorithm.hpp>
 #include <operations/shift.hpp>
-#include <operations/smearing/APE.hpp>
-#include <operations/smearing/hex.hpp>
-#include <operations/smearing/HYP.hpp>
-#include <operations/smearing/Wflow.hpp>
-#include <operations/smearing/gaussian.hpp>
-#include <operations/smearing/recursive_Wflower.hpp>
-#include <operations/smearing/smooth.hpp>
-#include <operations/smearing/stout.hpp>
+// #include <operations/smearing/APE.hpp>
+// #include <operations/smearing/hex.hpp>
+// #include <operations/smearing/HYP.hpp>
+// #include <operations/smearing/Wflow.hpp>
+// #include <operations/smearing/gaussian.hpp>
+// #include <operations/smearing/recursive_Wflower.hpp>
+// #include <operations/smearing/smooth.hpp>
+// #include <operations/smearing/stout.hpp>
 #include <operations/source.hpp>
 
-#include <operations/su3_paths/arbitrary.hpp>
-#include <operations/su3_paths/clover_term.hpp>
+// #include <operations/su3_paths/arbitrary.hpp>
+// #include <operations/su3_paths/clover_term.hpp>
 #include <operations/su3_paths/gauge_sweeper.hpp>
-#include <operations/su3_paths/plaquette.hpp>
-#include <operations/su3_paths/rectangles.hpp>
-#include <operations/su3_paths/rectangular_staples.hpp>
-#include <operations/su3_paths/squared_staples.hpp>
+// #include <operations/su3_paths/plaquette.hpp>
+// #include <operations/su3_paths/rectangles.hpp>
+// #include <operations/su3_paths/rectangular_staples.hpp>
+// #include <operations/su3_paths/squared_staples.hpp>
 
 #include <operations/vector_gather.hpp>
 

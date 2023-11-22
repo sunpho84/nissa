@@ -2,6 +2,7 @@
 bin_PROGRAMS=
 include_HEADERS=
 BUILT_SOURCES=
+EXTRA_DIST=
 CLEANFILES=
 assembly_reports=
 
