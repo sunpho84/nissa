@@ -8,7 +8,7 @@ typedef realspin1field realspin1prop[NDIM];
 void inMain(int narg,char **arg)
 {
   //check argument
-  if(narg<7) crash("Use: %s L T gauge[L=LANDAU,F=FEYNMAN] seed nconfs pattern",arg[0]);
+  if(narg<7) crash("Use: %s L T gauge[L=LANDAU,F=FEYNMAN] seed nconfs pattern [e for plaquette] [su3conf]",arg[0]);
   
   const int L=atoi(arg[1]);
   const int T=atoi(arg[2]);
@@ -16,6 +16,8 @@ void inMain(int narg,char **arg)
   const int seed=atoi(arg[4]);
   const int nConfs=atoi(arg[5]);
   const char* pattern=arg[6];
+  const double e=(narg>7)?strtod(arg[7],nullptr):0;
+  const char* su3Path=(narg>8)?arg[8]:nullptr;
   
   init_grid(T,L);
   
@@ -78,7 +80,7 @@ void inMain(int narg,char **arg)
       
       ILDG_File file=ILDG_File_open_for_write(outPath);
       char ildg_format_message[1024];
-      sprintf(ildg_format_message,
+      snprintf(ildg_format_message,1024,
 	      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 	      "<ildgFormat xmlns=\"http://www.lqcd.org/ildg\"\n"
 	      "            xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
@@ -117,6 +119,55 @@ void inMain(int narg,char **arg)
       // 	}
       // NISSA_PARALLEL_LOOP_END;
       // set_borders_invalid(propRecoMom);
+    }
+  
+  if(e)
+    {
+      quad_su3* u1=nissa_malloc("u1",locVol,quad_su3);
+      
+      NISSA_PARALLEL_LOOP(loclx,0,locVol)
+	{
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      complex c;
+	      complex_iexp(c,e*photonField[loclx][mu][RE]);
+	      
+	      su3_put_to_diag(u1[loclx][mu],c);
+	    }
+	}
+      NISSA_PARALLEL_LOOP_END;
+      set_borders_invalid(u1);
+      
+      const double pU1=global_plaquette_lx_conf(u1);
+      
+      if(su3Path)
+	{
+	  master_printf("\n");
+	  quad_su3* conf=nissa_malloc("conf",locVol,quad_su3);
+	  read_ildg_gauge_conf(conf,su3Path);
+	  
+	  const double pSU3=global_plaquette_lx_conf(conf);
+	  
+	  master_printf("Plaquette of the conf without the u1 phase: %lg\n",pSU3);
+	  
+	  NISSA_PARALLEL_LOOP(loclx,0,locVol)
+	    {
+	      for(int mu=0;mu<NDIM;mu++)
+		su3_prodassign_su3(conf[loclx][mu],u1[loclx][mu]);
+	    }
+	  NISSA_PARALLEL_LOOP_END;
+	  set_borders_invalid(conf);
+	  
+	  const double pU3=global_plaquette_lx_conf(conf);
+	  
+	  master_printf("Plaquette of the conf with the u1 phase: %lg\n",pU3);
+	  
+	  nissa_free(conf);
+	}
+      
+      master_printf("Plaquette of the u1 phase: %lg\n",pU1);
+      
+      nissa_free(u1);
     }
   
   // NISSA_PARALLEL_LOOP(loclx,0,locVol)
