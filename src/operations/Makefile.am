@@ -1,17 +1,17 @@
 ####################################### operations ##################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/covariant_derivative.cpp \
 	%D%/fft.cpp \
-	%D%/fourier_transform.cpp \
 	%D%/gauge_fixing.cpp \
-	%D%/gaugeconf.cpp \
 	%D%/localizer.cpp \
 	%D%/remap_vector.cpp \
 	%D%/su3_paths/gauge_sweeper.cpp \
-	%D%/source.cpp \
 	%D%/vector_gather.cpp
 
+# %D%/source.cpp \
+# %D%/covariant_derivative.cpp \
+# %D%/gaugeconf.cpp \
+# %D%/fourier_transform.cpp \
 # %D%/smearing/hex.cpp \
 # %D%/smearing/HYP.cpp \
 # %D%/smearing/smooth.cpp \
@@ -26,7 +26,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 include_HEADERS+= \
 	%D%/covariant_derivative.hpp \
 	%D%/fft.hpp \
-	%D%/fourier_transform.hpp \
 	%D%/gauge_fixing.hpp \
 	%D%/gaugeconf.hpp \
 	%D%/localizer.hpp \

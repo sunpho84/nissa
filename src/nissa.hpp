@@ -80,7 +80,6 @@
 #include <free_theory/free_theory_types.hpp>
 #include <free_theory/free_theory_types_routines.hpp>
 #include <free_theory/tlSym_gauge_propagator.hpp>
-#include <free_theory/twisted_propagator.hpp>
 #include <free_theory/twisted_free_Dirac_eoprec_operator.hpp>
 
 #include <geometry/geometry_eo.hpp>
@@ -178,7 +177,6 @@
 
 #include <operations/covariant_derivative.hpp>
 #include <operations/fft.hpp>
-#include <operations/fourier_transform.hpp>
 #include <operations/gauge_fixing.hpp>
 #include <operations/gaugeconf.hpp>
 #include <operations/localizer.hpp>
