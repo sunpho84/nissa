@@ -234,9 +234,9 @@ namespace nissa
       
       /// Determine the execution space of the expression
       constexpr ExecSpace exacSpace=
-		  SrcExpr::exacSpace;
+		  SrcExpr::exacSpace*DstExpr::exacSpace;
       
-      static_assert(DstExpr::exacSpace==exacSpace,"Needs to have same exec space for src and dest");
+      static_assert(UniqueExecSpace<exacSpace>,"Needs to have same exec space for src and dest");
       
       /// Components in the destination apart from CDSt
       using DstRedComps=
