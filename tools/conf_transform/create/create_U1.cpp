@@ -123,7 +123,7 @@ void inMain(int narg,char **arg)
   
   if(e)
     {
-      quad_su3* u1=nissa_malloc("u1",locVol,quad_su3);
+      quad_su3* u1=nissa_malloc("u1",locVol+bord_vol,quad_su3);
       
       NISSA_PARALLEL_LOOP(loclx,0,locVol)
 	{
@@ -142,7 +142,7 @@ void inMain(int narg,char **arg)
       
       if(su3Path)
 	{
-	  quad_su3* conf=nissa_malloc("conf",locVol,quad_su3);
+	  quad_su3* conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
 	  read_ildg_gauge_conf(conf,su3Path);
 	  
 	  const double pSU3=global_plaquette_lx_conf(conf);
