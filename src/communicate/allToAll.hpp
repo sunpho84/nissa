@@ -233,10 +233,10 @@ namespace nissa
       static_assert(tupleHasType<typename SrcExpr::Comps,CSrc>,"Source does not have the source component");
       
       /// Determine the execution space of the expression
-      constexpr ExecSpace exacSpace=
-		  SrcExpr::exacSpace*DstExpr::exacSpace;
+      constexpr ExecSpace execSpace=
+		  SrcExpr::execSpace*DstExpr::execSpace;
       
-      static_assert(UniqueExecSpace<exacSpace>,"Needs to have same exec space for src and dest");
+      static_assert(UniqueExecSpace<execSpace>,"Needs to have same exec space for src and dest");
       
       /// Components in the destination apart from CDSt
       using DstRedComps=
@@ -263,7 +263,7 @@ namespace nissa
 	TupleCat<CompsList<BufComp>,DstRedComps>;
       
       /// Instantiate the buffer
-      DynamicTens<BufComps,Fund,getMemoryType<exacSpace>()> outBuf(std::tuple_cat(std::make_tuple(getOutBufSize()),in.getDynamicSizes()));
+      DynamicTens<BufComps,Fund,getMemoryType<execSpace>()> outBuf(std::tuple_cat(std::make_tuple(getOutBufSize()),in.getDynamicSizes()));
       
       // Set the out buffer to an awkward value to detect possible errors
       // if constexpr(std::is_same_v<Fund,double>)
@@ -276,11 +276,11 @@ namespace nissa
 	crash("Size of the in expression %ld different from expected %ld\n",(int64_t)nSrc(),(int64_t)getOutBufSize()());
       
       // Fills the output buffer
-      PAR_ON_EXEC_SPACE(exacSpace,
+      PAR_ON_EXEC_SPACE(execSpace,
 			0,
 			nSrc,
 			CAPTURE(TO_READ(in),
-				outBufOfSrc=outBufOfSrc.template getRefForExecSpace<exacSpace>(),
+				outBufOfSrc=outBufOfSrc.template getRefForExecSpace<execSpace>(),
 				TO_WRITE(outBuf)),
 			iIn,
 			{
@@ -364,14 +364,14 @@ namespace nissa
       
       /// Ensure that the incoming buffer can be accessed in the device
       decltype(auto) inBuf=
-	hostInBuf.template copyToMemorySpaceIfNeeded<getMemoryType<exacSpace>()>();
+	hostInBuf.template copyToMemorySpaceIfNeeded<getMemoryType<execSpace>()>();
       
       // Fills the destination
-      PAR_ON_EXEC_SPACE(exacSpace,
+      PAR_ON_EXEC_SPACE(execSpace,
 			0,
 			getInBufSize(),
 			CAPTURE(TO_READ(inBuf),
-				dstOfInBuf=dstOfInBuf.template getRefForExecSpace<exacSpace>(),
+				dstOfInBuf=dstOfInBuf.template getRefForExecSpace<execSpace>(),
 				TO_WRITE(out)),
 			iInBuf,
 			{
@@ -381,7 +381,7 @@ namespace nissa
     
     /// Communicate the expression, building the result
     template <DerivedFromNode SrcExpr,
-	      DerivedFromNode DestExpr=DynamicTens<TupleReplaceType<typename SrcExpr::Comps,CSrc,CDst>,typename SrcExpr::Fund,getMemoryType<SrcExpr::exacSpace>()>>
+	      DerivedFromNode DestExpr=DynamicTens<TupleReplaceType<typename SrcExpr::Comps,CSrc,CDst>,typename SrcExpr::Fund,getMemoryType<SrcExpr::execSpace>()>>
     DestExpr communicate(const SrcExpr& in) const
     {
       /// Create the result
