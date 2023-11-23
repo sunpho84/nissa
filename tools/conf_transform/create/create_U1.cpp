@@ -23,7 +23,7 @@ void write_u1_field(ILDG_File file, realspin1field* field)
 void inMain(int narg,char **arg)
 {
   //check argument
-  if(narg<7) crash("Use: %s L T gauge[L=LANDAU,F=FEYNMAN] seed nconfs pattern [e for plaquette] [su3conf]",arg[0]);
+  if(narg<7) crash("Use: %s L T gauge[L=LANDAU,F=FEYNMAN] seed nconfs pattern [e for plaquette] [su3conf input] [u3conf output]",arg[0]);
   
   const int L=atoi(arg[1]);
   const int T=atoi(arg[2]);
@@ -33,6 +33,7 @@ void inMain(int narg,char **arg)
   const char* pattern=arg[6];
   const double e=(narg>7)?strtod(arg[7],nullptr):0;
   const char* su3Path=(narg>8)?arg[8]:nullptr;
+  const char* u3Path=(narg>9)?arg[9]:nullptr;
   
   init_grid(T,L);
   
@@ -174,6 +175,9 @@ void inMain(int narg,char **arg)
 	  const double pU3=global_plaquette_lx_conf(conf);
 	  
 	  master_printf("Plaquette of the conf with the u1 phase: %.16lg\n",pU3);
+	  
+	  if(u3Path)
+	    write_ildg_gauge_conf(u3Path,conf,64);
 	  
 	  nissa_free(conf);
 	}
