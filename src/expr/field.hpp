@@ -185,18 +185,18 @@ namespace nissa
       return *this;
     }
     
-    // /// Move assign
-    // constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    // Field& operator=(Field&& oth)
-    // {
-    //   std::swap(nTotalAllocatedSites,oth.nTotalAllocatedSites);
-    //   std::swap(data,oth.data);
-    //   std::swap(haloIsValid,oth.haloIsValid);
-    //   std::swap(edgesAreValid,oth.edgesAreValid);
-    //   std::swap(haloEdgesPresence,oth.haloEdgesPresence);
+    /// Move assign
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    Field& operator=(Field&& oth)
+    {
+      nTotalAllocatedSites=oth.nTotalAllocatedSites;
+      data=std::move(oth.data);
+      haloIsValid=oth.haloIsValid;
+      edgesAreValid=oth.edgesAreValid;
+      haloEdgesPresence=oth.haloEdgesPresence;
       
-    //   return *this;
-    // }
+      return *this;
+    }
     
     /// Assigns another node
     template <DerivedFromNode O>
