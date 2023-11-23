@@ -91,8 +91,9 @@ namespace nissa
     /// Conugated expression
     NodeRefOrVal<_E> conjExpr;
     
-    /// Type of the conjugated expression
-    using ConjExpr=NodeRefOrVal<_E>;
+    /// Executes according to subexpr
+    static constexpr ExecSpace execSpace=
+      ConjExpr::execSpace;
     
     /// Returns the dynamic sizes
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE

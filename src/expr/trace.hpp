@@ -103,6 +103,9 @@ namespace nissa
     // /// Executes where allocated
     // static constexpr ExecSpace execSpace=
     //   SubNode<0>::execSpace;
+    /// Executes where traced reference
+    static constexpr ExecSpace execSpace=
+      TracedExpr::execSpace;
     
     /// Returns the dynamic sizes
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE

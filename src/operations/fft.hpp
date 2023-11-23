@@ -47,7 +47,7 @@ namespace nissa
 	const int nFft=buf.nElements/nCompl/2;
 	
 #ifdef USE_CUDA
-	if constexpr(B::exacSpace==execOnGPU)
+	if constexpr(B::execSpace==execOnGPU)
 	  fftExecUsingCuFFT(buf.storage,nCompl,sign,nFft);
 	else
 #endif

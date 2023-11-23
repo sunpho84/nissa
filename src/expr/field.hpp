@@ -260,8 +260,9 @@ namespace nissa
     using Data=
       DynamicTens<Comps,Fund,MT,IsRef>;
     
-    /// Executes where allocated
-    static constexpr ExecSpace exacSpace{MT};
+    /// Executes where Data exec
+    static constexpr ExecSpace execSpace=
+      Data::execSpace;
     
     /////////////////////////////////////////////////////////////////
     

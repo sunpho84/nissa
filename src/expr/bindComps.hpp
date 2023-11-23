@@ -7,6 +7,7 @@
 
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
+#include <expr/execSpace.hpp>
 #include <expr/exprRefOrVal.hpp>
 #include <expr/nodeDeclaration.hpp>
 #include <expr/scalar.hpp>
@@ -64,6 +65,9 @@ namespace nissa
     
     /// Bound type
     using BoundExpr=std::decay_t<_E>;
+    
+    static constexpr ExecSpace execSpace=
+      BoundExpr::execSpace;
     
     /// Returns the dynamic sizes
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE

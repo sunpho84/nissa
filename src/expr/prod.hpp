@@ -124,10 +124,8 @@ namespace nissa
     using Fund=_Fund;
     
     /// Execution space
-    static constexpr ExecSpace exacSpace=
-      (std::remove_reference_t<_E>::exacSpace*...);
-    
-    // static_assert(execSpace!=ExecSpace::HOST_DEVICE,"Cannot define product in undefined exec space");
+    static constexpr ExecSpace execSpace=
+      (std::remove_reference_t<_E>::execSpace*...);
     
     /// Detect complex product
     static constexpr bool isComplProd=

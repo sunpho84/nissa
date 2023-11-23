@@ -78,6 +78,10 @@ namespace nissa
     using DynamicComps=
       typename Base::DynamicComps;
     
+    /// Exec on both CPU and GPU
+    static constexpr ExecSpace execSpace=
+      execOnCPUAndGPU;
+    
     /// Gets a reference for the given exectution space
     template <ExecSpace ES>
     requires UniqueExecSpace<ES>

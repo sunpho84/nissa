@@ -85,7 +85,7 @@ namespace nissa::localizer
     
     /// Buffer to be used
     using Buf=
-      DynamicTens<BufComps,Fund,getMemoryType<In::exacSpace>()>;
+      DynamicTens<BufComps,Fund,getMemoryType<In::execSpace>()>;
     
     /// Types needed to store extra dynamic sizes
     using ExtraDynamicComps=

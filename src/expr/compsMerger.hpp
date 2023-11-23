@@ -68,6 +68,9 @@ namespace nissa
     NodeRefOrVal<_E> mergedExpr;
     
     using MergedExpr=std::remove_reference_t<decltype(mergedExpr)>;
+    /// Exec as the merged expression
+    static constexpr ExecSpace execSpace=
+      MergedExpr::execSpace;
     
     static constexpr bool mergedCompHasDynamicSize=
       not ThisMergedComp::sizeIsKnownAtCompileTime;

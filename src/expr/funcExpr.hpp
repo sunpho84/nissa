@@ -9,6 +9,7 @@
 
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
+#include <expr/execSpace.hpp>
 #include <expr/nodeDeclaration.hpp>
 #include <metaprogramming/universalReference.hpp>
 
@@ -60,12 +61,12 @@ namespace nissa
     /// Fundamental tye
     using Fund=_Fund;
     
-    // /// Executes where allocated
-    // static constexpr ExecSpace execSpace=
-    //   SubNode<0>::execSpace;
-    
     /// Type of the function
     using Func=_Func;
+    
+    /// Executes where function can
+    static constexpr ExecSpace execSpace=
+      Func::execSpace;
     
     /// Function to be called
     const Func func;

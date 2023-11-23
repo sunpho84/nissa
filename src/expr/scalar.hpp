@@ -25,6 +25,10 @@ namespace nissa
     {
     }
     
+    /// Can run on both GPU and CPU as it is trivially copyable
+    static constexpr ExecSpace execSpace=
+		execOnCPUAndGPU;
+    
     /// Evaluate
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     const Fund& operator()() const

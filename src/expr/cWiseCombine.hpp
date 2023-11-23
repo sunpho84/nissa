@@ -71,11 +71,9 @@ namespace nissa
     /// Fundamental tye
     using Fund=_Fund;
     
-    // /// Execution space
-    // static constexpr ExecSpace execSpace=
-    //   commonExecSpace<std::remove_reference_t<_E>::execSpace...>();
-    
-    // static_assert(execSpace!=ExecSpace::HOST_DEVICE,"Cannot define coefficient wise combination in undefined exec space");
+    /// Execution space
+    static constexpr ExecSpace execSpace=
+      (std::remove_reference_t<_E>::execSpace*...);
     
     /// List of dynamic comps
     using DynamicComps=

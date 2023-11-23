@@ -105,7 +105,7 @@ namespace nissa
       not std::is_const_v<Fund>;
     
     /// Executes where allocated
-    static constexpr ExecSpace exacSpace{MT};
+    static constexpr ExecSpace execSpace{MT};
     
     /// Sizes of the dynamic components
     DynamicComps dynamicSizes;
