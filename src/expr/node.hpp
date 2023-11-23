@@ -174,12 +174,19 @@ namespace nissa
       return ~*this;
     }
     
+    /// Assert whether can run on device
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    static bool canRunOnDevice()
+    {
+      return T::execSpace.isCompatibleWith(execOnGPU);
+    }
+    
 #define PROVIDE_ASSIGN_VARIATION(SYMBOL,OP)				\
     									\
     /*! Assign from another expression */				\
       template <DerivedFromNode Rhs>					\
 	requires(not std::is_same_v<T,Rhs>)				\
-	constexpr INLINE_FUNCTION					\
+	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
 	T& operator SYMBOL(const Rhs& u)				\
       {									\
 	(~*this).template assign<OP>(u);				\
@@ -191,7 +198,7 @@ namespace nissa
       /*! Assign from a scalar */					\
       template <typename Oth>						\
 	requires(std::is_arithmetic_v<Oth>)				\
-	constexpr INLINE_FUNCTION					\
+	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
 	T& operator SYMBOL(const Oth& value)				\
       {									\
 	return (~*this) SYMBOL scalar(value);				\
@@ -204,7 +211,7 @@ namespace nissa
 #undef PROVIDE_ASSIGN_VARIATION
     
     /// Define the assignment operator with the same expression type
-    constexpr INLINE_FUNCTION
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     Node& operator=(const Node& oth)
     {
       (~*this).assign(~oth);
