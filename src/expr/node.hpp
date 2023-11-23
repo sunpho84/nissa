@@ -109,13 +109,6 @@ namespace nissa
     
 #undef PROVIDE_MERGE_COMPS
     
-    /// Used to check that the derived type satisfy the Node criterion
-    constexpr Node()
-    {
-      static_assert(assertIsNode<T>,
-		    "Incomplete node type");
-    }
-    
     /// Assert assignability
     template <DerivedFromNode U>
       INLINE_FUNCTION
@@ -291,6 +284,8 @@ namespace nissa
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
       decltype(auto) operator()(const C&...cs) ATTRIB			\
     {									\
+      static_assert(assertIsNode<T>,"not supporting all node requirements"); \
+      									\
       using Comps=typename T::Comps;					\
 									\
       using SubsComps=std::tuple<C...>;					\
