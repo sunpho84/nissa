@@ -5,6 +5,21 @@ using namespace nissa;
 typedef double realspin1field[NDIM];
 typedef realspin1field realspin1prop[NDIM];
 
+void write_u1_field(ILDG_File file, realspin1field* field)
+{
+  realspin1field* permuted=nissa_malloc("permuted",locVol,realspin1field);
+  NISSA_PARALLEL_LOOP(loclx,0,locVol)
+    {
+      for(int mu=0;mu<NDIM;mu++)
+	permuted[loclx][(mu+NDIM-1)%NDIM]=field[loclx][mu];
+    }
+  NISSA_PARALLEL_LOOP_END;
+  set_borders_invalid(permuted);
+  
+  write_real_vector(file,permuted,64,"ildg-binary-data");
+  nissa_free(permuted);
+}
+
 void inMain(int narg,char **arg)
 {
   //check argument
@@ -97,8 +112,7 @@ void inMain(int narg,char **arg)
 	      64lu,glbSize[3],glbSize[2],glbSize[1],glbSize[0]);
       ILDG_File_write_text_record(file,"ildg-format",ildg_format_message);
       
-      write_real_vector(file,realPhotonField,64,"ildg-binary-data");
-      
+      write_u1_field(file,realPhotonField);
       ILDG_File_close(file);
       
       // pass_spin1field_from_x_to_mom_space(photonEta,photonField,gl.bc,true,true);
