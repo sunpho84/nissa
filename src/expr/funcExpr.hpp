@@ -96,16 +96,6 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
-    // //// Returns a conjugator on a different expression
-    // template <typename T>
-    // INLINE_FUNCTION
-    // decltype(auto) recreateFromExprs(T&& t) const
-    // {
-    //   return conj(std::forward<T>(t));
-    // }
-    
-    /////////////////////////////////////////////////////////////////
-    
 #define PROVIDE_GET_REF(ATTRIB)					\
     /*! Returns a reference */					\
     INLINE_FUNCTION						\

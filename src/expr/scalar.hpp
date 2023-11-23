@@ -38,12 +38,12 @@ namespace nissa
   };
   
   /// Scalar quantity
-  template <typename F>
+  template <TriviallyCopyable F>
   using Scalar=
     FuncExpr<ScalarWrapFunctor<F>,OfComps<>,F>;
   
   /// Creates a Scalar of type F
-  template <typename F>
+  template <TriviallyCopyable F>
   Scalar<F> scalar(const F& f)
   {
     return ScalarWrapFunctor<F>(f);
