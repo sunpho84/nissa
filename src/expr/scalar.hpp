@@ -44,6 +44,7 @@ namespace nissa
   
   /// Creates a Scalar of type F
   template <TriviallyCopyable F>
+  constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   Scalar<F> scalar(const F& f)
   {
     return ScalarWrapFunctor<F>(f);
