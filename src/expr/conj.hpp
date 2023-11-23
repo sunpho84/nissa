@@ -165,7 +165,7 @@ namespace nissa
     /// Construct
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Conjugator(_E arg) :
-      _E{arg}
+      conjExpr{arg}
     {
     }
   };
