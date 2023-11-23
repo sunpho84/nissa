@@ -39,6 +39,70 @@ namespace nissa
 //   return plaq;
 // }
 
+namespace nissa
+{
+  enum class IdFourthRoot{One,I,MinusOne,MinusI};
+  
+  constexpr IdFourthRoot operator*(const IdFourthRoot& first,
+				   const IdFourthRoot& second)
+  {
+    return IdFourthRoot(((int)first+(int)second)%4);
+  }
+  
+  struct Gamma
+  {
+    using Entry=
+      std::pair<SpinCln,IdFourthRoot>;
+    
+    const StackTens<CompsList<SpinRow>,Entry> entries;
+    
+    constexpr Gamma operator*(const Gamma& oth) const
+    {
+      auto get=
+	[&](const SpinRow& ig1) -> Entry
+	{
+	  //This is the line to be taken on the second matrix
+	  const SpinRow ig2=entries(ig1).first();
+	  
+	  //The entries of the output is, on each line, the complex
+	  //product of the entries of the first matrix on that line, for
+	  //the entries of the second matrix on the line with the index
+	  //equal to the column of the first matrix which is different
+	  //from 0 (which again is ig2)
+	  const IdFourthRoot r=
+	    entries(ig1).second*oth.entries(ig2).second;
+	  
+	  //For each line, the column of the output matrix which is
+	  //different from 0 is the column of the second matrix different
+	  //from 0 on the line with index equal to the column of the first
+	  //matrix which is different from 0 (that is, ig2)
+	  return {oth.entries(ig2).first,r};
+	};
+      
+      return {{{},{get(0),get(1),get(2),get(3)}}};
+    }
+  };
+  
+  //static constexpr Gamma Id{{{0,IdFourthRoot::One}}};
+}
+
+namespace GammaBasis
+{
+#define E(P,V) {{P},{IdFourthRoot::V}}
+#define GAMMA(NAME,P0,V0,P1,V1,P2,V2,P3,V3)				\
+  constexpr Gamma NAME{{{},{E(P0,V0),E(P1,V1),E(P2,V2),E(P3,V3)}}}
+  
+  GAMMA(X,3,MinusI,2,MinusI,1,I,0,I);
+  GAMMA(Y,3,MinusOne,2,One,1,One,0,MinusOne);
+  GAMMA(Z,2,MinusI,3,I,0,I,1,MinusI);
+  GAMMA(T,2,MinusOne,3,MinusOne,0,MinusOne,1,MinusOne);
+  
+#undef GAMMA
+#undef E
+  constexpr Gamma G5=T*X*Y*Z;
+
+  constexpr std::array<Gamma,16> basis{X*X,X,Y,Z,T,G5,G5*X,G5*Y,G5*Z,G5*T,T*X,T*Y,T*Z,Y*Z,Z*X,X*Y};
+}
 
 template <DerivedFromNode Out,
 	  DerivedFromNode In>
