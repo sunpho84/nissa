@@ -12,7 +12,7 @@
 namespace nissa
 {
   /// Wraps a scalar quantity
-  template <typename Fund>
+  template <TriviallyCopyable Fund>
   struct ScalarWrapFunctor
   {
     /// Stored value
