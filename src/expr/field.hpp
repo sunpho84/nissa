@@ -139,9 +139,13 @@ namespace nissa
     /// Assign from another expression
     template <typename OP=DirectAssign,
 	      typename O>
-    INLINE_FUNCTION
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     void assign(O&& oth)
     {
+      if constexpr(compilingForDevice)
+	assert(compilingForDevice);
+      else
+	{
 #define LOOP(LOOP_TYPE)							\
       LOOP_TYPE(0,this->nSites(),					\
 		CAPTURE(self=this->getWritable(),			\
@@ -169,6 +173,7 @@ namespace nissa
 	  crash("unkwnown condition");
       
 #undef LOOP
+	}
     }
     
     /// Copy assign
@@ -180,18 +185,18 @@ namespace nissa
       return *this;
     }
     
-    /// Move assign
-    INLINE_FUNCTION
-    Field& operator=(Field&& oth)
-    {
-      std::swap(nTotalAllocatedSites,oth.nTotalAllocatedSites);
-      std::swap(data,oth.data);
-      std::swap(haloIsValid,oth.haloIsValid);
-      std::swap(edgesAreValid,oth.edgesAreValid);
-      std::swap(haloEdgesPresence,oth.haloEdgesPresence);
+    // /// Move assign
+    // constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    // Field& operator=(Field&& oth)
+    // {
+    //   std::swap(nTotalAllocatedSites,oth.nTotalAllocatedSites);
+    //   std::swap(data,oth.data);
+    //   std::swap(haloIsValid,oth.haloIsValid);
+    //   std::swap(edgesAreValid,oth.edgesAreValid);
+    //   std::swap(haloEdgesPresence,oth.haloEdgesPresence);
       
-      return *this;
-    }
+    //   return *this;
+    // }
     
     /// Assigns another node
     template <DerivedFromNode O>
@@ -715,7 +720,7 @@ namespace nissa
     }
     
     /// Move constructor
-    INLINE_FUNCTION
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     Field(Field&& oth) :
       nTotalAllocatedSites(oth.nTotalAllocatedSites),
       data(oth.data),
