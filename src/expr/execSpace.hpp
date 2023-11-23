@@ -55,6 +55,12 @@ namespace nissa
       return std::has_single_bit(m);
     }
     
+    /// Check if can exec on other execution space
+    constexpr bool isCompatibleWith(const ExecSpace& oth) const
+    {
+      return not std::has_single_bit((m & oth.m)^oth.m);
+    }
+    
     /// Compares with another exectuion space
     constexpr auto operator<=>(const ExecSpace&) const = default;
   };

@@ -46,7 +46,7 @@ namespace nissa
 	hasMember_getDynamicSizes<T> and
 	hasMember_canAssign<T> and
 	hasMember_Comps<T> and
-	// hasMember_execSpace<T> and
+	hasMember_execSpace<T> and
 	hasMember_eval<T> and
 	// hasMember_getRef<T> and
 	// hasMember_canSimdify<T> and

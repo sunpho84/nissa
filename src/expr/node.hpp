@@ -121,6 +121,10 @@ namespace nissa
       INLINE_FUNCTION
       constexpr void assertCanAssign(const U& rhs)
     {
+      static_assert(T::execSpace.hasUniqueExecSpace(),"lhs must have a unique execution space");
+      
+      static_assert(U::execSpace.isCompatibleWith(T::execSpace),"incompatible execution space of rhs with lhs");
+      
       //static_assert(tuplesContainsSameTypes<typename T::Comps,typename U::Comps>,"Cannot assign two expressions which differ for the components");
       
       static_assert(T::canAssignAtCompileTime,"Trying to assign to a non-assignable expression");

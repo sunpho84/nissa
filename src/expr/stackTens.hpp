@@ -84,8 +84,8 @@ namespace nissa
     static constexpr bool canAssignAtCompileTime=
       not std::is_const_v<Fund>;
     
-    /// Executes where running
-    static constexpr ExecSpace exacSpace=
+    /// Executes wherever
+    static constexpr ExecSpace execSpace=
       execOnCPUAndGPU;
     
     /// Always allocated
