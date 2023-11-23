@@ -35,6 +35,7 @@ namespace nissa
   /// Tensor
   template <typename...C,
 	    typename _Fund>
+  requires(std::is_default_constructible_v<_Fund>)
   struct THIS :
     BASE
   {
@@ -57,14 +58,14 @@ namespace nissa
       return *this;
     }
     
-    /// Move-assign
-    INLINE_FUNCTION
-    StackTens& operator=(StackTens&& oth)
-    {
-      Base::operator=(std::move(oth));
+    // /// Move-assign USELESS SINCE AGGREGATE TYPE
+    // INLINE_FUNCTION
+    // StackTens& operator=(StackTens&& oth)
+    // {
+    //   Base::operator=(std::move(oth));
       
-      return *this;
-    }
+    //   return *this;
+    // }
     
     /// Since this is on stack, we make a copy
     StackTens getRef() const
@@ -126,69 +127,77 @@ namespace nissa
     static constexpr bool fundNeedsConstrutor=
       std::is_class_v<_Fund> and not std::is_aggregate_v<_Fund>;
     
-    /// Default constructor
-    constexpr INLINE_FUNCTION
-    StackTens(const CompsList<> ={})
-    {
-      if constexpr(fundNeedsConstrutor)
-	{
-	  for(std::decay_t<decltype(nElements)> iEl=0;iEl<nElements;iEl++)
-	    new(&storage[iEl]) _Fund;
-	}
-    }
+    // /// Default constructor
+    // constexpr INLINE_FUNCTION
+    // StackTens(const CompsList<> ={})
+    // {
+    //   if constexpr(fundNeedsConstrutor)
+    // 	{
+    // 	  for(std::decay_t<decltype(nElements)> iEl=0;iEl<nElements;iEl++)
+    // 	    new(&storage[iEl]) _Fund;
+    // 	}
+    // }
     
-    /// Copy constructor
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-    StackTens(const StackTens& oth)
-    {
-      if constexpr(fundNeedsConstrutor)
-	for(std::decay_t<decltype(nElements)> iEl=0;iEl<nElements;iEl++)
-	  new(&storage[iEl]) _Fund(oth.storage[iEl]);
-      else
-	for(int i=0;i<nElements;i++)
-	  storage[i]=oth.storage[i];
-    }
+    // /// Copy constructor
+    // INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    // StackTens(const StackTens& oth)
+    // {
+    //   if constexpr(fundNeedsConstrutor)
+    // 	for(std::decay_t<decltype(nElements)> iEl=0;iEl<nElements;iEl++)
+    // 	  new(&storage[iEl]) _Fund(oth.storage[iEl]);
+    //   else
+    // 	for(int i=0;i<nElements;i++)
+    // 	  storage[i]=oth.storage[i];
+    // }
     
-    /// Construct from another node
-    template <DerivedFromNode TOth>
-    constexpr INLINE_FUNCTION
-    StackTens(const TOth& oth)
-    {
-      // if constexpr(std::is_class_v<_Fund>)
-      compsLoop<Comps>([this,
-			&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
-      {
-	const auto cs=tupleGetSubset<typename TOth::Comps>(std::make_tuple(c...));
+    // /// Construct from another node
+    // template <DerivedFromNode TOth>
+    // constexpr INLINE_FUNCTION
+    // StackTens(const TOth& oth)
+    // {
+    //   // if constexpr(std::is_class_v<_Fund>)
+    //   compsLoop<Comps>([this,
+    // 			&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
+    //   {
+    // 	const auto cs=tupleGetSubset<typename TOth::Comps>(std::make_tuple(c...));
 
-	if constexpr(fundNeedsConstrutor)
-	  new(&(*this)(c...)) _Fund(std::apply(oth,cs));
-	else
-	  (*this)(c...)=std::apply(oth,cs);
-      },std::tuple<>{});
-    }
+    // 	if constexpr(fundNeedsConstrutor)
+    // 	  new(&(*this)(c...)) _Fund(std::apply(oth,cs));
+    // 	else
+    // 	  (*this)(c...)=std::apply(oth,cs);
+    //   },std::tuple<>{});
+    // }
     
-    /// Construct from fundamental
-    constexpr INLINE_FUNCTION
-    StackTens(const Fund& oth)
-    {
-      compsLoop<Comps>([this,
-			&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
-      {
-	if constexpr(fundNeedsConstrutor)
-	  new(&(*this)(c...)) _Fund(oth);
-	else
-	  (*this)(c...)=std::apply(oth);
-      },std::tuple<>{});
-    }
+    // /// Construct from fundamental
+    // constexpr INLINE_FUNCTION
+    // StackTens(const Fund& oth)
+    // {
+    //   compsLoop<Comps>([this,
+    // 			&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
+    //   {
+    // 	if constexpr(fundNeedsConstrutor)
+    // 	  new(&(*this)(c...)) _Fund(oth);
+    // 	else
+    // 	  (*this)(c...)=std::apply(oth);
+    //   },std::tuple<>{});
+    // }
     
-    /// Initialize from list
-    template <typename...Tail>
-    constexpr INLINE_FUNCTION
-    StackTens(const Fund& first,
-	      const Tail&...tail) :
-      storage{first,(Fund)tail...}
-    {
-    }
+    // constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // StackTens() = default;
+    
+    // constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // StackTens(const StackTens&) = default;
+    
+    // constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // StackTens(StackTens&&) = default;
+    
+    // /// Initialize from list
+    // template <typename...Tail>
+    // explicit constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // StackTens(Tail&&...tail) :
+    //   storage{Fund(tail)...}
+    // {
+    // }
   };
 }
 
