@@ -100,9 +100,9 @@ namespace nissa
     /// Expression to trace
     NodeRefOrVal<_E> tracedExpr;
     
-    // /// Executes where allocated
-    // static constexpr ExecSpace execSpace=
-    //   SubNode<0>::execSpace;
+    /// Type of the traced expression
+    using TracedExpr=std::decay_t<_E>;
+    
     /// Executes where traced reference
     static constexpr ExecSpace execSpace=
       TracedExpr::execSpace;

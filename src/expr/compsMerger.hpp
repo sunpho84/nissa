@@ -65,9 +65,12 @@ namespace nissa
     /// Fundamental tye
     using Fund=_Fund;
     
+    /// Expression to merge
     NodeRefOrVal<_E> mergedExpr;
     
-    using MergedExpr=std::remove_reference_t<decltype(mergedExpr)>;
+    /// Type of the merged expr
+    using MergedExpr=std::decay_t<_E>;
+    
     /// Exec as the merged expression
     static constexpr ExecSpace execSpace=
       MergedExpr::execSpace;
