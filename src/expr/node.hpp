@@ -189,7 +189,9 @@ namespace nissa
 	constexpr INLINE_FUNCTION					\
 	T& operator SYMBOL(const Rhs& u)				\
       {									\
-	return (~*this).template assign<OP>(u);				\
+	(~*this).template assign<OP>(u);				\
+									\
+	return ~*this;							\
       }									\
       									\
     									\
@@ -212,7 +214,9 @@ namespace nissa
     constexpr INLINE_FUNCTION
     Node& operator=(const Node& oth)
     {
-      return (~*this).assign(~oth);
+      (~*this).assign(~oth);
+      
+      return ~*this;
     }
     
     /// Gets a writeable reference
