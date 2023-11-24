@@ -90,6 +90,24 @@ namespace nissa
       return (*this)+=1;
     }
   };
+  
+#define PROVIDE_BEGIN_OR_END(BE,ATTRIB)		\
+  template <typename U,				\
+	    int N>				\
+  decltype(auto) BE(ATTRIB MultiUint<U,N>& m)	\
+  {						\
+    return BE(m.val);				\
+  }
+
+#define PROVIDE_BEGIN_AND_END(ATTRIB)		\
+  PROVIDE_BEGIN_OR_END(begin,ATTRIB);		\
+  PROVIDE_BEGIN_OR_END(end,ATTRIB)
+  
+  PROVIDE_BEGIN_AND_END(const);
+  PROVIDE_BEGIN_AND_END(/* non const*/);
+  
+#undef PROVIDE_BEGIN_AND_END
+#undef PROVIDE_BEGIN_OR_END
 }
 
 #endif
