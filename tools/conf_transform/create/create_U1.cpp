@@ -186,7 +186,18 @@ void inMain(int narg,char **arg)
       
       nissa_free(u1);
     }
-  
+
+  spin1prop *prop=nissa_malloc("prop",locVol,spin1prop);
+  compute_x_space_tlSym_gauge_propagator_by_fft(prop,gl);
+  for(int d=0;d<2;d++)
+    for(int mu=0;mu<NDIM;mu++)
+      for(int nu=0;nu<NDIM;nu++)
+	{
+	  int ivol,r;
+	  get_loclx_and_rank_of_coord(ivol,rank,{0,0,d,0});
+	  if(r==rank) printf("A_mu_nu(t=0,x=0,y=%d,z=0); %lg\n",d,prop[d][mu][nu][RE]);
+	}
+  nissa_free(prop);
   // NISSA_PARALLEL_LOOP(loclx,0,locVol)
   //   {
   //     for(int mu=0;mu<NDIM;mu++)
