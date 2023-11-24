@@ -52,7 +52,6 @@ namespace nissa
     /// Uses the Box-Muller transformation of two Float128 uniformly distributed
     struct NormalRngDistr
     {
-      
       /// Transforms two uint32_t into cos() with x uniformly distributed
       ///
       /// We draw a number between 0 and 1, then we multiply by 2,
@@ -116,6 +115,20 @@ namespace nissa
       /// Number of uint32_t needed to draw a number
       static constexpr int nDraw=4;
     };
+    
+    /// Parametrize binomial distribution with exit +1 -1
+    struct Z2RngDistr
+    {
+      /// Transforms one uint32_t into +1 or -1
+      CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+      static double transform(const std::array<uint32_t,1>& vals)
+      {
+	return (vals[0]&0x1)?+1.0:-1.0;
+      }
+      
+      /// Number of uint32_t needed to draw a number
+      static constexpr int nDraw=1;
+    };
   }
   
   /////////////////////////////////////////////////////////////////
@@ -131,6 +144,10 @@ namespace nissa
   using RngNormalDistrView=
     RngDistrView<ProbDistr::NormalRngDistr>;
   
+  /// Generate +1 or -1
+  using RngZ2DistrView=
+    RngDistrView<ProbDistr::Z2RngDistr>;
+  
   /// Random number generator status
   ///
   /// Keeps track of the point in the stream of random numbers
@@ -140,7 +157,8 @@ namespace nissa
     Encrypter encrypter;
     
     /// Type used to keep track of the state
-    using Counter=MultiUint<uint64_t,4>;
+    using Counter=
+      MultiUint<uint64_t,4>;
     
     /// Keep track of the state
     Counter counter;
@@ -178,6 +196,8 @@ namespace nissa
     auto getUniformDistr(const uint64_t& nReserved);
     
     auto getNormalDistr(const uint64_t& nReserved);
+    
+    auto getZ2Distr(const uint64_t& nReserved);
   };
   
   /////////////////////////////////////////////////////////////////
@@ -278,6 +298,8 @@ namespace nissa
   PROVIDE_DISTR_CREATOR(Uniform);
   
   PROVIDE_DISTR_CREATOR(Normal);
+  
+  PROVIDE_DISTR_CREATOR(Z2);
   
 #undef PROVIDE_DISTR_CREATOR
   
