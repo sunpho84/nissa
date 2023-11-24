@@ -41,12 +41,26 @@ namespace nissa
 
 namespace nissa
 {
+  /// One of the fourth roots of unity
   enum class IdFourthRoot{One,I,MinusOne,MinusI};
   
+  /// Product of two fourth roots of unity
   constexpr IdFourthRoot operator*(const IdFourthRoot& first,
 				   const IdFourthRoot& second)
   {
     return IdFourthRoot(((int)first+(int)second)%4);
+  }
+  
+  /// Complex conjugate of one of the fourth roots of unity
+  constexpr IdFourthRoot operator~(const IdFourthRoot& i)
+  {
+    return IdFourthRoot(((int)i+((int)i%2)*2)%4);
+  }
+  
+  /// Negation of one of the fourth roots of unity
+  constexpr IdFourthRoot operator-(const IdFourthRoot& i)
+  {
+    return IdFourthRoot(((int)i+2)%4);
   }
   
   struct Gamma
@@ -54,15 +68,20 @@ namespace nissa
     using Entry=
       std::pair<SpinCln,IdFourthRoot>;
     
-    const StackTens<CompsList<SpinRow>,Entry> entries;
+    using Entries=
+      StackTens<CompsList<SpinRow>,Entry>;
     
+    const Entries entries;
+    
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     constexpr Gamma operator*(const Gamma& oth) const
     {
-      auto get=
-	[&](const SpinRow& ig1) -> Entry
+      Entries tmp;
+      
+      for(SpinRow ig1=0;ig1<NDIRAC;ig1++)
 	{
 	  //This is the line to be taken on the second matrix
-	  const SpinRow ig2=entries(ig1).first();
+	  const SpinRow ig2=transp(entries(ig1).first);
 	  
 	  //The entries of the output is, on each line, the complex
 	  //product of the entries of the first matrix on that line, for
@@ -76,10 +95,36 @@ namespace nissa
 	  //different from 0 is the column of the second matrix different
 	  //from 0 on the line with index equal to the column of the first
 	  //matrix which is different from 0 (that is, ig2)
-	  return {oth.entries(ig2).first,r};
+	  tmp(ig1)={oth.entries(ig2).first,r};
 	};
       
-      return {{{},{get(0),get(1),get(2),get(3)}}};
+      return {tmp};
+    }
+    
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr Gamma operator-() const
+    {
+      Entries tmp;
+      
+      for(SpinRow i=0;i<NDIRAC;i++)
+	tmp(i)={tmp(i).first,-tmp(i).second};
+      
+      return {tmp};
+    }
+    
+    /// Returns the hermitian
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr Gamma dag() const
+    {
+      Entries tmp;
+      
+      for(SpinRow sr=0;sr<NDIRAC;sr++)
+	{
+	  const auto& [sc,c]=this->entries(sr);
+	  tmp(transp(sc))={sc,~c};
+	}
+      
+      return {tmp};
     }
   };
   
