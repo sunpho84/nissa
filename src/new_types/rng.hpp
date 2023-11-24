@@ -7,6 +7,8 @@
 
 /// \file src/new_types/rng.hpp
 
+/// Based on sitmo random generator
+
 #include <cmath>
 #include <random>
 
@@ -102,12 +104,11 @@ namespace nissa
 	
 	return c;
       }
-	
+      
       /// Transforms four uint32_t into a normally distributed
       CUDA_HOST_AND_DEVICE INLINE_FUNCTION
       static double transform(const std::array<uint32_t,4>& vals)
       {
-	
 	return sqrt(-2*transformLog({vals[0],vals[1]}))*
 	  transformCos({vals[2],vals[3]});
       }
@@ -200,7 +201,8 @@ namespace nissa
 	crash("going beyond the number of reserved uint32_t");
       
       union
-      {/// Temporary result of the encpter
+      {
+	/// Temporary result of the encpter
 	Encrypter::Word temp;
 	
 	/// Output to be returned
