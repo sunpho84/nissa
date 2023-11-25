@@ -95,6 +95,20 @@ namespace nissa
 	return hostVal.getRef();
     }
     
+    /// Returns a reference
+    auto getRef()
+    {
+      using Res=MirroredNode<Comps,decltype(hostVal.getRef())>;
+      
+      Res res(hostVal.getRef()
+#ifdef USE_CUDA
+	      ,deviceVal.getRef()
+#endif
+	      );
+      
+      return res;
+    }
+    
     /////////////////////////////////////////////////////////////////
     
     /// Gets the data structure for the appropriate context
@@ -152,11 +166,25 @@ namespace nissa
     
     /// Default constructor
     template <typename...T>
+    requires(not (std::is_same_v<T,H> or...))
     INLINE_FUNCTION constexpr
     explicit MirroredNode(const T&...t) :
       hostVal(t...)
 #ifdef USE_CUDA
       ,deviceVal(t...)
+#endif
+    {
+    }
+    
+    /// Create from H and D
+    MirroredNode(const H& h
+#ifdef USE_CUDA
+		 ,const D& d
+#endif
+		 ) :
+      hostVal(h)
+#ifdef USE_CUDA
+      ,deviceVal(d)
 #endif
     {
     }
