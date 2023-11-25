@@ -149,6 +149,22 @@ namespace GammaBasis
   constexpr std::array<Gamma,16> basis{X*X,X,Y,Z,T,G5,G5*X,G5*Y,G5*Z,G5*T,T*X,T*Y,T*Z,Y*Z,Z*X,X*Y};
 }
 
+template <bool IsRef=false>
+struct Lattice
+{
+  GlbLxSite glbVol;
+  
+  LocLxSite locVol;
+  
+  MirroredTens<OfComps<LocLxSite>,GlbLxSite,IsRef> glbLxOfLocLx;
+  
+  Lattice<true> getRef()
+  {
+    return {glbVol,locVol,glbLxOfLocLx.getRef()};
+  }
+};
+
+Lattice lat;
 template <DerivedFromNode Out,
 	  DerivedFromNode In>
 void bareCycle(Out&& out,
