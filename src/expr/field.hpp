@@ -44,6 +44,8 @@ namespace nissa
   DECLARE_PARALLELIZABLE_COMP(LocEvnSite,int64_t,locEvnSite);
   DECLARE_PARALLELIZABLE_COMP(LocOddSite,int64_t,locOddSite);
 
+  DECLARE_DYNAMIC_COMP(LocCoord);
+  DECLARE_DYNAMIC_COMP(GlbCoord);
   DECLARE_PARALLELIZABLE_COMP(GlbLxSite,int64_t,glbLxSite);
   
   /// Specifies the order of components
