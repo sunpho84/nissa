@@ -9,6 +9,7 @@
 
 #include <metaprogramming/crtp.hpp>
 #include <metaprogramming/inline.hpp>
+#include <metaprogramming/typeConversion.hpp>
 
 namespace nissa
 {
@@ -39,6 +40,7 @@ namespace nissa
     
 #define PROVIDE_OPERATOR(OP,RETURNED_TYPE)				\
     									\
+    /*! Exec the operation if oth is an Arithmetic operator */		\
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
     RETURNED_TYPE operator OP(const ArithmeticOperators& oth) const	\
     {									\
@@ -51,13 +53,30 @@ namespace nissa
       return ((const CastToExec&)This) OP ((const CastToExec&)Oth);	\
     }									\
     									\
+    /*! Exec the operation if Oth can be cast to CastToExec   */	\
     template <typename Oth>						\
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
     RETURNED_TYPE operator OP(const Oth& oth) const			\
+      requires(isSafeNumericConversion<CastToExec,Oth>)			\
     {									\
       const auto& This=DE_CRTPFY(const ReturnedType,this);		\
       									\
       return ((const CastToExec&)This) OP ((const CastToExec&)oth);	\
+    }									\
+    									\
+    /*! Exec the operation if Oth cannot be cast to CastToExec but   */	\
+    /*! if after casting this to CastToExec, it can be cast to Oth   */ \
+    template <typename Oth>						\
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+    Oth operator OP(const Oth& oth) const				\
+      requires(not isSafeNumericConversion<CastToExec,Oth> and		\
+	       isSafeNumericConversion<Oth,CastToExec>)			\
+    {									\
+      const auto& This=							\
+	(const Oth&)(const CastToExec&)					\
+	DE_CRTPFY(const ReturnedType,this);				\
+      									\
+      return This OP oth;						\
     }
     
     PROVIDE_OPERATOR(+,ReturnedType);
@@ -82,7 +101,7 @@ namespace nissa
     {									\
       auto& This=DE_CRTPFY(ReturnedType,this);				\
 									\
-      (CastToExec&)This OP ## = oth;			\
+      (CastToExec&)This OP ## = oth;					\
 									\
       return This;							\
     }
