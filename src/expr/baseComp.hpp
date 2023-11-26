@@ -102,6 +102,15 @@ namespace nissa
     
 #undef PROVIDE_CAST_TO_VALUE
     
+    /// Convert to any type to which Index is convertible
+    template <typename T>
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    explicit operator T() const
+      requires(std::is_convertible_v<T,Index> and not std::is_same_v<T,Index>)
+    {
+      return i;
+    }
+    
     /// Cast to a different component
     template <DerivedFromComp D>
     D castTo() const
