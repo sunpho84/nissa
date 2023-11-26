@@ -145,7 +145,7 @@ namespace nissa
 		    const ProcessedComps&...pc)
     {
       auto iter=
-	[f,&dynamicComps,&pc...](const Head& val) CONSTEXPR_INLINE_ATTRIBUTE
+	[f,&dynamicComps,&pc...](const Head& val) MUTABLE_CONSTEXPR_INLINE_ATTRIBUTE
 	{
 	  (void)dynamicComps; // avoid warning
 	  
