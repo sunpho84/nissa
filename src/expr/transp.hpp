@@ -65,9 +65,9 @@ namespace nissa
     /// Type of the transposed expression
     using TranspExpr=NodeRefOrVal<_E>;
     
-    // /// Executes where allocated
-    // static constexpr ExecSpace execSpace=
-    //   SubNode<0>::execSpace;
+    /// Executes according to subexpr
+    static constexpr ExecSpace execSpace=
+      TranspExpr::execSpace;
     
     /// Returns the dynamic sizes
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
