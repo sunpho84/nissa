@@ -127,14 +127,30 @@ namespace nissa
   };
   
 #define PROVIDE_OPERATOR(OP)						\
-  template <DerivedFromComp C>						\
+  /*! exec the operation if D can be safely converted to C */		\
+  template <DerivedFromComp C,						\
+	    typename D>							\
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
-  C operator OP(const typename C::Index& a,				\
-			 const C& b)					\
-    {									\
-      return a*b.i;							\
-    }
-    
+  C operator OP(const D& a,						\
+		const C& b)						\
+    requires(isSafeNumericConversion<typename C::Index,D>)		\
+  {									\
+    return (const typename C::Index&)a*b.i;				\
+  }									\
+  									\
+  /*! exec the operation if D cannot be safely converted to C */	\
+  /*! but C can be safely converted to D                      */	\
+  template <DerivedFromComp C,						\
+	    typename D>							\
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+  D operator OP(const D& a,						\
+		const C& b)						\
+    requires((not isSafeNumericConversion<typename C::Index,D>) and	\
+	     isSafeNumericConversion<D,typename C::Index>)		\
+  {									\
+    return a*(const D&)b.i;						\
+  }
+  
   PROVIDE_OPERATOR(+);
   PROVIDE_OPERATOR(-);
   PROVIDE_OPERATOR(*);
