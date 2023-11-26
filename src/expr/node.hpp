@@ -193,7 +193,6 @@ namespace nissa
 									\
 	return ~*this;							\
       }									\
-      									\
     									\
       /*! Assign from a scalar */					\
       template <typename Oth>						\

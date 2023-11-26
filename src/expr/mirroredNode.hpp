@@ -109,6 +109,20 @@ namespace nissa
       return res;
     }
     
+    /// Returns a const reference
+    auto getRef() const
+    {
+      using Res=MirroredNode<Comps,decltype(hostVal.getRef())>;
+      
+      Res res(hostVal.getRef()
+#ifdef USE_CUDA
+	      ,deviceVal.getRef()
+#endif
+	      );
+      
+      return res;
+    }
+    
     /////////////////////////////////////////////////////////////////
     
     /// Gets the data structure for the appropriate context
@@ -190,7 +204,14 @@ namespace nissa
     }
     
     /// Forbids copy constructor for cleaness
-    MirroredNode(const MirroredNode&) =delete;
+    MirroredNode(const MirroredNode&)
+    requires(storeByRef)
+    =delete;
+    
+    /// Allow in the case data is ref
+    MirroredNode(const MirroredNode&)
+      requires(not storeByRef)
+    =default;
     
     /// Move constructor
     MirroredNode(MirroredNode&& oth) :
