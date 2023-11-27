@@ -57,8 +57,8 @@ namespace nissa
     std::array<complex,NDIM> phases;
     for(int mu=0;mu<NDIM;mu++)
       {
-	phases[mu][RE]=cos(M_PI*bc[mu]);
-	phases[mu][IM]=sin(M_PI*bc[mu]);
+	phases[mu][RE]=std::cos(M_PI*bc[mu]);
+	phases[mu][IM]=std::sin(M_PI*bc[mu]);
       }
     
     PAR(0,locVolh,

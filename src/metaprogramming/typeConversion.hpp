@@ -70,6 +70,8 @@ namespace nissa
   static constexpr bool isSafeNumericConversion=
     impl::_isSafeNumericConversion((std::decay_t<From>*)nullptr,(std::decay_t<To>*)nullptr);
   
+  /////////////////////////////////////////////////////////////////
+  
   PROVIDE_HAS_MEMBER(toPod);
   
   /// Convert to Pod if possible

@@ -77,14 +77,14 @@ namespace nissa
 	/// Computes cos(pi*b) taking care of the case close to 1/2
 	if(c==2)
 	  return
-	    sin(M_PI*(1.5-b).roundUp());
+	    std::sin(M_PI*(1.5-b).roundUp());
 	else
 	  if(c==1)
 	    return
-	      sin(M_PI*(0.5-b).roundUp());
+	      std::sin(M_PI*(0.5-b).roundUp());
 	  else
 	    return
-	      cos(M_PI*b.roundDown());
+	      std::cos(M_PI*b.roundDown());
       }
       
       /// Transforms two uint32_t into log(1-x) with x uniformly distributed
@@ -99,7 +99,7 @@ namespace nissa
 	const double c=
 	  (a<0.5)?
 	  std::log1p(-a.roundDown()):
-	  log((1-a).roundUp());
+	  std::log((1-a).roundUp());
 	
 	return c;
       }

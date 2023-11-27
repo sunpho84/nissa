@@ -159,7 +159,7 @@ namespace nissa
 	const double u2=u*u,w2=w*w;
 	double xi1w; //eq. (67)
 	if(fabs(w)<0.05) xi1w=-(1-w2*(1-w2*(1-w2/54)/28)/10)/3;
-	else xi1w=cw/w2-sin(w)/(w2*w);
+	else xi1w=cw/w2-std::sin(w)/(w2*w);
 	
 	//eqs. (60-65)
 	complex r[2][3]=
