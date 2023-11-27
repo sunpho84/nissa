@@ -23,7 +23,7 @@ namespace nissa
   ///
   /// Forward declaration
   template <typename C,
-	    typename F>
+	    typename F=double>
   struct StackTens;
   
 #define THIS					\
