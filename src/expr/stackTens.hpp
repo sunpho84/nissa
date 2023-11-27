@@ -150,26 +150,14 @@ namespace nissa
     // 	  storage[i]=oth.storage[i];
     // }
     
-    /// Construct from another node
-    template <DerivedFromNode TOth>
-    constexpr INLINE_FUNCTION
-    StackTens(const TOth& oth)
-    {
-      compsLoop<Comps>([this,
-			&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
-      {
-	(*this)(c...)=oth(c...);
-      },std::tuple<>{});
-    }
-    
-    /// Construct from non-node callable
+    /// Construct from callable
     template <typename F>
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    StackTens(F fun)
-      requires((not DerivedFromNode<F>) and std::is_invocable_v<F,C...>)
+    StackTens(F&& fun)
+      requires(DerivedFromNode<F> or std::is_invocable_v<F,C...>)
     {
       compsLoop<Comps>([this,
-			fun](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
+			&fun](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
       {
 	(*this)(c...)=fun(c...);
       },std::tuple<>{});
