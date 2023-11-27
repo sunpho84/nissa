@@ -21,6 +21,11 @@
 
 namespace nissa
 {
+  /// Used to dispatch the copy constructor
+  struct _CopyConstructInternalDispatcher
+  {
+  };
+  
   /// Start the communications of buffer interpreted as halo
   std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff,
 						     const size_t& bps);
@@ -529,9 +534,9 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
 #define PROVIDE_GET_REF(ATTRIB)						\
-    Field<CompsList<C...>,ATTRIB _Fund,FC,FL,MT,true> getRef() ATTRIB	\
+    auto getRef() ATTRIB	\
     {									\
-      return *this;							\
+      return Field<CompsList<C...>,ATTRIB _Fund,FC,FL,MT,true>(*this,(_CopyConstructInternalDispatcher*)nullptr); \
     }
     
     PROVIDE_GET_REF(const);
@@ -642,7 +647,7 @@ namespace nissa
     /// Assign another expression
     template <DerivedFromNode O>
     INLINE_FUNCTION
-    explicit Field(const O& oth) :
+    Field(const O& oth) :
       Field()
     {
       assign<DirectAssign>(oth);
@@ -655,9 +660,6 @@ namespace nissa
     {
       assign<DirectAssign>(scalar(oth));
     }
-    
-    /// Used to dispatch the copy constructor
-    struct _CopyConstructInternalDispatcher;
     
     /// Copy constructor, internal implementation
     template <typename O>
