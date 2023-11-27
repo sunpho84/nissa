@@ -84,11 +84,11 @@ namespace nissa
     /// Fundamental tye
     using Fund=_Fund;
     
+    /// Conugated expression
+    NodeRefOrVal<_E> conjExpr;
+    
     /// Type of the conjugated expression
     using ConjExpr=std::decay_t<_E>;
-    
-    /// Conugated expression
-    ConjExpr conjExpr;
     
     /// Executes according to subexpr
     static constexpr ExecSpace execSpace=
