@@ -74,6 +74,7 @@
 #include <expr/shift.hpp>
 #include <expr/stackTens.hpp>
 #include <expr/trace.hpp>
+#include <expr/trigonometry.hpp>
 #include <expr/transp.hpp>
 
 #include <free_theory/cg_eoprec_twisted_free_operator.hpp>
