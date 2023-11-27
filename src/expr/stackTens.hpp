@@ -125,11 +125,11 @@ namespace nissa
 #undef PROVIDE_EVAL
     
     /// Value initializer (all values needed)
-    template <typename ...T>
+    template <typename...T>
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     StackTens(T&&...t)
-      requires((std::is_convertible_v<T,Fund> and ...) and (sizeof...(t)==nElements))
-      : storage{{std::forward<T>(t)}...}
+      requires((std::is_convertible_v<T,Fund> and ...) and (sizeof...(T)==nElements))
+      : storage{std::forward<T>(t)...}
     {
     }
     
