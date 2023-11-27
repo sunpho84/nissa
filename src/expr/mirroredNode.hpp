@@ -269,9 +269,11 @@ namespace nissa
       }
       
       /// Destroy updating the device copy
+      CUDA_HOST_AND_DEVICE
       ~FillableProxy()
       {
-	ref.updateDeviceCopy();
+	if constexpr(not compilingForDevice)
+	  ref.updateDeviceCopy();
       }
     };
     
