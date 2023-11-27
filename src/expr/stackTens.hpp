@@ -50,7 +50,7 @@ namespace nissa
     using Base::operator=;
     
     /// Copy-assign
-    INLINE_FUNCTION
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     StackTens& operator=(const StackTens& oth)
     {
       Base::operator=(oth);
@@ -124,19 +124,20 @@ namespace nissa
     
 #undef PROVIDE_EVAL
     
-    static constexpr bool fundNeedsConstrutor=
-      std::is_class_v<_Fund> and not std::is_aggregate_v<_Fund>;
+    /// Value initializer (all values needed)
+    template <typename ...T>
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    StackTens(T&&...t)
+      requires((std::is_convertible_v<T,Fund> and ...) and (sizeof...(t)==nElements))
+      : storage{{std::forward<T>(t)}...}
+    {
+    }
     
-    // /// Default constructor
-    // constexpr INLINE_FUNCTION
-    // StackTens(const CompsList<> ={})
-    // {
-    //   if constexpr(fundNeedsConstrutor)
-    // 	{
-    // 	  for(std::decay_t<decltype(nElements)> iEl=0;iEl<nElements;iEl++)
-    // 	    new(&storage[iEl]) _Fund;
-    // 	}
-    // }
+    /// Default constructor
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    StackTens()
+    {
+    }
     
     // /// Copy constructor
     // INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
