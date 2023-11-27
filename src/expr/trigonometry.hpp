@@ -11,7 +11,22 @@
 
 namespace nissa
 {
+  /// Providing overload to std library routines, as they are
+  /// obfuscated by the expression overload
+#define OVERLOAD_FUN_TYPE(NAME,TYPE,SUFF)		\
+  template <typename F>					\
+  double NAME(const F& f)				\
+    requires(isSafeNumericConversion<F,TYPE>)		\
+  {							\
+    return NAME ## SUFF((TYPE)f);			\
+  }
+  
 #define PROVIDE_UNARY_FUNCTION(FUN)			\
+							\
+  OVERLOAD_FUN_TYPE(FUN,double,h);			\
+  							\
+  OVERLOAD_FUN_TYPE(FUN,float,f);			\
+							\
   /*! Calculate the unary expression FUN */		\
   struct FUN ## Functor					\
   {							\
@@ -32,13 +47,15 @@ namespace nissa
       cWiseCombine<FUN ## Functor>(std::forward<E>(e));	\
   }
   
-  // PROVIDE_UNARY_FUNCTION(sin);
-  // PROVIDE_UNARY_FUNCTION(tan);
-  // PROVIDE_UNARY_FUNCTION(asin);
-  // PROVIDE_UNARY_FUNCTION(acos);
-  // PROVIDE_UNARY_FUNCTION(atan);
+  PROVIDE_UNARY_FUNCTION(sin);
+  PROVIDE_UNARY_FUNCTION(tan);
+  PROVIDE_UNARY_FUNCTION(asin);
+  PROVIDE_UNARY_FUNCTION(acos);
+  PROVIDE_UNARY_FUNCTION(atan);
   
 #undef PROVIDE_UNARY_FUNCTION
+  
+#undef OVERLOAD_FUN_TYPE
 }
 
 #endif
