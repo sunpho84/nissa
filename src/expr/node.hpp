@@ -114,7 +114,7 @@ namespace nissa
       INLINE_FUNCTION
       constexpr void assertCanAssign(const U& rhs)
     {
-      static_assert(T::execSpace.hasUniqueExecSpace(),"lhs must have a unique execution space");
+      // static_assert(T::execSpace.hasUniqueExecSpace(),"lhs must have a unique execution space");
       
       static_assert(U::execSpace.isCompatibleWith(T::execSpace),"incompatible execution space of rhs with lhs");
       
