@@ -63,7 +63,7 @@ namespace nissa
     
     /// Init from value
     template <typename T=Index>
-    requires(isSafeNumericConversion<Index,T>)
+    requires(isSafeNumericConversion<T,Index>)
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
     BaseComp(T&& i) :
       i(i)
@@ -106,7 +106,7 @@ namespace nissa
     template <typename T>
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     explicit operator T() const
-      requires(std::is_convertible_v<T,Index> and not std::is_same_v<T,Index>)
+      requires(isSafeNumericConversion<Index,T> and not std::is_same_v<T,Index>)
     {
       return i;
     }
@@ -133,7 +133,7 @@ namespace nissa
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
   C operator OP(const D& a,						\
 		const C& b)						\
-    requires(isSafeNumericConversion<typename C::Index,D>)		\
+    requires(isSafeNumericConversion<D,typename C::Index>)		\
   {									\
     return (const typename C::Index&)a*b.i;				\
   }									\
@@ -145,8 +145,8 @@ namespace nissa
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
   D operator OP(const D& a,						\
 		const C& b)						\
-    requires((not isSafeNumericConversion<typename C::Index,D>) and	\
-	     isSafeNumericConversion<D,typename C::Index>)		\
+    requires((not isSafeNumericConversion<D,typename C::Index>) and	\
+	     isSafeNumericConversion<typename C::Index,D>)		\
   {									\
     return a*(const D&)b.i;						\
   }

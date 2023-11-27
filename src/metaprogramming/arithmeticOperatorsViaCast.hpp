@@ -57,7 +57,7 @@ namespace nissa
     template <typename Oth>						\
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
     RETURNED_TYPE operator OP(const Oth& oth) const			\
-      requires(isSafeNumericConversion<CastToExec,Oth>)			\
+      requires(isSafeNumericConversion<Oth,CastToExec>)			\
     {									\
       const auto& This=DE_CRTPFY(const ReturnedType,this);		\
       									\
@@ -69,8 +69,8 @@ namespace nissa
     template <typename Oth>						\
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
     Oth operator OP(const Oth& oth) const				\
-      requires(not isSafeNumericConversion<CastToExec,Oth> and		\
-	       isSafeNumericConversion<Oth,CastToExec>)			\
+      requires(not isSafeNumericConversion<Oth,CastToExec> and		\
+	       isSafeNumericConversion<CastToExec,Oth>)			\
     {									\
       const auto& This=							\
 	(const Oth&)(const CastToExec&)					\

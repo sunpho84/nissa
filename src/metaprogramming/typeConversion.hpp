@@ -18,57 +18,57 @@ namespace nissa
 {
   namespace impl
   {
-    /// Report whether the conversion from T2 to T1 is numerically safe
+    /// Report whether the conversion from From to To is numerically safe
     ///
     /// Generic case
-    template <typename T1,
-	      typename T2>
-    constexpr bool _isSafeNumericConversion(T1*,T2*)
+    template <typename From,
+	      typename To>
+    constexpr bool _isSafeNumericConversion(From*,To*)
     {
-      return std::is_same_v<T1,T2>;
+      return std::is_same_v<From,To>;
     }
     
-#define DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(T1,T2)		\
-    /*! Report whether the conversion from T2 to T1 is numerically safe */ \
-    constexpr bool _isSafeNumericConversion(T1*,T2*)			\
+#define DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(FROM,TO)		\
+    /*! Report whether the conversion from FROM to TO is numerically safe */ \
+    constexpr bool _isSafeNumericConversion(FROM*,TO*)			\
     {									\
       return true;							\
     }
     
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(int32_t,bool)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(int32_t,int8_t)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(int32_t,int16_t)
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(bool,int32_t);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(int8_t,int32_t);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(int16_t,int32_t);
     
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(int64_t,bool)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(int64_t,int8_t)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(int64_t,int16_t)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(int64_t,int32_t)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(int64_t,uint32_t)
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(bool,int64_t);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(int8_t,int64_t);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(int16_t,int64_t);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(int32_t,int64_t);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(uint32_t,int64_t);
     
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(float,bool)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(float,int8_t)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(float,int16_t)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(float,int32_t)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(float,uint32_t)
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(bool,float);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(int8_t,float);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(int16_t,float);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(int32_t,float);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(uint32_t,float);
     
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(double,bool)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(double,int8_t)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(double,int16_t)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(double,int32_t)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(double,int64_t)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(double,uint32_t)
-    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(double,uint64_t)
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(bool,double);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(int8_t,double);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(int16_t,double);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(int32_t,double);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(int64_t,double);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(uint32_t,double);
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(uint64_t,double);
     
-#undef DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM
+#undef DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO
   }
   
-  /// Report whether the conversion from T2 to T1 is numerically safe
+  /// Report whether the conversion from From to To is numerically safe
   ///
   /// Gives visibility to impl implementation
-  template <typename T1,
-	    typename T2>
+  template <typename From,
+	    typename To>
   static constexpr bool isSafeNumericConversion=
-    impl::_isSafeNumericConversion((std::decay_t<T1>*)nullptr,(std::decay_t<T2>*)nullptr);
+    impl::_isSafeNumericConversion((std::decay_t<From>*)nullptr,(std::decay_t<To>*)nullptr);
   
   PROVIDE_HAS_MEMBER(toPod);
   
