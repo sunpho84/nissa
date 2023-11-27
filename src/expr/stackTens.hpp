@@ -150,37 +150,42 @@ namespace nissa
     // 	  storage[i]=oth.storage[i];
     // }
     
-    // /// Construct from another node
-    // template <DerivedFromNode TOth>
-    // constexpr INLINE_FUNCTION
-    // StackTens(const TOth& oth)
-    // {
-    //   // if constexpr(std::is_class_v<_Fund>)
-    //   compsLoop<Comps>([this,
-    // 			&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
-    //   {
-    // 	const auto cs=tupleGetSubset<typename TOth::Comps>(std::make_tuple(c...));
-
-    // 	if constexpr(fundNeedsConstrutor)
-    // 	  new(&(*this)(c...)) _Fund(std::apply(oth,cs));
-    // 	else
-    // 	  (*this)(c...)=std::apply(oth,cs);
-    //   },std::tuple<>{});
-    // }
+    /// Construct from another node
+    template <DerivedFromNode TOth>
+    constexpr INLINE_FUNCTION
+    StackTens(const TOth& oth)
+    {
+      compsLoop<Comps>([this,
+			&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
+      {
+	(*this)(c...)=oth(c...);
+      },std::tuple<>{});
+    }
     
-    // /// Construct from fundamental
-    // constexpr INLINE_FUNCTION
-    // StackTens(const Fund& oth)
-    // {
-    //   compsLoop<Comps>([this,
-    // 			&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
-    //   {
-    // 	if constexpr(fundNeedsConstrutor)
-    // 	  new(&(*this)(c...)) _Fund(oth);
-    // 	else
-    // 	  (*this)(c...)=std::apply(oth);
-    //   },std::tuple<>{});
-    // }
+    /// Construct from non-node callable
+    template <typename F>
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    StackTens(F fun)
+      requires((not DerivedFromNode<F>) and std::is_invocable_v<F,C...>)
+    {
+      compsLoop<Comps>([this,
+			fun](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
+      {
+	(*this)(c...)=fun(c...);
+      },std::tuple<>{});
+    }
+    
+    
+    /// Construct from fundamental
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    StackTens(const Fund& oth)
+    {
+      compsLoop<Comps>([this,
+			&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
+      {
+	  (*this)(c...)=oth;
+      },std::tuple<>{});
+    }
     
     // constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     // StackTens() = default;
