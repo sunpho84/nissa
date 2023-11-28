@@ -9,6 +9,8 @@
 ///
 /// \brief Implements a tensor comp base functionalities
 
+#include <string>
+
 #include <metaprogramming/arithmeticOperatorsViaCast.hpp>
 #include <metaprogramming/feature.hpp>
 #include <metaprogramming/inline.hpp>
@@ -123,6 +125,13 @@ namespace nissa
     const Index& operator()() const
     {
       return i;
+    }
+    
+    /// Convert to string
+    INLINE_FUNCTION constexpr
+    explicit operator std::string() const
+    {
+      return std::to_string(i);
     }
   };
   
