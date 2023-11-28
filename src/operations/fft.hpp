@@ -34,38 +34,50 @@ namespace nissa
 	   const int& sign,
 	   const In& in)
   {
-    /// Components different from those related to fft
-    using OthComps=
-      TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite,ComplId>>;
-    
-    auto f=
-      [sign]<DerivedFromNode B,
-	     Dir D>(B& buf,
-		    const std::integral_constant<Dir,D>&)
+    if constexpr(tupleHasType<typename In::Comps,ComplId>)
       {
-	const int nCompl=glbSizes[D()];
-	const int nFft=buf.nElements/nCompl/2;
+	/// Components different from those related to fft
+	using OthComps=
+	  TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite,ComplId>>;
 	
+	/// Function to exec at each loop iteration
+	auto f=
+	  [sign]<DerivedFromNode B,
+		 Dir D>(B& buf,
+			const std::integral_constant<Dir,D>&)
+	  {
+	    /// Number of complexes
+	    const int nCompl=glbSizes[D()];
+	    
+	    /// Extension of the fft
+	    const int nFft=buf.nElements/nCompl/2;
+	    
 #ifdef USE_CUDA
-	if constexpr(B::execSpace==execOnGPU)
-	  fftExecUsingCuFFT(buf.storage,nCompl,sign,nFft);
-	else
+	    if constexpr(B::execSpace==execOnGPU)
+	      fftExecUsingCuFFT(buf.storage,nCompl,sign,nFft);
+	    else
 #endif
-	  fftExecUsingFftw(buf.storage,nCompl,sign,nFft);
+	      fftExecUsingFftw(buf.storage,nCompl,sign,nFft);
+	    
+	    master_printf("%s\n",demangle(typeid(B).name()).c_str());
+	    
+	    master_printf("FFTing on Dir %d nFft=%d\n",D(),nFft);
+	  };
 	
-	master_printf("%s\n",demangle(typeid(B).name()).c_str());
-	
-	master_printf("FFTing on Dir %d nFft=%d\n",D(),nFft);
-      };
-    
-    cycleOnAllLocalDirections<OthComps,CompsList<ComplId>>(std::forward<Out>(out),in,f,in.getDynamicSizes());
+	cycleOnAllLocalDirections<OthComps,CompsList<ComplId>>(std::forward<Out>(out),in,f,in.getDynamicSizes());
+      }
+    else
+      fft(std::forward<Out>(out),sign,in*complOne<>);
   }
   
-  template <DerivedFromNode In>
-  auto fft(const int& sign,
-	   const In& in)
+  /// Takes fft and output the result to a new object of type Out
+  template <DerivedFromNode Out,
+	    DerivedFromNode In>
+  Out fft(const int& sign,
+	  const In& in)
   {
-    In out;
+    /// Result
+    Out out;
     
     fft(out,sign,in);
     
