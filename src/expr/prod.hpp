@@ -235,7 +235,8 @@ namespace nissa
 	std::conditional_t<isComplProd,CompsList<ComplId>,CompsList<>>;
       
       Fund res{};
-      setToZero(res);
+      res=(Fund)0;
+      //setToZero(res);
       
       compsLoop<ContractedComps>([this,&allNccs,&res](const auto&..._ccs) INLINE_ATTRIBUTE
       {

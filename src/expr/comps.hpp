@@ -108,12 +108,14 @@ namespace nissa
 	((std::get<std::decay_t<decltype(a)>>(dcsOut)==a) and ...);
     };
     
-    /// Check all componnent lists
+    /// Check all component lists
     const auto b=
       (std::apply(checkDc,dcsIns) and...);
     
     if(not b)
-      crash("unmatched dynamic comps among expressions");
+      if constexpr(std::tuple_size_v<DcsOut> and (std::tuple_size_v<_DcsIn> and ...))
+	crash("unmatched dynamic comps among expressions: %s",
+	      (tupleDescribe(dcsOut)+((" "+tupleDescribe(dcsIns))+...)).c_str());
     
     return
       dcsOut;
