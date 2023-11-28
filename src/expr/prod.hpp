@@ -315,20 +315,20 @@ namespace nissa
     {
     }
     
-    // /// Copy constructor
-    // CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    // Producer(const Producer& oth)
-    //   requires(std::is_copy_constructible_v<std::decay_t<_E>> and...)
-    //   : subExprs{{oth.subExprs.template get<Is>()}...},
-    // 	dynamicSizes(oth.dynamicSizes)
-    // {
-    // }
+    /// Copy constructor
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    Producer(const Producer& oth)
+      requires(std::is_copy_constructible_v<std::decay_t<_E>> and...)
+      : subExprs{{oth.subExprs.template get<Is>()}...},
+	dynamicSizes(oth.dynamicSizes)
+    {
+    }
     
     /// Move constructor
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Producer(Producer&& oth)
       requires(std::is_move_constructible_v<std::decay_t<_E>> and...)
-      : subExprs{{std::move(oth.subExprs.template get<Is>())}...},
+      : subExprs{std::move(oth.subExprs)},
 	dynamicSizes(oth.dynamicSizes)
     {
     }
