@@ -211,6 +211,7 @@
 #include <threads/threads.hpp>
 
 #include <tuples/invokeWithTypesOfTuple.hpp>
+#include <tuples/tupleDescribe.hpp>
 #include <tuples/tupleFilter.hpp>
 #include <tuples/typePosition.hpp>
 
