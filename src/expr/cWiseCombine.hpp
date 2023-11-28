@@ -195,7 +195,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     CWiseCombiner(CWiseCombiner&& oth)
       requires(std::is_move_constructible_v<std::decay_t<_E>> and...)
-      : subExprs{std::move(oth.subExprs.template get<Is>())...},
+      : subExprs{std::move(oth.subExprs)},
 	dynamicSizes(oth.dynamicSizes)
     {
     }
