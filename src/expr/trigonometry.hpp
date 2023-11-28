@@ -15,6 +15,7 @@ namespace nissa
   /// obfuscated by the expression overload
 #define OVERLOAD_FUN_TYPE(NAME,TYPE,SUFF)		\
   template <typename F>					\
+  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE	\
   double NAME(const F& f)				\
     requires(isSafeNumericConversion<F,TYPE>)		\
   {							\
