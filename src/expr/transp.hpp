@@ -63,7 +63,7 @@ namespace nissa
     NodeRefOrVal<_E> transpExpr;
     
     /// Type of the transposed expression
-    using TranspExpr=NodeRefOrVal<_E>;
+    using TranspExpr=std::decay_t<_E>;
     
     /// Executes according to subexpr
     static constexpr ExecSpace execSpace=
