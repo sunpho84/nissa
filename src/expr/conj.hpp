@@ -201,8 +201,18 @@ namespace nissa
       }
   }
   
+  /// Defining a complex number
+  template <typename Fund=double>
+  using ComplNum=
+    StackTens<CompsList<ComplId>,Fund>;
+  
+  /// One as a complex
+  template <typename Fund=double>
+  CUDA_DEVICE constexpr ComplNum<Fund> complOne{(Fund)1,(Fund)0};
+  
   /// Imaginary unit
-  CUDA_DEVICE constexpr StackTens<OfComps<ComplId>,double> I{0.0,1.0};
+  template <typename Fund=double>
+  CUDA_DEVICE constexpr ComplNum<Fund> complI{(Fund)0,(Fund)1};
 }
 
 #endif
