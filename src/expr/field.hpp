@@ -727,7 +727,7 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     Field(Field&& oth) :
       nTotalAllocatedSites(oth.nTotalAllocatedSites),
-      data(oth.data),
+      data(std::move(oth.data)),
       haloEdgesPresence(oth.haloEdgesPresence),
       haloIsValid(oth.haloIsValid),
       edgesAreValid(oth.edgesAreValid)
