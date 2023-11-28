@@ -177,7 +177,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     CWiseCombiner(const DynamicComps& dynamicSizes,
 		  T&&...addends) :
-      subExprs{{addends}...},
+      subExprs{{std::forward<T>(addends)}...},
       dynamicSizes(dynamicSizes)
     {
     }
