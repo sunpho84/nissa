@@ -67,6 +67,7 @@
 #include <expr/field.hpp>
 #include <expr/funcExpr.hpp>
 #include <expr/indexComputer.hpp>
+#include <expr/kronDelta.hpp>
 #include <expr/mergedComps.hpp>
 #include <expr/mirroredNode.hpp>
 #include <expr/prod.hpp>
