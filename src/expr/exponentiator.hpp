@@ -53,7 +53,7 @@ namespace nissa
       return
 	cWiseCombine<ComplExponentiator>(bindComps(e,std::make_tuple(reIm(0))),
 					 bindComps(e,std::make_tuple(reIm(1))),
-					 I);
+					 complI<typename std::decay_t<E>::Fund>);
     else
       return
 	cWiseCombine<Exponentiator>(std::forward<E>(e));
