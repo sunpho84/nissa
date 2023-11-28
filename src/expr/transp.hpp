@@ -129,6 +129,14 @@ namespace nissa
       return transpExpr(transp(td)...);
     }
     
+    /// Move construct
+    INLINE_FUNCTION constexpr
+    Transposer(Transposer&& oth) = default;
+    
+    /// Copy construct
+    INLINE_FUNCTION constexpr
+    Transposer(const Transposer& oth) = default;
+    
     /// Construct
     template <typename T>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
