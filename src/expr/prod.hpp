@@ -310,19 +310,19 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Producer(const DynamicComps& dynamicSizes,
 	     T&&...facts) :
-      subExprs{{facts}...},
+      subExprs{{std::forward<T>(facts)}...},
       dynamicSizes(dynamicSizes)
     {
     }
     
-    /// Copy constructor
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    Producer(const Producer& oth)
-      requires(std::is_copy_constructible_v<std::decay_t<_E>> and...)
-      : subExprs{{oth.subExprs.template get<Is>()}...},
-	dynamicSizes(oth.dynamicSizes)
-    {
-    }
+    // /// Copy constructor
+    // CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    // Producer(const Producer& oth)
+    //   requires(std::is_copy_constructible_v<std::decay_t<_E>> and...)
+    //   : subExprs{{oth.subExprs.template get<Is>()}...},
+    // 	dynamicSizes(oth.dynamicSizes)
+    // {
+    // }
     
     /// Move constructor
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
