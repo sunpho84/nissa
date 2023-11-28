@@ -245,6 +245,16 @@ namespace nissa
     /// Proxy to fill the tables
     struct FillableProxy
     {
+      /// Assign from something
+      template <typename F>
+      constexpr INLINE_FUNCTION
+      FillableProxy operator=(F&& f) &&
+      {
+	ref.hostVal=f;
+	
+	return *this;
+      }
+      
       /// Takes the reference to a MirroredNode
       MirroredNode& ref;
       
