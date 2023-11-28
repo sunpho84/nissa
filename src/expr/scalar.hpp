@@ -25,6 +25,8 @@ namespace nissa
     {
     }
     
+    //ScalarWrapFunctor(const ScalarWrapFunctor& oth) =default;
+    
     /// Can run on both GPU and CPU as it is trivially copyable
     static constexpr ExecSpace execSpace=
 		execOnCPUAndGPU;
