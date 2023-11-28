@@ -47,7 +47,7 @@ namespace nissa
   constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   Scalar<F> scalar(const F& f)
   {
-    return ScalarWrapFunctor<F>(f);
+    return {ScalarWrapFunctor<F>(f),std::make_tuple()};
   }
 }
 
