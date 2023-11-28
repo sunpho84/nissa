@@ -111,20 +111,68 @@ namespace nissa
 #undef PROVIDE_GET_REF
     
     /// Evaluate
-    template <typename...TD>
+    template <typename...Ci>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    Fund eval(const TD&...td) const
+    Fund eval(const Ci&...c) const
     {
-      return func(td...);
+      return func(c...);
     }
     
     /// Construct
+    template <DerivedFromComp...TD>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    FuncExpr(const Func& func) :
-      func(func)
+    FuncExpr(const Func& func,
+	     const CompsList<TD...>& td) :
+      func(func),
+      dynamicSizes(tupleGetSubset<DynamicComps>(td))
     {
     }
   };
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Wraps a function callable with comps C
+  template <typename F,
+	    typename C,
+	    ExecSpace ES=execOnCPUAndGPU>
+  struct FuncNodeWrapper;
+  
+  /// Wraps a function callable with comps C
+  template <typename F,
+	    DerivedFromComp...C,
+	    ExecSpace ES>
+  requires(std::is_invocable_v<F,C...>)
+  struct FuncNodeWrapper<F,CompsList<C...>,ES>
+  {
+    F f;
+    
+    /// Can run on both GPU and CPU as it is trivially copyable
+    static constexpr ExecSpace execSpace=
+		execOnCPUAndGPU;
+    
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    FuncNodeWrapper(F f) :
+      f(f)
+    {
+    }
+    
+    /// Evaluate
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    auto operator()(const C&...c) const
+    {
+      return f(c...);
+    }
+  };
+  
+  template <typename C,
+	    ExecSpace ES=execOnCPUAndGPU,
+	    typename F,
+	    DerivedFromComp...TD>
+  FuncExpr<FuncNodeWrapper<F,C,ES>,C,decltype(std::apply(std::declval<F>(),std::declval<C>()))> funcNodeWrapper(const F& f,
+														const CompsList<TD...>& ds)
+  {
+    return {FuncNodeWrapper<F,C,ES>(f),ds};
+  }
 }
 
 #endif
