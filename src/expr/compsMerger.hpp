@@ -180,9 +180,11 @@ namespace nissa
 #undef PROVIDE_EVAL
     
     /// Construct
+    template <typename T>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    CompsMerger(_E arg) :
-      mergedExpr{arg}
+    CompsMerger(T&& arg)
+      requires(std::is_same_v<std::decay_t<T>,std::decay_t<_E>>)
+      : mergedExpr{std::forward<T>(arg)}
     {
       if constexpr(mergedCompHasDynamicSize)
 	std::get<ThisMergedComp>(extraDynamicSizes)=mergedExpr.template getMergedCompsSize<CompsList<Mc...>>();
@@ -217,7 +219,7 @@ namespace nissa
 	
 	return
 	  CompsMerger<MC,
-		      _E,
+		      decltype(e),
 		      Comps,
 		      Fund>(std::forward<_E>(e));
       }

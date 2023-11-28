@@ -184,9 +184,11 @@ namespace nissa
     }
     
     /// Construct
+    template <typename T>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    Tracer(_E arg) :
-      tracedExpr(arg)
+    Tracer(T&& arg)
+      requires(std::is_same_v<std::decay_t<T>,std::decay_t<_E>>)
+      : tracedExpr(std::forward<T>(arg))
     {
     }
     
@@ -217,7 +219,7 @@ namespace nissa
     using Fund=typename E::Fund;
     
     return
-      Tracer<TracedComps,_E,Comps,Fund>(std::forward<_E>(e));
+      Tracer<TracedComps,decltype(e),Comps,Fund>(std::forward<_E>(e));
   }
 }
 

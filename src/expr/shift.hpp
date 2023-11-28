@@ -177,11 +177,12 @@ namespace nissa
     }
     
     /// Construct
+    template <typename T>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    Shifter(_E arg,
+    Shifter(T&& arg,
 	    const Ori& ori,
 	    const Dir& dir) :
-      shiftedExpr{arg},
+      shiftedExpr{std::forward<T>(arg)},
       ori(ori),
       dir(dir)
     {
@@ -231,7 +232,7 @@ namespace nissa
     if constexpr(tupleHasType<Comps,LocLxSite> or tupleHasType<Comps,LocEoSite>)
       {
 	updateHaloForShift(e);
-	return Shifter<_E,Comps,Fund>(std::forward<_E>(e),ori,dir);
+	return Shifter<decltype(e),Comps,Fund>(std::forward<_E>(e),ori,dir);
       }
     else
       if constexpr(tupleHasType<Comps,LocEvnSite> or tupleHasType<Comps,LocOddSite>)
@@ -241,7 +242,7 @@ namespace nissa
 	  using OutComps=
 	    TupleSwapTypes<Comps,LocEvnSite,LocOddSite>;
 	  
-	  return Shifter<_E,OutComps,Fund>(std::forward<_E>(e),ori,dir);
+	  return Shifter<decltype(e),OutComps,Fund>(std::forward<_E>(e),ori,dir);
 	}
       else
 	return e;

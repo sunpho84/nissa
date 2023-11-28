@@ -173,10 +173,11 @@ namespace nissa
 #undef PROVIDE_EVAL
     
     /// Construct
+    template <typename T>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    CompsBinder(_E arg,
+    CompsBinder(T&& arg,
 		const BoundComps& boundComps) :
-      boundExpr{arg},
+      boundExpr{std::forward<T>(arg)},
       boundComps(boundComps)
     {
     }
@@ -208,7 +209,7 @@ namespace nissa
     
     return
       CompsBinder<BoundComps,
-		  _E,
+		  decltype(e),
 		  Comps,
 		  Fund>(std::forward<_E>(e),bc);
   }

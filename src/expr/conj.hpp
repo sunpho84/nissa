@@ -163,9 +163,11 @@ namespace nissa
     }
     
     /// Construct
+    template <typename T>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    Conjugator(_E arg) :
-      conjExpr{arg}
+    Conjugator(T&& arg)
+      requires(std::is_same_v<std::decay_t<T>,std::decay_t<_E>>)
+      : conjExpr{std::forward<T>(arg)}
     {
     }
   };
@@ -196,7 +198,7 @@ namespace nissa
 	      typename E::Fund;
 	    
 	    return
-	      Conjugator<_E,Comps,Fund>(std::forward<_E>(e));
+	      Conjugator<decltype(e),Comps,Fund>(std::forward<_E>(e));
 	  }
       }
   }
