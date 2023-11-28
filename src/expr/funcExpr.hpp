@@ -148,7 +148,7 @@ namespace nissa
     
     /// Can run on both GPU and CPU as it is trivially copyable
     static constexpr ExecSpace execSpace=
-		execOnCPUAndGPU;
+      ES;
     
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     FuncNodeWrapper(F f) :
@@ -164,14 +164,17 @@ namespace nissa
     }
   };
   
+  /// Creates a wrapper around a callable
   template <typename C,
-	    ExecSpace ES=execOnCPUAndGPU,
+	    ExecSpace ES=ExecSpace{execOnCPUAndGPU},
 	    typename F,
+	    typename Fund=decltype(std::apply(std::declval<F>(),std::declval<C>())),
 	    DerivedFromComp...TD>
-  FuncExpr<FuncNodeWrapper<F,C,ES>,C,decltype(std::apply(std::declval<F>(),std::declval<C>()))> funcNodeWrapper(const F& f,
-														const CompsList<TD...>& ds)
+  constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  auto funcNodeWrapper(const F& f,
+		       const CompsList<TD...>& ds)
   {
-    return {FuncNodeWrapper<F,C,ES>(f),ds};
+    return FuncExpr<FuncNodeWrapper<F,C,ES>,C,Fund>(FuncNodeWrapper<F,C,ES>(f),ds);
   }
 }
 

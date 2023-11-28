@@ -197,7 +197,7 @@ namespace nissa
     /*! Assign from a callable function */				\
       template <typename Rhs>						\
 	requires(not DerivedFromNode<Rhs> and				\
-		 std::is_invocable_v<Rhs,Ci...>)		\
+		 std::is_invocable_v<Rhs,Ci...>)			\
 	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
 	T& operator SYMBOL(const Rhs& u)				\
       {									\
