@@ -43,14 +43,11 @@ namespace nissa
     BASE,
     MirroredNodeFeat
   {
-  private:
     H hostVal;
     
 #ifdef USE_CUDA
     D deviceVal;
 #endif
-    
-  public:
     
     using This=THIS;
     
