@@ -17,14 +17,14 @@ namespace nissa
   template <typename F>					\
   constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE	\
   double NAME(const F& f)				\
-    requires(isSafeNumericConversion<F,TYPE>)		\
+    requires(std::is_same_v<F,TYPE> or isSafeNumericConversion<F,TYPE>)	\
   {							\
-    return NAME ## SUFF((TYPE)f);			\
+    return ::NAME ## SUFF((TYPE)f);			\
   }
   
 #define PROVIDE_UNARY_FUNCTION(FUN)			\
 							\
-  OVERLOAD_FUN_TYPE(FUN,double,h);			\
+  OVERLOAD_FUN_TYPE(FUN,double,);			\
   							\
   OVERLOAD_FUN_TYPE(FUN,float,f);			\
 							\
