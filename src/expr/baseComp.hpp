@@ -164,7 +164,7 @@ namespace nissa
     requires((not isSafeNumericConversion<D,typename C::Index>) and	\
 	     isSafeNumericConversion<typename C::Index,D>)		\
   {									\
-    return a*(const D&)b.i;						\
+    return a OP (const D&)b.i;						\
   }
   
   PROVIDE_OPERATOR(+);
