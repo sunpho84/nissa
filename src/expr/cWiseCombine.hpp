@@ -186,7 +186,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     CWiseCombiner(const CWiseCombiner& oth)
       requires(std::is_copy_constructible_v<std::decay_t<_E>> and...)
-      :subExprs{{oth.subExprs.template get<Is>()}...},
+      :subExprs{oth.subExprs},
        dynamicSizes(oth.dynamicSizes)
     {
     }
@@ -235,10 +235,10 @@ namespace nissa
     template <typename...Args>						\
     constexpr INLINE_FUNCTION						\
     static auto CUDA_HOST_AND_DEVICE compute(Args&&...s)		\
-    {	/* forwarding is needed to preserve value category */		\
+    {									\
       return (std::forward<Args>(s) OP ...);				\
     }									\
-  };  									\
+  };									\
   									\
   /*! Catch the OP operator */						\
   template <DerivedFromNode E1,						\
@@ -280,10 +280,10 @@ namespace nissa
     template <typename Arg>						\
     constexpr INLINE_FUNCTION						\
     static auto CUDA_HOST_AND_DEVICE compute(Arg&& s)			\
-    {	/* forwarding is needed to preserve value category */		\
+    {									\
       return OP std::forward<Arg>(s);					\
     }									\
-  };  									\
+  };									\
   									\
   /*! Catch the OP operator */						\
   template <DerivedFromNode E>						\
