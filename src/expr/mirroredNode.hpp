@@ -93,6 +93,7 @@ namespace nissa
     }
     
     /// Returns a reference
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     auto getRef()
     {
       using Res=MirroredNode<Comps,decltype(hostVal.getRef())>;
@@ -107,6 +108,7 @@ namespace nissa
     }
     
     /// Returns a const reference
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     auto getRef() const
     {
       using Res=MirroredNode<Comps,decltype(hostVal.getRef())>;
@@ -188,6 +190,7 @@ namespace nissa
     }
     
     /// Create from H and D
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     MirroredNode(const H& h
 #ifdef USE_CUDA
 		 ,const D& d
@@ -202,7 +205,7 @@ namespace nissa
     
     /// Forbids copy constructor for cleaness
     MirroredNode(const MirroredNode&)
-    requires(storeByRef)
+      requires(storeByRef)
     =delete;
     
     /// Allow in the case data is ref
