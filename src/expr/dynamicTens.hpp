@@ -427,6 +427,7 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
   
 #define PROVIDE_GET_REF(ATTRIB)						\
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
     auto getRef() ATTRIB						\
     {									\
       DynamicTens<Comps,ATTRIB Fund,MT,true> res;			\

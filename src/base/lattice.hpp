@@ -158,7 +158,7 @@ namespace nissa
       getVersor<bool>;
     
     /// List of perpendicular directions
-    static constexpr StackTens<CompsList<Dir>,StackTens<CompsList<Dir>,bool>> perDirs=
+    static constexpr StackTens<CompsList<Dir>,StackTens<CompsList<Dir>,bool>> perpDirs=
       hCubeDiag-versors;
   };
   
