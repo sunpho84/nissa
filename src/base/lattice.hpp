@@ -92,12 +92,12 @@ namespace nissa
       constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
       auto operator()(const LocLxSite& site) const
       {
-	bool cancel=true;
+	bool isSpatOrigin=true;
 	
 	for(Dir nu=1;nu<nDim;nu++)
-	  cancel&=(lat.glbCoordsOfLocLx(site,nu)==0);
+	  isSpatOrigin&=(lat.glbCoordsOfLocLx(site,nu)==0);
 	
-	return not cancel;
+	return isSpatOrigin;
       }
     };
     
