@@ -23,11 +23,11 @@ namespace nissa
       static constexpr bool storeByRef=
 	std::is_lvalue_reference_v<ACTUAL_TYPE> and E::storeByRef;
       
-      static constexpr bool needsToBeMoveConstructed=
-	std::is_rvalue_reference_v<ACTUAL_TYPE>;
+      // static constexpr bool needsToBeMoveConstructed=
+      // 	std::is_rvalue_reference_v<ACTUAL_TYPE>;
       
-      static constexpr bool isVal=
-	not std::is_reference_v<ACTUAL_TYPE>;
+      // static constexpr bool isVal=
+      // 	not std::is_reference_v<ACTUAL_TYPE>;
       
       static constexpr bool canBeMoveConstructed=
 	std::is_move_constructible_v<E>;
@@ -38,10 +38,10 @@ namespace nissa
       static constexpr bool passedAsConst=
 	std::is_const_v<std::remove_reference_t<ACTUAL_TYPE>>;
       
-      static_assert(canBeMoveConstructed or not needsToBeMoveConstructed,"Would need to move-construct, but the move constructor is not available");
+      static_assert(storeByRef or (canBeMoveConstructed or canBeMoveConstructed),"Would need to move-construct, but the move constructor is not available");
       
-      static_assert(canBeCopyConstructed or not isVal,
-		    "Would need to copy-construct, but the copy constructor is not available or the inner object must be stored by ref");
+      // static_assert(canBeCopyConstructed or not isVal,
+      // 		    "Would need to copy-construct, but the copy constructor is not available or the inner object must be stored by ref");
       
       using type=
 	RefIf<storeByRef
