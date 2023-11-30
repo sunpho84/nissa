@@ -146,13 +146,9 @@ namespace nissa
     /// Assign from another expression
     template <typename OP=DirectAssign,
 	      typename O>
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION
     void assign(O&& oth)
     {
-      if constexpr(compilingForDevice)
-	assert(compilingForDevice);
-      else
-	{
 #define LOOP(LOOP_TYPE)							\
       LOOP_TYPE(0,this->nSites(),					\
 		CAPTURE(self=this->getWritable(),			\
@@ -180,7 +176,6 @@ namespace nissa
 	  crash("unkwnown condition");
       
 #undef LOOP
-	}
     }
     
     /// Copy assign
