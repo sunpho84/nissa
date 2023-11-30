@@ -228,10 +228,10 @@ namespace nissa
     struct _ ## NAMED_OP ## Functor					\
     {									\
       template <typename...Args>					\
-      constexpr INLINE_FUNCTION						\
-      static auto CUDA_HOST_AND_DEVICE compute(Args&&...s)		\
+      constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+      static auto compute(Args&&...s)					\
       {									\
-	return (std::forward<Args>(s) OP ...);				\
+	return ((std::forward<Args>(s)) OP ...);			\
       }									\
     };									\
   }									\
