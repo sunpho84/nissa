@@ -149,59 +149,9 @@ namespace GammaBasis
   constexpr std::array<Gamma,16> basis{X*X,X,Y,Z,T,G5,G5*X,G5*Y,G5*Z,G5*T,T*X,T*Y,T*Z,Y*Z,Z*X,X*Y};
 }
 
-template <bool IsRef=false>
-struct Lattice
-{
-  GlbLxSite glbVol;
-  
-  LocLxSite locVol;
-  
-  MirroredTens<OfComps<LocLxSite>,GlbLxSite,IsRef> glbLxOfLocLx;
-  
-  Lattice<true> getRef()
-  {
-    return {glbVol,locVol,glbLxOfLocLx.getRef()};
-  }
-};
 
-Lattice lat;
-template <DerivedFromNode Out,
-	  DerivedFromNode In>
-void bareCycle(Out&& out,
-	   const In& in)
-{
-  /// Components different from those related to fft
-  using OthComps=
-    TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite>>;
-  
-  auto f=
-    []<DerivedFromNode B,
-       Dir D>(B& b,
-	      const std::integral_constant<Dir,D>&)
-    {
-      compsLoop<typename B::Comps>([&b]<DerivedFromComp...Dc>(const Dc&...dc)
-      {
-	if(b(dc...)<0)
-	  master_printf("bogus value %lg on %s\n",b(dc...),([]<DerivedFromComp Dci>(const Dci& c)
-	    {
-	      return "("+demangle(typeid(Dci).name())+"="+std::to_string(c())+") ";
-	    }(dc)+...).c_str());
-      },b.getDynamicSizes());
-      
-      master_printf("%s\n",demangle(typeid(B).name()).c_str());
-      
-      master_printf("Cycling on Dir %d\n",D());
-    };
-  
-  cycleOnAllLocalDirections<OthComps,CompsList<>>(std::forward<Out>(out),in,f,in.getDynamicSizes());
-}
 
-template <DerivedFromNode In>
-auto bareCycle(const In& in)
 {
-  In out;
-  
-  bareCycle(out,in);
   
   return out;
 }
