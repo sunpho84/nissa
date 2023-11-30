@@ -18,6 +18,7 @@ __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/old_field.cpp \
 	%D%/debug.cpp \
 	%D%/init.cpp \
+	%D%/lattice.cpp \
 	%D%/memory_manager.cpp \
 	%D%/multiGridParams.cpp \
 	%D%/random.cpp \

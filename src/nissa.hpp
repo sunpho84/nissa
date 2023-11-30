@@ -14,6 +14,7 @@
 #endif
 #include <base/old_field.hpp>
 #include <base/init.hpp>
+#include <base/lattice.hpp>
 #include <base/multiGridParams.hpp>
 #include <base/random.hpp>
 #include <base/sitmo.hpp>
