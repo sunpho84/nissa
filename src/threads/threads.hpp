@@ -115,7 +115,7 @@ namespace nissa
 		       const char* file,
 		       const IMin min,
 		       const IMax max,
-		       F f) // Needs to take by value
+		       F&& f)
   {
     const auto length=compDecay(max)-compDecay(min);
     const dim3 blockDimension(128); // to be improved
@@ -134,7 +134,7 @@ namespace nissa
     
     if(length>0)
       {
-	cudaGenericKernel<<<gridDimension,blockDimension>>>(min,max,f);
+	cudaGenericKernel<<<gridDimension,blockDimension>>>(min,max,std::forward<F>(f));
 	decript_cuda_error(cudaDeviceSynchronize(),"during kernel execution");
       }
     
