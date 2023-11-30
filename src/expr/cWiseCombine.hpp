@@ -229,16 +229,19 @@ namespace nissa
       Res(dc,std::forward<_E>(e)...);
   }
   
-#define CATCH_BINARY_OPERATOR(OP,NAMED_OP)					\
-  struct NAMED_OP							\
+#define CATCH_BINARY_OPERATOR(OP,NAMED_OP)				\
+  namespace impl							\
   {									\
-    template <typename...Args>						\
-    constexpr INLINE_FUNCTION						\
-    static auto CUDA_HOST_AND_DEVICE compute(Args&&...s)		\
+    struct _ ## NAMED_OP ## Functor					\
     {									\
-      return (std::forward<Args>(s) OP ...);				\
-    }									\
-  };									\
+      template <typename...Args>					\
+      constexpr INLINE_FUNCTION						\
+      static auto CUDA_HOST_AND_DEVICE compute(Args&&...s)		\
+      {									\
+	return (std::forward<Args>(s) OP ...);				\
+      }									\
+    };									\
+  }									\
   									\
   /*! Catch the OP operator */						\
   template <DerivedFromNode E1,						\
@@ -249,50 +252,53 @@ namespace nissa
   {									\
 									\
     return								\
-      cWiseCombine<NAMED_OP>(std::forward<E1>(e1),std::forward<E2>(e2)); \
+      cWiseCombine<impl::_ ## NAMED_OP ## Functor>(std::forward<E1>(e1), \
+						   std::forward<E2>(e2)); \
   }
   
-  CATCH_BINARY_OPERATOR(+,plus);
+  CATCH_BINARY_OPERATOR(+,Plus);
   
-  CATCH_BINARY_OPERATOR(-,minus);
+  CATCH_BINARY_OPERATOR(-,Minus);
   
-  CATCH_BINARY_OPERATOR(/,divide);
+  CATCH_BINARY_OPERATOR(/,Divide);
   
-  CATCH_BINARY_OPERATOR(%,modulo);
+  CATCH_BINARY_OPERATOR(%,Modulo);
   
-  CATCH_BINARY_OPERATOR(==,compare);
+  CATCH_BINARY_OPERATOR(==,Compare);
   
   CATCH_BINARY_OPERATOR(!=,differ);
   
-  CATCH_BINARY_OPERATOR(and,andOp);
+  CATCH_BINARY_OPERATOR(and,AndOp);
   
   CATCH_BINARY_OPERATOR(or,orOp);
   
-  CATCH_BINARY_OPERATOR(xor,xorOp);
+  CATCH_BINARY_OPERATOR(xor,XorOp);
   
 #undef CATCH_BINARY_OPERATOR
   
   /////////////////////////////////////////////////////////////////
   
 #define CATCH_UNARY_OPERATOR(OP,NAMED_OP)				\
-  struct NAMED_OP							\
+  namespace impl							\
   {									\
-    template <typename Arg>						\
-    constexpr INLINE_FUNCTION						\
-    static auto CUDA_HOST_AND_DEVICE compute(Arg&& s)			\
+    struct _ ## NAMED_OP ## Functor					\
     {									\
-      return OP std::forward<Arg>(s);					\
-    }									\
-  };									\
+      template <typename Arg>						\
+      constexpr INLINE_FUNCTION						\
+      static auto CUDA_HOST_AND_DEVICE compute(Arg&& s)			\
+      {									\
+	return OP std::forward<Arg>(s);					\
+      }									\
+    };									\
+  }									\
   									\
   /*! Catch the OP operator */						\
   template <DerivedFromNode E>						\
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
   auto operator OP(E&& e)						\
   {									\
-									\
     return								\
-      cWiseCombine<NAMED_OP>(std::forward<E>(e));			\
+      cWiseCombine<impl::_ ## NAMED_OP ## Functor>(std::forward<E>(e));	\
   }
   
   CATCH_UNARY_OPERATOR(+,uPlus);
