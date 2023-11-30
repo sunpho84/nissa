@@ -48,10 +48,18 @@ namespace nissa
   DECLARE_PARALLELIZABLE_COMP(LocEoSite,int64_t,locEoSite);
   DECLARE_PARALLELIZABLE_COMP(LocEvnSite,int64_t,locEvnSite);
   DECLARE_PARALLELIZABLE_COMP(LocOddSite,int64_t,locOddSite);
-
+  
   DECLARE_DYNAMIC_COMP(LocCoord);
   DECLARE_DYNAMIC_COMP(GlbCoord);
   DECLARE_PARALLELIZABLE_COMP(GlbLxSite,int64_t,glbLxSite);
+  
+  /// Global coordinates
+  using GlbCoords=
+    StackTens<CompsList<Dir>,GlbCoord>;
+  
+  /// Local coordinates
+  using LocCoords=
+    StackTens<CompsList<Dir>,LocCoord>;
   
   /// Specifies the order of components
   template <typename TP,
