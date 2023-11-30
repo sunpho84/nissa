@@ -162,7 +162,10 @@ namespace nissa
       hCubeDiag-versors;
   };
   
+  /// Stores the actual lattice
   EXTERN_LATTICE Lattice<>* _lat;
+  
+  /// Reference to the lattcice
   EXTERN_LATTICE std::unique_ptr<Lattice<true>> lat;
 }
 
