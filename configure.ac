@@ -253,20 +253,6 @@ then
 	AC_DEFINE([ENABLE_QUDA_BYPASS],1,[Enable quda bypass])
 fi
 
-#################### tmLQCD ####################
-
-#search for the library
-TMLQCD_LIBS="-lwrapper -lhmc -lmeas -lmonomial -loperator -lsolver -linit -llinalg -lhmc -lxchange -lrational -lio"
-OLD_LIBS=$LIBS
-LIBS="$TMLQCD_LIBS $LIBS"
-AX_SUBPACKAGE(tmLQCD,,tmLQCD,tmLQCD_invert_init,TMLQCD)
-LIBS=$OLD_LIBS
-
-if test "$enable_tmLQCD" == "yes"
-then
-	LIBS="$LIBS $TMLQCD_LIBS"
-fi
-
 #################### DDalphaAMG ####################
 
 AX_SUBPACKAGE(DDalphaAMG,DDalphaAMG.h,DDalphaAMG,DDalphaAMG_get_communicator,DDALPHAAMG)

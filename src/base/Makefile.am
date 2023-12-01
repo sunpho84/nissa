@@ -37,13 +37,6 @@ include_HEADERS+= \
 	%D%/random.hpp \
 	%D%/vectors.hpp
 
-if USE_TMLQCD
-__top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/tmLQCD_bridge.cpp
-include_HEADERS+= \
-	%D%/tmLQCD_bridge.hpp
-endif
-
 if USE_DDALPHAAMG
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/DDalphaAMG_bridge.cpp
