@@ -18,13 +18,6 @@ namespace nissa
   {
     master_printf("Closing nissa\n");
     
-    //unset remappers
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	if(remap_lx_to_locd[mu]) delete remap_lx_to_locd[mu];
-	if(remap_locd_to_lx[mu]) delete remap_locd_to_lx[mu];
-      }
-    
 #ifdef USE_QUDA
     if(use_quda) quda_iface::finalize();
 #endif

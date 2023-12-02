@@ -9,7 +9,6 @@
 #include <base/old_field.hpp>
 #include <base/random.hpp>
 #include <base/vectors.hpp>
-#include <communicate/borders.hpp>
 #include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <linalgs/linalgs.hpp>

@@ -27,10 +27,7 @@
 #include "base/random.hpp"
 #include "base/vectors.hpp"
 
-#include "communicate/borders.hpp"
 #include "communicate/communicate.hpp"
-
-#include "eigenvalues/eigenvalues.hpp"
 
 #include "io/input.hpp"
 #include "io/endianness.hpp"

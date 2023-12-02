@@ -6,7 +6,5 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 
 include_HEADERS+= \
 	%D%/all_to_all.hpp \
-	%D%/borders.hpp \
-	%D%/communicate.hpp \
-	%D%/edges.hpp
+	%D%/communicate.hpp
 

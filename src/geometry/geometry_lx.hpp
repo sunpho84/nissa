@@ -114,9 +114,6 @@ namespace nissa
 #endif
     ;
   
-  CUDA_HOST_AND_DEVICE coords_t get_stagphase_of_lx(const int& ivol);
-  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(const int& ivol,const int& mu);
-  
   int bordlx_of_coord(const coords_t& x,const int& mu);
   int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
   coords_t coord_of_lx(int ilx,const coords_t s);
@@ -184,8 +181,6 @@ namespace nissa
     return get_loclx_and_rank_of_coord(glb_coord_of_glblx(gx));
   }
   
-  void initialize_lx_edge_receivers_of_kind(MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
-  void initialize_lx_edge_senders_of_kind(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *base);
   coords_t rank_coord_of_site_of_coord(const coords_t& glb_coord);
   void set_lx_edge_senders_and_receivers(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
   void set_lx_geometry();

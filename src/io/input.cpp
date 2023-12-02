@@ -23,7 +23,6 @@
 #include "base/multiGridParams.hpp"
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
-#include "eigenvalues/eigenvalues.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "io/ILDG_File.hpp"

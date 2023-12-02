@@ -2,7 +2,6 @@
 #define _PLAQUETTE_HPP
 
 #include "base/old_field.hpp"
-#include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "linalgs/reduce.hpp"
 #include "new_types/su3_op.hpp"

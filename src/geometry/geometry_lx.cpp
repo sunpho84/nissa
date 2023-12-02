@@ -13,9 +13,6 @@
 #include <communicate/communicate.hpp>
 #include <new_types/su3.hpp>
 #include <operations/remap_vector.hpp>
-#include <operations/su3_paths/gauge_sweeper.hpp>
-#include <routines/ios.hpp>
-#include <routines/mpi_routines.hpp>
 #include <threads/threads.hpp>
 
 namespace nissa
@@ -534,22 +531,6 @@ namespace nissa
     recv_buf_size=std::max(recv_buf_size,bord_vol*sizeof(su3spinspin));
     send_buf_size=std::max(send_buf_size,bord_vol*sizeof(su3spinspin));
     
-    //create the sweepers but do not fully initialize
-    Wilson_sweeper=new gauge_sweeper_t;
-    Symanzik_sweeper=new gauge_sweeper_t;
-    
-    //set locd geom (one of the dimension local and fastest running, the other as usual)
-    max_locd_size=0;
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	remap_lx_to_locd[mu]=remap_locd_to_lx[mu]=NULL;
-	max_locd_perp_size_per_dir[mu]=(glbVol/glbSizes[mu]+nranks-1)/nranks;
-	locd_perp_size_per_dir[mu]=(int)std::min((int64_t)max_locd_perp_size_per_dir[mu],glbVol/glbSizes[mu]-max_locd_perp_size_per_dir[mu]*rank);
-	verbosity_lv3_master_printf("rank %d locd_perp_size_per_dir[%d]: %d\n",rank,mu,locd_perp_size_per_dir[mu]);
-	locd_size_per_dir[mu]=locd_perp_size_per_dir[mu]*glbSizes[mu];
-	max_locd_size=std::max(max_locd_size,locd_size_per_dir[mu]);
-      }
-    
     master_printf("Cartesian geometry intialized\n");
   }
   
@@ -599,148 +580,5 @@ namespace nissa
     nissa_free(loclxOfFwSurflx);
     nissa_free(loclxOfNonBwSurflx);
     nissa_free(loclxOfBwSurflx);
-    
-    delete Wilson_sweeper;
-    delete Symanzik_sweeper;
-  }
-  
-  //definitions of lexical ordered senders for edges
-  void initialize_lx_edge_senders_of_kind(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *base)
-  {
-    //Various type useful for edges and sub-borders
-    MPI_Datatype MPI_3_SLICE;
-    MPI_Type_contiguous(locSize[3],*base,&MPI_3_SLICE);
-    
-    ///////////define the sender for the 6 kinds of edges////////////
-    //the 01 sender, that is simply a vector of L[2] vector of L[3] 
-    MPI_Type_contiguous(locSize[2]*locSize[3],*base,&(MPI_EDGE_SEND[0]));
-    //the 02 sender is a vector of L[1] segment of length L[3] (already defined) separated by L[2] of them
-    MPI_Type_vector(locSize[1],1,locSize[2],MPI_3_SLICE,&(MPI_EDGE_SEND[1]));
-    //the 03 sender is a vector of length L[1]xL[2] of single elements, separated by L[3] of them
-    MPI_Type_vector(locSize[1]*locSize[2],1,locSize[3],*base,&(MPI_EDGE_SEND[2]));
-    //the 12 sender should be equal to the 02 sender, with 1->0
-    MPI_Type_vector(locSize[0],1,locSize[2],MPI_3_SLICE,&(MPI_EDGE_SEND[3]));
-    //the 13 sender should be equal to the 03 sender, with 1->0
-    MPI_Type_vector(locSize[0]*locSize[2],1,locSize[3],*base,&(MPI_EDGE_SEND[4]));
-    //the 23 sender should be equal to the 03 sender with 1<->2
-    MPI_Type_vector(locSize[0]*locSize[1],1,locSize[3],*base,&(MPI_EDGE_SEND[5]));
-    //Commit
-    for(int iedge=0;iedge<6;iedge++) MPI_Type_commit(&(MPI_EDGE_SEND[iedge]));
-  }
-  
-  //definitions of lexical ordered receivers for edges
-  void initialize_lx_edge_receivers_of_kind(MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base)
-  {
-    //define the NDIM*(NDIM-1)/2 edges receivers, which are contiguous in memory
-    int iedge=0;
-    for(int mu=0;mu<NDIM;mu++)
-      for(int nu=mu+1;nu<NDIM;nu++)
-	{
-	  MPI_Type_contiguous(locVol/locSize[mu]/locSize[nu],*base,&(MPI_EDGE_RECE[iedge]));
-	  MPI_Type_commit(&(MPI_EDGE_RECE[iedge]));
-	  iedge++;
-	}
-  }
-  
-  //initalize senders and receivers for edges of lexically ordered vectors
-  void set_lx_edge_senders_and_receivers(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base)
-  {
-    initialize_lx_edge_senders_of_kind(MPI_EDGE_SEND,base);
-    initialize_lx_edge_receivers_of_kind(MPI_EDGE_RECE,base);
-  }
-  
-  //define all the local lattice momenta
-  void define_local_momenta(momentum_t* k,double *k2,momentum_t* ktilde,double *ktilde2,const momentum_t& bc)
-  {
-    if(!lxGeomInited) set_lx_geometry();
-    
-    //first of all, defines the local momenta for the various directions
-    NISSA_LOC_VOL_LOOP(imom)
-    {
-      k2[imom]=ktilde2[imom]=0;
-      for(int mu=0;mu<NDIM;mu++)
-	{
-	  k[imom][mu]=M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu])/glbSizes[mu];
-	  ktilde[imom][mu]=sin(k[imom][mu]);
-	  
-	  k2[imom]+=k[imom][mu]*k[imom][mu];
-	  ktilde2[imom]+=ktilde[imom][mu]*ktilde[imom][mu];
-	}
-    }
-  }
-  
-  //return the staggered phases for a given site
-  CUDA_HOST_AND_DEVICE coords_t get_stagphase_of_lx(const int& ivol)
-  {
-    coords_t ph;
-    
-    ph[0]=1;
-    for(int mu=1;mu<NDIM;mu++)
-      ph[mu]=ph[mu-1]*(1-2*(glbCoordOfLoclx[ivol][mu-1]%2));
-    
-    return ph;
-  }
-  
-  //return the staggered phases for a given site
-  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(const int& ivol,const int& mu)
-  {
-    int ph=1;
-    
-    for(int nu=1;nu<=mu;nu++)
-      ph*=(1-2*(glbCoordOfLoclx[ivol][nu-1]%2));
-    
-    return ph;
-  }
-  
-  //check that passed argument is between 0 and 15
-  inline void crash_if_not_hypercubic_red(const int& hyp_red)
-  {
-    if(hyp_red<0 or hyp_red>=16)
-      crash("%d not a hyperucbic reduced point",hyp_red);
-  }
-  
-  //return the coordinates inside the hypercube
-  coords_t red_coords_of_hypercubic_red_point(int hyp_red)
-  {
-    coords_t h;
-    
-    crash_if_not_hypercubic_red(hyp_red);
-    
-    for(int mu=NDIM-1;mu>=0;mu--)
-      {
-	h[mu]=hyp_red%2;
-	hyp_red/=2;
-      }
-    
-    return h;
-  }
-  
-  //takes the NDIM coordinates of the hypercube vertex one by one
-  coords_t lx_coords_of_hypercube_vertex(int hyp_cube)
-  {
-    coords_t lx;
-    
-    for(int mu=NDIM-1;mu>=0;mu--)
-      {
-	lx[mu]=2*(hyp_cube%(locSize[mu]/2));
-	hyp_cube/=locSize[mu]/2;
-      }
-    
-    return lx;
-  }
-  
-  //return the point of passed coords in the hypercube
-  int hypercubic_red_point_of_red_coords(const coords_t& h)
-  {
-    int hyp=0;
-    
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	if(h[mu]<0||h[mu]>=2) crash("coordinate %d not in the range [0,1]",h[mu]);
-	hyp*=2;
-	hyp+=h[mu];
-      }
-    
-    return hyp;
   }
 }

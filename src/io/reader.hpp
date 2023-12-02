@@ -6,9 +6,9 @@
 #endif
 
 #include "geometry/geometry_mix.hpp"
+#include "operations/gaugeconf.hpp"
 #include "ILDG_File.hpp"
 #include "new_types/su3.hpp"
-#include "operations/gaugeconf.hpp"
 
 namespace nissa
 {
@@ -138,7 +138,7 @@ namespace nissa
     unitarity_check_result_t unitarity_check_result;
     unitarity_check_lx_conf(unitarity_check_result,conf);
     
-    verbosity_lv1_master_printf("Plaquette of read conf: %16.16lg\n",global_plaquette_lx_conf(conf));
+    crash("");//verbosity_lv1_master_printf("Plaquette of read conf: %16.16lg\n",global_plaquette_lx_conf(conf));
     verbosity_lv1_master_printf("Deviation from unitarity: %lg average, %lg max\n",unitarity_check_result.average_diff,unitarity_check_result.max_diff);
   }
   
@@ -151,8 +151,8 @@ namespace nissa
     LxField<quad_su3> lx_conf("temp_conf");
     read_ildg_gauge_conf(lx_conf,path,mess);
     split_lx_vector_into_eo_parts(eo_conf,lx_conf);
-    
-    verbosity_lv3_master_printf("Plaquette after e/o reordering: %16.16lg\n",global_plaquette_eo_conf(eo_conf));
+    crash("");
+    //verbosity_lv3_master_printf("Plaquette after e/o reordering: %16.16lg\n",global_plaquette_eo_conf(eo_conf));
   }
 }
 

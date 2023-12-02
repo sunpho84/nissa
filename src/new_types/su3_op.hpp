@@ -17,21 +17,21 @@
 #include "complex.hpp"
 #include "su3.hpp"
 
-#ifdef USE_EIGEN
- #include <Eigen/Dense>
- #include <Eigen/Eigenvalues>
+// #ifdef USE_EIGEN
+//  #include <Eigen/Dense>
+//  #include <Eigen/Eigenvalues>
  
- using namespace Eigen;
+//  using namespace Eigen;
 
- typedef std::complex<double> scomplex_t;
- typedef scomplex_t emw_t[NCOL*NCOL];
- typedef Matrix<scomplex_t,NCOL,NCOL,RowMajor> esu3_t;
- typedef Map<esu3_t> mesu3_t;
+//  typedef std::complex<double> scomplex_t;
+//  typedef scomplex_t emw_t[NCOL*NCOL];
+//  typedef Matrix<scomplex_t,NCOL,NCOL,RowMajor> esu3_t;
+//  typedef Map<esu3_t> mesu3_t;
 
-#define SU3_ECAST(A) (mesu3_t(*(emw_t*)(A)))
-#define CCAST(A) (*(scomplex_t*)(A))
+// #define SU3_ECAST(A) (mesu3_t(*(emw_t*)(A)))
+// #define CCAST(A) (*(scomplex_t*)(A))
 
-#endif
+// #endif
 
 namespace nissa
 {

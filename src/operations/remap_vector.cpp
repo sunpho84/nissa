@@ -61,20 +61,4 @@ namespace nissa
       return get_loclx_and_rank_of_coord(c);
     };
   }
-  
-  //remap to locd
-  void remap_lx_vector_to_locd(void *out,void *in,int nbytes,int mu)
-  {
-    if(remap_lx_to_locd[mu]==NULL)
-      remap_lx_to_locd[mu]=
-	new vector_remap_t(locVol,get_index_make_loc_dir(mu,max_locd_perp_size_per_dir[mu]));
-    remap_lx_to_locd[mu]->remap(out,in,nbytes);
-  }
-  
-  void remap_locd_vector_to_lx(void *out,void *in,int nbytes,int mu)
-  {
-    if(remap_locd_to_lx[mu]==NULL)
-      remap_locd_to_lx[mu]=new vector_remap_t(locd_size_per_dir[mu],get_index_unmake_loc_dir(mu,max_locd_perp_size_per_dir[mu]));
-    remap_locd_to_lx[mu]->remap(out,in,nbytes);
-  }
 }

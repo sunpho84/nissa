@@ -45,15 +45,6 @@ namespace nissa
       remap(out,in,sizeof(T));
     }
   };
-  
-  //local direction geometry
-  EXTERN_REMAP vector_remap_t *remap_lx_to_locd[NDIM];
-  EXTERN_REMAP vector_remap_t *remap_locd_to_lx[NDIM];
-  EXTERN_REMAP int max_locd_perp_size_per_dir[NDIM],locd_perp_size_per_dir[NDIM];
-  EXTERN_REMAP int max_locd_size,locd_size_per_dir[NDIM];
-  
-  void remap_lx_vector_to_locd(void *out,void *in,int nbytes,int mu);
-  void remap_locd_vector_to_lx(void *out,void *in,int nbytes,int mu);
 }
 
 #endif

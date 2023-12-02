@@ -5,22 +5,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/gauge_fixing.cpp \
 	%D%/localizer.cpp \
 	%D%/remap_vector.cpp \
-	%D%/su3_paths/gauge_sweeper.cpp \
 	%D%/vector_gather.cpp
-
-# %D%/source.cpp \
-# %D%/covariant_derivative.cpp \
-# %D%/gaugeconf.cpp \
-# %D%/smearing/hex.cpp \
-# %D%/smearing/HYP.cpp \
-# %D%/smearing/smooth.cpp \
-# %D%/smearing/stout_common.cpp \
-# %D%/smearing/stout_eo.cpp \
-# %D%/smearing/stout_lx.cpp \
-# %D%/smearing/Wflow.cpp \
-# %D%/su3_paths/arbitrary.cpp \
-# %D%/su3_paths/clover_term.cpp \
-# %D%/su3_paths/rectangles.cpp
 
 include_HEADERS+= \
 	%D%/covariant_derivative.hpp \

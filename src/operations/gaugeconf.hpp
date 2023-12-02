@@ -4,8 +4,6 @@
 #include <sstream>
 
 #include "base/random.hpp"
-#include "operations/su3_paths/gauge_sweeper.hpp"
-#include "operations/smearing/smooth.hpp"
 
 namespace nissa
 {
@@ -23,108 +21,6 @@ namespace nissa
     double max_diff;
     
     unitarity_check_result_t () : nbroken_links(0),average_diff(0.0),max_diff(0.0) {}
-  };
-  
-  //parameters to compute gauge observabls
-  struct gauge_obs_meas_pars_t
-  {
-    int each;
-    
-    int after;
-    
-    std::string path;
-    
-    int meas_plaq;
-    
-    int meas_energy;
-    
-    int meas_poly;
-    
-    int use_smooth;
-    
-    smooth_pars_t smooth_pars;
-    
-    int def_each() const
-    {
-      return 1;
-    }
-    
-    int def_after() const
-    {
-      return 0;
-    }
-    
-    std::string def_path() const
-    {
-      return "gauge_obs";
-    }
-    
-    int def_meas_plaq() const
-    {
-      return 1;
-    }
-    
-    int def_meas_energy() const
-    {
-      return 0;
-    }
-    
-    int def_meas_poly() const
-    {
-      return 1;
-    }
-    
-    int def_use_smooth() const
-    {
-      return 0;
-    }
-    
-    int master_fprintf(FILE *fout,
-		       const bool& full) const
-    {
-      return nissa::master_fprintf(fout,"%s",get_str().c_str());
-    }
-    
-    std::string get_str(const bool& full=false) const
-    {
-      std::ostringstream os;
-      
-      os<<"MeasPlaqPol\n";
-      if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
-      if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
-      if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
-      if(meas_plaq!=def_meas_plaq() or full) os<<" MeasPlaq\t\t=\t"<<meas_plaq<<"\n";
-      if(meas_energy!=def_meas_energy() or full) os<<" MeasEnergy\t\t=\t"<<meas_energy<<"\n";
-      if(meas_poly!=def_meas_poly() or full) os<<" MeasPoly\t\t=\t"<<meas_poly<<"\n";
-      if(use_smooth!=def_use_smooth() or full) os<<" UseSmooth\t\t=\t"<<use_smooth<<"\n";
-      os<<smooth_pars.get_str(full);
-      
-      return os.str();
-    }
-    
-    int is_nonstandard() const
-    {
-      return
-	each!=def_each() or
-	after!=def_after() or
-	path!=def_path() or
-	meas_plaq!=def_meas_plaq() or
-	meas_energy!=def_meas_energy() or
-	meas_poly!=def_meas_poly() or
-	use_smooth!=def_use_smooth() or
-	smooth_pars.is_nonstandard();
-    }
-    
-    gauge_obs_meas_pars_t() :
-      each(def_each()),
-      after(def_after()),
-      path(def_path()),
-      meas_plaq(def_meas_plaq()),
-      meas_energy(def_meas_energy()),
-      meas_poly(def_meas_poly()),
-      use_smooth(def_use_smooth())
-    {
-    }
   };
   
   /////////////////////////////////////////////////////////////
@@ -153,7 +49,6 @@ namespace nissa
 				 const int& putonbords=false,
 				 const int& putonedges=false);
   
-  void cool_lx_conf(quad_su3 *conf,gauge_sweeper_t *sweeper);
   void generate_cold_eo_conf(OldEoField<quad_su3>& conf);
   void generate_hot_eo_conf(OldEoField<quad_su3>& conf);
   
@@ -181,11 +76,7 @@ namespace nissa
     
     set_borders_invalid(conf);
   }
-  
-  void heatbath_lx_conf(LxField<quad_su3>& conf,gauge_sweeper_t* sweeper,const double& beta,const int& nhits);
-  
-  void overrelax_lx_conf(LxField<quad_su3>& conf,gauge_sweeper_t* sweeper,int nhits);
-  
+    
   /// Perform a unitarity check on a lx conf
   template <typename C>
   void unitarity_check_lx_conf(unitarity_check_result_t &result,const C& conf)

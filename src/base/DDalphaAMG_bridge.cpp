@@ -7,7 +7,6 @@
 
 #include "base/debug.hpp"
 #include "base/export_conf_to_external_solver.hpp"
-#include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "io/checksum.hpp"
 #include "io/input.hpp"
