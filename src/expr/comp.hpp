@@ -210,7 +210,7 @@ namespace nissa
   
   /// Returns the underlying type if comp
   template <typename T>
-  decltype(auto) compDecay(T&& t)
+  decltype(auto) compDecay(const T& t)
   {
     if constexpr(isComp<T>)
       return t();
