@@ -15,7 +15,6 @@
 #include <linalgs/linalgs.hpp>
 #include <linalgs/reduce.hpp>
 #include <new_types/complex.hpp>
-#include <new_types/float_128.hpp>
 #include <routines/ios.hpp>
 #include <threads/threads.hpp>
 
@@ -39,14 +38,6 @@ namespace nissa
     
     return diff;
   }
-  
-  //summ two float_128
-  void MPI_FLOAT_128_SUM_routine(void *in,void *out,int *len,MPI_Datatype *type)
-  {for(int i=0;i<(*len);i++) float_128_summassign(((float_128*)out)[i],((float_128*)in)[i]);}
-  
-  //summ two complex_128
-  void MPI_COMPLEX_128_SUM_routine(void *in,void *out,int *len,MPI_Datatype *type)
-  {for(int i=0;i<(*len);i++) complex_128_summassign(((complex_128*)out)[i],((complex_128*)in)[i]);}
   
   //init mpi
   void init_MPI_thread(int narg,char **arg)

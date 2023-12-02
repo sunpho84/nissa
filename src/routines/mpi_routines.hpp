@@ -13,7 +13,6 @@
 #include "geometry/geometry_lx.hpp"
 #include "math_routines.hpp"
 #include "metaprogramming/concepts.hpp"
-#include "new_types/float_128.hpp"
 
 #ifndef EXTERN_MPI
 # define EXTERN_MPI extern

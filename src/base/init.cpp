@@ -205,7 +205,6 @@ namespace nissa
     //set default value for parameters
     perform_benchmark=NISSA_DEFAULT_PERFORM_BENCHMARK;
     verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
-    use_128_bit_precision=NISSA_DEFAULT_USE_128_BIT_PRECISION;
     use_eo_geom=NISSA_DEFAULT_USE_EO_GEOM;
     warn_if_not_disallocated=NISSA_DEFAULT_WARN_IF_NOT_DISALLOCATED;
     use_async_communications=NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS;
@@ -225,9 +224,6 @@ namespace nissa
     
 #ifdef USE_PARPACK
     master_printf("Linked with Parpack\n");
-#endif
-    
-#ifdef USE_PARPACK
     use_parpack=NISSA_DEFAULT_USE_PARPACK;
 #endif
     

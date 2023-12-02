@@ -16,10 +16,6 @@
 #include <base/init.hpp>
 #include <base/lattice.hpp>
 #include <base/multiGridParams.hpp>
-#include <base/sitmo.hpp>
-#ifdef USE_TMLQCD
-# include <base/tmLQCD_bridge.hpp>
-#endif
 #ifdef USE_DDALPHAAMG
 # include <base/DDalphaAMG_bridge.hpp>
 #endif
@@ -84,9 +80,7 @@
 
 #include <new_types/complex.hpp>
 #include <new_types/dirac.hpp>
-#include <new_types/float_128.hpp>
 #include <new_types/float128class.hpp>
-#include <new_types/metadynamics.hpp>
 #include <new_types/rng.hpp>
 #include <new_types/spin.hpp>
 #include <new_types/su3.hpp>

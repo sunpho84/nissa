@@ -4,7 +4,6 @@
 #include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/dirac.hpp"
-#include "new_types/float_128.hpp"
 #include "new_types/su3_op.hpp"
 #include "threads/threads.hpp"
 

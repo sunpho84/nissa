@@ -11,6 +11,7 @@
 #include "base/debug.hpp"
 #include "base/randomDevice.hpp"
 #include "new_types/complex.hpp"
+#include "new_types/dirac.hpp"
 #include "routines/mpi_routines.hpp"
 
 #ifdef USE_OPENMP

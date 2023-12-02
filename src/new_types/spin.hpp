@@ -1,8 +1,8 @@
 #ifndef _SPIN_HPP
 #define _SPIN_HPP
 
-#include <string.h>
-#include <stdio.h>
+#include <cstring>
+#include <cstdio>
 
 #include "complex.hpp"
 #include "dirac.hpp"
@@ -358,9 +358,9 @@ namespace nissa
   {
     spinspin c;
     unsafe_spinspin_prod_spinspin_dag(c,a,b);
-    memcpy(out,c,sizeof(spinspin));
+    ::memcpy(out,c,sizeof(spinspin));
   }
-
+  
   template <typename A,
 	    typename B,
 	    typename C>
