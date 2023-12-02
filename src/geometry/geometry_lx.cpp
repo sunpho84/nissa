@@ -11,8 +11,6 @@
 #include <base/debug.hpp>
 #include <base/vectors.hpp>
 #include <communicate/communicate.hpp>
-#include <new_types/su3.hpp>
-#include <operations/remap_vector.hpp>
 #include <threads/threads.hpp>
 
 namespace nissa
@@ -527,9 +525,9 @@ namespace nissa
     //find bulk sites
     find_bulk_sites();
     
-    //allocate a buffer large enough to allow communications of su3spinspin lx border
-    recv_buf_size=std::max(recv_buf_size,bord_vol*sizeof(su3spinspin));
-    send_buf_size=std::max(send_buf_size,bord_vol*sizeof(su3spinspin));
+    //allocate a buffer large enough to allow communications of 72 doubles
+    recv_buf_size=std::max(recv_buf_size,bord_vol*sizeof(double)*72);
+    send_buf_size=std::max(send_buf_size,bord_vol*sizeof(double)*72);
     
     master_printf("Cartesian geometry intialized\n");
   }

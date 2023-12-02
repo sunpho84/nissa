@@ -12,7 +12,6 @@
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "operations/remap_vector.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
@@ -340,10 +339,11 @@ namespace nissa
     //place at the end of the record, including padding
     ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
     
+    crash("");
     //reorder data to the appropriate place
-    vector_remap_t *rem=new vector_remap_t(locVol,index_from_ILDG_remapping);
-    rem->remap(data,buf,header.data_length/glbVol);
-    delete rem;
+    // vector_remap_t *rem=new vector_remap_t(locVol,index_from_ILDG_remapping);
+    // rem->remap(data,buf,header.data_length/glbVol);
+    // delete rem;
     
     nissa_free(buf);
     

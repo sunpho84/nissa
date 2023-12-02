@@ -50,11 +50,6 @@ namespace nissa
   void signal_handler(int);
   double take_time();
   
-  void testLxHaloExchange();
-  void testEoHaloExchange();
-  void testLxEdgesExchange();
-  void testEoEdgesExchange();
-  
   /// Demangle a string
   ///
   /// If the compiler has no abi functionality, the original string is

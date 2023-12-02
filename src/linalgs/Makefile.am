@@ -1,9 +1,6 @@
 ########################################### linalgs ##################################
 
-# __top_builddir__lib_libnissa_a_SOURCES+= \
-# 	%D%/linalgs.cpp \
-# 	%D%/reduce.cpp
+ __top_builddir__lib_libnissa_a_SOURCES+=
 
 include_HEADERS+= \
-	%D%/linalgs.hpp \
 	%D%/reduce.hpp

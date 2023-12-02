@@ -7,7 +7,7 @@
 
 /// \file expr/field.hpp
 
-#include <base/old_field.hpp>
+#include <communicate/communicate.hpp>
 #include <expr/assignDispatcher.hpp>
 #include <expr/comps.hpp>
 #include <expr/dynamicTens.hpp>
@@ -21,6 +21,130 @@
 
 namespace nissa
 {
+  /// Number of sites contained in the field
+  template <FieldCoverage fieldCoverage>
+  struct FieldSizes
+  {
+    /// Assert that the coverage is definite
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    static void assertHasDefinedCoverage()
+    {
+      static_assert(fieldCoverage==FULL_SPACE or
+		    fieldCoverage==EVEN_SITES or
+		    fieldCoverage==ODD_SITES,
+		    "Trying to probe some feature of a field with unknwon coverage. If you are accessing an EvnOrOddField subfield, do it without subscribing them, or cast to the specific subspace");
+    }
+    
+    /// Number of sites covered by the field
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    static constexpr int& nSites()
+    {
+      if constexpr(fieldCoverage==FULL_SPACE)
+	return locVol;
+      else
+	return locVolh;
+    }
+    
+    /// Number of sites in the halo of the field (not necessarily allocated)
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    static constexpr int& nHaloSites()
+    {
+      if constexpr(fieldCoverage==FULL_SPACE)
+	return bord_vol;
+      else
+	return bord_volh;
+    }
+    
+    /// Number of sites in the edges of the field (not necessarily allocated)
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    static constexpr int& nEdgesSites()
+    {
+      if constexpr(fieldCoverage==FULL_SPACE)
+	return edge_vol;
+      else
+	return edge_volh;
+    }
+    
+    /// Computes the size to allocate
+    static int nSitesToAllocate(const HaloEdgesPresence& haloEdgesPresence)
+    {
+      int res=locVol;
+      
+      if(haloEdgesPresence>=WITH_HALO)
+	res+=nHaloSites();
+      
+      if(haloEdgesPresence>=WITH_HALO_EDGES)
+	res+=nEdgesSites();
+      
+      return res;
+    }
+    
+    /// Surface site of a site in the halo
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    static auto surfSiteOfHaloSite(const int& iHalo)
+    {
+      assertHasDefinedCoverage();
+      
+      if constexpr(fieldCoverage==FULL_SPACE)
+	return surflxOfBordlx[iHalo];
+      else
+	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
+	  return surfeo_of_bordeo[fieldCoverage][iHalo];
+    }
+    
+    /// Surface site of a site in the e
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    static auto surfSiteOfEdgeSite(const int& iEdge)
+    {
+      assertHasDefinedCoverage();
+      
+      if constexpr(fieldCoverage==FULL_SPACE)
+	return surflxOfEdgelx[iEdge];
+      else
+	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
+	  return surfeo_of_edgeo[fieldCoverage][iEdge];
+    }
+    
+#define PROVIDE_NEIGH(UD)						\
+									\
+    /* Neighbor in the UD orientation */				\
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION				\
+    static auto locNeigh ## UD(const int& site,				\
+			       const int& mu)				\
+    {									\
+      assertHasDefinedCoverage();					\
+      									\
+      if constexpr(fieldCoverage==FULL_SPACE)				\
+	return loclxNeigh ## UD[site][mu];				\
+      else								\
+	if constexpr(fieldCoverage==EVEN_SITES or			\
+		     fieldCoverage==ODD_SITES)				\
+	  return loceo_neigh ## UD[fieldCoverage][site][mu];		\
+    }
+    
+    PROVIDE_NEIGH(dw);
+    
+    PROVIDE_NEIGH(up);
+    
+#undef PROVIDE_NEIGH
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Global coordinates
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    static auto glbCoord(const int& site,
+			 const int& mu)
+    {
+      assertHasDefinedCoverage();
+      
+      if constexpr(fieldCoverage==FULL_SPACE)
+	return glbCoordOfLoclx[site][mu];
+      else
+	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
+	  return glbCoordOfLoclx[loclx_of_loceo[fieldCoverage][site]][mu];
+    }
+  };
+  
   /// Used to dispatch the copy constructor
   struct _CopyConstructInternalDispatcher
   {
@@ -918,6 +1042,104 @@ namespace nissa
 	      });
     }
     
+    /////////////////////////////////////////////////////////////////
+    
+    static std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff,
+						       const size_t& bps)
+    {
+    /// Pending requests
+      std::vector<MPI_Request> requests;
+      
+      for(int mu=0;mu<NDIM;mu++)
+	if(is_dir_parallel[mu])
+	  for(int sendOri=0;sendOri<2;sendOri++)
+	    {
+	      const auto sendOrRecv=
+		[&mu,
+		 &divCoeff,
+		 &bps,
+		 &requests,
+		 messageTag=sendOri+2*mu]
+		(const char* oper,
+		 const auto sendOrRecv,
+		 auto* ptr,
+		 const int& ori)
+		{
+		  const size_t offset=(bord_offset[mu]+bord_volh*ori)*bps/divCoeff;
+		  const int neighRank=rank_neigh[ori][mu];
+		  const size_t messageLength=bord_dir_vol[mu]*bps/divCoeff;
+		  // printf("rank %d %s ori %d dir %d, corresponding rank: %d, tag: %d length: %zu\n"
+		  //        ,rank,oper,ori,mu,neighRank,messageTag,messageLength);
+		  
+		  MPI_Request request;
+		  
+		  sendOrRecv(ptr+offset,messageLength,MPI_CHAR,neighRank,
+			     messageTag,MPI_COMM_WORLD,&request);
+		  
+		  requests.push_back(request);
+		};
+	      
+	      const int recvOri=1-sendOri;
+	      
+	      sendOrRecv("send",MPI_Isend,send_buf,sendOri);
+	      sendOrRecv("recv",MPI_Irecv,recv_buf,recvOri);
+	    }
+      
+      return requests;
+    }
+    
+    /// Start the communications of buffer interpreted as edges
+    static std::vector<MPI_Request> startBufEdgesNeighExchange(const int& divCoeff,
+							       const size_t& bps)
+    {
+      /// Pending requests
+      std::vector<MPI_Request> requests;
+      
+      for(int iEdge=0;iEdge<nEdges;iEdge++)
+	for(int sendOri1=0;sendOri1<2;sendOri1++)
+	  for(int sendOri2=0;sendOri2<2;sendOri2++)
+	    {
+	      const auto sendOrRecv=
+		[&iEdge,
+		 &divCoeff,
+		 &bps,
+		 &requests,
+		 messageTag=sendOri2+2*(sendOri1+2*iEdge)]
+		(const char* oper,
+		 const auto sendOrRecv,
+		 auto* ptr,
+		 const int& ori1,
+		 const int& ori2)
+		{
+		  if(isEdgeParallel[iEdge])
+		    {
+		      const size_t offset=(edge_offset[iEdge]+edge_vol*(ori2+2*ori1)/4)*bps/divCoeff;
+		      const int neighRank=rank_edge_neigh[ori1][ori2][iEdge];
+		      const size_t messageLength=edge_dir_vol[iEdge]*bps/divCoeff;
+		      
+		      // const auto [mu,nu]=edge_dirs[iEdge];
+		      // printf("rank %d %s ori %d,%d edge %d dir %d,%d, corresponding rank: %d, tag: %d length: %zu\n"
+		      //        ,rank,oper,ori1,ori2,iEdge,mu,nu,neighRank,messageTag,messageLength);
+		      
+		      MPI_Request request;
+		      
+		      sendOrRecv(ptr+offset,messageLength,MPI_CHAR,neighRank,
+				 messageTag,MPI_COMM_WORLD,&request);
+		      
+		      requests.push_back(request);
+		    }
+		};
+	      
+	      const int recvOri1=1-sendOri1;
+	      const int recvOri2=1-sendOri2;
+	      
+	      sendOrRecv("send",MPI_Isend,send_buf,sendOri1,sendOri2);
+	      sendOrRecv("recv",MPI_Irecv,recv_buf,recvOri1,recvOri2);
+	    }
+      
+      return requests;
+    }
+    
     /// Start the communications of halo
     static std::vector<MPI_Request> startHaloAsyincComm()
     {
@@ -957,14 +1179,10 @@ namespace nissa
       
       assertCanCommunicate(Field::nHaloSites());
       
-      //take time and write some debug output
-      START_TIMING(tot_comm_time,ntot_comm);
-      verbosity_lv3_master_printf("Start communication of borders\n");
       
       //fill the communicator buffer, start the communication and take time
       fillSendingBufWithSurface();
       requests=startHaloAsyincComm();
-      STOP_TIMING(tot_comm_time);
       
       return requests;
     }
@@ -973,13 +1191,11 @@ namespace nissa
     void finishCommunicatingHalo(std::vector<MPI_Request> requests) const
     {
       //take note of passed time and write some debug info
-      START_TIMING(tot_comm_time,ntot_comm);
       verbosity_lv3_master_printf("Finish communication of halo\n");
       
       //wait communication to finish, fill back the vector and take time
       waitAsyncCommsFinish(requests);
       fillHaloWithReceivingBuf();
-      STOP_TIMING(tot_comm_time);
       
       haloIsValid=true;
     }
@@ -1002,13 +1218,11 @@ namespace nissa
       assertCanCommunicate(Field::nEdgesSites());
       
       //take time and write some debug output
-      START_TIMING(tot_comm_time,ntot_comm);
       verbosity_lv3_master_printf("Start communication of edges\n");
       
       //fill the communicator buffer, start the communication and take time
       fillSendingBufWithEdgesSurface();
       requests=startEdgesAsyincComm();
-      STOP_TIMING(tot_comm_time);
       
       return requests;
     }
@@ -1017,13 +1231,11 @@ namespace nissa
     void finishCommunicatingEdges(std::vector<MPI_Request> requests) const
     {
       //take note of passed time and write some debug info
-      START_TIMING(tot_comm_time,ntot_comm);
       verbosity_lv3_master_printf("Finish communication of edgess\n");
       
       //wait communication to finish, fill back the vector and take time
       waitAsyncCommsFinish(requests);
       fillEdgesWithReceivingBuf();
-      STOP_TIMING(tot_comm_time);
       
       haloIsValid=true;
     }

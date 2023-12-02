@@ -1,6 +1,8 @@
 #ifndef _MULTIGRIDPARAMS_HPP
 #define _MULTIGRIDPARAMS_HPP
 
+#include <cmath>
+
 #include "geometry/geometry_lx.hpp"
 
 #ifndef EXTERN_MULTIGRID

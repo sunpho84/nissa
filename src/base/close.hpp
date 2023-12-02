@@ -5,7 +5,6 @@
 #include <base/vectors.hpp>
 #include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
-#include <operations/remap_vector.hpp>
 
 #ifdef USE_QUDA
 # include <base/quda_bridge.hpp>
@@ -43,18 +42,6 @@ namespace nissa
     delete cpuMemoryManager;
 #ifdef USE_CUDA
     delete gpuMemoryManager;
-#endif
-    
-    tot_time+=take_time();
-    master_printf("Total time: %lg s\n",tot_time);
-#ifdef COMM_BENCH
-    master_printf("Total communication time: %lg s\n",tot_comm_time);
-#endif
-    
-    //free thread delays pattern
-#if THREAD_DEBUG>=2
-    free(delayed_thread_barrier);
-    free(delay_rnd_gen);
 #endif
     
     MPI_Barrier(MPI_COMM_WORLD);

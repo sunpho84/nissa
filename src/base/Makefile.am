@@ -14,8 +14,6 @@ BUILT_SOURCES+= \
 	%D%/git_info.hpp
 
 __top_builddir__lib_libnissa_a_SOURCES= \
-	%D%/bench.cpp \
-	%D%/old_field.cpp \
 	%D%/debug.cpp \
 	%D%/init.cpp \
 	%D%/lattice.cpp \
@@ -24,11 +22,9 @@ __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/vectors.cpp
 
 include_HEADERS+= \
-	%D%/bench.hpp \
 	%D%/close.hpp \
 	%D%/cuda_test.hpp \
 	%D%/debug.hpp \
-	%D%/old_field.hpp \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
 	%D%/memory_manager.hpp \

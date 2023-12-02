@@ -9,7 +9,6 @@
 #include "base/export_conf_to_external_solver.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "io/checksum.hpp"
-#include "io/input.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"

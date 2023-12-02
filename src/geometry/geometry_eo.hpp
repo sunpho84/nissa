@@ -14,7 +14,6 @@
 #define NISSA_LOC_VOLH_LOOP(a) for(int a=0;a<locVolh;a++)
 
 #include <geometry/geometry_lx.hpp>
-#include <new_types/su3.hpp>
 
 namespace nissa
 {
@@ -84,7 +83,6 @@ namespace nissa
   EXTERN_GEOMETRY_EO int eo_geom_inited;
   EXTERN_GEOMETRY_EO int use_eo_geom;
   
-  void filter_hypercube_origin_sites(color0 **vec);
   int glblx_parity(int glx);
   int glb_coord_parity(const coords_t& c);
   void initialize_eo_edge_receivers_of_kind(MPI_Datatype *MPI_EDGES_RECE,MPI_Datatype *base);

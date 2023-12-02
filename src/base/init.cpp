@@ -20,7 +20,6 @@
 #endif
 
 #include "base/DDalphaAMG_bridge.hpp"
-#include "base/bench.hpp"
 #include "base/debug.hpp"
 #include "base/git_info.hpp"
 #include "base/memory_manager.hpp"
@@ -28,13 +27,11 @@
 
 #include "communicate/communicate.hpp"
 
-#include "io/input.hpp"
 #include "io/endianness.hpp"
 
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "linalgs/reduce.hpp"
-#include "new_types/dirac.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 #include "routines/mpi_routines.hpp"
@@ -88,9 +85,6 @@ namespace nissa
   {
     //init base things
     init_MPI_thread(narg,arg);
-    
-    tot_time=-take_time();
-    tot_comm_time=0;
     
     verb_call=0;
     
@@ -203,11 +197,9 @@ namespace nissa
 #endif
     
     //set default value for parameters
-    perform_benchmark=NISSA_DEFAULT_PERFORM_BENCHMARK;
     verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
     use_eo_geom=NISSA_DEFAULT_USE_EO_GEOM;
     warn_if_not_disallocated=NISSA_DEFAULT_WARN_IF_NOT_DISALLOCATED;
-    use_async_communications=NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS;
     for(int mu=0;mu<NDIM;mu++) fix_nranks[mu]=0;
     
 #ifdef USE_DDALPHAAMG
@@ -234,16 +226,9 @@ namespace nissa
     //put 0 as minimal request
     recv_buf_size=0;
     send_buf_size=0;
-    
-    //read the configuration file, if present
-    read_nissa_config_file();
-    
 #if defined USE_DDALPHAAMG or USE_QUDA
     read_DDalphaAMG_pars();
 #endif
-    
-    //initialize the base of the gamma matrices
-    init_base_gamma();
     
     master_printf("Nissa initialized!\n");
     
@@ -713,8 +698,6 @@ namespace nissa
     
     ///////////////////////////////////// start communicators /////////////////////////////////
     
-    ncomm_allocated=0;
-    
     //allocate only now buffers, so we should have finalized its size
     recv_buf=nissa_malloc("recv_buf",recv_buf_size,char);
     send_buf=nissa_malloc("send_buf",send_buf_size,char);
@@ -725,8 +708,5 @@ namespace nissa
      
     //take final time
     master_printf("Time elapsed for grid inizialization: %f s\n",time_init+take_time());
-    
-    //benchmark the net
-    if(perform_benchmark) bench_net_speed();
   }
 }

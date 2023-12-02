@@ -326,22 +326,6 @@ fi
 AM_CONDITIONAL([REPRODUCIBLE_RUN],[test "$enable_reproducible_run" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling reproducibile run... $enable_reproducible_run])
 
-#thread debug
-AC_ARG_ENABLE(thread-debug,
-	AS_HELP_STRING([--enable-thread-debug],[Enable thread debugging]),
-	enable_thread_debug="${enableval}",
-	enable_thread_debug="no")
-if test "$enable_thread_debug" = "yes"
-then
-	AC_DEFINE([THREAD_DEBUG],1,[Enable thread_debug])
-	fi
-if test "$enable_thread_debug" = "2"
-then
-	AC_DEFINE([THREAD_DEBUG],2,[Enable thread_debug])
-fi
-AM_CONDITIONAL([THREAD_DEBUG],[test "$enable_thread_debug" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling thread debug... $enable_thread_debug])
-
 #max verbosity lv
 AC_ARG_ENABLE(max-verbosity-lv,
         AS_HELP_STRING([--enable-max-verbosity-lv=lv],[Set max verbosity lv]),
@@ -371,17 +355,6 @@ else
 fi
 AM_CONDITIONAL([USE_EXTERNAL_SOLVER],[test "$use_external_solver" == "yes"])
 
-#number of colors
-AC_ARG_ENABLE(ncol,
-        AS_HELP_STRING([--enable-ncol=n],[Set number of colors [Default: 3]]),
-        ncol="${enableval}",
-        ncol=3)
-if ! printf "%f" "$col" >/dev/null 2>&1; then AC_MSG_ERROR([String $ncol is not a number]); fi
-AM_CONDITIONAL([NCOL3], [test x$ncol = x3])
-AC_DEFINE_UNQUOTED([NCOL],$ncol,[Number of colors])
-AC_MSG_RESULT([enabling number of colors... $ncol])
-SUMMARY_RESULT="$SUMMARY_RESULT
-Number of colors    : $ncol"
 # -dlto removing for debug
 AM_COND_IF([USE_CUDA],
 	CPPFLAGS="-dc --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS")

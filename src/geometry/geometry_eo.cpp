@@ -5,12 +5,11 @@
 #include <string.h>
 
 #define EXTERN_GEOMETRY_EO
- #include "geometry_eo.hpp"
+# include "geometry_eo.hpp"
 
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
 
@@ -190,19 +189,5 @@ namespace nissa
     nissa_free(loceo_of_loclx);
     
     eo_geom_inited=0;
-  }
-  
-  //filter the points retaining only those having all even coord
-  void filter_hypercube_origin_sites(color0 **vec)
-  {
-    NISSA_LOC_VOL_LOOP(ivol)
-    {
-      int save=1;
-      for(int mu=0;mu<NDIM;mu++)
-	save=save and glbCoordOfLoclx[ivol][mu]%2==0;
-      
-      if(!save)
-	memset(vec[loclx_parity[ivol]][loceo_of_loclx[ivol]],0,sizeof(color0));
-    }
   }
 }

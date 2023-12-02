@@ -1,10 +1,12 @@
 #ifndef _MATH_ROUTINES_HPP
 #define _MATH_ROUTINES_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <algorithm>
 #include <functional>
-
-#include "new_types/complex.hpp"
 
 //Pi
 #ifndef M_PI
@@ -19,7 +21,6 @@ namespace nissa
   double metro_tresh(double arg);
   int factorize(int *list,int N);
   int log2N(int N);
-  CUDA_HOST_AND_DEVICE void matrix_determinant(complex d,complex *m,int n);
   int bitrev(int in,int l2n);
   int find_max_pow2(int a);
   

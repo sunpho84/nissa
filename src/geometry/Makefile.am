@@ -6,5 +6,4 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 
 include_HEADERS+= \
 	%D%/geometry_eo.hpp \
-	%D%/geometry_lx.hpp \
-	%D%/geometry_mix.hpp
+	%D%/geometry_lx.hpp

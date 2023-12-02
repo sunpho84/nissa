@@ -8,11 +8,9 @@
 #include <string>
 #include <vector>
 
-#include "base/debug.hpp"
-#include "base/randomDevice.hpp"
-#include "new_types/complex.hpp"
-#include "new_types/dirac.hpp"
-#include "routines/mpi_routines.hpp"
+#include <base/debug.hpp>
+#include <base/randomDevice.hpp>
+#include <routines/mpi_routines.hpp>
 
 #ifdef USE_OPENMP
 # include <omp.h>
@@ -72,19 +70,6 @@ namespace nissa
   void take_last_characters(char *out,const char *in,int size);
   int count_file_lines(std::string path);
   int get_file_size(std::string path);
-  void print_contraction_to_file(FILE *fout,int gso,int gsi,complex *contr,int twall,const char *tag,double norm,int skip_header=false);
-  void print_contractions_to_file(FILE *fout,int ncontr,const int *gso,const int *gsi,complex *contr,int twall,const char *tag,double norm,int skip_header=false);
-  inline void print_contractions_to_file(FILE *fout,std::vector<idirac_pair_t> &list,complex *contr,int twall,const char *tag,double norm,int skip_header=false)
-  {
-    int ncontr=list.size();
-    int gso[ncontr],gsi[ncontr];
-    for(int i=0;i<ncontr;i++)
-      {
-	gso[i]=list[i].so;
-	gsi[i]=list[i].si;
-      }
-    print_contractions_to_file(fout,ncontr,gso,gsi,contr,twall,tag,norm,skip_header);
-  }
   
   //read from a file, opened only on master rank
   template <class T> T master_fscan(FILE *stream,const char *tag)

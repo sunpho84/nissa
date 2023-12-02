@@ -6,13 +6,11 @@
 # include "config.hpp"
 #endif
 
-#include <base/bench.hpp>
 #include <base/close.hpp>
 #include <base/debug.hpp>
 #ifdef USE_EXTERNAL_SOLVER
 # include <base/export_conf_to_external_solver.hpp>
 #endif
-#include <base/old_field.hpp>
 #include <base/init.hpp>
 #include <base/lattice.hpp>
 #include <base/multiGridParams.hpp>
@@ -27,7 +25,6 @@
 # include <base/cuda.hpp>
 #endif
 
-#include <communicate/allToAll.hpp>
 #include <communicate/communicate.hpp>
 
 #include <expr/baseComp.hpp>
@@ -57,17 +54,14 @@
 
 #include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
-#include <geometry/geometry_mix.hpp>
 
 #include <io/buffer.hpp>
 #include <io/checksum.hpp>
 #include <io/endianness.hpp>
 #include <io/ILDG_File.hpp>
-#include <io/input.hpp>
 #include <io/reader.hpp>
 #include <io/writer.hpp>
 
-#include <linalgs/linalgs.hpp>
 #include <linalgs/reduce.hpp>
 
 #include <metaprogramming/concepts.hpp>
@@ -78,17 +72,11 @@
 #include <metaprogramming/hasMember.hpp>
 #include <metaprogramming/inline.hpp>
 
-#include <new_types/complex.hpp>
-#include <new_types/dirac.hpp>
 #include <new_types/float128class.hpp>
 #include <new_types/rng.hpp>
-#include <new_types/spin.hpp>
-#include <new_types/su3.hpp>
 
 #include <operations/fft.hpp>
-#include <operations/gaugeconf.hpp>
 #include <operations/localizer.hpp>
-#include <operations/remap_vector.hpp>
 
 #include <operations/vector_gather.hpp>
 

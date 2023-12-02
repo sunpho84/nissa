@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <base/old_field.hpp>
+#include <expr/fieldDeclaration.hpp>
 #include <io/endianness.hpp>
 #include <linalgs/reduce.hpp>
 #include <routines/ios.hpp>
@@ -29,55 +29,55 @@ namespace nissa
     return c;
   }
   
-  template <typename T,
-	    FieldLayout FL>
-  Checksum ildgChecksum(const LxField<T,FL>& field)
-  {
-    LxField<Checksum> buff("buff");
+  // template <typename T,
+  // 	    FieldLayout FL>
+  // Checksum ildgChecksum(const LxField<T,FL>& field)
+  // {
+  //   LxField<Checksum> buff("buff");
     
-    PAR(0,locVol,
-	CAPTURE(TO_WRITE(buff),
-		TO_READ(field)),
-	ivol,
-	{
-	  const coords_t& X=glbCoordOfLoclx[ivol];
-	  uint32_t ildg_ivol=X[0];
-	  for(int mu=NDIM-1;mu>0;mu--)
-	    ildg_ivol=ildg_ivol*glbSizes[mu]+X[mu];
-	  const uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};
+  //   PAR(0,locVol,
+  // 	CAPTURE(TO_WRITE(buff),
+  // 		TO_READ(field)),
+  // 	ivol,
+  // 	{
+  // 	  const coords_t& X=glbCoordOfLoclx[ivol];
+  // 	  uint32_t ildg_ivol=X[0];
+  // 	  for(int mu=NDIM-1;mu>0;mu--)
+  // 	    ildg_ivol=ildg_ivol*glbSizes[mu]+X[mu];
+  // 	  const uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};
 	  
-	  uint32_t crc=0xffffffffL;
-	  for(int iDeg=0;iDeg<(LxField<T>::nInternalDegs);iDeg++)
-	    {
-	      auto temp=field(ivol,iDeg);
-	      using Fund=decltype(temp);
+  // 	  uint32_t crc=0xffffffffL;
+  // 	  for(int iDeg=0;iDeg<(LxField<T>::nInternalDegs);iDeg++)
+  // 	    {
+  // 	      auto temp=field(ivol,iDeg);
+  // 	      using Fund=decltype(temp);
 	      
-	      EndiannessMask<BigEndian,nativeEndianness,Fund> mask(temp);
+  // 	      EndiannessMask<BigEndian,nativeEndianness,Fund> mask(temp);
 	      
-	      for(size_t i=0;i<sizeof(temp);i++)
-		crc=crcValue(((int)crc^mask[i])&0xff)^(crc>>8);
-	    }
-	  crc^=0xffffffffL;
+  // 	      for(size_t i=0;i<sizeof(temp);i++)
+  // 		crc=crcValue(((int)crc^mask[i])&0xff)^(crc>>8);
+  // 	    }
+  // 	  crc^=0xffffffffL;
 	  
-	  for(int i=0;i<2;i++)
-	    buff[ivol][i]=
-	      crc<<crc_rank[i]|crc>>(32-crc_rank[i]);
-	});
+  // 	  for(int i=0;i<2;i++)
+  // 	    buff[ivol][i]=
+  // 	      crc<<crc_rank[i]|crc>>(32-crc_rank[i]);
+  // 	});
     
-    Checksum loc_check;
-    locReduce(&loc_check,buff,locVol,1,
-	      [] CUDA_DEVICE(Checksum& res,
-			     const Checksum& acc) INLINE_ATTRIBUTE
-	      {
-		for(int i=0;i<2;i++)
-		  res[i]^=acc[i];
-	      });
+  //   Checksum loc_check;
+  //   locReduce(&loc_check,buff,locVol,1,
+  // 	      [] CUDA_DEVICE(Checksum& res,
+  // 			     const Checksum& acc) INLINE_ATTRIBUTE
+  // 	      {
+  // 		for(int i=0;i<2;i++)
+  // 		  res[i]^=acc[i];
+  // 	      });
     
-    Checksum check;
-    MPI_Allreduce(&loc_check,&check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
+  //   Checksum check;
+  //   MPI_Allreduce(&loc_check,&check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
     
-    return check;
-  }
+  //   return check;
+  // }
 }
 
 #endif

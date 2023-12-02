@@ -7,9 +7,9 @@
 
 #include <memory>
 
-#include <communicate/allToAll.hpp>
 #include <expr/cWiseCombine.hpp>
 #include <expr/field.hpp>
+#include <operations/allToAll.hpp>
 
 #ifndef EXTERN_LATTICE
 # define EXTERN_LATTICE extern

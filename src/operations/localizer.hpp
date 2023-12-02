@@ -5,12 +5,12 @@
 # include "config.hpp"
 #endif
 
-#include <communicate/allToAll.hpp>
 #include <expr/comp.hpp>
 #include <expr/comps.hpp>
 #include <expr/conj.hpp>
 #include <expr/field.hpp>
 #include <expr/mergedComps.hpp>
+#include <operations/allToAll.hpp>
 
 #ifndef EXTERN_LOCALIZER
 # define EXTERN_LOCALIZER extern

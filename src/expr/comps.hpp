@@ -1,6 +1,10 @@
 #ifndef _COMPS_HPP
 #define _COMPS_HPP
 
+#ifdef HAVE_CONFIG_H
+# include <config.hpp>
+#endif
+
 #include <tuples/tupleHasType.hpp>
 #include <tuples/tupleSubset.hpp>
 

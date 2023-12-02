@@ -35,7 +35,6 @@ namespace nissa
   
   DEFINE_MPI_DATATYPE_OF(int64_t,MPI_LONG)
   DEFINE_MPI_DATATYPE_OF(double,MPI_DOUBLE)
-  DEFINE_MPI_DATATYPE_OF(complex,MPI_DOUBLE_COMPLEX)
   
   /// Instantiates the correct datatype, given the type
   template <typename T>
