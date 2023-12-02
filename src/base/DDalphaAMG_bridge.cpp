@@ -9,7 +9,6 @@
 #include "base/export_conf_to_external_solver.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "io/checksum.hpp"
-#include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
@@ -43,11 +42,20 @@ namespace DD
   
   //return the index of the configuration
   static int conf_index_fct(int t,int z,int y,int x,int mu)
-  {return sizeof(nissa::su3)/sizeof(double)*(nissa::scidac_mapping[mu]+NDIM*nissa::loclx_of_coord_list(t,x,y,z));}
+  {
+    crash("");
+    // return sizeof(nissa::su3)/sizeof(double)*(nissa::scidac_mapping[mu]+NDIM*nissa::loclx_of_coord_list(t,x,y,z));
+
+    return {};
+  }
   
   //return the index inside a spincolor
   static int vector_index_fct(int t,int z,int y,int x)
-  {return sizeof(nissa::spincolor)/sizeof(double)*nissa::loclx_of_coord_list(t,x,y,z);}
+  {
+    crash("");
+    // return sizeof(nissa::spincolor)/sizeof(double)*nissa::loclx_of_coord_list(t,x,y,z);
+    return {};
+  }
   
   /// Check if cSW is changed
   bool check_cSW_changed(const double& cSW)
@@ -184,10 +192,10 @@ namespace DD
     DDalphaAMG_update_parameters(&params,&status);
   }
   
-  void set_configuration(nissa::quad_su3* conf)
-  {
-    DDalphaAMG_set_configuration((double*)conf,&DD::status);
-  }
+  // void set_configuration(nissa::quad_su3* conf)
+  // {
+  //   DDalphaAMG_set_configuration((double*)conf,&DD::status);
+  // }
   
   //setup DD if needed
   void update_setup()
@@ -213,24 +221,24 @@ namespace DD
     inited=false;
   }
   
-  //solve: if squared is asked, solve the odd square (Dkern_squared)
-  int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared)
-  {
-    initialize(kappa,cSW,mu);
-    nissa::export_gauge_conf_to_external_solver(conf);
-    update_setup();
+  // //solve: if squared is asked, solve the odd square (Dkern_squared)
+  // int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared)
+  // {
+  //   initialize(kappa,cSW,mu);
+  //   nissa::export_gauge_conf_to_external_solver(conf);
+  //   update_setup();
     
-    //else DDalphaAMG_update_setup(int iterations, DDalphaAMG_status *mg_status)
-    if(squared) DDalphaAMG_solve_squared_odd((double*)out,(double*)in,sqrt(precision2),&status);
-    else        DDalphaAMG_solve((double*)out,(double*)in,sqrt(precision2),&status);
-    //DDalphaAMG_apply_operator((double*)out,(double*)in,&status);
+  //   //else DDalphaAMG_update_setup(int iterations, DDalphaAMG_status *mg_status)
+  //   if(squared) DDalphaAMG_solve_squared_odd((double*)out,(double*)in,sqrt(precision2),&status);
+  //   else        DDalphaAMG_solve((double*)out,(double*)in,sqrt(precision2),&status);
+  //   //DDalphaAMG_apply_operator((double*)out,(double*)in,&status);
     
-    master_printf("DD: Solving time %.2f sec (%.1f %% on coarse grid)\n",status.time,100.0*(status.coarse_time/status.time));
-    master_printf("DD: Total iterations on fine grid %d\n", status.iter_count);
-    master_printf("DD: Total iterations on coarse grids %d\n", status.coarse_iter_count);
-    if(!status.success) crash("the solver did not converge!\n");
-    //mul_r(phi_new ,mg_scale, phi_new, N);
+  //   master_printf("DD: Solving time %.2f sec (%.1f %% on coarse grid)\n",status.time,100.0*(status.coarse_time/status.time));
+  //   master_printf("DD: Total iterations on fine grid %d\n", status.iter_count);
+  //   master_printf("DD: Total iterations on coarse grids %d\n", status.coarse_iter_count);
+  //   if(!status.success) crash("the solver did not converge!\n");
+  //   //mul_r(phi_new ,mg_scale, phi_new, N);
     
-    return status.success;
-  }
+  //   return status.success;
+  // }
 }

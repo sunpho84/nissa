@@ -14,7 +14,6 @@
 #endif
 
 #include "io/checksum.hpp"
-#include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 
 #ifndef EXTERN_EXPORT_CONF
@@ -76,8 +75,9 @@ namespace nissa
 	double plaq=0.0;
 	
 #ifdef USE_DDALPHAAMG
-	DD::set_configuration(conf);
-	export_result=not DD::status.success;
+	crash("");
+	// DD::set_configuration(conf);
+	// export_result=not DD::status.success;
 #endif
 	
 #ifdef USE_QUDA

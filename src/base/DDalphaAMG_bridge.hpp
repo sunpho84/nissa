@@ -28,9 +28,9 @@ namespace DD
   void finalize();
 #ifdef USE_DDALPHAAMG
 
-  int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared=false);
+  // int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared=false);
 
-  void set_configuration(nissa::quad_su3* conf);
+  // void set_configuration(nissa::quad_su3* conf);
   
 #else
   
