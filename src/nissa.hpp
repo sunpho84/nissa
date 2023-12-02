@@ -16,7 +16,6 @@
 #include <base/init.hpp>
 #include <base/lattice.hpp>
 #include <base/multiGridParams.hpp>
-#include <base/random.hpp>
 #include <base/sitmo.hpp>
 #ifdef USE_TMLQCD
 # include <base/tmLQCD_bridge.hpp>
@@ -60,12 +59,6 @@
 #include <expr/trigonometry.hpp>
 #include <expr/transp.hpp>
 
-#include <free_theory/cg_eoprec_twisted_free_operator.hpp>
-#include <free_theory/free_theory_types.hpp>
-#include <free_theory/free_theory_types_routines.hpp>
-#include <free_theory/tlSym_gauge_propagator.hpp>
-#include <free_theory/twisted_free_Dirac_eoprec_operator.hpp>
-
 #include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <geometry/geometry_mix.hpp>
@@ -93,23 +86,15 @@
 #include <new_types/dirac.hpp>
 #include <new_types/float_128.hpp>
 #include <new_types/float128class.hpp>
-#include <new_types/float_256.hpp>
-#include <new_types/high_prec.hpp>
 #include <new_types/metadynamics.hpp>
-#include <new_types/rat_approx.hpp>
 #include <new_types/rng.hpp>
 #include <new_types/spin.hpp>
 #include <new_types/su3.hpp>
 
-#include <operations/covariant_derivative.hpp>
 #include <operations/fft.hpp>
-#include <operations/gauge_fixing.hpp>
 #include <operations/gaugeconf.hpp>
 #include <operations/localizer.hpp>
 #include <operations/remap_vector.hpp>
-#include <operations/remez/remez_algorithm.hpp>
-#include <operations/shift.hpp>
-#include <operations/source.hpp>
 
 #include <operations/vector_gather.hpp>
 

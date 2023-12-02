@@ -26,7 +26,6 @@
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "io/ILDG_File.hpp"
-#include "new_types/high_prec.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 
@@ -442,9 +441,6 @@ namespace nissa
     tags.push_back(triple_tag("ignore_ILDG_magic_number",      ignore_ILDG_magic_number));
     tags.push_back(triple_tag("fast_read_write_vectors",       fast_read_write_vectors));
     tags.push_back(triple_tag("perform_benchmark",             perform_benchmark));
-#if HIGH_PREC_TYPE==GMP_HIGH_PREC
-    tags.push_back(triple_tag("mpf_precision",                 mpf_precision));
-#endif
 #ifdef USE_TMLQCD
     tags.push_back(triple_tag("use_tmLQCD",		       use_tmLQCD));
 #endif

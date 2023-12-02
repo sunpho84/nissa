@@ -16,7 +16,6 @@
 #include <linalgs/reduce.hpp>
 #include <new_types/complex.hpp>
 #include <new_types/float_128.hpp>
-#include <new_types/rat_approx.hpp>
 #include <routines/ios.hpp>
 #include <threads/threads.hpp>
 
@@ -111,62 +110,7 @@ namespace nissa
     exit(0);
 #endif
   }
-  //define all types
-  void define_MPI_types()
-  {
-#ifdef USE_MPI
-    //128 bit float
-    MPI_Type_contiguous(2,MPI_DOUBLE,&MPI_FLOAT_128);
-    MPI_Type_commit(&MPI_FLOAT_128);
-    
-    //128 bit complex
-    MPI_Type_contiguous(2,MPI_FLOAT_128,&MPI_COMPLEX_128);
-    MPI_Type_commit(&MPI_COMPLEX_128);
-    
-    //define the gauge link
-    MPI_Type_contiguous(18,MPI_DOUBLE,&MPI_SU3);
-    MPI_Type_commit(&MPI_SU3);
-    
-    //four (in 4d) links starting from a single point
-    MPI_Type_contiguous(NDIM,MPI_SU3,&MPI_QUAD_SU3);
-    MPI_Type_commit(&MPI_QUAD_SU3);
-    
-    //six (in 4d) links starting from a single point
-    MPI_Type_contiguous(sizeof(as2t_su3)/sizeof(su3),MPI_SU3,&MPI_AS2T_SU3);
-    MPI_Type_commit(&MPI_AS2T_SU3);
-    
-    //a color (6 doubles)
-    MPI_Type_contiguous(6,MPI_DOUBLE,&MPI_COLOR);
-    MPI_Type_commit(&MPI_COLOR);
-    
-    //a spin (8 doubles)
-    MPI_Type_contiguous(8,MPI_DOUBLE,&MPI_SPIN);
-    MPI_Type_commit(&MPI_SPIN);
-    
-    //a spinspin (32 doubles)
-    MPI_Type_contiguous(32,MPI_DOUBLE,&MPI_SPINSPIN);
-    MPI_Type_commit(&MPI_SPINSPIN);
-    
-    //a spincolor (24 doubles)
-    MPI_Type_contiguous(24,MPI_DOUBLE,&MPI_SPINCOLOR);
-    MPI_Type_commit(&MPI_SPINCOLOR);
-    
-    //a spincolor_128 (24 float_128)
-    MPI_Type_contiguous(24,MPI_FLOAT_128,&MPI_SPINCOLOR_128);
-    MPI_Type_commit(&MPI_SPINCOLOR_128);
-    
-    //a reduced spincolor (12 doubles)
-    MPI_Type_contiguous(12,MPI_DOUBLE,&MPI_REDSPINCOLOR);
-    MPI_Type_commit(&MPI_REDSPINCOLOR);
-    
-    //summ for 128 bit float
-    MPI_Op_create((MPI_User_function*)MPI_FLOAT_128_SUM_routine,1,&MPI_FLOAT_128_SUM);
-    
-    //summ for 128 bit complex
-    MPI_Op_create((MPI_User_function*)MPI_COMPLEX_128_SUM_routine,1,&MPI_COMPLEX_128_SUM);
-#endif
-  }
-  
+
   //broadcast a coord
   void coords_broadcast(coords_t& c)
   {
@@ -194,29 +138,6 @@ namespace nissa
   //broadcast an int
   double broadcast(double in,int rank_from)
   {return broadcast_internal(in,rank_from,MPI_DOUBLE);}
-  
-  //broadcast a whole rational approximation
-  void broadcast(rat_approx_t *rat,int rank_from)
-  {
-    int degree=0;
-    
-    if(rank_from==rank) degree=rat->degree();
-    MPI_Bcast(&degree,1,MPI_INT,rank_from,MPI_COMM_WORLD);
-    
-    //allocate if not generated here
-    if(rank_from!=rank)	rat->resize(degree);
-    
-    //and now broadcast the remaining part
-    MPI_Bcast(rat->name,20,MPI_CHAR,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(&rat->minimum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(&rat->maximum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(&rat->maxerr,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(&rat->num,1,MPI_INT,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(&rat->den,1,MPI_INT,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(&rat->cons,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(rat->poles.data(),rat->degree(),MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(rat->weights.data(),rat->degree(),MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-  }
   
   //Return the name of the processor
   std::string MPI_get_processor_name()

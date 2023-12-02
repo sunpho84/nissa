@@ -63,7 +63,8 @@ namespace nissa
 			 const IMax max,
 			 F&& f)
   {
-    using Idx=std::common_type_t<IMin,IMax>;
+    using Idx=
+      std::common_type_t<IMin,IMax>;
     
     double initTime=0;
     extern int rank,verbosity_lv;
@@ -77,7 +78,9 @@ namespace nissa
       }
     
 #pragma omp parallel for
-    for(auto i=compDecay(min);i<compDecay(max);i++)
+    for(std::decay_t<decltype(compDecay(std::declval<Idx>()))> i=compDecay(min);
+	i<compDecay(max);
+	i++)
       f(Idx(i));
     
     if(print)

@@ -2,7 +2,6 @@
 #define _CLOSE_HPP
 
 #include <base/memory_manager.hpp>
-#include <base/random.hpp>
 #include <base/vectors.hpp>
 #include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
@@ -27,9 +26,6 @@ namespace nissa
     
     //unset eo geometry
     if(eo_geom_inited) unset_eo_geometry();
-    
-    //stop the random generator
-    if(loc_rnd_gen_inited) stop_loc_rnd_gen();
     
     //print information over the maximum amount of memory used
     master_printf("Maximal memory used during the run: %zu bytes (",max_required_memory);

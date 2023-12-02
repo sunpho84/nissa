@@ -17,7 +17,6 @@ namespace nissa
 {
   double lfact(double n);
   double metro_tresh(double arg);
-  int metro_test(double arg);
   int factorize(int *list,int N);
   int log2N(int N);
   CUDA_HOST_AND_DEVICE void matrix_determinant(complex d,complex *m,int n);

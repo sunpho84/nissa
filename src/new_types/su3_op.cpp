@@ -4,7 +4,6 @@
 
 #include "su3_op.hpp"
 #include "geometry/geometry_eo.hpp"
-#include "operations/su3_paths/rectangular_staples.hpp"
 
 namespace nissa
 {
@@ -286,26 +285,5 @@ namespace nissa
 	    out.f[2][IM]*=-1;
 	  }
       }
-  }
-  
-  //return a cooled copy of the passed link
-  void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,int par,int ieo,int mu)
-    {
-      crash("reimplement");//link failing
-    //   //compute the staple
-    // su3 staple;
-    // compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
-    
-    // //find the link that maximize the plaquette
-    // su3_unitarize_maximal_trace_projecting(u,staple);
-  }
-  inline void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,int ivol,int mu)
-  {
-    //compute the staple
-    su3 staple;
-    compute_point_summed_squared_staples_lx_conf_single_dir(staple,lx_conf,ivol,mu);
-    
-    //find the link that maximize the plaquette
-    su3_unitarize_maximal_trace_projecting(u,staple);
   }
 }

@@ -24,7 +24,6 @@
 #include "base/debug.hpp"
 #include "base/git_info.hpp"
 #include "base/memory_manager.hpp"
-#include "base/random.hpp"
 #include "base/vectors.hpp"
 
 #include "communicate/communicate.hpp"
@@ -36,7 +35,6 @@
 #include "geometry/geometry_lx.hpp"
 #include "linalgs/reduce.hpp"
 #include "new_types/dirac.hpp"
-#include "new_types/high_prec.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 #include "routines/mpi_routines.hpp"
@@ -123,9 +121,6 @@ namespace nissa
     master_printf("Configured at %s with flags: %s\n",compile_info[0],compile_info[1]);
     master_printf("Compiled at %s of %s\n",compile_info[2],compile_info[3]);
     
-    //define all derived MPI types
-    define_MPI_types();
-    
 #ifdef USE_CUDA
     init_cuda();
 #endif
@@ -142,8 +137,6 @@ namespace nissa
     //initialize global variables
     lxGeomInited=0;
     eo_geom_inited=0;
-    loc_rnd_gen_inited=0;
-    glb_rnd_gen_inited=0;
     grid_inited=0;
     for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=nrank_dir[mu]=0;
     
@@ -209,10 +202,6 @@ namespace nissa
     master_printf("Fast Fourier Transform: NATIVE\n");
 #endif
     
-#if HIGH_PREC_TYPE == GMP_HIGH_PREC
-    mpf_precision=NISSA_DEFAULT_MPF_PRECISION;
-#endif
-    
     //set default value for parameters
     perform_benchmark=NISSA_DEFAULT_PERFORM_BENCHMARK;
     verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
@@ -252,9 +241,6 @@ namespace nissa
     
     //read the configuration file, if present
     read_nissa_config_file();
-    
-    //setup the high precision
-    init_high_precision();
     
 #if defined USE_DDALPHAAMG or USE_QUDA
     read_DDalphaAMG_pars();

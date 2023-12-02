@@ -4,7 +4,6 @@
 
 #include <math.h>
 
-#include "base/random.hpp"
 #include "new_types/complex.hpp"
 
 #if USE_EIGEN
@@ -58,15 +57,6 @@ namespace nissa
   //compute treshold
   double metro_tresh(double arg)
   {return (arg<=0) ? 1 : exp(-arg);}
-  
-  //perform the metropolis test on passed value
-  int metro_test(double arg)
-  {
-    double tresh=metro_tresh(arg);
-    double toss=rnd_get_unif(&glb_rnd_gen,0,1);
-    
-    return toss<tresh;
-  }
   
   //factorize a number
   int factorize(int *list,int N)

@@ -3,7 +3,8 @@
 
 #include <sstream>
 
-#include "base/random.hpp"
+#include "base/old_field.hpp"
+#include "new_types/su3.hpp"
 
 namespace nissa
 {
@@ -16,7 +17,7 @@ namespace nissa
   //results of a unitarity check
   struct unitarity_check_result_t
   {
-    std::int64_t nbroken_links;
+    int64_t nbroken_links;
     double average_diff;
     double max_diff;
     
@@ -63,20 +64,6 @@ namespace nissa
     set_borders_invalid(conf);
   }
   
-  /// Generate a random conf
-  template <typename C>
-  void generate_hot_lx_conf(C& conf)
-  {
-    if(loc_rnd_gen_inited==0)
-      crash("random number generator not inited");
-    
-    NISSA_LOC_VOL_LOOP(ivol)
-      for(int mu=0;mu<NDIM;mu++)
-	su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
-    
-    set_borders_invalid(conf);
-  }
-    
   /// Perform a unitarity check on a lx conf
   template <typename C>
   void unitarity_check_lx_conf(unitarity_check_result_t &result,const C& conf)

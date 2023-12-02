@@ -24,29 +24,6 @@
 
 namespace nissa
 {
-  struct rat_approx_t;
-  
-  //basic mpi types
-  EXTERN_MPI MPI_Datatype MPI_FLOAT_128;
-  EXTERN_MPI MPI_Datatype MPI_COMPLEX_128;
-  EXTERN_MPI MPI_Datatype MPI_SU3;
-  EXTERN_MPI MPI_Datatype MPI_QUAD_SU3;
-  EXTERN_MPI MPI_Datatype MPI_AS2T_SU3;
-  EXTERN_MPI MPI_Datatype MPI_COLOR;
-  EXTERN_MPI MPI_Datatype MPI_SPIN;
-  EXTERN_MPI MPI_Datatype MPI_SPINSPIN;
-  EXTERN_MPI MPI_Datatype MPI_SPINCOLOR;
-  EXTERN_MPI MPI_Datatype MPI_SPINCOLOR_128;
-  EXTERN_MPI MPI_Datatype MPI_REDSPINCOLOR;
-  //float 128 summ
-  EXTERN_MPI MPI_Op MPI_FLOAT_128_SUM;
-  EXTERN_MPI MPI_Op MPI_COMPLEX_128_SUM;
-  
-  EXTERN_MPI MPI_Datatype MPI_LX_SU3_EDGES_SEND[NDIM*(NDIM-1)/2],MPI_LX_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
-  EXTERN_MPI MPI_Datatype MPI_LX_AS2T_SU3_EDGES_SEND[NDIM*(NDIM-1)/2],MPI_LX_AS2T_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
-  EXTERN_MPI MPI_Datatype MPI_LX_QUAD_SU3_EDGES_SEND[NDIM*(NDIM-1)/2],MPI_LX_QUAD_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
-  EXTERN_MPI MPI_Datatype MPI_EO_QUAD_SU3_EDGES_SEND[96],MPI_EO_QUAD_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
-  EXTERN_MPI MPI_Datatype MPI_EO_AS2T_SU3_EDGES_SEND[96],MPI_EO_AS2T_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
   
   EXTERN_MPI int master_rank INIT_MPI_TO(=0);
   
@@ -60,8 +37,6 @@ namespace nissa
   DEFINE_MPI_DATATYPE_OF(int64_t,MPI_LONG)
   DEFINE_MPI_DATATYPE_OF(double,MPI_DOUBLE)
   DEFINE_MPI_DATATYPE_OF(complex,MPI_DOUBLE_COMPLEX)
-  DEFINE_MPI_DATATYPE_OF(float_128,MPI_FLOAT_128)
-  DEFINE_MPI_DATATYPE_OF(complex_128,MPI_COMPLEX_128)
   
   /// Instantiates the correct datatype, given the type
   template <typename T>
@@ -92,9 +67,6 @@ namespace nissa
     }						\
   }
   
-  DEFINE_MPI_OP_DISPATCHER(float_128,MPI_FLOAT_128_SUM);
-  DEFINE_MPI_OP_DISPATCHER(complex_128,MPI_COMPLEX_128_SUM);
-  
   /// Gets the sum operation for the type T
   template <typename T>
   MPI_Op MPI_Op_sum_for_type()
@@ -109,12 +81,10 @@ namespace nissa
   void get_MPI_nranks();
   void get_MPI_rank();
   void init_MPI_thread(int narg,char **arg);
-  void define_MPI_types();
   void create_MPI_cartesian_grid();
   void ranks_abort(int err);
   void ranks_barrier();
   int broadcast(int in,int rank_from=0);
-  void broadcast(rat_approx_t *rat,int rank_from=0);
   double broadcast(double in,int rank_from=0);
 #ifdef USE_MPI
   MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos);
