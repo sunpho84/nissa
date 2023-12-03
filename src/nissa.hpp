@@ -20,6 +20,7 @@
 #ifdef USE_QUDA
  #include <base/quda_bridge.hpp>
 #endif
+#include <base/qcd.hpp>
 #include <base/vectors.hpp>
 #ifdef USE_CUDA
 # include <base/cuda.hpp>
@@ -77,8 +78,6 @@
 
 #include <operations/fft.hpp>
 #include <operations/localizer.hpp>
-
-#include <operations/vector_gather.hpp>
 
 #include <routines/ios.hpp>
 #include <routines/math_routines.hpp>
