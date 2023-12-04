@@ -291,16 +291,16 @@ namespace nissa
     }
     
     /// Create from another node
-    template <typename TOth,
-	      typename Co>
+    template < DerivedFromNode Oth>
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    explicit DynamicTens(const Node<TOth,Co>& oth) :
-      DynamicTens(DE_CRTPFY(const TOth,&oth).getDynamicSizes())
+    explicit DynamicTens(const Oth& oth)
+      requires(not DerivedFromDynamicTens<Oth>):
+      DynamicTens(oth.getDynamicSizes())
     {
 #ifndef COMPILING_FOR_DEVICE
       verbosity_lv3_master_printf("Constructing DynamicTens from another node\n");
 #endif
-      (*this)=DE_CRTPFY(const TOth,&oth);
+      (*this)=oth;
     }
     
     /// Copy constructor
