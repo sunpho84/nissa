@@ -17,10 +17,23 @@
 
 namespace nissa
 {
+  /// Global coordinates
+  using GlbCoords=
+    StackTens<CompsList<Dir>,GlbCoord>;
+  
+  /// Local coordinates
+  using LocCoords=
+    StackTens<CompsList<Dir>,LocCoord>;
+  
+  /////////////////////////////////////////////////////////////////
+  
   /// Holds all the info on the lattice
   template <bool IsRef=false>
   struct Lattice
   {
+    /// Index of time direction
+    static constexpr Dir timeDir=0;
+    
     /// Global volume
     GlbLxSite glbVol;
     
