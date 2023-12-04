@@ -94,9 +94,9 @@ namespace nissa
     get_MPI_rank();
     
     //associate signals
-    const char DO_NOT_TRAP_SIGNALS_STRING[]="NISSA_DO_NOT_TRAP_SIGNALS";
+    constexpr char DO_NOT_TRAP_SIGNALS_STRING[]="NISSA_DO_NOT_TRAP_SIGNALS";
     verbosity_lv2_master_printf("To avoid trapping signals, export: %s\n",DO_NOT_TRAP_SIGNALS_STRING);
-    if(getenv(DO_NOT_TRAP_SIGNALS_STRING)==NULL)
+    if(getenv(DO_NOT_TRAP_SIGNALS_STRING)==nullptr)
       {
 	signal(SIGBUS,signal_handler);
 	signal(SIGSEGV,signal_handler);
@@ -522,7 +522,7 @@ namespace nissa
     
     //broadcast the global sizes
     coords_broadcast(glbSizes);
-    
+     
     //calculate global volume, initialize local one
     glbVol=1;
     for(int mu=0;mu<NDIM;mu++)
