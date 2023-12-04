@@ -98,13 +98,18 @@ namespace nissa
     template <typename Oth>						\
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
     ReturnedType& operator OP ##=(const Oth& oth)			\
+      requires(isSafeNumericConversion<Oth,CastToExec> or		\
+	       std::conjunction_v<					\
+ 	       std::disjunction<std::is_class<CastToExec>,		\
+	       std::is_class<Oth>>,					\
+	       std::is_constructible<const CastToExec&,Oth>>)		\
     {									\
       auto& This=DE_CRTPFY(ReturnedType,this);				\
 									\
-      (CastToExec&)This OP ## = oth;					\
+      (CastToExec&)This OP ## = (const CastToExec&)oth;			\
 									\
       return This;							\
-    }
+    }									\
     
     PROVIDE_SELF_OPERATOR(+);
     PROVIDE_SELF_OPERATOR(-);
