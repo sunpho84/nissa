@@ -1277,6 +1277,16 @@ namespace nissa
       }
     }
   };
+  
+  template <typename T,
+	    DerivedFromComp...Ci>
+  INLINE_FUNCTION constexpr
+  auto Node<T,CompsList<Ci...>>::closeToField() const
+    requires(_canCloseToField())
+  {
+    return (Field<TupleFilterAllTypes<typename T::Comps,CompsList<LocLxSite>>,
+	    typename T::Fund>)*this;
+  }
 }
 
 #endif

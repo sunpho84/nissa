@@ -14,6 +14,7 @@
 #include <base/debug.hpp>
 #include <expr/bindComps.hpp>
 #include <expr/compsMerger.hpp>
+#include <expr/fieldDeclaration.hpp>
 // #include <expr/comps/compLoops.hpp>
 // #include <expr/assign/deviceAssign.hpp>
 // #include <expr/assign/directAssign.hpp>
@@ -22,6 +23,7 @@
 #include <expr/assignDispatcher.hpp>
 #include <expr/dynamicTensDeclaration.hpp>
 #include <expr/nodeDeclaration.hpp>
+#include <expr/stackTensDeclaration.hpp>
 // #include <expr/assign/simdAssign.hpp>
 // #include <expr/assign/threadAssign.hpp>
 // #include <ios/logger.hpp>
@@ -33,23 +35,53 @@ namespace nissa
 {
   namespace impl
   {
-    /// Casts an expression to fund if possible
-    template <typename E,
-	      typename...C>
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    decltype(auto) castExprToFund(E&& t,
-				  CompsList<C...>*)
+    /// Implements the cast of an expression to its Fund
+    ///
+    /// Forward declaration
+    template <DerivedFromNode E,
+	      typename C=typename E::Comps>
+    struct _CastToFund;
+    
+    /// Implements the cast of an expression to its Fund
+    template <DerivedFromNode E,
+	      DerivedFromComp...C>
+    struct _CastToFund<E,CompsList<C...>>
     {
-      if constexpr(((C::sizeAtCompileTime==1) and ...))
+      /// Detect possibility to cast
+      static constexpr bool value=
+	((C::sizeAtCompileTime==1) and ...);
+      
+      /// Exec the cast
+      template <DerivedFromNode T>
+      static constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+      decltype(auto) exec(T&& t)
+      {
 	return t.eval((C)0 ...);
-    }
+      }
+    };
+  }
+  
+  /// Check if an expression can be cast to its Fund
+  template <DerivedFromNode E>
+  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  decltype(auto) exprCanBeCastToFund()
+  {
+    return impl::_CastToFund<E>::value;
+  }
+  
+  /// Casts an expression to fund if possible
+  template <DerivedFromNode E>
+  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  decltype(auto) castExprToFund(E&& t)
+  {
+    return impl::_CastToFund<std::decay_t<E>>::exec(std::forward<E>(t));
   }
   
 #define THIS Node<T,CompsList<Ci...>>
   
   /// Node, the base type to be evaluated as an expression
   template <typename T,
-	    typename...Ci>
+	    DerivedFromComp...Ci>
   struct THIS :
     NodeFeat,
     Crtp<THIS,T>,
@@ -59,13 +91,15 @@ namespace nissa
     using This=THIS;
 #undef THIS
     
+    using Crtp<This,T>::operator~;
+    
 #define PROVIDE_AUTOMATIC_CAST_TO_FUND(ATTRIB)			\
     /*! Provide automatic cast to fund if needed. How cool! */	\
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
     operator decltype(auto)() ATTRIB				\
+      /* do not requires(exprCanBeCastToFund<T>()) */		\
     {								\
-      return impl::castExprToFund(DE_CRTPFY(ATTRIB T,this),	\
-				  (typename T::Comps*)nullptr);	\
+      return castExprToFund(DE_CRTPFY(ATTRIB T,this));		\
     }
     
     PROVIDE_AUTOMATIC_CAST_TO_FUND(const);
@@ -73,8 +107,6 @@ namespace nissa
     PROVIDE_AUTOMATIC_CAST_TO_FUND(/* non const */);
     
 #undef PROVIDE_AUTOMATIC_CAST_TO_FUND
-    
-    using Crtp<This,T>::operator~;
     
     // /// Define the move-assignment operator
     // INLINE_FUNCTION
@@ -174,6 +206,101 @@ namespace nissa
       return ~*this;
     }
     
+    /////////////////////////////////////////////////////////////////
+    
+    /// Set of possible closing types
+    enum class ClosingType{Fund,StackTens,DynamicTens,Field};
+    
+    /// Check if can be cast to Fund
+    INLINE_FUNCTION constexpr
+      static bool _canCloseToFund()
+    {
+      return exprCanBeCastToFund<T>();
+    }
+    
+    /// Check if can be closed to a StackTens
+    INLINE_FUNCTION constexpr
+      static bool _canCloseToStackTens()
+    {
+      return std::tuple_size_v<typename T::DynamicComps> ==0;
+    }
+    
+    /// Check if can be closed to a Field
+    INLINE_FUNCTION constexpr
+      static bool _canCloseToField()
+    {
+      return tupleHasType<typename T::Comps,LocLxSite>;
+    }
+    
+    /// Check if can be closed to a DynamicTens
+    INLINE_FUNCTION constexpr
+      static  bool _canCloseToDynamicTens()
+    {
+      return true;
+    }
+    
+    /// Gets the optimal closing type
+    INLINE_FUNCTION constexpr
+      static ClosingType getClosingType()
+    {
+      if constexpr(_canCloseToFund())
+	return ClosingType::Fund;
+      else if constexpr(_canCloseToStackTens())
+	return ClosingType::StackTens;
+      else if constexpr(_canCloseToField())
+	return ClosingType::Field;
+      else
+	return ClosingType::DynamicTens;
+    }
+    
+    /// Closes to Fund
+    INLINE_FUNCTION constexpr
+    auto closeToFund() const
+      requires(_canCloseToFund())
+    {
+      return (typename T::Fund)*this;
+    }
+    
+    /// Closes to a StackTens
+    INLINE_FUNCTION constexpr
+    auto closeToStackTens() const
+      requires(_canCloseToStackTens());
+    
+    /// Closes to a Field
+    INLINE_FUNCTION constexpr
+    auto closeToField() const
+      requires(_canCloseToField());
+    
+    /// Closes to a DynamicTens
+    INLINE_FUNCTION constexpr
+    auto closeToDynamicTens() const
+      requires(_canCloseToDynamicTens());
+    
+#define PROVIDE_CLOSE_TO(TYPE)						\
+    /* Dispatch the correct close, needed as passing as templated would
+       not be specializable */						\
+      INLINE_FUNCTION constexpr						\
+    auto _closeTo(std::integral_constant<ClosingType,			\
+		  ClosingType::TYPE>) const				\
+    {									\
+      return closeTo ## TYPE();						\
+    }
+    
+    PROVIDE_CLOSE_TO(Fund);
+    PROVIDE_CLOSE_TO(StackTens);
+    PROVIDE_CLOSE_TO(Field);
+    PROVIDE_CLOSE_TO(DynamicTens);
+    
+#undef PROVIDE_CLOSE_TO
+    
+    /// Closes to the best possible thing
+    auto close() const
+    {
+      return _closeTo(std::integral_constant<ClosingType,getClosingType()>());
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
     /// Assert whether can run on device
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     static bool canRunOnDevice()
@@ -186,7 +313,7 @@ namespace nissa
     /*! Assign from another expression */				\
       template <DerivedFromNode Rhs>					\
 	requires(not std::is_same_v<T,Rhs>)				\
-	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+	constexpr INLINE_FUNCTION					\
 	T& operator SYMBOL(const Rhs& u)				\
       {									\
 	(~*this).template assign<OP>(u);				\
@@ -198,7 +325,7 @@ namespace nissa
       template <typename Rhs>						\
 	requires(not DerivedFromNode<Rhs> and				\
 		 std::is_invocable_v<Rhs,Ci...>)			\
-	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+	constexpr INLINE_FUNCTION					\
 	T& operator SYMBOL(const Rhs& u)				\
       {									\
 	(~*this).template assign<OP>(funcNodeWrapper<CompsList<Ci...>>(u,(~*this).getDynamicSizes())); \
@@ -209,7 +336,7 @@ namespace nissa
       /*! Assign from a scalar */					\
       template <typename Oth>						\
 	requires(std::is_arithmetic_v<Oth>)				\
-	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+	constexpr INLINE_FUNCTION					\
 	T& operator SYMBOL(const Oth& value)				\
       {									\
 	return (~*this) SYMBOL scalar(value);				\

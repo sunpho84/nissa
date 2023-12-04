@@ -487,6 +487,20 @@ namespace nissa
 // 	  }
     }
   };
+  
+  template <typename T,
+	    DerivedFromComp...Ci>
+  INLINE_FUNCTION constexpr
+  auto Node<T,CompsList<Ci...>>::closeToDynamicTens() const
+    requires(_canCloseToDynamicTens())
+  {
+    return
+      (DynamicTens<typename T::Comps,
+       typename T::Fund,
+       T::execSpace.hasUniqueExecSpace()?
+       T::execSpace.getMemoryType():
+       defaultExecSpace>)*this;
+  }
 }
 
 #endif

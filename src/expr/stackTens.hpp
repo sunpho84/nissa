@@ -186,6 +186,19 @@ namespace nissa
     // {
     // }
   };
+  
+  template <typename T,
+	    DerivedFromComp...Ci>
+  INLINE_FUNCTION constexpr
+  auto Node<T,CompsList<Ci...>>::closeToStackTens() const
+    requires(_canCloseToStackTens())
+  {
+    using Res=
+      StackTens<typename T::Comps,
+		typename T::Fund>;
+      
+    return (Res)*this;
+  }
 }
 
 #endif
