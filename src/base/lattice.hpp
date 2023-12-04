@@ -8,6 +8,7 @@
 #include <memory>
 
 #include <expr/cWiseCombine.hpp>
+#include <expr/compReduce.hpp>
 #include <expr/field.hpp>
 #include <operations/allToAll.hpp>
 
@@ -53,13 +54,14 @@ namespace nissa
     MirroredTens<OfComps<LocLxSite,Dir>,ConstIf<IsRef,GlbCoord>,IsRef> glbCoordsOfLocLx;
     
     /// Initializes
-    void init()
+    void init(const GlbCoords& _glbSizes)
       requires(not IsRef)
     {
+      glbSizes=_glbSizes;
+      
+      glbVol=compProd<Dir>(glbSizes).close()();
       locVol=nissa::locVol;
-      glbVol=nissa::glbVol;
       locSizes=[](const Dir& dir){return nissa::locSize[dir()];};
-      glbSizes=[](const Dir& dir){return nissa::glbSizes[dir()];};
       glbCoordsOfLocLx.allocate(std::make_tuple(locVol));
       glbCoordsOfLocLx.getFillable()=
 	[g=nissa::glbCoordOfLoclx](const LocLxSite& site,
@@ -76,6 +78,17 @@ namespace nissa
 	};
     }
     
+    /// Initializes from T and L
+    void init(const GlbCoord& T,
+	      const GlbCoord& L)
+      requires(not IsRef)
+    {
+      GlbCoords _glbSizes=L;
+      _glbSizes[timeDir]=T;
+      
+      this->init(_glbSizes);
+    }
+
     /// Gets a global coordinate
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     auto glbCoord(const Dir& dir) const
