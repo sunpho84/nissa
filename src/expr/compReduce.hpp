@@ -174,7 +174,7 @@ namespace nissa
       std::decay_t<_E>;
     
     using Comps=
-      TupleFilterAllTypes<typename E::Comps,Rc>;
+      TupleFilterAllTypes<typename E::Comps,CompsList<Rc>>;
     
     using Fund=
       typename E::Fund;
@@ -198,16 +198,18 @@ namespace nissa
       								\
       template <typename Fund>					\
       INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE		\
-      void reduce(Fund& out,					\
-		  const Fund& in)				\
+      static void reduce(Fund& out,				\
+			 const Fund& in)			\
       {								\
 	out OP##=in;						\
       }								\
     };								\
   }								\
 								\
+  /* Reduces the component C of expression E over operato NAME */\
   template <DerivedFromComp C,					\
 	    DerivedFromNode E>					\
+  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
   decltype(auto) comp ## NAME (E&& e)				\
   {								\
     return compReduce<C,impl::_CompReduce ## NAME ##		\
