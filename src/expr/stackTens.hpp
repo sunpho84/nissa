@@ -163,9 +163,9 @@ namespace nissa
     StackTens(const Fund& oth)
     {
       compsLoop<Comps>([this,
-			&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
+			&oth](const DerivedFromComp auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
       {
-	  (*this)(c...)=oth;
+	(*this)(c...)=oth;
       },std::tuple<>{});
     }
     
