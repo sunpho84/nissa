@@ -25,7 +25,8 @@ namespace nissa
 	      typename To>
     constexpr bool _isSafeNumericConversion(From*,To*)
     {
-      return std::is_same_v<From,To>;
+      return
+	std::is_same_v<From,To>;
     }
     
 #define DECLARE_SAFE_THE_NUMERIC_CONVERSION_FROM_TO(FROM,TO)		\

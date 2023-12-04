@@ -14,7 +14,7 @@ namespace nissa
   /// Concept to catch trivial and standard
   template <typename T>
   concept TrivialAndStandard=
-  std::is_trivial_v<T> and std::is_standard_layout_v<T>;
+  std::conjunction_v<std::is_trivial<T>,std::is_standard_layout<T>>;
   
   /// Concept to catch trivially copyable
   template <typename T>
