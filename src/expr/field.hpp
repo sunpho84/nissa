@@ -807,7 +807,7 @@ namespace nissa
     template <DerivedFromField O>
     requires(IsRef)
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-    Field(O&& oth) :
+    explicit Field(O&& oth) :
       Field(std::forward<O>(oth),(_CopyConstructInternalDispatcher*)nullptr)
     {
     }
@@ -833,7 +833,7 @@ namespace nissa
 #endif
     }
     
-    /// Construct from another exec space and/or field layout
+    /// Construct from another exec space and/or field layout and/or memory layout
     template <FieldLayout OFL,
 	      MemoryType OMT,
 	      bool OIR>
