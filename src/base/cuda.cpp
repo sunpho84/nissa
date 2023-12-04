@@ -5,9 +5,8 @@
 #define EXTERN_CUDA
  #include <base/cuda.hpp>
 
+#include "base/debug.hpp"
 #include "routines/mpi_routines.hpp"
-
-#include "geometry/geometry_lx.hpp"
 
 namespace nissa
 {
