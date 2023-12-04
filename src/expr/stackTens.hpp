@@ -13,19 +13,12 @@
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
 #include <expr/execSpace.hpp>
-//#include <expr/assign/executionSpace.hpp>
+#include <expr/stackTensDeclaration.hpp>
 #include <expr/node.hpp>
 #include <expr/indexComputer.hpp>
 
 namespace nissa
 {
-  /// Tensor
-  ///
-  /// Forward declaration
-  template <typename C,
-	    typename F=double>
-  struct StackTens;
-  
 #define THIS					\
     StackTens<CompsList<C...>,_Fund>
   
