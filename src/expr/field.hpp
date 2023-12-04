@@ -154,37 +154,6 @@ namespace nissa
   std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff,
 						     const size_t& bps);
   
-  DECLARE_UNTRANSPOSABLE_COMP(Parity,int,2,createParity);
-  DECLARE_TRANSPOSABLE_COMP(Dir,int,NDIM,dir);
-  
-  DECLARE_UNTRANSPOSABLE_COMP(Ori,int,2,createOri);
-  
-  /// Backward, see real imag comment
-#define bw Ori(0)
-  
-  /// Forward
-#define fw Ori(1)
-  
-  /// Number of dimensions
-#define nDim Dir(NDIM)
-  
-  DECLARE_PARALLELIZABLE_COMP(LocLxSite,int64_t,locLxSite);
-  DECLARE_PARALLELIZABLE_COMP(LocEoSite,int64_t,locEoSite);
-  DECLARE_PARALLELIZABLE_COMP(LocEvnSite,int64_t,locEvnSite);
-  DECLARE_PARALLELIZABLE_COMP(LocOddSite,int64_t,locOddSite);
-  
-  DECLARE_DYNAMIC_COMP(LocCoord);
-  DECLARE_DYNAMIC_COMP(GlbCoord);
-  DECLARE_PARALLELIZABLE_COMP(GlbLxSite,int64_t,glbLxSite);
-  
-  /// Global coordinates
-  using GlbCoords=
-    StackTens<CompsList<Dir>,GlbCoord>;
-  
-  /// Local coordinates
-  using LocCoords=
-    StackTens<CompsList<Dir>,LocCoord>;
-  
   /// Specifies the order of components
   template <typename TP,
 	    typename F,
