@@ -1,17 +1,10 @@
+#include <memory>
 #include <nissa.hpp>
 
 #include <tuples/tuple.hpp>
 
 using namespace nissa;
 
-StackTens<OfComps<ComplId>,double> fd;
-
-namespace nissa
-{
-  DECLARE_TRANSPOSABLE_COMP(Spin,int,NDIRAC,spin);
-  DECLARE_TRANSPOSABLE_COMP(Color,int,NCOL,color);
-  DECLARE_TRANSPOSABLE_COMP(Fuf,int,1,fuf);
-}
 
 // template <typename F,
 // 	  typename Float=typename F::Fund>
@@ -78,7 +71,7 @@ namespace nissa
     {
       Entries tmp;
       
-      for(SpinRow ig1=0;ig1<NDIRAC;ig1++)
+      for(SpinRow ig1=0;ig1<nDirac;ig1++)
 	{
 	  //This is the line to be taken on the second matrix
 	  const SpinRow ig2=transp(entries(ig1).first);
@@ -106,7 +99,7 @@ namespace nissa
     {
       Entries tmp;
       
-      for(SpinRow i=0;i<NDIRAC;i++)
+      for(SpinRow i=0;i<nDirac;i++)
 	tmp(i)={tmp(i).first,-tmp(i).second};
       
       return {tmp};
@@ -118,7 +111,7 @@ namespace nissa
     {
       Entries tmp;
       
-      for(SpinRow sr=0;sr<NDIRAC;sr++)
+      for(SpinRow sr=0;sr<nDirac;sr++)
 	{
 	  const auto& [sc,c]=this->entries(sr);
 	  tmp(transp(sc))={sc,~c};
@@ -133,9 +126,9 @@ namespace nissa
 
 namespace GammaBasis
 {
-#define E(P,V) {{P},{IdFourthRoot::V}}
+#define E(P,V) Gamma::Entry{P,IdFourthRoot::V}
 #define GAMMA(NAME,P0,V0,P1,V1,P2,V2,P3,V3)				\
-  constexpr Gamma NAME{{{},{E(P0,V0),E(P1,V1),E(P2,V2),E(P3,V3)}}}
+  constexpr Gamma NAME{{E(P0,V0),E(P1,V1),E(P2,V2),E(P3,V3)}}
   
   GAMMA(X,3,MinusI,2,MinusI,1,I,0,I);
   GAMMA(Y,3,MinusOne,2,One,1,One,0,MinusOne);
@@ -145,15 +138,63 @@ namespace GammaBasis
 #undef GAMMA
 #undef E
   constexpr Gamma G5=T*X*Y*Z;
-
+  constexpr Gamma e=-G5.dag();
   constexpr std::array<Gamma,16> basis{X*X,X,Y,Z,T,G5,G5*X,G5*Y,G5*Z,G5*T,T*X,T*Y,T*Z,Y*Z,Z*X,X*Y};
 }
 
 
+using PhotonField=
+  Field<CompsList<Dir>>;
 
+using PhotonProp=
+  Field<CompsList<DirRow,DirCln>>;
+
+using ComplVectorProp=
+  Field<CompsList<DirRow,DirCln,ComplId>>;
+
+using ComplVectorField=
+  Field<CompsList<Dir,ComplId>>;
+
+using ScalarField=
+  Field<CompsList<>>;
+
+PhotonField getZ2PhotonField(const int offset=0)
 {
+  PhotonField res;
   
-  return out;
+  RngState rng(235235+offset);
+  
+  // auto printRng=[](const RngState& r)
+  // {
+  //   for(const auto& i : r.counter)
+  //     master_printf("%u\n",i);
+  // };
+  
+  // printRng(rng);
+  // double e=take_time();
+  // for(int i=0;i<300;i++)
+  //   {
+  auto d=rng.getZ2Distr(glbVol*nDim);
+  
+  PAR_ON_EXEC_SPACE(ScalarField::execSpace,
+		    0,
+		    LocLxSite(locVol),
+		    CAPTURE(TO_WRITE(res),
+			    d),
+		    site,
+			{
+			  ASM_BOOKMARK_BEGIN("rnd");
+			  for(Dir dir=0;dir<nDim;dir++)
+			    res(site,dir)=d.draw(dir()+nDim()*glblxOfLoclx[site()]);
+			  ASM_BOOKMARK_END("rnd");
+			});
+  // printRng(rng);
+      
+      // master_printf("ciao %lg\n",res.copyToMemorySpaceIfNeeded<MemoryType::CPU>()(LocLxSite(0)));
+  //   }
+  // master_printf("ciao took %lg s\n",take_time()-e);
+  
+  return res;
 }
 
 void in_main(int narg,char **arg)
@@ -169,40 +210,83 @@ void in_main(int narg,char **arg)
   localizer::init();
   initFftw();
   
-//   {
-//     Field<CompsList<ColorRow,ComplId>> e;
-//   PAR(0,
-//       LocLxSite(locVol),
-//       CAPTURE(TO_WRITE(e)),
-//       site,
-//       {
-// 	for(ColorRow cr=0;cr<3;cr++)
-// 	  for(ComplId ri=0;ri<2;ri++)
-// 	    e(site ,cr,ri
-// 	      )=glblxOfLoclx[site()];
-//       });
+  _lat=new Lattice<>;
+  _lat->init(T,L);
+  lat=std::make_unique<Lattice<true>>(_lat->getRef());
   
-//   decltype(auto) ori=
-//     bareCycle(e).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
+  /////////////////////////////////////////////////////////////////
+
+   master_printf("TEST\n");
+    // cudaGenericKernel<<<gridDimension,blockDimension>>>(0,locVol,[P=P.getWritable(),l=lat->glbCoordsOfLocLx.getReadable()] CUDA_DEVICE(auto i) mutable{P(LocLxSite(i))=l(LocLxSite(i));});
+    // 	decript_cuda_error(cudaDeviceSynchronize(),"during kernel executionssss");
   
-//   for(LocLxSite site=0;
-//       site<locVol;
-//       site++)
-//     for(ColorRow cr=0;cr<NCOL;cr++)
-//       for(ComplId ri=0;ri<2;ri++)
-// 	//if(ori(site).colorRow(cr).reIm(ri)!=glblxOfLoclx[site()])
-// 	master_printf("site %ld differ cr %d ri %d: %d %lg\n",site(), cr(),ri(),
-// 		      glblxOfLoclx[site()],ori(site) .colorRow(cr).reIm(ri));
-// }  
+  PhotonField P=2*sin(M_PI*(lat->glbCoordsOfLocLx+std::numeric_limits<double>::epsilon())/lat->glbSizes);
+  // auto o=P.copyToMemorySpaceIfNeeded<MemoryType::CPU>().locLxSite(23).dirRow(3);
+  // printf("AAA %ld %lg\n",ii(),o);
+  
+#define NISSA_HOST_DEVICE_LAMBDA(CAPTURES,BODY...)	\
+  std::make_tuple([CAPTURE(CAPTURES)] BODY,[CAPTURE(CAPTURES)] CUDA_DEVICE BODY)
+
+  P.onEachSite(NISSA_HOST_DEVICE_LAMBDA(CAPTURE(),
+					(auto& P,const LocLxSite& site)
+					{
+					  P(site);
+					}));
+  
+  const auto Ptilde=
+    P*Lattice<>::perpDirs[Dir(0)];
+  
+   const ScalarField P2=
+     dag(P)*P;
+   
+   const ScalarField zmt=(1-lat->spatialOriginsMask());
+   printf("AAA %lg\n",zmt.copyToMemorySpaceIfNeeded<MemoryType::CPU>().locLxSite(0));
+   
+   const ScalarField P2tilde=
+     dag(Ptilde)*Ptilde;
+   
+   PhotonProp test=kronDelta<DirRow,DirCln>-(P*dag(Ptilde)+Ptilde*dag(P)-P*dag(P))/P2tilde;
+   //test.dirRow(0).dirCln(0)=0;
+   
+   auto printPhotonProp=
+     [](const PhotonProp& prop)
+     {
+       for(DirRow r=0;r<nDim;r++)
+	 {
+	   for(DirCln c=0;c<nDim();c++)
+	     printf("%lg ",prop.locLxSite(glblx_of_coord({3,1,2,1}))(r,c));
+	   printf("\n");
+	 }
+       printf("\n");
+     };
+   
+   printPhotonProp(test);
+   
+   test.dirRow(0).dirCln(0)=sqrt(test.dirRow(0).dirCln(0));
+   const PhotonProp test2=test*test;
+   printPhotonProp(test2);
+   
+   const PhotonProp prop=
+     (1-lat->spatialOriginsMask())*
+     (kronDelta<DirRow,DirCln>-(P*dag(Ptilde)+Ptilde*dag(P)-P*dag(P))/P2tilde)/P2;
+  
+  const auto eta=
+    getZ2PhotonField();
+  
+  const PhotonField phi=
+    real(fft<ComplVectorField>(-1,prop*fft<ComplVectorField>(+1,eta)));
+  
+  printf("AAA %lg\n",phi.copyToMemorySpaceIfNeeded<MemoryType::CPU>().locLxSite(23).dirRow(0));
+  crash("");
+  /////////////////////////////////////////////////////////////////
+  
   
   Field<CompsList<ColorRow>> r;
-  constexpr StackTens<CompsList<ComplId>,double> complOne{{},{1,0}};
   Field<CompsList<ColorRow,ComplId>> rc;
-  fft(rc,+1,(r*complOne));
+  fft(rc,+1,r);
 
     Field<CompsList<ColorRow,ComplId>> e;
-    e=trace(e)+1;
-  
+    e=conj(e);
   
   const int s=glblx_of_coord({1,0,0,0});
   PAR(0,
@@ -216,7 +300,7 @@ void in_main(int narg,char **arg)
       });
 
   decltype(auto) fDone=
-    fft(+1,e).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
+    fft<Field<CompsList<ColorRow,ComplId>>>(+1,e).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
   
   for(LocLxSite site=0;
       site<locVol;
@@ -239,8 +323,6 @@ void in_main(int narg,char **arg)
 	    
     }
   
-  localizer::dealloc();
-  fftwFinalize();
   
 
   // DynamicTens<OfComps<SpinRow,LocEoSite>,double,MemoryType::CPU>
@@ -573,6 +655,12 @@ void in_main(int narg,char **arg)
 //   // nissa_free(out);
 //   // nissa_free(out_nissa);
 //   // nissa_free(conf);
+      
+  
+  localizer::dealloc();
+  fftwFinalize();
+      lat.reset();
+      delete _lat;
 }
 
 int main(int narg,char **arg)
