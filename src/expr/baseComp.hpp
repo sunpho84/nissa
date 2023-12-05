@@ -65,7 +65,7 @@ namespace nissa
     
     /// Init from value
     template <typename T=Index>
-    requires(isSafeNumericConversion<T,Index>)
+    requires(isExplicitlySafeNumericConversion<T,Index>)
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
     BaseComp(T&& i) :
       i(i)
