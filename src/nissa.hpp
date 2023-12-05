@@ -33,6 +33,7 @@
 #include <expr/comps.hpp>
 #include <expr/compsMerger.hpp>
 #include <expr/compRwCl.hpp>
+#include <expr/compReduce.hpp>
 #include <expr/conj.hpp>
 #include <expr/cWiseCombine.hpp>
 #include <expr/dagger.hpp>
