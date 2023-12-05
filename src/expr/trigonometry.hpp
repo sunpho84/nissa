@@ -11,19 +11,6 @@
 
 #include <expr/cWiseCombine.hpp>
 
-#define PROVIDE_SQR(TYPE,EXT)				\
-  /*! Square of a number */				\
-  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE	\
-  TYPE sqr ## EXT(const TYPE& x)			\
-  {							\
-    return x*x;						\
-  }
-
-PROVIDE_SQR(float,f)
-PROVIDE_SQR(double,)
-
-#undef PROVIDE_SQR
-
 namespace nissa
 {
   /// Providing overload to std library routines, as they are
@@ -31,7 +18,7 @@ namespace nissa
 #define OVERLOAD_FUN_TYPE(NAME,TYPE,SUFF)				\
   template <typename F>							\
   constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
-  TYPE NAME(const F& f)							\
+  F NAME(const F& f)							\
     requires(isSafeNumericConversion<F,TYPE>)	\
   {							\
     return ::NAME ## SUFF((TYPE)f);			\
@@ -63,7 +50,6 @@ namespace nissa
       cWiseCombine<FUN ## Functor>(std::forward<E>(e));	\
   }
   
-  PROVIDE_UNARY_FUNCTION(sqr);
   PROVIDE_UNARY_FUNCTION(sqrt);
   PROVIDE_UNARY_FUNCTION(sin);
   PROVIDE_UNARY_FUNCTION(cos);
