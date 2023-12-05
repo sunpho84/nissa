@@ -400,6 +400,16 @@ namespace nissa
     else
       e1=e1*e2;
   }
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Square of anything
+  template <typename T>
+  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  auto sqr(T&& x)
+  {
+    return x*x;
+  } 
 }
 
 #endif
