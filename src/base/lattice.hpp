@@ -18,13 +18,18 @@
 
 namespace nissa
 {
+  /// Coordinates for a given type
+  template <DerivedFromComp Comp>
+  using Coords=
+    StackTens<CompsList<Dir>,Comp>;
+  
   /// Global coordinates
   using GlbCoords=
-    StackTens<CompsList<Dir>,GlbCoord>;
+    Coords<GlbCoord>;
   
   /// Local coordinates
   using LocCoords=
-    StackTens<CompsList<Dir>,LocCoord>;
+    Coords<LocCoord>;
   
   /////////////////////////////////////////////////////////////////
   
@@ -53,13 +58,52 @@ namespace nissa
     /// Global coordinates of local sites
     MirroredTens<OfComps<LocLxSite,Dir>,ConstIf<IsRef,GlbCoord>,IsRef> glbCoordsOfLocLx;
     
+    /////////////////////////////////////////////////////////////////
+    
+    /// Compute internal volume
+    template <DerivedFromComp C>
+    constexpr INLINE_FUNCTION
+    static C bulkVolume(const Coords<C>& L)
+    {
+      C out=1;
+      
+      for(Dir mu=0;mu<nDim;mu++)
+	{
+	  if(L(mu)>2) out*=L(mu)-2;
+	  else out=0;
+	}
+      
+      return out;
+    }
+    
+    /// Compute the variance of the border
+    template <DerivedFromComp C>
+    constexpr INLINE_FUNCTION
+    static C computeBorderVariance(const Coords<C>& L)
+    {
+      const C v=compProd<C>(L);
+      
+      const Coords<C> b=v/L;
+      
+      return
+	compSum<C>(sqr(b))/nDim-sqr(compSum<C>(b)/nDim);
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
     /// Initializes
     void init(const GlbCoords& _glbSizes)
       requires(not IsRef)
     {
       glbSizes=_glbSizes;
       
+      master_printf("Global lattice:\t%ld",glbSizes.dirRow(0));
+      for(Dir mu=1;mu<NDIM;mu++)
+	master_printf("x%ld",glbSizes[mu]());
+      master_printf(" = %ld\n",glbVol());
+      
       glbVol=compProd<Dir>(glbSizes).close()();
+      
       locVol=nissa::locVol;
       locSizes=[](const Dir& dir){return nissa::locSize[dir()];};
       glbCoordsOfLocLx.allocate(std::make_tuple(locVol));
