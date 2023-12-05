@@ -5,7 +5,9 @@
 # include <config.hpp>
 #endif
 
-/// \file expr/trigonometry.hpp0
+/// \file expr/trigonometry.hpp
+
+#include <cmath>
 
 #include <expr/cWiseCombine.hpp>
 
@@ -26,11 +28,11 @@ namespace nissa
 {
   /// Providing overload to std library routines, as they are
   /// obfuscated by the expression overload
-#define OVERLOAD_FUN_TYPE(NAME,TYPE,SUFF)		\
-  template <typename F>					\
-  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE	\
-  double NAME(const F& f)				\
-    requires(std::is_same_v<F,TYPE> or isSafeNumericConversion<F,TYPE>)	\
+#define OVERLOAD_FUN_TYPE(NAME,TYPE,SUFF)				\
+  template <typename F>							\
+  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+  TYPE NAME(const F& f)							\
+    requires(isSafeNumericConversion<F,TYPE>)	\
   {							\
     return ::NAME ## SUFF((TYPE)f);			\
   }
