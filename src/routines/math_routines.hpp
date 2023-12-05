@@ -46,11 +46,6 @@ namespace nissa
   }
   
   template <class T>
-  CUDA_HOST_AND_DEVICE
-  T sqr(T a)
-  {return a*a;}
-  
-  template <class T>
   T cube(T a)
   {return a*a*a;};
   
