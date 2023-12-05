@@ -151,7 +151,7 @@ namespace nissa
 		const C& b)						\
     requires(isSafeNumericConversion<D,typename C::Index>)		\
   {									\
-    return (const typename C::Index&)a*b.i;				\
+    return (const typename C::Index&)a OP b.i;				\
   }									\
   									\
   /*! exec the operation if D cannot be safely converted to C */	\
