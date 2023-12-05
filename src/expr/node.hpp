@@ -55,6 +55,7 @@ namespace nissa
       template <DerivedFromNode T>
       static constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
       decltype(auto) exec(T&& t)
+	requires(value)
       {
 	return t.eval((C)0 ...);
       }
@@ -97,9 +98,9 @@ namespace nissa
     /*! Provide automatic cast to fund if needed. How cool! */	\
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
     operator decltype(auto)() ATTRIB				\
-      /* do not requires(exprCanBeCastToFund<T>()) */		\
     {								\
-      return castExprToFund(DE_CRTPFY(ATTRIB T,this));		\
+      if constexpr(exprCanBeCastToFund<T>())			\
+	return castExprToFund(DE_CRTPFY(ATTRIB T,this));	\
     }
     
     PROVIDE_AUTOMATIC_CAST_TO_FUND(const);
