@@ -20,6 +20,15 @@ namespace nissa
   template <typename T>
   concept TriviallyCopyable=
   std::is_trivially_copyable_v<T>;
+  
+  /// Concept to catch castability
+  template<typename From,
+	   typename To>
+  concept HasCastOperatorTo=
+  requires(From&& a)
+  {
+    {a.operator To()};
+  };
 }
 
 #endif
