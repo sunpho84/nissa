@@ -79,14 +79,14 @@ namespace nissa
     /// Compute the variance of the border
     template <DerivedFromComp C>
     constexpr INLINE_FUNCTION
-    static C computeBorderVariance(const Coords<C>& L)
+    static double computeBorderVariance(const Coords<C>& L)
     {
       const C v=compProd<Dir>(L);
-
+      
       const Coords<C> b=v/L;
       
       return
-	compSum<C>(sqr(b))/nDim-sqr(compSum<C>(b)/nDim);
+	compSum<Dir>(sqr(b))/(double)nDim-sqr(compSum<Dir>(b)/(double)nDim);
     }
     
     /////////////////////////////////////////////////////////////////
