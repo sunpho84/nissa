@@ -65,7 +65,7 @@ namespace nissa
   /// Check if an expression can be cast to its Fund
   template <DerivedFromNode E>
   constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-  decltype(auto) exprCanBeCastToFund()
+  bool exprCanBeCastToFund()
   {
     return impl::_CastToFund<E>::value;
   }

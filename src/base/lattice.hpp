@@ -132,7 +132,7 @@ namespace nissa
       
       this->init(_glbSizes);
     }
-
+    
     /// Gets a global coordinate
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     auto glbCoord(const Dir& dir) const
