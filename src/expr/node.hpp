@@ -491,12 +491,25 @@ namespace nissa
     }
   };
   
-#define PROVIDE_CATCH_OP_WITH_ARITHMETIC(OP)				\
-									\
+#define PROVIDE_CATCH_OP_WITH_ARITHMETIC(NAME,OP)			\
+  									\
+  namespace impl							\
+  {									\
+    /*! Not a node but can be cast to a node Fund */			\
+    template <typename T,						\
+	      typename F>						\
+    concept _NotNodeButCan ## NAME ## With=				\
+      requires(T&& x)							\
+    {									\
+      requires not isNode<T>;						\
+      std::declval<F>() OP std::declval<T>();				\
+      std::declval<T>() OP std::declval<F>();				\
+    };									\
+  };									\
+  									\
   /* Catch operator OP between a node and an arithmetic type */		\
   template <DerivedFromNode T,						\
-	    typename Oth>						\
-  requires(std::is_arithmetic_v<Oth>)					\
+	    impl::_NotNodeButCan ## NAME ## With<typename T::Fund> Oth>	\
   constexpr INLINE_FUNCTION						\
   auto operator OP(const T& node,					\
 		   const Oth& value)					\
@@ -506,8 +519,7 @@ namespace nissa
   									\
   /* Catch operator OP between an arithmetic type and a node */		\
   template <DerivedFromNode T,						\
-	    typename Oth>						\
-  requires(std::is_arithmetic_v<Oth>)					\
+	    impl::_NotNodeButCan ## NAME ## With<typename T::Fund> Oth>	\
   constexpr INLINE_FUNCTION						\
   auto operator OP(const Oth& value,					\
 		   const T& node)					\
@@ -515,25 +527,25 @@ namespace nissa
     return scalar(value) OP node;					\
   }
   
-  PROVIDE_CATCH_OP_WITH_ARITHMETIC(+);
+  PROVIDE_CATCH_OP_WITH_ARITHMETIC(Sum,+);
   
-  PROVIDE_CATCH_OP_WITH_ARITHMETIC(-);
+  PROVIDE_CATCH_OP_WITH_ARITHMETIC(Sub,-);
   
-  PROVIDE_CATCH_OP_WITH_ARITHMETIC(*);
+  PROVIDE_CATCH_OP_WITH_ARITHMETIC(Prod,*);
   
-  PROVIDE_CATCH_OP_WITH_ARITHMETIC(/);
+  PROVIDE_CATCH_OP_WITH_ARITHMETIC(Div,/);
   
-  PROVIDE_CATCH_OP_WITH_ARITHMETIC(%);
+  PROVIDE_CATCH_OP_WITH_ARITHMETIC(Mod,%);
   
-  PROVIDE_CATCH_OP_WITH_ARITHMETIC(==);
+  PROVIDE_CATCH_OP_WITH_ARITHMETIC(Comp,==);
   
-  PROVIDE_CATCH_OP_WITH_ARITHMETIC(!=);
+  PROVIDE_CATCH_OP_WITH_ARITHMETIC(Diff,!=);
   
-  PROVIDE_CATCH_OP_WITH_ARITHMETIC(and);
+  PROVIDE_CATCH_OP_WITH_ARITHMETIC(And,and);
   
-  PROVIDE_CATCH_OP_WITH_ARITHMETIC(or);
+  PROVIDE_CATCH_OP_WITH_ARITHMETIC(Or,or);
   
-  PROVIDE_CATCH_OP_WITH_ARITHMETIC(xor);
+  PROVIDE_CATCH_OP_WITH_ARITHMETIC(Xor,xor);
   
 #undef PROVIDE_CATCH_OP_WITH_ARITHMETIC
 }
