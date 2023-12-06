@@ -27,7 +27,7 @@ namespace nissa
 	if(close(fd)==-1) crash("Closing %s",path);
     }
     
-    MPI_Bcast(&t,size,MPI_CHAR,master_rank,MPI_COMM_WORLD);
+    MPI_Bcast(&t,size,MPI_CHAR,masterRank,MPI_COMM_WORLD);
   }
 }
 

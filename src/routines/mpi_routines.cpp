@@ -51,31 +51,11 @@ namespace nissa
 #endif
   }
   
-  //get nranks
-  void get_MPI_nranks()
-  {
-#ifdef USE_MPI
-    MPI_Comm_size(MPI_COMM_WORLD,&nranks);
-#else
-    nranks=1;
-#endif
-  }
-  
-  //get rank
-  void get_MPI_rank()
-  {
-#ifdef USE_MPI
-    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-#else
-    rank=0;
-#endif
-  }
-  
   //define the cartesian grid
   void create_MPI_cartesian_grid()
   {
 #ifdef USE_MPI
-    rank_coord=coord_of_rank(rank);
+    rank_coord=coord_of_rank(thisRank());
 #else
     for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=0;
 #endif
@@ -93,7 +73,7 @@ namespace nissa
   void ranks_abort(int err)
   {
 #ifdef USE_MPI
-    printf("on rank %d aborting\n",rank);
+    printf("on rank %ld aborting\n",thisRank());
     MPI_Abort(MPI_COMM_WORLD,0);
 #else
     exit(0);
@@ -103,7 +83,7 @@ namespace nissa
   //broadcast a coord
   void coords_broadcast(coords_t& c)
   {
-    MPI_Bcast(&c[0],NDIM,MPI_INT,master_rank,MPI_COMM_WORLD);
+    MPI_Bcast(&c[0],NDIM,MPI_INT,thisRank(),MPI_COMM_WORLD);
   }
   
   //ceil to next multiple of eight
