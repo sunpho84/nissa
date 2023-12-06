@@ -95,7 +95,10 @@ namespace nissa
     using Crtp<This,T>::operator~;
     
 #define PROVIDE_AUTOMATIC_CAST_TO_FUND(ATTRIB)			\
-    /*! Provide automatic cast to fund if needed. How cool! */	\
+    /*! Provide automatic cast to fund if needed. How cool! The trick
+        is not to constrain the method, but to return something only
+        if the cast is possible. Returning void, invalidates the
+        cast */							\
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
     operator decltype(auto)() ATTRIB				\
     {								\
