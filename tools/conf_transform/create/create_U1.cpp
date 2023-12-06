@@ -190,19 +190,19 @@ void inMain(int narg,char **arg)
       nissa_free(u1);
     }
 
-  spin1prop *prop=nissa_malloc("prop",locVol,spin1prop);
-  compute_x_space_tlSym_gauge_propagator_by_fft(prop,gl);
-  for(int d=0;d<2;d++)
-    for(int mu=0;mu<NDIM;mu++)
-      for(int nu=0;nu<NDIM;nu++)
-	{
-	  int ivol,r;
-	  get_loclx_and_rank_of_coord(ivol,r,{0,0,d,0});
-	  double f=prop[d][mu][nu][RE];
-	  if(fabs(f)<1e-15) f=0;
-	  if(r==rank) printf("A_mu=%d_nu=%d(t=0,x=0,y=%d,z=0); %.16lg\n",mu,nu,d,f);
-	}
-  nissa_free(prop);
+  // spin1prop *prop=nissa_malloc("prop",locVol,spin1prop);
+  // compute_x_space_tlSym_gauge_propagator_by_fft(prop,gl);
+  // for(int d=0;d<2;d++)
+  //   for(int mu=0;mu<NDIM;mu++)
+  //     for(int nu=0;nu<NDIM;nu++)
+  // 	{
+  // 	  int ivol,r;
+  // 	  get_loclx_and_rank_of_coord(ivol,r,{0,0,d,0});
+  // 	  double f=prop[d][mu][nu][RE];
+  // 	  if(fabs(f)<1e-15) f=0;
+  // 	  if(r==rank) printf("A_mu=%d_nu=%d(t=0,x=0,y=%d,z=0); %.16lg\n",mu,nu,d,f);
+  // 	}
+  // nissa_free(prop);
   // NISSA_PARALLEL_LOOP(loclx,0,locVol)
   //   {
   //     for(int mu=0;mu<NDIM;mu++)
