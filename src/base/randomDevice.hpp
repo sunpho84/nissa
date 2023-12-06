@@ -1,6 +1,12 @@
 #ifndef _RANDOMDEVICE_HPP
 #define _RANDOMDEVICE_HPP
 
+#ifdef HAVE_CONFIG_H
+# include <config.hpp>
+#endif
+
+/// \file base/randomDevice.hpp
+
 #include <cstdio>
 #include <fcntl.h>
 #include <unistd.h>
@@ -10,24 +16,29 @@
 
 namespace nissa
 {
-  //read from /dev/urandom
-  template <typename T>
+  /// Read from /dev/urandom
+  template <TriviallyCopyable T>
   void get_system_random(T& t)
   {
     const int size=sizeof(T);
     
     if(isMasterRank())
       {
-	const char path[]="/dev/urandom";
-	const int fd=open(path,O_RDONLY);
+	constexpr char path[]=
+	  "/dev/urandom";
+	
+	const int fd=
+	  open(path,O_RDONLY);
 	if(fd==-1) crash("Opening %s",path);
 	
-	const int rc=read(fd,&t,size);
-        if(rc!=size) crash("reading %zu bytes from %s, obtained: %d",size,path,rc);
+	
+        if(const int rc=read(fd,&t,size);rc!=size)
+	  crash("reading %zu bytes from %s, obtained: %d",size,path,rc);
+	
 	if(close(fd)==-1) crash("Closing %s",path);
     }
     
-    MPI_Bcast(&t,size,MPI_CHAR,masterRank,MPI_COMM_WORLD);
+    mpiBcast(t);
   }
 }
 
