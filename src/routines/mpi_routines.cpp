@@ -107,14 +107,4 @@ namespace nissa
   //broadcast an int
   double broadcast(double in,int rank_from)
   {return broadcast_internal(in,rank_from,MPI_DOUBLE);}
-  
-  //Return the name of the processor
-  std::string MPI_get_processor_name()
-  {
-    int resultlen=MPI_MAX_PROCESSOR_NAME;
-    char name[MPI_MAX_PROCESSOR_NAME];
-    MPI_Get_processor_name(name,&resultlen);
-    
-    return name;
-  }
 }

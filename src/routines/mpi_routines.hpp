@@ -91,7 +91,6 @@ namespace nissa
   uint64_t diff_with_next_eight_multiple(uint64_t pos);
 #endif
   
-  std::string MPI_get_processor_name();
   
   /////////////////////////////////////////////////////////////////
   
