@@ -6,14 +6,10 @@
 #endif
 
 #include <algorithm>
+#include <cmath>
 #include <functional>
 
-//Pi
-#ifndef M_PI
- #define M_PI           3.14159265358979323846
-#endif
-//sqrt(2)
-#define RAD2 1.414213562373095048801688724209l
+#include <metaprogramming/inline.hpp>
 
 namespace nissa
 {
@@ -65,39 +61,28 @@ namespace nissa
     dev=sqrt(dev*n/(n-1));
   }
   
-  /// Combine the the passed list of values
-  template <typename F,
-	    typename T,
-	    typename...Ts>
-  constexpr T binaryCombine(F&& f,
-			    const T& init,
-			    Ts&&...list)
+  /// Factorize a number
+  template <typename T>
+  INLINE_FUNCTION
+  std::vector<T> factorize(T in)
   {
-    /// Result
-    T out=init;
+    std::vector<T> out;
     
-    const T l[]{list...};
-    
-    for(auto i : l)
-      out=f(out,i);
+    for(T fatt=2;in>1;)
+      {
+	const T div=in/fatt;
+	const T res=in-div*fatt;
+	
+	if(res!=0)
+	  fatt++;
+	else
+	  {
+	    in=div;
+	    out.push_back(fatt);
+	  }
+      }
     
     return out;
-  }
-  
-  ///Product of the arguments
-  template <typename T,
-	    typename...Ts>
-  constexpr auto productAll(Ts&&...t)
-  {
-    return binaryCombine(std::multiplies<>(),T{1},std::forward<Ts>(t)...);
-  }
-  
-  ///Sum of the arguments
-  template <typename T,
-	    typename...Ts>
-  constexpr auto sumAll(Ts&&...t)
-  {
-    return binaryCombine(std::plus<>(),T{0},std::forward<Ts>(t)...);
   }
 }
 

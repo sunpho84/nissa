@@ -22,7 +22,7 @@
 
 namespace nissa
 {
-  /// Tensor to be used to store buffer source and dest
+  /// Mirrors a tensor on device
   template <typename Comps,
 	    typename Fund,
 	    bool IsRef=false>
