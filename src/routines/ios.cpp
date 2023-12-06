@@ -37,7 +37,7 @@ namespace nissa
     
     //open on the master
     int fd=-1;
-    if(is_master_rank())
+    if(isMasterRank())
       {
 	fd=mkstemp(buffer);
 	if(fd==-1) crash("failed to open a temporary file with prefix %s",prefix.c_str());
@@ -45,7 +45,9 @@ namespace nissa
       }
     
     //broadcast name and copy in prefix
-    MPI_Bcast(buffer,strlen(buffer),MPI_CHAR,master_rank,MPI_COMM_WORLD);
+    crash("");
+    // mpiBcast(buffer);
+    // MPI_Bcast(buffer,strlen(buffer),MPI_CHAR,rank,MPI_COMM_WORLD);
     prefix=buffer;
     
     free(buffer);
@@ -58,12 +60,12 @@ namespace nissa
     
     static bool print_time=true;
     
-    if(prepend_time and print_time and is_master_rank())
+    if(prepend_time and print_time and isMasterRank())
       ret+=fprintf(stream,"%lg s:\t",take_time());
     
     va_list ap;
     va_start(ap,format);
-    if(is_master_rank())
+    if(isMasterRank())
       ret=vfprintf(stream,format,ap);
     va_end(ap);
     
@@ -94,8 +96,7 @@ namespace nissa
   int create_dir(std::string path)
   {
     umask(0);
-    int res=is_master_rank() ? mkdir(path.c_str(),0775) : 0;
-    MPI_Bcast(&res,1,MPI_INT,master_rank,MPI_COMM_WORLD);
+    const int res=getExecOnMasterRank(mkdir,path.c_str(),0775);
     if(res!=0)
       master_printf("Warning, failed to create dir %s, returned %d. Check that you have permissions and that parent dir exists.\n",path.c_str(),res);
     
@@ -106,7 +107,7 @@ namespace nissa
   int cp(std::string path_out,std::string path_in)
   {
     int rc=0;
-    if(is_master_rank())
+    if(isMasterRank())
       {
 	char command[1024];
 	sprintf(command,"cp %s %s",path_in.c_str(),path_out.c_str());
@@ -121,7 +122,7 @@ namespace nissa
   int cd(std::string path)
   {
     int rc=0;
-    if(is_master_rank())
+    if(isMasterRank())
       {
 	char command[1024];
 	sprintf(command,"cd %s",path.c_str());
@@ -133,11 +134,11 @@ namespace nissa
   }
   
   //Open a file checking it
-  FILE *open_file(std::string outfile,const char *mode,int ext_rank)
+  FILE *open_file(std::string outfile,const char *mode,const MpiRank& ext_rank)
   {
     FILE *fout=NULL;
     
-    if(ext_rank==-1||rank==ext_rank)
+    if(ext_rank==-1 or thisRank==ext_rank)
       {
 	if(outfile=="-") fout=stdout;
 	else
@@ -160,14 +161,14 @@ namespace nissa
   
   //close an open file
   void close_file(FILE *file)
-  {if(is_master_rank() && file!=stdout) fclose(file);}
+  {if(isMasterRank() && file!=stdout) fclose(file);}
   
   //check if a file exists
   int file_exists(std::string path)
   {
     int status=1;
     
-    if(rank==0)
+    if(isMasterRank()==0)
       {
 	FILE *f=fopen(path.c_str(),"r");
 	if(f!=NULL)
@@ -198,7 +199,7 @@ namespace nissa
     //scan the file
     FILE *fin=open_text_file_for_input(path);
     int n=0;
-    if(is_master_rank())
+    if(isMasterRank())
       {
 	int ch;
 	while(EOF!=(ch=getchar())) if (ch=='\n') n++;
@@ -219,7 +220,7 @@ namespace nissa
     //scan the file
     FILE *fin=open_text_file_for_input(path);
     int file_size=0;
-    if(is_master_rank())
+    if(isMasterRank())
       {
 	if(fseek(fin,0,SEEK_END)) crash("while seeking");
 	file_size=ftell(fin);

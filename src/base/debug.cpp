@@ -32,15 +32,15 @@ namespace nissa
   /// Implements the trap to debug
   void debug_loop()
   {
-    if(is_master_rank())
+    if(isMasterRank())
       {
 	volatile int flag=0;
 	
-	printf("Entering debug loop on rank %d, flag has address %p please type:\n"
+	printf("Entering debug loop on rank %ld, flag has address %p please type:\n"
 	       "$ gdb -p %d\n"
 	       "$ set flag=1\n"
 	       "$ continue\n",
-	       rank,
+	       thisRank(),
 	       &flag,
 	       getpid());
 	
@@ -68,7 +68,7 @@ namespace nissa
     char **strs=backtrace_symbols(callstack,frames);
     
     //only master rank, but not master thread
-    if(is_master_rank())
+    if(isMasterRank())
       {
 	printf("Backtracing...\n");
 	for(int i=0;i<frames;i++) printf("%s\n",strs[i]);
@@ -86,7 +86,7 @@ namespace nissa
     //give time to master thread to crash, if possible
     sleep(1);
     
-    if(is_master_rank())
+    if(isMasterRank())
       {
 	//expand error message
 	char mess[1024];
@@ -96,7 +96,7 @@ namespace nissa
 	va_end(ap);
 	
 	fprintf(stderr,"\x1b[31m" "ERROR on line %d of file \"%s\", message error: \"%s\".\n\x1b[0m",line,file,mess);
-	fprintf(stderr,"Memory used: %ld bytes per rank (%ld bytes total)\n",required_memory,required_memory*nranks);
+	fprintf(stderr,"Memory used: %ld bytes per rank (%ld bytes total)\n",required_memory,required_memory*nRanks());
 	print_backtrace_list();
 	ranks_abort(0);
       }
@@ -146,7 +146,7 @@ namespace nissa
   //decript the MPI error
   void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...)
   {
-    if(rc!=MPI_SUCCESS and is_master_rank())
+    if(rc!=MPI_SUCCESS and isMasterRank())
       {
 	char err[1024];
 	int len=1024;

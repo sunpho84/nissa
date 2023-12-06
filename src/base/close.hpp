@@ -28,11 +28,11 @@ namespace nissa
     
     //print information over the maximum amount of memory used
     master_printf("Maximal memory used during the run: %zu bytes (",max_required_memory);
-    if(is_master_rank()) fprintf_friendly_filesize(stdout,max_required_memory);
+    if(isMasterRank()) fprintf_friendly_filesize(stdout,max_required_memory);
     master_printf(") per rank\n\n");
     
     //check wether there are still allocated vectors
-    if(main_vect.next!=NULL && is_master_rank())
+    if(main_vect.next!=NULL && isMasterRank())
       {
 	printf("Warning, there are still allocated vectors:\n");
 	print_all_vect_content();

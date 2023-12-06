@@ -111,8 +111,8 @@ namespace nissa
 	{
 	  auto& p=inBufOfDest[dstOfInBuf[i]()];
 	  if(p!=-1)
-	    crash("On rank %d destination %ld is filled by %ld and at least %ld at the same time",
-		  rank,(int64_t)dstOfInBuf[i](),(int64_t)p(),(int64_t)i());
+	    crash("On rank %ld destination %ld is filled by %ld and at least %ld at the same time",
+		  thisRank(),(int64_t)dstOfInBuf[i](),(int64_t)p(),(int64_t)i());
 	  p=i;
 	}
       
@@ -123,8 +123,8 @@ namespace nissa
 	{
 	  auto& p=srcOfOutBuf[outBufOfSrc[i]()];
 	  if(p!=-1)
-	    crash("On rank %d source %ld is filling %ld and at least %ld at the same time",
-		  rank,(int64_t)outBufOfSrc[i](),(int64_t)p(),(int64_t)i());
+	    crash("On rank %ld source %ld is filling %ld and at least %ld at the same time",
+		  thisRank(),(int64_t)outBufOfSrc[i](),(int64_t)p(),(int64_t)i());
 	  p=i;
 	}
       
@@ -142,15 +142,15 @@ namespace nissa
       outBufOfSrc.allocate(nSrc);
       
       /// For each destination rank, list all local sources
-      std::vector<std::vector<CSrc>> locSrcsGroupedByDstRank(nranks);
+      std::vector<std::vector<CSrc>> locSrcsGroupedByDstRank(nRanks());
       
       /// For each destination rank, list all remote destinations
-      std::vector<std::vector<CDst>> remDstsGroupedByDstRank(nranks);
+      std::vector<std::vector<CDst>> remDstsGroupedByDstRank(nRanks());
       for(CSrc locSrc=0;locSrc<nSrc;locSrc++)
 	{
 	  const auto [dstRank,remDst]=f(locSrc);
 	  
-	  if(dstRank>=nranks or dstRank<0)
+	  if(dstRank>=nRanks or dstRank<0)
 	    crash("destination rank %d does not exist!",dstRank);
 	  
 	  locSrcsGroupedByDstRank[dstRank()].emplace_back(locSrc);
@@ -168,13 +168,13 @@ namespace nissa
 	outBufOfSrc.getFillable();
       
       BufComp nOutBuf=0;
-      for(int dRank=0;dRank<nranks;dRank++)
+      for(MpiRank dRank=0;dRank<nRanks;dRank++)
 	{
 	  /// Rank towards which to send
-	  const int sendRank=
-	    (rank+nranks+dRank)%nranks;
+	  const MpiRank sendRank=
+	    (thisRank+nRanks+dRank)%nRanks;
 	  
-	  for(const CSrc& locSrc : locSrcsGroupedByDstRank[sendRank])
+	  for(const CSrc& locSrc : locSrcsGroupedByDstRank[sendRank()])
 	    {
 	      // printf("AllToAll Rank %d filling %zu with nOutBuf %zu to be sent to rank %d\n",rank,locSrc(),nOutBuf(),sendRank);
 	      
@@ -182,12 +182,12 @@ namespace nissa
 	    }
 	  
 	  /// Rank from which to receive
-	  const int recvRank=
-	    (rank+nranks-dRank)%nranks;
+	  const MpiRank recvRank=
+	    (thisRank+nRanks-dRank)%nRanks;
 	  
 	  /// List of position in the ouput where to store the portion of the buffer relative to recvRank
 	  const std::vector<CDst> dstOfBufFrRank=
-	    mpiSendrecv(sendRank,remDstsGroupedByDstRank[sendRank],recvRank);
+	    mpiSendrecv(sendRank,remDstsGroupedByDstRank[sendRank()],recvRank);
 	  
 	  // printf("AllToAll Rank %d dRank %d sent to rank %d value
 	  // nRemDstOfRank=%zu received from rank %d value
@@ -202,7 +202,7 @@ namespace nissa
 	    nRecvFrRank.emplace_back(recvRank,s);
 	  
 	  // If the node has to send, mark the node to the list with the size attached
-	  if(const size_t s=remDstsGroupedByDstRank[sendRank].size();s)
+	  if(const size_t s=remDstsGroupedByDstRank[sendRank()].size();s)
 	    nSendToRank.emplace_back(sendRank,s);
 	}
       
@@ -455,10 +455,10 @@ namespace nissa
       first.getNSrc();
     
     /// Needed to follow the application of first and second operator forward
-    DynamicTens<CompsList<CSrc>,std::tuple<MpiRank,CSrc>,MemoryType::CPU> identity((MpiRank)nranks,nSrc);
+    DynamicTens<CompsList<CSrc>,std::tuple<MpiRank,CSrc>,MemoryType::CPU> identity(nRanks,nSrc);
     
     for(CSrc src=0;src<nSrc;src++)
-      identity(src)=std::make_tuple(rank,src);
+      identity(src)=std::make_tuple(thisRank,src);
     
     /// Gets the initial position of the ultimate destination of the product
     const auto initSrc=

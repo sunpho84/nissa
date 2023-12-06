@@ -9,6 +9,7 @@
 #include <cstdio>
 
 #include <expr/comp.hpp>
+#include <routines/mpiRoutines.hpp>
 #include <routines/mpi_routines.hpp>
 
 #define TO_READ(A) A=A.getReadable()
@@ -67,9 +68,9 @@ namespace nissa
       std::common_type_t<IMin,IMax>;
     
     double initTime=0;
-    extern int rank,verbosity_lv;
+    extern int verbosity_lv;
     const bool print=(verbosity_lv>=1// 2
-		      and rank==0);
+		      and isMasterRank());
     if(print)
       {
 	printf("at line %d of file %s launching openmp loop [%d,%d)\n",

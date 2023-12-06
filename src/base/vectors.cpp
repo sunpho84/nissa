@@ -39,7 +39,7 @@ namespace nissa
   //print the content of an nissa vect
   void vect_content_fprintf(FILE *fout,nissa_vect *vect)
   {
-    if(is_master_rank())
+    if(isMasterRank())
       {
 	fprintf(fout,"\"%s\" ",vect->tag);
 	fprintf(fout,"of %ld elements of type \"%s\" (%ld bytes) ",vect->nel,vect->type,vect->nel*vect->size_per_el);

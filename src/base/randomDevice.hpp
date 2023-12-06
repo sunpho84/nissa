@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 #include <base/debug.hpp>
-#include <routines/mpi_routines.hpp>
+#include <routines/mpiRoutines.hpp>
 
 namespace nissa
 {
@@ -16,7 +16,7 @@ namespace nissa
   {
     const int size=sizeof(T);
     
-    if(is_master_rank())
+    if(isMasterRank())
       {
 	const char path[]="/dev/urandom";
 	const int fd=open(path,O_RDONLY);

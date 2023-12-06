@@ -102,7 +102,7 @@ namespace nissa
   /// data to canonical lx
   inline std::pair<int,int> index_from_ILDG_remapping(const int& iloc_ILDG)
   {
-    int iglb_ILDG=rank*locVol+iloc_ILDG;
+    int iglb_ILDG=thisRank()*locVol+iloc_ILDG;
     
     //find global coords in ildg ordering
     coords_t xto;

@@ -19,7 +19,7 @@ namespace nissa::localizer
     
     /// Portion of the perpendicular size relative to each lattice
     const OrthoSpaceTime locOsdSize=
-      (glbOsdSize+nranks-1)/nranks;
+      (glbOsdSize+nRanks()-1)/nRanks();
     
     return {fcSize,locOsdSize};
   }

@@ -90,8 +90,8 @@ namespace nissa
     
     //this must be done before everything otherwise rank non properly working
     //get the number of rank and the id of the local one
-    get_MPI_nranks();
-    get_MPI_rank();
+    getMpiNRanks();
+    getMpiRank();
     
     //associate signals
     constexpr char DO_NOT_TRAP_SIGNALS_STRING[]="NISSA_DO_NOT_TRAP_SIGNALS";
@@ -536,14 +536,14 @@ namespace nissa
     master_printf("Global lattice:\t%d",glbSizes[0]);
     for(int mu=1;mu<NDIM;mu++) master_printf("x%d",glbSizes[mu]);
     master_printf(" = %d\n",glbVol);
-    master_printf("Number of running ranks: %d\n",nranks);
-    
+    master_printf("Number of running ranks: %d\n",nRanks());
+
     //find the grid minimizing the surface
-    find_minimal_surface_grid(nrank_dir,glbSizes,nranks);
+    find_minimal_surface_grid(nrank_dir,glbSizes,nRanks());
     
     //check that lattice is commensurable with the grid
     //and check wether the mu dir is parallelized or not
-    int ok=(glbVol%nranks==0);
+    int ok=(glbVol%nRanks()==0);
     if(!ok) crash("The lattice is incommensurable with nranks!");
     
     for(int mu=0;mu<NDIM;mu++)
@@ -565,7 +565,7 @@ namespace nissa
     
     //calculate the local volume
     for(int mu=0;mu<NDIM;mu++) locSize[mu]=glbSizes[mu]/nrank_dir[mu];
-    locVol=glbVol/nranks;
+    locVol=glbVol/nRanks();
     locSpatVol=locVol/locSize[0];
     loc_vol2=(double)locVol*locVol;
     
@@ -675,11 +675,11 @@ namespace nissa
 	int proc_name_length;
 	MPI_Get_processor_name(proc_name,&proc_name_length);
 	
-	for(int irank=0;irank<nranks;irank++)
+	for(int irank=0;irank<nRanks();irank++)
 	  {
-	    if(irank==rank)
+	    if(irank==thisRank())
 	      {
-		printf("Rank %d of %d running on processor %s: %d (%d",rank,nranks,proc_name,cart_rank,rank_coord[0]);
+		printf("Rank %ld of %ld running on processor %s: %d (",thisRank(),nRanks(),proc_name,rank_coord[0]);
 		for(int mu=1;mu<NDIM;mu++) printf(" %d",rank_coord[mu]);
 		printf(")\n");
 	      }

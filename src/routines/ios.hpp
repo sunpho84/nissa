@@ -48,14 +48,12 @@
 
 namespace nissa
 {
-  extern int rank;
-  
   EXTERN_IOS int prepend_time;
   EXTERN_IOS int verb_call;
   EXTERN_IOS int verbosity_lv;
   
   int count_substrings(const char *str,const char *sub);
-  FILE* open_file(std::string path,const char *mode,int ext_rank=master_rank);
+  FILE* open_file(std::string path,const char *mode,const MpiRank& ext_rank=masterRank);
   FILE* open_text_file_for_output(std::string path);
   int cd(std::string path);
   int cp(std::string path_out,std::string path_in);
@@ -84,12 +82,12 @@ namespace nissa
     
     //scan
     T out=0;
-    if(is_master_rank() and thread_id==0)
+    if(isMasterRank() and thread_id==0)
       if(fscanf(stream,tag,&out)!=1)
 	crash("Unable to read!");
     
     //broadcast
-    MPI_Bcast(&out,sizeof(T),MPI_CHAR,master_rank,MPI_COMM_WORLD);
+    MPI_Bcast(&out,sizeof(T),MPI_CHAR,masterRank,MPI_COMM_WORLD);
     
     return out;
   }
@@ -154,7 +152,7 @@ namespace nissa
       
       //create the lock on master
       int written=true;
-      if(is_master_rank())
+      if(isMasterRank())
 	if(std::ofstream(path)<<tag<<std::endl)
 	  written=true;
 	else
@@ -162,7 +160,7 @@ namespace nissa
       else
 	written=true;
       
-      MPI_Bcast(&written,1,MPI_INT,master_rank,MPI_COMM_WORLD);
+      MPI_Bcast(&written,1,MPI_INT,masterRank(),MPI_COMM_WORLD);
       
       if(written) master_printf("Created lock file %s\n",path.c_str());
       else master_printf("Failed to create the lock file %s\n",path.c_str());
@@ -179,10 +177,10 @@ namespace nissa
       memset(&test_tag,0,sizeof(T));
       
       //read on master
-      if(is_master_rank()) std::ifstream(path)>>test_tag;
+      if(isMasterRank()) std::ifstream(path)>>test_tag;
       
       //broadcast
-      MPI_Bcast(&test_tag,sizeof(T),MPI_CHAR,master_rank,MPI_COMM_WORLD);
+      MPI_Bcast(&test_tag,sizeof(T),MPI_CHAR,masterRank(),MPI_COMM_WORLD);
       
       //return the comparison
       return (test_tag==tag);

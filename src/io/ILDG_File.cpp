@@ -243,7 +243,7 @@ namespace nissa
   //write from first node
   void ILDG_File_master_write(ILDG_File &file,void *data,size_t nbytes_req)
   {
-    if(is_master_rank())
+    if(isMasterRank())
       {
 	const size_t nbytes_written=fwrite(data,1,nbytes_req,file);
 	if(nbytes_written!=nbytes_req) crash("wrote %u bytes instead of %u required",nbytes_written,nbytes_req);
@@ -322,14 +322,14 @@ namespace nissa
   void ILDG_File_read_ildg_data_all(void *data,ILDG_File &file,ILDG_header &header)
   {
     //allocate a buffer
-    ILDG_Offset nbytes_per_rank_exp=header.data_length/nranks;
+    ILDG_Offset nbytes_per_rank_exp=header.data_length/nRanks();
     char *buf=nissa_malloc("buf",nbytes_per_rank_exp,char);
     
     //take original position
     ILDG_Offset ori_pos=ILDG_File_get_position(file);
     
     //find starting point
-    ILDG_Offset new_pos=ori_pos+rank*nbytes_per_rank_exp;
+    ILDG_Offset new_pos=ori_pos+thisRank()*nbytes_per_rank_exp;
     ILDG_File_set_position(file,new_pos,SEEK_SET);
     
     //read
