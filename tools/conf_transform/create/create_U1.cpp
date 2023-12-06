@@ -23,7 +23,7 @@ void write_u1_field(ILDG_File file, realspin1field* field)
 void inMain(int narg,char **arg)
 {
   //check argument
-  if(narg<7) crash("Use: %s L T gauge[L=LANDAU,F=FEYNMAN] seed nconfs pattern [e for plaquette] [su3conf input] [u3conf output]",arg[0]);
+  if(narg<7) crash("Use: %s L T gauge[L=LANDAU,F=FEYNMAN,C=COULOMB] seed nconfs pattern [e for plaquette] [su3conf input] [u3conf output]",arg[0]);
   
   const int L=atoi(arg[1]);
   const int T=atoi(arg[2]);
@@ -45,10 +45,13 @@ void inMain(int narg,char **arg)
   switch(gauge)
     {
     case 'L':
-      gl.alpha=LANDAU_ALPHA;
+      gl.which_gauge=gauge_info::LANDAU;
       break;
     case 'F':
-      gl.alpha=FEYNMAN_ALPHA;
+      gl.which_gauge=gauge_info::FEYNMAN;
+      break;
+    case 'C':
+      gl.which_gauge=gauge_info::COULOMB;
       break;
     default:
       crash("unknown gauge '%c'",gauge);

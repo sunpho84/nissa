@@ -62,7 +62,6 @@ namespace nissa
   //compute the tree level Symanzik gauge propagator in the momentum space according to P.Weisz
   CUDA_HOST_AND_DEVICE void mom_space_tlSym_gauge_propagator_of_imom(spin1prop prop,gauge_info gl,int imom)
   {
-    double c1=gl.c1,c12=c1*c1,c13=c12*c1;
     int kron_delta[4][4]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
     
     //momentum
@@ -82,6 +81,8 @@ namespace nissa
 	kt6+=kt6_dir[mu];
       }
     
+    double c1=gl.c1,c12=c1*c1,c13=c12*c1;
+    
     //product and sums of kt2 over direction differents from mu and nu
     for(int mu=0;mu<NDIM;mu++)
       for(int nu=0;nu<NDIM;nu++)
@@ -100,11 +101,36 @@ namespace nissa
     double kt23=kt2*kt2*kt2;
     double kt42=kt4*kt4;
     
-    if(fabs(kt2)>=1e-14)
+    if(gl.which_gauge==gauge_info::COULOMB)
       {
+	if(gl.c1!=0) crash("Coulomb gauge implmented only for Wilson action");
+	
+	double kt_spat_2=0;
+	for(int mu=1;mu<4;mu++)
+	  kt_spat_2+=kt2_dir[mu];
+	
+	for(int mu=0;mu<4;mu++)
+	  for(int nu=0;nu<4;nu++)
+	    {
+	      if(fabs(kt_spat_2)>1e-14)
+		prop[mu][nu][RE]=((mu==nu)-kt[mu]*kt[nu]*((nu!=0)+(mu!=0)-1)/kt_spat_2)/kt2/glbVol;
+	      else
+		prop[mu][nu][RE]=0;
+	      prop[mu][nu][IM]=0;
+	    }
+      }
+    else
+      {
+	constexpr double FEYNMAN_ALPHA=1,LANDAU_ALPHA=0;
+	const double alpha=
+	  (gl.which_gauge==gauge_info::FEYNMAN)?
+	  FEYNMAN_ALPHA:
+	  LANDAU_ALPHA;
+	
 	//Deltakt
 	double Deltakt=(kt2-c1*kt4)*(kt2-c1*(kt22+kt4)+0.5*c12*(kt23+2*kt6-kt2*kt4));
-	for(int rho=0;rho<4;rho++) Deltakt-=4*c13*kt4_dir[rho]*ktpo2[rho][rho];
+	for(int rho=0;rho<4;rho++)
+	  Deltakt-=4*c13*kt4_dir[rho]*ktpo2[rho][rho];
 	
 	//A
 	double A[4][4];
@@ -116,20 +142,16 @@ namespace nissa
 	for(int mu=0;mu<4;mu++)
 	  for(int nu=0;nu<4;nu++)
 	    {
-	      prop[mu][nu][RE]=gl.alpha*kt[mu]*kt[nu];
+	      prop[mu][nu][RE]=alpha*kt[mu]*kt[nu];
 	      for(int si=0;si<4;si++)
 		prop[mu][nu][RE]+=(kt[si]*kron_delta[mu][nu]-kt[nu]*kron_delta[mu][si])*kt[si]*A[si][nu];
 	      
-	      prop[mu][nu][RE]/=kt2*kt2*glbVol;
+	      if(fabs(kt2)>=1e-14)
+		prop[mu][nu][RE]/=kt2*kt2*glbVol;
+	      else
+		prop[mu][nu][RE]=0;
 	      prop[mu][nu][IM]=0;
 	    }
-      }
-    else
-      {
-	//printf("setting to zero propagator mode %d\n",glblx_of_loclx[imom]);
-	for(int mu=0;mu<4;mu++)
-	  for(int nu=0;nu<4;nu++)
-	    prop[mu][nu][RE]=prop[mu][nu][IM]=0;//gl.zmp/glb_vol;
       }
     
     //cancel when appropriate
@@ -147,7 +169,6 @@ namespace nissa
   
   void multiply_mom_space_tlSym_gauge_propagator(spin1field* out,spin1field* in,gauge_info gl)
   {
-    
     NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	spin1prop prop;

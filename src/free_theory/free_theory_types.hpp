@@ -10,7 +10,6 @@ namespace nissa
 {
   enum tm_basis_t{WILSON_BASE,MAX_TWIST_BASE};
   enum zero_mode_sub_t{PECIONA,UNNO_ALEMANNA,ONLY_100};
-  const double FEYNMAN_ALPHA=1,LANDAU_ALPHA=0;
   const double WILSON_C1=0,TLSYM_C1=-1.0/12;
   
   
@@ -42,15 +41,18 @@ namespace nissa
   
   struct gauge_info
   {
+    enum which_gauge_t{FEYNMAN,LANDAU,COULOMB};
+    
     zero_mode_sub_t zms;
-    double alpha;
+    
     double c1;
+    which_gauge_t which_gauge;
     momentum_t bc;
     
     gauge_info()
     {
       zms=UNNO_ALEMANNA;
-      alpha=LANDAU_ALPHA;
+      which_gauge=LANDAU;
       c1=WILSON_C1;
       
       for(int mu=0;mu<NDIM;mu++)

@@ -107,11 +107,13 @@ namespace nissa
     NEW_FIELD_T(temp_source);
     
     //set photon
-    gauge_info photon;
-    photon.alpha=FEYNMAN_ALPHA;
-    for(int mu=0;mu<NDIM;mu++) photon.bc[mu]=0;
-    photon.c1=C1_WILSON;
-    photon.zms=UNNO_ALEMANNA;
+     gauge_info photon;
+    // photon.alpha=FEYNMAN_ALPHA;
+    // for(int mu=0;mu<NDIM;mu++) photon.bc[mu]=0;
+    // photon.c1=C1_WILSON;
+    // photon.zms=UNNO_ALEMANNA;
+    
+    crash("");
     
     //compute tadpole
     momentum_t tadpole=compute_tadpole(photon);
