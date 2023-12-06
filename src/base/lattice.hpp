@@ -96,13 +96,13 @@ namespace nissa
       requires(not IsRef)
     {
       glbSizes=_glbSizes;
+      glbVol=compProd<Dir>(glbSizes).close()();
       
       master_printf("Global lattice:\t%ld",glbSizes.dirRow(0));
       for(Dir mu=1;mu<NDIM;mu++)
 	master_printf("x%ld",glbSizes[mu]());
       master_printf(" = %ld\n",glbVol());
       
-      glbVol=compProd<Dir>(glbSizes).close()();
       
       locVol=nissa::locVol;
       locSizes=[](const Dir& dir){return nissa::locSize[dir()];};
