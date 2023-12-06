@@ -216,7 +216,7 @@ namespace nissa
     enum class ClosingType{Fund,StackTens,DynamicTens,Field};
     
     /// Check if can be cast to Fund
-    INLINE_FUNCTION constexpr
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
       static bool _canCloseToFund()
     {
       return exprCanBeCastToFund<T>();
@@ -258,9 +258,9 @@ namespace nissa
     }
     
     /// Closes to Fund
-    INLINE_FUNCTION constexpr
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     auto closeToFund() const
-      requires(_canCloseToFund())
+    //requires(_canCloseToFund())
     {
       return (typename T::Fund)*this;
     }
@@ -298,6 +298,7 @@ namespace nissa
 #undef PROVIDE_CLOSE_TO
     
     /// Closes to the best possible thing
+    INLINE_FUNCTION constexpr
     auto close() const
     {
       return _closeTo(std::integral_constant<ClosingType,getClosingType()>());
