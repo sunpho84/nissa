@@ -38,9 +38,9 @@ namespace nissa
     using Idx=std::common_type_t<IMin,IMax>;
     
     double initTime=0;
-    extern int rank,verbosity_lv;
+    extern int verbosity_lv;
     const bool print=(verbosity_lv>=1// 2
-		      and rank==0);
+		      and isMasterRank());
     if(print)
       {
 	printf("at line %d of file %s launching serial loop [%d,%d)\n",
@@ -129,9 +129,9 @@ namespace nissa
     const dim3 gridDimension((length+blockDimension.x-1)/blockDimension.x);
     
     double initTime=0;
-    extern int rank,verbosity_lv;
+    extern int verbosity_lv;
     const bool print=(verbosity_lv>=1// 2
-		      and rank==0);
+		      and isMasterRank());
     if(print)
       {
 	printf("at line %d of file %s launching kernel on loop [%d,%d) using blocks of size %d and grid of size %d\n",

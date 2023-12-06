@@ -229,7 +229,7 @@ namespace nissa
 	      typename E0,
 	      typename E1>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    Fund _eval(std::bool_constant<true>,
+    void _eval(std::bool_constant<true>,
 	       Res& res,
 	       A&& allNccs,
 	       E0&& e0,
@@ -254,7 +254,7 @@ namespace nissa
 	      typename E0,
 	      typename E1>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    Fund _eval(std::bool_constant<false>,
+    void _eval(std::bool_constant<false>,
 	       Res& res,
 	       A&& allNccs,
 	       E0&& e0,
@@ -433,7 +433,7 @@ namespace nissa
   auto sqr(T&& x)
   {
     return x*x;
-  } 
+  }
 }
 
 #endif
