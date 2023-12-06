@@ -210,11 +210,11 @@ void init_simulation(int narg,char **arg)
       for(int mu=1;mu<NDIM;mu++) theta[mu]=0;
       int r=0,store_prop=0;
       
-      bool decripted=false;
+      bool decrypted=false;
       
       if(strcasecmp(ins,ins_tag[PROP])==0)
 	{
-	  decripted=true;
+	  decrypted=true;
 	  
 	  read_double(&kappa);
 	  master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
@@ -238,7 +238,7 @@ void init_simulation(int narg,char **arg)
       //read phasing
       if(strcasecmp(ins,ins_tag[PHASING])==0)
 	{
-	  decripted=true;
+	  decrypted=true;
 	  
 	  read_theta(theta);
 	}
@@ -250,7 +250,7 @@ void init_simulation(int narg,char **arg)
       
       if(vph)
 	{
-	  decripted=true;
+	  decrypted=true;
 	  
 	  read_double(&mass);
 	  master_printf("Read variable 'Mass' with value: %lg\n",mass);
@@ -265,7 +265,7 @@ void init_simulation(int narg,char **arg)
       //read smearing
       if(strcasecmp(ins,ins_tag[SMEARING])==0 or strcasecmp(ins,ins_tag[WFLOW])==0 or strcasecmp(ins,ins_tag[BACK_WFLOW])==0)
 	{
-	  decripted=true;
+	  decrypted=true;
 	  
 	  read_double(&kappa);
 	  master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
@@ -280,7 +280,7 @@ void init_simulation(int narg,char **arg)
       double kappa1=0.0,kappa2=0.0,kappa3=0.0;
       if(strcasecmp(ins,ins_tag[ANYSM])==0)
 	{
-	  decripted=true;
+	  decrypted=true;
 	  
 	  read_double(&kappa1);
 	  master_printf("Read variable 'Kappa1' with value: %lg\n",kappa1);
@@ -299,7 +299,7 @@ void init_simulation(int narg,char **arg)
       double kappa_asymm[4]={0.0,kappa1,kappa2,kappa3};
       
       //everything else
-      if(not decripted)
+      if(not decrypted)
 	{
 	  //external source
 	  if(strcasecmp(ins,ins_tag[EXT_FIELD])==0)

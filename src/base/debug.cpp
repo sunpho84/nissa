@@ -143,8 +143,8 @@ namespace nissa
   }
   
 #ifdef USE_MPI
-  //decript the MPI error
-  void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...)
+  //decrypt the MPI error
+  void internal_decrypt_MPI_error(int line,const char *file,int rc,const char *templ,...)
   {
     if(rc!=MPI_SUCCESS and isMasterRank())
       {

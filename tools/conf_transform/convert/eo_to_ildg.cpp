@@ -9,7 +9,7 @@ using namespace nissa;
 // {
 //   int mu_ord[4]={0,3,2,1};
   
-//   //decript from, cls order
+//   //decrypt from, cls order
 //   int glb_site_sour=iel_in+rank*8*locVolh;
 //   int shift_comp=glb_site_sour%2;
 //   glb_site_sour/=2;

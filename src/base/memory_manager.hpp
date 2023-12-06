@@ -18,6 +18,9 @@
 #endif
 
 #include <base/debug.hpp>
+#ifdef USE_CUDA
+# include <base/cuda.hpp>
+#endif
 #include <new_types/value_with_extreme.hpp>
 #include <metaprogramming/constnessChanger.hpp>
 #include <metaprogramming/crtp.hpp>
@@ -396,7 +399,7 @@ namespace nissa
       void* ptr=nullptr;
       
       verbosity_lv3_master_printf("Allocating size %zu on GPU, ",size);
-      decript_cuda_error(cudaMalloc(&ptr,size),"Allocating on Gpu");
+      decrypt_cuda_error(cudaMalloc(&ptr,size),"Allocating on Gpu");
       verbosity_lv3_master_printf("ptr: %p\n",ptr);
       
       nAlloc++;
@@ -408,7 +411,7 @@ namespace nissa
     void deAllocateRaw(void* ptr)
     {
       master_printf("Freeing from GPU memory %p\n",ptr);
-      decript_cuda_error(cudaFree(ptr),"Freeing from GPU");
+      decrypt_cuda_error(cudaFree(ptr),"Freeing from GPU");
     }
     
     /// Destruct calling common procedure
@@ -465,7 +468,7 @@ namespace nissa
 	      const size_t& count)
   {
 #if USE_CUDA
-    decript_cuda_error(cudaMemcpy(dst,src,count,cudaMemcpyKindForTransferFromTo<FROM,TO>),"calling cudaMemcpy");
+    decrypt_cuda_error(cudaMemcpy(dst,src,count,cudaMemcpyKindForTransferFromTo<FROM,TO>),"calling cudaMemcpy");
 #else
     ::memcpy(dst,src,count);
 #endif

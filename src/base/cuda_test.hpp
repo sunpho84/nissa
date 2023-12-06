@@ -72,14 +72,14 @@ namespace nissa
     {
       const int64_t tot=n*sizeof(T);
       
-      decript_cuda_error(cudaMalloc(&data,tot),"Allocating %ld bytes",tot);
+      decrypt_cuda_error(cudaMalloc(&data,tot),"Allocating %ld bytes",tot);
     }
     
     /// Free on gpu
     template <typename T>
     void gpu_free(T*& data)
     {
-      decript_cuda_error(cudaFree(data),"Freeing");
+      decrypt_cuda_error(cudaFree(data),"Freeing");
       data=NULL;
     }
     
@@ -88,7 +88,7 @@ namespace nissa
     void cpu_to_gpu(T* out,const T* in,const int64_t n)
     {
       const int64_t tot=n*sizeof(T);
-      decript_cuda_error(cudaMemcpy(out,in,tot,cudaMemcpyHostToDevice),"Copying %ld bytes from cpu to gpu",tot);
+      decrypt_cuda_error(cudaMemcpy(out,in,tot,cudaMemcpyHostToDevice),"Copying %ld bytes from cpu to gpu",tot);
     }
     
     /// Move to cpu
@@ -96,7 +96,7 @@ namespace nissa
     void gpu_to_cpu(T* out,const T* in,const int64_t n)
     {
       const int64_t tot=n*sizeof(T);
-      decript_cuda_error(cudaMemcpy(out,in,n*sizeof(T),cudaMemcpyDeviceToHost),"Copying %ld bytes from cpu to gpu",tot);
+      decrypt_cuda_error(cudaMemcpy(out,in,n*sizeof(T),cudaMemcpyDeviceToHost),"Copying %ld bytes from cpu to gpu",tot);
     }
     
     /// Color on a gpu

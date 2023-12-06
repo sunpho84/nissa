@@ -223,6 +223,46 @@ namespace nissa
       return tupleGetSubset<FreeC>(nccs);
     }
     
+    /// Cuda 12.2.3 do not accept constexpr, the false case is not dropped
+    template <typename Res,
+	      typename A,
+	      typename E0,
+	      typename E1>
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    Fund _eval(std::bool_constant<true>,
+	       Res& res,
+	       A&& allNccs,
+	       E0&& e0,
+	       E1&& e1) const
+    {
+      const auto& reIm=std::get<ComplId>(allNccs);
+      
+      if(reIm==Re)
+	{
+	  sumAssignTheProd(res,e0(Re),e1(Re));
+	  subAssignTheProd(res,e0(Im),e1(Im));
+	}
+      else
+	{
+	  sumAssignTheProd(res,e0(Re),e1(Im));
+	  sumAssignTheProd(res,e0(Im),e1(Re));
+	}
+    }
+    
+    template <typename Res,
+	      typename A,
+	      typename E0,
+	      typename E1>
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    Fund _eval(std::bool_constant<false>,
+	       Res& res,
+	       A&& allNccs,
+	       E0&& e0,
+	       E1&& e1) const
+    {
+      sumAssignTheProd(res,e0(),e1());
+    }
+    
     /// Evaluate
     template <typename...NCcs> // Non contracted components
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
@@ -283,23 +323,7 @@ namespace nissa
 	auto [e0,e1]=
 	  std::make_tuple(getSubNodeEvaluer(asConstexpr<Is>)...);
 	
-	if constexpr(isComplProd)
-	  {
-	    const auto& reIm=std::get<ComplId>(allNccs);
-	    
-	    if(reIm==Re)
-	      {
-		sumAssignTheProd(res,e0(Re),e1(Re));
-		subAssignTheProd(res,e0(Im),e1(Im));
-	      }
-	    else
-	      {
-		sumAssignTheProd(res,e0(Re),e1(Im));
-		sumAssignTheProd(res,e0(Im),e1(Re));
-	      }
-	  }
-	else
-	  sumAssignTheProd(res,e0(),e1());
+	_eval(std::bool_constant<isComplProd>(),res,allNccs,e0,e1);
       },dynamicSizes);
       
       return res;

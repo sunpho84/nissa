@@ -102,7 +102,7 @@ namespace nissa
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
     operator decltype(auto)() ATTRIB				\
     {								\
-      if constexpr(exprCanBeCastToFund<T>())			\
+      if constexpr(exprCanBeCastToFund<ATTRIB T>())		\
 	return castExprToFund(DE_CRTPFY(ATTRIB T,this));	\
     }
     
@@ -111,6 +111,22 @@ namespace nissa
     PROVIDE_AUTOMATIC_CAST_TO_FUND(/* non const */);
     
 #undef PROVIDE_AUTOMATIC_CAST_TO_FUND
+    
+// #define PROVIDE_EXPLICIT_CAST_TO_FUND(REF,VAL,ATTRIB)			\
+//     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+//       operator ATTRIB _Fund REF () ATTRIB					\
+//       requires(std::is_lvalue_reference_v<decltype(DE_CRTPFY(ATTRIB T,this).eval(((Ci)0)...))> ==VAL and \
+// 	       exprCanBeCastToFund<ATTRIB T>())				\
+//     {									\
+//       return castExprToFund(DE_CRTPFY(ATTRIB T,this));			\
+//     }
+    
+//     PROVIDE_EXPLICIT_CAST_TO_FUND(&,true,const);
+//     PROVIDE_EXPLICIT_CAST_TO_FUND(/*&*/,false,const);
+//     PROVIDE_EXPLICIT_CAST_TO_FUND(&,true,/* not const */);
+//     PROVIDE_EXPLICIT_CAST_TO_FUND(/*&*/,false,/* not const */);
+    
+// #undef PROVIDE_EXPLICIT_CAST_TO_FUND
     
     // /// Define the move-assignment operator
     // INLINE_FUNCTION
@@ -267,8 +283,8 @@ namespace nissa
     
     /// Closes to a StackTens
     INLINE_FUNCTION constexpr
-    auto closeToStackTens() const
       requires(_canCloseToStackTens());
+      auto closeToStackTens() const;
     
     /// Closes to a Field
     INLINE_FUNCTION constexpr

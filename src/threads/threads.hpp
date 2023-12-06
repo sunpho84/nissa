@@ -8,6 +8,9 @@
 #include <cstdint>
 #include <cstdio>
 
+#ifdef USE_CUDA
+# include <base/cuda.hpp>
+#endif
 #include <expr/comp.hpp>
 #include <routines/mpiRoutines.hpp>
 #include <routines/mpi_routines.hpp>
@@ -139,7 +142,7 @@ namespace nissa
     if(length>0)
       {
 	cudaGenericKernel<<<gridDimension,blockDimension>>>(min,max,std::forward<F>(f));
-	decript_cuda_error(cudaDeviceSynchronize(),"during kernel execution");
+	decrypt_cuda_error(cudaDeviceSynchronize(),"during kernel execution");
       }
     
     if(print)

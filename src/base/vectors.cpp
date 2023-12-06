@@ -160,7 +160,7 @@ namespace nissa
     "could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) " \
       "request on line %d of file %s",tag,nel,type,size,line,file
 #ifdef USE_CUDA
-    decript_cuda_error(cudaMallocManaged(&nv,tot_size),ALLOCATING_ERROR);
+    decrypt_cuda_error(cudaMallocManaged(&nv,tot_size),ALLOCATING_ERROR);
 #else
     nv=(nissa_vect*)malloc(tot_size);
     if(nv==NULL)
@@ -275,7 +275,7 @@ namespace nissa
 	
 	//really free
 #ifdef USE_CUDA
-	decript_cuda_error(cudaFree(vect),"freeing the memory for vector");
+	decrypt_cuda_error(cudaFree(vect),"freeing the memory for vector");
 #else
 	free(vect);
 #endif

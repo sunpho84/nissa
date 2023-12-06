@@ -133,6 +133,14 @@ namespace nissa
     }
     
     // /// Copy constructor
+    // constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // StackTens(const StackTens& oth)
+    // {
+    //   for(int i=0;i<nElements;i++)
+    // 	storage[i]=oth.storage[i];
+    // }
+    
+    // /// Copy constructor
     // INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     // StackTens(const StackTens& oth)
     // {
@@ -156,7 +164,6 @@ namespace nissa
 	(*this)(c...)=fun(c...);
       },std::tuple<>{});
     }
-    
     
     /// Construct from fundamental
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE

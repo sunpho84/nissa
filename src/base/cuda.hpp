@@ -16,11 +16,11 @@ namespace nissa
     static int _iCudaDevice;
   }
   
-  const int& nCudaDevices=resources::_nCudaDevices;
+  inline const int& nCudaDevices=resources::_nCudaDevices;
   
-  const int& iCudaDevice=resources::_iCudaDevice;
+  inline const int& iCudaDevice=resources::_iCudaDevice;
   
-  inline void internalDecriptCudaError(const int& line,
+  inline void internalDecryptCudaError(const int& line,
 				       const char *file,
 				       const cudaError_t& rc,
 				       const char *templ,
@@ -55,7 +55,7 @@ namespace nissa
     if(nDevices!=1)
       {
 	resources::_iCudaDevice=thisRank()%nDevices;
-	decript_cuda_error(cudaSetDevice(iCudaDevice),"Unable to set device %d",iCudaDevice);
+	decrypt_cuda_error(cudaSetDevice(iCudaDevice),"Unable to set device %d",iCudaDevice);
       }
   }
 }
