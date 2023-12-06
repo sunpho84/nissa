@@ -163,22 +163,6 @@ namespace nissa
   }
 #endif
   
-#if USE_CUDA
-  void internal_decript_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...)
-  {
-    if(rc!=cudaSuccess and rank==0)
-      {
-	va_list ap;
-	va_start(ap,templ);
-	char mess[1024];
-	vsprintf(mess,templ,ap);
-	va_end(ap);
-	
-	internal_crash(line,file,"%s, cuda raised error: %s",mess,cudaGetErrorString(rc));
-      }
-  }
-#endif
-  
   //perform a simple check on 128 bit precision
   void check_128_bit_prec()
   {

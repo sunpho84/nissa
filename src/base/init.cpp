@@ -16,7 +16,7 @@
 #endif
 
 #ifdef USE_CUDA
- #include "base/cuda.hpp"
+ #include <base/cuda.hpp>
 #endif
 
 #include "base/DDalphaAMG_bridge.hpp"
@@ -116,7 +116,7 @@ namespace nissa
     master_printf("Compiled at %s of %s\n",compile_info[2],compile_info[3]);
     
 #ifdef USE_CUDA
-    init_cuda();
+    initCuda();
 #endif
     
     //initialize the first vector of nissa
