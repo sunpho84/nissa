@@ -92,6 +92,11 @@ namespace nissa
 	return hostVal.getRef();
     }
     
+    /// Type obtained reinterpreting the fund
+    template <typename NFund>
+    using ReinterpretFund=
+      MirroredNode<CompsList<C...>,H,D,NFund>;
+    
     /// Returns a reference
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     auto getRef()

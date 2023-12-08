@@ -425,7 +425,14 @@ namespace nissa
     PROVIDE_COMPS_CAST(/* not const */);
     
     /////////////////////////////////////////////////////////////////
-  
+    
+    /// Type obtained reinterpreting the fund
+    template <typename NFund>
+    using ReinterpretFund=
+      DynamicTens<CompsList<C...>,NFund,MT,IsRef>;
+    
+    /////////////////////////////////////////////////////////////////
+    
 #define PROVIDE_GET_REF(ATTRIB)						\
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
     auto getRef() ATTRIB						\

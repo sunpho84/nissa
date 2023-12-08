@@ -643,6 +643,13 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    /// Type obtained reinterpreting the fund
+    template <typename NFund>
+    using ReinterpretFund=
+      Field<CompsList<C...>,NFund,FC,FL,MT,IsRef>;
+    
+    /////////////////////////////////////////////////////////////////
+    
     using FlattenedInnerComp=MergedComp<InnerComps>;
     
 #define PROVIDE_FLATTEN(ATTRIB)						\

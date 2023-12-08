@@ -143,6 +143,15 @@ namespace nissa
     
 #undef PROVIDE_GET_REF
     
+    /////////////////////////////////////////////////////////////////
+    
+    /// Type obtained reinterpreting the fund
+    template <typename NFund>
+    using ReinterpretFund=
+      Conjugator<_E,CompsList<C...>,NFund>;
+    
+    /////////////////////////////////////////////////////////////////
+    
     /// Evaluate
     template <typename...TD>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr

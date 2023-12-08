@@ -157,6 +157,13 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    /// Type obtained reinterpreting the fund
+    template <typename NFund>
+    using ReinterpretFund=
+      CompsBinder<CompsList<Bc...>,_E,CompsList<C...>,NFund>;
+    
+    /////////////////////////////////////////////////////////////////
+    
 #define PROVIDE_EVAL(ATTRIB)						\
     template <typename...U>						\
     CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION			\

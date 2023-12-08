@@ -60,6 +60,11 @@ namespace nissa
     //   return *this;
     // }
     
+    /// Type obtained reinterpreting the fund
+    template <typename NFund>
+    using ReinterpretFund=
+		StackTens<CompsList<C...>,NFund>;
+    
     /// Since this is on stack, we make a copy
     StackTens getRef() const
     {

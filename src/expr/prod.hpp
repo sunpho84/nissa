@@ -195,6 +195,13 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    /// Type obtained reinterpreting the fund
+    template <typename NFund>
+    using ReinterpretFund=
+      Producer<CompsList<Cc...>,std::tuple<_E...>,CompsList<C...>,NFund,std::integer_sequence<int,Is...>>;
+    
+    /////////////////////////////////////////////////////////////////
+    
     //// Returns a product on a different expressions
     template <typename...T>
     INLINE_FUNCTION

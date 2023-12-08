@@ -154,6 +154,11 @@ namespace nissa
     
 #undef PROVIDE_GET_REF
     
+    /// Type obtained reinterpreting the fund
+    template <typename NFund>
+    using ReinterpretFund=
+      CWiseCombiner<std::tuple<_E...>,CompsList<C...>,NFund,_Comb,std::integer_sequence<int,Is...>>;
+    
     /// Gets the components for the I-th addend
     template <int I,
 	      typename...Cs>
