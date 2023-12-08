@@ -44,8 +44,8 @@ namespace nissa
     /// Index of time direction
     static constexpr Dir timeDir=0;
     
-    /// Mapping of ILDG data
-    static constexpr Coords<Dir> scidacMapping=
+    /// Mapping of ILDG directons
+    static constexpr Coords<Dir> scidacDirOfNissaDir=
       [](const Dir& in)
       {
 	if(in==timeDir)
@@ -53,6 +53,10 @@ namespace nissa
 	else
 	  return nDim-in;
       };
+    
+    /// Backward substitution
+    static constexpr Coords<Dir> nissaDirOfScidacDir=
+      scidacDirOfNissaDir;
     
 #define PROVIDE_MEMBER_WITH_ACCESSOR(TYPE,NAME)		\
     TYPE _ ## NAME;					\
