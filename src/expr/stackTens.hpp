@@ -20,7 +20,7 @@
 namespace nissa
 {
 #define THIS					\
-    StackTens<CompsList<C...>,_Fund>
+  StackTens<CompsList<C...>,_Fund>
   
 #define BASE					\
   Node<THIS,CompsList<C...>>
@@ -28,7 +28,8 @@ namespace nissa
   /// Tensor
   template <typename...C,
 	    typename _Fund>
-  requires(std::is_default_constructible_v<_Fund>)
+  requires(std::is_default_constructible_v<_Fund>,
+	   (C::sizeIsKnownAtCompileTime and ... and true))
   struct THIS :
     BASE
   {
@@ -71,7 +72,12 @@ namespace nissa
       return *this;
     }
     
-    static_assert((C::sizeIsKnownAtCompileTime and ... and true),"Trying to instantiate a stack tensor with dynamic comps");
+    /// Recreates from expression
+    INLINE_FUNCTION
+    StackTens recreateFromExprs() const
+    {
+      return *this;
+    }
     
     /// Components
     using Comps=CompsList<C...>;
