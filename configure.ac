@@ -377,6 +377,14 @@ AC_DEFINE([ASM_BOOKMARK(COMMENT)],
         [Include a comment in the assembler, recognizable in the compilation])
 AC_DEFINE([ASM_BOOKMARK_BEGIN(COMMENT)],[ASM_BOOKMARK("BEGIN " COMMENT)],[Put a BEGIN for asm bookmark section])
 AC_DEFINE([ASM_BOOKMARK_END(COMMENT)],[ASM_BOOKMARK("END " COMMENT)],[Put a END for asm bookmark section])
+AH_VERBATIM([EXTERN_DEFINE],
+#ifdef NISSA_MAIN_FILE
+# define EXTERN
+#else
+# define EXTERN extern
+#endif
+)
+
 
 #result of conf to screen
 AC_MSG_RESULT([

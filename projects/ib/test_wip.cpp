@@ -1,5 +1,7 @@
 #include <memory>
-#include <nissa.hpp>
+
+#define NISSA_MAIN_FILE
+# include <nissa.hpp>
 
 #include <tuples/tuple.hpp>
 
@@ -207,13 +209,12 @@ void in_main(int narg,char **arg)
   
   init_grid(T,L);
   
-  localizer::init();
-  initFftw();
-  
   _lat=new Lattice<>;
   _lat->init(T,L);
   lat=std::make_unique<Lattice<true>>(_lat->getRef());
   
+  localizer::init();
+  initFftw();
   /////////////////////////////////////////////////////////////////
 
    master_printf("TEST\n");
@@ -375,7 +376,7 @@ void in_main(int narg,char **arg)
       auto _out=aa.communicate(in);
       
       decltype(auto) out=_out.template copyToMemorySpaceIfNeeded<MemoryType::CPU>();
-      if(rank==0)
+      if(isMasterRank())
 	for(GlbLxSite glbLxSite=0;glbLxSite<glbVol;glbLxSite++)
 	  if(const double o=out(glbLxSite).spinRow(0).colorCln(0),g=glbLxSite();o!=g)
 	    crash("%lg %lg\n",o,g);

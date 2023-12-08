@@ -11,9 +11,9 @@ namespace nissa
 {
   namespace resources
   {
-    static int _nCudaDevices;
+    EXTERN int _nCudaDevices;
     
-    static int _iCudaDevice;
+    EXTERN int _iCudaDevice;
   }
   
   inline const int& nCudaDevices=resources::_nCudaDevices;
