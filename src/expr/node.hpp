@@ -141,6 +141,25 @@ namespace nissa
       return false;
     }
     
+#define PROVIDE_REINTERPRET_FUND(ATTRIB)			\
+    template <typename NFund>					\
+      ATTRIB auto& reinterpretFund() ATTRIB			\
+    {								\
+      static_assert(sizeof(NFund)==sizeof(typename T::Fund),\
+		    "different sizes");			    \
+      							    \
+      return *(ATTRIB typename T::template		    \
+	       ReinterpretFund<NFund>*)this;		    \
+    }
+    
+    PROVIDE_REINTERPRET_FUND(const);
+    
+    PROVIDE_REINTERPRET_FUND(/* non const */);
+    
+#undef PROVIDE_REINTERPRET_FUND
+    
+    /////////////////////////////////////////////////////////////////
+    
     /// Unless explicitly overloaded
     static constexpr bool canAssignAtCompileTime=false;
     
