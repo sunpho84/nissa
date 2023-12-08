@@ -1,7 +1,6 @@
 #include <memory>
 
-#define NISSA_MAIN_FILE
-# include <nissa.hpp>
+#include <nissa.hpp>
 
 #include <tuples/tuple.hpp>
 

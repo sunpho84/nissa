@@ -21,9 +21,9 @@ namespace nissa
   
   namespace resources
   {
-    EXTERN MpiRank _thisRank;
+    inline MpiRank _thisRank;
     
-    EXTERN MpiRank _nRanks;
+    inline MpiRank _nRanks;
   }
   
   inline const MpiRank &thisRank=resources::_thisRank;
