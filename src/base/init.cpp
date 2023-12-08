@@ -137,17 +137,13 @@ namespace nissa
     //check endianness
     switch(nativeEndianness)
       {
-    case LittleEndian:
-      master_printf("System endianness: little (ordinary machine)\n");
-      break;
-    case BigEndian:
-      master_printf("System endianness: big (BG, etc)\n");
-      break;
-    };
-    
-    //set scidac mapping
-    scidac_mapping[0]=0;
-    for(int mu=1;mu<NDIM;mu++) scidac_mapping[mu]=NDIM-mu;
+      case LittleEndian:
+	master_printf("System endianness: little (ordinary machine)\n");
+	break;
+      case BigEndian:
+	master_printf("System endianness: big (BG, etc)\n");
+	break;
+      };
     
     for(int mu=0;mu<NDIM;mu++) all_dirs[mu]=1;
     for(int mu=0;mu<NDIM;mu++)
@@ -537,7 +533,7 @@ namespace nissa
     for(int mu=1;mu<NDIM;mu++) master_printf("x%d",glbSizes[mu]);
     master_printf(" = %d\n",glbVol);
     master_printf("Number of running ranks: %d\n",nRanks());
-
+    
     //find the grid minimizing the surface
     find_minimal_surface_grid(nrank_dir,glbSizes,nRanks());
     
