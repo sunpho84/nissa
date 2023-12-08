@@ -14,7 +14,8 @@ namespace nissa
   enum Endianness{LittleEndian,BigEndian};
   
   /// Endianness of the machine
-  constexpr Endianness nativeEndianness=(IS_LITTLE_ENDIAN?LittleEndian:BigEndian);
+  constexpr Endianness nativeEndianness=
+	      (IS_LITTLE_ENDIAN?LittleEndian:BigEndian);
   
   /// Access a variable with given endianness
   template <Endianness ViewEndianness,

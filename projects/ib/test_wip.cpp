@@ -221,7 +221,7 @@ void in_main(int narg,char **arg)
     // cudaGenericKernel<<<gridDimension,blockDimension>>>(0,locVol,[P=P.getWritable(),l=lat->glbCoordsOfLocLx.getReadable()] CUDA_DEVICE(auto i) mutable{P(LocLxSite(i))=l(LocLxSite(i));});
     // 	decript_cuda_error(cudaDeviceSynchronize(),"during kernel executionssss");
   
-  PhotonField P=2*sin(M_PI*(lat->glbCoordsOfLocLx+std::numeric_limits<double>::epsilon())/lat->glbSizes);
+   PhotonField P=2*sin(M_PI*(lat->glbCoordsOfLocLx+std::numeric_limits<double>::epsilon())/lat->glbSizes());
   // auto o=P.copyToMemorySpaceIfNeeded<MemoryType::CPU>().locLxSite(23).dirRow(3);
   // printf("AAA %ld %lg\n",ii(),o);
   

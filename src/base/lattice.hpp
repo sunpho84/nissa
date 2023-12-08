@@ -40,17 +40,34 @@ namespace nissa
     /// Index of time direction
     static constexpr Dir timeDir=0;
     
-    /// Global volume
-    GlbLxSite glbVol;
+    /// Mapping of ILDG data
+    static constexpr Coords<Dir> scidacMapping=
+      [](const Dir& in)
+      {
+	if(in==timeDir)
+	  return in;
+	else
+	  return nDim-in;
+      };
     
-    /// Local volume
-    LocLxSite locVol;
+#define PROVIDE_MEMBER_WITH_ACCESSOR(TYPE,NAME)		\
+    TYPE _ ## NAME;					\
+    							\
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION	\
+    const TYPE NAME() const				\
+    {							\
+      return _ ## NAME;					\
+    }
     
-    /// Gloabl extension in each direction
-    GlbCoords glbSizes;
+    PROVIDE_MEMBER_WITH_ACCESSOR(GlbLxSite,glbVol);
     
-    /// Local extension in each direction
-    LocCoords locSizes;
+    PROVIDE_MEMBER_WITH_ACCESSOR(LocLxSite,locVol);
+    
+    PROVIDE_MEMBER_WITH_ACCESSOR(GlbCoords,glbSizes);
+    
+    PROVIDE_MEMBER_WITH_ACCESSOR(LocCoords,locSizes);
+    
+#undef PROVIDE_MEMBER_WITH_ACCESSOR
     
     /// Global sites of local sites
     MirroredTens<OfComps<LocLxSite>,ConstIf<IsRef,GlbLxSite>,IsRef> glbLxOfLocLx;
@@ -92,21 +109,25 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     /// Initializes
-    void init(const GlbCoords& _glbSizes)
+    void init(const GlbCoords& extGlbSizes)
       requires(not IsRef)
     {
-      glbSizes=_glbSizes;
-      glbVol=compProd<Dir>(glbSizes).close()();
+      _glbSizes=extGlbSizes;
+      _glbVol=compProd<Dir>(glbSizes()).close()();
       
-      master_printf("Global lattice:\t%ld",glbSizes.dirRow(0));
+      master_printf("Global lattice:\t%ld",glbSizes().dirRow(0));
       for(Dir mu=1;mu<NDIM;mu++)
-	master_printf("x%ld",glbSizes[mu]());
+	master_printf("x%ld",glbSizes()[mu]());
       master_printf(" = %ld\n",glbVol());
       
+      /// Vectors containing all vectors
+      const auto ranksVector=
+	factorize(nRanks);
       
-      locVol=nissa::locVol;
-      locSizes=[](const Dir& dir){return nissa::locSize[dir()];};
-      glbCoordsOfLocLx.allocate(std::make_tuple(locVol));
+      _locVol=glbVol()()/nRanks();
+      
+      // locSizes=[](const Dir& dir){return nissa::locSize[dir()];};
+      glbCoordsOfLocLx.allocate(std::make_tuple(locVol()));
       glbCoordsOfLocLx.getFillable()=
 	[g=nissa::glbCoordOfLoclx](const LocLxSite& site,
 				   const Dir& dir)
@@ -114,7 +135,7 @@ namespace nissa
 	  return g[site()][dir()];
 	};
       
-      glbLxOfLocLx.allocate(std::make_tuple(locVol));
+      glbLxOfLocLx.allocate(std::make_tuple(locVol()));
       glbLxOfLocLx.getFillable()=
 	[g=nissa::glblxOfLoclx](const LocLxSite& site)
 	{
@@ -175,19 +196,19 @@ namespace nissa
     auto spatialOriginsMask() const
     {
       return
-	funcNodeWrapper<CompsList<LocLxSite>>(SpatOriginMaskFunctor{this->getRef()},std::make_tuple(locVol));
+	funcNodeWrapper<CompsList<LocLxSite>>(SpatOriginMaskFunctor{this->getRef()},std::make_tuple(locVol()));
     }
     
     /// Default constructor
     Lattice() = default;
     
-#define COPY_CONSTRUCTOR_BODY				\
-    glbVol(oth.glbVol),					\
-      locVol(oth.locVol),				\
-      glbSizes(oth.glbSizes),				\
-      locSizes(oth.locSizes),				\
-      glbCoordsOfLocLx(oth.glbCoordsOfLocLx.getRef())	\
-    {							\
+#define COPY_CONSTRUCTOR_BODY					\
+    _glbVol(oth._glbVol),					\
+      _locVol(oth._locVol),					\
+      _glbSizes(oth._glbSizes),					\
+      _locSizes(oth._locSizes),					\
+      glbCoordsOfLocLx(oth.glbCoordsOfLocLx.getRef())		\
+    {								\
     }
     
     /// Copy construct from reference

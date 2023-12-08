@@ -91,8 +91,6 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_dir_vol[nEdges],edge_offset[nEdges],edge_dirs[nEdges][2],isEdgeParallel[nEdges];
   EXTERN_GEOMETRY_LX int rank_edge_neigh[2][2][nEdges];
   CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
-  //mapping of ILDG data
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t scidac_mapping;
   //perpendicular dir
   EXTERN_GEOMETRY_LX which_dir_t all_dirs;
   EXTERN_GEOMETRY_LX which_dir_t only_dir[NDIM];

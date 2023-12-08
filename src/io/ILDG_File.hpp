@@ -102,18 +102,20 @@ namespace nissa
   /// data to canonical lx
   inline std::pair<int,int> index_from_ILDG_remapping(const int& iloc_ILDG)
   {
-    int iglb_ILDG=thisRank()*locVol+iloc_ILDG;
+    crash("");
+    // int iglb_ILDG=thisRank()*locVol+iloc_ILDG;
     
-    //find global coords in ildg ordering
-    coords_t xto;
-    for(int mu=NDIM-1;mu>=0;mu--)
-      {
-	int nu=scidac_mapping[mu];
-	xto[nu]=iglb_ILDG%glbSizes[nu];
-	iglb_ILDG/=glbSizes[nu];
-      }
+    // //find global coords in ildg ordering
+    // coords_t xto;
+    // for(int mu=NDIM-1;mu>=0;mu--)
+    //   {
+    // 	int nu=scidac_mapping[mu];
+    // 	xto[nu]=iglb_ILDG%glbSizes[nu];
+    // 	iglb_ILDG/=glbSizes[nu];
+    //   }
     
-    return get_loclx_and_rank_of_coord(xto);
+    // return get_loclx_and_rank_of_coord(xto);
+    return {};
   }
   
   /// Defines the reampping from lx in order to have in each rank a
@@ -121,18 +123,21 @@ namespace nissa
   /// data
   inline std::pair<int,int> index_to_ILDG_remapping(const int& iloc_lx)
   {
-    //find global index in ildg transposed ordering
-    int iglb_ILDG=0;
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	const int nu=scidac_mapping[mu];
-	iglb_ILDG=iglb_ILDG*glbSizes[nu]+glbCoordOfLoclx[iloc_lx][nu];
-      }
+    crash("");
+    // //find global index in ildg transposed ordering
+    // int iglb_ILDG=0;
+    // for(int mu=0;mu<NDIM;mu++)
+    //   {
+    // 	const int nu=scidac_mapping[mu];
+    // 	iglb_ILDG=iglb_ILDG*glbSizes[nu]+glbCoordOfLoclx[iloc_lx][nu];
+    //   }
     
-    const int irank_ILDG=iglb_ILDG/locVol;
-    const int iloc_ILDG=iglb_ILDG%locVol;
+    // const int irank_ILDG=iglb_ILDG/locVol;
+    // const int iloc_ILDG=iglb_ILDG%locVol;
     
-    return {irank_ILDG,iloc_ILDG};
+    // return {irank_ILDG,iloc_ILDG};
+    
+    return {};
   }
   
   //Writes a field to a file (data is a vector of loc_vol) with no frill
