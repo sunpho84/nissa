@@ -90,8 +90,8 @@ namespace nissa
     
     //this must be done before everything otherwise rank non properly working
     //get the number of rank and the id of the local one
-    getMpiNRanks();
-    getMpiRank();
+    resources::_nRanks=getMpiNRanks();
+    resources::_thisRank=getMpiRank();
     
     //associate signals
     constexpr char DO_NOT_TRAP_SIGNALS_STRING[]="NISSA_DO_NOT_TRAP_SIGNALS";
