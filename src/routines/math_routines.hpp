@@ -45,6 +45,22 @@ namespace nissa
   T cube(T a)
   {return a*a*a;};
   
+  /// Integral power
+  template <class T,
+	    std::incrementable I>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  T pow(const T& in,
+	const I& n)
+  {
+    T out=1;
+    
+    for(int64_t i=0;i<n;i++)
+      out*=n;
+    
+    return out;
+  };
+  
+  
   template <class T>
   void ave_dev(T &ave,T &dev,const T *v,const int n)
   {
