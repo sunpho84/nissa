@@ -31,6 +31,10 @@ namespace nissa
   using LocCoords=
     Coords<LocCoord>;
   
+  /// Mpi Rank coordinates
+  using MpiRankCoords=
+    Coords<MpiRank>;
+  
   /////////////////////////////////////////////////////////////////
   
   /// Holds all the info on the lattice
