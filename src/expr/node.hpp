@@ -449,9 +449,8 @@ namespace nissa
     template <DerivedFromComp...C>					\
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
       decltype(auto) operator()(const C&...cs) ATTRIB			\
+      requires(SatisfiesNodeRequirements<T>)				\
     {									\
-      static_assert(assertIsNode<T>,"not supporting all node requirements"); \
-      									\
       using Comps=typename T::Comps;					\
 									\
       using SubsComps=std::tuple<C...>;					\
