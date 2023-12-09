@@ -116,7 +116,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return compReduce<Combiner>(compReducedExpr.getRef());	\
+      return compReduce<Rc,Combiner>(compReducedExpr.getRef());	\
     }
     
     PROVIDE_GET_REF(const);
@@ -124,6 +124,17 @@ namespace nissa
     PROVIDE_GET_REF(/* non const */);
     
 #undef PROVIDE_GET_REF
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Type obtained reinterpreting the fund
+    template <typename NFund>
+    using ReinterpretFund=
+      CompReducer<Rc,
+		  SameRefAs<_E,typename std::decay_t<_E>::template ReinterpretFund<NFund>>,
+		  CompsList<C...>,
+		  _Fund,
+		  Combiner>;
     
     /////////////////////////////////////////////////////////////////
     
