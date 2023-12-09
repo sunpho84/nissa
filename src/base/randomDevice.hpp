@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 #include <base/debug.hpp>
+#include <metaprogramming/concepts.hpp>
 #include <routines/mpiRoutines.hpp>
 
 namespace nissa

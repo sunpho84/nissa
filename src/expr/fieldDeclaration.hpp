@@ -9,6 +9,7 @@
 
 #include <base/memoryType.hpp>
 #include <expr/comp.hpp>
+#include <expr/comps.hpp>
 #include <metaprogramming/hasMember.hpp>
 #include <tuples/tupleHasType.hpp>
 

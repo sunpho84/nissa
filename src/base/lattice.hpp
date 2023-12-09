@@ -335,27 +335,12 @@ namespace nissa
 	master_printf("x%ld",glbSizes()[mu]());
       master_printf(" = %ld\n",glbVol());
       
-      /// Vectors containing all vectors
-      const auto ranksVector=
-	factorize(nRanks);
-      
       _locVol=glbVol()()/nRanks();
       
-      // locSizes=[](const Dir& dir){return nissa::locSize[dir()];};
-      glbCoordsOfLocLx.allocate(std::make_tuple(locVol()));
-      glbCoordsOfLocLx.getFillable()=
-	[g=nissa::glbCoordOfLoclx](const LocLxSite& site,
-				   const Dir& dir)
-	{
-	  return g[site()][dir()];
-	};
-      
-      glbLxOfLocLx.allocate(std::make_tuple(locVol()));
-      glbLxOfLocLx.getFillable()=
-	[g=nissa::glblxOfLoclx](const LocLxSite& site)
-	{
-	  return g[site()];
-	};
+      const MpiRankCoords p=
+	Lattice<>::findOptimalPartitioning<MpiRankCoord>(nRanks(),glbSizes(),MpiRankCoords{});
+      if(compProd<Dir>(p).close()==0)
+	crash("Unable to partition");
     }
     
     /// Initializes from T and L
