@@ -7,6 +7,7 @@
 
 /// \file expr/field.hpp
 
+#include <base/universe.hpp>
 #include <communicate/communicate.hpp>
 #include <expr/assignDispatcher.hpp>
 #include <expr/comps.hpp>

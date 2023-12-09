@@ -6,6 +6,9 @@
 #endif
 
 #include <bit>
+#include <compare>
+#include <cstddef>
+#include <cstdint>
 
 #include <base/memory_manager.hpp>
 

@@ -8,7 +8,6 @@
 #include <tuples/tupleHasType.hpp>
 #include <tuples/tupleSubset.hpp>
 
-#include <base/debug.hpp>
 #include <expr/comp.hpp>
 
 namespace nissa

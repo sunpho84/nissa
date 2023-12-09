@@ -2,7 +2,7 @@
 #define _LATTICE_HPP
 
 #ifdef HAVE_CONFIG_H
-# include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <memory>
@@ -12,10 +12,7 @@
 #include <expr/compReduce.hpp>
 #include <expr/field.hpp>
 #include <operations/allToAll.hpp>
-
-#ifndef EXTERN_LATTICE
-# define EXTERN_LATTICE extern
-#endif
+#include <routines/mpiRank.hpp>
 
 namespace nissa
 {
@@ -472,12 +469,10 @@ namespace nissa
   };
   
   /// Stores the actual lattice
-  EXTERN_LATTICE Lattice<>* _lat;
+  inline Lattice<>* _lat;
   
-  /// Reference to the lattcice
-  EXTERN_LATTICE std::unique_ptr<Lattice<true>> lat;
+  /// Reference to the lattice
+  inline std::unique_ptr<Lattice<true>> lat;
 }
-
-#undef EXTERN_LATTICE
 
 #endif
