@@ -9,8 +9,8 @@
 #include <vector>
 
 #include <base/debug.hpp>
-#include <base/randomDevice.hpp>
 #include <routines/mpi_routines.hpp>
+#include <routines/mpiRoutines.hpp>
 
 #ifdef USE_OPENMP
 # include <omp.h>
