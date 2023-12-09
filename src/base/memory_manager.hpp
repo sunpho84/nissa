@@ -17,10 +17,10 @@
 # define EXTERN_MEMORY_MANAGER extern
 #endif
 
-#include <base/debug.hpp>
 #ifdef USE_CUDA
 # include <base/cuda.hpp>
 #endif
+#include <base/memoryType.hpp>
 #include <new_types/value_with_extreme.hpp>
 #include <metaprogramming/constnessChanger.hpp>
 #include <metaprogramming/crtp.hpp>
@@ -38,30 +38,7 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  enum class MemoryType{CPU=1,  ///< Memory allocated on CPU side
-			GPU=2}; ///< Memory allocated on GPU side
-  
-  /// Default memory to be used
-  constexpr MemoryType defaultMemoryType=
-	      MemoryType::
-#ifdef USE_CUDA
-	      GPU
-#else
-	      CPU
-#endif
-	      ;
-  
-  /// GPU memory type if compiling for device, CPU otherwise
-  constexpr MemoryType maybeGpuMemoryType=
-	      MemoryType::
-#ifdef USE_CUDA
-	      GPU
-#else
-	      CPU
-#endif
-	      ;
-  
-		  /// Type used for size
+  /// Type used for size
   using Size=int64_t;
   
   /// Minimal alignment

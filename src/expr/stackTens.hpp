@@ -9,7 +9,6 @@
 
 #include <algorithm>
 
-//#include <expr/nodes/baseTens.hpp>
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
 #include <expr/execSpace.hpp>

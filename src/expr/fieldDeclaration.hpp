@@ -7,7 +7,7 @@
 
 /// \file expr/fieldDeclaration.hpp
 
-#include <base/memory_manager.hpp>
+#include <base/memoryType.hpp>
 #include <expr/comp.hpp>
 #include <metaprogramming/hasMember.hpp>
 #include <tuples/tupleHasType.hpp>
