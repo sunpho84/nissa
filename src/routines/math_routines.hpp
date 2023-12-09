@@ -54,12 +54,11 @@ namespace nissa
   {
     T out=1;
     
-    for(int64_t i=0;i<n;i++)
-      out*=n;
+    for(I i=0;i<n;i++)
+      out*=in;
     
     return out;
   };
-  
   
   template <class T>
   void ave_dev(T &ave,T &dev,const T *v,const int n)
