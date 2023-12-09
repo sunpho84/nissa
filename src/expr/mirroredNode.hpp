@@ -95,7 +95,10 @@ namespace nissa
     /// Type obtained reinterpreting the fund
     template <typename NFund>
     using ReinterpretFund=
-      MirroredNode<CompsList<C...>,H,D,NFund>;
+      MirroredNode<CompsList<C...>,
+		   SameRefAs<H,typename std::decay_t<H>::template ReinterpretFund<NFund>>,
+		   SameRefAs<D,typename std::decay_t<D>::template ReinterpretFund<NFund>>,
+		   NFund>;
     
     /// Returns a reference
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION

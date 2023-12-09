@@ -160,7 +160,10 @@ namespace nissa
     /// Type obtained reinterpreting the fund
     template <typename NFund>
     using ReinterpretFund=
-      CompsBinder<CompsList<Bc...>,_E,CompsList<C...>,NFund>;
+      CompsBinder<CompsList<Bc...>,
+      SameRefAs<_E,typename std::decay_t<_E>::template ReinterpretFund<NFund>>,
+		  CompsList<C...>,
+		  NFund>;
     
     /////////////////////////////////////////////////////////////////
     

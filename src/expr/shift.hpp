@@ -126,6 +126,15 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    /// Type obtained reinterpreting the fund
+    template <typename NFund>
+    using ReinterpretFund=
+      Shifter<SameRefAs<_E,typename std::decay_t<_E>::template ReinterpretFund<NFund>>,
+	      CompsList<C...>,
+	      NFund>;
+    
+    /////////////////////////////////////////////////////////////////
+    
     /// Evaluates a generic argument
     template <typename T>
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE

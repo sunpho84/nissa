@@ -198,7 +198,11 @@ namespace nissa
     /// Type obtained reinterpreting the fund
     template <typename NFund>
     using ReinterpretFund=
-      Producer<CompsList<Cc...>,std::tuple<_E...>,CompsList<C...>,NFund,std::integer_sequence<int,Is...>>;
+      Producer<CompsList<Cc...>,
+      std::tuple<SameRefAs<_E,typename std::decay_t<_E>::template ReinterpretFund<NFund>>...>,
+	       CompsList<C...>,
+	       NFund,
+	       std::integer_sequence<int,Is...>>;
     
     /////////////////////////////////////////////////////////////////
     

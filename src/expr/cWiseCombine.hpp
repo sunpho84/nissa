@@ -157,7 +157,11 @@ namespace nissa
     /// Type obtained reinterpreting the fund
     template <typename NFund>
     using ReinterpretFund=
-      CWiseCombiner<std::tuple<_E...>,CompsList<C...>,NFund,_Comb,std::integer_sequence<int,Is...>>;
+      CWiseCombiner<std::tuple<SameRefAs<_E,typename std::decay_t<_E>::template ReinterpretFund<NFund>>...>,
+		    CompsList<C...>,
+		    NFund,
+		    _Comb,
+		    std::integer_sequence<int,Is...>>;
     
     /// Gets the components for the I-th addend
     template <int I,

@@ -106,7 +106,8 @@ namespace nissa
     constexpr INLINE_FUNCTION
     static double computeBorderVariance(const Coords<C>& L)
     {
-      const C v=compProd<Dir>(L);
+      const C v=
+	compProd<Dir>(L);
       
       const Coords<C> b=v/L;
       

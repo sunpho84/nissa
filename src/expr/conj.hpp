@@ -148,7 +148,9 @@ namespace nissa
     /// Type obtained reinterpreting the fund
     template <typename NFund>
     using ReinterpretFund=
-      Conjugator<_E,CompsList<C...>,NFund>;
+      Conjugator<SameRefAs<_E,typename std::decay_t<_E>::template ReinterpretFund<NFund>>,
+		 CompsList<C...>,
+		 NFund>;
     
     /////////////////////////////////////////////////////////////////
     

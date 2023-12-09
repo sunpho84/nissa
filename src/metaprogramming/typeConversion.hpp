@@ -19,6 +19,41 @@ namespace nissa
 {
   namespace impl
   {
+    /// Clones the reference
+    ///
+    /// Internal implementation
+    template <typename As,
+	      typename T>
+    struct _SameRefAs
+    {
+      using type=T;
+    };
+    
+#define PROVIDE_SAME_REF_AS(PREV,AFT)		\
+    template <typename As,			\
+	      typename T>			\
+    struct _SameRefAs<PREV As AFT,T>		\
+    {						\
+      using type=				\
+	PREV std::decay_t<T> AFT;			\
+    }
+    
+    PROVIDE_SAME_REF_AS(,&);
+    PROVIDE_SAME_REF_AS(,&&);
+    PROVIDE_SAME_REF_AS(const,&);
+    PROVIDE_SAME_REF_AS(const,);
+    
+#undef PROVIDE_SAME_REF_AS
+  }
+  
+  /// Clones the reference
+  template <typename As,
+	    typename T>
+  using SameRefAs=
+    typename impl::_SameRefAs<As,T>::type;
+  
+  namespace impl
+  {
     /// Report whether the conversion from From to To is numerically safe
     ///
     /// Generic case

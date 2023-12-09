@@ -155,7 +155,10 @@ namespace nissa
     /// Type obtained reinterpreting the fund
     template <typename NFund>
     using ReinterpretFund=
-      CompsMerger<CompsList<Mc...>,_E,CompsList<C...>,NFund>;
+      CompsMerger<CompsList<Mc...>,
+		  typename _E::template ReinterpretFund<NFund>,
+		  CompsList<C...>,
+		  NFund>;
     
     /////////////////////////////////////////////////////////////////
     

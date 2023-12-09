@@ -142,8 +142,10 @@ namespace nissa
     }
     
 #define PROVIDE_REINTERPRET_FUND(ATTRIB)			\
+    /* Reinterprets the Fund, when lvalue reference */		\
     template <typename NFund>					\
-      ATTRIB auto& reinterpretFund() ATTRIB			\
+      constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION		\
+    ATTRIB auto& reinterpretFund() ATTRIB&			\
     {								\
       static_assert(sizeof(NFund)==sizeof(typename T::Fund),\
 		    "different sizes");			    \
@@ -157,6 +159,21 @@ namespace nissa
     PROVIDE_REINTERPRET_FUND(/* non const */);
     
 #undef PROVIDE_REINTERPRET_FUND
+    
+    /// Reinterprets the Fund, when rvalue reference
+    template <typename NFund>
+      constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+      auto reinterpretFund() &&
+    {
+      static_assert(sizeof(NFund)==sizeof(typename T::Fund),
+                      "different sizes");
+      
+      using Res=
+	typename T::template ReinterpretFund<NFund>;
+      
+      return
+	(Res)(std::move(*(Res*)this));
+    }
     
     /////////////////////////////////////////////////////////////////
     

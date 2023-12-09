@@ -158,6 +158,16 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    /// Type obtained reinterpreting the fund
+    template <typename NFund>
+    using ReinterpretFund=
+      Tracer<CompsList<Tc...>,
+	     SameRefAs<_E,typename std::decay_t<_E>::template ReinterpretFund<NFund>>,
+	     CompsList<C...>,
+	     NFund>;
+    
+    /////////////////////////////////////////////////////////////////
+    
     /// Evaluate
     template <typename...NTc>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
