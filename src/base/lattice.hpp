@@ -6,6 +6,7 @@
 #endif
 
 #include <memory>
+#include <sstream>
 
 #include <expr/cWiseCombine.hpp>
 #include <expr/compReduce.hpp>
@@ -33,7 +34,7 @@ namespace nissa
   
   /// Mpi Rank coordinates
   using MpiRankCoords=
-    Coords<MpiRank>;
+    Coords<MpiRankCoord>;
   
   /////////////////////////////////////////////////////////////////
   
@@ -116,6 +117,219 @@ namespace nissa
     }
     
     /////////////////////////////////////////////////////////////////
+    
+    /// Returns the optimal paritioning {r}, which divides {l}={g}/{r}
+    template <DerivedFromComp C,
+	      DerivedFromComp G>
+    static Coords<C> findOptimalPartitioning(const int64_t& r,
+					     const Coords<G>& g,
+					     const Coords<C>& fixR)
+    {
+      constexpr bool partitionDebug=false;
+      
+      /// Result
+      Coords<C> res;
+      res=0;
+      
+      [[maybe_unused]]
+      auto coordsToStr=
+	[]<typename T>(const Coords<T>& c)
+	{
+	  std::ostringstream os;
+	  os<<"Coords["<<demangle(typeid(T).name()).c_str()<<"] : {"<<c[timeDir]();
+	  for(Dir mu=1;mu<nDim;mu++)
+	    os<<","<<c[mu]();
+	  os<<"}";
+	  
+	  return os.str();
+	};
+      
+      [[maybe_unused]]
+      auto vectToStr=
+	[](const std::vector<int64_t>& c)
+	{
+	  std::ostringstream os;
+	  os<<"{"<<c[timeDir()];
+	  for(Dir mu=1;mu<nDim;mu++)
+	    os<<","<<c[mu()];
+	  os<<"}";
+	  
+	  return os.str();
+	};
+      
+      const int64_t l=
+	compProd<Dir>(g)()()/r;
+      
+      if constexpr(partitionDebug)
+	master_printf("Going to factorize l=%ld, r=%ld, g=%s with constraints: %s\n",l,r,coordsToStr(g).c_str(),coordsToStr(fixR).c_str());
+      
+      /// Factors of l
+      const std::vector<int64_t> lFactors=
+	factorize(l);
+      
+      if constexpr(partitionDebug)
+	master_printf("l factors: %s\n",vectToStr(lFactors).c_str());
+      
+      /// Factors of r
+      const std::vector<int64_t> rFactors=
+	factorize(r);
+      
+      if constexpr(partitionDebug)
+	master_printf("r factors: %s\n",vectToStr(rFactors).c_str());
+      
+      /// Chooses if to factorize r, otherwise l
+      const bool factorizeR=
+	lFactors.size()>=rFactors.size();
+      
+      master_printf("factorize r: %d\n",factorizeR);
+      
+      /// Copy the facts to be used
+      const std::vector<int64_t>& facts=
+	factorizeR?
+	rFactors:
+	lFactors;
+      
+       const int64_t nFacts=
+	 facts.size();
+      
+      if constexpr(partitionDebug)
+	master_printf("nFacts: %ld\n",nFacts);
+      
+      /// We will decompose the index putting each factor to the correct direction
+      const int64_t baseMask=
+	pow(nDim(),nFacts-1);
+      
+      if constexpr(partitionDebug)
+	master_printf("baseMask: %ld\n",baseMask);
+      
+      /// Total number of combo
+      const int64_t nCombo=
+	baseMask*nDim();
+      
+      master_printf("nCombo: %ld\n",nCombo);
+      
+      int64_t minLocSurf=l;
+      double minBordVariance=-1;
+      int64_t nextSupposedValid=0;
+      for(int64_t iCombo=0;iCombo<nCombo;)
+	{
+	  if constexpr(partitionDebug)
+	    master_printf("iCombo: %ld/%ld\n",iCombo,nCombo);
+	  
+	  //number of ranks in each direction for current partitioning
+	  Coords<C> R;
+	  R=1;
+	  
+	  //find the partioning corresponding to icombo
+	  int64_t mask=baseMask;
+	  int64_t iFact=facts.size()-1;
+	  bool validPartitioning=true;
+	  do
+	    {
+	      if constexpr(partitionDebug)
+		{
+		  master_printf(" iFact: %ld/%ld\n",iFact,nFacts);
+		  master_printf(" mask %ld\n",mask);
+		}
+	      
+	      /// Direction: this is given by the ifact digit of icombo wrote in base nDim
+	      const Dir mu=
+		(int)((iCombo/mask)%nDim());
+	      
+	      if constexpr(partitionDebug)
+		master_printf(" mu: %d\n",mu());
+	      
+	      const int64_t f=
+		facts[iFact];
+	      R[mu]*=f;
+	      
+	      if constexpr(partitionDebug)
+		master_printf(" fact: %ld\n",f);
+	      
+	      //check that the total volume L is a multiple and it is larger than the number of proc
+	      validPartitioning&=
+		(g[mu]()%R[mu]()==0 and g[mu]()>=R[mu]());
+	      
+	      if constexpr(partitionDebug)
+		master_printf("g[mu]\%R[mu] = %ld  %ld = %ld\n",g[mu](),R[mu](),g[mu]()%R[mu]());
+	      
+	      if(validPartitioning)
+		{
+		  iFact--;
+		  mask/=nDim();
+		}
+	      
+	      if constexpr(partitionDebug)
+		{
+		  master_printf("valid: %d \n",validPartitioning);
+		  printf("\n");
+		}
+	    }
+	  while(validPartitioning and iFact>=0);
+	  
+	  if(not factorizeR)
+	    for(Dir mu=0;mu<nDim;mu++)
+	      R[mu]=g[mu]()/R[mu];
+	  
+	  for(Dir mu=0;mu<nDim;mu++)
+	    if(fixR[mu]())
+	      validPartitioning&=(fixR[mu]==R[mu]);
+	  
+	  if constexpr(partitionDebug)
+	    master_printf("Valid: %d (should not before: %ld)\n",validPartitioning,nextSupposedValid);
+	  
+	  //validity coulde have changed
+	  if(validPartitioning)
+	    {
+	      const Coords<C> tryLSizes=
+		g.template reinterpretFund<C>()/R;
+	      
+	      const int64_t locSurf=
+		l-bulkVolume(tryLSizes)();
+	      
+	      const double bordVariance=
+		computeBorderVariance(tryLSizes);
+		
+	      if(locSurf<minLocSurf or
+		 (locSurf==minLocSurf and
+		  bordVariance<minBordVariance))
+		{
+		  minLocSurf=locSurf;
+		  minBordVariance=bordVariance;
+		  
+		  res=R;
+		}
+	      
+	      if constexpr(partitionDebug)
+		if(iCombo<nextSupposedValid)
+		  master_printf("hei! it was not supposed to be valid!\n");
+	      
+	      iCombo++;
+	    }
+	  //skip all remaining factorization using the same structure
+	  else
+	    {
+	      const int64_t skip=
+		pow(nDim(),std::max(0l,iFact-1));
+	      
+	      // iCombo+=skip;
+	      if(iCombo>=nextSupposedValid)
+		{
+		  nextSupposedValid=iCombo+skip;
+		  if constexpr(partitionDebug)
+		    master_printf("Would need to skip up to: %ld\n",iCombo+skip);
+		}
+	      if constexpr(partitionDebug)
+		iCombo++;
+	      else
+		iCombo=nextSupposedValid;
+	    }
+	  if constexpr(partitionDebug)
+	    printf("\n");
+	}
+      
+      return res;
+    }
     
     /// Initializes
     void init(const GlbCoords& extGlbSizes)
