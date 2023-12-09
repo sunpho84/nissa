@@ -62,20 +62,6 @@ namespace nissa
   DECLARE_DYNAMIC_COMP(LocCoord);
   DECLARE_DYNAMIC_COMP(GlbCoord);
   DECLARE_PARALLELIZABLE_COMP(GlbLxSite,int64_t,glbLxSite);
-  
-  DECLARE_UNTRANSPOSABLE_COMP(Parity,int,2,createParity);
-  DECLARE_TRANSPOSABLE_COMP(Dir,int,NDIM,dir);
-  
-  DECLARE_UNTRANSPOSABLE_COMP(Ori,int,2,createOri);
-  
-  /// Backward, see real imag comment
-#define bw Ori(0)
-  
-  /// Forward
-#define fw Ori(1)
-  
-  /// Number of dimensions
-#define nDim Dir(NDIM)
 }
 
 #endif

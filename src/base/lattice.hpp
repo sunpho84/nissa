@@ -19,11 +19,6 @@
 
 namespace nissa
 {
-  /// Coordinates for a given type
-  template <DerivedFromComp Comp>
-  using Coords=
-    StackTens<CompsList<Dir>,Comp>;
-  
   /// Global coordinates
   using GlbCoords=
     Coords<GlbCoord>;

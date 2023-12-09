@@ -1,7 +1,6 @@
 #ifndef _DEBUG_HPP
 #define _DEBUG_HPP
 
-
 #ifdef HAVE_CONFIG_H
 # include <config.hpp>
 #endif
