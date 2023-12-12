@@ -235,7 +235,7 @@ namespace nissa
     int len=strlen(in)+1;
     int copy_len=(len<=size)?len:size;
     const char *str_init=(len<=size)?in:in+len-size;
-    memcpy(out,str_init,copy_len);
+    ::memcpy(out,str_init,copy_len);
   }
   
   //combine arguments in a single string

@@ -491,7 +491,8 @@ namespace nissa
 									\
       using SubsComps=std::tuple<C...>;					\
 									\
-      static_assert(tupleHaveTypes<Comps,SubsComps>);			\
+      static_assert(tupleHaveTypes<Comps,SubsComps>,			\
+		    "Missing type");					\
 									\
       /*! Leftover components */					\
       using ResidualComps=						\

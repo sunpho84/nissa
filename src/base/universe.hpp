@@ -11,14 +11,56 @@
 namespace nissa
 {
   DECLARE_UNTRANSPOSABLE_COMP(Parity,int,2,createParity);
+  
   DECLARE_TRANSPOSABLE_COMP(Dir,int,NDIM,dir);
+  
+  DECLARE_TRANSPOSABLE_COMP(PerpDir,int,NDIM-1,perpDir);
   
   DECLARE_UNTRANSPOSABLE_COMP(Ori,int,2,createOri);
   
   /// Coordinates for a given type
-  template <DerivedFromComp Comp>
+  template <typename F>
   using Coords=
-    StackTens<CompsList<Dir>,Comp>;
+    StackTens<CompsList<Dir>,F>;
+  
+  /// Decompose lx index f into the coordinates in sizes s
+  template <typename F,
+	    typename C>
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
+  Coords<C> decomposeLxToCoords(F f,
+				const Coords<C>& _s)
+  {
+    Coords<C> _x;
+    const Coords<F>& s=_s.template reinterpretFund<F>();
+    Coords<F>& x=_x.template reinterpretFund<F>();
+    
+    for(Dir mu=NDIM-1;mu>=0;mu--)
+      {
+	F t=s[mu];
+	x[mu]=f%t;
+	f/=t;
+      }
+    
+    return x;
+  }
+  
+  /// Finds the index f of coordinates in sizes s
+  template <typename F,
+	    typename C>
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
+  F lxOfCoords(const Coords<C>& _x,
+	       const Coords<C>& _s)
+  {
+    const Coords<F>& x=_x.template reinterpretFund<F>();
+    const Coords<F>& s=_s.template reinterpretFund<F>();
+    
+    F f=0;
+    
+    for(Dir mu=0;mu<NDIM;mu++)
+      f=f*s[mu]+x[mu];
+    
+    return f;
+  }
   
   /// Backward, see real imag comment
 #define bw Ori(0)
@@ -28,6 +70,14 @@ namespace nissa
   
   /// Number of dimensions
 #define nDim Dir(NDIM)
+  
+  /// Perpendicular direction of a given dir
+  constexpr StackTens<CompsList<Dir,PerpDir>,Dir> perpDirOf=
+    [] (const Dir& dir,
+	const PerpDir& perpDir) -> Dir
+    {
+      return (perpDir()>=dir())?(perpDir()+1):perpDir();
+    };
 }
 
 #endif

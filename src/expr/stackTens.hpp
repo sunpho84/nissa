@@ -208,7 +208,7 @@ namespace nissa
 	    DerivedFromComp...Ci>
   INLINE_FUNCTION constexpr
   auto Node<T,CompsList<Ci...>>::closeToStackTens() const
-    requires(_canCloseToStackTens())
+    // requires(_canCloseToStackTens())
   {
     using Res=
       StackTens<typename T::Comps,

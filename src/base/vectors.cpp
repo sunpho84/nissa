@@ -133,7 +133,7 @@ namespace nissa
 	main_vect.nel=0;
 	main_vect.size_per_el=0;
 	const char file_name[]=__FILE__;
-	memcpy(main_vect.file,file_name+std::max(0,(int)strlen(file_name)-12),12);
+	::memcpy(main_vect.file,file_name+std::max(0,(int)strlen(file_name)-12),12);
 	main_vect.line=__LINE__;
 	main_arr=(char*)last_vect+sizeof(nissa_vect);
 	
@@ -229,7 +229,7 @@ namespace nissa
 	    CAPTURE(a,size_per_el_a,b),
 	    i,
 	    {
-	      memcpy((char*)a+i*size_per_el_a,(char*)b+i*size_per_el_a,size_per_el_a);
+	      ::memcpy((char*)a+i*size_per_el_a,(char*)b+i*size_per_el_a,size_per_el_a);
 	    });
 	
 	//copy the flag

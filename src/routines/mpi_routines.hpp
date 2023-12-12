@@ -77,7 +77,6 @@ namespace nissa
   size_t MPI_Get_count_size_t(MPI_Status &status);
   void coords_broadcast(coords_t& c);
   void init_MPI_thread(int narg,char **arg);
-  void create_MPI_cartesian_grid();
   void ranks_abort(int err);
   void ranks_barrier();
   int broadcast(int in,int rank_from=0);

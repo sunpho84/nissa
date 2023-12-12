@@ -434,7 +434,7 @@ namespace nissa
   void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,ILDG_Offset nbytes_per_site,const char *type)
   {
     //prepare the header and write it
-    const uint64_t data_length=nbytes_per_site*glbVol;
+    const uint64_t data_length=nbytes_per_site*lat->getGlbVol()();
     ILDG_header header=ILDG_File_build_record_header(0,0,type,data_length);
     ILDG_File_write_record_header(file,header);
     

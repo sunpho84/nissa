@@ -1,28 +1,29 @@
-#ifndef _MPIRANK_HPP
-#define _MPIRANK_HPP
+#ifndef _MPITYPES_HPP
+#define _MPITYPES_HPP
 
 #ifdef HAVE_CONFIG_H
-# include "config.hpp"
+# include <config.hpp>
 #endif
 
-#include <base/universe.hpp>
 #include <expr/comp.hpp>
 
 namespace nissa
 {
   DECLARE_DYNAMIC_COMP(MpiRankCoord);
   
-  /// Mpi Rank coordinates
-  using MpiRankCoords=
-    Coords<MpiRankCoord>;
+  DECLARE_DYNAMIC_COMP(MpiRank);
   
-  namespace resources
+  /// Master rank
+  constexpr MpiRank masterRank=0;
+  
+  PROVIDE_RESOURCE(thisRank,MpiRank);
+  
+  /// Check if this is the master rank
+  INLINE_FUNCTION
+  bool isMasterRank()
   {
-    inline MpiRankCoords _nRanksPerDir;
+    return thisRank==masterRank;
   }
-  
-  inline const MpiRankCoords &nRanksPerDir=resources::_nRanksPerDir;
-  
 }
 
 #endif

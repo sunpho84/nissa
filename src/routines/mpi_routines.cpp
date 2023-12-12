@@ -51,16 +51,6 @@ namespace nissa
 #endif
   }
   
-  //define the cartesian grid
-  void create_MPI_cartesian_grid()
-  {
-#ifdef USE_MPI
-    rank_coord=coord_of_rank(thisRank());
-#else
-    for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=0;
-#endif
-  }
-  
   //barrier
   void ranks_barrier()
   {

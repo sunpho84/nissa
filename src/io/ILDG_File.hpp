@@ -1,6 +1,7 @@
 #ifndef _ILDG_FILE_HPP
 #define _ILDG_FILE_HPP
 
+#include "base/lattice.hpp"
 #ifdef HAVE_CONFIG_H
  #include "config.hpp"
 #endif
@@ -144,7 +145,7 @@ namespace nissa
   template <typename T>
   void write_lattice_field(ILDG_File &file,T *data)
   {
-    ILDG_File_write_ildg_data_all_raw(file,data,locVol*sizeof(T));
+    ILDG_File_write_ildg_data_all_raw(file,data,lat->getLocVol()()*sizeof(T));
   }
   
   //Writes a field opening the file with given path (data is a vector of loc_vol) with no frill

@@ -1,6 +1,7 @@
 #ifndef _FIELD_HPP
 #define _FIELD_HPP
 
+#include "base/lattice.hpp"
 #ifdef HAVE_CONFIG_H
 # include <config.hpp>
 #endif
@@ -22,152 +23,25 @@
 
 namespace nissa
 {
-  /// Number of sites contained in the field
-  template <FieldCoverage fieldCoverage>
-  struct FieldSizes
-  {
-    /// Assert that the coverage is definite
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static void assertHasDefinedCoverage()
-    {
-      static_assert(fieldCoverage==FULL_SPACE or
-		    fieldCoverage==EVEN_SITES or
-		    fieldCoverage==ODD_SITES,
-		    "Trying to probe some feature of a field with unknwon coverage. If you are accessing an EvnOrOddField subfield, do it without subscribing them, or cast to the specific subspace");
-    }
-    
-    /// Number of sites covered by the field
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr int& nSites()
-    {
-      if constexpr(fieldCoverage==FULL_SPACE)
-	return locVol;
-      else
-	return locVolh;
-    }
-    
-    /// Number of sites in the halo of the field (not necessarily allocated)
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr int& nHaloSites()
-    {
-      if constexpr(fieldCoverage==FULL_SPACE)
-	return bord_vol;
-      else
-	return bord_volh;
-    }
-    
-    /// Number of sites in the edges of the field (not necessarily allocated)
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr int& nEdgesSites()
-    {
-      if constexpr(fieldCoverage==FULL_SPACE)
-	return edge_vol;
-      else
-	return edge_volh;
-    }
-    
-    /// Computes the size to allocate
-    static int nSitesToAllocate(const HaloEdgesPresence& haloEdgesPresence)
-    {
-      int res=locVol;
-      
-      if(haloEdgesPresence>=WITH_HALO)
-	res+=nHaloSites();
-      
-      if(haloEdgesPresence>=WITH_HALO_EDGES)
-	res+=nEdgesSites();
-      
-      return res;
-    }
-    
-    /// Surface site of a site in the halo
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static auto surfSiteOfHaloSite(const int& iHalo)
-    {
-      assertHasDefinedCoverage();
-      
-      if constexpr(fieldCoverage==FULL_SPACE)
-	return surflxOfBordlx[iHalo];
-      else
-	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
-	  return surfeo_of_bordeo[fieldCoverage][iHalo];
-    }
-    
-    /// Surface site of a site in the e
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static auto surfSiteOfEdgeSite(const int& iEdge)
-    {
-      assertHasDefinedCoverage();
-      
-      if constexpr(fieldCoverage==FULL_SPACE)
-	return surflxOfEdgelx[iEdge];
-      else
-	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
-	  return surfeo_of_edgeo[fieldCoverage][iEdge];
-    }
-    
-#define PROVIDE_NEIGH(UD)						\
-									\
-    /* Neighbor in the UD orientation */				\
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION				\
-    static auto locNeigh ## UD(const int& site,				\
-			       const int& mu)				\
-    {									\
-      assertHasDefinedCoverage();					\
-      									\
-      if constexpr(fieldCoverage==FULL_SPACE)				\
-	return loclxNeigh ## UD[site][mu];				\
-      else								\
-	if constexpr(fieldCoverage==EVEN_SITES or			\
-		     fieldCoverage==ODD_SITES)				\
-	  return loceo_neigh ## UD[fieldCoverage][site][mu];		\
-    }
-    
-    PROVIDE_NEIGH(dw);
-    
-    PROVIDE_NEIGH(up);
-    
-#undef PROVIDE_NEIGH
-    
-    /////////////////////////////////////////////////////////////////
-    
-    /// Global coordinates
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static auto glbCoord(const int& site,
-			 const int& mu)
-    {
-      assertHasDefinedCoverage();
-      
-      if constexpr(fieldCoverage==FULL_SPACE)
-	return glbCoordOfLoclx[site][mu];
-      else
-	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
-	  return glbCoordOfLoclx[loclx_of_loceo[fieldCoverage][site]][mu];
-    }
-  };
-  
   /// Used to dispatch the copy constructor
   struct _CopyConstructInternalDispatcher
   {
   };
   
   /// Start the communications of buffer interpreted as halo
-  std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff,
-						     const size_t& bps);
+  std::vector<MPI_Request> startBufHaloNeighExchange(const size_t& bps);
   
   /// Specifies the order of components
   template <typename TP,
 	    typename F,
-	    FieldCoverage FC,
 	    FieldLayout FL>
   struct FieldCompsProvider;
   
-#define PROVIDE_FIELD_COMPS_PROVIDER(COVERAGE,LAYOUT,SITE,TYPES...)	\
+#define PROVIDE_FIELD_COMPS_PROVIDER(LAYOUT,SITE,TYPES...)	\
   									\
   template <typename...C,						\
 	    typename F>							\
   struct FieldCompsProvider<CompsList<C...>,F,				\
-			    FieldCoverage::COVERAGE,			\
 			    FieldLayout::LAYOUT>			\
   {									\
     using Comps=CompsList<TYPES>;					\
@@ -177,26 +51,20 @@ namespace nissa
     using Fund=F;							\
   }
   
-  PROVIDE_FIELD_COMPS_PROVIDER(FULL_SPACE,CPU,LocLxSite,LocLxSite,C...);
-  PROVIDE_FIELD_COMPS_PROVIDER(EVEN_OR_ODD_SITES,CPU,LocEoSite,Parity,LocEoSite,C...);
-  PROVIDE_FIELD_COMPS_PROVIDER(EVEN_SITES,CPU,LocEvnSite,LocEvnSite,C...);
-  PROVIDE_FIELD_COMPS_PROVIDER(ODD_SITES,CPU,LocOddSite,LocOddSite,C...);
+  PROVIDE_FIELD_COMPS_PROVIDER(CPU,LocLxSite,LocLxSite,C...);
   
-  PROVIDE_FIELD_COMPS_PROVIDER(FULL_SPACE,GPU,LocLxSite,C...,LocLxSite);
-  PROVIDE_FIELD_COMPS_PROVIDER(EVEN_OR_ODD_SITES,GPU,LocEoSite,C...,Parity,LocEoSite);
-  PROVIDE_FIELD_COMPS_PROVIDER(EVEN_SITES,GPU,LocEvnSite,C...,LocEvnSite);
-  PROVIDE_FIELD_COMPS_PROVIDER(ODD_SITES,GPU,LocOddSite,C...,LocOddSite);
+  PROVIDE_FIELD_COMPS_PROVIDER(GPU,LocLxSite,C...,LocLxSite);
   
 #undef PROVIDE_FIELD_COMPS_PROVIDER
   
   /////////////////////////////////////////////////////////////////
   
-#define FIELD_COMPS_PROVIDER FieldCompsProvider<CompsList<C...>,_Fund,FC,FL>
+#define FIELD_COMPS_PROVIDER FieldCompsProvider<CompsList<C...>,_Fund,FL>
   
 #define FIELD_COMPS typename FIELD_COMPS_PROVIDER::Comps
   
 #define THIS						\
-  Field<CompsList<C...>,_Fund,FC,FL,MT,IsRef>
+  Field<CompsList<C...>,_Fund,FL,MT,IsRef>
   
 #define BASE					\
   Node<THIS,FIELD_COMPS>
@@ -204,7 +72,6 @@ namespace nissa
   /// Defines a field
   template <typename...C,
 	    typename _Fund,
-	    FieldCoverage FC,
 	    FieldLayout FL,
 	    MemoryType MT,
 	    bool IsRef>
@@ -226,14 +93,14 @@ namespace nissa
     
     ///  Equivalent Field on device
     using DeviceEquivalent=
-      Field<CompsList<C...>,_Fund,FC,FieldLayout::GPU,maybeGpuMemoryType,IsRef>;
+      Field<CompsList<C...>,_Fund,FieldLayout::GPU,maybeGpuMemoryType,IsRef>;
     
     template <FieldLayout OFL,
 	      MemoryType OMT,
 	      bool OIR>
     requires(OFL!=FL or OMT!=MT)
     INLINE_FUNCTION
-    Field& operator=(const Field<CompsList<C...>,_Fund,FC,OFL,OMT,OIR>& oth)
+    Field& operator=(const Field<CompsList<C...>,_Fund,OFL,OMT,OIR>& oth)
     {
       if(this->getDynamicSizes()!=oth.getDynamicSizes())
 	crash("trying to assign fields on different memory space, having different dynamic sizes");
@@ -252,7 +119,7 @@ namespace nissa
     void assign(O&& oth)
     {
 #define LOOP(LOOP_TYPE)							\
-      LOOP_TYPE(0,this->nSites(),					\
+      LOOP_TYPE(0,lat->getLocVol(),					\
 		CAPTURE(self=this->getWritable(),			\
 			TO_READ(oth)),					\
 		site,							\
@@ -296,8 +163,7 @@ namespace nissa
       nTotalAllocatedSites=oth.nTotalAllocatedSites;
       data=std::move(oth.data);
       haloIsValid=oth.haloIsValid;
-      edgesAreValid=oth.edgesAreValid;
-      haloEdgesPresence=oth.haloEdgesPresence;
+      haloPresence=oth.haloPresence;
       
       return *this;
     }
@@ -330,8 +196,6 @@ namespace nissa
     //   return *this;
     // }
     
-    static constexpr FieldCoverage fieldCoverage=FC;
-    
     static constexpr FieldLayout fieldLayout=FL;
     
     /// Internal components
@@ -361,10 +225,6 @@ namespace nissa
     
 #undef FIELD_COMPS_PROVIDER
     
-    /// Coefficient which divides the space time, if the field is covering only half the space
-    static constexpr const int divCoeff=
-      (FC==FULL_SPACE)?1:2;
-    
     /// Internal storage type
     using Data=
       DynamicTens<Comps,Fund,MT,IsRef>;
@@ -375,122 +235,12 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static void assertHasDefinedCoverage()
-    {
-      static_assert(fieldCoverage==FULL_SPACE or
-		    fieldCoverage==EVEN_SITES or
-		    fieldCoverage==ODD_SITES,
-		    "Trying to probe some feature of a field with unknwon coverage. If you are accessing an EvnOrOddField subfield, do it without subscribing them, or cast to the specific subspace");
-    }
-    
-    /// Number of sites covered by the field
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr const Site nSites()
-    {
-      if constexpr(fieldCoverage==FULL_SPACE)
-	return locVol;
-      else
-	return locVolh;
-    }
-    
-    /// Number of sites in the halo of the field (not necessarily allocated)
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr const Site nHaloSites()
-    {
-      if constexpr(fieldCoverage==FULL_SPACE)
-	return bord_vol;
-      else
-	return bord_volh;
-    }
-    
-    /// Number of sites in the edges of the field (not necessarily allocated)
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr const Site nEdgesSites()
-    {
-      if constexpr(fieldCoverage==FULL_SPACE)
-	return edge_vol;
-      else
-	return edge_volh;
-    }
-    
     /// Computes the size to allocate
-    static Site nSitesToAllocate(const HaloEdgesPresence& haloEdgesPresence)
+    static Site nSitesToAllocate(const HaloPresence& haloPresence)
     {
-      Site res=nSites();
-      
-      if(haloEdgesPresence>=WITH_HALO)
-	res+=nHaloSites();
-      
-      if(haloEdgesPresence>=WITH_HALO_EDGES)
-	res+=nEdgesSites();
-      
-      return res;
-    }
-    
-    /// Surface site of a site in the halo
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static Site surfSiteOfHaloSite(const Site& iHalo)
-    {
-      assertHasDefinedCoverage();
-      
-      if constexpr(fieldCoverage==FULL_SPACE)
-	return surflxOfBordlx[iHalo()];
-      else
-	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
-	  return surfeo_of_bordeo[fieldCoverage][iHalo()];
-    }
-    
-    /// Surface site of a site in the e
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static Site surfSiteOfEdgeSite(const Site& iEdge)
-    {
-      assertHasDefinedCoverage();
-      
-      if constexpr(fieldCoverage==FULL_SPACE)
-	return surflxOfEdgelx[iEdge];
-      else
-	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
-	  return surfeo_of_edgeo[fieldCoverage][iEdge];
-    }
-    
-#define PROVIDE_NEIGH(UD)						\
-									\
-    /* Neighbor in the UD orientation */				\
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION				\
-    static Site locNeigh ## UD(const Site& site,			\
-			       const Dir& mu)				\
-    {									\
-      assertHasDefinedCoverage();					\
-      									\
-      if constexpr(fieldCoverage==FULL_SPACE)				\
-	return loclxNeigh ## UD[site][mu];				\
-      else								\
-	if constexpr(fieldCoverage==EVEN_SITES or			\
-		     fieldCoverage==ODD_SITES)				\
-	  return loceo_neigh ## UD[fieldCoverage][site][mu];		\
-    }
-    
-    PROVIDE_NEIGH(dw);
-    
-    PROVIDE_NEIGH(up);
-    
-#undef PROVIDE_NEIGH
-    
-    /////////////////////////////////////////////////////////////////
-    
-    /// Global coordinates
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static auto glbCoord(const Site& site,
-			 const Dir& mu)
-    {
-      assertHasDefinedCoverage();
-      
-      if constexpr(fieldCoverage==FULL_SPACE)
-	return glbCoordOfLoclx[site][mu];
-      else
-	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
-	  return glbCoordOfLoclx[loclx_of_loceo[fieldCoverage][site]][mu];
+      return lat->getLocVol()+
+	((haloPresence>=WITH_HALO)?
+	 2*lat->getSurfSize():0);
     }
     
     /////////////////////////////////////////////////////////////////
@@ -505,20 +255,17 @@ namespace nissa
     /// Storage data
     mutable Data data;
     
-    /// Presence of halo and edges
-    HaloEdgesPresence haloEdgesPresence;
+    /// Presence of halo
+    HaloPresence haloPresence;
     
     /// States whether the halo is updated
     mutable bool haloIsValid;
-    
-    /// States whether the edges are updated
-    mutable bool edgesAreValid;
     
     /// Returns the dynamic sizes
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     auto getDynamicSizes() const
     {
-      return std::make_tuple(nSites());
+      return std::make_tuple(lat->getLocVol());
     }
     
 #define PROVIDE_EVAL(ATTRIB)					\
@@ -547,7 +294,6 @@ namespace nissa
       (master_printf("%s  %s\n",pref.c_str(),demangle(typeid(C).name()).c_str()),...);
       master_printf("%s Site type: %s\n",pref.c_str(),demangle(typeid(decltype(this->nSites())).name()).c_str());
       master_printf("%s Fund: %s\n",pref.c_str(),demangle(typeid(_Fund).name()).c_str());
-      master_printf("%s FieldCoverage: %d\n",pref.c_str(),FC);
       master_printf("%s FieldLayout: %d\n",pref.c_str(),FL);
       master_printf("%s MemoryType: %d\n",pref.c_str(),MT);
       master_printf("%s FieldLayout: %d\n",pref.c_str(),FL);
@@ -559,7 +305,7 @@ namespace nissa
     /// Computes the squared norm, overloading default expression
     Fund norm2() const
     {
-      Field<CompsList<>,_Fund,FC,FL,MT> buf;
+      Field<CompsList<>,_Fund,FL,MT> buf;
       
       PAR(0,this->nSites(),
 	  CAPTURE(t=this->getReadable(),
@@ -577,7 +323,7 @@ namespace nissa
     /// Make the origin have the sum over all sites
     void selfReduce()
     {
-      Site n=nSites();
+      Site n=lat->getLocVol();
       
       while(n>1)
 	{
@@ -606,7 +352,7 @@ namespace nissa
       //verbosity_lv2_master_printf("n: %d, nori: %d\n",n(),nOri());
       
       /// Make spacetime the external component
-      Field<CompsList<C...>,Fund,FieldCoverage::FULL_SPACE,FieldLayout::CPU,MT> buf(*this);
+      Field<CompsList<C...>,Fund,FieldLayout::CPU,MT> buf(*this);
       buf.selfReduce();
       
       StackTens<CompsList<C...>,Fund> res;
@@ -633,7 +379,7 @@ namespace nissa
 #define PROVIDE_GET_REF(ATTRIB)						\
     auto getRef() ATTRIB	\
     {									\
-      return Field<CompsList<C...>,ATTRIB _Fund,FC,FL,MT,true>(*this,(_CopyConstructInternalDispatcher*)nullptr); \
+      return Field<CompsList<C...>,ATTRIB _Fund,FL,MT,true>(*this,(_CopyConstructInternalDispatcher*)nullptr); \
     }
     
     PROVIDE_GET_REF(const);
@@ -647,7 +393,7 @@ namespace nissa
     /// Type obtained reinterpreting the fund
     template <typename NFund>
     using ReinterpretFund=
-      Field<CompsList<C...>,NFund,FC,FL,MT,IsRef>;
+      Field<CompsList<C...>,NFund,FL,MT,IsRef>;
     
     /////////////////////////////////////////////////////////////////
     
@@ -656,7 +402,7 @@ namespace nissa
 #define PROVIDE_FLATTEN(ATTRIB)						\
     ATTRIB auto& flatten() ATTRIB					\
     {									\
-      return *((Field<CompsList<FlattenedInnerComp>,ATTRIB _Fund,FC,FL,MT,true>*)this); \
+      return *((Field<CompsList<FlattenedInnerComp>,ATTRIB _Fund,FL,MT,true>*)this); \
     }
     
     PROVIDE_FLATTEN(const);
@@ -683,18 +429,18 @@ namespace nissa
     
     /// Type to define the closing of the expression
     using ClosingType=
-      Field<CompsList<C...>,std::decay_t<_Fund>,FC,FL,MT>;
+      Field<CompsList<C...>,std::decay_t<_Fund>,FL,MT>;
     
     /// Parameters to recreate an equivalent storage
     auto getEquivalentStoragePars() const
     {
-      return std::make_tuple(haloEdgesPresence);
+      return std::make_tuple(haloPresence);
     }
     
     /// Creates a copy
     ClosingType createEquivalentStorage() const
     {
-      return haloEdgesPresence;
+      return haloPresence;
     }
     
     /// Creates a copy
@@ -730,22 +476,22 @@ namespace nissa
       master_printf("avoiding allocation\n");
     }
     
-    void allocate(const HaloEdgesPresence& _haloEdgesPresence=WITHOUT_HALO)
+    void allocate(const HaloPresence& _haloPresence=WITHOUT_HALO)
     {
-      nTotalAllocatedSites=FieldSizes<fieldCoverage>::nSitesToAllocate(haloEdgesPresence);
+      nTotalAllocatedSites=nSitesToAllocate(haloPresence);
       data.allocate(std::make_tuple(nTotalAllocatedSites));
-      haloEdgesPresence=_haloEdgesPresence;
+      haloPresence=_haloPresence;
       
       invalidateHalo();
     }
     
     /// Create a field
-    Field(const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
-      haloEdgesPresence(haloEdgesPresence)
+    Field(const HaloPresence& haloPresence=WITHOUT_HALO) :
+      haloPresence(haloPresence)
     {
       static_assert(not IsRef,"Can allocate only if not a reference");
       
-      allocate(haloEdgesPresence);
+      allocate(haloPresence);
     }
     
     /// Assign another expression
@@ -772,9 +518,8 @@ namespace nissa
 	   _CopyConstructInternalDispatcher*) :
       nTotalAllocatedSites(oth.nTotalAllocatedSites),
       data(oth.data),
-      haloEdgesPresence(oth.haloEdgesPresence),
-      haloIsValid(oth.haloIsValid),
-      edgesAreValid(oth.edgesAreValid)
+      haloPresence(oth.haloPresence),
+      haloIsValid(oth.haloIsValid)
     {
 #ifndef COMPILING_FOR_DEVICE
       if constexpr(not IsRef)
@@ -784,9 +529,9 @@ namespace nissa
     
     /// Return a copy on the given memory space
     template <MemoryType OMT>
-    Field<CompsList<C...>,_Fund,FC,FL,OMT> copyToMemorySpace() const
+    Field<CompsList<C...>,_Fund,FL,OMT> copyToMemorySpace() const
     {
-      Field<CompsList<C...>,_Fund,FC,FL,OMT> res(haloEdgesPresence);
+      Field<CompsList<C...>,_Fund,FL,OMT> res(haloPresence);
       res.data=data;
       
       return res;
@@ -797,7 +542,7 @@ namespace nissa
     template <MemoryType OMT>						\
     std::conditional_t<OMT==MT,						\
 		       RETURNED_IN_SAME_MT_CASE,			\
-		       Field<CompsList<C...>,Fund,FC,FL,OMT>>		\
+		       Field<CompsList<C...>,Fund,FL,OMT>>		\
     copyToMemorySpaceIfNeeded() ATTRIB REF				\
     {									\
       return *this;							\
@@ -832,9 +577,8 @@ namespace nissa
     Field(Field&& oth) :
       nTotalAllocatedSites(oth.nTotalAllocatedSites),
       data(std::move(oth.data)),
-      haloEdgesPresence(oth.haloEdgesPresence),
-      haloIsValid(oth.haloIsValid),
-      edgesAreValid(oth.edgesAreValid)
+      haloPresence(oth.haloPresence),
+      haloIsValid(oth.haloIsValid)
     {
 #ifndef COMPILING_FOR_DEVICE
       verbosity_lv3_master_printf("Using move constructor of Field\n");
@@ -847,8 +591,8 @@ namespace nissa
 	      bool OIR>
     requires(OFL!=FL or OMT!=MT)
     INLINE_FUNCTION
-    Field(const Field<CompsList<C...>,_Fund,FC,OFL,OMT,OIR>& oth) :
-      Field(oth.haloEdgesPresence)
+    Field(const Field<CompsList<C...>,_Fund,OFL,OMT,OIR>& oth) :
+      Field(oth.haloPresence)
     {
       if constexpr(OMT!=MT)
 	(*this)=oth.template copyToMemorySpace<MT>();
@@ -860,24 +604,16 @@ namespace nissa
     template <FieldLayout OFL,
 	      bool OIR>
     INLINE_FUNCTION
-    Field(const Field<CompsList<C...>,_Fund,FC,OFL,MT,OIR>& oth) :
-      Field(oth.haloEdgesPresence)
+    Field(const Field<CompsList<C...>,_Fund,OFL,MT,OIR>& oth) :
+      Field(oth.haloPresence)
     {
       (*this)=oth;
-    }
-    
-    /// Set edges as invalid
-    void invalidateEdges()
-    {
-      edgesAreValid=false;
     }
     
     /// Set halo as invalid
     void invalidateHalo()
     {
       haloIsValid=false;
-      
-      invalidateEdges();
     }
     
     /////////////////////////////////////////////////////////////////
@@ -912,19 +648,10 @@ namespace nissa
       fillSendingBufWith([] CUDA_DEVICE(const Site& i) INLINE_ATTRIBUTE
       {
 	return surfSiteOfHaloSite(i);
-      },bord_vol/divCoeff);
+      },2*lat->getSurfSize());
       
       // for(size_t i=0;i<bord_vol*StackTens<CompsList<C...>,Fund>::nElements;i++)
       // 	master_printf("s %zu %lg\n",i,((Fund*)send_buf)[i]);
-    }
-    
-    /// Fill the sending buf using the data on the surface edge
-    void fillSendingBufWithEdgesSurface() const
-    {
-      fillSendingBufWith([] CUDA_DEVICE(const Site& i) INLINE_ATTRIBUTE
-      {
-	return surfSiteOfEdgeSite(i);
-      },edge_vol/divCoeff);
     }
     
     /// Fill the surface using the data from the buffer
@@ -933,18 +660,20 @@ namespace nissa
     void fillSurfaceWithReceivingBuf(const F& f)
     {
       for(int bf=0;bf<2;bf++)
-	for(int mu=0;mu<NDIM;mu++)
-	  PAR(0,bord_dir_vol[mu]/divCoeff,
+	for(Dir mu=0;mu<NDIM;mu++)
+	  PAR(0,lat->getSurfSizePerDir(mu),
 	      CAPTURE(f,bf,mu,
+		      n=lat->getSurfSize(),
+		      off=lat->getSurfOffsetOfDir(mu),
 		      t=this->getWritable()),
 	      iHaloOriDir,
 	      {
-		const int iHalo=
-		  bf*bord_volh/divCoeff+
-		  iHaloOriDir+bord_offset[mu]/divCoeff;
+		const LocLxSite iHalo=
+		  bf*n+
+		  iHaloOriDir+off;
 		
-		const int iSurf=
-		  surfSiteOfHaloSite(iHalo);
+		const LocLxSite iSurf=
+		  lat->getSurfSiteOfHaloSite(iHalo);
 		
 		f(t[iSurf],
 		  ((B*)recv_buf)[iHalo],
@@ -955,12 +684,11 @@ namespace nissa
     
     /// Fill the sending buf using the data with a given function
     INLINE_FUNCTION
-    void fillHaloOrEdgesWithReceivingBuf(const Site& offset,
-					 const Site& n) const
+    void fillHaloWithReceivingBuf() const
     {
-      PAR(0,n,
+      PAR(0,2*lat->getSurfSize(),
 	  CAPTURE(data=this->data.getWritable(),
-		  offset,
+		  offset=lat->getLocVol(),
 		  dynamicSizes=this->getDynamicSizes()),
 	  i,
 	  {
@@ -980,40 +708,27 @@ namespace nissa
       // 	master_printf("r %zu %lg\n",i,((Fund*)recv_buf)[i]);
     }
     
-    /// Fills the halo with the received buffer
-    void fillHaloWithReceivingBuf() const
-    {
-      assertHasHalo();
-      
-      fillHaloOrEdgesWithReceivingBuf(locVol/divCoeff,bord_vol/divCoeff);
-    }
-    
-    /// Fills the halo with the received buffer
-    void fillEdgesWithReceivingBuf() const
-    {
-      assertHasEdges();
-      
-      fillHaloOrEdgesWithReceivingBuf((locVol+bord_vol)/divCoeff,edge_vol/divCoeff);
-    }
-    
     /// Fills the sending buffer with the halo, compressing into elements of B using f
     template <typename B,
 	      typename F>
     void fillSendingBufWithHalo(const F& f) const
     {
       for(int bf=0;bf<2;bf++)
-	for(int mu=0;mu<NDIM;mu++)
-	  PAR(0,bord_dir_vol[mu]/divCoeff,
+	for(Dir mu=0;mu<NDIM;mu++)
+	  PAR(0,lat->getSurfSizePerDir()[mu],
 	      CAPTURE(bf,mu,f,
+		      n=lat->getSurfSize(),
+		      l=lat->getLocVol(),
+		      off=lat->getSurfOffsetOfDir(mu),
 		      t=this->getReadable()),
 	      iHaloOriDir,
 	      {
 		const int iHalo=
-		  bf*bord_volh/divCoeff+
-		  iHaloOriDir+bord_offset[mu]/divCoeff;
+		  bf*n+
+		  iHaloOriDir+off;
 		
 		f(((B*)send_buf)[iHalo],
-		  t[locVol/divCoeff+iHalo],
+		  t[l+iHalo],
 		  bf,
 		  mu);
 	      });
@@ -1021,30 +736,30 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
-    static std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff,
-						       const size_t& bps)
+    static std::vector<MPI_Request> startBufHaloNeighExchange(const size_t& bps)
     {
     /// Pending requests
       std::vector<MPI_Request> requests;
       
-      for(int mu=0;mu<NDIM;mu++)
-	if(is_dir_parallel[mu])
-	  for(int sendOri=0;sendOri<2;sendOri++)
+      for(Dir mu=0;mu<NDIM;mu++)
+	if(isDirParallel[mu])
+	  for(Ori sendOri=0;sendOri<2;sendOri++)
 	    {
 	      const auto sendOrRecv=
 		[&mu,
-		 &divCoeff,
 		 &bps,
+		 ns=lat->getSurfSize()(),
 		 &requests,
-		 messageTag=sendOri+2*mu]
+		 off=lat->getSurfOffsetOfDir(mu)(),
+		 messageTag=sendOri()+2*mu()]
 		(const char* oper,
 		 const auto sendOrRecv,
 		 auto* ptr,
-		 const int& ori)
+		 const Ori& ori)
 		{
-		  const size_t offset=(bord_offset[mu]+bord_volh*ori)*bps/divCoeff;
-		  const int neighRank=rank_neigh[ori][mu];
-		  const size_t messageLength=bord_dir_vol[mu]*bps/divCoeff;
+		  const size_t offset=(off+ns*ori)*bps;
+		  const MpiRank neighRank=neighRanks(ori,mu);
+		  const size_t messageLength=2*lat->getSurfSizePerDir()[mu]()*bps;
 		  // printf("rank %d %s ori %d dir %d, corresponding rank: %d, tag: %d length: %zu\n"
 		  //        ,rank,oper,ori,mu,neighRank,messageTag,messageLength);
 		  
@@ -1056,7 +771,7 @@ namespace nissa
 		  requests.push_back(request);
 		};
 	      
-	      const int recvOri=1-sendOri;
+	      const Ori recvOri=1-sendOri;
 	      
 	      sendOrRecv("send",MPI_Isend,send_buf,sendOri);
 	      sendOrRecv("recv",MPI_Irecv,recv_buf,recvOri);
@@ -1065,68 +780,10 @@ namespace nissa
       return requests;
     }
     
-    /// Start the communications of buffer interpreted as edges
-    static std::vector<MPI_Request> startBufEdgesNeighExchange(const int& divCoeff,
-							       const size_t& bps)
-    {
-      /// Pending requests
-      std::vector<MPI_Request> requests;
-      
-      for(int iEdge=0;iEdge<nEdges;iEdge++)
-	for(int sendOri1=0;sendOri1<2;sendOri1++)
-	  for(int sendOri2=0;sendOri2<2;sendOri2++)
-	    {
-	      const auto sendOrRecv=
-		[&iEdge,
-		 &divCoeff,
-		 &bps,
-		 &requests,
-		 messageTag=sendOri2+2*(sendOri1+2*iEdge)]
-		(const char* oper,
-		 const auto sendOrRecv,
-		 auto* ptr,
-		 const int& ori1,
-		 const int& ori2)
-		{
-		  if(isEdgeParallel[iEdge])
-		    {
-		      const size_t offset=(edge_offset[iEdge]+edge_vol*(ori2+2*ori1)/4)*bps/divCoeff;
-		      const int neighRank=rank_edge_neigh[ori1][ori2][iEdge];
-		      const size_t messageLength=edge_dir_vol[iEdge]*bps/divCoeff;
-		      
-		      // const auto [mu,nu]=edge_dirs[iEdge];
-		      // printf("rank %d %s ori %d,%d edge %d dir %d,%d, corresponding rank: %d, tag: %d length: %zu\n"
-		      //        ,rank,oper,ori1,ori2,iEdge,mu,nu,neighRank,messageTag,messageLength);
-		      
-		      MPI_Request request;
-		      
-		      sendOrRecv(ptr+offset,messageLength,MPI_CHAR,neighRank,
-				 messageTag,MPI_COMM_WORLD,&request);
-		      
-		      requests.push_back(request);
-		    }
-		};
-	      
-	      const int recvOri1=1-sendOri1;
-	      const int recvOri2=1-sendOri2;
-	      
-	      sendOrRecv("send",MPI_Isend,send_buf,sendOri1,sendOri2);
-	      sendOrRecv("recv",MPI_Irecv,recv_buf,recvOri1,recvOri2);
-	    }
-      
-      return requests;
-    }
-    
     /// Start the communications of halo
     static std::vector<MPI_Request> startHaloAsyincComm()
     {
-      return startBufHaloNeighExchange(divCoeff,nInternalDegs*sizeof(Fund));
-    }
-    
-    /// Start the communications of edges
-    static std::vector<MPI_Request> startEdgesAsyincComm()
-    {
-      return startBufEdgesNeighExchange(divCoeff,nInternalDegs*sizeof(Fund));
+      return startBufHaloNeighExchange(nInternalDegs*sizeof(Fund));
     }
     
     /////////////////////////////////////////////////////////////////
@@ -1180,48 +837,8 @@ namespace nissa
     /// Crash if the halo is not allocated
     void assertHasHalo() const
     {
-      if(not (haloEdgesPresence>=WITH_HALO))
+      if(not (haloPresence>=WITH_HALO))
 	crash("needs halo allocated!");
-    }
-    
-    /////////////////////////////////////////////////////////////////
-    
-    /// Start communication using edges
-    std::vector<MPI_Request> startCommunicatingEdges() const
-    {
-      /// Pending requests
-      std::vector<MPI_Request> requests;
-      
-      assertCanCommunicate(Field::nEdgesSites());
-      
-      //take time and write some debug output
-      verbosity_lv3_master_printf("Start communication of edges\n");
-      
-      //fill the communicator buffer, start the communication and take time
-      fillSendingBufWithEdgesSurface();
-      requests=startEdgesAsyincComm();
-      
-      return requests;
-    }
-    
-    /// Finalize communications
-    void finishCommunicatingEdges(std::vector<MPI_Request> requests) const
-    {
-      //take note of passed time and write some debug info
-      verbosity_lv3_master_printf("Finish communication of edgess\n");
-      
-      //wait communication to finish, fill back the vector and take time
-      waitAsyncCommsFinish(requests);
-      fillEdgesWithReceivingBuf();
-      
-      haloIsValid=true;
-    }
-    
-    /// Crash if the edges are not allocated
-    void assertHasEdges() const
-    {
-      if(not (haloEdgesPresence>=WITH_HALO_EDGES))
-	crash("needs edges allocated!");
     }
     
     /////////////////////////////////////////////////////////////////
@@ -1236,21 +853,6 @@ namespace nissa
 	  const std::vector<MPI_Request> requests=
 	    startCommunicatingHalo();
 	  finishCommunicatingHalo(requests);
-      }
-    }
-    
-    /// Communicate the edges
-    void updateEdges(const bool& force=false) const
-    {
-      updateHalo(force);
-      
-      if(force or not edgesAreValid)
-	{
-	  verbosity_lv3_master_printf("Sync communication of edges\n");
-	  
-	  const std::vector<MPI_Request> requests=
-	    startCommunicatingEdges();
-	  finishCommunicatingEdges(requests);
       }
     }
   };

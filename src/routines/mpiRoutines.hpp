@@ -2,7 +2,7 @@
 #define _MPIROUTINES_HPP
 
 #ifdef HAVE_CONFIG_H
-# include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <mpi.h>
@@ -10,32 +10,21 @@
 #include <concepts>
 #include <vector>
 
+#include <base/universe.hpp>
 #include <expr/comp.hpp>
+#include <routines/mpiRank.hpp>
 
 namespace nissa
 {
-  DECLARE_DYNAMIC_COMP(MpiRank);
+  /// Mpi Rank coordinates
+  using MpiRankCoords=
+    Coords<MpiRankCoord>;
   
-  /// Master rank
-  constexpr MpiRank masterRank=0;
-  
-  namespace resources
-  {
-    inline MpiRank _thisRank;
-    
-    inline MpiRank _nRanks;
-  }
-  
-  inline const MpiRank &thisRank=resources::_thisRank;
-  
-  inline const MpiRank &nRanks=resources::_nRanks;
-  
-  /// Check if this is the master rank
-  INLINE_FUNCTION
-  bool isMasterRank()
-  {
-    return thisRank==masterRank;
-  }
+  PROVIDE_RESOURCE(nRanks,MpiRank);
+  PROVIDE_RESOURCE(nRanksPerDir,MpiRankCoords);
+  PROVIDE_RESOURCE(isDirParallel,Coords<bool>);
+  PROVIDE_RESOURCE(thisRankCoords,MpiRankCoords);
+  PROVIDE_RESOURCE(neighRanks,StackTens<CompsList<Ori,Dir>,MpiRank>);
   
   /// Gets the number of ranks
   INLINE_FUNCTION

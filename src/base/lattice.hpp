@@ -10,9 +10,10 @@
 
 #include <expr/cWiseCombine.hpp>
 #include <expr/compReduce.hpp>
-#include <expr/field.hpp>
+#include <expr/fieldDeclaration.hpp>
+#include <expr/prod.hpp>
 #include <operations/allToAll.hpp>
-#include <routines/mpiRank.hpp>
+#include <routines/mpiRoutines.hpp>
 
 namespace nissa
 {
@@ -51,30 +52,54 @@ namespace nissa
     static constexpr Coords<Dir> nissaDirOfScidacDir=
       scidacDirOfNissaDir;
     
-#define PROVIDE_MEMBER_WITH_ACCESSOR(TYPE,NAME)		\
-    TYPE _ ## NAME;					\
-    							\
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION	\
-    const TYPE NAME() const				\
-    {							\
-      return _ ## NAME;					\
+#define PROVIDE_MEMBER_WITH_ACCESSOR(TYPE,NAME,CAP_NAME)	\
+    TYPE _ ## NAME;						\
+    								\
+    template <typename...Args>					\
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION		\
+    decltype(auto) get ## CAP_NAME(Args&&...args) const		\
+    {								\
+      if constexpr(sizeof...(args))				\
+	return _ ## NAME(std::forward<Args>(args)...);		\
+      else							\
+	return _ ## NAME;					\
     }
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(GlbLxSite,glbVol);
+    PROVIDE_MEMBER_WITH_ACCESSOR(GlbLxSite,glbVol,GlbVol);
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(LocLxSite,locVol);
+    PROVIDE_MEMBER_WITH_ACCESSOR(LocLxSite,locVol,LocVol);
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(GlbCoords,glbSizes);
+    PROVIDE_MEMBER_WITH_ACCESSOR(LocLxSite,surfSize,SurfSize);
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(LocCoords,locSizes);
+    PROVIDE_MEMBER_WITH_ACCESSOR(LocCoords,surfSizePerDir,SurfSizePerDir);
+    
+    PROVIDE_MEMBER_WITH_ACCESSOR(LocCoords,surfOffsetOfDir,SurfOffsetOfDir);
+    
+    PROVIDE_MEMBER_WITH_ACCESSOR(GlbCoords,glbSizes,GlbSizes);
+    
+    PROVIDE_MEMBER_WITH_ACCESSOR(LocCoords,locSizes,LocSizes);
+    
+    using LocLxToLocLxMap=
+      MirroredTens<OfComps<LocLxSite>,LocLxSite,IsRef>;
+    
+    PROVIDE_MEMBER_WITH_ACCESSOR(LocLxToLocLxMap,surfSiteOfHaloSite,SurfSiteOfHaloSite);
+    
+    using LocLxToLocNeighsMap=
+      MirroredTens<OfComps<Ori,LocLxSite,Dir>,LocLxSite,IsRef>;
+    
+    PROVIDE_MEMBER_WITH_ACCESSOR(LocLxToLocNeighsMap,locLxNeigh,LocLxNeigh);
+    
+    using LocLxToGlbLxMap=
+      MirroredTens<OfComps<LocLxSite>,GlbLxSite,IsRef>;
+    
+    PROVIDE_MEMBER_WITH_ACCESSOR(LocLxToGlbLxMap,glbLxOfLocLx,GlbLxOfLocLx);
+    
+    using LocLxToGlbCoordsMap=
+      MirroredTens<OfComps<LocLxSite,Dir>,GlbCoord,IsRef>;
+    
+    PROVIDE_MEMBER_WITH_ACCESSOR(LocLxToGlbCoordsMap,glbCoordsOfLocLx,GlbCoordsOfLocLx);
     
 #undef PROVIDE_MEMBER_WITH_ACCESSOR
-    
-    /// Global sites of local sites
-    MirroredTens<OfComps<LocLxSite>,ConstIf<IsRef,GlbLxSite>,IsRef> glbLxOfLocLx;
-    
-    /// Global coordinates of local sites
-    MirroredTens<OfComps<LocLxSite,Dir>,ConstIf<IsRef,GlbCoord>,IsRef> glbCoordsOfLocLx;
     
     /////////////////////////////////////////////////////////////////
     
@@ -94,18 +119,17 @@ namespace nissa
       return out;
     }
     
-    /// Compute the variance of the border
+    /// Compute the variance of the surface
     template <DerivedFromComp C>
     constexpr INLINE_FUNCTION
-    static double computeBorderVariance(const Coords<C>& L)
+    static double computeSurfaceVariance(const Coords<C>& L)
     {
-      const C v=
-	compProd<Dir>(L);
-      
-      const Coords<C> b=v/L;
+      const Coords<C> s=
+	compProd<Dir>(L)/L;
       
       return
-	compSum<Dir>(sqr(b))/(double)nDim-sqr(compSum<Dir>(b)/(double)nDim);
+	compSum<Dir>(sqr(s))()/(double)nDim-
+	sqr(compSum<Dir>(s)()/(double)nDim);
     }
     
     /////////////////////////////////////////////////////////////////
@@ -201,7 +225,7 @@ namespace nissa
       master_printf("nCombo: %ld\n",nCombo);
       
       int64_t minLocSurf=l;
-      double minBordVariance=-1;
+      double minSurfVariance=-1;
       int64_t nextSupposedValid=0;
       for(int64_t iCombo=0;iCombo<nCombo;)
 	{
@@ -243,7 +267,7 @@ namespace nissa
 		(g[mu]()%R[mu]()==0 and g[mu]()>=R[mu]());
 	      
 	      if constexpr(partitionDebug)
-		master_printf("g[mu]\%R[mu] = %ld  %ld = %ld\n",g[mu](),R[mu](),g[mu]()%R[mu]());
+		master_printf("g[mu] mod R[mu] = %ld mod  %ld = %ld\n",g[mu](),R[mu](),g[mu]()%R[mu]());
 	      
 	      if(validPartitioning)
 		{
@@ -279,22 +303,22 @@ namespace nissa
 	      const int64_t locSurf=
 		l-bulkVolume(tryLSizes)();
 	      
-	      const double bordVariance=
-		computeBorderVariance(tryLSizes);
+	      const double surfVariance=
+		computeSurfaceVariance(tryLSizes);
 		
 	      if(locSurf<minLocSurf or
 		 (locSurf==minLocSurf and
-		  bordVariance<minBordVariance))
+		  surfVariance<minSurfVariance))
 		{
 		  minLocSurf=locSurf;
-		  minBordVariance=bordVariance;
+		  minSurfVariance=surfVariance;
 		  
 		  res=R;
 		}
 	      
 	      if constexpr(partitionDebug)
 		if(iCombo<nextSupposedValid)
-		  master_printf("hei! it was not supposed to be valid!\n");
+		  master_printf("hey! it was not supposed to be valid!\n");
 	      
 	      iCombo++;
 	    }
@@ -323,24 +347,77 @@ namespace nissa
       return res;
     }
     
+    /// Sets the global sizes
+    void setGlbSizes(const GlbCoords& extGlbSizes)
+    {
+      _glbSizes=extGlbSizes;
+      _glbVol=compProd<Dir>(getGlbSizes()).close()();
+      
+      master_printf("Global lattice:\t%ld",getGlbSizes().dirRow(0));
+      for(Dir mu=1;mu<NDIM;mu++)
+	master_printf("x%ld",getGlbSizes()[mu]());
+      master_printf(" = %ld\n",getGlbVol());
+    }
+    
+    /// Sets the mpi ranks
+    void setMpiRanks()
+    {
+      using namespace resources;
+      
+      if(const MpiRankCoords temp=
+	 Lattice<>::findOptimalPartitioning<MpiRankCoord>(nRanks(),getGlbSizes(),MpiRankCoords{});compProd<Dir>(temp).close()==0)
+	crash("Unable to partition");
+      else
+	_nRanksPerDir=temp;
+      
+      for(Dir dir=0;dir<nDim;dir++)
+	_isDirParallel[dir]=(nRanksPerDir[dir]()>1);
+      
+      _thisRankCoords=decomposeLxToCoords(thisRank(),nRanksPerDir);
+      
+      for(Ori ori=0;ori<2;ori++)
+	for(Dir dir=0;dir<nDim;dir++)
+	  {
+	    MpiRankCoords neighRankCoords=thisRankCoords;
+	    neighRankCoords[dir]=(neighRankCoords[dir]+nRanksPerDir[dir]+(2*ori()-1))%nRanksPerDir[dir];
+	    _neighRanks(ori,dir)=lxOfCoords<MpiRank>(neighRankCoords,nRanksPerDir);
+	  }
+    }
+    
+    /// Sets the local sizes
+    void setLocSizes()
+    {
+      _locVol=getGlbVol()()/nRanks();
+      
+      for(Dir dir=0;dir<nDim;dir++)
+	_locSizes()[dir]=
+	  getGlbSizes()[dir]()/nRanksPerDir[dir]();
+    }
+    
+    /// Sets the surface sizes
+    void setSurfSizes()
+    {
+      _surfSizePerDir=
+	getLocVol()/getLocSizes();
+      
+      _surfSize=compSum<Dir>(getSurfSizePerDir());
+      
+      _surfOffsetOfDir[timeDir]=0;
+      for(Dir dir=1;dir<nDim;dir++)
+	_surfOffsetOfDir[dir]=_surfOffsetOfDir[dir-1]+getSurfSizePerDir()[dir-1];
+    }
+    
     /// Initializes
     void init(const GlbCoords& extGlbSizes)
       requires(not IsRef)
     {
-      _glbSizes=extGlbSizes;
-      _glbVol=compProd<Dir>(glbSizes()).close()();
+      setGlbSizes(extGlbSizes);
       
-      master_printf("Global lattice:\t%ld",glbSizes().dirRow(0));
-      for(Dir mu=1;mu<NDIM;mu++)
-	master_printf("x%ld",glbSizes()[mu]());
-      master_printf(" = %ld\n",glbVol());
+      setMpiRanks();
       
-      _locVol=glbVol()()/nRanks();
-      
-      const MpiRankCoords p=
-	Lattice<>::findOptimalPartitioning<MpiRankCoord>(nRanks(),glbSizes(),MpiRankCoords{});
-      if(compProd<Dir>(p).close()==0)
-	crash("Unable to partition");
+      setLocSizes();
+
+      //glbCoordsOfLocLx;
     }
     
     /// Initializes from T and L
@@ -358,7 +435,7 @@ namespace nissa
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     auto glbCoord(const Dir& dir) const
     {
-      return glbCoordsOfLocLx(dir);
+      return getGlbCoordsOfLocLx(dir);
     }
     
     /// Functor used to mak the spatial origin
@@ -386,7 +463,7 @@ namespace nissa
 	bool isSpatOrigin=true;
 	
 	for(Dir nu=1;nu<nDim;nu++)
-	  isSpatOrigin&=(lat.glbCoordsOfLocLx(site,nu)==0);
+	  isSpatOrigin&=(lat.getGlbCoordsOfLocLx(site)(nu)==0);
 	
 	return isSpatOrigin;
       }
@@ -396,7 +473,7 @@ namespace nissa
     auto spatialOriginsMask() const
     {
       return
-	funcNodeWrapper<CompsList<LocLxSite>>(SpatOriginMaskFunctor{this->getRef()},std::make_tuple(locVol()));
+	funcNodeWrapper<CompsList<LocLxSite>>(SpatOriginMaskFunctor{this->getRef()},std::make_tuple(getLocVol()));
     }
     
     /// Default constructor
@@ -406,8 +483,8 @@ namespace nissa
     _glbVol(oth._glbVol),					\
       _locVol(oth._locVol),					\
       _glbSizes(oth._glbSizes),					\
-      _locSizes(oth._locSizes),					\
-      glbCoordsOfLocLx(oth.glbCoordsOfLocLx.getRef())		\
+      _locSizes(oth._locSizes)/*,					\
+				_glbCoordsOfLocLx(oth._glbCoordsOfLocLx.getRef())*/ \
     {								\
     }
     

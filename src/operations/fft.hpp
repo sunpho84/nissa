@@ -47,10 +47,10 @@ namespace nissa
 			const std::integral_constant<Dir,D>&)
 	  {
 	    /// Number of complexes
-	    const int nCompl=glbSizes[D()];
+	    const int64_t nCompl=lat->getGlbSizes()[D]();
 	    
 	    /// Extension of the fft
-	    const int nFft=buf.nElements/nCompl/2;
+	    const int64_t nFft=buf.nElements/nCompl/2;
 	    
 #ifdef USE_CUDA
 	    if constexpr(B::execSpace==execOnGPU)

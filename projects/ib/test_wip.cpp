@@ -175,18 +175,19 @@ PhotonField getZ2PhotonField(const int offset=0)
   // double e=take_time();
   // for(int i=0;i<300;i++)
   //   {
-  auto d=rng.getZ2Distr(glbVol*nDim);
+  auto d=rng.getZ2Distr(lat->getGlbVol()()*nDim);
   
   PAR_ON_EXEC_SPACE(ScalarField::execSpace,
 		    0,
-		    LocLxSite(locVol),
+		    lat->getLocVol(),
 		    CAPTURE(TO_WRITE(res),
+			    c=lat->getGlbLxOfLocLx().getRef(),
 			    d),
 		    site,
 			{
 			  ASM_BOOKMARK_BEGIN("rnd");
 			  for(Dir dir=0;dir<nDim;dir++)
-			    res(site,dir)=d.draw(dir()+nDim()*glblxOfLoclx[site()]);
+			    res(site,dir)=d.draw(dir()+nDim()*c(site)());
 			  ASM_BOOKMARK_END("rnd");
 			});
   // printRng(rng);
@@ -200,11 +201,19 @@ PhotonField getZ2PhotonField(const int offset=0)
 
 void in_main(int narg,char **arg)
 {
+  
   // constexpr ExecSpace ex(MemoryType::CPU);
   // constexpr MemoryType mt=getMemoryType<ex>();
   // constexpr bool t=ex.template runOn<MemoryType::CPU>();
   // constexpr int m=(execOnCPU*execOnGPU).hasUniqueExecSpace();
   const int T=8,L=4;
+  
+  const MpiRankCoords p=
+    Lattice<>::findOptimalPartitioning<MpiRankCoord>(48,GlbCoords{32,24,24,32},MpiRankCoords{});
+  
+  for(Dir mu=0;mu<nDim;mu++)
+    master_printf("%d\n",p[mu]());
+  crash("");
   
   init_grid(T,L);
   
@@ -214,13 +223,30 @@ void in_main(int narg,char **arg)
   
   localizer::init();
   initFftw();
+  
+  for(const auto c : factorize(12))
+    master_printf("%d\n",c);
+  crash("");
+  constexpr GlbCoords o{9,3,4,5};
+
+  // {
+  //   constexpr StackTens<CompsList<>,GlbCoord> o{};
+  //   Transposer<decltype(o),CompsList<>,GlbCoord> odag(o);
+  //   GlbCoord a=(odag)*o;//compProd<Dir>(o);
+  // }
+  //GlbCoord a=dag(o)*o;//compProd<Dir>(o);
+  //constexpr double oo=Lattice<>::computeBorderVariance(o);
+  
+      // auto y=v/o;
+      // y="";
+
   /////////////////////////////////////////////////////////////////
 
    master_printf("TEST\n");
     // cudaGenericKernel<<<gridDimension,blockDimension>>>(0,locVol,[P=P.getWritable(),l=lat->glbCoordsOfLocLx.getReadable()] CUDA_DEVICE(auto i) mutable{P(LocLxSite(i))=l(LocLxSite(i));});
-    // 	decript_cuda_error(cudaDeviceSynchronize(),"during kernel executionssss");
+    // 	decrypt_cuda_error(cudaDeviceSynchronize(),"during kernel executionssss");
   
-   PhotonField P=2*sin(M_PI*(lat->glbCoordsOfLocLx+std::numeric_limits<double>::epsilon())/lat->glbSizes());
+   PhotonField P=2*sin(M_PI*(lat->getGlbCoordsOfLocLx()+std::numeric_limits<double>::epsilon())/lat->getGlbSizes());
   // auto o=P.copyToMemorySpaceIfNeeded<MemoryType::CPU>().locLxSite(23).dirRow(3);
   // printf("AAA %ld %lg\n",ii(),o);
   
@@ -251,11 +277,12 @@ void in_main(int narg,char **arg)
    auto printPhotonProp=
      [](const PhotonProp& prop)
      {
+       crash("");
        for(DirRow r=0;r<nDim;r++)
 	 {
-	   for(DirCln c=0;c<nDim();c++)
-	     printf("%lg ",prop.locLxSite(glblx_of_coord({3,1,2,1}))(r,c));
-	   printf("\n");
+	   // for(DirCln c=0;c<nDim();c++)
+	   //   printf("%lg ",prop.locLxSite(glblx_of_coord({3,1,2,1}))(r,c));
+	   // printf("\n");
 	 }
        printf("\n");
      };
@@ -288,40 +315,43 @@ void in_main(int narg,char **arg)
     Field<CompsList<ColorRow,ComplId>> e;
     e=conj(e);
   
-  const int s=glblx_of_coord({1,0,0,0});
-  PAR(0,
-      LocLxSite(locVol),
-      CAPTURE(TO_WRITE(e),s),
-      site,
-      {
-	for(ColorRow cr=0;cr<3;cr++)
-	  for(ComplId ri=0;ri<2;ri++)
-	    e(site,cr,ri)=glblxOfLoclx[site()]==s and ri==0;
-      });
+  // const int s=glblx_of_coord({1,0,0,0});
+  // PAR(0,
+  //     lat->getLocVol(),
+  //     CAPTURE(TO_WRITE(e),
+  // 	      s,
+  // 	      g=lat->getGlbLxOfLocLx().getRef()),
+  //     site,
+  //     {
+  // 	for(ColorRow cr=0;cr<3;cr++)
+  // 	  for(ComplId ri=0;ri<2;ri++)
+  // 	    e(site,cr,ri)=g[site]==s and ri==0;
+  //     });
 
-  decltype(auto) fDone=
-    fft<Field<CompsList<ColorRow,ComplId>>>(+1,e).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
-  
-  for(LocLxSite site=0;
-      site<locVol;
-      site++)
-    {
-      auto p=fDone.locLxSite(site);
-      auto c=p.colorRow(0);
-      auto g=glb_coord_of_glblx(glblxOfLoclx[site()]);
-      master_printf("site %ld (%d,%d,%d,%d): %lg %lg\n",
-		    site(),g[0],g[1],g[2],g[3],c.reIm(0),c.reIm(1));
+  // decltype(auto) fDone=
+  //   fft<Field<CompsList<ColorRow,ComplId>>>(+1,e).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
 
-      // double r=0;
-      // for(Dir d=0;d<nDim;d++)
-      // 	r+=M_PI*glbCoordOfLoclx[site()][d()];
+  crash("uncomment");
+  // for(LocLxSite site=0;
+  //     site<lat->getLocVol();
+  //     site++)
+  //   {
+  //     auto p=fDone.locLxSite(site);
+  //     auto c=p.colorRow(0);
+  //     auto g=glb_coord_of_glblx(lat->getGlbLxOfLocLx(site));
+  //     master_printf("site %ld (%d,%d,%d,%d): %lg %lg\n",
+  // 		    site(),g[0],g[1],g[2],g[3],c.reIm(0),c.reIm(1));
+
+  //     // double r=0;
+  //     // for(Dir d=0;d<nDim;d++)
+  //     // 	r+=M_PI*glbCoordOfLoclx[site()][d()];
       
-      for(ColorRow cr=0;cr<3;cr++)
-	for(ComplId ri=0;ri<2;ri++)
-	  if(p(cr,ri)!=c(ri))
-	    master_printf("site %ld cr %d ri %d: %lg %lg vs %lg %lg\n",site(),cr(),ri(),p(cr).reIm(0),p(cr).reIm(1),c.reIm(0),c.reIm(1));
+  //     for(ColorRow cr=0;cr<3;cr++)
+  // 	for(ComplId ri=0;ri<2;ri++)
+  // 	  if(p(cr,ri)!=c(ri))
+  // 	    master_printf("site %ld cr %d ri %d: %lg %lg vs %lg %lg\n",site(),cr(),ri(),p(cr).reIm(0),p(cr).reIm(1),c.reIm(0),c.reIm(1));
 	    
-    }
+  //   }
   
   
 
@@ -351,7 +381,7 @@ void in_main(int narg,char **arg)
   AllToAllComm<GlbLxSite, LocLxSite> aa;
 
   auto ff = [](const LocLxSite &locLxSite) -> CompsList<MpiRank, GlbLxSite> {
-    return {0, glblxOfLoclx[locLxSite()]};
+    return {0, lat->getGlbLxOfLocLx(locLxSite)()};
   };
   master_printf("%s\n", demangle(typeid(ff).name()).c_str());
 
@@ -363,37 +393,37 @@ void in_main(int narg,char **arg)
 #endif
       ;
       
-      DynamicTens<OfComps<SpinRow,LocLxSite,ColorCln>,double,MemoryType::CPU> _in(std::make_tuple(LocLxSite(locVol)));
+  DynamicTens<OfComps<SpinRow,LocLxSite,ColorCln>,double,MemoryType::CPU> _in(std::make_tuple(lat->getLocVol()));
        
-       aa.init(LocLxSite(locVol),
+      aa.init(lat->getLocVol(),
  	      ff);
       
-      for(LocLxSite locLxSite=0;locLxSite<locVol;locLxSite++)
-	_in(locLxSite)=glblxOfLoclx[locLxSite()];
+      for(LocLxSite locLxSite=0;locLxSite<lat->getLocVol();locLxSite++)
+	_in(locLxSite)=lat->getGlbLxOfLocLx(locLxSite)();
       
       decltype(auto) in=_in.template copyToMemorySpaceIfNeeded<execSpace>();
       auto _out=aa.communicate(in);
       
       decltype(auto) out=_out.template copyToMemorySpaceIfNeeded<MemoryType::CPU>();
       if(isMasterRank())
-	for(GlbLxSite glbLxSite=0;glbLxSite<glbVol;glbLxSite++)
+	for(GlbLxSite glbLxSite=0;glbLxSite<lat->getGlbVol();glbLxSite++)
 	  if(const double o=out(glbLxSite).spinRow(0).colorCln(0),g=glbLxSite();o!=g)
 	    crash("%lg %lg\n",o,g);
       master_printf("alright!\n");
       
       auto bb=aa.inverse();
-      DynamicTens<OfComps<SpinRow,LocLxSite,ColorCln>,double,execSpace> _back(std::make_tuple(LocLxSite(locVol)));
+      DynamicTens<OfComps<SpinRow,LocLxSite,ColorCln>,double,execSpace> _back(std::make_tuple(lat->getLocVol()));
       bb.communicate(_back,_out);
       decltype(auto) back=_back.template copyToMemorySpaceIfNeeded<MemoryType::CPU>();
       
-      for(LocLxSite locLxSite=0;locLxSite<locVol;locLxSite++)
-	if(const double b=back(locLxSite).spinRow(0).colorCln(0),g=glblxOfLoclx[locLxSite()];b!=g)
+      for(LocLxSite locLxSite=0;locLxSite<lat->getLocVol();locLxSite++)
+	if(const double b=back(locLxSite).spinRow(0).colorCln(0),g=lat->getGlbLxOfLocLx(locLxSite)();b!=g)
 	    crash("%lg %lg\n",b,g);
       master_printf("alright2!\n");
       
       auto cc=bb*aa;
       decltype(auto) shouldBeId=cc.communicate(in).template copyToMemorySpaceIfNeeded<MemoryType::CPU>();
-      for(LocLxSite locLxSite=0;locLxSite<locVol;locLxSite++)
+      for(LocLxSite locLxSite=0;locLxSite<lat->getLocVol();locLxSite++)
 	if(const double s=shouldBeId(locLxSite).spinRow(0).colorCln(0),
 	   i=_in(locLxSite).spinRow(0).colorCln(0);
 	   s!=i)

@@ -15,19 +15,16 @@
 
 namespace nissa
 {
-  /// Has or not the halo and the edges
-  enum class HaloEdgesPresence{WITHOUT_HALO,WITH_HALO,WITH_HALO_EDGES};
-  using enum HaloEdgesPresence;
+  /// Has or not the halo
+  enum class HaloPresence{WITHOUT_HALO,WITH_HALO};
+  using enum HaloPresence;
   
   /// Default presence of halo
-  inline constexpr HaloEdgesPresence defaultHaloPresence=
-    HaloEdgesPresence::WITHOUT_HALO;
+  inline constexpr HaloPresence defaultHaloPresence=
+    HaloPresence::WITHOUT_HALO;
   
   /// Memory layout
   enum class FieldLayout{CPU,GPU};
-  
-  /// Coverage of the field
-  enum FieldCoverage{EVEN_SITES,ODD_SITES,FULL_SPACE,EVEN_OR_ODD_SITES};
   
   /// Predefinite memory layout
   constexpr FieldLayout defaultFieldLayout=
@@ -45,7 +42,6 @@ namespace nissa
   /// Field, forward declaration
   template <typename InnerComps,
 	    typename Fund=double,
-	    FieldCoverage FC=FieldCoverage::FULL_SPACE,
 	    FieldLayout FL=defaultFieldLayout,
 	    MemoryType MT=defaultMemoryType,
 	    bool IsRef=false>
@@ -56,9 +52,9 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   DECLARE_PARALLELIZABLE_COMP(LocLxSite,int64_t,locLxSite);
-  DECLARE_PARALLELIZABLE_COMP(LocEoSite,int64_t,locEoSite);
-  DECLARE_PARALLELIZABLE_COMP(LocEvnSite,int64_t,locEvnSite);
-  DECLARE_PARALLELIZABLE_COMP(LocOddSite,int64_t,locOddSite);
+  // DECLARE_PARALLELIZABLE_COMP(LocEoSite,int64_t,locEoSite);
+  // DECLARE_PARALLELIZABLE_COMP(LocEvnSite,int64_t,locEvnSite);
+  // DECLARE_PARALLELIZABLE_COMP(LocOddSite,int64_t,locOddSite);
   
   DECLARE_DYNAMIC_COMP(LocCoord);
   DECLARE_DYNAMIC_COMP(GlbCoord);

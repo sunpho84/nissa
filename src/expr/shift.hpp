@@ -147,33 +147,33 @@ namespace nissa
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     LocLxSite argEval(const LocLxSite& t) const
     {
-      return loclx_neigh[1-ori()][t()][dir()];
+      return lat->getLocLxNeigh(1-ori,t,dir);
     }
     
-    /// Evaluates the shift of a LocEvn site
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    LocOddSite argEval(const LocEvnSite& t) const
-    {
-      const coords_t* loceo_neigh[2]={loceo_neighup[EVN],loceo_neighdw[EVN]};
+    // /// Evaluates the shift of a LocEvn site
+    // INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // LocOddSite argEval(const LocEvnSite& t) const
+    // {
+    //   const coords_t* loceo_neigh[2]={loceo_neighup[EVN],loceo_neighdw[EVN]};
       
-      return loceo_neigh[ori()][t()][dir()];
-    }
+    //   return loceo_neigh[ori()][t()][dir()];
+    // }
     
-    /// Evaluates the shift of a LocOdd site
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    LocEvnSite argEval(const LocOddSite& t) const
-    {
-      const coords_t* loceo_neigh[2]={loceo_neighup[ODD],loceo_neighdw[ODD]};
+    // /// Evaluates the shift of a LocOdd site
+    // INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // LocEvnSite argEval(const LocOddSite& t) const
+    // {
+    //   const coords_t* loceo_neigh[2]={loceo_neighup[ODD],loceo_neighdw[ODD]};
       
-      return loceo_neigh[ori()][t()][dir()];
-    }
+    //   return loceo_neigh[ori()][t()][dir()];
+    // }
     
-    /// Evaluates the shift of a parity
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    Parity argEval(const Parity& t) const
-    {
-      return 1-t();
-    }
+    // /// Evaluates the shift of a parity
+    // INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // Parity argEval(const Parity& t) const
+    // {
+    //   return 1-t();
+    // }
     
     /////////////////////////////////////////////////////////////////
     
@@ -238,23 +238,23 @@ namespace nissa
     using Fund=
       typename E::Fund;
     
-    if constexpr(tupleHasType<Comps,LocLxSite> or tupleHasType<Comps,LocEoSite>)
-      {
+    // if constexpr(tupleHasType<Comps,LocLxSite> or tupleHasType<Comps,LocEoSite>)
+    //   {
 	updateHaloForShift(e);
 	return Shifter<decltype(e),Comps,Fund>(std::forward<_E>(e),ori,dir);
-      }
-    else
-      if constexpr(tupleHasType<Comps,LocEvnSite> or tupleHasType<Comps,LocOddSite>)
-	{
-	  updateHaloForShift(e);
+    //   }
+    // else
+    //   if constexpr(tupleHasType<Comps,LocEvnSite> or tupleHasType<Comps,LocOddSite>)
+    // 	{
+    // 	  updateHaloForShift(e);
 	  
-	  using OutComps=
-	    TupleSwapTypes<Comps,LocEvnSite,LocOddSite>;
+    // 	  using OutComps=
+    // 	    TupleSwapTypes<Comps,LocEvnSite,LocOddSite>;
 	  
-	  return Shifter<decltype(e),OutComps,Fund>(std::forward<_E>(e),ori,dir);
-	}
-      else
-	return e;
+    // 	  return Shifter<decltype(e),OutComps,Fund>(std::forward<_E>(e),ori,dir);
+    // 	}
+    //   else
+    // 	return e;
   }
   
 #define PROVIDE_ORIENTED_SHIFTER(NAME,ORI)	\

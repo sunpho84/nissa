@@ -21,10 +21,8 @@ namespace nissa
 #endif
      
     //unset lx geometry
-    if(lxGeomInited) unset_lx_geometry();
+    crash("lat to be deleted");
     
-    //unset eo geometry
-    if(eo_geom_inited) unset_eo_geometry();
     
     //print information over the maximum amount of memory used
     master_printf("Maximal memory used during the run: %zu bytes (",max_required_memory);

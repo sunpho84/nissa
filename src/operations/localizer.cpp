@@ -11,11 +11,11 @@ namespace nissa::localizer
   {
     /// Fully local size in a given direction is the global size
     const FullLocDirCoord fcSize=
-      glbSizes[dir()];
+      lat->getGlbSizes(dir)();
     
     /// Perpendicular size across the whole lattice
     const OrthoSpaceTime glbOsdSize=
-      glbVol/glbSizes[dir()];
+      lat->getGlbVol()()/lat->getGlbSizes(dir)();
     
     /// Portion of the perpendicular size relative to each lattice
     const OrthoSpaceTime locOsdSize=
@@ -26,7 +26,7 @@ namespace nissa::localizer
   
   LocDirMaker getLocDirMaker(const Dir& dir)
   {
-    return {LocLxSite(locVol),
+    return {LocLxSite(lat->getLocVol()),
 	    [&dir](const LocLxSite& locLxSite)
 	    {
 	      /// Dimensions of the current direction
@@ -35,14 +35,14 @@ namespace nissa::localizer
 	      
 	      /// Coordinate in the current direction of the requires site
 	      const FullLocDirCoord fc=
-		glbCoordOfLoclx[locLxSite()][dir()];
+		lat->getGlbCoordsOfLocLx(locLxSite)[dir]();
 	      
 	      /// Global index in the space perpendicular to the current direction
 	      int64_t glbOsd=0;
-	      for(Dir pDir=0;pDir<NDIM-1;pDir++)
+	      for(PerpDir pDir=0;pDir<NDIM-1;pDir++)
 		{
-		  const Dir jDir=perp_dir[dir()][pDir()];
-		  glbOsd=glbSizes[jDir()]*glbOsd+glbCoordOfLoclx[locLxSite()][jDir()];
+		  const Dir jDir=perpDirOf[dir][pDir];
+		  glbOsd=lat->getGlbSizes(jDir)()*glbOsd+lat->getGlbCoordsOfLocLx(locLxSite)(jDir)();
 		}
 	      
 	      /// Rank hosting global site
