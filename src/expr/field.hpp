@@ -812,8 +812,7 @@ namespace nissa
       /// Pending requests
       std::vector<MPI_Request> requests;
       
-      assertCanCommunicate(Field::nHaloSites());
-      
+      assertCanCommunicate(2*lat->getSurfSize());
       
       //fill the communicator buffer, start the communication and take time
       fillSendingBufWithSurface();
