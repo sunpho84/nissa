@@ -187,7 +187,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Fund eval(const TD&...td) const
     {
-      return subExpr()(argEval(td)...);
+      return subExpr(argEval(td)...);
     }
     
     /// Construct
