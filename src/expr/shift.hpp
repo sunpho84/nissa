@@ -52,6 +52,10 @@ namespace nissa
     
     using ShiftedExpr=NodeRefOrVal<_E>;
     
+    /// Executes where traced reference
+    static constexpr ExecSpace execSpace=
+      ShiftedExpr::execSpace;
+    
     /// Components
     using Comps=
       CompsList<C...>;
