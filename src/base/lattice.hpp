@@ -87,6 +87,8 @@ namespace nissa
     
     PROVIDE_MEMBER_WITH_ACCESSOR(glbSizes,GlbSizes,GlbCoords);
     
+    PROVIDE_MEMBER_WITH_ACCESSOR(originGlbCoords,OriginGlbCoords,GlbCoords);
+    
     PROVIDE_MEMBER_WITH_ACCESSOR(locSizes,LocSizes,LocCoords);
     
     PROVIDE_MEMBER_WITH_ACCESSOR(glbCoordsOfLocLx,GlbCoordsOfLocLx,MirroredTens<OfComps<LocLxSite,Dir>,GlbCoord,IsRef>);
@@ -98,7 +100,6 @@ namespace nissa
     PROVIDE_MEMBER_WITH_ACCESSOR(locLxNeigh,LocLxNeigh,MirroredTens<OfComps<Ori,LocLxSite,Dir>,LocLxSite,IsRef>);
     
     PROVIDE_MEMBER_WITH_ACCESSOR(glbLxOfLocLx,GlbLxOfLocLx,MirroredTens<OfComps<LocLxSite>,GlbLxSite,IsRef>);
-    
     
 #undef PROVIDE_MEMBER_WITH_ACCESSOR
     
@@ -166,9 +167,11 @@ namespace nissa
 	[](const std::vector<int64_t>& c)
 	{
 	  std::ostringstream os;
-	  os<<"{"<<c[timeDir()];
-	  for(Dir mu=1;mu<nDim;mu++)
-	    os<<","<<c[mu()];
+	  os<<"{";
+	  if(c.size())
+	    os<<c[0];
+	  for(size_t i=1;i<c.size();i++)
+	    os<<","<<c[i];
 	  os<<"}";
 	  
 	  return os.str();
@@ -198,7 +201,8 @@ namespace nissa
       const bool factorizeR=
 	lFactors.size()>=rFactors.size();
       
-      master_printf("factorize r: %d\n",factorizeR);
+      if constexpr(partitionDebug)
+	master_printf("factorize r: %d\n",factorizeR);
       
       /// Copy the facts to be used
       const std::vector<int64_t>& facts=
@@ -408,7 +412,7 @@ namespace nissa
 	_surfOffsetOfDir[dir]=_surfOffsetOfDir[dir-1]+getSurfSizePerDir()[dir-1];
     }
     
-    /// Sets the coordinate of the local sites
+    /// Sets the local coordinate of the local sites
     void setLocSiteCoords()
     {
       _locCoordsOfLocLx.allocate(getLocVol());
@@ -420,6 +424,24 @@ namespace nissa
 	lol(site)=decomposeLxToCoords(site,getLocSizes());
     }
     
+    /// Sets the origin of the coordinates
+    void setOriginGlbCoords()
+    {
+      _originGlbCoords=
+	thisRankCoords.template reinterpretFund<GlbCoord>()*
+	getLocSizes().template reinterpretFund<GlbCoord>();
+    }
+    
+    /// Sets the global coordinate of the local sites
+    void setGlbSiteCoords()
+    {
+      _glbCoordsOfLocLx.allocate(getLocVol());
+      
+      _glbCoordsOfLocLx.getFillable()=
+	getLocCoordsOfLocLx().template reinterpretFund<GlbCoord>()+
+	getOriginGlbCoords();
+    }
+    
     /// Initializes
     void init(const GlbCoords& extGlbSizes)
       requires(not IsRef)
@@ -428,11 +450,15 @@ namespace nissa
       
       setMpiRanks();
       
+      setOriginGlbCoords();
+      
       setLocSizes();
       
       setSurfSizes();
       
       setLocSiteCoords();
+      
+      setGlbSiteCoords();
     }
     
     /// Initializes from T and L
@@ -549,7 +575,7 @@ namespace nissa
   inline Lattice<>* _lat;
   
   /// Reference to the lattice
-  inline std::unique_ptr<Lattice<true>> lat;
+  inline std::unique_ptr<LatticeRef> lat;
 }
 
 #endif
