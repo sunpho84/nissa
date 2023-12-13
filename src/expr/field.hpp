@@ -263,7 +263,7 @@ namespace nissa
     mutable bool haloIsValid;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr
     auto getDynamicSizes() const
     {
       return std::make_tuple(lat->getLocVol());
