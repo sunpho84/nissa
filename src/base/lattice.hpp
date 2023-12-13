@@ -72,7 +72,7 @@ namespace nissa
       if constexpr(sizeof...(args))				\
 	return _ ## NAME(std::forward<Args>(args)...);		\
       else							\
-	return _ ## NAME;					\
+	return (_ ## NAME);					\
     }
     
     PROVIDE_MEMBER_WITH_ACCESSOR(glbVol,GlbVol,GlbLxSite);
