@@ -31,7 +31,7 @@
 #define crash_printing_error(code,...) internal_crash_printing_error(__LINE__,__FILE__,code,__VA_ARGS__)
 #define decrypt_MPI_error(...) internal_decrypt_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
 
-#define decrypt_cuda_error(...)  internalDecryptCudaError(__LINE__,__FILE__,__VA_ARGS__)
+#define decryptCudaError(...) internalDecryptCudaError(__LINE__,__FILE__,__VA_ARGS__)
 
 namespace nissa
 {
@@ -43,7 +43,7 @@ namespace nissa
   void internal_crash_printing_error(int line,const char *file,int err_code,const char *templ,...);
   void internal_decrypt_MPI_error(int line,const char *file,int rc,const char *templ,...);
 #ifdef USE_CUDA
-  void internal_decrypt_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...);
+  void internalDecryptCudaError(const int& line,const char *file,const cudaError_t& rc,const char *templ,...);
 #endif
   void print_backtrace_list();
   void signal_handler(int);

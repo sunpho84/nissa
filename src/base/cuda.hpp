@@ -2,9 +2,10 @@
 #define _CUDA_HPP
 
 #ifdef HAVE_CONFIG_H
-# include "config.hpp"
+# include <config.hpp>
 #endif
 
+#include <cstdarg>
 #include <routines/mpiRoutines.hpp>
 
 namespace nissa
@@ -55,7 +56,7 @@ namespace nissa
     if(nDevices!=1)
       {
 	resources::_iCudaDevice=thisRank()%nDevices;
-	decrypt_cuda_error(cudaSetDevice(iCudaDevice),"Unable to set device %d",iCudaDevice);
+	decryptCudaError(cudaSetDevice(iCudaDevice),"Unable to set device %d",iCudaDevice);
       }
   }
 }
