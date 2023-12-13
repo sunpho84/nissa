@@ -376,7 +376,7 @@ namespace nissa
       void* ptr=nullptr;
       
       verbosity_lv3_master_printf("Allocating size %zu on GPU, ",size);
-      decrypt_cuda_error(cudaMalloc(&ptr,size),"Allocating on Gpu");
+      decryptCudaError(cudaMalloc(&ptr,size),"Allocating on Gpu");
       verbosity_lv3_master_printf("ptr: %p\n",ptr);
       
       nAlloc++;
@@ -388,7 +388,7 @@ namespace nissa
     void deAllocateRaw(void* ptr)
     {
       master_printf("Freeing from GPU memory %p\n",ptr);
-      decrypt_cuda_error(cudaFree(ptr),"Freeing from GPU");
+      decryptCudaError(cudaFree(ptr),"Freeing from GPU");
     }
     
     /// Destruct calling common procedure
@@ -445,10 +445,17 @@ namespace nissa
 	      const size_t& count)
   {
 #if USE_CUDA
-    decrypt_cuda_error(cudaMemcpy(dst,src,count,cudaMemcpyKindForTransferFromTo<FROM,TO>),"calling cudaMemcpy");
+    decryptCudaError(cudaMemcpy(dst,src,count,cudaMemcpyKindForTransferFromTo<FROM,TO>),"calling cudaMemcpy");
 #else
     ::memcpy(dst,src,count);
 #endif
+  }
+  
+  /// Returns the memory manager suitable for the execution space
+  template <ExecSpace ES>
+  inline MemoryManager* memoryManager()
+  {
+    return memoryManager<getMemoryType<ES>()>();
   }
 }
 

@@ -142,7 +142,7 @@ namespace nissa
     if(length>0)
       {
 	cudaGenericKernel<<<gridDimension,blockDimension>>>(min,max,std::forward<F>(f));
-	decrypt_cuda_error(cudaDeviceSynchronize(),"during kernel execution");
+	decryptCudaError(cudaDeviceSynchronize(),"during kernel execution");
       }
     
     if(print)
