@@ -75,6 +75,7 @@ namespace nissa
 	    typename _Fund>
   struct THIS :
     TracerFeat,
+    SingleSubExpr<THIS>,
     BASE
   {
     /// Import the base expression
@@ -98,7 +99,7 @@ namespace nissa
     using Fund=_Fund;
     
     /// Expression to trace
-    NodeRefOrVal<_E> tracedExpr;
+    NodeRefOrVal<_E> subExpr;
     
     /// Type of the traced expression
     using TracedExpr=std::decay_t<_E>;
@@ -111,7 +112,7 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
-      return tracedExpr.getDynamicSizes();
+      return subExpr.getDynamicSizes();
     }
     
     /// Returns whether can assign
@@ -147,7 +148,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return trace(tracedExpr.getRef());			\
+      return trace(subExpr.getRef());			\
     }
     
     PROVIDE_GET_REF(const);
@@ -183,14 +184,14 @@ namespace nissa
 	  {
 	    /// First argument
 	    res+=
-	      this->tracedExpr(nTCs...,tCs...,transp(tCs)...);
+	      this->subExpr(nTCs...,tCs...,transp(tCs)...);
 	  },getDynamicSizes());
 	  
 	  return
 	    res;
 	}
       else
-	return this->tracedExpr(nTCs...);
+	return this->subExpr(nTCs...);
     }
     
     /// Construct
@@ -198,14 +199,14 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Tracer(T&& arg)
       requires(std::is_same_v<std::decay_t<T>,std::decay_t<_E>>)
-      : tracedExpr(std::forward<T>(arg))
+      : subExpr(std::forward<T>(arg))
     {
     }
     
     /// Copy constructor
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Tracer(const Tracer& oth) :
-      tracedExpr(oth.tracedExpr)
+      subExpr(oth.subExpr)
     {
     }
   };

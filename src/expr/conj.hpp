@@ -64,6 +64,7 @@ namespace nissa
 	    typename _Fund>
   struct THIS :
     ConjugatorFeat,
+    SingleSubExpr<THIS>,
     BASE
   {
     /// Import the base expression
@@ -83,7 +84,7 @@ namespace nissa
     using Fund=_Fund;
     
     /// Conugated expression
-    NodeRefOrVal<_E> conjExpr;
+    NodeRefOrVal<_E> subExpr;
     
     /// Type of the conjugated expression
     using ConjExpr=std::decay_t<_E>;
@@ -96,7 +97,7 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
-      return conjExpr.getDynamicSizes();
+      return subExpr.getDynamicSizes();
     }
     
     /// Returns whether can assign
@@ -132,7 +133,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return conj(conjExpr.getRef());				\
+      return conj(subExpr.getRef());				\
     }
     
     PROVIDE_GET_REF(const);
@@ -163,7 +164,7 @@ namespace nissa
       
       /// Nested result
       const Fund nestedRes=
-	conjExpr(td...);
+	subExpr(td...);
       
       if(reIm==0)
 	return nestedRes;
@@ -176,7 +177,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Conjugator(T&& arg)
       requires(std::is_same_v<std::decay_t<T>,std::decay_t<_E>>)
-      : conjExpr{std::forward<T>(arg)}
+      : subExpr{std::forward<T>(arg)}
     {
     }
   };
@@ -191,7 +192,7 @@ namespace nissa
       std::decay_t<_E>;
     
     if constexpr(isConjugator<E>)
-      return e.conjExpr;
+      return e.subExpr;
     else
       {
 	/// Components

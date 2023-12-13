@@ -13,6 +13,7 @@
 #include <expr/mergedComps.hpp>
 #include <expr/nodeDeclaration.hpp>
 #include <expr/scalar.hpp>
+#include <expr/subExprs.hpp>
 #include <routines/ios.hpp>
 #include <tuples/tupleFilter.hpp>
 #include <tuples/tupleHasType.hpp>
@@ -44,6 +45,7 @@ namespace nissa
 	    typename _Fund>
   struct THIS :
     CompsMergerFeat,
+    SingleSubExpr<THIS>,
     BASE
   {
     /// Import the base expression
@@ -66,7 +68,7 @@ namespace nissa
     using Fund=_Fund;
     
     /// Expression to merge
-    NodeRefOrVal<_E> mergedExpr;
+    NodeRefOrVal<_E> subExpr;
     
     /// Type of the merged expr
     using MergedExpr=std::decay_t<_E>;
@@ -90,14 +92,14 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
-      return tupleGetSubset<typename CompsMerger::DynamicComps>(std::tuple_cat(mergedExpr.getDynamicSizes(),extraDynamicSizes));
+      return tupleGetSubset<typename CompsMerger::DynamicComps>(std::tuple_cat(subExpr.getDynamicSizes(),extraDynamicSizes));
     }
     
     /// Returns whether can assign
     INLINE_FUNCTION
     bool canAssign()
     {
-      return mergedExpr.canAssign();
+      return subExpr.canAssign();
     }
     
     /// This is a lightweight object
@@ -141,7 +143,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return recreateFromExprs(mergedExpr.getRef());		\
+      return recreateFromExprs(subExpr.getRef());		\
     }
     
     PROVIDE_GET_REF(const);
@@ -171,7 +173,7 @@ namespace nissa
 	[this]<typename Ui>(const Ui& c)				\
 	{								\
 	  if constexpr(std::is_same_v<Ui,ThisMergedComp>)		\
-	    return c.decompose(mergedExpr.getDynamicSizes());		\
+	    return c.decompose(subExpr.getDynamicSizes());		\
 	  else								\
 	    return std::make_tuple(c);					\
 	};								\
@@ -179,7 +181,7 @@ namespace nissa
       return								\
 	std::apply([this](const auto&...c) ->decltype(auto)		\
 	{								\
-	  return mergedExpr.eval(c...);				\
+	  return subExpr.eval(c...);				\
 	},std::tuple_cat(procComp(cs)...));				\
     }
     
@@ -194,10 +196,10 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     CompsMerger(T&& arg)
       requires(std::is_same_v<std::decay_t<T>,std::decay_t<_E>>)
-      : mergedExpr{std::forward<T>(arg)}
+      : subExpr{std::forward<T>(arg)}
     {
       if constexpr(mergedCompHasDynamicSize)
-	std::get<ThisMergedComp>(extraDynamicSizes)=mergedExpr.template getMergedCompsSize<CompsList<Mc...>>();
+	std::get<ThisMergedComp>(extraDynamicSizes)=subExpr.template getMergedCompsSize<CompsList<Mc...>>();
     }
   };
   

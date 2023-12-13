@@ -13,6 +13,7 @@
 #include <expr/node.hpp>
 //#include <expr/comps/prodCompsDeducer.hpp>
 #include <expr/producerDeclaration.hpp>
+#include <expr/subExprs.hpp>
 #include <metaprogramming/arithmeticTraits.hpp>
 //#include <metaprogramming/asConstexpr.hpp>
 #include <metaprogramming/asConstexpr.hpp>
@@ -91,6 +92,7 @@ namespace nissa
 	    int...Is>
   struct THIS :
     ProducerFeat,
+    ManySubExprs<THIS>,
     BASE
   {
     /// Import the base expression
@@ -169,10 +171,12 @@ namespace nissa
     void describe(const std::string pref="") const
     {
       master_printf("%sProducer %s address %p\n",pref.c_str(),demangle(typeid(*this).name()).c_str(),this);
-      master_printf("%s First factor %s, description:\n",pref.c_str(),demangle(typeid(SubExpr<0>).name()).c_str());
-      subExprs.template get<0>().describe(pref+" ");
-      master_printf("%s Second factor %s, description:\n",pref.c_str(),demangle(typeid(SubExpr<1>).name()).c_str());
-      subExprs.template get<1>().describe(pref+" ");
+      decltype(auto) first=this->subExprs.template get<0>();
+      decltype(auto) second=this->subExprs.template get<1>();
+      master_printf("%s First factor %s, description:\n",pref.c_str(),demangle(typeid(first).name()).c_str());
+      first.describe(pref+" ");
+      master_printf("%s Second factor %s, description:\n",pref.c_str(),demangle(typeid(second).name()).c_str());
+      second.describe(pref+" ");
       master_printf("%sEnd of producer\n",pref.c_str());
     }
     

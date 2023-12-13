@@ -34,6 +34,7 @@ namespace nissa
     {(typename N::template ReinterpretFund<typename N::Fund>*)nullptr};
     {n.getRef()};
     {N::storeByRef};
+    {n.getSubExprs()};
     {N::canAssignAtCompileTime};
   };
   

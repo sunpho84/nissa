@@ -41,6 +41,7 @@ namespace nissa
 	    typename _Fund>
   struct THIS :
     TransposerFeat,
+    SingleSubExpr<THIS>,
     BASE
   {
     /// Import the base expression
@@ -60,7 +61,7 @@ namespace nissa
     using Fund=_Fund;
     
     /// Transposed expression
-    NodeRefOrVal<_E> transpExpr;
+    NodeRefOrVal<_E> subExpr;
     
     /// Type of the transposed expression
     using TranspExpr=std::decay_t<_E>;
@@ -73,14 +74,14 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
-      return transpExpr.getDynamicSizes();
+      return subExpr.getDynamicSizes();
     }
     
     /// Returns whether can assign
     INLINE_FUNCTION
     bool canAssign()
     {
-      return transpExpr.canAssign();
+      return subExpr.canAssign();
     }
     
     /// This is a lightweight object
@@ -110,7 +111,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return transp(transpExpr.getRef());			\
+      return transp(subExpr.getRef());			\
     }
     
     PROVIDE_GET_REF(const);
@@ -135,7 +136,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Fund eval(const TD&...td) const
     {
-      return transpExpr(transp(td)...);
+      return subExpr(transp(td)...);
     }
     
     /// Move construct
@@ -151,7 +152,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Transposer(T&& arg)
       requires(std::is_same_v<std::decay_t<T>,std::decay_t<_E>>)
-      : transpExpr{std::forward<T>(arg)}
+      : subExpr{std::forward<T>(arg)}
     {
     }
   };
@@ -170,7 +171,7 @@ namespace nissa
       std::decay_t<_E>;
     
     if constexpr(isTransposer<E>)
-      return e.transpExpr;
+      return e.subExpr;
     else
       {
 	using ArgComps=

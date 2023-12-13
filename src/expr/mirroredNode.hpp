@@ -14,6 +14,7 @@
 #include <expr/comps.hpp>
 #include <expr/execSpace.hpp>
 #include <expr/node.hpp>
+#include <tuples/tuple.hpp>
 
 namespace nissa
 {
@@ -195,6 +196,13 @@ namespace nissa
       ,deviceVal(t...)
 #endif
     {
+    }
+    
+    /// Returns the node as subexpressions
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    decltype(auto) getSubExprs() const
+    {
+      return nissa::tie(getForCurrentContext());
     }
     
     /// Create from H and D

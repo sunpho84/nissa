@@ -44,6 +44,7 @@ namespace nissa
 	    typename Combiner>
   struct THIS :
     CompReducerFeat,
+    SingleSubExpr<THIS>,
     BASE
   {
     /// Import the base expression
@@ -67,7 +68,7 @@ namespace nissa
     using Fund=_Fund;
     
     /// Expression to reduce
-    NodeRefOrVal<_E> compReducedExpr;
+    NodeRefOrVal<_E> subExpr;
     
     /// Type of the component reduced expression
     using CompReducedExpr=std::decay_t<_E>;
@@ -80,7 +81,7 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
-      return compReducedExpr.getDynamicSizes();
+      return subExpr.getDynamicSizes();
     }
     
     /// Returns whether can assign
@@ -116,7 +117,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return compReduce<Rc,Combiner>(compReducedExpr.getRef());	\
+      return compReduce<Rc,Combiner>(subExpr.getRef());	\
     }
     
     PROVIDE_GET_REF(const);
@@ -149,7 +150,7 @@ namespace nissa
       compsLoop<CompsList<ReduceComp>>([this,&res,&nTCs...](const ReduceComp& rc) INLINE_ATTRIBUTE
       {
 	/// First argument
-	Combiner::reduce(res,this->compReducedExpr(nTCs...,rc));
+	Combiner::reduce(res,this->subExpr(nTCs...,rc));
       },getDynamicSizes());
       
       return
@@ -161,14 +162,14 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     CompReducer(T&& arg)
       requires(std::is_same_v<std::decay_t<T>,std::decay_t<_E>>)
-      : compReducedExpr(std::forward<T>(arg))
+      : subExpr(std::forward<T>(arg))
     {
     }
     
     /// Copy constructor
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     CompReducer(const CompReducer& oth) :
-      compReducedExpr(oth.compReducedExpr)
+      subExpr(oth.subExpr)
     {
     }
   };

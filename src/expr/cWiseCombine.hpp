@@ -46,6 +46,7 @@ namespace nissa
 	    int...Is>
   struct THIS :
     CWiseCombinerFeat,
+    ManySubExprs<THIS>,
     BASE
   {
     /// Import the base expression

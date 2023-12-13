@@ -77,6 +77,7 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     FieldFeat,
+    SingleSubExpr<THIS>,
     BASE
   {
     /// Import the base expression
@@ -161,7 +162,7 @@ namespace nissa
     Field& operator=(Field&& oth)
     {
       nTotalAllocatedSites=oth.nTotalAllocatedSites;
-      data=std::move(oth.data);
+      subExpr=std::move(oth.subExpr);
       haloIsValid=oth.haloIsValid;
       haloPresence=oth.haloPresence;
       
@@ -253,7 +254,7 @@ namespace nissa
       indexMaxValue<C...>();
     
     /// Storage data
-    mutable Data data;
+    mutable Data subExpr;
     
     /// Presence of halo
     HaloPresence haloPresence;
@@ -273,7 +274,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION		\
     ATTRIB Fund& eval(const U&...cs) ATTRIB			\
     {								\
-      return data(cs...);					\
+      return subExpr(cs...);					\
     }
     
     PROVIDE_EVAL(const);
@@ -356,7 +357,7 @@ namespace nissa
       buf.selfReduce();
       
       StackTens<CompsList<C...>,Fund> res;
-      memcpy<MemoryType::CPU,MT>(res.storage,buf.data.storage,res.nElements*sizeof(Fund));
+      memcpy<MemoryType::CPU,MT>(res.storage,buf.subExpr.storage,res.nElements*sizeof(Fund));
       
       return res;
     }
@@ -479,7 +480,7 @@ namespace nissa
     void allocate(const HaloPresence& _haloPresence=WITHOUT_HALO)
     {
       nTotalAllocatedSites=nSitesToAllocate(haloPresence);
-      data.allocate(std::make_tuple(nTotalAllocatedSites));
+      subExpr.allocate(std::make_tuple(nTotalAllocatedSites));
       haloPresence=_haloPresence;
       
       invalidateHalo();
@@ -517,7 +518,7 @@ namespace nissa
     Field(O&& oth,
 	   _CopyConstructInternalDispatcher*) :
       nTotalAllocatedSites(oth.nTotalAllocatedSites),
-      data(oth.data),
+      subExpr(oth.subExpr),
       haloPresence(oth.haloPresence),
       haloIsValid(oth.haloIsValid)
     {
@@ -532,7 +533,7 @@ namespace nissa
     Field<CompsList<C...>,_Fund,FL,OMT> copyToMemorySpace() const
     {
       Field<CompsList<C...>,_Fund,FL,OMT> res(haloPresence);
-      res.data=data;
+      res.subExpr=subExpr;
       
       return res;
     }
@@ -576,7 +577,7 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     Field(Field&& oth) :
       nTotalAllocatedSites(oth.nTotalAllocatedSites),
-      data(std::move(oth.data)),
+      subExpr(std::move(oth.subExpr)),
       haloPresence(oth.haloPresence),
       haloIsValid(oth.haloIsValid)
     {
@@ -687,19 +688,19 @@ namespace nissa
     void fillHaloWithReceivingBuf() const
     {
       PAR(0,2*lat->getSurfSize(),
-	  CAPTURE(data=this->data.getWritable(),
+	  CAPTURE(subExpr=this->subExpr.getWritable(),
 		  offset=lat->getLocVol(),
 		  dynamicSizes=this->getDynamicSizes()),
 	  i,
 	  {
 	    compsLoop<InnerComps>([offset,
 				   i,
-				   &data,
+				   &subExpr,
 				   dynamicSizes] CUDA_DEVICE(const auto&...c) INLINE_ATTRIBUTE
 	    {
 	      const auto internalDeg=index(dynamicSizes,c...);
 	      
-	      asMutable(data(offset+i,c...))=
+	      asMutable(subExpr(offset+i,c...))=
 		((Fund*)recv_buf)[internalDeg+nInternalDegs*i()];
 	    },dynamicSizes);
 	  });

@@ -12,9 +12,11 @@
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
 #include <expr/execSpace.hpp>
-#include <expr/stackTensDeclaration.hpp>
-#include <expr/node.hpp>
 #include <expr/indexComputer.hpp>
+#include <expr/node.hpp>
+#include <expr/stackTensDeclaration.hpp>
+#include <expr/subExprs.hpp>
+#include <tuples/tuple.hpp>
 
 namespace nissa
 {
@@ -30,7 +32,8 @@ namespace nissa
   requires(std::is_default_constructible_v<_Fund>,
 	   (C::sizeIsKnownAtCompileTime and ... and true))
   struct THIS :
-    BASE
+  NoSubExprs,
+  BASE
   {
     using This=THIS;
     

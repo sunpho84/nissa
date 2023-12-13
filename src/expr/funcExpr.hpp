@@ -11,6 +11,7 @@
 #include <expr/dynamicCompsProvider.hpp>
 #include <expr/execSpace.hpp>
 #include <expr/nodeDeclaration.hpp>
+#include <expr/subExprs.hpp>
 #include <metaprogramming/universalReference.hpp>
 
 namespace nissa
@@ -39,6 +40,7 @@ namespace nissa
 	    typename _Fund>
   struct FuncExpr<_Func,CompsList<C...>,_Fund> :
     FuncExprFeat,
+    NoSubExprs,
     BASE
   {
     /// Import the base expression

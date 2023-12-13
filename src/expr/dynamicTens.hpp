@@ -36,6 +36,7 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     BASE,
+    NoSubExprs,
     DynamicTensFeat
   {
     using This=THIS;

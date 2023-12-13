@@ -1,6 +1,10 @@
 #ifndef _SHIFT_HPP
 #define _SHIFT_HPP
 
+#ifdef HAVE_CONFIG_H
+# include <config.hpp>
+#endif
+
 #include <expr/field.hpp>
 #include <expr/node.hpp>
 #include <metaprogramming/universalReference.hpp>
@@ -31,6 +35,7 @@ namespace nissa
 	    typename _Fund>
   struct THIS :
     ShifterFeat,
+    SingleSubExpr<THIS>,
     BASE
   {
     /// Import the base expression
@@ -43,7 +48,7 @@ namespace nissa
 #undef THIS
     
     /// Shifted expression
-    NodeRefOrVal<_E> shiftedExpr;
+    NodeRefOrVal<_E> subExpr;
     
     using ShiftedExpr=NodeRefOrVal<_E>;
     
@@ -62,7 +67,7 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
-      return shiftedExpr.getDynamicSizes();
+      return subExpr.getDynamicSizes();
     }
     
     /// Returns whether can assign
@@ -82,7 +87,7 @@ namespace nissa
       master_printf("%s Orientation: %d\n",pref.c_str(),ori());
       master_printf("%s Direction: %d\n",pref.c_str(),dir());
       master_printf("%s Shifted quantity %s, description:\n",pref.c_str(),demangle(typeid(ShiftedExpr).name()).c_str());
-      shiftedExpr.describe(pref+" ");
+      subExpr.describe(pref+" ");
       master_printf("%sEnd of shifter\n",pref.c_str());
     }
     
@@ -115,7 +120,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return recreateFromExprs(shiftedExpr.getRef());		\
+      return recreateFromExprs(subExpr.getRef());		\
     }
     
     PROVIDE_GET_REF(const);
@@ -182,7 +187,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Fund eval(const TD&...td) const
     {
-      return shiftedExpr()(argEval(td)...);
+      return subExpr()(argEval(td)...);
     }
     
     /// Construct
@@ -191,7 +196,7 @@ namespace nissa
     Shifter(T&& arg,
 	    const Ori& ori,
 	    const Dir& dir) :
-      shiftedExpr{std::forward<T>(arg)},
+      subExpr{std::forward<T>(arg)},
       ori(ori),
       dir(dir)
     {
@@ -211,8 +216,8 @@ namespace nissa
     // }
     else
       {
-	t.subExprs.applyTo([&t](auto&& s){printf("%s updating subexprs halo %s\n",demangle(typeid(t).name()).c_str(),demangle(typeid(s).name()).c_str());});
-	t.subExprs.applyTo([](auto&& s)
+	t.getSubExprs().applyTo([&t](auto&& s){printf("%s updating subexprs halo %s\n",demangle(typeid(t).name()).c_str(),demangle(typeid(s).name()).c_str());});
+	t.getSubExprs().applyTo([](auto&& s)
 	{
 	  updateHaloForShift(s);
 	});

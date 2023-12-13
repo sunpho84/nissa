@@ -11,6 +11,7 @@
 #include <expr/exprRefOrVal.hpp>
 #include <expr/nodeDeclaration.hpp>
 #include <expr/scalar.hpp>
+#include <expr/subExprs.hpp>
 #include <routines/ios.hpp>
 #include <tuples/tupleFilter.hpp>
 #include <tuples/tupleHasType.hpp>
@@ -42,6 +43,7 @@ namespace nissa
 	    typename _Fund>
   struct THIS :
     CompsBinderFeat,
+    SingleSubExpr<THIS>,
     BASE
   {
     /// Import the base expression
@@ -61,7 +63,7 @@ namespace nissa
     using Fund=_Fund;
     
     /// Bound expression
-    NodeRefOrVal<_E> boundExpr;
+    NodeRefOrVal<_E> subExpr;
     
     /// Bound type
     using BoundExpr=std::decay_t<_E>;
@@ -73,14 +75,14 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
-      return tupleGetSubset<typename CompsBinder::DynamicComps>(boundExpr.getDynamicSizes());
+      return tupleGetSubset<typename CompsBinder::DynamicComps>(subExpr.getDynamicSizes());
     }
     
     /// Returns whether can assign
     INLINE_FUNCTION
     bool canAssign()
     {
-      return boundExpr.canAssign();
+      return subExpr.canAssign();
     }
     
     /// This is a lightweight object
@@ -115,7 +117,7 @@ namespace nissa
 	
       },boundComps);
       master_printf("%s Bound quantity %s, is ref: %d description:\n",pref.c_str(),demangle(typeid(BoundExpr).name()).c_str(),std::is_reference_v<_E>);
-      boundExpr.describe(pref+" ");
+      subExpr.describe(pref+" ");
       master_printf("%sEnd of binder\n",pref.c_str());
     }
     
@@ -146,7 +148,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return boundExpr.getRef()(std::get<Bc>(boundComps)...);	\
+      return subExpr.getRef()(std::get<Bc>(boundComps)...);	\
     }
     
     PROVIDE_GET_REF(const);
@@ -173,7 +175,7 @@ namespace nissa
     decltype(auto) eval(const U&...cs) ATTRIB				\
     {									\
       return								\
-	boundExpr.eval(std::get<Bc>(boundComps)...,cs...);		\
+	subExpr.eval(std::get<Bc>(boundComps)...,cs...);		\
     }
     
     PROVIDE_EVAL(const);
@@ -187,7 +189,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     CompsBinder(T&& arg,
 		const BoundComps& boundComps) :
-      boundExpr{std::forward<T>(arg)},
+      subExpr{std::forward<T>(arg)},
       boundComps(boundComps)
     {
     }
