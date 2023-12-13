@@ -127,6 +127,13 @@ namespace nissa
   {
     return t[(std::decay_t<M>*)nullptr];
   }
+  
+  /// Tie the custom tuple
+  template <typename...Args>
+  constexpr auto tie(Args&... args)
+  {
+    return Tuple<Args&...>{args...};
+  }
 }
 
 #endif
