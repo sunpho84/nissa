@@ -97,6 +97,9 @@ namespace nissa
 	  }
       }
     
+    if(out.size()==0)
+      out.push_back(1);
+    
     return out;
   }
 }
