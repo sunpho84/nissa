@@ -13,13 +13,6 @@
 # include <cuda_runtime.h>
 #endif
 
-#ifndef EXTERN_MEMORY_MANAGER
-# define EXTERN_MEMORY_MANAGER extern
-#endif
-
-#ifdef USE_CUDA
-# include <base/cuda.hpp>
-#endif
 #include <base/memoryType.hpp>
 #include <new_types/value_with_extreme.hpp>
 #include <metaprogramming/constnessChanger.hpp>
@@ -358,7 +351,7 @@ namespace nissa
     }
   };
   
-  EXTERN_MEMORY_MANAGER MemoryManager* cpuMemoryManager;
+  inline MemoryManager* cpuMemoryManager;
   
 #ifdef USE_CUDA
   
@@ -398,7 +391,7 @@ namespace nissa
     }
   };
   
-  EXTERN_MEMORY_MANAGER MemoryManager* gpuMemoryManager;
+  inline MemoryManager* gpuMemoryManager;
   
 #endif
   
@@ -458,7 +451,5 @@ namespace nissa
     return memoryManager<getMemoryType<ES>()>();
   }
 }
-
-#undef EXTERN_MEMORY_MANAGER
 
 #endif
