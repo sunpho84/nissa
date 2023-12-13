@@ -30,18 +30,19 @@ namespace nissa
   Coords<C> decomposeLxToCoords(F f,
 				const Coords<C>& _s)
   {
-    Coords<C> _x;
+    Coords<C> res;
     const Coords<F>& s=_s.template reinterpretFund<F>();
-    Coords<F>& x=_x.template reinterpretFund<F>();
+    Coords<F>& work=
+      res.template reinterpretFund<F>();
     
     for(Dir mu=NDIM-1;mu>=0;mu--)
       {
 	F t=s[mu];
-	x[mu]=f%t;
+	work[mu]=f%t;
 	f/=t;
       }
     
-    return x;
+    return res;
   }
   
   /// Finds the index f of coordinates in sizes s
