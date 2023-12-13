@@ -2,14 +2,7 @@
 #define _FFT_HPP
 
 #ifdef HAVE_CONFIG_H
-# include "config.hpp"
-#endif
-
-#ifndef EXTERN_FFT
-# define EXTERN_FFT extern
-# define INITIALIZE_FFT_TO(ARGS...)
-#else
-# define INITIALIZE_FFT_TO(ARGS...) ARGS
+# include <config.hpp>
 #endif
 
 #include <expr/conj.hpp>
@@ -17,7 +10,7 @@
 
 namespace nissa
 {
-  EXTERN_FFT bool fftwInitialized INITIALIZE_FFT_TO({false});
+  inline bool fftwInitialized{false};
   
   void initFftw();
   
@@ -84,8 +77,5 @@ namespace nissa
     return out;
   }
 }
-
-#undef EXTERN_FFT
-#undef INITIALIZE_FFT_TO
 
 #endif

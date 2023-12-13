@@ -8,9 +8,7 @@
 # include <cufft.h>
 #endif
 
-#define EXTERN_FFT
-# include <operations/fft.hpp>
-
+#include <operations/fft.hpp>
 #include <routines/ios.hpp>
 
 namespace nissa
@@ -119,7 +117,7 @@ namespace nissa
     cufftHandle plan;
     decryptFftError(cufftPlanMany(&plan,1,&n,&n,1,n,&n,1,n,CUFFT_Z2Z,nFft),"creating the plan");
     decryptFftError(cufftExecZ2Z(plan,b,b,sign),"executing the transform");
-    decrypt_cuda_error(cudaDeviceSynchronize(),"synchronizing at the end of fft");
+    decryptCudaError(cudaDeviceSynchronize(),"synchronizing at the end of fft");
     
     decryptFftError(cufftDestroy(plan),"destroying the plan");
     
