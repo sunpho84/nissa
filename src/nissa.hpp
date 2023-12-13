@@ -1,9 +1,8 @@
 #ifndef _NISSA_HPP
 #define _NISSA_HPP
 
-//including config.hpp
 #ifdef HAVE_CONFIG_H
-# include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <base/close.hpp>

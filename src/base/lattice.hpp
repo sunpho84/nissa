@@ -52,7 +52,7 @@ namespace nissa
     static constexpr Coords<Dir> nissaDirOfScidacDir=
       scidacDirOfNissaDir;
     
-#define PROVIDE_MEMBER_WITH_ACCESSOR(TYPE,NAME,CAP_NAME)	\
+#define PROVIDE_MEMBER_WITH_ACCESSOR(NAME,CAP_NAME,TYPE...)	\
     TYPE _ ## NAME;						\
     								\
     template <typename...Args>					\
@@ -65,39 +65,30 @@ namespace nissa
 	return _ ## NAME;					\
     }
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(GlbLxSite,glbVol,GlbVol);
+    PROVIDE_MEMBER_WITH_ACCESSOR(glbVol,GlbVol,GlbLxSite);
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(LocLxSite,locVol,LocVol);
+    PROVIDE_MEMBER_WITH_ACCESSOR(locVol,LocVol,LocLxSite);
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(LocLxSite,surfSize,SurfSize);
+    PROVIDE_MEMBER_WITH_ACCESSOR(surfSize,SurfSize,LocLxSite);
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(LocCoords,surfSizePerDir,SurfSizePerDir);
+    PROVIDE_MEMBER_WITH_ACCESSOR(surfSizePerDir,SurfSizePerDir,LocCoords);
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(LocCoords,surfOffsetOfDir,SurfOffsetOfDir);
+    PROVIDE_MEMBER_WITH_ACCESSOR(surfOffsetOfDir,SurfOffsetOfDir,LocCoords);
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(GlbCoords,glbSizes,GlbSizes);
+    PROVIDE_MEMBER_WITH_ACCESSOR(glbSizes,GlbSizes,GlbCoords);
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(LocCoords,locSizes,LocSizes);
+    PROVIDE_MEMBER_WITH_ACCESSOR(locSizes,LocSizes,LocCoords);
     
-    using LocLxToLocLxMap=
-      MirroredTens<OfComps<LocLxSite>,LocLxSite,IsRef>;
+    PROVIDE_MEMBER_WITH_ACCESSOR(glbCoordsOfLocLx,GlbCoordsOfLocLx,MirroredTens<OfComps<LocLxSite,Dir>,GlbCoord,IsRef>);
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(LocLxToLocLxMap,surfSiteOfHaloSite,SurfSiteOfHaloSite);
+    PROVIDE_MEMBER_WITH_ACCESSOR(locCoordsOfLocLx,LocCoordsOfLocLx,MirroredTens<OfComps<LocLxSite,Dir>,LocCoord,IsRef>);
     
-    using LocLxToLocNeighsMap=
-      MirroredTens<OfComps<Ori,LocLxSite,Dir>,LocLxSite,IsRef>;
+    PROVIDE_MEMBER_WITH_ACCESSOR(surfSiteOfHaloSite,SurfSiteOfHaloSite,MirroredTens<OfComps<LocLxSite>,LocLxSite,IsRef>);
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(LocLxToLocNeighsMap,locLxNeigh,LocLxNeigh);
+    PROVIDE_MEMBER_WITH_ACCESSOR(locLxNeigh,LocLxNeigh,MirroredTens<OfComps<Ori,LocLxSite,Dir>,LocLxSite,IsRef>);
     
-    using LocLxToGlbLxMap=
-      MirroredTens<OfComps<LocLxSite>,GlbLxSite,IsRef>;
+    PROVIDE_MEMBER_WITH_ACCESSOR(glbLxOfLocLx,GlbLxOfLocLx,MirroredTens<OfComps<LocLxSite>,GlbLxSite,IsRef>);
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(LocLxToGlbLxMap,glbLxOfLocLx,GlbLxOfLocLx);
-    
-    using LocLxToGlbCoordsMap=
-      MirroredTens<OfComps<LocLxSite,Dir>,GlbCoord,IsRef>;
-    
-    PROVIDE_MEMBER_WITH_ACCESSOR(LocLxToGlbCoordsMap,glbCoordsOfLocLx,GlbCoordsOfLocLx);
     
 #undef PROVIDE_MEMBER_WITH_ACCESSOR
     
@@ -389,9 +380,9 @@ namespace nissa
     {
       _locVol=getGlbVol()()/nRanks();
       
-      for(Dir dir=0;dir<nDim;dir++)
-	_locSizes()[dir]=
-	  getGlbSizes()[dir]()/nRanksPerDir[dir]();
+      _locSizes()=
+	getGlbSizes().template reinterpretFund<LocCoord>()/
+	nRanksPerDir.template reinterpretFund<LocCoord>();
     }
     
     /// Sets the surface sizes
@@ -406,6 +397,18 @@ namespace nissa
       for(Dir dir=1;dir<nDim;dir++)
 	_surfOffsetOfDir[dir]=_surfOffsetOfDir[dir-1]+getSurfSizePerDir()[dir-1];
     }
+
+    /// Sets the coordinate of the local sites
+    void setLocSiteCoords()
+    {
+      _locCoordsOfLocLx.allocate(getLocVol());
+      
+      auto lol=
+	_locCoordsOfLocLx.getFillable();
+      
+      for(LocLxSite site=0;site<getLocVol();site++)
+	lol(site)=decomposeLxToCoords(site,getLocSizes());
+    }
     
     /// Initializes
     void init(const GlbCoords& extGlbSizes)
@@ -416,8 +419,10 @@ namespace nissa
       setMpiRanks();
       
       setLocSizes();
-
-      //glbCoordsOfLocLx;
+      
+      setSurfSizes();
+      
+      setLocSiteCoords();
     }
     
     /// Initializes from T and L
