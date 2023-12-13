@@ -47,14 +47,18 @@ namespace nissa
     
 #undef THIS
     
-    /// Shifted expression
-    NodeRefOrVal<_E> subExpr;
-    
+    /// Type of the shifted expression
     using ShiftedExpr=NodeRefOrVal<_E>;
+    
+    /// Shifted expression
+    ShiftedExpr subExpr;
     
     /// Executes where traced reference
     static constexpr ExecSpace execSpace=
       ShiftedExpr::execSpace;
+    
+    /// Reference to the lattice
+    LatticeRef latRef;
     
     /// Components
     using Comps=
@@ -156,7 +160,7 @@ namespace nissa
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     LocLxSite argEval(const LocLxSite& t) const
     {
-      return lat->getLocLxNeigh(1-ori,t,dir);
+      return latRef.getLocLxNeigh(1-ori,t,dir);
     }
     
     // /// Evaluates the shift of a LocEvn site
@@ -196,11 +200,12 @@ namespace nissa
     
     /// Construct
     template <typename T>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    INLINE_FUNCTION constexpr
     Shifter(T&& arg,
 	    const Ori& ori,
 	    const Dir& dir) :
       subExpr{std::forward<T>(arg)},
+      latRef{lat->getRef()},
       ori(ori),
       dir(dir)
     {

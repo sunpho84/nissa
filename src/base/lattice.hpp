@@ -32,7 +32,17 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   /// Holds all the info on the lattice
+  ///
+  /// Forward declaration
   template <bool IsRef=false>
+  struct Lattice;
+  
+  /// Reference to a lattice
+  using LatticeRef=
+    Lattice<true>;
+  
+  /// Holds all the info on the lattice
+  template <bool IsRef>
   struct Lattice
   {
     /// Index of time direction
