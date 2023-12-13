@@ -7,8 +7,6 @@
 
 /// \file expr/conj.hpp
 
-#include <expr/comp.hpp>
-#include <expr/comps.hpp>
 #include <expr/node.hpp>
 #include <expr/stackTens.hpp>
 #include <metaprogramming/universalReference.hpp>

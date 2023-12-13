@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-# include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <base/init.hpp>
@@ -16,7 +16,7 @@
 #endif
 
 #ifdef USE_CUDA
- #include <base/cuda.hpp>
+# include <base/cudaInit.hpp>
 #endif
 
 #include "base/DDalphaAMG_bridge.hpp"

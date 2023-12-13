@@ -10,7 +10,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <base/memory_manager.hpp>
+#include <base/memoryType.hpp>
 
 namespace nissa
 {
@@ -115,13 +115,6 @@ namespace nissa
   /// Declares that can execute on both CPU and GPU
   constexpr ExecSpace currentExecSpace=
 	      compilingForDevice?execOnGPU:execOnCPU;
-  
-  /// Returns the memory manager suitable for the execution space
-  template <ExecSpace ES>
-  inline MemoryManager* memoryManager()
-  {
-    return memoryManager<getMemoryType<ES>()>();
-  }
 }
 
 #endif
