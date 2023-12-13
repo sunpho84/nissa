@@ -766,7 +766,7 @@ namespace nissa
 		  
 		  MPI_Request request;
 		  
-		  sendOrRecv(ptr+offset,messageLength,MPI_CHAR,neighRank,
+		  sendOrRecv(ptr+offset,messageLength,MPI_CHAR,neighRank(),
 			     messageTag,MPI_COMM_WORLD,&request);
 		  
 		  requests.push_back(request);
