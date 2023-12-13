@@ -71,9 +71,9 @@ namespace nissa
     
     PROVIDE_MEMBER_WITH_ACCESSOR(surfSize,SurfSize,LocLxSite);
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(surfSizePerDir,SurfSizePerDir,LocCoords);
+    PROVIDE_MEMBER_WITH_ACCESSOR(surfSizePerDir,SurfSizePerDir,Coords<LocLxSite>);
     
-    PROVIDE_MEMBER_WITH_ACCESSOR(surfOffsetOfDir,SurfOffsetOfDir,LocCoords);
+    PROVIDE_MEMBER_WITH_ACCESSOR(surfOffsetOfDir,SurfOffsetOfDir,Coords<LocLxSite>);
     
     PROVIDE_MEMBER_WITH_ACCESSOR(glbSizes,GlbSizes,GlbCoords);
     
@@ -389,15 +389,15 @@ namespace nissa
     void setSurfSizes()
     {
       _surfSizePerDir=
-	getLocVol()/getLocSizes();
+	getLocVol()/getLocSizes().template reinterpretFund<LocLxSite>();
       
-      _surfSize=compSum<Dir>(getSurfSizePerDir());
+      _surfSize=compSum<Dir>(getSurfSizePerDir())();
       
       _surfOffsetOfDir[timeDir]=0;
       for(Dir dir=1;dir<nDim;dir++)
 	_surfOffsetOfDir[dir]=_surfOffsetOfDir[dir-1]+getSurfSizePerDir()[dir-1];
     }
-
+    
     /// Sets the coordinate of the local sites
     void setLocSiteCoords()
     {
