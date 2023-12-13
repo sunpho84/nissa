@@ -646,9 +646,9 @@ namespace nissa
     /// Fill the sending buf using the data on the surface of a field
     void fillSendingBufWithSurface() const
     {
-      fillSendingBufWith([] CUDA_DEVICE(const Site& i) INLINE_ATTRIBUTE
+      fillSendingBufWith([lat=lat->getRef()] CUDA_DEVICE(const Site& i) INLINE_ATTRIBUTE
       {
-	return surfSiteOfHaloSite(i);
+	return lat.getSurfSiteOfHaloSite(i);
       },2*lat->getSurfSize());
       
       // for(size_t i=0;i<bord_vol*StackTens<CompsList<C...>,Fund>::nElements;i++)
