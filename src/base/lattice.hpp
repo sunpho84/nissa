@@ -466,6 +466,7 @@ namespace nissa
       constexpr bool debugSetup=false;
       
       _locLxNeigh.allocate(getLocVol()+getHaloSize());
+      _surfSiteOfHaloSite.allocate(getHaloSize());
       
       if constexpr(debugSetup)
 	_locLxNeigh.getFillable()=-1;
