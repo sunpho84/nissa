@@ -224,7 +224,7 @@ namespace nissa
       requires(storeByRef)
     =delete;
     
-    /// Allow in the case data is ref
+    /// Allow in the case data does not require storing by ref
     MirroredNode(const MirroredNode&)
       requires(not storeByRef)
     =default;
