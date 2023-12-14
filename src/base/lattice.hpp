@@ -584,13 +584,16 @@ namespace nissa
     /// Hypercube diagonal
     static constexpr StackTens<CompsList<Dir>> hCubeDiag=1.0;
     
+    /// Alias
+    static constexpr StackTens<CompsList<Dir>,bool> allDirs=true;
+    
     /// Versor in a given direction
     static constexpr StackTens<CompsList<Dir>,StackTens<CompsList<Dir>,bool>> versors=
       getVersor<bool>;
     
     /// List of perpendicular directions
     static constexpr StackTens<CompsList<Dir>,StackTens<CompsList<Dir>,bool>> perpDirs=
-      hCubeDiag-versors;
+      allDirs-versors;
   };
   
   /// Stores the actual lattice
