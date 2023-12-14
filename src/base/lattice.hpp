@@ -457,7 +457,12 @@ namespace nissa
     /// Set neighbors
     void setSitesConnectivity()
     {
+      constexpr bool debugSetup=false;
+      
       _locLxNeigh.allocate(getLocVol()+getHaloSize());
+      
+      if constexpr(debugSetup)
+	_locLxNeigh.getFillable()=-1;
       
       HOST_PARALLEL_LOOP(0,
 			 getLocVol(),
@@ -470,9 +475,8 @@ namespace nissa
 			     lat.getLocCoordsOfLocLx(site);
 			   
 			   for(Ori ori=0;ori<2;ori++)
-			     for(Dir dir=0;dir<nDim;ori++)
+			     for(Dir dir=0;dir<nDim;dir++)
 			       {
-				 
 				 const bool isOnSurf=
 				   (((ori==bw and c(dir)==0) or
 				     (ori==fw and c(dir)==ls(dir)-1))
@@ -486,12 +490,26 @@ namespace nissa
 				   perpDirs[dir]:
 				   allDirs;
 				 
-				 lln(site,ori,dir)=
-				   isOnSurf*lat.getLocVol()+
-				   ori()*lat.getSurfSize()+
-				   lxOfCoords<LocLxSite,LocCoord>(sc,ls*dirMask);
+				 const LocLxSite asLoc=
+				   lxOfCoords<LocLxSite,LocCoord>(sc*dirMask,ls*dirMask);
 				 
-				 master_printf("site %d ori %d dir %d isOnSurf %d neigh %d\n",site(),ori(),dir(),isOnSurf,lln(site,ori,dir)());
+				 const LocLxSite neigh=
+				   isOnSurf*(lat.getLocVol()+
+					     ori()*lat.getSurfSize()+
+					     lat.getSurfOffsetOfDir(dir))+
+				   asLoc;
+				 
+				 lln(site,ori,dir)=neigh;
+				 
+				 master_printf("site %d ori %d dir %d sc %d isOnSurf %d asLoc %d neigh %d\n",site(),ori(),dir(),sc(dir)(),isOnSurf,asLoc(),lln(site,ori,dir)());
+				 
+				 if(neigh>=lat.getLocVol())
+				   {
+				     if(decltype(auto) f=lln(neigh,1-ori,dir);(not debugSetup) or f==-1)
+				       f=site;
+				     else
+				       crash("Site %ld is already pointing at halo site %ld in orientation %d dir %d\n",f(),site(),ori(),dir());
+				   }
 			       }
 			 });
     }
