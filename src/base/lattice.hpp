@@ -31,6 +31,11 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  /// Functor used to mak the spatial origin
+  ///
+  /// Forward declaration
+  struct SpatOriginMaskFunctor;
+  
   /// Holds all the info on the lattice
   ///
   /// Forward declaration
