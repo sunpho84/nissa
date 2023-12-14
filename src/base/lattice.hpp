@@ -452,6 +452,12 @@ namespace nissa
       _glbCoordsOfLocLx.getFillable()=
 	getLocCoordsOfLocLx().template reinterpretFund<GlbCoord>()+
 	getOriginGlbCoords();
+      
+      _glbLxOfLocLx.getFillable()=
+	[this](const LocLxSite site)
+	{
+	  return lxOfCoords<GlbLxSite,GlbCoord>(getGlbCoordsOfLocLx(site),getGlbSizes());
+	};
     }
     
     /// Set neighbors
@@ -468,7 +474,8 @@ namespace nissa
 			 getLocVol(),
 			 CAPTURE(lat=getRef(),
 				 ls=getLocSizes(),
-				 lln=_locLxNeigh.getFillable()),
+				 lln=_locLxNeigh.getFillable(),
+				 ssohs=_surfSiteOfHaloSite.getFillable()),
 			 site,
 			 {
 			   const LocCoords c=
@@ -509,6 +516,8 @@ namespace nissa
 				       f=site;
 				     else
 				       crash("Site %ld is already pointing at halo site %ld in orientation %d dir %d\n",f(),site(),ori(),dir());
+				     
+				     ssohs(neigh-lat.getLocVol())=site;
 				   }
 			       }
 			 });
