@@ -491,37 +491,6 @@ namespace nissa
       return getGlbCoordsOfLocLx(dir);
     }
     
-    /// Functor used to mak the spatial origin
-    struct SpatOriginMaskFunctor
-    {
-      /// Can run on both GPU and CPU as it is trivially copyable
-      static constexpr ExecSpace execSpace=
-	execOnCPUAndGPU;
-      
-      Lattice lat;
-      
-      constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-      SpatOriginMaskFunctor(const Lattice& lat)
-	requires(IsRef) :
-	lat(lat)
-      {
-      }
-      
-      SpatOriginMaskFunctor(const SpatOriginMaskFunctor&) = default;
-      
-      /// Evaluate
-      constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-      auto operator()(const LocLxSite& site) const
-      {
-	bool isSpatOrigin=true;
-	
-	for(Dir nu=1;nu<nDim;nu++)
-	  isSpatOrigin&=(lat.getGlbCoordsOfLocLx(site)(nu)==0);
-	
-	return isSpatOrigin;
-      }
-    };
-    
     /// Returns a function which evaluates to true on spatial origins
     auto spatialOriginsMask() const
     {
@@ -584,7 +553,7 @@ namespace nissa
     /// Hypercube diagonal
     static constexpr StackTens<CompsList<Dir>> hCubeDiag=1.0;
     
-    /// Alias
+    /// All directions
     static constexpr StackTens<CompsList<Dir>,bool> allDirs=true;
     
     /// Versor in a given direction
@@ -595,6 +564,40 @@ namespace nissa
     static constexpr StackTens<CompsList<Dir>,StackTens<CompsList<Dir>,bool>> perpDirs=
       allDirs-versors;
   };
+  
+  /// Functor used to mak the spatial origin
+  struct SpatOriginMaskFunctor
+  {
+    /// Can run on both GPU and CPU as it is trivially copyable
+    static constexpr ExecSpace execSpace=
+      execOnCPUAndGPU;
+    
+    LatticeRef lat;
+    
+    template <bool IsRef>
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    SpatOriginMaskFunctor(const Lattice<IsRef>& lat) :
+      lat(lat.getRef())
+    {
+    }
+    
+    SpatOriginMaskFunctor(const SpatOriginMaskFunctor&) = default;
+    
+    SpatOriginMaskFunctor(SpatOriginMaskFunctor&&) = default;
+    
+    /// Evaluate
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    auto operator()(const LocLxSite& site) const
+    {
+      bool isSpatOrigin=true;
+      
+      for(Dir nu=1;nu<nDim;nu++)
+	isSpatOrigin&=(lat.getGlbCoordsOfLocLx(site)(nu)==0);
+      
+      return isSpatOrigin;
+    }
+  };
+  
   
   /// Stores the actual lattice
   inline Lattice<>* _lat;

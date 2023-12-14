@@ -178,10 +178,10 @@ namespace nissa
 	    typename Fund=decltype(std::apply(std::declval<F>(),std::declval<C>())),
 	    DerivedFromComp...TD>
   constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  auto funcNodeWrapper(const F& f,
+  auto funcNodeWrapper(F&& f,
 		       const CompsList<TD...>& ds)
   {
-    return FuncExpr<FuncNodeWrapper<F,C,ES>,C,Fund>(FuncNodeWrapper<F,C,ES>(f),ds);
+    return FuncExpr<FuncNodeWrapper<F,C,ES>,C,Fund>(FuncNodeWrapper<F,C,ES>(std::forward<F>(f)),ds);
   }
 }
 
