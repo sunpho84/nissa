@@ -22,13 +22,6 @@
 
 namespace nissa
 {
-  /// Mirrors a tensor on device
-  template <typename Comps,
-	    typename Fund,
-	    bool IsRef=false>
-  using MirroredTens=
-    MirroredNode<Comps,DynamicTens<Comps,Fund,MemoryType::CPU,IsRef>>;
-  
   /// All to all communicators
   template <DerivedFromComp CDst,
 	    DerivedFromComp CSrc,

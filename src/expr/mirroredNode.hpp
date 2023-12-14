@@ -310,6 +310,15 @@ namespace nissa
       return *this;
     }
   };
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Mirrors a tensor on device
+  template <typename Comps,
+	    typename Fund,
+	    bool IsRef=false>
+  using MirroredTens=
+    MirroredNode<Comps,DynamicTens<Comps,ConstIf<IsRef,Fund>,MemoryType::CPU,IsRef>>;
 }
 
 #endif
