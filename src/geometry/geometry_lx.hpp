@@ -12,11 +12,6 @@
 #include <stdint.h>
 #include <routines/math_routines.hpp>
 
-#ifndef EXTERN_GEOMETRY_LX
- #define EXTERN_GEOMETRY_LX extern
- #define ONLY_INSTANTIATION
-#endif
-
 #define NISSA_LOC_VOL_LOOP(a) for(int a=0;a<locVol;a++)
 
 namespace nissa
