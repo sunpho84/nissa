@@ -454,6 +454,48 @@ namespace nissa
 	getOriginGlbCoords();
     }
     
+    /// Set neighbors
+    void setSitesConnectivity()
+    {
+      _locLxNeigh.allocate(getLocVol()+getHaloSize());
+      
+      HOST_PARALLEL_LOOP(0,
+			 getLocVol(),
+			 CAPTURE(lat=getRef(),
+				 ls=getLocSizes(),
+				 lln=_locLxNeigh.getFillable()),
+			 site,
+			 {
+			   const LocCoords c=
+			     lat.getLocCoordsOfLocLx(site);
+			   
+			   for(Ori ori=0;ori<2;ori++)
+			     for(Dir dir=0;dir<nDim;ori++)
+			       {
+				 
+				 const bool isOnSurf=
+				   (((ori==bw and c(dir)==0) or
+				     (ori==fw and c(dir)==ls(dir)-1))
+				    and isDirParallel(dir));
+				 
+				 const LocCoords sc=
+				   (c+(2*ori()-1)*versors[dir]+ls)%ls;
+				 
+				 const auto dirMask=
+				   isOnSurf?
+				   perpDirs[dir]:
+				   allDirs;
+				 
+				 lln(site,ori,dir)=
+				   isOnSurf*lat.getLocVol()+
+				   ori()*lat.getSurfSize()+
+				   lxOfCoords<LocLxSite,LocCoord>(sc,ls*dirMask);
+				 
+				 master_printf("site %d ori %d dir %d isOnSurf %d neigh %d\n",site(),ori(),dir(),isOnSurf,lln(site,ori,dir)());
+			       }
+			 });
+    }
+    
     /// Initializes
     void init(const GlbCoords& extGlbSizes)
       requires(not IsRef)
@@ -471,6 +513,8 @@ namespace nissa
       setLocSiteCoords();
       
       setGlbSiteCoords();
+      
+      setSitesConnectivity();
     }
     
     /// Initializes from T and L
