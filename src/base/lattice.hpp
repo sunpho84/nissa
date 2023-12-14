@@ -532,23 +532,33 @@ namespace nissa
     /// Default constructor
     Lattice() = default;
     
-#define COPY_CONSTRUCTOR_BODY					\
-    _glbVol(oth._glbVol),					\
-      _locVol(oth._locVol),					\
-      _glbSizes(oth._glbSizes),					\
-      _locSizes(oth._locSizes)/*,					\
-				_glbCoordsOfLocLx(oth._glbCoordsOfLocLx.getRef())*/ \
-    {								\
+#define COPY_CONSTRUCTOR_BODY						\
+    _glbVol(oth._glbVol),						\
+      _locVol(oth._locVol),						\
+      _surfSize(oth._surfSize),						\
+      _surfSizePerDir(oth._surfSizePerDir),				\
+      _surfOffsetOfDir(oth._surfOffsetOfDir),				\
+      _glbSizes(oth._glbSizes),						\
+      _originGlbCoords(oth._originGlbCoords),				\
+      _locSizes(oth._locSizes),						\
+      _glbCoordsOfLocLx(oth._glbCoordsOfLocLx.getRef()),		\
+      _locCoordsOfLocLx(oth._locCoordsOfLocLx.getRef()),		\
+      _surfSiteOfHaloSite(oth._surfSiteOfHaloSite.getRef()),		\
+      _locLxNeigh(oth._locLxNeigh.getRef()),				\
+      _glbLxOfLocLx(oth._glbLxOfLocLx.getRef())				\
+    {									\
     }
     
     /// Copy construct from reference
+    template <bool OIR>
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    Lattice(const Lattice<false>& oth)
+    Lattice(const Lattice<OIR>& oth)
       requires(IsRef) :
       COPY_CONSTRUCTOR_BODY;
     
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    Lattice(const Lattice& oth) :
+    Lattice(const Lattice &oth)
+      requires(IsRef) :
       COPY_CONSTRUCTOR_BODY;
     
 #undef COPY_CONSTRUCTOR_BODY
