@@ -139,6 +139,13 @@ namespace nissa
 	sqr(compSum<Dir>(s)()/(double)nDim);
     }
     
+    /// Returns the size of the halo
+    constexpr INLINE_FUNCTION
+    LocLxSite getHaloSize() const
+    {
+      return 2*getSurfSize();
+    }
+    
     /////////////////////////////////////////////////////////////////
     
     /// Returns the optimal paritioning {r}, which divides {l}={g}/{r}
