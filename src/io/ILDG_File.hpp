@@ -1,102 +1,480 @@
 #ifndef _ILDG_FILE_HPP
 #define _ILDG_FILE_HPP
 
-#include "base/lattice.hpp"
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <stdio.h>
 #include <stdint.h>
 
+#include <optional>
 #include <string>
 #include <sstream>
 #include <vector>
 
-#include "checksum.hpp"
-#include "base/debug.hpp"
-#include "geometry/geometry_lx.hpp"
-
-#ifndef EXTERN_ILDG
- #define EXTERN_ILDG extern
- #define INIT_TO(A)
-#else
- #define INIT_TO(A) =A
-#endif
-
-#define ILDG_MAGIC_NO                   0x456789ab
-#define ILDG_MB_MASK                    ((uint16_t)0x80)
-#define ILDG_ME_MASK                    ((uint16_t)0x40)
+#include <io/checksum.hpp>
+#include <base/debug.hpp>
+#include <base/lattice.hpp>
+#include <geometry/geometry_lx.hpp>
 
 namespace nissa
 {
-  typedef off_t ILDG_Offset;
-  typedef FILE* ILDG_File;
+  typedef off_t ILDGOffset;
   
-  EXTERN_ILDG int ignore_ILDG_magic_number INIT_TO(false);
-  EXTERN_ILDG int fast_read_write_vectors INIT_TO(false);
+  inline bool ignoreIldgMagicNumber{false};
   
-  //ILDG header
-  struct ILDG_header
+  /// ILDG header
+  struct ILDGHeader
   {
-    uint32_t magic_no;
+    static constexpr uint16_t defaultVersion=1;
+    
+    static constexpr uint32_t defaultMagicNo=0x456789ab;
+    
+    static constexpr uint16_t MB_MASK=0x80;
+    
+    static constexpr uint16_t ME_MASK=0x40;
+    
+    /// Magic number
+    uint32_t magicNo;
+    
+    /// Version number
     uint16_t version;
-    uint16_t mbme_flag;
-    uint64_t data_length;
+    
+    /// Obscure flag
+    uint16_t mbmeFlag;
+    
+    /// Length of the data
+    uint64_t dataLength;
+    
     char type[128];
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Take the MB flag
+    bool getMBFlag() const
+    {
+      return mbmeFlag&MB_MASK;
+    }
+    
+    /// Take the ME flag
+    bool getMEFlag() const
+    {
+      return mbmeFlag&ME_MASK;
+    }
+    
+    /// Returns a tuple of reference to the data which needs to be adjusted of endianness
+    auto tieEndiannessVariableData()
+    {
+      return std::tie(dataLength,magicNo,version);
+    }
+    
+    /// Fix the endianness to the native
+    void fixToNativeEndianness()
+    {
+      std::apply([](auto&...args)
+      {
+	(nissa::fixToNativeEndianness<BigEndian>(args),...);
+      },tieEndiannessVariableData());
+    }
+    
+    /// Fix the endianness from the native
+    void fixFromNativeEndianness()
+    {
+      std::apply([](auto&...args)
+      {
+	(nissa::fixFromNativeEndianness<BigEndian>(args),...);
+      },tieEndiannessVariableData());
+    }
+    
+    /// Build record header
+    ILDGHeader(const char *extType,
+	       const uint64_t& dataLength) :
+      magicNo{defaultMagicNo},
+      version{defaultVersion},
+      mbmeFlag{},
+      dataLength{dataLength}
+    {
+      strncpy(type,extType,sizeof(type)-1);
+    }
+    
+    ILDGHeader()
+    {
+    }
   };
   
-  //store messages
-  struct ILDG_message
+  /// ILDG messages
+  using ILDGMessages=
+    std::map<std::string,std::vector<char>>;
+  
+  struct ILDGFile
   {
-    bool is_last;
-    char *data;
-    char *name;
-    uint64_t data_length;
-    ILDG_message *next;
+    static constexpr char scidacChecksumRecordName[]=
+      "scidac-checksum";
+    
+    /// Internal handle
+    FILE* file;
+    
+    /// Open the given file
+    void open(const std::string &path,
+	      const char *mode)
+    {
+      file=fopen(path.c_str(),mode);
+      if(file==nullptr)
+	crash("while opening file %s",path.c_str());
+    }
+    
+    /// Gets current position
+    ILDGOffset getPosition() const
+    {
+      return ftell(file);
+    }
+    
+    /// Set position
+    void setPosition(const ILDGOffset& pos,
+		     const int& amode)
+    {
+      crash_printing_error(fseek(file,pos,amode),"while seeking");
+      
+      mpiRanksBarrier();
+    }
+    
+    /// Gets the total size
+    ILDGOffset getSize()
+    {
+      const ILDGOffset oriPos=
+	getPosition();
+      
+      setPosition(0,SEEK_END);
+      
+      const ILDGOffset size=
+	getPosition();
+      
+      setPosition(oriPos,SEEK_SET);
+      
+      return size;
+    }
+    
+    /// Close an open file
+    void close()
+    {
+      crash_printing_error(fclose(file),"while closing file");
+      
+      mpiRanksBarrier();
+      
+      file=nullptr;
+    }
+    
+    /// Skip the passed amount of bytes starting from curr position
+    void skipNbytes(const ILDGOffset& nBytes)
+    {
+      if(nBytes)
+	crash_printing_error(fseek(file,nBytes,SEEK_CUR),"while seeking ahead %ld bytes from current position",nBytes);
+    
+      mpiRanksBarrier();
+    }
+    
+    /// Seek to position corresponding to next multiple of eight
+    void seekToNextEightMultiple()
+    {
+      skipNbytes(diffWithNextMultipleOf<8>(getPosition()));
+    }
+    
+    /// Check if end of file reached
+    bool reachedEOF()
+    {
+      return getSize()==getPosition();
+    }
+    
+    /// Simultaneous read from all node
+    template <typename T>
+    void readAll(T& data,
+		 const size_t& nbytesReq=sizeof(T))
+    {
+      seekToNextEightMultiple();
+      
+      const size_t nbytesRead=
+	fread(&data,1,nbytesReq,file);
+      
+      if(nbytesRead!=nbytesReq)
+	crash("read %u bytes instead of %u required",nbytesRead,nbytesReq);
+      
+      //padding
+      seekToNextEightMultiple();
+      
+      verbosity_lv3_master_printf("record read: %u bytes\n",nbytesReq);
+    }
+    
+    /// Search next record
+    ILDGHeader getNextRecordHeader()
+    {
+      //padding
+      seekToNextEightMultiple();
+      
+      ILDGHeader header;
+      readAll(header);
+      header.fixToNativeEndianness();
+      
+      verbosity_lv3_master_printf("record %s contains: %ld bytes\n",header.type,header.dataLength);
+      
+      if(header.magicNo!=header.defaultMagicNo)
+	{
+	  char buf[1024];
+	  snprintf(buf,1024,"wrong magic number, expected %x and obtained %x",header.defaultMagicNo,header.magicNo);
+	  
+	  if(ignoreIldgMagicNumber)
+	    master_printf("Warning, %s\n",buf);
+	  else
+	    crash(buf);
+	}
+      
+      return header;
+    }
+    
+    /// Skip the current record
+    void skipRecord(const ILDGHeader& header)
+    {
+      seekToNextEightMultiple();
+      skipNbytes(header.dataLength);
+      seekToNextEightMultiple();
+    }
+    
+    /// Write from first node
+    template <typename T>
+    void masterWrite(const T& data,
+		     const size_t nBytesReq=sizeof(T))
+    {
+      if(isMasterRank())
+	{
+	  if(const size_t nBytesWritten=fwrite(&data,1,nBytesReq,file);
+	     nBytesWritten!=nBytesReq)
+	    crash("wrote %lu bytes instead of %lu required",nBytesWritten,nBytesReq);
+	  
+	  //this is a blocking routine!
+	  skipNbytes(0);
+	}
+      else
+	skipNbytes(nBytesReq);
+      
+      //sync
+      fflush(file);
+      mpiRanksBarrier();
+    }
+    
+    /// Write the header taking into account endianness
+    void writeRecordHeader(ILDGHeader header)
+    {
+      header.fixFromNativeEndianness();
+      
+      masterWrite(header);
+    }
+    
+    /// Write a record
+    template <typename T>
+    void writeRecord(const char *type,
+		     const T& data,
+		     const uint64_t& len=sizeof(T))
+    {
+      writeRecordHeader({type,len});
+      
+      masterWrite(data,len);
+      
+      seekToNextEightMultiple();
+    }
+    
+    /// Special write for strings
+    void writeTextRecord(const char *type,
+			 const char *text)
+    {
+      writeRecord(type,text,strlen(text)+1);
+    }
+    
+    /// Write the checksum
+    void writeChecksum(const Checksum& check)
+    {
+      /// String to be written
+      char mess[160];
+      
+      snprintf(mess,
+	       159,
+	       "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+	       "<scidacChecksum>"
+	       "<version>1.0</version>"
+	       "<suma>%#010x</suma>"
+	       "<sumb>%#010x</sumb>"
+	       "</scidacChecksum>",
+	       check[0],
+	       check[1]);
+      
+      writeTextRecord(scidacChecksumRecordName,mess);
+    }
+    
+    /// Read the data in the ILDG data format, according to the header
+    void readIldgDataAll(void* data,
+			 const ILDGHeader &header)
+    {
+      //allocate a buffer
+      const ILDGOffset nbytesPerRankExp=
+	header.dataLength/nRanks();
+      
+      char *buf=nissa_malloc("buf",nbytesPerRankExp,char);
+      
+      /// Original position
+      const ILDGOffset oriPos=
+	getPosition();
+      
+      /// Starting point
+      const ILDGOffset newPos=
+	oriPos+thisRank()*nbytesPerRankExp;
+      setPosition(newPos,SEEK_SET);
+      
+      //read
+      if(const ILDGOffset nbytesRead=
+	 fread(buf,1,nbytesPerRankExp,file);
+	 nbytesRead!=nbytesPerRankExp)
+	crash("read %ld bytes instead of %ld",nbytesRead,nbytesPerRankExp);
+      
+      //place at the end of the record, including padding
+      setPosition(oriPos+ceilToNextMultipleOf<8>(header.dataLength),SEEK_SET);
+      
+      crash("");
+      //reorder data to the appropriate place
+      // vector_remap_t *rem=new vector_remap_t(locVol,index_from_ILDG_remapping);
+      // rem->remap(data,buf,header.data_length/glbVol);
+      // delete rem;
+      
+      nissa_free(buf);
+      
+      verbosity_lv3_master_printf("ildg data record read: %ld bytes\n",header.dataLength);
+    }
+    
+    /// Search a particular record in a file
+    std::optional<ILDGHeader> searchRecord(const char *recordName,
+					   ILDGMessages* mess=nullptr)
+    {
+      while(not reachedEOF())
+	{
+	  ILDGHeader header=
+	    getNextRecordHeader();
+	  
+	  verbosity_lv3_master_printf("found record: %s\n",header.type);
+	  
+	  if(strcmp(recordName,header.type)==0)
+	    return header;
+	  else
+	    if(mess==nullptr)
+	      skipRecord(header); //ignore message
+	    else
+	      {
+		//load the message and pass to next
+		auto [data,inserted]=
+		  mess->emplace(header.type,header.dataLength);
+		readAll(*data,header.dataLength);
+	      }
+	}
+      
+      return {};
+    }
+    
+    /// Read the checksum
+    Checksum readScidacChecksum()
+    {
+      /// Setup as non found as search it
+      Checksum checkRead{};
+      
+      if(const auto header=
+	 searchRecord(scidacChecksumRecordName);header)
+	{
+	  const uint64_t nBytes=
+	    header->dataLength;
+	  
+	  /// Message read
+	  char mess[nBytes+1];
+	  readAll(*mess,nBytes);
+	  mess[nBytes]='\0';
+	  
+	  for(const auto& [name,id] : {std::make_pair("<suma>",0),{"<sumb>",1}})
+	    if(char *handle=
+	       strstr(mess,name);
+	       handle==nullptr or
+	       sscanf(handle+6,"%x",&checkRead[0])==0)
+	      master_printf("WARNING: Broken checksum\n");
+	}
+      
+      return checkRead;
+    }
+    
+    /// Remap to ildg
+    void remapToWriteIldgData(char* buf,char* data,int nbytes_per_site)
+    {
+      crash("reimplement");
+      // PAR(0,locVol,
+      // 	CAPTURE(),
+      // 	ivol,
+      // 	{
+      // 	  int64_t idest=0;
+      // 	  for(int mu=0;mu<NDIM;mu++)
+      // 	    {
+      // 	      int nu=scidac_mapping[mu];
+      // 	      idest=idest*locSize[nu]+locCoordOfLoclx[isour][nu];
+      // 	    }
+      // 	  memcpy(buf+nbytes_per_site*idest,data+nbytes_per_site*isour,nbytes_per_site);
+      // 	});
+    }
+    
+    /// Bare write data in the ILDG order
+    void writeIldgDataAllRaw(void *data,
+			     const uint64_t& dataLength)
+    {
+      crash("reimplement");
+      
+      // //allocate the buffer
+      // ILDG_Offset nbytes_per_rank=data_length/nranks;
+      // char *buf=nissa_malloc("buf",nbytes_per_rank,char);
+      
+      // //take original position
+      // ILDG_Offset ori_pos=ILDG_File_get_position(file);
+      
+      // //find starting point
+      // ILDG_Offset new_pos=ori_pos+rank*nbytes_per_rank;
+      // ILDG_File_set_position(file,new_pos,SEEK_SET);
+      
+      // //reorder data to the appropriate place
+      // vector_remap_t *rem=new vector_remap_t(locVol,index_to_ILDG_remapping,NULL);
+      // rem->remap(buf,data,data_length/glbVol);
+      // delete rem;
+      
+      // //write
+      // ILDG_Offset nbytes_wrote=fwrite(buf,1,nbytes_per_rank,file);
+      // if(nbytes_wrote!=nbytes_per_rank) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_per_rank);
+      
+      // //place at the end of the record, including padding
+      // ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(data_length),SEEK_SET);
+      
+      // //free buf and ord
+      // nissa_free(buf);
+    }
+    
+    /// Read the data according to ILDG mapping
+    void writeIldgDataAll(void *data,
+			  const ILDGOffset& nbytesPerSite,
+			  const char *type)
+    {
+      //prepare the header and write it
+      const uint64_t dataLength=
+	nbytesPerSite*lat->getGlbVol()();
+      
+      writeRecordHeader({type,dataLength});
+      
+      writeIldgDataAllRaw(data,dataLength);
+    }
+    
+    void writeAllMessages(const ILDGMessages& messages)
+    {
+      for(const auto& [name,data] : messages)
+	writeRecord(name.c_str(),data[0],data.size());
+    }
   };
-  
-  //ILDG file view
-  struct ILDG_File_view
-  {
-    char format[100];
-  };
-  
-  ILDG_File ILDG_File_open(const std::string &path,const char *mode);
-  ILDG_File ILDG_File_open_for_read(const std::string &path);
-  ILDG_File ILDG_File_open_for_write(const std::string &path);
-  ILDG_File_view ILDG_File_create_scidac_mapped_view(ILDG_File &file,ILDG_Offset nbytes_per_site);
-  ILDG_File_view ILDG_File_get_current_view(ILDG_File &file);
-  ILDG_Offset ILDG_File_get_position(ILDG_File &file);
-  ILDG_Offset ILDG_File_get_size(ILDG_File &file);
-  ILDG_header ILDG_File_build_record_header(int MB_flag,int ME_flag,const char *type,uint64_t data_length);
-  ILDG_header ILDG_File_get_next_record_header(ILDG_File &file);
-  void ILDG_message_init_to_last(ILDG_message *mess);
-  ILDG_message *ILDG_message_find_last(ILDG_message *mess);
-  ILDG_message* ILDG_bin_message_append_to_last(ILDG_message *mess,const char *name,const char *data,uint64_t length);
-  ILDG_message* ILDG_string_message_append_to_last(ILDG_message *mess,const char *name,const char *data);
-  void ILDG_File_write_all_messages(ILDG_File &file,ILDG_message *mess);
-  void ILDG_message_free_all(ILDG_message *mess);
-  bool ILDG_File_reached_EOF(ILDG_File &file);
-  bool get_MB_flag(ILDG_header &header);
-  bool get_ME_flag(ILDG_header &header);
-  int ILDG_File_search_record(ILDG_header &header,ILDG_File &file,const char *record_name,ILDG_message *mess=NULL);
-  void ILDG_File_close(ILDG_File &file);
-  void ILDG_File_master_write(ILDG_File &file,void *data,int nbytes_req);
-  void ILDG_File_read_all(void *data,ILDG_File &file,size_t nbytes_req);
-  Checksum ILDG_File_read_checksum(ILDG_File &file);
-  void ILDG_File_read_ildg_data_all(void *data,ILDG_File &file,ILDG_header &header);
-  void ILDG_File_seek_to_next_eight_multiple(ILDG_File &file);
-  void ILDG_File_set_position(ILDG_File &file,ILDG_Offset pos,int amode);
-  void ILDG_File_set_view(ILDG_File &file,ILDG_File_view &view);
-  void ILDG_File_skip_nbytes(ILDG_File &file,ILDG_Offset nbytes);
-  void ILDG_File_skip_record(ILDG_File &file,ILDG_header header);
-  void ILDG_File_write_checksum(ILDG_File &file,const Checksum& check);
-  void ILDG_File_write_ildg_data_all_raw(ILDG_File &file,void *data,uint64_t data_length);
-  void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,ILDG_Offset nbytes_per_site,const char *type);
-  void ILDG_File_write_record_header(ILDG_File &file,ILDG_header &header_to_write);
-  void ILDG_File_write_record(ILDG_File &file,const char *type,const char *buf,uint64_t len);
-  void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text);
   
   /// Define the remapping from the layout having in each rank a
   /// consecutive block of data holding a consecutive piece of ildg
@@ -141,64 +519,61 @@ namespace nissa
     return {};
   }
   
-  //Writes a field to a file (data is a vector of loc_vol) with no frill
-  template <typename T>
-  void write_lattice_field(ILDG_File &file,T *data)
-  {
-    ILDG_File_write_ildg_data_all_raw(file,data,lat->getLocVol()()*sizeof(T));
-  }
+  // //Writes a field to a file (data is a vector of loc_vol) with no frill
+  // template <typename T>
+  // void write_lattice_field(ILDGFile &file,T *data)
+  // {
+  //   ILDGFile_write_ildg_data_all_raw(file,data,lat->getLocVol()()*sizeof(T));
+  // }
   
-  //Writes a field opening the file with given path (data is a vector of loc_vol) with no frill
-  template <typename T>
-  void write_lattice_field(const char *path,T *data)
-  {
-    ILDG_File file=ILDG_File_open_for_write(path);
+  // //Writes a field opening the file with given path (data is a vector of loc_vol) with no frill
+  // template <typename T>
+  // void write_lattice_field(const char *path,T *data)
+  // {
+  //   ILDGFile file(path,"w");
     
-    write_lattice_field(file,data);
+  //   write_lattice_field(file,data);
     
-    ILDG_File_close(file);
-  }
+  //   ILDGFile_close(file);
+  // }
   
-  //storable vector
-  ILDG_message* ILDG_string_message_append_to_last(ILDG_message *mess,const char *name,const char *data);
-  template<class T> struct storable_vector_t : std::vector<T>
-  {
-    //append to last message
-    ILDG_message *append_to_message_with_name(ILDG_message &mess,const char *name)
-    {
-      std::ostringstream os;
-      os.precision(16);
-      for(typename std::vector<T>::iterator it=this->begin();it!=this->end();it++) os<<*it<<" ";
-      return ILDG_string_message_append_to_last(&mess,name,os.str().c_str());
-    }
-    //convert from a text message
-    void convert_from_text(const char *data)
-    {
-      std::istringstream is(data);
-      T temp;
-      while(is>>temp) this->push_back(temp);
-    }
-    void convert_from_message(ILDG_message &mess)
-    {convert_from_text(mess.data);}
+  // //storable vector
+  // ILDG_message* ILDG_string_message_append_to_last(ILDG_message *mess,const char *name,const char *data);
+  // template<class T> struct storable_vector_t : std::vector<T>
+  // {
+  //   //append to last message
+  //   ILDG_message *append_to_message_with_name(ILDG_message &mess,const char *name)
+  //   {
+  //     std::ostringstream os;
+  //     os.precision(16);
+  //     for(typename std::vector<T>::iterator it=this->begin();it!=this->end();it++) os<<*it<<" ";
+  //     return ILDG_string_message_append_to_last(&mess,name,os.str().c_str());
+  //   }
+  //   //convert from a text message
+  //   void convert_from_text(const char *data)
+  //   {
+  //     std::istringstream is(data);
+  //     T temp;
+  //     while(is>>temp) this->push_back(temp);
+  //   }
+  //   void convert_from_message(ILDG_message &mess)
+  //   {convert_from_text(mess.data);}
     
-    //read it from file
-    void read_from_ILDG_file(ILDG_File fin, const char *tag)
-    {
-      ILDG_header head;
-      head=ILDG_File_get_next_record_header(fin);
-      if(strcasecmp(tag,head.type)==0)
-	{
-	  char *data=new char[head.data_length+1];
-	  ILDG_File_read_all(data,fin,head.data_length);
-	  this->convert_from_text(data);
-	  delete[] data;
-	}
-      else crash("Unable to convert, tag %d while expecting %d",head.type,tag);
-    }
-  };
+  //   //read it from file
+  //   void read_from_ILDG_file(ILDGFile fin, const char *tag)
+  //   {
+  //     ILDG_header head;
+  //     head=ILDGFile_get_next_record_header(fin);
+  //     if(strcasecmp(tag,head.type)==0)
+  // 	{
+  // 	  char *data=new char[head.data_length+1];
+  // 	  ILDGFile_read_all(data,fin,head.data_length);
+  // 	  this->convert_from_text(data);
+  // 	  delete[] data;
+  // 	}
+  //     else crash("Unable to convert, tag %d while expecting %d",head.type,tag);
+  //   }
+  // };
 }
-
-#undef EXTERN_ILDG
-#undef INIT_TO
 
 #endif
