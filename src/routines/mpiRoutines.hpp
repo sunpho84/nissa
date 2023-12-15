@@ -163,6 +163,14 @@ namespace nissa
     return "proc";
 #endif
   }
+  
+  /// Barrier across all ranks
+  inline void mpiRanksBarrier()
+  {
+#ifdef USE_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+  }
 }
 
 #endif
