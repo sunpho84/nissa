@@ -82,12 +82,7 @@ namespace nissa
   int broadcast(int in,int rank_from=0);
   double broadcast(double in,int rank_from=0);
 #ifdef USE_MPI
-  MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos);
-  MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos);
   void MPI_FLOAT_128_SUM_routine(void *in,void *out,int *len,MPI_Datatype *type);
-#else
-  uint64_t ceil_to_next_eight_multiple(uint64_t pos);
-  uint64_t diff_with_next_eight_multiple(uint64_t pos);
 #endif
   
   

@@ -76,6 +76,24 @@ namespace nissa
     dev=sqrt(dev*n/(n-1));
   }
   
+  /// Difference with next multiple of N
+  template <auto N,
+	    typename T>
+  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  T diffWithNextMultipleOf(const T& x)
+  {
+    return (N-x%N)%N;
+  }
+  
+  /// Ceil to next multiple of eight
+  template <auto N,
+	    typename T>
+  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  T ceilToNextMultipleOf(const T& x)
+  {
+    return x+diffWithNextMultipleOf<N>(x);
+  }
+  
   /// Factorize a number
   template <typename T>
   INLINE_FUNCTION

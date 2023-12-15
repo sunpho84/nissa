@@ -28,15 +28,6 @@ namespace nissa
     return (size_t)nbytes;
   }
   
-  //take the different with following multiple of eight
-  MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos)
-  {
-    MPI_Offset diff=pos%8;
-    if(diff!=0) diff=8-diff;
-    
-    return diff;
-  }
-  
   //init mpi
   void init_MPI_thread(int narg,char **arg)
   {
@@ -69,16 +60,12 @@ namespace nissa
     exit(0);
 #endif
   }
-
+  
   //broadcast a coord
   void coords_broadcast(coords_t& c)
   {
     MPI_Bcast(&c[0],NDIM,MPI_INT,thisRank(),MPI_COMM_WORLD);
   }
-  
-  //ceil to next multiple of eight
-  MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos)
-  {return pos+diff_with_next_eight_multiple(pos);}
   
   //internal version
   template <class T>
