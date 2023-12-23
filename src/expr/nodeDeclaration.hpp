@@ -12,7 +12,6 @@
 #include <tuple>
 
 #include <metaprogramming/feature.hpp>
-#include <metaprogramming/hasMember.hpp>
 #include <metaprogramming/inline.hpp>
 
 namespace nissa

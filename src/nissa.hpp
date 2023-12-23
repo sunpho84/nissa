@@ -69,7 +69,6 @@
 #include <metaprogramming/crtp.hpp>
 #include <metaprogramming/extent.hpp>
 #include <metaprogramming/feature.hpp>
-#include <metaprogramming/hasMember.hpp>
 #include <metaprogramming/inline.hpp>
 
 #include <new_types/float128class.hpp>

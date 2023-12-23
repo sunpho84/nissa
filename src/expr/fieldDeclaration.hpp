@@ -10,7 +10,6 @@
 #include <base/memoryType.hpp>
 #include <expr/comp.hpp>
 #include <expr/comps.hpp>
-#include <metaprogramming/hasMember.hpp>
 #include <tuples/tupleHasType.hpp>
 
 namespace nissa
@@ -35,9 +34,6 @@ namespace nissa
 	      CPU
 #endif
 	      ;
-  
-  /////////////////////////////////////////////////////////////////
-  PROVIDE_HAS_MEMBER(fieldLayout);
   
   /// Field, forward declaration
   template <typename InnerComps,

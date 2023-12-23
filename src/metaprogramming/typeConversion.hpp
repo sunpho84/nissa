@@ -12,7 +12,6 @@
 #include <utility>
 
 #include <metaprogramming/concepts.hpp>
-#include <metaprogramming/hasMember.hpp>
 #include <metaprogramming/inline.hpp>
 
 namespace nissa
@@ -115,14 +114,19 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  PROVIDE_HAS_MEMBER(toPod);
+  template <typename T>
+  concept CastableToPod=
+  requires(const T& t)
+  {
+    t.toPod();
+  };
   
   /// Convert to Pod if possible
   template <typename T>
   INLINE_FUNCTION CUDA_HOST_AND_DEVICE
   decltype(auto) toPod(T&& t)
   {
-    if constexpr(hasMember_toPod<T>)
+    if constexpr(CastableToPod<T>)
       return t.toPod();
     else
       return std::forward<T>(t);
