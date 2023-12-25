@@ -58,7 +58,7 @@ namespace nissa
       ShiftedExpr::execSpace;
     
     /// Reference to the lattice
-    LatticeRef latRef;
+    Lattice latRef;
     
     /// Components
     using Comps=

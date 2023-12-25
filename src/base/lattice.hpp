@@ -39,22 +39,26 @@ namespace nissa
   /// Holds all the info on the lattice
   ///
   /// Forward declaration
-  template <bool IsRef=false>
-  struct Lattice;
+  template <bool IsRef>
+  struct _Lattice;
+  
+  /// Lattice data
+  using LatticeResources=
+    _Lattice<false>;
   
   /// Reference to a lattice
-  using LatticeRef=
-    Lattice<true>;
+  using Lattice=
+    _Lattice<true>;
   
   /// Holds all the info on the lattice
   template <bool IsRef>
-  struct Lattice
+  struct _Lattice
   {
     /// Index of time direction
     static constexpr Dir timeDir=0;
     
-    /// Mapping of ILDG directons
-    static constexpr Coords<Dir> scidacDirOfNissaDir=
+    /// Mapping of scidac to nissa directions
+    static constexpr Coords<Dir> scidacNissaDirMapping=
       [](const Dir& in)
       {
 	if(in==timeDir)
@@ -382,7 +386,7 @@ namespace nissa
       using namespace resources;
       
       if(const MpiRankCoords temp=
-	 Lattice<>::findOptimalPartitioning<MpiRankCoord>(nRanks(),getGlbSizes(),MpiRankCoords{});compProd<Dir>(temp).close()==0)
+	 findOptimalPartitioning<MpiRankCoord>(nRanks(),getGlbSizes(),MpiRankCoords{});compProd<Dir>(temp).close()==0)
 	crash("Unable to partition");
       else
 	_nRanksPerDir=temp;
@@ -571,7 +575,7 @@ namespace nissa
     }
     
     /// Default constructor
-    Lattice() = default;
+    _Lattice() = default;
     
 #define COPY_CONSTRUCTOR_BODY						\
     _glbVol(oth._glbVol),						\
@@ -593,12 +597,12 @@ namespace nissa
     /// Copy construct from reference
     template <bool OIR>
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    Lattice(const Lattice<OIR>& oth)
+    _Lattice(const _Lattice<OIR>& oth)
       requires(IsRef) :
       COPY_CONSTRUCTOR_BODY;
     
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    Lattice(const Lattice &oth)
+    _Lattice(const _Lattice &oth)
       requires(IsRef) :
       COPY_CONSTRUCTOR_BODY;
     
@@ -606,7 +610,7 @@ namespace nissa
     
     /// Returns a reference
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    Lattice<true> getRef() const
+    _Lattice<true> getRef() const
     {
       return *this;
     }
@@ -644,11 +648,11 @@ namespace nissa
     static constexpr ExecSpace execSpace=
       execOnCPUAndGPU;
     
-    LatticeRef lat;
+    Lattice lat;
     
     template <bool IsRef>
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    SpatOriginMaskFunctor(const Lattice<IsRef>& lat) :
+    SpatOriginMaskFunctor(const _Lattice<IsRef>& lat) :
       lat(lat.getRef())
     {
     }
@@ -670,12 +674,19 @@ namespace nissa
     }
   };
   
+  /// Returns a function which evaluates to true on spatial origins
+  template <bool IsRef>
+  auto _Lattice<IsRef>::spatialOriginsMask() const
+  {
+    return
+      funcNodeWrapper<CompsList<LocLxSite>>(SpatOriginMaskFunctor{this->getRef()},std::make_tuple(getLocVol()));
+  }
   
   /// Stores the actual lattice
-  inline Lattice<>* _lat;
+  inline LatticeResources* _lat;
   
   /// Reference to the lattice
-  inline std::unique_ptr<LatticeRef> lat;
+  inline std::unique_ptr<Lattice> lat;
 }
 
 #endif

@@ -260,11 +260,11 @@ void in_main(int narg,char **arg)
 					}));
   
   const auto Ptilde=
-    P*Lattice<>::perpDirs[Dir(0)];
+    P*Lattice::perpDirs[Dir(0)];
   
    const ScalarField P2=
      dag(P)*P;
-   
+
    const ScalarField zmt=(1-lat->spatialOriginsMask());
    printf("AAA %lg\n",zmt.copyToMemorySpaceIfNeeded<MemoryType::CPU>().locLxSite(0));
    
