@@ -24,6 +24,10 @@ namespace nissa
   
   inline bool ignoreIldgMagicNumber{false};
   
+  PROVIDE_RESOURCE(ildgToNissaRemapper,AllToAllComm<LocLxSite,LocLxSite>);
+  
+  PROVIDE_RESOURCE(nissaToIldgRemapper,AllToAllComm<LocLxSite,LocLxSite>);
+  
   /// ILDG header
   struct ILDGHeader
   {
@@ -125,6 +129,19 @@ namespace nissa
 	crash("while opening file %s",path.c_str());
     }
     
+    /// Constructor
+    ILDGFile(const std::string &path,
+	      const char *mode)
+    {
+      open(path,mode);
+    }
+    
+    /// Default constructor
+    ILDGFile() :
+      file{nullptr}
+    {
+    }
+    
     /// Gets current position
     ILDGOffset getPosition() const
     {
@@ -164,6 +181,13 @@ namespace nissa
       mpiRanksBarrier();
       
       file=nullptr;
+    }
+    
+    /// Destructor
+    ~ILDGFile()
+    {
+      if(file)
+	close();
     }
     
     /// Skip the passed amount of bytes starting from curr position
@@ -310,15 +334,54 @@ namespace nissa
       writeTextRecord(scidacChecksumRecordName,mess);
     }
     
-    /// Read the data in the ILDG data format, according to the header
-    void readIldgDataAll(void* data,
-			 const ILDGHeader &header)
+    static void initIldgNissaRemapper()
     {
-      //allocate a buffer
+      resources::_ildgToNissaRemapper.init(lat->getLocVol(),
+					   [lat=lat->getRef(),
+					    nRanksPerDir=nRanksPerDir.getReadable()](const LocLxSite ildgChunkEl)
+					   {
+					     const LocLxSite ildgEl=
+					       thisRank()*lat.getLocVol()+ildgChunkEl;
+					     
+					     const GlbCoords ildgSizes=
+					       Lattice::scidacRemap(lat.getGlbSizes());
+					     
+					     const GlbCoords ildgGlbCoords=
+					       decomposeLxToCoords(ildgEl,ildgSizes);
+					     
+					     const GlbCoords nissaGlbCoords=
+					       Lattice::scidacRemap(ildgGlbCoords);
+					     
+					     const MpiRankCoords rankCoords=
+					       (nissaGlbCoords.template reinterpretFund<LocCoord>()/lat.getLocSizes()).reinterpretFund<MpiRankCoord>();
+					     
+					     const MpiRank rank=
+					       lxOfCoords<MpiRank>(rankCoords,nRanksPerDir);
+					     
+					     const LocCoords nissaLocCoords=
+					       nissaGlbCoords.template reinterpretFund<LocCoord>()-
+					       rankCoords.template reinterpretFund<LocCoord>()*lat.getLocSizes();
+					     
+					     const LocLxSite locNissaSite=
+					       lxOfCoords<LocLxSite>(nissaLocCoords,lat.getLocSizes());
+					     
+					     return std::make_tuple(rank,locNissaSite);
+					   });
+    }
+    
+    /// Read the data in the ILDG data format, according to the header
+    template <DerivedFromComp...C,
+	      typename Fund>
+    void readFieldAndReorder(Field<OfComps<C...>,Fund,FieldLayout::CPU,MemoryType::CPU>& data,
+			     const ILDGHeader& header)
+    {
+      if(const size_t& nF=data.nElements,
+	 &nH=header.dataLength;
+	 nF<header.dataLength)
+	crash("Field has %zu elements, smaller than needed %zu",nF,nH);
+      
       const ILDGOffset nbytesPerRankExp=
 	header.dataLength/nRanks();
-      
-      char *buf=nissa_malloc("buf",nbytesPerRankExp,char);
       
       /// Original position
       const ILDGOffset oriPos=
@@ -331,7 +394,7 @@ namespace nissa
       
       //read
       if(const ILDGOffset nbytesRead=
-	 fread(buf,1,nbytesPerRankExp,file);
+	 fread(data,1,nbytesPerRankExp,file);
 	 nbytesRead!=nbytesPerRankExp)
 	crash("read %ld bytes instead of %ld",nbytesRead,nbytesPerRankExp);
       
@@ -344,13 +407,11 @@ namespace nissa
       // rem->remap(data,buf,header.data_length/glbVol);
       // delete rem;
       
-      nissa_free(buf);
-      
       verbosity_lv3_master_printf("ildg data record read: %ld bytes\n",header.dataLength);
     }
     
     /// Search a particular record in a file
-    std::optional<ILDGHeader> searchRecord(const char *recordName,
+    std::optional<ILDGHeader> searchRecord(const std::string& recordName,
 					   ILDGMessages* mess=nullptr)
     {
       while(not reachedEOF())
@@ -360,7 +421,7 @@ namespace nissa
 	  
 	  verbosity_lv3_master_printf("found record: %s\n",header.type);
 	  
-	  if(strcmp(recordName,header.type)==0)
+	  if(strcmp(recordName.c_str(),header.type)==0)
 	    return header;
 	  else
 	    if(mess==nullptr)
@@ -394,7 +455,9 @@ namespace nissa
 	  readAll(*mess,nBytes);
 	  mess[nBytes]='\0';
 	  
-	  for(const auto& [name,id] : {std::make_pair("<suma>",0),{"<sumb>",1}})
+	  for(const auto& [name,id] :
+		{std::make_pair("<suma>",0),
+		 std::make_pair("<sumb>",1)})
 	    if(char *handle=
 	       strstr(mess,name);
 	       handle==nullptr or
@@ -405,10 +468,10 @@ namespace nissa
       return checkRead;
     }
     
-    /// Remap to ildg
-    void remapToWriteIldgData(char* buf,char* data,int nbytes_per_site)
-    {
-      crash("reimplement");
+    // /// Remap to ildg
+    // void remapToWriteIldgData(char* buf,char* data,int nbytes_per_site)
+    // {
+    //   crash("reimplement");
       // PAR(0,locVol,
       // 	CAPTURE(),
       // 	ivol,
@@ -421,13 +484,13 @@ namespace nissa
       // 	    }
       // 	  memcpy(buf+nbytes_per_site*idest,data+nbytes_per_site*isour,nbytes_per_site);
       // 	});
-    }
+    // }
     
-    /// Bare write data in the ILDG order
-    void writeIldgDataAllRaw(void *data,
-			     const uint64_t& dataLength)
-    {
-      crash("reimplement");
+    // /// Bare write data in the ILDG order
+    // void writeIldgDataAllRaw(void *data,
+    // 			     const uint64_t& dataLength)
+    // {
+    //   crash("reimplement");
       
       // //allocate the buffer
       // ILDG_Offset nbytes_per_rank=data_length/nranks;
@@ -454,27 +517,27 @@ namespace nissa
       
       // //free buf and ord
       // nissa_free(buf);
-    }
+    // }
     
-    /// Read the data according to ILDG mapping
-    void writeIldgDataAll(void *data,
-			  const ILDGOffset& nbytesPerSite,
-			  const char *type)
-    {
-      //prepare the header and write it
-      const uint64_t dataLength=
-	nbytesPerSite*lat->getGlbVol()();
+    // /// Read the data according to ILDG mapping
+    // void writeIldgDataAll(void *data,
+    // 			  const ILDGOffset& nbytesPerSite,
+    // 			  const char *type)
+    // {
+    //   //prepare the header and write it
+    //   const uint64_t dataLength=
+    // 	nbytesPerSite*lat->getGlbVol()();
       
-      writeRecordHeader({type,dataLength});
+    //   writeRecordHeader({type,dataLength});
       
-      writeIldgDataAllRaw(data,dataLength);
-    }
+    //   writeIldgDataAllRaw(data,dataLength);
+    // }
     
-    void writeAllMessages(const ILDGMessages& messages)
-    {
-      for(const auto& [name,data] : messages)
-	writeRecord(name.c_str(),data[0],data.size());
-    }
+    // void writeAllMessages(const ILDGMessages& messages)
+    // {
+    //   for(const auto& [name,data] : messages)
+    // 	writeRecord(name.c_str(),data[0],data.size());
+    // }
   };
   
   /// Define the remapping from the layout having in each rank a

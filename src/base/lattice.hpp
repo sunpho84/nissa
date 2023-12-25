@@ -577,11 +577,9 @@ namespace nissa
     }
     
     /// Returns a function which evaluates to true on spatial origins
-    auto spatialOriginsMask() const
-    {
-      return
-	funcNodeWrapper<CompsList<LocLxSite>>(SpatOriginMaskFunctor{this->getRef()},std::make_tuple(getLocVol()));
-    }
+    ///
+    /// Forward declaration
+    auto spatialOriginsMask() const;
     
     /// Default constructor
     _Lattice() = default;

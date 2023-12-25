@@ -2,7 +2,7 @@
 #define _READER_HPP
 
 #ifdef HAVE_CONFIG_H
-# include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <io/ILDG_File.hpp>
@@ -114,11 +114,34 @@ namespace nissa
   //   ILDG_File_close(file);
   // }
   
-  // /// Reads a gauge configuration
-  // inline void read_ildg_gauge_conf(LxField<quad_su3>& conf,
-  // 				   const std::string& path,
-  // 				   ILDG_message* mess=nullptr)
-  // {
+  /// Reads a gauge configuration
+  template <DerivedFromComp...C,
+	    typename Fund,
+	    FieldLayout FL,
+	    MemoryType MT,
+	    bool IsRef>
+  inline void readFieldFromILDGFile(Field<OfComps<C...>,Fund,FL,MT,IsRef>& out,
+				    const std::string& path,
+				    const std::string& recordName,
+				    ILDGMessages* mess=nullptr)
+  {
+    if constexpr(not std::is_same_v<std::decay_t<decltype(out)>,
+		 Field<OfComps<C...>,Fund,FieldLayout::CPU,MemoryType::CPU,IsRef>>)
+      {
+	Field<OfComps<C...>,Fund,FieldLayout::CPU,MemoryType::CPU> tmp;
+	readFieldFromILDGFile(tmp,path,mess);
+	out=tmp;
+      }
+    else
+      {
+	ILDGFile file(path,"r");
+	if(const auto header=file.searchRecord(recordName);
+	   header)
+what should we do	  ;
+	else
+	  crash("Error, record %s not found.\n",recordName.c_str());
+      }
+  }
   //   //read
   //   verbosity_lv1_master_printf("\nReading configuration from file: %s\n",path.c_str());
   //   read_real_vector(conf,path,"ildg-binary-data",mess);
