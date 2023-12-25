@@ -67,9 +67,18 @@ namespace nissa
 	  return nDim-in;
       };
     
-    /// Backward substitution
-    static constexpr Coords<Dir> nissaDirOfScidacDir=
-      scidacDirOfNissaDir;
+    /// Remaps coordinates between nissa and scidac format
+    template <typename T>
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    static Coords<T> scidacRemap(const Coords<T>& in)
+    {
+      Coords<T> out;
+      
+      for(Dir dir=0;dir<nDim;dir++)
+	out[scidacNissaDirMapping[dir]]=in[dir];
+      
+      return out;
+    }
     
 #define PROVIDE_MEMBER_WITH_ACCESSOR(NAME,CAP_NAME,TYPE...)	\
     TYPE _ ## NAME;						\

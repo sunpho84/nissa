@@ -107,6 +107,7 @@ namespace nissa
   using ILDGMessages=
     std::map<std::string,std::vector<char>>;
   
+  /// Structure to manipulate Ildg files
   struct ILDGFile
   {
     static constexpr char scidacChecksumRecordName[]=
