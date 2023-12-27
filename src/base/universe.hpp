@@ -23,6 +23,19 @@ namespace nissa
   using Coords=
     StackTens<CompsList<Dir>,F>;
   
+  /// Index of time direction
+  static constexpr Dir timeDir=0;
+  
+  /// Mapping of scidac to nissa directions
+  CUDA_DEVICE static constexpr Coords<Dir> scidacNissaDirMapping=
+    [](const Dir& in)
+    {
+      if(in==timeDir)
+	return in;
+      else
+	return NDIM-in;
+    };
+  
   /// Decompose lx index f into the coordinates in sizes s
   template <typename F,
 	    typename C>

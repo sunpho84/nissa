@@ -54,19 +54,6 @@ namespace nissa
   template <bool IsRef>
   struct _Lattice
   {
-    /// Index of time direction
-    static constexpr Dir timeDir=0;
-    
-    /// Mapping of scidac to nissa directions
-    static constexpr Coords<Dir> scidacNissaDirMapping=
-      [](const Dir& in)
-      {
-	if(in==timeDir)
-	  return in;
-	else
-	  return nDim-in;
-      };
-    
     /// Remaps coordinates between nissa and scidac format
     template <typename T>
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
