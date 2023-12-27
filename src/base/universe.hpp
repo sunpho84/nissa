@@ -65,8 +65,11 @@ namespace nissa
   F lxOfCoords(const Coords<C>& _x,
 	       const Coords<C>& _s)
   {
-    const Coords<F>& x=_x.template reinterpretFund<F>();
-    const Coords<F>& s=_s.template reinterpretFund<F>();
+    const Coords<F>& x=
+      _x.template reinterpretFund<F>();
+    
+    const Coords<F>& s=
+      _s.template reinterpretFund<F>();
     
     F f=0;
     

@@ -239,6 +239,18 @@ namespace nissa
     {
     }
     
+    /// Move assign
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    MirroredNode& operator=(MirroredNode&& oth)
+    {
+      hostVal=std::move(oth.hostVal);
+#ifdef USE_CUDA
+      deviceVal=std::move(oth.deviceVal);
+#endif
+      
+      return *this;
+    }
+    
     /// Updates the device copy
     INLINE_FUNCTION constexpr
     void updateDeviceCopy()
