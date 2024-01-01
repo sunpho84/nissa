@@ -275,6 +275,7 @@ namespace nissa
 	       E0&& e0,
 	       E1&& e1) const
     {
+      (void)allNccs;
       sumAssignTheProd(res,e0(),e1());
     }
     
