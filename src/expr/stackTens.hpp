@@ -168,7 +168,7 @@ namespace nissa
     /// Construct from callable
     template <typename F>
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    StackTens(F&& fun)
+    StackTens(const F& fun)
       requires(DerivedFromNode<F> or std::is_invocable_v<F,C...>)
     {
       compsLoop<Comps>([this,

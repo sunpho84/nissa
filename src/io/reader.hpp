@@ -114,30 +114,29 @@ namespace nissa
   //   ILDG_File_close(file);
   // }
   
-  /// Reads a gauge configuration
+  /// Reads a field from a given path and record name
   template <DerivedFromComp...C,
 	    typename Fund,
 	    FieldLayout FL,
 	    MemoryType MT,
 	    bool IsRef>
-  inline void readFieldFromILDGFile(Field<OfComps<C...>,Fund,FL,MT,IsRef>& out,
+  inline void readFieldFromIldgFile(Field<OfComps<C...>,Fund,FL,MT,IsRef>& out,
 				    const std::string& path,
-				    const std::string& recordName,
-				    ILDGMessages* mess=nullptr)
+				    const std::string& recordName)
   {
-    if constexpr(not std::is_same_v<std::decay_t<decltype(out)>,
-		 Field<OfComps<C...>,Fund,FieldLayout::CPU,MemoryType::CPU,IsRef>>)
+    if constexpr(FieldLayout::CPU!=FL or MT!=MemoryType::CPU)
       {
 	Field<OfComps<C...>,Fund,FieldLayout::CPU,MemoryType::CPU> tmp;
-	readFieldFromILDGFile(tmp,path,mess);
+	readFieldFromIldgFile(tmp,path,recordName);
 	out=tmp;
       }
     else
       {
 	ILDGFile file(path,"r");
-	if(const auto header=file.searchRecord(recordName);
+	if(const auto header=
+	   file.searchRecord(recordName);
 	   header)
-what should we do	  ;
+	  file.readFieldAndReorder(out,*header);
 	else
 	  crash("Error, record %s not found.\n",recordName.c_str());
       }
