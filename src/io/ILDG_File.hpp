@@ -24,9 +24,12 @@ namespace nissa
   
   inline bool ignoreIldgMagicNumber{false};
   
-  PROVIDE_RESOURCE(ildgToNissaRemapper,AllToAllComm<LocLxSite,LocLxSite>);
-  
-  PROVIDE_RESOURCE(nissaToIldgRemapper,AllToAllComm<LocLxSite,LocLxSite>);
+  namespace resources
+  {
+    inline AllToAllComm<LocLxSite, LocLxSite> _ildgToNissaRemapper;
+    
+    inline AllToAllComm<LocLxSite, LocLxSite> _nissaToIldgRemapper;
+  }
   
   /// ILDG header
   struct ILDGHeader
@@ -334,51 +337,63 @@ namespace nissa
       writeTextRecord(scidacChecksumRecordName,mess);
     }
     
-    static void initIldgNissaRemapper()
+    /// Returns the ildg->nissa remapper, initializing it if needed
+    INLINE_FUNCTION
+    static const AllToAllComm<LocLxSite,LocLxSite>& getIldgToNissaRemapper()
     {
-      resources::_ildgToNissaRemapper.init(lat->getLocVol(),
-					   [lat=lat->getRef(),
-					    nRanksPerDir=nRanksPerDir.getReadable()](const LocLxSite ildgChunkEl)
-					   {
-					     const LocLxSite ildgEl=
-					       thisRank()*lat.getLocVol()+ildgChunkEl;
-					     
-					     const GlbCoords ildgSizes=
-					       Lattice::scidacRemap(lat.getGlbSizes());
-					     
-					     const GlbCoords ildgGlbCoords=
-					       decomposeLxToCoords(ildgEl,ildgSizes);
-					     
-					     const GlbCoords nissaGlbCoords=
-					       Lattice::scidacRemap(ildgGlbCoords);
-					     
-					     const MpiRankCoords rankCoords=
-					       (nissaGlbCoords.template reinterpretFund<LocCoord>()/lat.getLocSizes()).reinterpretFund<MpiRankCoord>();
-					     
-					     const MpiRank rank=
-					       lxOfCoords<MpiRank>(rankCoords,nRanksPerDir);
-					     
-					     const LocCoords nissaLocCoords=
-					       nissaGlbCoords.template reinterpretFund<LocCoord>()-
-					       rankCoords.template reinterpretFund<LocCoord>()*lat.getLocSizes();
-					     
-					     const LocLxSite locNissaSite=
-					       lxOfCoords<LocLxSite>(nissaLocCoords,lat.getLocSizes());
-					     
-					     return std::make_tuple(rank,locNissaSite);
-					   });
+      auto& r=
+	resources::_ildgToNissaRemapper;
+      
+      if(not r.inited)
+	r.init(lat->getLocVol(),
+	       [nRanksPerDir=nRanksPerDir.getReadable()](const LocLxSite& ildgChunkEl)
+	       {
+		 const LocLxSite ildgEl=
+		   thisRank()*lat->getLocVol()+ildgChunkEl;
+		 
+		 const GlbCoords ildgSizes=
+		   Lattice::scidacRemap(lat->getGlbSizes());
+		 
+		 const GlbCoords ildgGlbCoords=
+		   decomposeLxToCoords(ildgEl,ildgSizes);
+		 
+		 // const auto [r,l]=lat.getRankAndLocLxSiteOf(Lattice::scidacRemap(ildgGlbCoords));
+		 
+		 //printf("el %ld goes to rank %ld site %ld\n",ildgChunkEl(),r(),l());
+		 
+		 return lat->getRankAndLocLxSiteOf(Lattice::scidacRemap(ildgGlbCoords));
+	       });
+      
+      return r;
+    }
+    
+    /// Returns the nissa->ildg remapper, initializing it if needed
+    INLINE_FUNCTION
+    static const AllToAllComm<LocLxSite,LocLxSite>& getNissaToIldgRemapper()
+    {
+      auto& r=
+	resources::_nissaToIldgRemapper;
+      
+      if(not r.inited)
+	r=getIldgToNissaRemapper().inverse();
+      
+      return r;
     }
     
     /// Read the data in the ILDG data format, according to the header
     template <DerivedFromComp...C,
 	      typename Fund>
-    void readFieldAndReorder(Field<OfComps<C...>,Fund,FieldLayout::CPU,MemoryType::CPU>& data,
+    void readFieldAndReorder(Field<OfComps<C...>,Fund,FieldLayout::CPU,MemoryType::CPU>& field,
 			     const ILDGHeader& header)
     {
+      auto& data=
+	field.getData();
+      
       if(const size_t& nF=data.nElements,
+	 fS=sizeof(Fund),
 	 &nH=header.dataLength;
-	 nF<header.dataLength)
-	crash("Field has %zu elements, smaller than needed %zu",nF,nH);
+	 nF*fS<header.dataLength)
+	crash("Field has %zu elements of size %zu, corresponding to %zu bytes, smaller than needed %zu",nF,fS,nF*fS,nH);
       
       const ILDGOffset nbytesPerRankExp=
 	header.dataLength/nRanks();
@@ -394,18 +409,14 @@ namespace nissa
       
       //read
       if(const ILDGOffset nbytesRead=
-	 fread(data,1,nbytesPerRankExp,file);
+	 fread(data.storage,1,nbytesPerRankExp,file);
 	 nbytesRead!=nbytesPerRankExp)
 	crash("read %ld bytes instead of %ld",nbytesRead,nbytesPerRankExp);
       
       //place at the end of the record, including padding
       setPosition(oriPos+ceilToNextMultipleOf<8>(header.dataLength),SEEK_SET);
       
-      crash("");
-      //reorder data to the appropriate place
-      // vector_remap_t *rem=new vector_remap_t(locVol,index_from_ILDG_remapping);
-      // rem->remap(data,buf,header.data_length/glbVol);
-      // delete rem;
+      getIldgToNissaRemapper().communicate(field,field);
       
       verbosity_lv3_master_printf("ildg data record read: %ld bytes\n",header.dataLength);
     }
