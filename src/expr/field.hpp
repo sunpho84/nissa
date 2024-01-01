@@ -256,6 +256,19 @@ namespace nissa
     /// Storage data
     mutable Data subExpr;
     
+#define PROVIDE_GET_DATA(ATTRIB)			\
+    CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION	\
+    ATTRIB Data& getData() ATTRIB			\
+    {							\
+      return subExpr;					\
+    }
+    
+    PROVIDE_GET_DATA(const);
+    
+    PROVIDE_GET_DATA(/* not const */);
+    
+#undef PROVIDE_GET_DATA
+    
     /// Presence of halo
     HaloPresence haloPresence;
     
