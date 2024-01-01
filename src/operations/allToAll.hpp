@@ -101,13 +101,15 @@ namespace nissa
       std::vector<BufComp> inBufOfDest(getNDst()(),-1);
       
       for(BufComp i=0;i<getInBufSize();i++)
-	{
-	  auto& p=inBufOfDest[dstOfInBuf[i]()];
-	  if(p!=-1)
+	if(auto& j=dstOfInBuf[i]();
+	   j>=getNDst()() or j<0)
+	  crash("destination of el %ld = %ld larger than maximum %ld or lower than 0 addr %p",i(),j,getNDst()(),&dstOfInBuf);
+	else
+	  if(auto& p=inBufOfDest[j];p!=-1)
 	    crash("On rank %ld destination %ld is filled by %ld and at least %ld at the same time",
-		  thisRank(),(int64_t)dstOfInBuf[i](),(int64_t)p(),(int64_t)i());
-	  p=i;
-	}
+		  thisRank(),(int64_t)j,(int64_t)p(),(int64_t)i());
+	  else
+	    p=i;
       
       /// Buffer where to check source usage
       std::vector<CSrc> srcOfOutBuf(getNSrc()(),-1);
@@ -120,14 +122,15 @@ namespace nissa
 		  thisRank(),(int64_t)outBufOfSrc[i](),(int64_t)p(),(int64_t)i());
 	  p=i;
 	}
-      
     }
     
     /// Initializes the AllToAll communicator
     template <typename F>
     void init(const CSrc& nSrc,
-	      F&& f)
+	      const F& f)
     {
+      constexpr bool debugInit=false;
+      
       if(inited)
 	crash("Cannot init twice");
       inited=true;
@@ -148,10 +151,13 @@ namespace nissa
 	  
 	  locSrcsGroupedByDstRank[dstRank()].emplace_back(locSrc);
 	  remDstsGroupedByDstRank[dstRank()].emplace_back(remDst);
+	  if constexpr(debugInit)
+	    printf("locSrc %ld to be remapped to rank %ld dst %ld\n",locSrc(),dstRank(),remDst());
 	}
       
-      // for(MpiRank iRank=0;iRank<nranks;iRank++)
-      // 	printf("AllToAll Rank %d transmitting to rank %d: %zu el\n",rank,iRank(),locSrcsGroupedByDstRank[iRank()].size());
+      if constexpr(debugInit)
+	for(MpiRank iRank=0;iRank<nRanks;iRank++)
+	  printf("AllToAll Rank %ld transmitting to rank %ld: %zu el\n",thisRank(),iRank(),locSrcsGroupedByDstRank[iRank()].size());
       
       /// Progressive storage of the dst
       std::vector<CDst> buildDstOfInBuf;
@@ -169,7 +175,8 @@ namespace nissa
 	  
 	  for(const CSrc& locSrc : locSrcsGroupedByDstRank[sendRank()])
 	    {
-	      // printf("AllToAll Rank %d filling %zu with nOutBuf %zu to be sent to rank %d\n",rank,locSrc(),nOutBuf(),sendRank);
+	      if constexpr(debugInit)
+		printf("AllToAll Rank %ld filling %zu with nOutBuf %zu to be sent to rank %ld\n",thisRank(),locSrc(),nOutBuf(),sendRank());
 	      
 	      fillableOutBufOfSrc[locSrc]=nOutBuf++;
 	    }
@@ -182,13 +189,20 @@ namespace nissa
 	  const std::vector<CDst> dstOfBufFrRank=
 	    mpiSendrecv(sendRank,remDstsGroupedByDstRank[sendRank()],recvRank);
 	  
-	  // printf("AllToAll Rank %d dRank %d sent to rank %d value
-	  // nRemDstOfRank=%zu received from rank %d value
-	  // %zu\n",rank,dRank,sendRank,remDstsGroupedByDstRank[sendRank].size(),recvRank,dstOfBufFrRank.size());
+	  if constexpr(debugInit)
+	    {
+	      printf("AllToAll Rank %ld dRank %ld sent to rank %ld value "
+		     "nRemDstOfRank=%zu received from rank %ld value "
+		     "%zu\n",thisRank(),dRank(),sendRank(),remDstsGroupedByDstRank[sendRank()].size(),recvRank(),dstOfBufFrRank.size());
+	    }
 	  
 	  // Increment the list of object to pull out from the buffer
 	  for(const CDst& bufDst : dstOfBufFrRank)
-	    buildDstOfInBuf.emplace_back(bufDst);
+	    {
+	      if constexpr(debugInit)
+		printf("emplacing: %ld\n",bufDst());
+	      buildDstOfInBuf.emplace_back(bufDst);
+	    }
 	  
 	  // If the node has to receive, mark the node in the list with the size attached
 	  if(const size_t s=dstOfBufFrRank.size();s)
@@ -202,12 +216,19 @@ namespace nissa
       // Assigning the destination of all incoming buffer
       dstOfInBuf.allocate((BufComp)(int64_t)buildDstOfInBuf.size());
       
-      /// Gets a fillable view on dstOfInBuf
-      auto fillableDstOfInBuf=
-	dstOfInBuf.getFillable();
+      if constexpr(debugInit)
+	printf("dstOfInBuf: %p %ld els\n",&dstOfInBuf,buildDstOfInBuf.size());
       
-      for(BufComp bc=0;const CDst& cDst : buildDstOfInBuf)
-	fillableDstOfInBuf[bc++]=cDst;
+      /// Gets a fillable view on dstOfInBuf
+      BufComp bc=0;
+      for(auto fillableDstOfInBuf=
+	    dstOfInBuf.getFillable();
+	  const CDst& cDst : buildDstOfInBuf)
+	{
+	  fillableDstOfInBuf[bc++]=cDst;
+	  if constexpr(debugInit)
+	    printf("%ld\n",cDst());
+	}
       
       verify();
     }

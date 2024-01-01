@@ -147,11 +147,11 @@ namespace nissa
       constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION		\
     ATTRIB auto& reinterpretFund() ATTRIB&			\
     {								\
-      static_assert(sizeof(NFund)==sizeof(typename T::Fund),\
-		    "different sizes");			    \
-      							    \
-      return *(ATTRIB typename T::template		    \
-	       ReinterpretFund<NFund>*)this;		    \
+      static_assert(sizeof(NFund)==sizeof(typename T::Fund),	\
+		    "different sizes");				\
+      								\
+      return *(ATTRIB typename T::template			\
+	       ReinterpretFund<NFund>*)this;			\
     }
     
     PROVIDE_REINTERPRET_FUND(const);
