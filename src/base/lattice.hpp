@@ -463,12 +463,12 @@ namespace nissa
     /// Set neighbors
     void setSitesConnectivity()
     {
-      constexpr bool debugSetup=false;
+      constexpr bool setupDebug=false;
       
       _locLxNeigh.allocate(getLocVol()+getHaloSize());
       _surfSiteOfHaloSite.allocate(getHaloSize());
       
-      if constexpr(debugSetup)
+      if constexpr(setupDebug)
 	_locLxNeigh.getFillable()=-1;
       
       HOST_PARALLEL_LOOP(0,
@@ -513,7 +513,7 @@ namespace nissa
 				 
 				 if(neigh>=lat.getLocVol())
 				   {
-				     if(decltype(auto) f=lln(neigh,1-ori,dir);(not debugSetup) or f==-1)
+				     if(decltype(auto) f=lln(neigh,1-ori,dir);(not setupDebug) or f==-1)
 				       f=site;
 				     else
 				       crash("Site %ld is already pointing at halo site %ld in orientation %d dir %d\n",f(),site(),ori(),dir());
@@ -607,6 +607,30 @@ namespace nissa
     _Lattice<true> getRef() const
     {
       return *this;
+    }
+    
+    /// Returns rank and locSite of given global coordinates
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    std::tuple<MpiRank,LocLxSite> getRankAndLocLxSiteOf(const GlbCoords& g) const
+    {
+      /// Coordinates of the rank
+      const MpiRankCoords destRankCoords=
+	(g.template reinterpretFund<LocCoord>()/getLocSizes()).template reinterpretFund<MpiRankCoord>();
+      
+      /// Compute the rank
+      const MpiRank destRank=
+	lxOfCoords<MpiRank>(destRankCoords,nRanksPerDir);
+      
+      /// Local coordinates in the rank
+      const LocCoords nissaLocCoords=
+	g.template reinterpretFund<LocCoord>()-
+	destRankCoords.template reinterpretFund<LocCoord>()*getLocSizes();
+      
+      /// Local site in the destination rank
+      const LocLxSite locNissaSite=
+	lxOfCoords<LocLxSite>(nissaLocCoords,getLocSizes());
+      
+      return std::make_tuple(destRank,locNissaSite);
     }
     
     /// Returns a versor in the direction extDir
