@@ -422,12 +422,14 @@ namespace nissa
       
       res.dstOfInBuf.allocate(nThisSrc.template castTo<typename Inverse::BufComp>());
       
-      /// Gets fillable version of res.dstOfInBuf
-      auto resDstOfInBuf=
-	res.dstOfInBuf.getFillable();
-      
-      for(CSrc src=0;src<nThisSrc;src++)
-       	resDstOfInBuf(outBufOfSrc(src).template castTo<typename Inverse::BufComp>())=src;
+      {
+	/// Fillable version of res.dstOfInBuf
+	auto resDstOfInBuf=
+	  res.dstOfInBuf.getFillable();
+	
+	for(CSrc src=0;src<nThisSrc;src++)
+	  resDstOfInBuf(outBufOfSrc(src).template castTo<typename Inverse::BufComp>())=src;
+      }
       
       /// Number of elements in the current destination
       const BufComp nThisBufOut=
@@ -435,12 +437,14 @@ namespace nissa
       
       res.outBufOfSrc.allocate(nThisBufOut.template castTo<CDst>());
       
-      /// Gets fillable version of res.outBufOsSrc
-      auto resOutBufOfSrc=
-	res.outBufOfSrc.getFillable();
-      
-      for(BufComp outBuf=0;outBuf<nThisBufOut;outBuf++)
-	resOutBufOfSrc(dstOfInBuf(outBuf).template castTo<CDst>())=outBuf.template castTo<typename Inverse::BufComp>();
+      {
+	/// Gets fillable version of res.outBufOsSrc
+	auto resOutBufOfSrc=
+	  res.outBufOfSrc.getFillable();
+	
+	for(BufComp outBuf=0;outBuf<nThisBufOut;outBuf++)
+	  resOutBufOfSrc(dstOfInBuf(outBuf).template castTo<CDst>())=outBuf.template castTo<typename Inverse::BufComp>();
+      }
       
       res.nSendToRank=nRecvFrRank;
       res.nRecvFrRank=nSendToRank;
