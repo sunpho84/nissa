@@ -26,8 +26,8 @@ namespace nissa::localizer
   
   LocDirMaker getLocDirMaker(const Dir& dir)
   {
-    return {LocLxSite(lat->getLocVol()),
-	    [&dir](const LocLxSite& locLxSite)
+    return {lat->getLocVol(),
+	    [dir](const LocLxSite& locLxSite)
 	    {
 	      /// Dimensions of the current direction
 	      const auto& [fcSize,locOsdSize]=
