@@ -96,6 +96,37 @@ namespace nissa
 	    typename T>
   using TupleDiscriminate=
     internal::_TupleDiscriminate<F,T,std::tuple<>,std::tuple<>>;
+  
+  /////////////////////////////////////////////////////////////////
+  
+  namespace impl
+  {
+    /// Predicate telling apart the types contained in a given tuple T
+    ///
+    /// Forward definition
+    template <typename T>
+    struct _TupleTellApart;
+    
+    /// Predicate telling apart the types contained in a given tuple T
+    template <typename...T>
+    struct _TupleTellApart<std::tuple<T...>>
+    {
+      /// Inner predicate
+      template <typename U>
+      struct Predicate
+      {
+	/// Value of the predicate
+	static constexpr bool value=
+	  (std::is_same_v<T,U> or ...);
+      };
+    };
+  }
+  
+  /// Predicate telling apart the types contained in a given tuple T
+  template <typename Tp,
+	    typename F>
+  using TupleTellApart=
+    TupleDiscriminate<impl::_TupleTellApart<F>::template Predicate,Tp>;
 }
 
 #endif
