@@ -418,6 +418,10 @@ namespace nissa
       
       getIldgToNissaRemapper().communicate(field,field);
       
+      fixToNativeEndianness<BigEndian,execOnCPU>(field.getData().storage,field.getData().nElements);
+      
+      field.scidacNissaCompsDirRemap();
+      
       verbosity_lv3_master_printf("ildg data record read: %ld bytes\n",header.dataLength);
     }
     

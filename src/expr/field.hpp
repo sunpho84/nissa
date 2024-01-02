@@ -1,13 +1,13 @@
 #ifndef _FIELD_HPP
 #define _FIELD_HPP
 
-#include "base/lattice.hpp"
 #ifdef HAVE_CONFIG_H
 # include <config.hpp>
 #endif
 
 /// \file expr/field.hpp
 
+#include <base/lattice.hpp>
 #include <base/universe.hpp>
 #include <communicate/communicate.hpp>
 #include <expr/assignDispatcher.hpp>
@@ -146,6 +146,49 @@ namespace nissa
 	  crash("unkwnown condition");
       
 #undef LOOP
+    }
+    
+    /// Remap the possible Dir components from/to the nissa to/from Ildg order
+    INLINE_FUNCTION constexpr
+    void scidacNissaCompsDirRemap()
+    {
+      /// Helper holding the two set of inner components: those referring to the directions, (Valid) and the other (Invalid)
+      using T=
+	TupleTellApart<InnerComps,CompsList<DirRow,DirCln>>;
+      
+      /// Holds the possible Dir components
+      using MaybeDirs=
+	T::Valid;
+      
+      /// Holds all the other components
+      using OtherComps=
+	T::Invalid;
+      
+      if constexpr(std::tuple_size_v<MaybeDirs>)
+	PAR_ON_EXEC_SPACE(execSpace,
+			  0,
+			  lat->getLocVol(),
+			  CAPTURE(self=this->getWritable()),
+			  site,
+			  {
+			    compsLoop<OtherComps>([&self,
+						   &site](const auto&...rc)
+			      {
+				/// Holds the temporarily remapped component
+				StackTens<MaybeDirs,Fund> tmp;
+				
+				compsLoop<MaybeDirs>([&tmp,
+						      &self,
+						      &rc...,
+						      &site](const auto&...d)
+				{
+				  tmp(((d+1)%NDIM)...)=self(site,rc...,d...);
+				},self.getDynamicSizes());
+				
+				self(site,rc...)=tmp;
+				
+			      },self.getDynamicSizes());
+			    });
     }
     
     /// Copy assign
