@@ -7,7 +7,9 @@
 
 #include <unistd.h>
 
+#include <expr/execSpace.hpp>
 #include <metaprogramming/inline.hpp>
+#include <threads/threads.hpp>
 
 namespace nissa
 {
@@ -88,7 +90,7 @@ namespace nissa
   {
     fixEndianness<nativeEndianness,Source>(t);
   }
-   
+  
   /// Adapt the endianness from native
   template <Endianness Dest,
 	    typename T>
@@ -97,6 +99,32 @@ namespace nissa
   {
     fixEndianness<Dest,nativeEndianness>(t);
   }
+  
+#define PROVIDE_ENDIANNESS_FIXER(FROM_TO)				\
+  /*! Ensure the endianness is converted from or to the native */	\
+  template <Endianness Other,						\
+	    ExecSpace ES,						\
+	    typename T>							\
+  void fix ## FROM_TO ## NativeEndianness(T* t,				\
+					  const int64_t& n)		\
+  {									\
+    if constexpr(nativeEndianness!=Other)				\
+      PAR_ON_EXEC_SPACE(ES,						\
+			0,						\
+			n,						\
+			CAPTURE(t),					\
+			i,						\
+			{						\
+			  nissa::fix ## FROM_TO ## NativeEndianness<Other>(t[i]); \
+			});						\
+  }
+  
+  PROVIDE_ENDIANNESS_FIXER(From);
+  
+  PROVIDE_ENDIANNESS_FIXER(To);
+  
+#undef PROVIDE_ENDIANNESS_FIXER
+  
 }
 
 #endif
