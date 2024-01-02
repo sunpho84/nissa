@@ -12,13 +12,6 @@
 #include <expr/mergedComps.hpp>
 #include <operations/allToAll.hpp>
 
-#ifndef EXTERN_LOCALIZER
-# define EXTERN_LOCALIZER extern
-# define INITIALIZE_LOCALIZER_TO(ARGS...)
-#else
-# define INITIALIZE_LOCALIZER_TO(ARGS...) ARGS
-#endif
-
 namespace nissa::localizer
 {
   DECLARE_DYNAMIC_COMP(OrthoSpaceTime);
@@ -42,19 +35,19 @@ namespace nissa::localizer
     AllToAllComm<LocLxSite,MC>;
   
   /// Communicator which makes local the first direction
-  EXTERN_LOCALIZER LocDirMaker* firstLocDirMaker;
+  inline LocDirMaker* firstLocDirMaker;
   
   /// Communicators which transform the local direction to the next in list
-  EXTERN_LOCALIZER std::vector<LocDirChanger> locDirChanger;
+  inline std::vector<LocDirChanger> locDirChanger;
   
   /// Communicator which brings back the local direction to lexicograèhic
-  EXTERN_LOCALIZER LocDirUnmaker* lastLocDirUnmaker;
+  inline LocDirUnmaker* lastLocDirUnmaker;
   
   /// Store whether the cycler has been initialized
-  EXTERN_LOCALIZER bool initialized INITIALIZE_LOCALIZER_TO({false});
+  inline bool initialized{false};
   
   /// Dimensions to be used for the temporary storage
-  EXTERN_LOCALIZER StackTens<CompsList<Dir>,std::tuple<FullLocDirCoord,OrthoSpaceTime>> dimensions;
+  inline StackTens<CompsList<Dir>,std::tuple<FullLocDirCoord,OrthoSpaceTime>> dimensions;
   
   /// Computes the dimension for each direction
   std::tuple<FullLocDirCoord,OrthoSpaceTime> computeDimensions(const Dir& dir);
@@ -288,8 +281,5 @@ namespace nissa
     cycler.cycle(out,in,f);
   }
 }
-
-#undef EXTERN_LOCALIZER
-#undef INITIALIZE_LOCALIZER_TO
 
 #endif
