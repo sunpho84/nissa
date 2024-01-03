@@ -532,9 +532,9 @@ namespace nissa
       
       setMpiRanks();
       
-      setOriginGlbCoords();
-      
       setLocSizes();
+      
+      setOriginGlbCoords();
       
       setSurfSizes();
       
