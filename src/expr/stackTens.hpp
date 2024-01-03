@@ -215,7 +215,7 @@ namespace nissa
   {
     using Res=
       StackTens<typename T::Comps,
-		typename T::Fund>;
+		std::remove_cv_t<typename T::Fund>>;
       
     return (Res)*this;
   }

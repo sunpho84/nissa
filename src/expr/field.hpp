@@ -920,7 +920,7 @@ namespace nissa
     requires(_canCloseToField())
   {
     return (Field<TupleFilterAllTypes<typename T::Comps,CompsList<LocLxSite>>,
-	    typename T::Fund>)*this;
+	    std::remove_cv_t<typename T::Fund>>)*this;
   }
 }
 
