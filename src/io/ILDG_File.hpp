@@ -20,14 +20,18 @@
 
 namespace nissa
 {
-  typedef off_t ILDGOffset;
+  /// Poistion in the file
+  using ILDGOffset=off_t;
   
+  /// State whether reading ignores the magic number
   inline bool ignoreIldgMagicNumber{false};
   
   namespace resources
   {
+    /// Ildg to nissa remapper
     inline AllToAllComm<LocLxSite, LocLxSite> _ildgToNissaRemapper;
     
+    /// Nissa to Ildg remapper
     inline AllToAllComm<LocLxSite, LocLxSite> _nissaToIldgRemapper;
   }
   
