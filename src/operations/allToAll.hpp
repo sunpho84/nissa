@@ -106,8 +106,19 @@ namespace nissa
 	  crash("destination of el %ld = %ld larger than maximum %ld or lower than 0 addr %p",i(),j,getNDst()(),&dstOfInBuf);
 	else
 	  if(auto& p=inBufOfDest[j];p!=-1)
-	    crash("On rank %ld destination %ld is filled by %ld and at least %ld at the same time",
+	    {
+	      for(int64_t n=0;const auto& [rank,nPerRank] : nRecvFrRank)
+		{
+		  master_printf("Receiving from rank %ld : %ld - %ld\n",rank(),n,n+nPerRank);
+		  n+=nPerRank;
+		}
+	      
+	      for(BufComp k=0,n=getInBufSize();k<n;k++)
+		master_printf("%ld goes to %ld\n",k(),dstOfInBuf[k]());
+	      
+	      crash("On rank %ld destination %ld is filled by %ld and at least %ld at the same time",
 		  thisRank(),(int64_t)j,(int64_t)p(),(int64_t)i());
+	    }
 	  else
 	    p=i;
       
