@@ -16,11 +16,11 @@ namespace nissa::localizer
 {
   DECLARE_DYNAMIC_COMP(OrthoSpaceTime);
   
-  DECLARE_DYNAMIC_COMP(FullLocDirCoord);
+  DECLARE_DYNAMIC_COMP(FullyLocDirCoord);
   
   /// Merged component for the temporary storage
   using MC=
-    MergedComp<CompsList<OrthoSpaceTime,FullLocDirCoord>>;
+    MergedComp<CompsList<OrthoSpaceTime,FullyLocDirCoord>>;
   
   /// Type of the communicator which makes local a given direction
   using LocDirMaker=
@@ -47,10 +47,10 @@ namespace nissa::localizer
   inline bool initialized{false};
   
   /// Dimensions to be used for the temporary storage
-  inline StackTens<CompsList<Dir>,std::tuple<FullLocDirCoord,OrthoSpaceTime>> dimensions;
+  inline StackTens<CompsList<Dir>,std::tuple<FullyLocDirCoord,OrthoSpaceTime>> dimensions;
   
   /// Computes the dimension for each direction
-  std::tuple<FullLocDirCoord,OrthoSpaceTime> computeDimensions(const Dir& dir);
+  std::tuple<FullyLocDirCoord,OrthoSpaceTime> computeDimensions(const Dir& dir);
   
   /// Creates the communicator which makes local a given direction
   LocDirMaker getLocDirMaker(const Dir& dir);
@@ -70,7 +70,7 @@ namespace nissa::localizer
   {
     /// Buffer components
     using BufComps=
-      TupleCat<CompsBef,CompsList<OrthoSpaceTime,FullLocDirCoord>,CompsAft>;
+      TupleCat<CompsBef,CompsList<OrthoSpaceTime,FullyLocDirCoord>,CompsAft>;
     
     /// Fundamental type of the expression to cycle
     using Fund=
@@ -117,7 +117,7 @@ namespace nissa::localizer
 	std::tuple_cat(extraDynamicSizes,dimensions[D]);
       
       return
-	Buf(dynamicSizes).template mergeComps<CompsList<OrthoSpaceTime,FullLocDirCoord>>();
+	Buf(dynamicSizes).template mergeComps<CompsList<OrthoSpaceTime,FullyLocDirCoord>>();
     }
     
     /// Iteration
@@ -163,10 +163,10 @@ namespace nissa::localizer
   };
   
   /// Computes the dimensions for the localizer
-  inline std::tuple<FullLocDirCoord,OrthoSpaceTime> computeDimensions(const Dir& dir)
+  inline std::tuple<FullyLocDirCoord,OrthoSpaceTime> computeDimensions(const Dir& dir)
   {
     /// Fully local size in a given direction is the global size
-    const FullLocDirCoord fcSize=
+    const FullyLocDirCoord fcSize=
       lat->getGlbSizes(dir)();
     
     /// Perpendicular size across the whole lattice
@@ -184,27 +184,28 @@ namespace nissa::localizer
   inline LocDirMaker getLocDirMaker(const Dir& dir)
   {
     return {lat->getLocVol(),
-	    [dir](const LocLxSite& locLxSite)
+      [dir,
+       glbPerpSizes=(lat->getGlbSizes()*Lattice::perpDirs(dir)+Lattice::versors[dir]).close()](const LocLxSite& locLxSite)
 	    {
 	      /// Dimensions of the current direction
 	      const auto& [fcSize,locOsdSize]=
 		dimensions[dir];
 	      
 	      /// Coordinate in the current direction of the requires site
-	      const FullLocDirCoord fc=
+	      const FullyLocDirCoord fc=
 		lat->getGlbCoordsOfLocLx(locLxSite)[dir]();
 	      
+	      /// Coordinates in the perpendicular space
+	      const GlbCoords glbPerpCoords=
+		lat->getGlbCoordsOfLocLx(locLxSite)*Lattice::perpDirs(dir);
+	      
 	      /// Global index in the space perpendicular to the current direction
-	      int64_t glbOsd=0;
-	      for(PerpDir pDir=0;pDir<NDIM-1;pDir++)
-		{
-		  const Dir jDir=perpDirOf[dir][pDir];
-		  glbOsd=lat->getGlbSizes(jDir)()*glbOsd+lat->getGlbCoordsOfLocLx(locLxSite)(jDir)();
-		}
+	      const OrthoSpaceTime glbOsd=
+		lxOfCoords<OrthoSpaceTime>(glbPerpCoords,glbPerpSizes);
 	      
 	      /// Rank hosting global site
 	      const MpiRank orthoRank=
-		(int)(glbOsd/locOsdSize());
+		glbOsd()/locOsdSize();
 	      
 	      /// Local index in the rank
 	      const OrthoSpaceTime locOsd=
