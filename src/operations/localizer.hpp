@@ -183,6 +183,11 @@ namespace nissa::localizer
   /// Returns a localizer for a given direction
   inline LocDirMaker getLocDirMaker(const Dir& dir)
   {
+    constexpr bool debugInit=false;
+    
+    if constexpr(debugInit)
+      master_printf("DIR %d\n",dir());
+    
     return {lat->getLocVol(),
       [dir,
        glbPerpSizes=(lat->getGlbSizes()*Lattice::perpDirs(dir)+Lattice::versors[dir]).close()](const LocLxSite& locLxSite)
@@ -202,7 +207,7 @@ namespace nissa::localizer
 	      /// Global index in the space perpendicular to the current direction
 	      const OrthoSpaceTime glbOsd=
 		lxOfCoords<OrthoSpaceTime>(glbPerpCoords,glbPerpSizes);
-	      
+
 	      /// Rank hosting global site
 	      const MpiRank orthoRank=
 		glbOsd()/locOsdSize();
@@ -214,6 +219,23 @@ namespace nissa::localizer
 	      /// Merges the components
 	      const auto mc=
 		MC::merge(std::make_tuple(fcSize,locOsdSize),fc,OrthoSpaceTime(locOsd));
+	      
+	      if constexpr(debugInit)
+		{
+		  auto l=lat->getOriginGlbCoords();
+		  auto u=lat->getGlbCoordsOfLocLx(locLxSite);
+		  auto v=glbPerpCoords;
+		  auto x=glbPerpSizes;
+		  
+		  printf("rank %ld (%ld %ld %ld %ld) site %ld (%ld %ld %ld %ld) (%ld %ld %ld %ld) (%ld %ld %ld %ld) goes to rank %ld fc %ld mc %ld\n",
+		       thisRank(),
+		       l.dirRow(0)(),l.dirRow(1)(),l.dirRow(2)(),l.dirRow(3)(),
+		       locLxSite(),
+		       u.dirRow(0)(),u.dirRow(1)(),u.dirRow(2)(),u.dirRow(3)(),
+		       v.dirRow(0)(),v.dirRow(1)(),v.dirRow(2)(),v.dirRow(3)(),
+		       x.dirRow(0)(),x.dirRow(1)(),x.dirRow(2)(),x.dirRow(3)(),
+		       orthoRank(),fc(),mc());
+		}
 	      
 	      return std::make_tuple(orthoRank,mc);
 	    }};

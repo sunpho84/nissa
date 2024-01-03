@@ -361,10 +361,6 @@ namespace nissa
 		 const GlbCoords ildgGlbCoords=
 		   decomposeLxToCoords(ildgEl,ildgSizes);
 		 
-		 // const auto [r,l]=lat.getRankAndLocLxSiteOf(Lattice::scidacRemap(ildgGlbCoords));
-		 
-		 //printf("el %ld goes to rank %ld site %ld\n",ildgChunkEl(),r(),l());
-		 
 		 return lat->getRankAndLocLxSiteOf(Lattice::scidacRemap(ildgGlbCoords));
 	       });
       
@@ -393,7 +389,7 @@ namespace nissa
       auto& data=
 	field.getData();
       
-      if(const size_t& nF=data.nElements,
+      if(const size_t& nF=data.nElements*nRanks(),
 	 fS=sizeof(Fund),
 	 &nH=header.dataLength;
 	 nF*fS<header.dataLength)
