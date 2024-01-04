@@ -139,13 +139,13 @@ namespace nissa
       return subExpr(transp(td)...);
     }
     
-    /// Move construct
+    /// Move constructor
     INLINE_FUNCTION constexpr
-    Transposer(Transposer&& oth) = default;
+    Transposer(Transposer&& oth)=default;
     
-    /// Copy construct
+    /// Copy constructor
     INLINE_FUNCTION constexpr
-    Transposer(const Transposer& oth) = default;
+    Transposer(const Transposer& oth)=default;
     
     /// Construct
     template <typename T>

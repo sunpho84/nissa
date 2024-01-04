@@ -230,14 +230,8 @@ namespace nissa
     =default;
     
     /// Move constructor
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    MirroredNode(MirroredNode&& oth) :
-      hostVal(std::move(oth.hostVal))
-#ifdef USE_CUDA
-      ,deviceVal(std::move(oth.deviceVal))
-#endif
-    {
-    }
+    constexpr INLINE_FUNCTION
+    MirroredNode(MirroredNode&& oth)=default;
     
     /// Move assign
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE

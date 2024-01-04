@@ -57,7 +57,6 @@ namespace nissa
     PROVIDE_GET_SUBEXPRS(/* not const */);
     
 #undef PROVIDE_GET_SUBEXPRS
-    
   };
 }
 

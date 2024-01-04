@@ -193,17 +193,12 @@ namespace nissa
     }
     
     /// Copy constructor
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-    CWiseCombiner(const CWiseCombiner& oth)
-      requires(std::is_copy_constructible_v<std::decay_t<_E>> and...)
-      : subExprs{{oth.subExprs.template get<Is>()}...},
-	dynamicSizes(oth.dynamicSizes)
-    {
-    }
+    INLINE_FUNCTION constexpr
+    CWiseCombiner(const CWiseCombiner& oth)=default;
     
     /// Move constructor
     INLINE_FUNCTION constexpr
-    CWiseCombiner(CWiseCombiner&& oth) = default;
+    CWiseCombiner(CWiseCombiner&& oth)=default;
   };
   
   template <typename Comb,

@@ -357,13 +357,11 @@ namespace nissa
     
     /// Copy constructor
     INLINE_FUNCTION constexpr
-    Producer(const Producer& oth)
-      requires(std::is_copy_constructible_v<std::decay_t<_E>> and...)=default;
+    Producer(const Producer& oth)=default;
     
     /// Move constructor
     INLINE_FUNCTION constexpr
-    Producer(Producer&& oth)
-      requires(std::is_move_constructible_v<std::decay_t<_E>> and...)=default;
+    Producer(Producer&& oth)=default;
   };
   
   template <DerivedFromNode..._E>

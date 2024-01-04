@@ -25,7 +25,13 @@ namespace nissa
     {
     }
     
-    //ScalarWrapFunctor(const ScalarWrapFunctor& oth) =default;
+    /// Copy constructor
+    constexpr INLINE_FUNCTION
+    ScalarWrapFunctor(const ScalarWrapFunctor& oth)=default;
+    
+    /// Move constructor
+    constexpr INLINE_FUNCTION
+    ScalarWrapFunctor(ScalarWrapFunctor&& oth)=default;
     
     /// Can run on both GPU and CPU as it is trivially copyable
     static constexpr ExecSpace execSpace=

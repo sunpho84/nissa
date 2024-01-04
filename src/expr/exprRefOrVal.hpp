@@ -38,7 +38,7 @@ namespace nissa
       static constexpr bool passedAsConst=
 	std::is_const_v<std::remove_reference_t<ACTUAL_TYPE>>;
       
-      static_assert(storeByRef or (canBeMoveConstructed or canBeMoveConstructed),"Would need to move-construct, but the move constructor is not available");
+      static_assert(storeByRef or canBeMoveConstructed or canBeCopyConstructed,"Would need to move- or copy-construct, but the move or copy constructor is not available");
       
       // static_assert(canBeCopyConstructed or not isVal,
       // 		    "Would need to copy-construct, but the copy constructor is not available or the inner object must be stored by ref");
