@@ -31,7 +31,6 @@
 
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "linalgs/reduce.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 

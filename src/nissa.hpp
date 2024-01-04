@@ -61,8 +61,6 @@
 #include <io/reader.hpp>
 #include <io/writer.hpp>
 
-#include <linalgs/reduce.hpp>
-
 #include <metaprogramming/concepts.hpp>
 #include <metaprogramming/constnessChanger.hpp>
 #include <metaprogramming/crtp.hpp>

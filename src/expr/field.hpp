@@ -423,10 +423,8 @@ namespace nissa
     {
       auto res=locReduce();
       
-      // StackTens<OfComps<C...>,Fund> res=;
-      
       MPI_Allreduce(MPI_IN_PLACE,res.storage,res.nElements,
-		    MPI_Datatype_of<Fund>(),MPI_SUM,MPI_COMM_WORLD);
+		    mpiDatatypeOf<Fund>(),MPI_SUM,MPI_COMM_WORLD);
       
       return res;
     }
