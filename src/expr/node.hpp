@@ -467,12 +467,14 @@ namespace nissa
     INLINE_FUNCTION
     auto closeAs(C&& c) const
     {
+      /// Helper to get the closed type
       auto getStorage=
 	[](auto&&...args)
 	{
 	  return typename std::decay_t<C>::ClosingType(args...);
 	};
       
+      /// Result
       auto res=
 	std::apply(getStorage,c.getEquivalentStoragePars());
       
