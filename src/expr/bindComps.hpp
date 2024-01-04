@@ -193,6 +193,16 @@ namespace nissa
       boundComps(boundComps)
     {
     }
+    
+    /// Copy constructor
+    INLINE_FUNCTION constexpr
+    CompsBinder(const CompsBinder& oth)
+      requires(std::is_copy_constructible_v<std::decay_t<_E>>)=default;
+    
+    /// Move constructor
+    INLINE_FUNCTION constexpr
+    CompsBinder(CompsBinder&& oth)
+      requires(std::is_move_constructible_v<std::decay_t<_E>>)=default;
   };
   
   /// Binds a subset of components
