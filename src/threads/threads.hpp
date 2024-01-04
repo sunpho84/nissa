@@ -13,7 +13,6 @@
 #endif
 #include <expr/comp.hpp>
 #include <routines/mpiRoutines.hpp>
-#include <routines/mpi_routines.hpp>
 
 #define TO_READ(A) A=A.getReadable()
 #define TO_WRITE(A) A=A.getWritable()

@@ -15,7 +15,6 @@
 #include <sys/stat.h>
 
 #include <base/debug.hpp>
-#include <routines/mpi_routines.hpp>
 #include <threads/threads.hpp>
 
 namespace nissa

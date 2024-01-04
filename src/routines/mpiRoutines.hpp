@@ -196,6 +196,27 @@ namespace nissa
     exit(0);
 #endif
   }
+  
+#define PROVIDE_MPI_DATATYPE_OF(T,MPI_T)	\
+  /*! MPI Datatype corresponding to T */	\
+  inline MPI_Datatype _mpiDatatypeOf(T*)	\
+  {						\
+    return MPI_T;				\
+  }
+  
+  PROVIDE_MPI_DATATYPE_OF(int64_t,MPI_LONG)
+  PROVIDE_MPI_DATATYPE_OF(double,MPI_DOUBLE)
+  
+#undef PROVIDE_MPI_DATATYPE_OF
+  
+  /// Instantiates the correct datatype, given the type
+  template <typename T>
+  INLINE_FUNCTION
+  MPI_Datatype mpiDatatypeOf()
+  {
+    return _mpiDatatypeOf((T*)nullptr);
+  }
+  
 }
 
 #endif

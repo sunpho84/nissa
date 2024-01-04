@@ -9,7 +9,6 @@
 #include <vector>
 
 #include <base/debug.hpp>
-#include <routines/mpi_routines.hpp>
 #include <routines/mpiRank.hpp>
 
 #ifdef USE_OPENMP

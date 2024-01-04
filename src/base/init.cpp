@@ -34,7 +34,6 @@
 #include "linalgs/reduce.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
-#include "routines/mpi_routines.hpp"
 
 #include <unistd.h>
 #include <sys/ioctl.h>
