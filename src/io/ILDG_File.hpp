@@ -13,7 +13,6 @@
 #include <sstream>
 #include <vector>
 
-#include <io/checksum.hpp>
 #include <base/debug.hpp>
 #include <base/lattice.hpp>
 #include <geometry/geometry_lx.hpp>
@@ -22,6 +21,10 @@ namespace nissa
 {
   /// Poistion in the file
   using ILDGOffset=off_t;
+  
+  /// Ildg checksum, based on crc
+  using IldgChecksum=
+    std::array<uint32_t,2>;
   
   /// State whether reading ignores the magic number
   inline bool ignoreIldgMagicNumber{false};
@@ -322,7 +325,7 @@ namespace nissa
     }
     
     /// Write the checksum
-    void writeChecksum(const Checksum& check)
+    void writeChecksum(const IldgChecksum& check)
     {
       /// String to be written
       char mess[160];
@@ -454,10 +457,10 @@ namespace nissa
     }
     
     /// Read the checksum
-    Checksum readScidacChecksum()
+    IldgChecksum readScidacChecksum()
     {
       /// Setup as non found as search it
-      Checksum checkRead{};
+      IldgChecksum checkRead{};
       
       if(const auto header=
 	 searchRecord(scidacChecksumRecordName);header)

@@ -56,7 +56,6 @@
 #include <geometry/geometry_lx.hpp>
 
 #include <io/buffer.hpp>
-#include <io/checksum.hpp>
 #include <io/endianness.hpp>
 #include <io/ILDG_File.hpp>
 #include <io/reader.hpp>
