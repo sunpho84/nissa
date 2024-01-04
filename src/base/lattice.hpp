@@ -415,7 +415,7 @@ namespace nissa
     void setSurfSizes()
     {
       _surfSizePerDir=
-	getLocVol()/getLocSizes().template reinterpretFund<LocLxSite>();
+	getLocVol()*isDirParallel/getLocSizes().template reinterpretFund<LocLxSite>();
       
       _surfSize=compSum<Dir>(getSurfSizePerDir())();
       
