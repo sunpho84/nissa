@@ -129,7 +129,7 @@ namespace nissa
   
   /// Returns the passed variable after broadcast
   template <TriviallyCopyable T>
-  T mpiBcast(const T& t,
+  T getMpiBcast(const T& t,
 	     const MpiRank& rank=masterRank)
     requires(not std::is_pointer_v<T>)
   {
@@ -147,7 +147,7 @@ namespace nissa
 			   Args&&...args)
     -> decltype(f(std::forward<Args>(args)...))
   {
-    return mpiBcast(onMasterRank(f,std::forward<Args>(args)...));
+    return getMpiBcast(onMasterRank(f,std::forward<Args>(args)...));
   }
   
   /// Return the name of the processor
@@ -169,6 +169,31 @@ namespace nissa
   {
 #ifdef USE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
+#endif
+  }
+  
+  /// Initialize mpi
+  inline void mpiInitThread(int narg,
+			    char **arg)
+  {
+#ifdef USE_MPI
+# ifdef USE_OPENMP
+    int provided;
+    MPI_Init_thread(&narg,&arg,MPI_THREAD_SERIALIZED,&provided);
+# else
+    MPI_Init(&narg,&arg);
+ #endif
+#endif
+  }
+  
+  /// Abort execution
+  inline void mpiAbort(const int& err)
+  {
+#ifdef USE_MPI
+    printf("on rank %ld aborting\n",thisRank());
+    MPI_Abort(MPI_COMM_WORLD,0);
+#else
+    exit(0);
 #endif
   }
 }

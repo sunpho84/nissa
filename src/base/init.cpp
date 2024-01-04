@@ -84,7 +84,7 @@ namespace nissa
   void init_nissa(int narg,char **arg,const char compile_info[5][1024])
   {
     //init base things
-    init_MPI_thread(narg,arg);
+    mpiInitThread(narg,arg);
     
     verb_call=0;
     

@@ -115,7 +115,7 @@ namespace nissa
 	if(rc!=0) crash("cp failed!");
       }
     
-    return broadcast(rc);
+    return getMpiBcast(rc);
   }
   
   //pass to the folder
@@ -130,7 +130,7 @@ namespace nissa
 	if(rc!=0) crash("cd to %s failed!",path.c_str());
       }
     
-    return broadcast(rc);
+    return getMpiBcast(rc);
   }
   
   //Open a file checking it
@@ -208,7 +208,7 @@ namespace nissa
     //close file and broadcast n
     close_file(fin);
     
-    return broadcast(n);
+    return getMpiBcast(n);
   }
   
   //get the size of a file
@@ -226,7 +226,7 @@ namespace nissa
 	file_size=ftell(fin);
       }
     
-    return broadcast(file_size);
+    return getMpiBcast(file_size);
   }
   
   //take the last characters of the passed string
