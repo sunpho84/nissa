@@ -207,8 +207,8 @@ namespace nissa
 #endif
     
     //put 0 as minimal request
-    recv_buf_size=0;
-    send_buf_size=0;
+    recvBufSize=0;
+    sendBufSize=0;
 #if defined USE_DDALPHAAMG or USE_QUDA
     read_DDalphaAMG_pars();
 #endif
@@ -682,8 +682,8 @@ namespace nissa
     ///////////////////////////////////// start communicators /////////////////////////////////
     
     //allocate only now buffers, so we should have finalized its size
-    recv_buf=memoryManager<MemoryType::CPU>()->template provide<char>(recv_buf_size);
-    send_buf=memoryManager<MemoryType::CPU>()->template provide<char>(send_buf_size);
+    recvBuf=memoryManager<MemoryType::CPU>()->template provide<char>(recvBufSize);
+    sendBuf=memoryManager<MemoryType::CPU>()->template provide<char>(sendBufSize);
     
 #ifdef USE_QUDA
     if(use_quda) quda_iface::initialize();

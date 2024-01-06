@@ -737,7 +737,7 @@ namespace nissa
 	    {
 	      const auto internalDeg=index(dynamicSizes,c...);
 	      
-	      ((std::remove_const_t<Fund>*)send_buf)[internalDeg+nInternalDegs*i()]=
+	      ((std::remove_const_t<Fund>*)sendBuf)[internalDeg+nInternalDegs*i()]=
 		t(f(i),c...);
 	    },dynamicSizes);
 	  });
@@ -777,7 +777,7 @@ namespace nissa
 		  lat->getSurfSiteOfHaloSite(iHalo);
 		
 		f(t[iSurf],
-		  ((B*)recv_buf)[iHalo],
+		  ((B*)recvBuf)[iHalo],
 		  bf,
 		  mu);
 	      });
@@ -801,7 +801,7 @@ namespace nissa
 	      const auto internalDeg=index(dynamicSizes,c...);
 	      
 	      asMutable(subExpr(offset+i,c...))=
-		((Fund*)recv_buf)[internalDeg+nInternalDegs*i()];
+		((Fund*)recvBuf)[internalDeg+nInternalDegs*i()];
 	    },dynamicSizes);
 	  });
       
@@ -828,7 +828,7 @@ namespace nissa
 		  bf*n+
 		  iHaloOriDir+off;
 		
-		f(((B*)send_buf)[iHalo],
+		f(((B*)sendBuf)[iHalo],
 		  t[l+iHalo],
 		  bf,
 		  mu);
@@ -874,8 +874,8 @@ namespace nissa
 	      
 	      const Ori recvOri=1-sendOri;
 	      
-	      sendOrRecv("send",MPI_Isend,send_buf,sendOri);
-	      sendOrRecv("recv",MPI_Irecv,recv_buf,recvOri);
+	      sendOrRecv("send",MPI_Isend,sendBuf,sendOri);
+	      sendOrRecv("recv",MPI_Irecv,recvBuf,recvOri);
 	    }
       
       return requests;
@@ -897,7 +897,7 @@ namespace nissa
 	nInternalDegs*n();
       
       const size_t maxBufSize=
-	std::min(send_buf_size,recv_buf_size);
+	std::min(sendBufSize,recvBufSize);
       
       if(neededBufSize>maxBufSize)
 	CRASH("asking to create a communicator that needs %d large buffer (%d allocated)",

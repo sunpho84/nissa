@@ -14,8 +14,7 @@ BUILT_SOURCES+= \
 	%D%/git_info.hpp
 
 __top_builddir__lib_libnissa_a_SOURCES= \
-	%D%/init.cpp \
-	%D%/multiGridParams.cpp
+	%D%/init.cpp
 
 include_HEADERS+= \
 	%D%/close.hpp \

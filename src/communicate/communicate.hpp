@@ -2,7 +2,7 @@
 #define COMMUNICATE_HPP
 
 #ifdef HAVE_CONFIG_H
-# include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <stdint.h>
@@ -10,8 +10,6 @@
 #include <vector>
 
 #include <routines/ios.hpp>
-
-#define NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS 1
 
 /*
   Order in memory of borders for a 3^4 lattice.
@@ -66,19 +64,19 @@
  
 */
 
-#ifndef EXTERN_COMMUNICATE
-# define EXTERN_COMMUNICATE extern
-#endif
-
 namespace nissa
 {
-  EXTERN_COMMUNICATE int ncomm_allocated;
-  EXTERN_COMMUNICATE int comm_in_prog;
-  EXTERN_COMMUNICATE int use_async_communications;
+  /// Receive buffer size
+  inline uint64_t recvBufSize;
   
-  //buffers
-  EXTERN_COMMUNICATE uint64_t recv_buf_size,send_buf_size;
-  CUDA_MANAGED EXTERN_COMMUNICATE char *recv_buf,*send_buf;
+  /// Send buffer size
+  inline uint64_t sendBufSize;
+  
+  /// Receive buffer
+  inline char* recvBuf;
+  
+  /// Send buffer
+  inline char* sendBuf;
   
   /// Wait for communications to finish
   inline void waitAsyncCommsFinish(std::vector<MPI_Request> requests)
@@ -88,7 +86,5 @@ namespace nissa
     MPI_Waitall(requests.size(),&requests[0],MPI_STATUS_IGNORE);
   }
 }
-
-#undef EXTERN_COMMUNICATE
 
 #endif
