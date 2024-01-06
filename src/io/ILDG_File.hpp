@@ -5,9 +5,7 @@
 # include <config.hpp>
 #endif
 
-#include <stdio.h>
-#include <stdint.h>
-
+#include <array>
 #include <optional>
 #include <string>
 #include <sstream>

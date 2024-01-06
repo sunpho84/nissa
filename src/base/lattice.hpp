@@ -5,6 +5,7 @@
 # include <config.hpp>
 #endif
 
+#include <cmath>
 #include <memory>
 #include <sstream>
 
@@ -13,7 +14,7 @@
 #include <expr/fieldDeclaration.hpp>
 #include <expr/prod.hpp>
 #include <operations/allToAll.hpp>
-#include <routines/math_routines.hpp>
+#include <routines/mathRoutines.hpp>
 #include <routines/mpiRoutines.hpp>
 
 namespace nissa

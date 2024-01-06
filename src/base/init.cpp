@@ -31,7 +31,7 @@
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "routines/ios.hpp"
-#include "routines/math_routines.hpp"
+#include "routines/mathRoutines.hpp"
 
 #include <unistd.h>
 #include <sys/ioctl.h>

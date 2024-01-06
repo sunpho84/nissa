@@ -10,7 +10,7 @@
 #endif
 
 #include <stdint.h>
-#include <routines/math_routines.hpp>
+#include <routines/mathRoutines.hpp>
 
 #define NISSA_LOC_VOL_LOOP(a) for(int a=0;a<locVol;a++)
 
