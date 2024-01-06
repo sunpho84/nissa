@@ -20,7 +20,6 @@
  #include <base/quda_bridge.hpp>
 #endif
 #include <base/qcd.hpp>
-#include <base/vectors.hpp>
 #ifdef USE_CUDA
 # include <base/cuda.hpp>
 #endif

@@ -16,8 +16,7 @@ BUILT_SOURCES+= \
 __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/debug.cpp \
 	%D%/init.cpp \
-	%D%/multiGridParams.cpp \
-	%D%/vectors.cpp
+	%D%/multiGridParams.cpp
 
 include_HEADERS+= \
 	%D%/close.hpp \
@@ -26,8 +25,7 @@ include_HEADERS+= \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
 	%D%/memory_manager.hpp \
-	%D%/multiGridParams.hpp \
-	%D%/vectors.hpp
+	%D%/multiGridParams.hpp
 
 if USE_DDALPHAAMG
 __top_builddir__lib_libnissa_a_SOURCES+= \

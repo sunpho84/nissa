@@ -24,8 +24,6 @@
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
 
-#include "vectors.hpp"
-
 namespace nissa
 {
   /// Implements the trap to debug
@@ -95,7 +93,6 @@ namespace nissa
 	va_end(ap);
 	
 	fprintf(stderr,"\x1b[31m" "ERROR on line %d of file \"%s\", message error: \"%s\".\n\x1b[0m",line,file,mess);
-	fprintf(stderr,"Memory used: %ld bytes per rank (%ld bytes total)\n",required_memory,required_memory*nRanks());
 	print_backtrace_list();
 	mpiAbort(0);
       }
@@ -123,7 +120,6 @@ namespace nissa
   //called when signal received
   void signal_handler(int sig)
   {
-    master_printf("maximal memory used: %ld\n",max_required_memory);
     verbosity_lv=3;
     char name[100];
     switch(sig)
@@ -137,7 +133,6 @@ namespace nissa
       default: sprintf(name,"unassociated");break;
       }
     print_backtrace_list();
-    print_all_vect_content();
     crash("signal %d (%s) detected, exiting",sig,name);
   }
   

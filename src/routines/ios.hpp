@@ -48,7 +48,6 @@
 namespace nissa
 {
   EXTERN_IOS int prepend_time;
-  EXTERN_IOS int verb_call;
   EXTERN_IOS int verbosity_lv;
   
   int count_substrings(const char *str,const char *sub);

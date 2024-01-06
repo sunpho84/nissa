@@ -23,7 +23,6 @@
 #include "base/debug.hpp"
 #include "base/git_info.hpp"
 #include "base/memory_manager.hpp"
-#include "base/vectors.hpp"
 
 #include "communicate/communicate.hpp"
 
@@ -83,8 +82,7 @@ namespace nissa
   {
     //init base things
     mpiInitThread(narg,arg);
-    
-    verb_call=0;
+    mpiInit(narg,arg);
     
     //this must be done before everything otherwise rank non properly working
     //get the number of rank and the id of the local one
@@ -116,9 +114,6 @@ namespace nissa
 #ifdef USE_CUDA
     initCuda();
 #endif
-    
-    //initialize the first vector of nissa
-    initialize_main_vect();
     
     //initialize the memory manager
     cpuMemoryManager=new CPUMemoryManager;
@@ -193,7 +188,6 @@ namespace nissa
     //set default value for parameters
     verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
     // use_eo_geom=NISSA_DEFAULT_USE_EO_GEOM;
-    warn_if_not_disallocated=NISSA_DEFAULT_WARN_IF_NOT_DISALLOCATED;
     // for(int mu=0;mu<NDIM;mu++) fix_nranks[mu]=0;
     
 #ifdef USE_DDALPHAAMG
@@ -693,8 +687,8 @@ namespace nissa
     ///////////////////////////////////// start communicators /////////////////////////////////
     
     //allocate only now buffers, so we should have finalized its size
-    recv_buf=nissa_malloc("recv_buf",recv_buf_size,char);
-    send_buf=nissa_malloc("send_buf",send_buf_size,char);
+    recv_buf=memoryManager<MemoryType::CPU>()->template provide<char>(recv_buf_size);
+    send_buf=memoryManager<MemoryType::CPU>()->template provide<char>(send_buf_size);
     
 #ifdef USE_QUDA
     if(use_quda) quda_iface::initialize();
