@@ -40,10 +40,6 @@
  #include "base/quda_bridge.hpp"
 #endif
 
-//test to remove limit 2
-//#define REM_2 if(0)
-#define REM_2
-
 namespace nissa
 {
   //print the banner
