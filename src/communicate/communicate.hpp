@@ -83,7 +83,7 @@ namespace nissa
   /// Wait for communications to finish
   inline void waitAsyncCommsFinish(std::vector<MPI_Request> requests)
   {
-    verbosity_lv3_master_printf("Entering MPI comm wait\n");
+    VERBOSITY_LV3_MASTER_PRINTF("Entering MPI comm wait\n");
     
     MPI_Waitall(requests.size(),&requests[0],MPI_STATUS_IGNORE);
   }

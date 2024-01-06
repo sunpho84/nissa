@@ -70,8 +70,8 @@ namespace nissa
       std::common_type_t<IMin,IMax>;
     
     double initTime=0;
-    extern int verbosity_lv;
-    const bool print=(verbosity_lv>=1// 2
+    extern int verbosityLv;
+    const bool print=(verbosityLv>=1// 2
 		      and isMasterRank());
     if(print)
       {

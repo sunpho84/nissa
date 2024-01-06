@@ -110,7 +110,7 @@ namespace nissa
     void describe(const std::string& pref="") const
     {
       master_printf("%sBinder %s address %p\n",pref.c_str(),demangle(typeid(*this).name()).c_str(),this);
-      master_printf("%s Bound components:\n",pref.c_str());
+      masterPrintf("%s Bound components:\n",pref.c_str());
       std::apply([&pref](auto&& t)
       {
 	master_printf("%s %s val %d\n",pref.c_str(),demangle(typeid(t).name()).c_str(),t());
@@ -118,7 +118,7 @@ namespace nissa
       },boundComps);
       master_printf("%s Bound quantity %s, is ref: %d description:\n",pref.c_str(),demangle(typeid(BoundExpr).name()).c_str(),std::is_reference_v<_E>);
       subExpr.describe(pref+" ");
-      master_printf("%sEnd of binder\n",pref.c_str());
+      masterPrintf("%sEnd of binder\n",pref.c_str());
     }
     
     /// Components that have been bound

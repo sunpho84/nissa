@@ -114,6 +114,52 @@ namespace nissa
     }
     
     /// Assign from another expression
+    template <typename F,
+	      typename O>
+    INLINE_FUNCTION
+    static void _onEachSiteCPU(F&& f,
+			       O&& o)
+    {
+      HOST_PARALLEL_LOOP(0,lat->getLocVol(),
+			 CAPTURE(f,o),
+			 site,
+			 {
+			   o(f,site);
+			 });
+    }
+    
+    /// Assign from another expression
+    template <typename F,
+	      typename O>
+    INLINE_FUNCTION
+    static void _onEachSiteGPU(F&& f,
+			       O&& o)
+    {
+      DEVICE_PARALLEL_LOOP(0,lat->getLocVol(),
+			 CAPTURE(f,o),
+			 site,
+			 {
+			   o(f,site);
+			 });
+    }
+    
+    /// Assign from another expression
+    template <typename O>
+    INLINE_FUNCTION
+    void onEachSite(O&& o)
+    {
+#ifdef USE_CUDA
+      if constexpr(MT==MemoryType::GPU)
+	_onEachSiteGPU(this->getWritable(),std::get<1>(o));
+      else
+#endif
+	if constexpr(MT==MemoryType::CPU)
+	  _onEachSiteCPU(this->getWritable(),std::get<0>(o));
+	else
+	  CRASH("unkwnown condition");
+    }
+    
+    /// Assign from another expression
     template <typename OP=DirectAssign,
 	      typename O>
     INLINE_FUNCTION
@@ -347,15 +393,15 @@ namespace nissa
     void describe(const std::string& pref="") const
     {
       master_printf("%sField %s address %p\n",pref.c_str(),demangle(typeid(*this).name()).c_str(),this);
-      master_printf("%s Components:\n",pref.c_str());
-      (master_printf("%s  %s\n",pref.c_str(),demangle(typeid(C).name()).c_str()),...);
-      master_printf("%s Site type: %s\n",pref.c_str(),demangle(typeid(decltype(this->nSites())).name()).c_str());
-      master_printf("%s Fund: %s\n",pref.c_str(),demangle(typeid(_Fund).name()).c_str());
-      master_printf("%s FieldLayout: %d\n",pref.c_str(),FL);
-      master_printf("%s MemoryType: %d\n",pref.c_str(),MT);
-      master_printf("%s FieldLayout: %d\n",pref.c_str(),FL);
-      master_printf("%s IsRef: %d\n",pref.c_str(),IsRef);
-      master_printf("%sEnd of Field\n",pref.c_str());
+      masterPrintf("%s Components:\n",pref.c_str());
+      (masterPrintf("%s  %s\n",pref.c_str(),demangle(typeid(C).name()).c_str()),...);
+      masterPrintf("%s Site type: %s\n",pref.c_str(),demangle(typeid(decltype(this->nSites())).name()).c_str());
+      masterPrintf("%s Fund: %s\n",pref.c_str(),demangle(typeid(_Fund).name()).c_str());
+      masterPrintf("%s FieldLayout: %d\n",pref.c_str(),FL);
+      masterPrintf("%s MemoryType: %d\n",pref.c_str(),MT);
+      masterPrintf("%s FieldLayout: %d\n",pref.c_str(),FL);
+      masterPrintf("%s IsRef: %d\n",pref.c_str(),IsRef);
+      masterPrintf("%sEnd of Field\n",pref.c_str());
     }
     /////////////////////////////////////////////////////////////////
     
@@ -386,7 +432,7 @@ namespace nissa
 	{
 	  const Site stride=(n+1)/2;
 	  const Site nReductions=n/2;
-	  //verbosity_lv3_master_printf("n: %d, stride: %d, nreductions: %d \n",n(),stride(),nReductions());
+	  //verbosity_lv3_masterPrintf("n: %d, stride: %d, nreductions: %d \n",n(),stride(),nReductions());
 	  
 	  PAR(0,nReductions,
 	      CAPTURE(stride,
@@ -406,7 +452,7 @@ namespace nissa
     /// Returns the sum over all sites
     StackTens<CompsList<C...>,Fund> locReduce() const
     {
-      //verbosity_lv2_master_printf("n: %d, nori: %d\n",n(),nOri());
+      //verbosity_lv2_masterPrintf("n: %d, nori: %d\n",n(),nOri());
       
       /// Make spacetime the external component
       Field<CompsList<C...>,Fund,FieldLayout::CPU,MT> buf(*this);
@@ -528,7 +574,7 @@ namespace nissa
     Field(const DoNotAllocate)
     requires(not IsRef)
     {
-      master_printf("avoiding allocation\n");
+      masterPrintf("avoiding allocation\n");
     }
     
     void allocate(const HaloPresence& _haloPresence=WITHOUT_HALO)
@@ -578,7 +624,7 @@ namespace nissa
     {
 #ifndef COMPILING_FOR_DEVICE
       if constexpr(not IsRef)
-	verbosity_lv3_master_printf("Using copy constructor of Field, isRef: %d\n",IsRef);
+	VERBOSITY_LV3_MASTER_PRINTF("Using copy constructor of Field, isRef: %d\n",IsRef);
 #endif
     }
     
@@ -636,7 +682,7 @@ namespace nissa
       haloIsValid(oth.haloIsValid)
     {
 #ifndef COMPILING_FOR_DEVICE
-      verbosity_lv3_master_printf("Using move constructor of Field\n");
+      VERBOSITY_LV3_MASTER_PRINTF("Using move constructor of Field\n");
 #endif
     }
     
@@ -706,7 +752,7 @@ namespace nissa
       },2*lat->getSurfSize());
       
       // for(size_t i=0;i<bord_vol*StackTens<CompsList<C...>,Fund>::nElements;i++)
-      // 	master_printf("s %zu %lg\n",i,((Fund*)send_buf)[i]);
+      // 	masterPrintf("s %zu %lg\n",i,((Fund*)send_buf)[i]);
     }
     
     /// Fill the surface using the data from the buffer
@@ -760,7 +806,7 @@ namespace nissa
 	  });
       
       // for(size_t i=0;i<bord_vol*StackTens<CompsList<C...>,Fund>::nElements;i++)
-      // 	master_printf("r %zu %lg\n",i,((Fund*)recv_buf)[i]);
+      // 	masterPrintf("r %zu %lg\n",i,((Fund*)recv_buf)[i]);
     }
     
     /// Fills the sending buffer with the halo, compressing into elements of B using f
@@ -879,7 +925,7 @@ namespace nissa
     void finishCommunicatingHalo(std::vector<MPI_Request> requests) const
     {
       //take note of passed time and write some debug info
-      verbosity_lv3_master_printf("Finish communication of halo\n");
+      VERBOSITY_LV3_MASTER_PRINTF("Finish communication of halo\n");
       
       //wait communication to finish, fill back the vector and take time
       waitAsyncCommsFinish(requests);
@@ -902,7 +948,7 @@ namespace nissa
     {
       if(force or not haloIsValid)
 	{
-	  verbosity_lv3_master_printf("Sync communication of halo\n");
+	  VERBOSITY_LV3_MASTER_PRINTF("Sync communication of halo\n");
 	  
 	  const std::vector<MPI_Request> requests=
 	    startCommunicatingHalo();

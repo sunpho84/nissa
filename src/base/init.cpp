@@ -63,13 +63,13 @@ namespace nissa
 	char sp[n+1];
 	for(int i=0;i<n;i++) sp[i]=' ';
 	sp[n]='\0';
-	master_printf("\n"
-		      "%s███╗   ██╗██╗███████╗███████╗ █████╗     ██████╗ \n"
-		      "%s████╗  ██║██║██╔════╝██╔════╝██╔══██╗    ╚════██╗\n"
-		      "%s██╔██╗ ██║██║███████╗███████╗███████║     █████╔╝\n"
-		      "%s██║╚██╗██║██║╚════██║╚════██║██╔══██║    ██╔═══╝ \n"
-		      "%s██║ ╚████║██║███████║███████║██║  ██║    ███████╗\n"
-		      "%s╚═╝  ╚═══╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝    ╚══════╝\n\n",sp,sp,sp,sp,sp,sp);
+	masterPrintf("\n"
+		     "%s███╗   ██╗██╗███████╗███████╗ █████╗     ██████╗ \n"
+		     "%s████╗  ██║██║██╔════╝██╔════╝██╔══██╗    ╚════██╗\n"
+		     "%s██╔██╗ ██║██║███████╗███████╗███████║     █████╔╝\n"
+		     "%s██║╚██╗██║██║╚════██║╚════██║██╔══██║    ██╔═══╝ \n"
+		     "%s██║ ╚████║██║███████║███████║██║  ██║    ███████╗\n"
+		     "%s╚═╝  ╚═══╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝    ╚══════╝\n\n",sp,sp,sp,sp,sp,sp);
       }
   };
   
@@ -86,7 +86,7 @@ namespace nissa
     
     //associate signals
     constexpr char DO_NOT_TRAP_SIGNALS_STRING[]="NISSA_DO_NOT_TRAP_SIGNALS";
-    verbosity_lv2_master_printf("To avoid trapping signals, export: %s\n",DO_NOT_TRAP_SIGNALS_STRING);
+    VERBOSITY_LV2_MASTER_PRINTF("To avoid trapping signals, export: %s\n",DO_NOT_TRAP_SIGNALS_STRING);
     if(getenv(DO_NOT_TRAP_SIGNALS_STRING)==nullptr)
       {
 	signal(SIGBUS,signalHandler);
@@ -97,14 +97,14 @@ namespace nissa
 	signal(SIGINT,signalHandler);
       }
     else
-      master_printf("Not trapping signals\n");
+      masterPrintf("Not trapping signals\n");
     
     print_banner();
     
     //print version and configuration and compilation time
-    master_printf("\nInitializing NISSA, git hash: " GIT_HASH ", last commit at " GIT_TIME " with message: \"" GIT_LOG "\"\n");
-    master_printf("Configured at %s with flags: %s\n",compile_info[0],compile_info[1]);
-    master_printf("Compiled at %s of %s\n",compile_info[2],compile_info[3]);
+    masterPrintf("\nInitializing NISSA, git hash: " GIT_HASH ", last commit at " GIT_TIME " with message: \"" GIT_LOG "\"\n");
+    masterPrintf("Configured at %s with flags: %s\n",compile_info[0],compile_info[1]);
+    masterPrintf("Compiled at %s of %s\n",compile_info[2],compile_info[3]);
     
 #ifdef USE_CUDA
     initCuda();
@@ -126,10 +126,10 @@ namespace nissa
     switch(nativeEndianness)
       {
       case LittleEndian:
-	master_printf("System endianness: little (ordinary machine)\n");
+	masterPrintf("System endianness: little (ordinary machine)\n");
 	break;
       case BigEndian:
-	master_printf("System endianness: big (BG, etc)\n");
+	masterPrintf("System endianness: big (BG, etc)\n");
 	break;
       };
     
@@ -175,13 +175,13 @@ namespace nissa
     
     //print fft implementation
 #if FFT_TYPE == FFTW_FFT
-    master_printf("Fast Fourier Transform: FFTW3\n");
+    masterPrintf("Fast Fourier Transform: FFTW3\n");
 #else
     master_printf("Fast Fourier Transform: NATIVE\n");
 #endif
     
     //set default value for parameters
-    verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
+    verbosityLv=NISSA_DEFAULT_VERBOSITY_LV;
     // use_eo_geom=NISSA_DEFAULT_USE_EO_GEOM;
     // for(int mu=0;mu<NDIM;mu++) fix_nranks[mu]=0;
     
@@ -194,7 +194,7 @@ namespace nissa
 #endif
     
 #ifdef USE_EIGEN
-    master_printf("Linked with Eigen\n");
+    masterPrintf("Linked with Eigen\n");
 #endif
     
 #ifdef USE_PARPACK
@@ -203,7 +203,7 @@ namespace nissa
 #endif
     
 #ifdef USE_GMP
-    master_printf("Linked with GMP\n");
+    masterPrintf("Linked with GMP\n");
 #endif
     
     //put 0 as minimal request
@@ -213,13 +213,13 @@ namespace nissa
     read_DDalphaAMG_pars();
 #endif
     
-    master_printf("Nissa initialized!\n");
+    masterPrintf("Nissa initialized!\n");
     
     const char DEBUG_LOOP_STRING[]="WAIT_TO_ATTACH";
     if(getenv(DEBUG_LOOP_STRING)!=NULL)
       debugLoop();
     else
-      master_printf("To wait attaching the debugger please export: %s\n",DEBUG_LOOP_STRING);
+      masterPrintf("To wait attaching the debugger please export: %s\n",DEBUG_LOOP_STRING);
   }
   
   //compute internal volume

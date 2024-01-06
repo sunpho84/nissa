@@ -147,7 +147,7 @@ namespace nissa
 	DynamicTens<ResComps,std::remove_reference_t<CONSTNESS _Fund>,MT,RES_IS_REF>; \
 									\
       if constexpr(0)							\
-	master_printf("hardMerged " #CONSTNESS " " #LRVAL " " #RES_IS_REF"\n"); \
+	masterPrintf("hardMerged " #CONSTNESS " " #LRVAL " " #RES_IS_REF"\n"); \
       									\
       /*! Merged component */						\
       using MC=								\
@@ -284,7 +284,7 @@ namespace nissa
     DynamicTens()
     {
 #ifndef COMPILING_FOR_DEVICE
-      verbosity_lv3_master_printf("Default constructor DynamicTens\n");
+      VERBOSITY_LV3_MASTER_PRINTF("Default constructor DynamicTens\n");
 #endif
       if constexpr(DynamicCompsProvider<Comps>::nDynamicComps==0)
 	allocate(std::tuple<>());
@@ -299,7 +299,7 @@ namespace nissa
       DynamicTens(oth.getDynamicSizes())
     {
 #ifndef COMPILING_FOR_DEVICE
-      verbosity_lv3_master_printf("Constructing DynamicTens from another node\n");
+      VERBOSITY_LV3_MASTER_PRINTF("Constructing DynamicTens from another node\n");
 #endif
       (*this)=oth;
     }
@@ -310,7 +310,7 @@ namespace nissa
       dynamicSizes(oth.getDynamicSizes())
     {
 #ifndef COMPILING_FOR_DEVICE
-      verbosity_lv3_master_printf("Using copy constructor of DynamicTens, isRef: %d\n",IsRef);
+      VERBOSITY_LV3_MASTER_PRINTF("Using copy constructor of DynamicTens, isRef: %d\n",IsRef);
 #endif
       
       if constexpr(not IsRef)
@@ -337,7 +337,7 @@ namespace nissa
       nElements(nElements)
     {
 #ifndef COMPILING_FOR_DEVICE
-	  verbosity_lv3_master_printf("Using copy constructor of DynamicTens, from sizes, storage and nelements\n");
+	  VERBOSITY_LV3_MASTER_PRINTF("Using copy constructor of DynamicTens, from sizes, storage and nelements\n");
 #endif
     }
     
@@ -351,7 +351,7 @@ namespace nissa
 				oth.nElements)
     {
 #ifndef COMPILING_FOR_DEVICE
-      verbosity_lv3_master_printf("Copy constructor DynamicTens as a reference\n");
+      VERBOSITY_LV3_MASTER_PRINTF("Copy constructor DynamicTens as a reference\n");
 #endif
     }
     
@@ -389,7 +389,7 @@ namespace nissa
       nElements(oth.nElements)
     {
 #ifndef COMPILING_FOR_DEVICE
-      verbosity_lv3_master_printf("Using move constructor of DynamicTens\n");
+      VERBOSITY_LV3_MASTER_PRINTF("Using move constructor of DynamicTens\n");
 #endif
       oth.storage=nullptr;
     }
@@ -401,7 +401,7 @@ namespace nissa
       DynamicTens(oth.getDynamicSizes())
     {
 #ifndef COMPILING_FOR_DEVICE
-      verbosity_lv3_master_printf("Copying DynamicTens from another space\n");
+      VERBOSITY_LV3_MASTER_PRINTF("Copying DynamicTens from another space\n");
 #endif
       (*this)=oth;
     }

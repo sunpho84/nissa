@@ -279,7 +279,7 @@ namespace nissa
     double res=a.roundDown();
     if(fabs(res-1e-20)>1e-30)
       CRASH("float_128, 1+1e-20-1=%lg, difference with 1e-20: %lg",res,res-1e-20);
-    verbosity_lv2_master_printf("128 bit precision is working, 1+1e-20-1=%lg where %lg expected in double prec\n",res,1+1e-20-1);
+    VERBOSITY_LV2_MASTER_PRINTF("128 bit precision is working, 1+1e-20-1=%lg where %lg expected in double prec\n",res,1+1e-20-1);
   }
 
 }

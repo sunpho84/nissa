@@ -236,7 +236,7 @@ namespace nissa
       //padding
       seekToNextEightMultiple();
       
-      verbosity_lv3_master_printf("record read: %u bytes\n",nbytesReq);
+      VERBOSITY_LV3_MASTER_PRINTF("record read: %u bytes\n",nbytesReq);
     }
     
     /// Search next record
@@ -249,7 +249,7 @@ namespace nissa
       readAll(header);
       header.fixToNativeEndianness();
       
-      verbosity_lv3_master_printf("record %s contains: %ld bytes\n",header.type,header.dataLength);
+      VERBOSITY_LV3_MASTER_PRINTF("record %s contains: %ld bytes\n",header.type,header.dataLength);
       
       if(header.magicNo!=header.defaultMagicNo)
 	{
@@ -257,7 +257,7 @@ namespace nissa
 	  snprintf(buf,1024,"wrong magic number, expected %x and obtained %x",header.defaultMagicNo,header.magicNo);
 	  
 	  if(ignoreIldgMagicNumber)
-	    master_printf("Warning, %s\n",buf);
+	    masterPrintf("Warning, %s\n",buf);
 	  else
 	    CRASH(buf);
 	}
@@ -424,7 +424,7 @@ namespace nissa
       
       field.scidacNissaCompsDirRemap();
       
-      verbosity_lv3_master_printf("ildg data record read: %ld bytes\n",header.dataLength);
+      VERBOSITY_LV3_MASTER_PRINTF("ildg data record read: %ld bytes\n",header.dataLength);
     }
     
     /// Search a particular record in a file
@@ -436,7 +436,7 @@ namespace nissa
 	  ILDGHeader header=
 	    getNextRecordHeader();
 	  
-	  verbosity_lv3_master_printf("found record: %s\n",header.type);
+	  VERBOSITY_LV3_MASTER_PRINTF("found record: %s\n",header.type);
 	  
 	  if(strcmp(recordName.c_str(),header.type)==0)
 	    return header;
@@ -479,7 +479,7 @@ namespace nissa
 	       strstr(mess,name);
 	       handle==nullptr or
 	       sscanf(handle+6,"%x",&checkRead[0])==0)
-	      master_printf("WARNING: Broken checksum\n");
+	      masterPrintf("WARNING: Broken checksum\n");
 	}
       
       return checkRead;

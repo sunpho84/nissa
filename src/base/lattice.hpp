@@ -216,7 +216,7 @@ namespace nissa
 	lFactors.size()>=rFactors.size();
       
       if constexpr(partitionDebug)
-	master_printf("factorize r: %d\n",factorizeR);
+	masterPrintf("factorize r: %d\n",factorizeR);
       
       /// Copy the facts to be used
       const std::vector<int64_t>& facts=
@@ -228,20 +228,20 @@ namespace nissa
 	 facts.size();
       
       if constexpr(partitionDebug)
-	master_printf("nFacts: %ld\n",nFacts);
+	masterPrintf("nFacts: %ld\n",nFacts);
       
       /// We will decompose the index putting each factor to the correct direction
       const int64_t baseMask=
 	pow(nDim(),nFacts-1);
       
       if constexpr(partitionDebug)
-	master_printf("baseMask: %ld\n",baseMask);
+	masterPrintf("baseMask: %ld\n",baseMask);
       
       /// Total number of combo
       const int64_t nCombo=
 	baseMask*nDim();
       
-      master_printf("nCombo: %ld\n",nCombo);
+      masterPrintf("nCombo: %ld\n",nCombo);
       
       int64_t minLocSurf=l;
       double minSurfVariance=-1;
@@ -249,7 +249,7 @@ namespace nissa
       for(int64_t iCombo=0;iCombo<nCombo;)
 	{
 	  if constexpr(partitionDebug)
-	    master_printf("iCombo: %ld/%ld\n",iCombo,nCombo);
+	    masterPrintf("iCombo: %ld/%ld\n",iCombo,nCombo);
 	  
 	  //number of ranks in each direction for current partitioning
 	  Coords<C> R;
@@ -263,8 +263,8 @@ namespace nissa
 	    {
 	      if constexpr(partitionDebug)
 		{
-		  master_printf(" iFact: %ld/%ld\n",iFact,nFacts);
-		  master_printf(" mask %ld\n",mask);
+		  masterPrintf(" iFact: %ld/%ld\n",iFact,nFacts);
+		  masterPrintf(" mask %ld\n",mask);
 		}
 	      
 	      /// Direction: this is given by the ifact digit of icombo wrote in base nDim
@@ -272,21 +272,21 @@ namespace nissa
 		(int)((iCombo/mask)%nDim());
 	      
 	      if constexpr(partitionDebug)
-		master_printf(" mu: %d\n",mu());
+		masterPrintf(" mu: %d\n",mu());
 	      
 	      const int64_t f=
 		facts[iFact];
 	      R[mu]*=f;
 	      
 	      if constexpr(partitionDebug)
-		master_printf(" fact: %ld\n",f);
+		masterPrintf(" fact: %ld\n",f);
 	      
 	      //check that the total volume L is a multiple and it is larger than the number of proc
 	      validPartitioning&=
 		(g[mu]()%R[mu]()==0 and g[mu]()>=R[mu]());
 	      
 	      if constexpr(partitionDebug)
-		master_printf("g[mu] mod R[mu] = %ld mod  %ld = %ld\n",g[mu](),R[mu](),g[mu]()%R[mu]());
+		masterPrintf("g[mu] mod R[mu] = %ld mod  %ld = %ld\n",g[mu](),R[mu](),g[mu]()%R[mu]());
 	      
 	      if(validPartitioning)
 		{
@@ -296,7 +296,7 @@ namespace nissa
 	      
 	      if constexpr(partitionDebug)
 		{
-		  master_printf("valid: %d \n",validPartitioning);
+		  masterPrintf("valid: %d \n",validPartitioning);
 		  printf("\n");
 		}
 	    }
@@ -311,7 +311,7 @@ namespace nissa
 	      validPartitioning&=(fixR[mu]==R[mu]);
 	  
 	  if constexpr(partitionDebug)
-	    master_printf("Valid: %d (should not before: %ld)\n",validPartitioning,nextSupposedValid);
+	    masterPrintf("Valid: %d (should not before: %ld)\n",validPartitioning,nextSupposedValid);
 	  
 	  //validity coulde have changed
 	  if(validPartitioning)
@@ -337,7 +337,7 @@ namespace nissa
 	      
 	      if constexpr(partitionDebug)
 		if(iCombo<nextSupposedValid)
-		  master_printf("hey! it was not supposed to be valid!\n");
+		  masterPrintf("hey! it was not supposed to be valid!\n");
 	      
 	      iCombo++;
 	    }
@@ -352,7 +352,7 @@ namespace nissa
 		{
 		  nextSupposedValid=iCombo+skip;
 		  if constexpr(partitionDebug)
-		    master_printf("Would need to skip up to: %ld\n",iCombo+skip);
+		    masterPrintf("Would need to skip up to: %ld\n",iCombo+skip);
 		}
 	      if constexpr(partitionDebug)
 		iCombo++;
@@ -372,10 +372,10 @@ namespace nissa
       _glbSizes=extGlbSizes;
       _glbVol=compProd<Dir>(getGlbSizes()).close()();
       
-      master_printf("Global lattice:\t%ld",getGlbSizes().dirRow(0));
+      masterPrintf("Global lattice:\t%ld",getGlbSizes().dirRow(0));
       for(Dir mu=1;mu<NDIM;mu++)
-	master_printf("x%ld",getGlbSizes()[mu]());
-      master_printf(" = %ld\n",getGlbVol());
+	masterPrintf("x%ld",getGlbSizes()[mu]());
+      masterPrintf(" = %ld\n",getGlbVol());
     }
     
     /// Sets the mpi ranks
@@ -511,7 +511,7 @@ namespace nissa
 				 
 				 lln(site,ori,dir)=neigh;
 				 
-				 master_printf("site %d ori %d dir %d sc %d isOnSurf %d asLoc %d neigh %d\n",site(),ori(),dir(),sc(dir)(),isOnSurf,asLoc(),lln(site,ori,dir)());
+				 masterPrintf("site %d ori %d dir %d sc %d isOnSurf %d asLoc %d neigh %d\n",site(),ori(),dir(),sc(dir)(),isOnSurf,asLoc(),lln(site,ori,dir)());
 				 
 				 if(neigh>=lat.getLocVol())
 				   {

@@ -109,12 +109,12 @@ namespace nissa
 	    {
 	      for(int64_t n=0;const auto& [rank,nPerRank] : nRecvFrRank)
 		{
-		  master_printf("Receiving from rank %ld : %ld - %ld\n",rank(),n,n+nPerRank);
+		  masterPrintf("Receiving from rank %ld : %ld - %ld\n",rank(),n,n+nPerRank);
 		  n+=nPerRank;
 		}
 	      
 	      for(BufComp k=0,n=getInBufSize();k<n;k++)
-		master_printf("%ld goes to %ld\n",k(),dstOfInBuf[k]());
+		masterPrintf("%ld goes to %ld\n",k(),dstOfInBuf[k]());
 	      
 	      CRASH("On rank %ld destination %ld is filled by %ld and at least %ld at the same time",
 		  thisRank(),(int64_t)j,(int64_t)p(),(int64_t)i());

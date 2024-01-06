@@ -92,11 +92,11 @@ namespace nissa
     void describe(const std::string pref="") const
     {
       master_printf("%sShifter %s address %p\n",pref.c_str(),demangle(typeid(*this).name()).c_str(),this);
-      master_printf("%s Orientation: %d\n",pref.c_str(),ori());
-      master_printf("%s Direction: %d\n",pref.c_str(),dir());
-      master_printf("%s Shifted quantity %s, description:\n",pref.c_str(),demangle(typeid(ShiftedExpr).name()).c_str());
+      masterPrintf("%s Orientation: %d\n",pref.c_str(),ori());
+      masterPrintf("%s Direction: %d\n",pref.c_str(),dir());
+      masterPrintf("%s Shifted quantity %s, description:\n",pref.c_str(),demangle(typeid(ShiftedExpr).name()).c_str());
       subExpr.describe(pref+" ");
-      master_printf("%sEnd of shifter\n",pref.c_str());
+      masterPrintf("%sEnd of shifter\n",pref.c_str());
     }
     
     /// Shift orientation

@@ -186,7 +186,7 @@ namespace nissa::localizer
     constexpr bool debugInit=false;
     
     if constexpr(debugInit)
-      master_printf("DIR %d\n",dir());
+      masterPrintf("DIR %d\n",dir());
     
     return {lat->getLocVol(),
       [dir,

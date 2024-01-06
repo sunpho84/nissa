@@ -11,6 +11,10 @@
 # include <cufft.h>
 #endif
 
+#ifdef USE_OPENMP
+# include <omp.h>
+#endif
+
 #include <expr/conj.hpp>
 #include <expr/field.hpp>
 
@@ -54,9 +58,9 @@ namespace nissa
 #endif
 	      fftExecUsingFftw(buf.storage,nCompl,sign,nFft);
 	    
-	    master_printf("%s\n",demangle(typeid(B).name()).c_str());
+	    masterPrintf("%s\n",demangle(typeid(B).name()).c_str());
 	    
-	    master_printf("FFTing on Dir %d nFft=%d\n",D(),nFft);
+	    masterPrintf("FFTing on Dir %d nFft=%d\n",D(),nFft);
 	  };
 	
 	cycleOnAllLocalDirections<OthComps,CompsList<ComplId>>(std::forward<Out>(out),in,f,in.getDynamicSizes());
@@ -85,7 +89,7 @@ namespace nissa
     if(fftwInitialized)
       CRASH("cannot initialize fftw twice");
     
-    master_printf("Initializing fftw\n");
+    masterPrintf("Initializing fftw\n");
     
 #ifdef USE_FFTW_THREADED
     fftw_init_threads();
@@ -101,7 +105,7 @@ namespace nissa
     if(not fftwInitialized)
       CRASH("fftw not initialized");
     
-    master_printf("Finalizing fftw\n");
+    masterPrintf("Finalizing fftw\n");
     
 #ifdef USE_FFTW_THREADED
     fftw_cleanup_threads();
@@ -146,7 +150,7 @@ namespace nissa
     fftw_destroy_plan(plan);
 #endif
     
-    master_printf("fft executed on CPU "
+    masterPrintf("fft executed on CPU "
 #ifdef USE_FFTW_THREADED
 		  "with fftw-threads "
 #endif
@@ -162,7 +166,7 @@ namespace nissa
   {
     const double startTime=
       take_time();
-
+    
     auto b=
       (cufftDoubleComplex*)buf;
     

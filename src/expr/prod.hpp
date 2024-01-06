@@ -173,11 +173,11 @@ namespace nissa
       master_printf("%sProducer %s address %p\n",pref.c_str(),demangle(typeid(*this).name()).c_str(),this);
       decltype(auto) first=this->subExprs.template get<0>();
       decltype(auto) second=this->subExprs.template get<1>();
-      master_printf("%s First factor %s, description:\n",pref.c_str(),demangle(typeid(first).name()).c_str());
+      masterPrintf("%s First factor %s, description:\n",pref.c_str(),demangle(typeid(first).name()).c_str());
       first.describe(pref+" ");
-      master_printf("%s Second factor %s, description:\n",pref.c_str(),demangle(typeid(second).name()).c_str());
+      masterPrintf("%s Second factor %s, description:\n",pref.c_str(),demangle(typeid(second).name()).c_str());
       second.describe(pref+" ");
-      master_printf("%sEnd of producer\n",pref.c_str());
+      masterPrintf("%sEnd of producer\n",pref.c_str());
     }
     
     /////////////////////////////////////////////////////////////////

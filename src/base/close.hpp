@@ -12,7 +12,7 @@ namespace nissa
 {
   inline void closeNissa()
   {
-    master_printf("Closing nissa\n");
+    masterPrintf("Closing nissa\n");
     
 #ifdef USE_QUDA
     if(use_quda) quda_iface::finalize();
@@ -27,7 +27,7 @@ namespace nissa
 #endif
     
     mpiRanksBarrier();
-    master_printf("   Ciao!\n\n");
+    masterPrintf("   Ciao!\n\n");
     mpiFinalize();
   }
 }

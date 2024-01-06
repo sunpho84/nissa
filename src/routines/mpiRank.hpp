@@ -46,6 +46,29 @@ namespace nissa
     exit(0);
 #endif
   }
+  
+  /// Broadcast a passed variable
+  template <TriviallyCopyable T>
+  void mpiBcast(T& t,
+		const MpiRank& rank=masterRank)
+    requires(not std::is_pointer_v<T>)
+  {
+#ifdef USE_MPI
+    MPI_Bcast(&t,sizeof(T),MPI_CHAR,rank(),MPI_COMM_WORLD);
+#endif
+  }
+  
+  /// Returns the passed variable after broadcast
+  template <TriviallyCopyable T>
+  T getMpiBcast(const T& t,
+	     const MpiRank& rank=masterRank)
+    requires(not std::is_pointer_v<T>)
+  {
+    T temp;
+    mpiBcast(temp,rank);
+    
+    return temp;
+  }
 }
 
 #endif

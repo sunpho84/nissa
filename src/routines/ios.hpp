@@ -1,7 +1,6 @@
 #ifndef _IOS_HPP
 #define _IOS_HPP
 
-#include <mpi.h>
 #include <fstream>
 #include <stdint.h>
 #include <stdio.h>
@@ -11,29 +10,19 @@
 #include <base/debug.hpp>
 #include <routines/mpiRank.hpp>
 
-#ifdef USE_OPENMP
-# include <omp.h>
-#endif
-
-#ifndef EXTERN_IOS
- #define EXTERN_IOS extern
-#endif
-
-#define master_printf(...) nissa::master_fprintf(stdout,__VA_ARGS__)
-
 //add verbosity macro
 #if MAX_VERBOSITY_LV>=1
- #define VERBOSITY_LV1 (nissa::verbosity_lv>=1)
+ #define VERBOSITY_LV1 (nissa::verbosityLv>=1)
 #else
  #define VERBOSITY_LV1 0
 #endif
 #if MAX_VERBOSITY_LV>=2
- #define VERBOSITY_LV2 (nissa::verbosity_lv>=2)
+ #define VERBOSITY_LV2 (nissa::verbosityLv>=2)
 #else
  #define VERBOSITY_LV2 0
 #endif
 #if MAX_VERBOSITY_LV>=3
- #define VERBOSITY_LV3 (nissa::verbosity_lv>=3)
+ #define VERBOSITY_LV3 (nissa::verbosityLv>=3)
 #else
  #define VERBOSITY_LV3 0
 #endif
@@ -41,75 +30,54 @@
 #define NISSA_DEFAULT_VERBOSITY_LV 1
 
 //wrappers for verbosity_lv?
-#define verbosity_lv1_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV1) master_printf(__VA_ARGS__);)
-#define verbosity_lv2_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV2) master_printf(__VA_ARGS__);)
-#define verbosity_lv3_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV3) master_printf(__VA_ARGS__);)
+#define VERBOSITY_LV1_MASTER_PRINTF(...) if(VERBOSITY_LV1) masterPrintf(__VA_ARGS__)
+#define VERBOSITY_LV2_MASTER_PRINTF(...) if(VERBOSITY_LV2) masterPrintf(__VA_ARGS__)
+#define VERBOSITY_LV3_MASTER_PRINTF(...) if(VERBOSITY_LV3) masterPrintf(__VA_ARGS__)
 
 namespace nissa
 {
-  EXTERN_IOS int prepend_time;
-  EXTERN_IOS int verbosity_lv;
+  /// Prepend time to print
+  inline bool prependTime{false};
   
-  int count_substrings(const char *str,const char *sub);
-  FILE* open_file(std::string path,const char *mode,const MpiRank& ext_rank=masterRank);
-  FILE* open_text_file_for_output(std::string path);
-  int cd(std::string path);
-  int cp(std::string path_out,std::string path_in);
-  int create_dir(std::string path);
-  int master_fprintf(FILE *stream,const char *format,...);
-  //int rm(const char *path);
-  std::string combine(const char *format,...);
-  void master_get_temp_file(FILE *&fout,std::string &prefix);
-  void close_file(FILE *file);
-  void fprintf_friendly_filesize(FILE *fout,uint64_t quant);
-  void fprintf_friendly_units(FILE *fout,uint64_t quant,uint64_t orders,const char *units);
-  void take_last_characters(char *out,const char *in,int size);
-  int count_file_lines(std::string path);
-  int get_file_size(std::string path);
+  /// Level of verbosity
+  inline int verbosityLv{NISSA_DEFAULT_VERBOSITY_LV};
+
+#define MASTER_PRINTF_BODY() \
+      int ret=0;					\
+							\
+    static bool printTime=true;				\
+							\
+    if(prependTime and printTime and isMasterRank())	\
+      ret+=fprintf(stream,"%lg s:\t",takeTime());	\
+							\
+    va_list ap;						\
+    va_start(ap,format);				\
+    if(isMasterRank())					\
+      ret=vfprintf(stream,format,ap);			\
+    va_end(ap);						\
+							\
+    printTime=(format[strlen(format)-1]=='\n');		\
+							\
+    return ret
   
-  //read from a file, opened only on master rank
-  template <class T> T master_fscan(FILE *stream,const char *tag)
+  /// Only master rank and thread print
+  inline int masterFprintf(FILE *stream,
+			   const char* format,
+			   ...)
   {
-    int thread_id=
-#ifdef USE_OPENMP
-      omp_get_thread_num()
-#else
-      0
-#endif
-      ;
+    MASTER_PRINTF_BODY();
+  }
+  
+  /// Only master rank and thread print
+  inline int masterPrintf(const char *format,
+			  ...)
+  {
+    FILE *stream=stdout;
     
-    //scan
-    T out=0;
-    if(isMasterRank() and thread_id==0)
-      if(fscanf(stream,tag,&out)!=1)
-	CRASH("Unable to read!");
-    
-    //broadcast
-    MPI_Bcast(&out,sizeof(T),MPI_CHAR,masterRank,MPI_COMM_WORLD);
-    
-    return out;
+    MASTER_PRINTF_BODY();
   }
   
-  //read using a path
-  template <class T> T master_fscan(std::string path,const char *tag)
-  {
-    FILE *stream=open_file(path,"r");
-    T out=master_fscan<T>(stream,tag);
-    close_file(stream);
-    return out;
-  }
-  
-  //read an integer with either a path or a file
-  template <class T> int master_fscan_int(T par)
-  {
-    return master_fscan<int>(par,"%d");
-  }
-  
-  //read a double with either a path or a file
-  template <class T> double master_fscan_double(T par)
-  {
-    return master_fscan<double>(par,"%lg");
-  }
+#undef MASTER_PRINTF_BODY
   
   //create and check lock files
   template <class T=uint64_t>
@@ -135,7 +103,7 @@ namespace nissa
     //create the tag
     void init()
     {
-      master_printf("Initializing the tag for a %zu bytes lock-file\n",sizeof(T));
+      masterPrintf("Initializing the tag for a %zu bytes lock-file\n",sizeof(T));
       get_system_random(tag);
       
       inited=true;
@@ -158,11 +126,13 @@ namespace nissa
 	  written=false;
       else
 	written=true;
+
+      mpiBcast(written);
       
-      MPI_Bcast(&written,1,MPI_INT,masterRank(),MPI_COMM_WORLD);
-      
-      if(written) master_printf("Created lock file %s\n",path.c_str());
-      else master_printf("Failed to create the lock file %s\n",path.c_str());
+      if(written)
+	masterPrintf("Created lock file %s\n",path.c_str());
+      else
+	masterPrintf("Failed to create the lock file %s\n",path.c_str());
       
       return written;
     }
@@ -185,16 +155,6 @@ namespace nissa
       return (test_tag==tag);
     }
   };
-  
-  //avoid c++ warning
-  template <typename...Args>
-  void safe_snprintf(char *buf,int n,const char *pattern,const Args&...args)
-  {
-    if(snprintf(buf,n,pattern,args...)<0)
-      CRASH("witing to %d long array",n);
-  }
 }
-
-#undef EXTERN_IOS
 
 #endif
