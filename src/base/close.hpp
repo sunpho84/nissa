@@ -2,8 +2,6 @@
 #define _CLOSE_HPP
 
 #include <base/memory_manager.hpp>
-#include <geometry/geometry_eo.hpp>
-#include <geometry/geometry_lx.hpp>
 #include <routines/mpiRoutines.hpp>
 
 #ifdef USE_QUDA
@@ -12,7 +10,7 @@
 
 namespace nissa
 {
-  inline void close_nissa()
+  inline void closeNissa()
   {
     master_printf("Closing nissa\n");
     
@@ -21,7 +19,7 @@ namespace nissa
 #endif
     
     //unset lx geometry
-    crash("lat to be deleted");
+    CRASH("lat to be deleted");
     
     delete cpuMemoryManager;
 #ifdef USE_CUDA

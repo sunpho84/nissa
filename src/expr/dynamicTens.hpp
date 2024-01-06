@@ -94,7 +94,7 @@ namespace nissa
     DynamicTens& operator=(const DynamicTens<Comps,Fund,OMT,OIR>& oth)
     {
       if(dynamicSizes!=oth.dynamicSizes)
-	crash("trying to assign different dynamic sized tensor");
+	CRASH("trying to assign different dynamic sized tensor");
       
       memcpy<MT,OMT>(storage,oth.storage,nElements*sizeof(Fund));
       
@@ -239,7 +239,7 @@ namespace nissa
       static_assert(not IsRef,"Cannot allocate a reference");
       
       if(isAllocated())
-	crash("Already allocated");
+	CRASH("Already allocated");
       
       tupleFillWithSubset(dynamicSizes,_dynamicSizes);
       

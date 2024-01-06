@@ -5,55 +5,155 @@
 # include <config.hpp>
 #endif
 
-#if CAN_DEMANGLE
-# include <cxxabi.h>
+#ifdef USE_MPI
+# include <mpi.h>
 #endif
 
+#include <execinfo.h>
+#include <unistd.h>
+#include <signal.h>
 #include <string>
 
-#ifndef EXTERN_DEBUG
-# define EXTERN_DEBUG extern
-# define INIT_DEBUG_TO(var)
-#else
-# define INIT_DEBUG_TO(var) =var
-#endif
-
-#ifdef USE_CUDA
-# include <cuda_runtime.h>
-#endif
-
-#ifdef COMPILING_FOR_DEVICE
-# define crash(...) __trap()
-#else
-# define crash(...) nissa::internal_crash(__LINE__,__FILE__,__VA_ARGS__)
-#endif
-
-#define crash_printing_error(code,...) internal_crash_printing_error(__LINE__,__FILE__,code,__VA_ARGS__)
-#define decrypt_MPI_error(...) internal_decrypt_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
-
-#define decryptCudaError(...) internalDecryptCudaError(__LINE__,__FILE__,__VA_ARGS__)
+#include <routines/mpiRank.hpp>
 
 namespace nissa
 {
-  EXTERN_DEBUG int check_inversion_residue INIT_DEBUG_TO(0);
+  inline bool checkInversionResidue{false};
   
-  void debug_loop();
-  void check_128_bit_prec();
-  void internal_crash(int line,const char *file,const char *templ,...);
-  void internal_crash_printing_error(int line,const char *file,int err_code,const char *templ,...);
-  void internal_decrypt_MPI_error(int line,const char *file,int rc,const char *templ,...);
-#ifdef USE_CUDA
-  void internalDecryptCudaError(const int& line,const char *file,const cudaError_t& rc,const char *templ,...);
+  /// Implements the trap to debug
+  inline void debugLoop()
+  {
+    if(isMasterRank())
+      {
+	volatile int flag=0;
+	
+	printf("Entering debug loop on rank %ld, flag has address %p please type:\n"
+	       "$ gdb -p %d\n"
+	       "$ set flag=1\n"
+	       "$ continue\n",
+	       thisRank(),
+	       &flag,
+	       getpid());
+	
+	while(flag==0);
+      }
+    
+    mpiRanksBarrier();
+  }
+  
+  /// Writes the list of calling routines
+  inline void printBacktraceList()
+  {
+    /// Max depth of the calls stack
+    constexpr int callstackLength=128;
+    
+    /// Callstack handle
+    void *callstack[callstackLength];
+    
+    /// Count the number of frames and gets a handle to them
+    const int frames=
+      backtrace(callstack,callstackLength);
+    
+    /// Get the symbols as string
+    char **strs=
+      backtrace_symbols(callstack,frames);
+    
+    //only master rank, but not master thread
+    if(isMasterRank())
+      {
+	printf("Backtracing...\n");
+	for(int i=0;i<frames;i++)
+	  printf("%s\n",strs[i]);
+      }
+    
+    free(strs);
+  }
+  
+#ifdef COMPILING_FOR_DEVICE
+# define CRASH(...) __trap()
+#else
+# define CRASH(...) nissa::internalCrash(__LINE__,__FILE__,__VA_ARGS__)
 #endif
-  void print_backtrace_list();
-  void signal_handler(int);
-  double take_time();
+
+  /// Crash reporting the expanded error message
+  inline void internalCrash(const int& line,
+			    const char *file,
+			    const char *templ,...)
+  {
+    fflush(stdout);
+    fflush(stderr);
+    
+    //give time to master thread to crash, if possible
+    sleep(1);
+    
+    if(isMasterRank())
+      {
+	/// Expand error message
+	char mess[1024];
+	va_list ap;
+	va_start(ap,templ);
+	vsprintf(mess,templ,ap);
+	va_end(ap);
+	
+	fprintf(stderr,"\x1b[31m" "ERROR on line %d of file \"%s\", message error: \"%s\".\n\x1b[0m",line,file,mess);
+	printBacktraceList();
+	mpiAbort(0);
+      }
+  }
   
-  /// Demangle a string
-  ///
-  /// If the compiler has no abi functionality, the original string is
-  /// returned.
-  std::string demangle(const std::string& what);  ///< What to demangle
+#define CRASH_PRINTING_ERROR(code,...)					\
+  internalCrashPrintingError(__LINE__,__FILE__,code,__VA_ARGS__)
+  
+  inline void internalCrashPrintingError(const int& line,
+				  const char *file,
+				  const int& errCode,
+				  const char *templ,...)
+  {
+    if(errCode)
+      {
+	//print error code
+	char str1[1024];
+	sprintf(str1,"returned code %d",errCode);
+	
+	//expand error message
+	char str2[1024];
+	va_list ap;
+	va_start(ap,templ);
+	vsprintf(str2,templ,ap);
+	va_end(ap);
+	
+	internalCrash(line,file,"%s %s",str1,str2);
+      }
+  }
+  
+  /// Called when signal received
+  inline void signalHandler(int sig)
+  {
+    char name[100];
+    switch(sig)
+      {
+      case SIGSEGV: sprintf(name,"segmentation violation");break;
+      case SIGFPE: sprintf(name,"floating-point exception");break;
+      case SIGXCPU: sprintf(name,"cpu time limit exceeded");break;
+      case SIGBUS: sprintf(name,"bus error");break;
+      case SIGINT: sprintf(name," program interrupted");break;
+      case SIGABRT: sprintf(name,"abort signal");break;
+      default: sprintf(name,"unassociated");break;
+      }
+    printBacktraceList();
+    
+    CRASH("signal %d (%s) detected, exiting",sig,name);
+  }
+  
+  /// Take the time
+  inline double takeTime()
+  {
+#ifdef USE_MPI
+    return MPI_Wtime();
+#else
+    return (double)clock()/CLOCKS_PER_SEC;
+#endif
+  }
 }
 
 #undef EXTERN_DEBUG

@@ -5,7 +5,10 @@
 # include <config.hpp>
 #endif
 
-#include <mpi.h>
+#ifdef USE_MPI
+# include <mpi.h>
+#endif
+
 #include <algorithm>
 #include <concepts>
 #include <vector>
@@ -164,14 +167,6 @@ namespace nissa
 #endif
   }
   
-  /// Barrier across all ranks
-  inline void mpiRanksBarrier()
-  {
-#ifdef USE_MPI
-    MPI_Barrier(MPI_COMM_WORLD);
-#endif
-  }
-  
   /// Initialize mpi
   inline void mpiInit(int narg,
 		      char **arg)
@@ -191,17 +186,6 @@ namespace nissa
   {
 #ifdef USE_MPI
     MPI_Finalize();
-#endif
-  }
-  
-  /// Abort execution
-  inline void mpiAbort(const int& err)
-  {
-#ifdef USE_MPI
-    printf("on rank %ld aborting\n",thisRank());
-    MPI_Abort(MPI_COMM_WORLD,0);
-#else
-    exit(0);
 #endif
   }
   
@@ -225,6 +209,32 @@ namespace nissa
     return _mpiDatatypeOf((T*)nullptr);
   }
   
+  /// Decrypt the MPI error
+  inline void internalDecryptMpiError(const int& line,
+				      const char *file,
+				      const int& rc,
+				      const char *templ,...)
+  {
+#ifdef USE_MPI
+    if(rc!=MPI_SUCCESS and isMasterRank())
+      {
+	char err[1024];
+	int len=1024;
+	MPI_Error_string(rc,err,&len);
+	
+	va_list ap;
+	va_start(ap,templ);
+	char mess[1024];
+	vsprintf(mess,templ,ap);
+	va_end(ap);
+	
+	internalCrash(line,file,"%s, MPI raised error: %s",mess,err);
+      }
+#endif
+  }
+  
+#define decryptMpiError(...)					\
+  internalDecryptMpiError(__LINE__,__FILE__,__VA_ARGS__)
 }
 
 #endif

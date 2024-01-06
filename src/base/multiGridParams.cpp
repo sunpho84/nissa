@@ -131,6 +131,6 @@ namespace nissa
 //       }
 //     else master_printf("No '%s' file present, using standard configuration\n",path);
     
-    crash("");
+    CRASH("");
   }
 }

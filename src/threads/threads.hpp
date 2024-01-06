@@ -44,14 +44,14 @@ namespace nissa
       {
 	printf("at line %d of file %s launching serial loop [%d,%d)\n",
 	       line,file,(int)min,(int)max);
-	initTime=take_time();
+	initTime=takeTime();
       }
     
     for(auto i=compDecay(min);i<compDecay(max);i++)
       f(Idx(i));
     
     if(print)
-      printf(" finished in %lg s\n",take_time()-initTime);
+      printf(" finished in %lg s\n",takeTime()-initTime);
   }
   
 #ifdef USE_OPENMP
@@ -77,7 +77,7 @@ namespace nissa
       {
 	printf("at line %d of file %s launching openmp loop [%d,%d)\n",
 	       line,file,(int)compDecay(min),(int)compDecay(max));
-	initTime=take_time();
+	initTime=takeTime();
       }
     
 #pragma omp parallel for
@@ -87,7 +87,7 @@ namespace nissa
       f(Idx(i));
     
     if(print)
-      printf(" finished in %lg s\n",take_time()-initTime);
+      printf(" finished in %lg s\n",takeTime()-initTime);
   }
   
 #endif

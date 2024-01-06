@@ -5,6 +5,9 @@
 # include <config.hpp>
 #endif
 
+#ifdef USE_MPI
+# include <mpi.h>
+#endif
 #include <expr/comp.hpp>
 
 namespace nissa
@@ -23,6 +26,25 @@ namespace nissa
   bool isMasterRank()
   {
     return thisRank==masterRank;
+  }
+  
+  /// Barrier across all ranks
+  inline void mpiRanksBarrier()
+  {
+#ifdef USE_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+  }
+  
+  /// Abort execution
+  inline void mpiAbort(const int& err)
+  {
+#ifdef USE_MPI
+    printf("on rank %ld aborting\n",thisRank());
+    MPI_Abort(MPI_COMM_WORLD,0);
+#else
+    exit(0);
+#endif
   }
 }
 

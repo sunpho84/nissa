@@ -16,6 +16,7 @@
 #include <base/debug.hpp>
 #include <base/lattice.hpp>
 #include <geometry/geometry_lx.hpp>
+#include <io/endianness.hpp>
 
 namespace nissa
 {
@@ -136,7 +137,7 @@ namespace nissa
     {
       file=fopen(path.c_str(),mode);
       if(file==nullptr)
-	crash("while opening file %s",path.c_str());
+	CRASH("while opening file %s",path.c_str());
     }
     
     /// Constructor
@@ -162,7 +163,7 @@ namespace nissa
     void setPosition(const ILDGOffset& pos,
 		     const int& amode)
     {
-      crash_printing_error(fseek(file,pos,amode),"while seeking");
+      CRASH_PRINTING_ERROR(fseek(file,pos,amode),"while seeking");
       
       mpiRanksBarrier();
     }
@@ -186,7 +187,7 @@ namespace nissa
     /// Close an open file
     void close()
     {
-      crash_printing_error(fclose(file),"while closing file");
+      CRASH_PRINTING_ERROR(fclose(file),"while closing file");
       
       mpiRanksBarrier();
       
@@ -204,7 +205,7 @@ namespace nissa
     void skipNbytes(const ILDGOffset& nBytes)
     {
       if(nBytes)
-	crash_printing_error(fseek(file,nBytes,SEEK_CUR),"while seeking ahead %ld bytes from current position",nBytes);
+	CRASH_PRINTING_ERROR(fseek(file,nBytes,SEEK_CUR),"while seeking ahead %ld bytes from current position",nBytes);
     
       mpiRanksBarrier();
     }
@@ -232,7 +233,7 @@ namespace nissa
 	fread(&data,1,nbytesReq,file);
       
       if(nbytesRead!=nbytesReq)
-	crash("read %u bytes instead of %u required",nbytesRead,nbytesReq);
+	CRASH("read %u bytes instead of %u required",nbytesRead,nbytesReq);
       
       //padding
       seekToNextEightMultiple();
@@ -260,7 +261,7 @@ namespace nissa
 	  if(ignoreIldgMagicNumber)
 	    master_printf("Warning, %s\n",buf);
 	  else
-	    crash(buf);
+	    CRASH(buf);
 	}
       
       return header;
@@ -283,7 +284,7 @@ namespace nissa
 	{
 	  if(const size_t nBytesWritten=fwrite(&data,1,nBytesReq,file);
 	     nBytesWritten!=nBytesReq)
-	    crash("wrote %lu bytes instead of %lu required",nBytesWritten,nBytesReq);
+	    CRASH("wrote %lu bytes instead of %lu required",nBytesWritten,nBytesReq);
 	  
 	  //this is a blocking routine!
 	  skipNbytes(0);
@@ -396,7 +397,7 @@ namespace nissa
 	 fS=sizeof(Fund),
 	 &nH=header.dataLength;
 	 nF*fS<header.dataLength)
-	crash("Field has %zu elements of size %zu, corresponding to %zu bytes, smaller than needed %zu",nF,fS,nF*fS,nH);
+	CRASH("Field has %zu elements of size %zu, corresponding to %zu bytes, smaller than needed %zu",nF,fS,nF*fS,nH);
       
       const ILDGOffset nbytesPerRankExp=
 	header.dataLength/nRanks();
@@ -414,7 +415,7 @@ namespace nissa
       if(const ILDGOffset nbytesRead=
 	 fread(data.storage,1,nbytesPerRankExp,file);
 	 nbytesRead!=nbytesPerRankExp)
-	crash("read %ld bytes instead of %ld",nbytesRead,nbytesPerRankExp);
+	CRASH("read %ld bytes instead of %ld",nbytesRead,nbytesPerRankExp);
       
       //place at the end of the record, including padding
       setPosition(oriPos+ceilToNextMultipleOf<8>(header.dataLength),SEEK_SET);
@@ -557,49 +558,6 @@ namespace nissa
     // 	writeRecord(name.c_str(),data[0],data.size());
     // }
   };
-  
-  /// Define the remapping from the layout having in each rank a
-  /// consecutive block of data holding a consecutive piece of ildg
-  /// data to canonical lx
-  inline std::pair<int,int> index_from_ILDG_remapping(const int& iloc_ILDG)
-  {
-    crash("");
-    // int iglb_ILDG=thisRank()*locVol+iloc_ILDG;
-    
-    // //find global coords in ildg ordering
-    // coords_t xto;
-    // for(int mu=NDIM-1;mu>=0;mu--)
-    //   {
-    // 	int nu=scidac_mapping[mu];
-    // 	xto[nu]=iglb_ILDG%glbSizes[nu];
-    // 	iglb_ILDG/=glbSizes[nu];
-    //   }
-    
-    // return get_loclx_and_rank_of_coord(xto);
-    return {};
-  }
-  
-  /// Defines the reampping from lx in order to have in each rank a
-  /// consecutive block of data holding a consecutive piece of ildg
-  /// data
-  inline std::pair<int,int> index_to_ILDG_remapping(const int& iloc_lx)
-  {
-    crash("");
-    // //find global index in ildg transposed ordering
-    // int iglb_ILDG=0;
-    // for(int mu=0;mu<NDIM;mu++)
-    //   {
-    // 	const int nu=scidac_mapping[mu];
-    // 	iglb_ILDG=iglb_ILDG*glbSizes[nu]+glbCoordOfLoclx[iloc_lx][nu];
-    //   }
-    
-    // const int irank_ILDG=iglb_ILDG/locVol;
-    // const int iloc_ILDG=iglb_ILDG%locVol;
-    
-    // return {irank_ILDG,iloc_ILDG};
-    
-    return {};
-  }
   
   // //Writes a field to a file (data is a vector of loc_vol) with no frill
   // template <typename T>

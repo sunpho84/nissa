@@ -138,7 +138,7 @@ namespace nissa
 	   header)
 	  file.readFieldAndReorder(out,*header);
 	else
-	  crash("Error, record %s not found.\n",recordName.c_str());
+	  CRASH("Error, record %s not found.\n",recordName.c_str());
       }
   }
   //   //read

@@ -83,7 +83,7 @@ namespace nissa
   inline void initFftw()
   {
     if(fftwInitialized)
-      crash("cannot initialize fftw twice");
+      CRASH("cannot initialize fftw twice");
     
     master_printf("Initializing fftw\n");
     
@@ -99,7 +99,7 @@ namespace nissa
   inline void fftwFinalize()
   {
     if(not fftwInitialized)
-      crash("fftw not initialized");
+      CRASH("fftw not initialized");
     
     master_printf("Finalizing fftw\n");
     
@@ -117,7 +117,7 @@ namespace nissa
 			       const int& nFft)
   {
     const double startTime=
-      take_time();
+      takeTime();
     
     auto b=
       (fftw_complex*)buf;
@@ -150,7 +150,7 @@ namespace nissa
 #ifdef USE_FFTW_THREADED
 		  "with fftw-threads "
 #endif
-		  "in %lg s\n",take_time()-startTime);
+		  "in %lg s\n",takeTime()-startTime);
   }
   
 #ifdef USE_CUDA

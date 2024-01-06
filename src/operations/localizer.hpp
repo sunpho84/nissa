@@ -245,7 +245,7 @@ namespace nissa::localizer
   inline void init()
   {
     if(initialized)
-      crash("already initialized");
+      CRASH("already initialized");
     
     for(Dir dir=0;dir<NDIM;dir++)
       dimensions[dir]=computeDimensions(dir);
@@ -280,7 +280,7 @@ namespace nissa::localizer
 	delete lastLocDirUnmaker;
       }
     else
-      crash("localizer not initialized");
+      CRASH("localizer not initialized");
     
     initialized=false;
   }

@@ -84,7 +84,7 @@ namespace nissa
       auto el=used.find(ptr);
       
       if(el==used.end())
-	crash("Unable to find dinamically allocated memory %p",ptr);
+	CRASH("Unable to find dinamically allocated memory %p",ptr);
       
       /// Size of memory
       const Size size=el->second;
@@ -330,7 +330,8 @@ namespace nissa
       /// Returned condition
       verbosity_lv3_master_printf("Allocating size %zu on CPU, ",size);
       int rc=posix_memalign(&ptr,alignment,size);
-      if(rc) crash("Failed to allocate %ld CPU memory with alignement %ld",size,alignment);
+      if(rc)
+	CRASH("Failed to allocate %ld CPU memory with alignement %ld",size,alignment);
       verbosity_lv3_master_printf("ptr: %p\n",ptr);
       
       nAlloc++;

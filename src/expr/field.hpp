@@ -104,7 +104,7 @@ namespace nissa
     Field& operator=(const Field<CompsList<C...>,_Fund,OFL,OMT,OIR>& oth)
     {
       if(this->getDynamicSizes()!=oth.getDynamicSizes())
-	crash("trying to assign fields on different memory space, having different dynamic sizes");
+	CRASH("trying to assign fields on different memory space, having different dynamic sizes");
       
       this->assign(oth.template copyToMemorySpaceIfNeeded<MT>());
       
@@ -143,7 +143,7 @@ namespace nissa
 	if constexpr(MT==MemoryType::CPU)
 	  LOOP(HOST_PARALLEL_LOOP);
 	else
-	  crash("unkwnown condition");
+	  CRASH("unkwnown condition");
       
 #undef LOOP
     }
@@ -854,7 +854,7 @@ namespace nissa
 	std::min(send_buf_size,recv_buf_size);
       
       if(neededBufSize>maxBufSize)
-	crash("asking to create a communicator that needs %d large buffer (%d allocated)",
+	CRASH("asking to create a communicator that needs %d large buffer (%d allocated)",
 		  neededBufSize,maxBufSize);
     }
     
@@ -892,7 +892,7 @@ namespace nissa
     void assertHasHalo() const
     {
       if(not (haloPresence>=WITH_HALO))
-	crash("needs halo allocated!");
+	CRASH("needs halo allocated!");
     }
     
     /////////////////////////////////////////////////////////////////

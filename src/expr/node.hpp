@@ -213,11 +213,11 @@ namespace nissa
       auto& lhs=~*this;
       
       if constexpr(not T::canAssignAtCompileTime)
-	crash("Trying to assign to a non-assignable expression");
+	CRASH("Trying to assign to a non-assignable expression");
       
       if constexpr(U::hasDynamicComps)
 	if(lhs.getDynamicSizes()!=rhs.getDynamicSizes())
-	  crash("Dynamic comps not agreeing");
+	  CRASH("Dynamic comps not agreeing");
       
       //static_assert(T::execSpace==U::execSpace or
       //U::execSpace==ExecSpace::HOST_DEVICE,"Cannot assign among different execution space, first change one of them");

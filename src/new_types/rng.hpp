@@ -218,7 +218,7 @@ namespace nissa
     uint32_t draw32bitsWithOffset(const uint64_t& offset) const
     {
       if(offset>=nReserved)
-	crash("going beyond the number of reserved uint32_t");
+	CRASH("going beyond the number of reserved uint32_t");
       
       union
       {
@@ -264,7 +264,7 @@ namespace nissa
     auto draw(const uint64_t& offset) const
     {
       if(offset>=nReserved)
-	crash("going beyond the number of reserved uint32_t");
+	CRASH("going beyond the number of reserved uint32_t");
       
       /// Set of uint32_t needed to draw number from the target distribution
       std::array<uint32_t,D::nDraw> tmp;
@@ -282,7 +282,7 @@ namespace nissa
       nReserved(nReserved)
     {
       if(nReserved>=~0lu/D::nDraw)
-	crash("asking to reserve too many numbers");
+	CRASH("asking to reserve too many numbers");
     }
   };
   

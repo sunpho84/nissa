@@ -13,6 +13,7 @@
 #include <expr/fieldDeclaration.hpp>
 #include <expr/prod.hpp>
 #include <operations/allToAll.hpp>
+#include <routines/math_routines.hpp>
 #include <routines/mpiRoutines.hpp>
 
 namespace nissa
@@ -383,7 +384,7 @@ namespace nissa
       
       if(const MpiRankCoords temp=
 	 findOptimalPartitioning<MpiRankCoord>(nRanks(),getGlbSizes(),MpiRankCoords{});compProd<Dir>(temp).close()==0)
-	crash("Unable to partition");
+	CRASH("Unable to partition");
       else
 	_nRanksPerDir=temp;
       
@@ -516,7 +517,7 @@ namespace nissa
 				     if(decltype(auto) f=lln(neigh,1-ori,dir);(not setupDebug) or f==-1)
 				       f=site;
 				     else
-				       crash("Site %ld is already pointing at halo site %ld in orientation %d dir %d\n",f(),site(),ori(),dir());
+				       CRASH("Site %ld is already pointing at halo site %ld in orientation %d dir %d\n",f(),site(),ori(),dir());
 				     
 				     ssohs(neigh-lat.getLocVol())=site;
 				   }

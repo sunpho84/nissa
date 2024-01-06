@@ -82,7 +82,7 @@ namespace nissa
     T out=0;
     if(isMasterRank() and thread_id==0)
       if(fscanf(stream,tag,&out)!=1)
-	crash("Unable to read!");
+	CRASH("Unable to read!");
     
     //broadcast
     MPI_Bcast(&out,sizeof(T),MPI_CHAR,masterRank,MPI_COMM_WORLD);
@@ -126,7 +126,8 @@ namespace nissa
     
     void assert_inited()
     {
-      if(not inited) crash("Needs to be inited");
+      if(not inited)
+	CRASH("Needs to be inited");
     }
     
   public:
@@ -189,7 +190,8 @@ namespace nissa
   template <typename...Args>
   void safe_snprintf(char *buf,int n,const char *pattern,const Args&...args)
   {
-    if(snprintf(buf,n,pattern,args...)<0) crash("witing to %d long array",n);
+    if(snprintf(buf,n,pattern,args...)<0)
+      CRASH("witing to %d long array",n);
   }
 }
 

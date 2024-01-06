@@ -5,10 +5,10 @@
 # include <config.hpp>
 #endif
 
+#include <base/demangle.hpp>
+#include <expr/comp.hpp>
 #include <tuples/tupleHasType.hpp>
 #include <tuples/tupleSubset.hpp>
-
-#include <expr/comp.hpp>
 
 namespace nissa
 {
@@ -117,7 +117,7 @@ namespace nissa
     
     if(not b)
       if constexpr(std::tuple_size_v<DcsOut> and (std::tuple_size_v<_DcsIn> and ...))
-	crash("unmatched dynamic comps among expressions: %s",
+	CRASH("unmatched dynamic comps among expressions: %s",
 	      (tupleDescribe(dcsOut)+((" "+tupleDescribe(dcsIns))+...)).c_str());
     
     return

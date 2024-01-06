@@ -103,7 +103,7 @@ namespace nissa
       for(BufComp i=0;i<getInBufSize();i++)
 	if(auto& j=dstOfInBuf[i]();
 	   j>=getNDst()() or j<0)
-	  crash("destination of el %ld = %ld larger than maximum %ld or lower than 0 addr %p",i(),j,getNDst()(),&dstOfInBuf);
+	  CRASH("destination of el %ld = %ld larger than maximum %ld or lower than 0 addr %p",i(),j,getNDst()(),&dstOfInBuf);
 	else
 	  if(auto& p=inBufOfDest[j];p!=-1)
 	    {
@@ -116,7 +116,7 @@ namespace nissa
 	      for(BufComp k=0,n=getInBufSize();k<n;k++)
 		master_printf("%ld goes to %ld\n",k(),dstOfInBuf[k]());
 	      
-	      crash("On rank %ld destination %ld is filled by %ld and at least %ld at the same time",
+	      CRASH("On rank %ld destination %ld is filled by %ld and at least %ld at the same time",
 		  thisRank(),(int64_t)j,(int64_t)p(),(int64_t)i());
 	    }
 	  else
@@ -129,7 +129,7 @@ namespace nissa
 	{
 	  auto& p=srcOfOutBuf[outBufOfSrc[i]()];
 	  if(p!=-1)
-	    crash("On rank %ld source %ld is filling %ld and at least %ld at the same time",
+	    CRASH("On rank %ld source %ld is filling %ld and at least %ld at the same time",
 		  thisRank(),(int64_t)outBufOfSrc[i](),(int64_t)p(),(int64_t)i());
 	  p=i;
 	}
@@ -143,7 +143,7 @@ namespace nissa
       constexpr bool debugInit=false;
       
       if(inited)
-	crash("Cannot init twice");
+	CRASH("Cannot init twice");
       inited=true;
       
       outBufOfSrc.allocate(nSrc);
@@ -158,7 +158,7 @@ namespace nissa
 	  const auto [dstRank,remDst]=f(locSrc);
 	  
 	  if(dstRank>=nRanks or dstRank<0)
-	    crash("destination rank %d does not exist!",dstRank);
+	    CRASH("destination rank %d does not exist!",dstRank);
 	  
 	  locSrcsGroupedByDstRank[dstRank()].emplace_back(locSrc);
 	  remDstsGroupedByDstRank[dstRank()].emplace_back(remDst);
@@ -298,7 +298,7 @@ namespace nissa
       const CSrc nSrc=
 	in.template getCompSize<CSrc>();
       if(nSrc()!=getOutBufSize()())
-	crash("Size of the in expression %ld different from expected %ld\n",(int64_t)nSrc(),(int64_t)getOutBufSize()());
+	CRASH("Size of the in expression %ld different from expected %ld\n",(int64_t)nSrc(),(int64_t)getOutBufSize()());
       
       // Fills the output buffer
       PAR_ON_EXEC_SPACE(execSpace,

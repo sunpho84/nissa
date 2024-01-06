@@ -21,6 +21,9 @@ namespace nissa
   
   inline const int& iCudaDevice=resources::_iCudaDevice;
   
+#define decryptCudaError(...) \
+  internalDecryptCudaError(__LINE__,__FILE__,__VA_ARGS__)
+  
   inline void internalDecryptCudaError(const int& line,
 				       const char *file,
 				       const cudaError_t& rc,

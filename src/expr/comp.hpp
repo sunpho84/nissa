@@ -10,7 +10,7 @@
 #include <string>
 #include <typeinfo>
 
-#include <base/debug.hpp>
+#include <base/demangle.hpp>
 #include <expr/baseComp.hpp>
 #include <expr/compRwCl.hpp>
 #include <expr/nodeDeclaration.hpp>

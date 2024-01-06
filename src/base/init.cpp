@@ -89,12 +89,12 @@ namespace nissa
     verbosity_lv2_master_printf("To avoid trapping signals, export: %s\n",DO_NOT_TRAP_SIGNALS_STRING);
     if(getenv(DO_NOT_TRAP_SIGNALS_STRING)==nullptr)
       {
-	signal(SIGBUS,signal_handler);
-	signal(SIGSEGV,signal_handler);
-	signal(SIGFPE,signal_handler);
-	signal(SIGXCPU,signal_handler);
-	signal(SIGABRT,signal_handler);
-	signal(SIGINT,signal_handler);
+	signal(SIGBUS,signalHandler);
+	signal(SIGSEGV,signalHandler);
+	signal(SIGFPE,signalHandler);
+	signal(SIGXCPU,signalHandler);
+	signal(SIGABRT,signalHandler);
+	signal(SIGINT,signalHandler);
       }
     else
       master_printf("Not trapping signals\n");
@@ -217,7 +217,7 @@ namespace nissa
     
     const char DEBUG_LOOP_STRING[]="WAIT_TO_ATTACH";
     if(getenv(DEBUG_LOOP_STRING)!=NULL)
-      debug_loop();
+      debugLoop();
     else
       master_printf("To wait attaching the debugger please export: %s\n",DEBUG_LOOP_STRING);
   }
