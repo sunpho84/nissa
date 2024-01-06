@@ -77,7 +77,6 @@ namespace nissa
   void init_nissa(int narg,char **arg,const char compile_info[5][1024])
   {
     //init base things
-    mpiInitThread(narg,arg);
     mpiInit(narg,arg);
     
     //this must be done before everything otherwise rank non properly working

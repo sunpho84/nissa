@@ -173,8 +173,8 @@ namespace nissa
   }
   
   /// Initialize mpi
-  inline void mpiInitThread(int narg,
-			    char **arg)
+  inline void mpiInit(int narg,
+		      char **arg)
   {
 #ifdef USE_MPI
 # ifdef USE_OPENMP
@@ -183,6 +183,14 @@ namespace nissa
 # else
     MPI_Init(&narg,&arg);
  #endif
+#endif
+  }
+  
+  /// Finalize mpi
+  inline void mpiFinalize()
+  {
+#ifdef USE_MPI
+    MPI_Finalize();
 #endif
   }
   

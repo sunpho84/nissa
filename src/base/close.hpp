@@ -4,6 +4,7 @@
 #include <base/memory_manager.hpp>
 #include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
+#include <routines/mpiRoutines.hpp>
 
 #ifdef USE_QUDA
 # include <base/quda_bridge.hpp>
