@@ -13,8 +13,7 @@ $(top_srcdir)/.git/index:
 BUILT_SOURCES+= \
 	%D%/git_info.hpp
 
-__top_builddir__lib_libnissa_a_SOURCES= \
-	%D%/init.cpp
+__top_builddir__lib_libnissa_a_SOURCES=
 
 include_HEADERS+= \
 	%D%/close.hpp \
