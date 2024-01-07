@@ -1,7 +1,13 @@
 #ifndef _CLOSE_HPP
 #define _CLOSE_HPP
 
+#ifdef HAVE_CONFIG_H
+# include <config.hpp>
+#endif
+
+#include <base/lattice.hpp>
 #include <base/memory_manager.hpp>
+#include <communicate/communicate.hpp>
 #include <routines/mpiRoutines.hpp>
 
 #ifdef USE_QUDA
@@ -18,8 +24,10 @@ namespace nissa
     if(use_quda) quda_iface::finalize();
 #endif
     
-    //unset lx geometry
-    CRASH("lat to be deleted");
+    freeCommunicationBuffers();
+    
+    lat.reset();
+    delete _lat;
     
     delete cpuMemoryManager;
 #ifdef USE_CUDA
