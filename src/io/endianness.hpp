@@ -2,7 +2,7 @@
 #define _ENDIANNESS_HPP
 
 #ifdef HAVE_CONFIG_H
-# include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <unistd.h>
@@ -13,11 +13,26 @@
 
 namespace nissa
 {
+  /// Endianness available
   enum Endianness{LittleEndian,BigEndian};
   
   /// Endianness of the machine
   constexpr Endianness nativeEndianness=
 	      (IS_LITTLE_ENDIAN?LittleEndian:BigEndian);
+  
+  /// Inform about endianness
+  inline void printSystemEnianness()
+  {
+    switch(nativeEndianness)
+      {
+      case LittleEndian:
+	masterPrintf("System endianness: little (ordinary machine)\n");
+	break;
+      case BigEndian:
+	masterPrintf("System endianness: big (BG, etc)\n");
+	break;
+      };
+  }
   
   /// Access a variable with given endianness
   template <Endianness ViewEndianness,
@@ -124,7 +139,6 @@ namespace nissa
   PROVIDE_ENDIANNESS_FIXER(To);
   
 #undef PROVIDE_ENDIANNESS_FIXER
-  
 }
 
 #endif
