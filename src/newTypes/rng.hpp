@@ -5,7 +5,7 @@
 # include <config.hpp>
 #endif
 
-/// \file src/new_types/rng.hpp
+/// \file src/newTypes/rng.hpp
 
 /// Based on sitmo random generator
 
@@ -13,9 +13,9 @@
 #include <random>
 
 #include <routines/ios.hpp>
-#include <new_types/encypter.hpp>
-#include <new_types/float128class.hpp>
-#include <new_types/multiUnsignedInt.hpp>
+#include <newTypes/encypter.hpp>
+#include <newTypes/float128class.hpp>
+#include <newTypes/multiUnsignedInt.hpp>
 
 namespace nissa
 {

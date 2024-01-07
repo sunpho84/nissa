@@ -13,7 +13,6 @@
 
 #include <base/debug.hpp>
 #include <base/lattice.hpp>
-#include <geometry/geometry_lx.hpp>
 #include <io/endianness.hpp>
 
 namespace nissa

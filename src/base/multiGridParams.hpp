@@ -3,8 +3,6 @@
 
 #include <cmath>
 
-#include "geometry/geometry_lx.hpp"
-
 #ifndef EXTERN_MULTIGRID
  #define EXTERN_MULTIGRID extern
  #define INIT_TO(var)
@@ -18,6 +16,26 @@
 
 namespace nissa
 {
+  template <typename T,
+	    size_t N>
+  struct my_array
+  {
+    T data[N];
+    
+    CUDA_HOST_AND_DEVICE inline T& operator[](const size_t i)
+    {
+      return data[i];
+    }
+    
+    CUDA_HOST_AND_DEVICE const inline T& operator[](const size_t i) const 
+    {
+      return data[i];
+    }
+  };
+  
+  typedef my_array<bool,NDIM> which_dir_t;
+  typedef my_array<int,NDIM> coords_t;
+  typedef my_array<double,NDIM> momentum_t;
   void read_DDalphaAMG_pars();
   
   namespace multiGrid

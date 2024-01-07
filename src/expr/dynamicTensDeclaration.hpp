@@ -7,7 +7,7 @@
 
 /// \file expr/dynamicTensorDeclaration.hpp
 
-#include <base/memory_manager.hpp>
+#include <base/memoryManager.hpp>
 
 namespace nissa
 {

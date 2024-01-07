@@ -15,10 +15,9 @@ include_HEADERS+= \
 
 include $(top_srcdir)/src/base/Makefile.am
 include $(top_srcdir)/src/communicate/Makefile.am
-include $(top_srcdir)/src/geometry/Makefile.am
 include $(top_srcdir)/src/io/Makefile.am
 include $(top_srcdir)/src/metaprogramming/Makefile.am
-include $(top_srcdir)/src/new_types/Makefile.am
+include $(top_srcdir)/src/newTypes/Makefile.am
 include $(top_srcdir)/src/operations/Makefile.am
 include $(top_srcdir)/src/routines/Makefile.am
 include $(top_srcdir)/src/threads/Makefile.am

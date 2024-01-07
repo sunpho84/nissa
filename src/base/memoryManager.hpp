@@ -15,7 +15,7 @@
 
 #include <base/memoryType.hpp>
 #include <expr/execSpace.hpp>
-#include <new_types/value_with_extreme.hpp>
+#include <newTypes/valueWithExtreme.hpp>
 #include <metaprogramming/constnessChanger.hpp>
 #include <metaprogramming/crtp.hpp>
 #include <routines/ios.hpp>

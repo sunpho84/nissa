@@ -9,7 +9,7 @@
 
 /// \file expr/dynamicTens.hpp
 
-#include <base/memory_manager.hpp>
+#include <base/memoryManager.hpp>
 #include <expr/comp.hpp>
 #include <expr/comps.hpp>
 #include <expr/dynamicTensDeclaration.hpp>

@@ -5,6 +5,7 @@ include_HEADERS+= \
 	%D%/cuda_test.hpp \
 	%D%/debug.hpp \
 	%D%/init.hpp \
-	%D%/memory_manager.hpp \
+	%D%/lattice.hpp \
+	%D%/memoryManager.hpp \
 	%D%/multiGridParams.hpp
 

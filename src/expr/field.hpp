@@ -16,7 +16,6 @@
 #include <expr/fieldDeclaration.hpp>
 #include <expr/mergedComps.hpp>
 #include <expr/stackTens.hpp>
-#include <geometry/geometry_eo.hpp>
 #include <threads/threads.hpp>
 
 /// \todo: Components must all be provided externally

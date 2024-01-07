@@ -9,7 +9,7 @@
 #include <mpi.h>
 #include <vector>
 
-#include <base/memory_manager.hpp>
+#include <base/memoryManager.hpp>
 #include <routines/ios.hpp>
 
 /*

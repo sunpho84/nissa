@@ -6,7 +6,7 @@
 #endif
 
 #include <base/lattice.hpp>
-#include <base/memory_manager.hpp>
+#include <base/memoryManager.hpp>
 #include <communicate/communicate.hpp>
 #include <routines/mpiRoutines.hpp>
 

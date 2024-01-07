@@ -51,9 +51,6 @@
 #include <expr/trigonometry.hpp>
 #include <expr/transp.hpp>
 
-#include <geometry/geometry_eo.hpp>
-#include <geometry/geometry_lx.hpp>
-
 #include <io/buffer.hpp>
 #include <io/endianness.hpp>
 #include <io/ILDG_File.hpp>
@@ -67,8 +64,8 @@
 #include <metaprogramming/feature.hpp>
 #include <metaprogramming/inline.hpp>
 
-#include <new_types/float128class.hpp>
-#include <new_types/rng.hpp>
+#include <newTypes/float128class.hpp>
+#include <newTypes/rng.hpp>
 
 #include <operations/fft.hpp>
 #include <operations/localizer.hpp>
