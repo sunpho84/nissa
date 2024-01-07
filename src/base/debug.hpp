@@ -145,6 +145,17 @@ namespace nissa
     CRASH("signal %d (%s) detected, exiting",sig,name);
   }
   
+  /// Trap all signals
+  inline void setSignalTraps()
+  {
+    signal(SIGBUS,signalHandler);
+    signal(SIGSEGV,signalHandler);
+    signal(SIGFPE,signalHandler);
+    signal(SIGXCPU,signalHandler);
+    signal(SIGABRT,signalHandler);
+    signal(SIGINT,signalHandler);
+  }
+  
   /// Take the time
   inline double takeTime()
   {

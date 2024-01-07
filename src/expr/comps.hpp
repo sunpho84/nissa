@@ -5,6 +5,7 @@
 # include <config.hpp>
 #endif
 
+#include <base/debug.hpp>
 #include <base/demangle.hpp>
 #include <expr/comp.hpp>
 #include <tuples/tupleHasType.hpp>
