@@ -426,7 +426,8 @@ namespace nissa
     /// Make the origin have the sum over all sites
     void selfReduce()
     {
-      Site n=lat->getLocVol();
+      Site n=
+	lat->getLocVol();
       
       while(n>1)
 	{
@@ -727,17 +728,20 @@ namespace nissa
       PAR(0,n,
 	  CAPTURE(f,
 		  t=this->getReadable(),
+		  sendBuf=getSendBuf<std::remove_cv_t<Fund>>(nInternalDegs*n()),
 		  dynamicSizes=this->getDynamicSizes()),
 	  i,
 	  {
 	    compsLoop<InnerComps>([i,
 				   t,
 				   dynamicSizes,
+				   sendBuf,
 				   f] CUDA_DEVICE(const auto&...c) INLINE_ATTRIBUTE
 	    {
-	      const auto internalDeg=index(dynamicSizes,c...);
+	      const auto internalDeg=
+		index(dynamicSizes,c...);
 	      
-	      ((std::remove_const_t<Fund>*)sendBuf)[internalDeg+nInternalDegs*i()]=
+	      sendBuf[internalDeg+nInternalDegs*i()]=
 		t(f(i),c...);
 	    },dynamicSizes);
 	  });
@@ -749,7 +753,7 @@ namespace nissa
       fillSendingBufWith([lat=lat->getRef()] CUDA_DEVICE(const Site& i) INLINE_ATTRIBUTE
       {
 	return lat.getSurfSiteOfHaloSite(i);
-      },2*lat->getSurfSize());
+      },lat->getHaloSize());
       
       // for(size_t i=0;i<bord_vol*StackTens<CompsList<C...>,Fund>::nElements;i++)
       // 	masterPrintf("s %zu %lg\n",i,((Fund*)send_buf)[i]);
@@ -760,12 +764,16 @@ namespace nissa
 	      typename F>
     void fillSurfaceWithReceivingBuf(const F& f)
     {
+      B* recvBuf=
+	getRecvBuf<B>(lat->getHaloSize());
+      
       for(int bf=0;bf<2;bf++)
 	for(Dir mu=0;mu<NDIM;mu++)
 	  PAR(0,lat->getSurfSizePerDir(mu),
 	      CAPTURE(f,bf,mu,
 		      n=lat->getSurfSize(),
 		      off=lat->getSurfOffsetOfDir(mu),
+		      recvBuf,
 		      t=this->getWritable()),
 	      iHaloOriDir,
 	      {
@@ -777,7 +785,7 @@ namespace nissa
 		  lat->getSurfSiteOfHaloSite(iHalo);
 		
 		f(t[iSurf],
-		  ((B*)recvBuf)[iHalo],
+		  recvBuf[iHalo],
 		  bf,
 		  mu);
 	      });
@@ -787,21 +795,24 @@ namespace nissa
     INLINE_FUNCTION
     void fillHaloWithReceivingBuf() const
     {
-      PAR(0,2*lat->getSurfSize(),
+      PAR(0,
+	  lat->getHaloSize(),
 	  CAPTURE(subExpr=this->subExpr.getWritable(),
 		  offset=lat->getLocVol(),
+		  recvBuf=getRecvBuf<Fund>(nInternalDegs*lat->getHaloSize()()),
 		  dynamicSizes=this->getDynamicSizes()),
 	  i,
 	  {
 	    compsLoop<InnerComps>([offset,
 				   i,
+				   recvBuf,
 				   &subExpr,
 				   dynamicSizes] CUDA_DEVICE(const auto&...c) INLINE_ATTRIBUTE
 	    {
 	      const auto internalDeg=index(dynamicSizes,c...);
 	      
 	      asMutable(subExpr(offset+i,c...))=
-		((Fund*)recvBuf)[internalDeg+nInternalDegs*i()];
+		recvBuf[internalDeg+nInternalDegs*i()];
 	    },dynamicSizes);
 	  });
       
@@ -814,6 +825,9 @@ namespace nissa
 	      typename F>
     void fillSendingBufWithHalo(const F& f) const
     {
+      B* sendBuf=
+	getSendBuf<B>(lat->getHaloSize());
+      
       for(int bf=0;bf<2;bf++)
 	for(Dir mu=0;mu<NDIM;mu++)
 	  PAR(0,lat->getSurfSizePerDir()[mu],
@@ -821,6 +835,7 @@ namespace nissa
 		      n=lat->getSurfSize(),
 		      l=lat->getLocVol(),
 		      off=lat->getSurfOffsetOfDir(mu),
+		      sendBuf,
 		      t=this->getReadable()),
 	      iHaloOriDir,
 	      {
@@ -828,7 +843,7 @@ namespace nissa
 		  bf*n+
 		  iHaloOriDir+off;
 		
-		f(((B*)sendBuf)[iHalo],
+		f(sendBuf[iHalo],
 		  t[l+iHalo],
 		  bf,
 		  mu);
@@ -839,7 +854,7 @@ namespace nissa
     
     static std::vector<MPI_Request> startBufHaloNeighExchange(const size_t& bps)
     {
-    /// Pending requests
+      /// Pending requests
       std::vector<MPI_Request> requests;
       
       for(Dir mu=0;mu<NDIM;mu++)
@@ -874,8 +889,8 @@ namespace nissa
 	      
 	      const Ori recvOri=1-sendOri;
 	      
-	      sendOrRecv("send",MPI_Isend,sendBuf,sendOri);
-	      sendOrRecv("recv",MPI_Irecv,recvBuf,recvOri);
+	      sendOrRecv("send",MPI_Isend,getSendBuf(lat->getHaloSize()()*bps),sendOri);
+	      sendOrRecv("recv",MPI_Irecv,getRecvBuf(lat->getHaloSize()()*bps),recvOri);
 	    }
       
       return requests;
@@ -889,30 +904,11 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
-    /// Assert that can communicate n sites
-    static void assertCanCommunicate(const Site& n)
-    {
-      /// Needed size in the buffer
-      const size_t neededBufSize=
-	nInternalDegs*n();
-      
-      const size_t maxBufSize=
-	std::min(sendBufSize,recvBufSize);
-      
-      if(neededBufSize>maxBufSize)
-	CRASH("asking to create a communicator that needs %d large buffer (%d allocated)",
-		  neededBufSize,maxBufSize);
-    }
-    
-    /////////////////////////////////////////////////////////////////
-    
     /// Start communication using halo
     std::vector<MPI_Request> startCommunicatingHalo() const
     {
       /// Pending requests
       std::vector<MPI_Request> requests;
-      
-      assertCanCommunicate(2*lat->getSurfSize());
       
       //fill the communicator buffer, start the communication and take time
       fillSendingBufWithSurface();

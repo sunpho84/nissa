@@ -207,7 +207,7 @@ namespace nissa::localizer
 	      /// Global index in the space perpendicular to the current direction
 	      const OrthoSpaceTime glbOsd=
 		lxOfCoords<OrthoSpaceTime>(glbPerpCoords,glbPerpSizes);
-
+	      
 	      /// Rank hosting global site
 	      const MpiRank orthoRank=
 		glbOsd()/locOsdSize();

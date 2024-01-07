@@ -9,6 +9,7 @@
 #include <mpi.h>
 #include <vector>
 
+#include <base/memory_manager.hpp>
 #include <routines/ios.hpp>
 
 /*
@@ -66,17 +67,70 @@
 
 namespace nissa
 {
-  /// Receive buffer size
-  inline uint64_t recvBufSize;
+  namespace resources
+  {
+    /// Receive buffer size
+    inline uint64_t curRecvBufSize{0};
+    
+    /// Send buffer size
+    inline uint64_t curSendBufSize{0};
+    
+    /// Receive buffer
+    inline char* _recvBuf{nullptr};
+    
+    /// Send buffer
+    inline char* _sendBuf{nullptr};
+    
+    /// Gets the buffer after checking if large enough or allocating if not allocated at all
+    template <typename T=char>
+    inline T* _getCommBuf(const char* name,
+			  uint64_t& curBufSize,
+			  char* & buf,
+			  const uint64_t& reqBufSizeInUnitsOfT)
+    {
+      if(const uint64_t reqBufSize=reqBufSizeInUnitsOfT*sizeof(T);
+	 curBufSize<reqBufSize)
+	{
+	  masterPrintf("%s buffer requested size %lu but allocated %lu reallocating\n",name,reqBufSize,curBufSize);
+	  if(buf)
+	    memoryManager<MemoryType::CPU>()->release(buf,true);
+	  curBufSize=reqBufSize;
+	  buf=memoryManager<MemoryType::CPU>()->template provide<char>(reqBufSize);
+	}
+      
+      return (T*)buf;
+    }
+  }
   
-  /// Send buffer size
-  inline uint64_t sendBufSize;
+  /// Gets the receiving buffer
+  template <typename T=char>
+  inline T* getRecvBuf(const uint64_t& recvBufSizeInUnitsOfT)
+  {
+    using namespace resources;
+    
+    return _getCommBuf<T>("Receiving",curRecvBufSize,_recvBuf,recvBufSizeInUnitsOfT);
+  }
   
-  /// Receive buffer
-  inline char* recvBuf;
+  /// Gets the sending buffer
+  template <typename T=char>
+  inline T* getSendBuf(const uint64_t& sendBufSizeInUnitsOfT)
+  {
+    using namespace resources;
+    
+    return _getCommBuf<T>("Sending",curSendBufSize,_sendBuf,sendBufSizeInUnitsOfT);
+  }
   
-  /// Send buffer
-  inline char* sendBuf;
+  /// Frees the communication buffers
+  inline void freeCommunicationBuffers()
+  {
+    using namespace resources;
+    
+    for(auto* buf : {_recvBuf,_sendBuf})
+      memoryManager<MemoryType::CPU>()->release(buf,true);
+    
+    for(auto* size : {&curRecvBufSize,&curSendBufSize})
+      (*size)=0;
+  }
   
   /// Wait for communications to finish
   inline void waitAsyncCommsFinish(std::vector<MPI_Request> requests)
@@ -85,6 +139,6 @@ namespace nissa
     
     MPI_Waitall(requests.size(),&requests[0],MPI_STATUS_IGNORE);
   }
-}
+  }
 
 #endif
