@@ -51,7 +51,6 @@
 #include <expr/trigonometry.hpp>
 #include <expr/transp.hpp>
 
-#include <io/buffer.hpp>
 #include <io/endianness.hpp>
 #include <io/ILDG_File.hpp>
 #include <io/reader.hpp>
