@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ -f "$1/src/base/gitInfo.hpp" ]
+if [ -f "$1/src/gitInfo.hpp" ]
 then
-    cat "$1/src/base/gitInfo.hpp"
+    cat "$1/src/gitInfo.hpp"
 else
     
     echo '#ifndef _GIT_INFO'
