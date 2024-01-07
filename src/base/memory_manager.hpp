@@ -213,9 +213,10 @@ namespace nissa
     
     /// Declare unused the memory and possibly free it
     template <typename T>
-    void release(T* &ptr) ///< Pointer getting freed
+    void release(T* &ptr,                      ///< Pointer getting freed
+		 const bool& forceFree=false)  ///< Force to free and not to move to cache
     {
-      if(useCache)
+      if(useCache and not forceFree)
 	moveToCache(ptr);
       else
 	{
@@ -451,6 +452,16 @@ namespace nissa
   inline MemoryManager* memoryManager()
   {
     return memoryManager<getMemoryType<ES>()>();
+  }
+  
+  /// Initialize the memory managers
+  inline void initMemoryManagers()
+  {
+    //initialize the memory manager
+    cpuMemoryManager=new CPUMemoryManager;
+#ifdef USE_CUDA
+    gpuMemoryManager=new GPUMemoryManager;
+#endif
   }
 }
 
