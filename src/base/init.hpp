@@ -8,7 +8,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include <base/git_info.hpp>
+#include <base/gitInfo.hpp>
 #include <io/endianness.hpp>
 #include <routines/ios.hpp>
 #include <routines/mpiRoutines.hpp>
