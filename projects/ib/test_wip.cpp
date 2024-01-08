@@ -7,31 +7,37 @@
 using namespace nissa;
 
 
-// template <typename F,
-// 	  typename Float=typename F::Fund>
-// Float plaquette(const F& conf)
-// {
-//   ASM_BOOKMARK_BEGIN("plaq");
+void ddd()
+{
+  static_assert(std::is_move_constructible_v<const CompsBinder<std::tuple<LocLxSite>,
+		const MirroredNode<std::tuple<LocLxSite, Dir>, DynamicTens<std::tuple<LocLxSite, Dir>, const GlbCoord, MemoryType::CPU, true>, DynamicTens<std::tuple<LocLxSite, Dir>, const GlbCoord, MemoryType::GPU, true>, const GlbCoord> , std::tuple<Dir>, const GlbCoord>>,"ccccc");
+  }
+
+template <typename F,
+	  typename Float=typename F::Fund>
+Float plaquette(const F& conf)
+{
+  ASM_BOOKMARK_BEGIN("plaq");
   
-//   Field2<OfComps<ColorRow,ColorCln,ComplId>,Float> temp1,temp2;
-//   Field2<OfComps<>,Float> squares(0.0);
+  Field<OfComps<ColorRow,ColorCln,ComplId>,Float> temp1,temp2;
+  Field<OfComps<>,Float> squares(0.0);
   
-//   for(Dir mu=0;mu<NDIM;mu++)
-//     for(Dir nu=mu+1;nu<NDIM;nu++)
-//       {
-// 	temp1=(conf(mu)*shift(conf(nu),bw,mu));
-// 	temp2=(conf(nu)*shift(conf(mu),bw,nu));
+  for(Dir mu=0;mu<NDIM;mu++)
+    for(Dir nu=mu+1;nu<NDIM;nu++)
+      {
+	temp1=(conf(mu)*shift(conf(nu),bw,mu));
+	temp2=(conf(nu)*shift(conf(mu),bw,nu));
 	
-// 	squares+=real(trace(temp1*dag(temp2)));
-//       }
+	squares+=real(trace(temp1*dag(temp2)));
+      }
   
-//   const Float plaq=
-//     squares.glbReduce()/glbVol/(2*NCOL*NCOL);
+  const Float plaq=
+    squares.glbReduce()/lat->getGlbVol()/(2*NCOL*NCOL);
   
-//   ASM_BOOKMARK_END("plaq");
+  ASM_BOOKMARK_END("plaq");
   
-//   return plaq;
-// }
+  return plaq;
+}
 
 namespace nissa
 {
@@ -67,7 +73,7 @@ namespace nissa
     
     const Entries entries;
     
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB
     constexpr Gamma operator*(const Gamma& oth) const
     {
       Entries tmp;
@@ -95,7 +101,7 @@ namespace nissa
       return {tmp};
     }
     
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB
     constexpr Gamma operator-() const
     {
       Entries tmp;
@@ -107,7 +113,7 @@ namespace nissa
     }
     
     /// Returns the hermitian
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB
     constexpr Gamma dag() const
     {
       Entries tmp;
@@ -208,41 +214,20 @@ void in_main(int narg,char **arg)
   // constexpr int m=(execOnCPU*execOnGPU).hasUniqueExecSpace();
   const int T=8,L=4;
   
-  const MpiRankCoords p=
-    Lattice<>::findOptimalPartitioning<MpiRankCoord>(48,GlbCoords{32,24,24,32},MpiRankCoords{});
-  
-  for(Dir mu=0;mu<nDim;mu++)
-    master_printf("%d\n",p[mu]());
-  crash("");
-  
-  init_grid(T,L);
-  
-  _lat=new Lattice<>;
+  _lat=new LatticeResources;
   _lat->init(T,L);
-  lat=std::make_unique<Lattice<true>>(_lat->getRef());
+  lat=std::make_unique<Lattice>(_lat->getRef());
   
+#ifdef USE_QUDA
+    if(use_quda) quda_iface::initialize();
+#endif
+     
   localizer::init();
   initFftw();
   
-  for(const auto c : factorize(12))
-    master_printf("%d\n",c);
-  crash("");
-  constexpr GlbCoords o{9,3,4,5};
-
-  // {
-  //   constexpr StackTens<CompsList<>,GlbCoord> o{};
-  //   Transposer<decltype(o),CompsList<>,GlbCoord> odag(o);
-  //   GlbCoord a=(odag)*o;//compProd<Dir>(o);
-  // }
-  //GlbCoord a=dag(o)*o;//compProd<Dir>(o);
-  //constexpr double oo=Lattice<>::computeBorderVariance(o);
-  
-      // auto y=v/o;
-      // y="";
-
   /////////////////////////////////////////////////////////////////
 
-   master_printf("TEST\n");
+   masterPrintf("TEST\n");
     // cudaGenericKernel<<<gridDimension,blockDimension>>>(0,locVol,[P=P.getWritable(),l=lat->glbCoordsOfLocLx.getReadable()] CUDA_DEVICE(auto i) mutable{P(LocLxSite(i))=l(LocLxSite(i));});
     // 	decrypt_cuda_error(cudaDeviceSynchronize(),"during kernel executionssss");
   
@@ -251,8 +236,8 @@ void in_main(int narg,char **arg)
   // printf("AAA %ld %lg\n",ii(),o);
   
 #define NISSA_HOST_DEVICE_LAMBDA(CAPTURES,BODY...)	\
-  std::make_tuple([CAPTURE(CAPTURES)] BODY,[CAPTURE(CAPTURES)] CUDA_DEVICE BODY)
-
+  std::make_tuple([CAPTURE(CAPTURES)] BODY,[CAPTURE(CAPTURES)] DEVICE_ATTRIB BODY)
+   
   P.onEachSite(NISSA_HOST_DEVICE_LAMBDA(CAPTURE(),
 					(auto& P,const LocLxSite& site)
 					{
@@ -274,10 +259,28 @@ void in_main(int narg,char **arg)
    PhotonProp test=kronDelta<DirRow,DirCln>-(P*dag(Ptilde)+Ptilde*dag(P)-P*dag(P))/P2tilde;
    //test.dirRow(0).dirCln(0)=0;
    
+   Field<OfComps<Dir,ColorRow,ColorCln,ComplId>,double> tmp;
+
+   readFieldFromIldgFile(tmp,"/tmp/conf","ildg-binary-data");
+   
+   for(LocLxSite site=0;site<lat->getLocVol();site++)
+     {
+       for(Dir dir=0;dir<4;dir++)
+	 {
+	   double f=tmp.locLxSite(site).dirRow(dir).colorCln(0).colorRow(0).reIm(0);
+	   double g=lat->getGlbCoordsOfLocLx(site,dir)();
+	   if(f!=g)
+	     CRASH("not agreeing");
+	 }
+     }
+   readFieldFromIldgFile(tmp,"../test/data/L4T8conf","ildg-binary-data");
+   masterPrintf("plaq with new method: %.16lg\n",plaquette(tmp));
+
+   
+   CRASH("");
    auto printPhotonProp=
      [](const PhotonProp& prop)
      {
-       crash("");
        for(DirRow r=0;r<nDim;r++)
 	 {
 	   // for(DirCln c=0;c<nDim();c++)
@@ -304,7 +307,7 @@ void in_main(int narg,char **arg)
     real(fft<ComplVectorField>(-1,prop*fft<ComplVectorField>(+1,eta)));
   
   printf("AAA %lg\n",phi.copyToMemorySpaceIfNeeded<MemoryType::CPU>().locLxSite(23).dirRow(0));
-  crash("");
+  CRASH("");
   /////////////////////////////////////////////////////////////////
   
   
@@ -330,8 +333,8 @@ void in_main(int narg,char **arg)
 
   // decltype(auto) fDone=
   //   fft<Field<CompsList<ColorRow,ComplId>>>(+1,e).copyToMemorySpaceIfNeeded<MemoryType::CPU>();
-
-  crash("uncomment");
+    
+  CRASH("uncomment");
   // for(LocLxSite site=0;
   //     site<lat->getLocVol();
   //     site++)
@@ -383,7 +386,7 @@ void in_main(int narg,char **arg)
   auto ff = [](const LocLxSite &locLxSite) -> CompsList<MpiRank, GlbLxSite> {
     return {0, lat->getGlbLxOfLocLx(locLxSite)()};
   };
-  master_printf("%s\n", demangle(typeid(ff).name()).c_str());
+  masterPrintf("%s\n", demangle(typeid(ff).name()).c_str());
 
   constexpr MemoryType execSpace = MemoryType::
 #ifdef USE_CUDA
@@ -408,8 +411,8 @@ void in_main(int narg,char **arg)
       if(isMasterRank())
 	for(GlbLxSite glbLxSite=0;glbLxSite<lat->getGlbVol();glbLxSite++)
 	  if(const double o=out(glbLxSite).spinRow(0).colorCln(0),g=glbLxSite();o!=g)
-	    crash("%lg %lg\n",o,g);
-      master_printf("alright!\n");
+	    CRASH("%lg %lg\n",o,g);
+      masterPrintf("alright!\n");
       
       auto bb=aa.inverse();
       DynamicTens<OfComps<SpinRow,LocLxSite,ColorCln>,double,execSpace> _back(std::make_tuple(lat->getLocVol()));
@@ -418,8 +421,8 @@ void in_main(int narg,char **arg)
       
       for(LocLxSite locLxSite=0;locLxSite<lat->getLocVol();locLxSite++)
 	if(const double b=back(locLxSite).spinRow(0).colorCln(0),g=lat->getGlbLxOfLocLx(locLxSite)();b!=g)
-	    crash("%lg %lg\n",b,g);
-      master_printf("alright2!\n");
+	    CRASH("%lg %lg\n",b,g);
+      masterPrintf("alright2!\n");
       
       auto cc=bb*aa;
       decltype(auto) shouldBeId=cc.communicate(in).template copyToMemorySpaceIfNeeded<MemoryType::CPU>();
@@ -427,8 +430,8 @@ void in_main(int narg,char **arg)
 	if(const double s=shouldBeId(locLxSite).spinRow(0).colorCln(0),
 	   i=_in(locLxSite).spinRow(0).colorCln(0);
 	   s!=i)
-	    crash("%lg %lg\n",s,i);
-      master_printf("alright3!\n");
+	    CRASH("%lg %lg\n",s,i);
+      masterPrintf("alright3!\n");
       
       
 //     //int aa=(time(0)%2)?[](){printf("This\n");return 0;}():[](){printf("That\n");return 1;}();
@@ -540,8 +543,7 @@ void in_main(int narg,char **arg)
 //     // printf("%lg %d\n",shift(conj(df),bw,Dir(2))(LocLxSite(0),Spin(0),Re),loclxNeighup[0][2]);
 //     // printf("%lg %d\n",shift(df,fw,Dir(2))(LocLxSite(0),Spin(0),Re),loclxNeighdw[0][2]);
     
-//     LxField<quad_su3> gcr("gcr",WITH_HALO);
-//     read_ildg_gauge_conf(gcr,"../test/data/L4T8conf");
+      //LxField<quad_su3> gcr("gcr",WITH_HALO);
 //     Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double,FULL_SPACE,FieldLayout::GPU,MemoryType::CPU> gcH(WITH_HALO);
     
 //     gcH.locLxSite(2);
@@ -561,11 +563,13 @@ void in_main(int narg,char **arg)
 // 	  for(ColorCln cc=0;cc<NCOL;cc++)
 // 	    for(ComplId reIm=0;reIm<2;reIm++)
 // 	      gcH(site,mu,cr,cc,reIm)=gcr[site()][mu()][cr()][cc()][reIm()];
-//     Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double> gc(WITH_HALO);
-//     master_printf("Copying the conf from host to device\n");
-//     gc=gcH;
-//     master_printf("plaq with new method: %.16lg\n",plaquette(gc));
-//     Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double> gcp(WITH_HALO);
+    Field<OfComps<Dir,ColorRow,ColorCln,ComplId>> gc(WITH_HALO);
+    // master_printf("Copying the conf from host to device\n");
+    // gc=gcH;
+    masterPrintf("plaq with new method: %.16lg\n",plaquette(gc));
+    // Field<OfComps<Dir,ColorRow,ColorCln,ComplId>,double> gcp(WITH_HALO);
+
+
     
 //     // auto rrr=(gc*expI).template closeAs<std::decay_t<decltype(gc.createCopy())>>();
 //     gc*=expI;
@@ -695,9 +699,9 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   in_main(narg,arg);
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

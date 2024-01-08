@@ -67,28 +67,28 @@ namespace nissa
     std::vector<std::pair<MpiRank,int64_t>> nRecvFrRank;
     
     /// Gets the destination size, which is equal to the in buffer size
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION
     CDst getNDst() const
     {
       return getInBufSize()();
     }
     
     /// Gets the incoming buffer size
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION
     constexpr BufComp getInBufSize() const
     {
       return dstOfInBuf.template getCompSize<BufComp>();
     }
     
     /// Gets the source size, which is equal to the out buffer size
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION
     CSrc getNSrc() const
     {
       return getOutBufSize()();
     }
     
     /// Gets the outgoing buffer size
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION
     constexpr BufComp getOutBufSize() const
     {
       return outBufOfSrc.template getCompSize<CSrc>()();

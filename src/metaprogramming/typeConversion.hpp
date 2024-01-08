@@ -123,7 +123,7 @@ namespace nissa
   
   /// Convert to Pod if possible
   template <typename T>
-  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION HOST_DEVICE_ATTRIB
   decltype(auto) toPod(T&& t)
   {
     if constexpr(CastableToPod<T>)

@@ -74,7 +74,7 @@ namespace nissa
 #else
 # define CRASH(...) nissa::internalCrash(__LINE__,__FILE__,__VA_ARGS__)
 #endif
-
+  
   /// Crash reporting the expanded error message
   inline void internalCrash(const int& line,
 			    const char *file,

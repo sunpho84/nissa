@@ -19,7 +19,7 @@ namespace nissa
   template <typename TP,
 	    typename F,
 	    typename...Args>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
   void forEachIndexOfTuple(const F& f)
   {
     [&f]<size_t...I>(std::index_sequence<I...>*)

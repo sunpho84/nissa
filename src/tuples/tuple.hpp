@@ -23,14 +23,14 @@ namespace nissa
       
 #define PROVIDE_GET(ATTRIB)						\
       /*! Get the component via index*/					\
-      INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+      INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
       ATTRIB T& _get(std::integral_constant<std::size_t,I>) ATTRIB	\
       {									\
 	return t;							\
       }									\
       									\
       /*! Get the component via type */					\
-      INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+      INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
       ATTRIB T& _get(std::remove_reference_t<T>*) ATTRIB		\
       {									\
 	return t;							\
@@ -64,7 +64,7 @@ namespace nissa
 #define PROVIDE_GET(ATTRIB)						\
       /*! Get the component via index*/					\
       template <std::size_t J>						\
-	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+	constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB			\
 	decltype(auto) get() ATTRIB					\
       {									\
 	return this->_get(std::integral_constant<std::size_t,J>());	\
@@ -72,7 +72,7 @@ namespace nissa
 									\
       /*! Get the component via type */					\
       template <typename M>						\
-	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+	constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB			\
 	decltype(auto) get() ATTRIB					\
       {									\
 	return this->_get((std::decay_t<M>*)nullptr);			\
@@ -113,7 +113,7 @@ namespace nissa
   /// Gets the I-th element of the tuple T
   template <std::size_t I,
 	    typename T>
-  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
   decltype(auto) get(T&& t)
   {
     return t[std::integral_constant<std::size_t,I>()];
@@ -122,7 +122,7 @@ namespace nissa
   /// Gets the element of type M of the tuple T
   template <typename M,
 	    typename T>
-  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
   decltype(auto) get(T&& t)
   {
     return t[(std::decay_t<M>*)nullptr];

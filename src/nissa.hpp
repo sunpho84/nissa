@@ -20,7 +20,7 @@
  #include <base/quda_bridge.hpp>
 #endif
 #include <base/qcd.hpp>
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 # include <base/cuda.hpp>
 #endif
 

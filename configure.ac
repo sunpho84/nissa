@@ -129,32 +129,35 @@ fi
 #check openmp
 AX_OPENMP
 
-#cuda
-AX_CHECK_CUDA
-if test "$(basename $CXX)" == "nvcc" -a "$cuda_found" == yes
+#device code
+AC_ARG_ENABLE(device-code,
+        AS_HELP_STRING([--enable-device-code],[Enable device code]),
+        enable_device_code="${enableval}",
+        enable_device_code="no")
+AM_CONDITIONAL([DEVICE_CODE],[test "$enable_device_code" == "yes" ])
+if test "$enable_device_code" == "yes"
 then
-	might_use_cuda=yes
-else
-	might_use_cuda=no
+	AC_DEFINE_UNQUOTED([ENABLE_DEVICE_CODE],${ENABLE_DEVICE_CODE},[Enable device code])
+        ENABLE_DEVICE_CODE=1
+        HOST_ATTRIB="__device__"
+        DEVICE_ATTRIB="__device__"
+        HOST_DEVICE_ATTRIB="__host__ __device__"
 fi
-AX_GET_ENABLE(cuda,${might_use_cuda},[support for cuda])
+AC_DEFINE_UNQUOTED([HOST_ATRIB],${HOST_ATTRIB},[Whether this function is HOST only])
+AC_DEFINE_UNQUOTED([DEVICE_ATTRIB],${DEVICE_ATTRIB},[Whether to duplicate functions for DEVICE only])
+AC_DEFINE_UNQUOTED([HOST_DEVICE_ATTRIB],${HOST_DEVICE_ATTRIB},[Whether to duplicate functions for host and device])
 
-AM_CONDITIONAL([USE_CUDA],[test "$enable_cuda" == "yes"])
-AM_COND_IF([USE_CUDA],
-	AC_DEFINE([USE_CUDA],1,"Enabling support for CUDA")
-	CUDA_MANAGED=__managed__
-	CUDA_HOST_AND_DEVICE="__host__ __device__"
-	CUDA_DEVICE="__device__")
-AC_DEFINE_UNQUOTED([CUDA_MANAGED],${CUDA_MANAGED},[Whether to use managed memory])
-AC_DEFINE_UNQUOTED([CUDA_HOST_AND_DEVICE],${CUDA_HOST_AND_DEVICE},[Whether to duplicate functions for host and device])
-AC_DEFINE_UNQUOTED([CUDA_DEVICE],${CUDA_DEVICE},[Whether to instantiate pure device function])
+AC_MSG_RESULT([enabling device code... $enable_device_code])
+SUMMARY_RESULT="$SUMMARY_RESULT
+Device code      : $enable_device_code"
+
 AH_VERBATIM([COMPILING_FOR_DEVICE],
 #ifdef __CUDA_ARCH__
 
  /// A convenient macro to detect that we are compiling on device
 # define COMPILING_FOR_DEVICE
 
-#define compilingForDevice true
+# define compilingForDevice true
 
 # define COMPILATION_CONTEXT device
 
@@ -162,7 +165,7 @@ AH_VERBATIM([COMPILING_FOR_DEVICE],
 
 #else
 
-#define compilingForDevice false
+# define compilingForDevice false
 
 # define COMPILATION_CONTEXT host
 
@@ -355,9 +358,15 @@ else
 fi
 AM_CONDITIONAL([USE_EXTERNAL_SOLVER],[test "$use_external_solver" == "yes"])
 
+if test "$enable_device_code" = "yes"
+then
+     case "$CXX" in
 # -dlto removing for debug
-AM_COND_IF([USE_CUDA],
-	CPPFLAGS="-dc --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS")
+          nvcc*) CPPFLAGS="-dc --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS";;
+          clang++*) CPPFLAGS="-xcuda $CPPFLAGS";;
+          *) AC_MSG_ERROR(["Unkwnown how to compile device code with $CXX"])
+     esac
+fi
 
 #macros to concatenate
 AC_DEFINE([_CONCAT(X,Y)],[X##Y],[Internally concatenation])

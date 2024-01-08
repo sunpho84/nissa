@@ -147,7 +147,7 @@ namespace nissa
     INLINE_FUNCTION
     void onEachSite(O&& o)
     {
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
       if constexpr(MT==MemoryType::GPU)
 	_onEachSiteGPU(this->getWritable(),std::get<1>(o));
       else
@@ -180,7 +180,7 @@ namespace nissa
 		    OP::dispatch(self(site),oth);			\
 		})
       
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
       if constexpr(MT==MemoryType::GPU)
 	LOOP(DEVICE_PARALLEL_LOOP);
       else
@@ -246,7 +246,7 @@ namespace nissa
     }
     
     /// Move assign
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     Field& operator=(Field&& oth)
     {
       nTotalAllocatedSites=oth.nTotalAllocatedSites;
@@ -345,7 +345,7 @@ namespace nissa
     mutable Data subExpr;
     
 #define PROVIDE_GET_DATA(ATTRIB)			\
-    CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION	\
+    HOST_DEVICE_ATTRIB constexpr INLINE_FUNCTION	\
     ATTRIB Data& getData() ATTRIB			\
     {							\
       return subExpr;					\
@@ -372,7 +372,7 @@ namespace nissa
     
 #define PROVIDE_EVAL(ATTRIB)					\
     template <typename...U>					\
-    CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION		\
+    HOST_DEVICE_ATTRIB constexpr INLINE_FUNCTION		\
     ATTRIB Fund& eval(const U&...cs) ATTRIB			\
     {								\
       return subExpr(cs...);					\
@@ -614,7 +614,7 @@ namespace nissa
     
     /// Copy constructor, internal implementation
     template <typename O>
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     Field(O&& oth,
 	   _CopyConstructInternalDispatcher*) :
       nTotalAllocatedSites(oth.nTotalAllocatedSites),
@@ -660,21 +660,21 @@ namespace nissa
     /// Copy construct, taking as input a non-reference when this is a reference
     template <DerivedFromField O>
     requires(IsRef)
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     explicit Field(O&& oth) :
       Field(std::forward<O>(oth),(_CopyConstructInternalDispatcher*)nullptr)
     {
     }
     
     /// Copy constructor
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB
     Field(const Field& oth) :
       Field(oth,(_CopyConstructInternalDispatcher*)nullptr)
     {
     }
     
     /// Move constructor
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     Field(Field&& oth) :
       nTotalAllocatedSites(oth.nTotalAllocatedSites),
       subExpr(std::move(oth.subExpr)),
@@ -735,7 +735,7 @@ namespace nissa
 				   t,
 				   dynamicSizes,
 				   sendBuf,
-				   f] CUDA_DEVICE(const auto&...c) INLINE_ATTRIBUTE
+				   f] DEVICE_ATTRIB (const auto&...c) INLINE_ATTRIBUTE
 	    {
 	      const auto internalDeg=
 		index(dynamicSizes,c...);
@@ -749,7 +749,7 @@ namespace nissa
     /// Fill the sending buf using the data on the surface of a field
     void fillSendingBufWithSurface() const
     {
-      fillSendingBufWith([lat=lat->getRef()] CUDA_DEVICE(const Site& i) INLINE_ATTRIBUTE
+      fillSendingBufWith([lat=lat->getRef()] DEVICE_ATTRIB (const Site& i) INLINE_ATTRIBUTE
       {
 	return lat.getSurfSiteOfHaloSite(i);
       },lat->getHaloSize());
@@ -806,7 +806,7 @@ namespace nissa
 				   i,
 				   recvBuf,
 				   &subExpr,
-				   dynamicSizes] CUDA_DEVICE(const auto&...c) INLINE_ATTRIBUTE
+				   dynamicSizes] DEVICE_ATTRIB (const auto&...c) INLINE_ATTRIBUTE
 	    {
 	      const auto internalDeg=index(dynamicSizes,c...);
 	      

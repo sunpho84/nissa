@@ -9,7 +9,7 @@
 #include <new_types/su3.hpp>
 #include <routines/ios.hpp>
 
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 
 namespace nissa
 {

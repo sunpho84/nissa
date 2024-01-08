@@ -7,7 +7,7 @@
 
 #include <fftw3.h>
 
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 # include <cufft.h>
 #endif
 
@@ -51,7 +51,7 @@ namespace nissa
 	    /// Extension of the fft
 	    const int64_t nFft=buf.nElements/nCompl/2;
 	    
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 	    if constexpr(B::execSpace==execOnGPU)
 	      fftExecUsingCuFFT(buf.storage,nCompl,sign,nFft);
 	    else
@@ -157,7 +157,7 @@ namespace nissa
 		  "in %lg s\n",takeTime()-startTime);
   }
   
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
   /// Performs the fft using cuda
   inline void fftExecUsingCuFFT(void* buf,
 				int n,

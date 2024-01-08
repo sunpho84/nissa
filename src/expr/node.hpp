@@ -15,18 +15,10 @@
 #include <expr/bindComps.hpp>
 #include <expr/compsMerger.hpp>
 #include <expr/fieldDeclaration.hpp>
-// #include <expr/comps/compLoops.hpp>
-// #include <expr/assign/deviceAssign.hpp>
-// #include <expr/assign/directAssign.hpp>
-// #include <expr/assign/executionSpace.hpp>
-// #include <expr/nodes/scalar.hpp>
 #include <expr/assignDispatcher.hpp>
 #include <expr/dynamicTensDeclaration.hpp>
 #include <expr/nodeDeclaration.hpp>
 #include <expr/stackTensDeclaration.hpp>
-// #include <expr/assign/simdAssign.hpp>
-// #include <expr/assign/threadAssign.hpp>
-// #include <ios/logger.hpp>
 #include <metaprogramming/crtp.hpp>
 #include <tuples/tupleHasType.hpp>
 #include <tuples/tupleFilter.hpp>
@@ -53,7 +45,7 @@ namespace nissa
       
       /// Exec the cast
       template <DerivedFromNode T>
-      static constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+      static constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
       decltype(auto) exec(T&& t)
 	requires(value)
       {
@@ -64,7 +56,7 @@ namespace nissa
   
   /// Check if an expression can be cast to its Fund
   template <DerivedFromNode E>
-  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
   bool exprCanBeCastToFund()
   {
     return impl::_CastToFund<E>::value;
@@ -72,7 +64,7 @@ namespace nissa
   
   /// Casts an expression to fund if possible
   template <DerivedFromNode E>
-  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
   decltype(auto) castExprToFund(E&& t)
   {
     return impl::_CastToFund<std::decay_t<E>>::exec(std::forward<E>(t));
@@ -99,7 +91,7 @@ namespace nissa
         is not to constrain the method, but to return something only
         if the cast is possible. Returning void, invalidates the
         cast */							\
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB		\
     operator decltype(auto)() ATTRIB				\
     {								\
       if constexpr(exprCanBeCastToFund<ATTRIB T>())		\
@@ -113,7 +105,7 @@ namespace nissa
 #undef PROVIDE_AUTOMATIC_CAST_TO_FUND
     
 #define PROVIDE_EXPLICIT_CAST_TO_FUND(REF,VAL,ATTRIB)			\
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB			\
       operator ATTRIB _Fund REF () ATTRIB					\
        requires(std::is_lvalue_reference_v<decltype(DE_CRTPFY(ATTRIB T,this).eval(((Ci)0)...))> ==VAL and \
  	       exprCanBeCastToFund<ATTRIB T>())				\
@@ -144,7 +136,7 @@ namespace nissa
 #define PROVIDE_REINTERPRET_FUND(ATTRIB)			\
     /* Reinterprets the Fund, when lvalue reference */		\
     template <typename NFund>					\
-      constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION		\
+      constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION		\
     ATTRIB auto& reinterpretFund() ATTRIB&			\
     {								\
       static_assert(sizeof(NFund)==sizeof(typename T::Fund),	\
@@ -162,7 +154,7 @@ namespace nissa
     
     /// Reinterprets the Fund, when rvalue reference
     template <typename NFund>
-      constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+      constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
       auto reinterpretFund() &&
     {
       static_assert(sizeof(NFund)==sizeof(typename T::Fund),
@@ -183,7 +175,7 @@ namespace nissa
 #define PROVIDE_MERGE_COMPS(ATTRIB,WHAT_TO_PASS)		\
     /*! Provides possibility to merge a list of components  */	\
       template <typename MCL>					\
-	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
+	constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB		\
 	decltype(auto) mergeComps() ATTRIB			\
       {								\
 	return nissa::mergeComps<MCL>(WHAT_TO_PASS);		\
@@ -268,7 +260,7 @@ namespace nissa
     enum class ClosingType{Fund,StackTens,DynamicTens,Field};
     
     /// Check if can be cast to Fund
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
       static bool _canCloseToFund()
     {
       return exprCanBeCastToFund<T>();
@@ -310,7 +302,7 @@ namespace nissa
     }
     
     /// Closes to Fund
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     auto closeToFund() const
     //requires(_canCloseToFund())
     {
@@ -359,7 +351,7 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     /// Assert whether can run on device
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     static bool canRunOnDevice()
     {
       return T::execSpace.isCompatibleWith(execOnGPU);
@@ -406,7 +398,7 @@ namespace nissa
 #undef PROVIDE_ASSIGN_VARIATION
     
     /// Define the assignment operator with the same expression type
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     Node& operator=(const Node& oth)
     {
       (~*this).assign(~oth);
@@ -432,7 +424,7 @@ namespace nissa
     
     /// Returns the size of the component
     template <typename Comp>
-      constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+      constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
       Comp getCompSize() const
     {
       if constexpr(Comp::sizeIsKnownAtCompileTime)
@@ -442,7 +434,7 @@ namespace nissa
     }
     
     template <typename MCL>
-      constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+      constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
       auto getMergedCompsSize() const
     {
       return
@@ -485,7 +477,7 @@ namespace nissa
     
 #define PROVIDE_CALL(ATTRIB,WHAT_TO_PASS)				\
     template <DerivedFromComp...C>					\
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB			\
       decltype(auto) operator()(const C&...cs) ATTRIB			\
       requires(SatisfiesNodeRequirements<T>)				\
     {									\
@@ -518,7 +510,7 @@ namespace nissa
     
 #define PROVIDE_SUBSCRIBE(ATTRIB,WHAT_TO_PASS)				\
     template <DerivedFromComp C>					\
-      constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+      constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB			\
       decltype(auto) operator[](const C& c) ATTRIB			\
     {									\
       return (WHAT_TO_PASS)(c);						\
@@ -533,13 +525,13 @@ namespace nissa
 #undef PROVIDE_SUBSCRIBE
     
     /// Computes the squared norm
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     auto norm2() const
     {
       std::decay_t<typename T::Fund> s2=0.0;
       
       compsLoop<typename T::Comps>([t=this->getReadable(),
-				    &s2] // CUDA_DEVICE // seems to be making conflict...
+				    &s2] // DEVICE_ATTRIB // seems to be making conflict...
 				   (const auto&...c) INLINE_ATTRIBUTE
       {
 	s2+=sqr(t(c...));

@@ -13,7 +13,7 @@ namespace nissa
   /// Default memory to be used
   constexpr MemoryType defaultMemoryType=
 	      MemoryType::
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 	      GPU
 #else
 	      CPU
@@ -23,7 +23,7 @@ namespace nissa
   /// GPU memory type if compiling for device, CPU otherwise
   constexpr MemoryType maybeGpuMemoryType=
 	      MemoryType::
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 	      GPU
 #else
 	      CPU

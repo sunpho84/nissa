@@ -72,7 +72,7 @@ namespace nissa
     //   SubNode<0>::execSpace;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     decltype(auto) getDynamicSizes() const
     {
       return subExpr.getDynamicSizes();
@@ -150,21 +150,21 @@ namespace nissa
     
     /// Evaluates a generic argument
     template <typename T>
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB
     decltype(auto) argEval(T&& t) const
     {
       return t;
     }
     
     /// Evaluates the shift of a LocLxSite
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB
     LocLxSite argEval(const LocLxSite& t) const
     {
       return latRef.getLocLxNeigh(1-ori,t,dir);
     }
     
     // /// Evaluates the shift of a LocEvn site
-    // INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // INLINE_FUNCTION HOST_DEVICE_ATTRIB
     // LocOddSite argEval(const LocEvnSite& t) const
     // {
     //   const coords_t* loceo_neigh[2]={loceo_neighup[EVN],loceo_neighdw[EVN]};
@@ -173,7 +173,7 @@ namespace nissa
     // }
     
     // /// Evaluates the shift of a LocOdd site
-    // INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // INLINE_FUNCTION HOST_DEVICE_ATTRIB
     // LocEvnSite argEval(const LocOddSite& t) const
     // {
     //   const coords_t* loceo_neigh[2]={loceo_neighup[ODD],loceo_neighdw[ODD]};
@@ -182,7 +182,7 @@ namespace nissa
     // }
     
     // /// Evaluates the shift of a parity
-    // INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // INLINE_FUNCTION HOST_DEVICE_ATTRIB
     // Parity argEval(const Parity& t) const
     // {
     //   return 1-t();
@@ -192,7 +192,7 @@ namespace nissa
     
     /// Evaluate
     template <typename...TD>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     Fund eval(const TD&...td) const
     {
       return subExpr(argEval(td)...);
@@ -274,7 +274,7 @@ namespace nissa
 #define PROVIDE_ORIENTED_SHIFTER(NAME,ORI)	\
   /*! Create a shifter in ORI direction*/	\
   template <DerivedFromNode E>				\
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE\
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB\
   decltype(auto) shift ## NAME(E&& e,		\
 			       const Dir& dir)	\
   {						\

@@ -46,7 +46,7 @@ namespace nissa
     using Base::operator=;
     
     /// Copy-assign
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     StackTens& operator=(const StackTens& oth)
     {
       Base::operator=(oth);
@@ -100,7 +100,7 @@ namespace nissa
       true;
     
     /// Returns empty dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     const CompsList<> getDynamicSizes() const
     {
       return {};
@@ -132,7 +132,7 @@ namespace nissa
     
     /// Value initializer (all values needed)
     template <typename...T>
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     StackTens(T&&...t)
       requires((std::is_convertible_v<T,Fund> and ...) and (sizeof...(T)==nElements))
       : storage{std::forward<T>(t)...}
@@ -140,13 +140,13 @@ namespace nissa
     }
     
     /// Default constructor
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     StackTens()
     {
     }
     
     // /// Copy constructor
-    // constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     // StackTens(const StackTens& oth)
     // {
     //   for(int i=0;i<nElements;i++)
@@ -154,7 +154,7 @@ namespace nissa
     // }
     
     // /// Copy constructor
-    // INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    // INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     // StackTens(const StackTens& oth)
     // {
     //   if constexpr(fundNeedsConstrutor)
@@ -167,7 +167,7 @@ namespace nissa
     
     /// Construct from callable
     template <typename F>
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     StackTens(const F& fun)
       requires(DerivedFromNode<F> or std::is_invocable_v<F,C...>)
     {
@@ -179,7 +179,7 @@ namespace nissa
     }
     
     /// Construct from fundamental
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     StackTens(const Fund& oth)
     {
       compsLoop<Comps>([this,
@@ -189,18 +189,18 @@ namespace nissa
       },std::tuple<>{});
     }
     
-    // constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     // StackTens() = default;
     
-    // constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     // StackTens(const StackTens&) = default;
     
-    // constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     // StackTens(StackTens&&) = default;
     
     // /// Initialize from list
     // template <typename...Tail>
-    // explicit constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    // explicit constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     // StackTens(Tail&&...tail) :
     //   storage{Fund(tail)...}
     // {

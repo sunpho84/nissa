@@ -22,7 +22,7 @@ namespace nissa
 		execOnCPUAndGPU;
     
     /// Evaluate
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     bool operator()(const A& a,
 		    const B& b) const
     {
@@ -39,7 +39,7 @@ namespace nissa
 /// Gets a Kronecker delta over A and B
 template <DerivedFromComp A,
 	  DerivedFromComp B=typename A::Transp>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
 KronDelta<A,B> getKronDelta()
   {
     return {KronDeltaFunctor<A,B>(),std::make_tuple()};

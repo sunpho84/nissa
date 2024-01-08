@@ -89,7 +89,7 @@ namespace nissa
     ExtraDynamicComps extraDynamicSizes;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     decltype(auto) getDynamicSizes() const
     {
       return tupleGetSubset<typename CompsMerger::DynamicComps>(std::tuple_cat(subExpr.getDynamicSizes(),extraDynamicSizes));
@@ -166,7 +166,7 @@ namespace nissa
     
 #define PROVIDE_EVAL(ATTRIB)						\
     template <typename...U>						\
-    CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION			\
+    HOST_DEVICE_ATTRIB constexpr INLINE_FUNCTION			\
     decltype(auto) eval(const U&...cs) ATTRIB				\
     {									\
       const auto procComp=						\
@@ -193,7 +193,7 @@ namespace nissa
     
     /// Construct
     template <typename T>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     CompsMerger(T&& arg)
       requires(std::is_same_v<std::decay_t<T>,std::decay_t<_E>>)
       : subExpr{std::forward<T>(arg)}
@@ -206,7 +206,7 @@ namespace nissa
   /// Merges a subset of components
   template <typename MC,
 	    DerivedFromNode _E>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+  HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
   decltype(auto) mergeComps(_E&& e)
   {
     if constexpr(std::tuple_size_v<MC> <=1)

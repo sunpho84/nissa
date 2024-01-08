@@ -46,7 +46,7 @@ namespace nissa
   {
     H hostVal;
     
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
     D deviceVal;
 #endif
     
@@ -85,7 +85,7 @@ namespace nissa
     requires UniqueExecSpace<ES>
     decltype(auto) getRefForExecSpace() const
     {
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
       if constexpr(ES==execOnGPU)
 	return deviceVal.getRef();
       else
@@ -102,13 +102,13 @@ namespace nissa
 		   NFund>;
     
     /// Returns a reference
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     auto getRef()
     {
       using Res=MirroredNode<Comps,decltype(hostVal.getRef())>;
       
       Res res(hostVal.getRef()
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 	      ,deviceVal.getRef()
 #endif
 	      );
@@ -117,13 +117,13 @@ namespace nissa
     }
     
     /// Returns a const reference
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     auto getRef() const
     {
       using Res=MirroredNode<Comps,decltype(hostVal.getRef())>;
       
       Res res(hostVal.getRef()
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 	      ,deviceVal.getRef()
 #endif
 	      );
@@ -134,7 +134,7 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     /// Gets the data structure for the appropriate context
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     const auto& getForCurrentContext() const
     {
       return
@@ -147,7 +147,7 @@ namespace nissa
     }
     
 #define DELEGATE_TO_CONTEXT(METHOD_NAME,ARGS,FORWARDING,CONST_METHOD)	\
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
     decltype(auto) METHOD_NAME(ARGS) CONST_METHOD			\
     {									\
       return getForCurrentContext().METHOD_NAME(FORWARDING);		\
@@ -162,7 +162,7 @@ namespace nissa
       false;
     
     /// Cannot assign
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     bool canAssign() const
     {
       return false;
@@ -178,7 +178,7 @@ namespace nissa
     
 #undef DELEGATE_TO_CONTEXT
     
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
     static_assert(D::storeByRef==H::storeByRef,"Storying by ref must agree between device and host val");
 #endif
     
@@ -192,28 +192,28 @@ namespace nissa
     INLINE_FUNCTION constexpr
     explicit MirroredNode(const T&...t) :
       hostVal(t...)
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
       ,deviceVal(t...)
 #endif
     {
     }
     
     /// Returns the node as subexpressions
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     decltype(auto) getSubExprs() const
     {
       return nissa::tie(getForCurrentContext());
     }
     
     /// Create from H and D
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     MirroredNode(const H& h
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 		 ,const D& d
 #endif
 		 ) :
       hostVal(h)
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
       ,deviceVal(d)
 #endif
     {
@@ -234,11 +234,11 @@ namespace nissa
     MirroredNode(MirroredNode&& oth)=default;
     
     /// Move assign
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     MirroredNode& operator=(MirroredNode&& oth)
     {
       hostVal=std::move(oth.hostVal);
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
       deviceVal=std::move(oth.deviceVal);
 #endif
       
@@ -249,7 +249,7 @@ namespace nissa
     INLINE_FUNCTION constexpr
     void updateDeviceCopy()
     {
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
       deviceVal=hostVal;
 #endif
     }
@@ -260,7 +260,7 @@ namespace nissa
     void allocate(const T&...t)
     {
       hostVal.allocate(t...);
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
       deviceVal.allocate(t...);
 #endif
     }
@@ -302,7 +302,7 @@ namespace nissa
       }
       
       /// Destroy updating the device copy
-      CUDA_HOST_AND_DEVICE
+      HOST_DEVICE_ATTRIB
       ~FillableProxy()
       {
 	if constexpr(not compilingForDevice)

@@ -17,7 +17,7 @@ namespace nissa
   
 #define PROVIDE_REAL_OR_IMAG(NAME,VAL)			\
   template <typename T>					\
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB	\
   auto NAME(T&& t)					\
   {							\
     return						\
@@ -94,7 +94,7 @@ namespace nissa
       ConjExpr::execSpace;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     decltype(auto) getDynamicSizes() const
     {
       return subExpr.getDynamicSizes();
@@ -155,7 +155,7 @@ namespace nissa
     
     /// Evaluate
     template <typename...TD>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     Fund eval(const TD&...td) const
     {
       /// Compute the real or imaginary component
@@ -174,7 +174,7 @@ namespace nissa
     
     /// Construct
     template <typename T>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     Conjugator(T&& arg)
       requires(std::is_same_v<std::decay_t<T>,std::decay_t<_E>>)
       : subExpr{std::forward<T>(arg)}
@@ -184,7 +184,7 @@ namespace nissa
   
   /// Conjugate an expression
   template <DerivedFromNode _E>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+  HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
   decltype(auto) conj(_E&& e)
   {
     /// Base passed type
@@ -220,11 +220,11 @@ namespace nissa
   
   /// One as a complex
   template <typename Fund=double>
-  CUDA_DEVICE constexpr ComplNum<Fund> complOne{(Fund)1,(Fund)0};
+  DEVICE_ATTRIB constexpr ComplNum<Fund> complOne{(Fund)1,(Fund)0};
   
   /// Imaginary unit
   template <typename Fund=double>
-  CUDA_DEVICE constexpr ComplNum<Fund> complI{(Fund)0,(Fund)1};
+  DEVICE_ATTRIB constexpr ComplNum<Fund> complI{(Fund)0,(Fund)1};
 }
 
 #endif

@@ -18,7 +18,7 @@ namespace nissa
   {								\
     template <typename A,					\
 	      typename B>					\
-    static constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION	\
+    static constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION	\
     void dispatch(A&& a,					\
 		  B&& b)					\
     {								\

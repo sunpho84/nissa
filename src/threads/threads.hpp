@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <cstdio>
 
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 # include <base/cuda.hpp>
 #endif
 #include <expr/comp.hpp>
@@ -94,7 +94,7 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
   
   template <typename IMin,
 	    typename IMax,
@@ -167,7 +167,7 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 # define DEVICE_PARALLEL_LOOP_ROUTINE cudaParallelFor
 #else
 # define DEVICE_PARALLEL_LOOP_ROUTINE HOST_PARALLEL_LOOP_ROUTINE
@@ -177,11 +177,11 @@ namespace nissa
   HOST_PARALLEL_LOOP_ROUTINE(__LINE__,__FILE__,MIN,MAX,[CAPTURES] (const auto& INDEX) MUTABLE_INLINE_ATTRIBUTE BODY)
 
 #define DEVICE_PARALLEL_LOOP(MIN,MAX,CAPTURES,INDEX,BODY...)		\
-  DEVICE_PARALLEL_LOOP_ROUTINE(__LINE__,__FILE__,MIN,MAX,[CAPTURES] CUDA_DEVICE (const auto& INDEX) mutable BODY)
+  DEVICE_PARALLEL_LOOP_ROUTINE(__LINE__,__FILE__,MIN,MAX,[CAPTURES] DEVICE_ATTRIB (const auto& INDEX) mutable BODY)
   
   ///////////////////////////////////////////////////////////////// this part must go
   
-#if USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 # define DEFAULT_PARALLEL_LOOP DEVICE_PARALLEL_LOOP
 #else
 # define DEFAULT_PARALLEL_LOOP HOST_PARALLEL_LOOP
@@ -190,7 +190,7 @@ namespace nissa
 #define PAR(MIN,MAX,CAPTURES,INDEX,BODY...)		\
   DEFAULT_PARALLEL_LOOP(MIN,MAX,CAPTURE(CAPTURES),INDEX,BODY)
 
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 # define PAR_ON_EXEC_SPACE(EXEC_SPACE,MIN,MAX,CAPTURES,INDEX,BODY...)	\
   static_assert(EXEC_SPACE.hasUniqueExecSpace(),"Not uinique exec space!"); \
   if constexpr(EXEC_SPACE==execOnCPU)					\

@@ -132,7 +132,7 @@ namespace nissa
     template <typename F,
 	      DerivedFromComp...Dc,
 	      DerivedFromComp...ProcessedComps>
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     void _compsLoop(F f,
 		    const CompsList<Dc...>& dynamicComps,
 		    const ProcessedComps&...pc)
@@ -145,7 +145,7 @@ namespace nissa
 	      typename F,
 	      DerivedFromComp...Dc,
 	      DerivedFromComp...ProcessedComps>
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     void _compsLoop(F f,
 		    const CompsList<Dc...>& dynamicComps,
 		    const ProcessedComps&...pc)
@@ -180,7 +180,7 @@ namespace nissa
     {
       template <typename F,
 		typename...Dc>
-      static INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+      static INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
       void exec(F f,
 		const CompsList<Dc...> &dynamicComps)
       {
@@ -193,7 +193,7 @@ namespace nissa
   template <typename Tp,
 	    typename F,
 	    typename...Dc>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
   void compsLoop(F f,
 		 const CompsList<Dc...>& dynamicComps)
   {

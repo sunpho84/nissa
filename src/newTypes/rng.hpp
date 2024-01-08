@@ -30,7 +30,7 @@ namespace nissa
     struct UniformRngDistr
     {
       /// Transforms two uint32_t into a high precision uniform
-      CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+      HOST_DEVICE_ATTRIB INLINE_FUNCTION
       static Float128 transform(const std::array<uint32_t,2>& vals)
       {
 	const uint32_t& e=vals[0];
@@ -56,7 +56,7 @@ namespace nissa
       ///
       /// We draw a number between 0 and 1, then we multiply by 2,
       /// this way we realize exactly the parity symmetry
-      CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+      HOST_DEVICE_ATTRIB INLINE_FUNCTION
       static double transformCos(const std::array<uint32_t,2>& vals)
       {
 	// printf("%u %u\n",vals[0],vals[1]);
@@ -88,7 +88,7 @@ namespace nissa
       }
       
       /// Transforms two uint32_t into log(1-x) with x uniformly distributed
-      CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+      HOST_DEVICE_ATTRIB INLINE_FUNCTION
       static double transformLog(const std::array<uint32_t,2>& vals)
       {
 	/// Number needed to draw the radius
@@ -105,7 +105,7 @@ namespace nissa
       }
       
       /// Transforms four uint32_t into a normally distributed
-      CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+      HOST_DEVICE_ATTRIB INLINE_FUNCTION
       static double transform(const std::array<uint32_t,4>& vals)
       {
 	return sqrt(-2*transformLog({vals[0],vals[1]}))*
@@ -120,7 +120,7 @@ namespace nissa
     struct Z2RngDistr
     {
       /// Transforms one uint32_t into +1 or -1
-      CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+      HOST_DEVICE_ATTRIB INLINE_FUNCTION
       static double transform(const std::array<uint32_t,1>& vals)
       {
 	return (vals[0]&0x1)?+1.0:-1.0;
@@ -214,7 +214,7 @@ namespace nissa
     const uint64_t nReserved;
     
     /// Draw 32 bits of randomness
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION
     uint32_t draw32bitsWithOffset(const uint64_t& offset) const
     {
       if(offset>=nReserved)
@@ -260,7 +260,7 @@ namespace nissa
     const uint64_t nReserved;
     
     /// Generates a random number according to the target distribution
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION
     auto draw(const uint64_t& offset) const
     {
       if(offset>=nReserved)
@@ -306,7 +306,7 @@ namespace nissa
   //   /// Generates a random number distributed in the range [0,1)
   //   ///
   //   /// Do not use for making large transformation of the argument!
-  //   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  //   HOST_DEVICE_ATTRIB INLINE_FUNCTION
   //   double getUniformNoHighPrec(const uint64_t& offset)
   //   {
   //     return draw(offset).roundDown();
@@ -315,13 +315,13 @@ namespace nissa
   
   
   // /// Draw a random number following a Gauss distribution
-  //   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  //   HOST_DEVICE_ATTRIB INLINE_FUNCTION
   //   double getGauss()
   //   {
   //   }
     
   //   /// Generate a gaussian number without aking care of all the details
-  //   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  //   HOST_DEVICE_ATTRIB INLINE_FUNCTION
   //   double getGaussNoHighPrec()
   //   {
   //     const double r=sqrt(-2*log(1-getUniformNoHighPrec()));

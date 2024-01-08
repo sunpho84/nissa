@@ -15,7 +15,7 @@ namespace nissa
 {
   /// Take the dagger of an expression
   template <DerivedFromNode _E>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+  HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
   decltype(auto) dag(_E&& e)
   {
     using E=std::decay_t<_E>;

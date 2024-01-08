@@ -71,7 +71,7 @@ namespace nissa
       TranspExpr::execSpace;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     decltype(auto) getDynamicSizes() const
     {
       return subExpr.getDynamicSizes();
@@ -133,7 +133,7 @@ namespace nissa
     
     /// Evaluate
     template <typename...TD>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     Fund eval(const TD&...td) const
     {
       return subExpr(transp(td)...);
@@ -149,7 +149,7 @@ namespace nissa
     
     /// Construct
     template <typename T>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     Transposer(T&& arg)
       requires(std::is_same_v<std::decay_t<T>,std::decay_t<_E>>)
       : subExpr{std::forward<T>(arg)}
@@ -159,7 +159,7 @@ namespace nissa
   
   /// Transpose an expression
   template <DerivedFromNode _E>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+  HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
   decltype(auto) transp(_E&& e)
   {
 #if 0

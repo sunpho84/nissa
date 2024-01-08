@@ -145,7 +145,7 @@ namespace nissa
     const DynamicComps dynamicSizes;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     decltype(auto) getDynamicSizes() const
     {
       return dynamicSizes;
@@ -230,7 +230,7 @@ namespace nissa
     template <int I,
 	      typename FC,
 	      typename...NCcs>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     static auto getCompsForFact(const CompsList<NCcs...>& nccs)
     {
       using FreeC=TupleFilterAllTypes<typename SubExpr<I>::Comps,FC>;
@@ -243,7 +243,7 @@ namespace nissa
 	      typename A,
 	      typename E0,
 	      typename E1>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     void _eval(std::bool_constant<true>,
 	       Res& res,
 	       A&& allNccs,
@@ -268,7 +268,7 @@ namespace nissa
 	      typename A,
 	      typename E0,
 	      typename E1>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     void _eval(std::bool_constant<false>,
 	       Res& res,
 	       A&& allNccs,
@@ -281,7 +281,7 @@ namespace nissa
     
     /// Evaluate
     template <typename...NCcs> // Non contracted components
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     Fund eval(const NCcs&..._nccs) const
     {
       const auto allNccs=
@@ -347,7 +347,7 @@ namespace nissa
     
     /// Construct
     template <DerivedFromNode...T>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     Producer(const DynamicComps& dynamicSizes,
 	     T&&...facts) :
       subExprs{{std::forward<T>(facts)}...},
@@ -365,7 +365,7 @@ namespace nissa
   };
   
   template <DerivedFromNode..._E>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
   auto prod(_E&&...e)
   {
     /// Computes the product components
@@ -402,7 +402,7 @@ namespace nissa
   /// Catch the product operator
   template <DerivedFromNode E1,
 	    DerivedFromNode E2>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
   auto operator*(E1&& e1,
 		 E2&& e2)
   {
@@ -413,7 +413,7 @@ namespace nissa
   /// Catch the self-product operator
   template <DerivedFromNode E1,
 	    DerivedFromNode E2>
-  INLINE_FUNCTION constexpr // CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr // HOST_DEVICE_ATTRIB
   auto operator*=(E1&& e1,
 		  E2&& e2)
   {
@@ -435,7 +435,7 @@ namespace nissa
   
   /// Square of anything
   template <typename T>
-  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
   auto sqr(T&& x)
   {
     return x*x;

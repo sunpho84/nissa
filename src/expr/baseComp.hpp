@@ -54,7 +54,7 @@ namespace nissa
       (sizeAtCompileTime!=0);
     
     /// Default constructor
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB constexpr
     BaseComp() :
       i(0)
     {
@@ -66,14 +66,14 @@ namespace nissa
     /// Init from value
     template <typename T=Index>
     requires(isExplicitlySafeNumericConversion<T,Index>)
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB constexpr
     BaseComp(T&& i) :
       i(i)
     {
     }
     
     /// Assignment operator
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB constexpr
     BaseComp& operator=(const Index& oth) &
     {
       i=oth;
@@ -92,7 +92,7 @@ namespace nissa
 #define PROVIDE_CAST_TO_VALUE(ATTRIB)					\
 									\
     /*! Convert to actual reference with or without const attribute */	\
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
     explicit operator ATTRIB Index&() ATTRIB				\
     {									\
       return i;								\
@@ -106,7 +106,7 @@ namespace nissa
     
     /// Convert to any type to which Index is convertible
     template <typename T>
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     explicit operator T() const
       requires(isSafeNumericConversion<Index,T> and not std::is_same_v<T,Index>)
     {
@@ -121,14 +121,14 @@ namespace nissa
     }
     
     /// Convert to actual reference with const attribute
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     const Index& operator()() const &
     {
       return i;
     }
     
     /// Convert to Index if rvalue reference
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     Index operator()() &&
     {
       return i;
@@ -146,7 +146,7 @@ namespace nissa
   /*! exec the operation if D can be safely converted to C */		\
   template <DerivedFromComp C,						\
 	    typename D>							\
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
   C operator OP(const D& a,						\
 		const C& b)						\
     requires(isSafeNumericConversion<D,typename C::Index>)		\
@@ -158,7 +158,7 @@ namespace nissa
   /*! but C can be safely converted to D                      */	\
   template <DerivedFromComp C,						\
 	    typename D>							\
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
   D operator OP(const D& a,						\
 		const C& b)						\
     requires((not isSafeNumericConversion<D,typename C::Index>) and	\

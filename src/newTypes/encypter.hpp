@@ -29,7 +29,7 @@ namespace nissa
     Key key;
     
     /// Build a key from a word
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB
     static Key buildKey(const Word& word)
     {
       /// Output
@@ -46,7 +46,7 @@ namespace nissa
     }
     
     /// Encrypts the input
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     Word encrypt(Word x) const         ///< Input to encrypt
     {
       for(int j=0;j<5;j++)

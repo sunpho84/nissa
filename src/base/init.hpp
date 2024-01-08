@@ -74,7 +74,7 @@ namespace nissa
     masterPrintf("Configured at %s with flags: %s\n",CONFIG_TIME,CONFIG_FLAGS);
     masterPrintf("Compiled at %s of %s\n",__TIME__,__DATE__);
     
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
     initCuda();
 #endif
     

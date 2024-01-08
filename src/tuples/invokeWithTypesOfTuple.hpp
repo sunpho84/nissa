@@ -30,7 +30,7 @@ namespace nissa
   //     /// Call the callable f explicitly passing the tuple type as template parameters, and the passed arguments
   //     template <typename F,
   // 		typename...Args>
-  //     INLINE_FUNCTION static constexpr CUDA_HOST_AND_DEVICE
+  //     INLINE_FUNCTION static constexpr HOST_DEVICE_ATTRIB
   //     decltype(auto) exec(const F& f,
   // 			  Args&&...args)
   //     {
@@ -43,7 +43,7 @@ namespace nissa
   template <typename TP,
 	    typename F,
 	    typename...Args>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
   decltype(auto) invokeWithTypesOfTuple(const F& f,
 					Args&&...args)
   {

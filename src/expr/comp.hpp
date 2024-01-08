@@ -29,7 +29,7 @@ namespace nissa
   /// Promotes the argument i to a component of type TYPE
 #define DECLARE_COMPONENT_FACTORY(FACTORY,TYPE)			\
   template <typename T>						\
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE		\
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB		\
   TYPE FACTORY(T&& i)						\
   {								\
     return i;							\
@@ -38,7 +38,7 @@ namespace nissa
   /// Provide the specific member function, with const and non const 
 #define PROVIDE_MEMBER_COMPONENT_SUBSCRIBER(FACTORY,TYPE,ATTRIB)	\
   template <typename I>							\
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
   auto FACTORY(const I& i) ATTRIB					\
   {									\
     return DE_CRTPFY(ATTRIB N,this)(TYPE(i));				\
@@ -167,14 +167,14 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   template <DerivedFromTransposableComp T>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
   typename T::Transp transp(const T& t)
   {
     return t();
   }
   
   template<DerivedFromUntransposableComp T>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
   const T& transp(const T& t)
   {
     return t;
@@ -185,7 +185,7 @@ namespace nissa
   template <typename Tout,
 	    typename Tin,
 	    DerivedFromComp F>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
   const F& compCast(const F& t)
   {
     return t;
@@ -193,7 +193,7 @@ namespace nissa
   
   template <typename Tout,
 	    typename Tin>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
   Tout compCast(const Tin& t)
   {
     return t();

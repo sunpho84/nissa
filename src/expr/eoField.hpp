@@ -102,7 +102,7 @@ namespace nissa
 #undef EO_FIELD_COMPS_PROVIDER
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     auto getDynamicSizes() const
     {
       return std::apply([](const auto&...c)
@@ -114,7 +114,7 @@ namespace nissa
     /// Provide evaluator
 #define PROVIDE_EVAL(ATTRIB)						\
     template <typename...U>						\
-    CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION			\
+    HOST_DEVICE_ATTRIB constexpr INLINE_FUNCTION			\
     ATTRIB Fund& eval(const U&...cs) ATTRIB				\
     {									\
       const auto c=std::make_tuple(cs...);				\
@@ -181,7 +181,7 @@ namespace nissa
     {
     }
     
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB
     ~EoField()
     {
     }

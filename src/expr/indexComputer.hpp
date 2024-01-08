@@ -20,7 +20,7 @@ namespace nissa
   /// This works when the passed components are already well ordered
   template <DerivedFromComp...D,
 	    DerivedFromComp...C>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  HOST_DEVICE_ATTRIB INLINE_FUNCTION
   auto index(const CompsList<D...>& dynamicSizes,
 	     const C&...comps)
   {
@@ -94,7 +94,7 @@ namespace nissa
   ///
   /// In this case we have no dynamic component
   template <DerivedFromComp...C>
-  constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
   auto index(const std::tuple<>&,
 	     const C&...comps)
   {
@@ -109,7 +109,7 @@ namespace nissa
   template <typename...O,
 	    typename DynamicComps,
 	    DerivedFromComp...U>
-  constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
   auto orderedIndex(const DynamicComps& dynamicSizes,
 		    const U&...cs)
   {
@@ -160,7 +160,7 @@ namespace nissa
     {
       template <typename...D,
 		typename I>
-      static constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+      static constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
       auto decompose(const CompsList<D...>& dynamicSizes,
 		     const I& i)
       {
@@ -174,7 +174,7 @@ namespace nissa
     {
       template <typename...D,
 		typename I>
-      static constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+      static constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
       auto decompose(const CompsList<D...>& dynamicSizes,
 		     const I& i)
       {
@@ -199,7 +199,7 @@ namespace nissa
   template <typename C,
 	    typename D,
 	    typename I>
-   constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+   constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
   C indexDecompose(const D& dynamicSizes,
 		   const I& i)
   {

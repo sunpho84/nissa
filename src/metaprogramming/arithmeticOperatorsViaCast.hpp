@@ -19,7 +19,7 @@ namespace nissa
   struct ArithmeticOperators
   {
 #define PROVIDE_POSTFIX_OPERATOR(OP)			\
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB	\
     ReturnedType operator OP (int)			\
     {							\
       auto& self=					\
@@ -41,7 +41,7 @@ namespace nissa
 #define PROVIDE_OPERATOR(OP,RETURNED_TYPE)				\
     									\
     /*! Exec the operation if oth is an Arithmetic operator */		\
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
     RETURNED_TYPE operator OP(const ArithmeticOperators& oth) const	\
     {									\
       const auto& This=							\
@@ -55,7 +55,7 @@ namespace nissa
     									\
     /*! Exec the operation if Oth can be cast to CastToExec   */	\
     template <typename Oth>						\
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
     RETURNED_TYPE operator OP(const Oth& oth) const			\
       requires(isSafeNumericConversion<Oth,CastToExec>)			\
     {									\
@@ -67,7 +67,7 @@ namespace nissa
     /*! Exec the operation if Oth cannot be cast to CastToExec but   */	\
     /*! if after casting this to CastToExec, it can be cast to Oth   */ \
     template <typename Oth>						\
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
     Oth operator OP(const Oth& oth) const				\
       requires(not isSafeNumericConversion<Oth,CastToExec> and		\
 	       isSafeNumericConversion<CastToExec,Oth>)			\
@@ -96,7 +96,7 @@ namespace nissa
     
 #define PROVIDE_SELF_OPERATOR(OP)					\
     template <typename Oth>						\
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
     ReturnedType& operator OP ##=(const Oth& oth)			\
       requires(isSafeNumericConversion<Oth,CastToExec> or		\
 	       std::conjunction_v<					\

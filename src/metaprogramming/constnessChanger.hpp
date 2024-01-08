@@ -47,7 +47,7 @@ namespace nissa
   /// Return the type with or not the const
   template <bool B,
 	    typename T>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
   ConstIf<B,T> constIf(T&& t)
   {
     return std::forward<T>(t);

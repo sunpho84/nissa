@@ -17,7 +17,7 @@ namespace nissa
   /// obfuscated by the expression overload
 #define OVERLOAD_FUN_TYPE(NAME,TYPE,SUFF)				\
   template <typename F>							\
-  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+  constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB			\
   F NAME(const F& f)							\
     requires(isSafeNumericConversion<F,TYPE>)	\
   {							\
@@ -34,7 +34,7 @@ namespace nissa
   struct FUN ## Functor					\
   {							\
     template <typename E>				\
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE	\
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB	\
     static auto compute(E&& e)				\
     {							\
       return FUN(std::forward<E>(e));			\
@@ -43,7 +43,7 @@ namespace nissa
   							\
   /*! Catch FUN(node) */				\
   template <DerivedFromNode E>				\
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB	\
   auto FUN(E&& e)					\
   {							\
     return						\

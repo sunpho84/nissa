@@ -56,7 +56,7 @@ namespace nissa
 
 #endif
 
-#ifndef USE_CUDA
+#ifndef ENABLE_DEVICE_CODE
 namespace nissa
 {
   int iCudaDevice;

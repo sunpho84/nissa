@@ -44,14 +44,14 @@ namespace nissa
     T& t;
     
     /// Creator
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION
     EndiannessMask(T& t) :
       t(t)
     {
     }
     
     /// Acces data
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION
     const char& operator[](const int& i) const
     {
       char* c=(char*)&t;
@@ -65,7 +65,7 @@ namespace nissa
   
   /// Returns the argument, swapped byte-by-byte
   template <typename T>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  HOST_DEVICE_ATTRIB INLINE_FUNCTION
   T byteSwap(const T& t)
   {
     /// Union to swap
@@ -90,7 +90,7 @@ namespace nissa
   template <Endianness Dest,
 	    Endianness Source,
 	    typename T>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  HOST_DEVICE_ATTRIB INLINE_FUNCTION
   void fixEndianness(T& t)
   {
     if constexpr(Dest!=Source)
@@ -100,7 +100,7 @@ namespace nissa
   /// Adapt the endianness to native
   template <Endianness Source,
 	    typename T>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  HOST_DEVICE_ATTRIB INLINE_FUNCTION
   void fixToNativeEndianness(T& t)
   {
     fixEndianness<nativeEndianness,Source>(t);
@@ -109,7 +109,7 @@ namespace nissa
   /// Adapt the endianness from native
   template <Endianness Dest,
 	    typename T>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  HOST_DEVICE_ATTRIB INLINE_FUNCTION
   void fixFromNativeEndianness(T& t)
   {
     fixEndianness<Dest,nativeEndianness>(t);

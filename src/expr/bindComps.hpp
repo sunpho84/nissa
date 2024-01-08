@@ -72,7 +72,7 @@ namespace nissa
       BoundExpr::execSpace;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     decltype(auto) getDynamicSizes() const
     {
       return tupleGetSubset<typename CompsBinder::DynamicComps>(subExpr.getDynamicSizes());
@@ -171,7 +171,7 @@ namespace nissa
     
 #define PROVIDE_EVAL(ATTRIB)						\
     template <typename...U>						\
-    CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION			\
+    HOST_DEVICE_ATTRIB constexpr INLINE_FUNCTION			\
     decltype(auto) eval(const U&...cs) ATTRIB				\
     {									\
       return								\
@@ -186,7 +186,7 @@ namespace nissa
     
     /// Construct
     template <typename T>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     CompsBinder(T&& arg,
 		const BoundComps& boundComps) :
       subExpr{std::forward<T>(arg)},
@@ -206,7 +206,7 @@ namespace nissa
   /// Binds a subset of components
   template <DerivedFromNode _E,
 	    DerivedFromComp...BCs>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+  HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
   auto bindComps(_E&& e,
 		 const CompsList<BCs...>& bc)
   {
@@ -237,7 +237,7 @@ namespace nissa
   // /// Rebind an already bound expression
   // template <typename CB,
   // 	    typename...BCs>
-  // CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+  // HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
   // auto compBind(const CompBinderFeat<CB>& cb,
   // 		const CompsList<BCs...>& bcs)
   // {

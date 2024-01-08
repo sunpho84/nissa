@@ -17,7 +17,7 @@ namespace nissa
   {
 #define PROVIDE_GET_SUBEXPRS(ATTRIB)				\
     /* Returns reference to the subexpressions */		\
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE		\
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB		\
     ATTRIB auto& getSubExprs() ATTRIB				\
     {								\
       return DE_CRTPFY(ATTRIB D,this).subExprs;			\
@@ -33,7 +33,7 @@ namespace nissa
   /// Empty subexpressions
   struct NoSubExprs
   {
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     const Tuple<> getSubExprs() const
     {
       return {};
@@ -46,7 +46,7 @@ namespace nissa
   {
 #define PROVIDE_GET_SUBEXPRS(ATTRIB)				\
     /* Returns reference to the subexpressions */		\
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE		\
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB		\
     auto getSubExprs() ATTRIB					\
     {								\
       return nissa::tie(DE_CRTPFY(const D,this).subExpr);	\

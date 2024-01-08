@@ -19,7 +19,7 @@ namespace nissa
     const Fund val;
     
     /// Default constructor
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     explicit ScalarWrapFunctor(const Fund& val) :
       val(val)
     {
@@ -38,7 +38,7 @@ namespace nissa
 		execOnCPUAndGPU;
     
     /// Evaluate
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     const Fund& operator()() const
     {
       return val;
@@ -52,7 +52,7 @@ namespace nissa
   
   /// Creates a Scalar of type F
   template <TriviallyCopyable F>
-  constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
   Scalar<F> scalar(const F& f)
   {
     return {ScalarWrapFunctor<F>(f),std::make_tuple()};

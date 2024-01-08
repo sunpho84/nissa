@@ -84,7 +84,7 @@ namespace nissa
     const DynamicComps dynamicSizes;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     decltype(auto) getDynamicSizes() const
     {
       return dynamicSizes;
@@ -167,7 +167,7 @@ namespace nissa
     /// Gets the components for the I-th addend
     template <int I,
 	      typename...Cs>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     static auto getCompsForSubexpr(const Cs&...cs)
     {
       return tupleGetSubset<typename SubExpr<I>::Comps>(std::make_tuple(cs...));
@@ -175,7 +175,7 @@ namespace nissa
     
     /// Evaluate
     template <typename...Cs>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     Fund eval(const Cs&...cs) const
     {
       return
@@ -184,7 +184,7 @@ namespace nissa
     
     /// Construct
     template <DerivedFromNode...T>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     CWiseCombiner(const DynamicComps& dynamicSizes,
 		  T&&...addends) :
       subExprs{{std::forward<T>(addends)}...},
@@ -203,7 +203,7 @@ namespace nissa
   
   template <typename Comb,
 	    DerivedFromNode..._E>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
   auto cWiseCombine(_E&&...e)
   {
     /// Computes the result components
@@ -235,7 +235,7 @@ namespace nissa
     struct _ ## NAMED_OP ## Functor					\
     {									\
       template <typename...Args>					\
-      constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+      constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB			\
       static auto compute(Args&&...s)					\
       {									\
 	return ((std::forward<Args>(s)) OP ...);			\
@@ -246,7 +246,7 @@ namespace nissa
   /*! Catch the OP operator */						\
   template <DerivedFromNode E1,						\
 	    DerivedFromNode E2>						\
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
   auto operator OP(E1&& e1,						\
 		   E2&& e2)						\
   {									\
@@ -285,7 +285,7 @@ namespace nissa
     {									\
       template <typename Arg>						\
       constexpr INLINE_FUNCTION						\
-      static auto CUDA_HOST_AND_DEVICE compute(Arg&& s)			\
+      static auto HOST_DEVICE_ATTRIB compute(Arg&& s)			\
       {									\
 	return OP std::forward<Arg>(s);					\
       }									\
@@ -294,7 +294,7 @@ namespace nissa
   									\
   /*! Catch the OP operator */						\
   template <DerivedFromNode E>						\
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
   auto operator OP(E&& e)						\
   {									\
     return								\

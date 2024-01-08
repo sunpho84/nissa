@@ -2,17 +2,20 @@
 #define _MEMORY_MANAGER_HPP
 
 #ifdef HAVE_CONFIG_H
-# include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <map>
 #include <vector>
 #include <cstdint>
 
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 # include <cuda_runtime.h>
 #endif
 
+#ifdef ENABLE_DEVICE_CODE
+# include <base/cuda.hpp>
+#endif
 #include <base/memoryType.hpp>
 #include <expr/execSpace.hpp>
 #include <newTypes/valueWithExtreme.hpp>
@@ -356,7 +359,7 @@ namespace nissa
   
   inline MemoryManager* cpuMemoryManager;
   
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
   
   /// Manager of GPU memory
   struct GPUMemoryManager :
@@ -371,9 +374,9 @@ namespace nissa
       /// Result
       void* ptr=nullptr;
       
-      verbosity_lv3_master_printf("Allocating size %zu on GPU, ",size);
+      VERBOSITY_LV3_MASTER_PRINTF("Allocating size %zu on GPU, ",size);
       decryptCudaError(cudaMalloc(&ptr,size),"Allocating on Gpu");
-      verbosity_lv3_master_printf("ptr: %p\n",ptr);
+      VERBOSITY_LV3_MASTER_PRINTF("ptr: %p\n",ptr);
       
       nAlloc++;
       
@@ -383,7 +386,7 @@ namespace nissa
     /// Properly free
     void deAllocateRaw(void* ptr)
     {
-      master_printf("Freeing from GPU memory %p\n",ptr);
+      masterPrintf("Freeing from GPU memory %p\n",ptr);
       decryptCudaError(cudaFree(ptr),"Freeing from GPU");
     }
     
@@ -406,7 +409,7 @@ namespace nissa
       case MemoryType::CPU:
 	return cpuMemoryManager;
 	break;
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
       case MemoryType::GPU:
 	return gpuMemoryManager;
 	break;
@@ -414,7 +417,7 @@ namespace nissa
     }
   }
   
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
   
   template <MemoryType FROM,
 	    MemoryType TO>
@@ -440,7 +443,7 @@ namespace nissa
 	      const void* src,
 	      const size_t& count)
   {
-#if USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
     decryptCudaError(cudaMemcpy(dst,src,count,cudaMemcpyKindForTransferFromTo<FROM,TO>),"calling cudaMemcpy");
 #else
     ::memcpy(dst,src,count);
@@ -459,7 +462,7 @@ namespace nissa
   {
     //initialize the memory manager
     cpuMemoryManager=new CPUMemoryManager;
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
     gpuMemoryManager=new GPUMemoryManager;
 #endif
   }

@@ -28,7 +28,7 @@ namespace nissa
   /// Predefinite memory layout
   constexpr FieldLayout defaultFieldLayout=
 	      FieldLayout::
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 	      GPU
 #else
 	      CPU

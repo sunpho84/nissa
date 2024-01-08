@@ -39,7 +39,7 @@ namespace nissa
     /// Returns the merged component from the unmerged one
     template <DerivedFromComp...D,
 	      DerivedFromComp...C>
-    static INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    static INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     MergedComp merge(const std::tuple<D...>& dynamicSizes,
 		     const C&...c)
     {
@@ -48,7 +48,7 @@ namespace nissa
     
     /// Gets the components of a merged component
     template <typename D>
-    static INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    static INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     Comps decompose(const D& dynamicSizes,
 		    const MergedComp& i)
     {
@@ -57,14 +57,14 @@ namespace nissa
     
     /// Gets the components of this merged component
     template <typename D>
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     Comps decompose(const D& dynamicSizes) const
     {
       return MergedComp::decompose(dynamicSizes,*this);
     }
     
     /// Gets the components of this merged component
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     Comps decompose() const
     {
       return this->decompose(std::make_tuple(),*this);
@@ -73,7 +73,7 @@ namespace nissa
     /// Initialize from dynamicSizes and components
     template <DerivedFromComp...D,
 	      DerivedFromComp...E>
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     MergedComp(const std::tuple<D...>& dynamicSizes,
 	       const E&...e) :
       MergedComp(MergedComp::merge(dynamicSizes,e...))
@@ -82,7 +82,7 @@ namespace nissa
     
     /// Initialize from components
     template <DerivedFromComp...E>
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     MergedComp(const E&...e) :
       MergedComp(std::tuple<>{},e...)
     {
@@ -91,7 +91,7 @@ namespace nissa
   
   template <typename Tp,
 	    typename T>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
   MergedComp<Tp> mergedComp(T&& i)
   {
     return i;

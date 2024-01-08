@@ -38,7 +38,7 @@ namespace nissa
 	vsprintf(mess,templ,ap);
 	va_end(ap);
 	
-	internal_crash(line,file,"%s, cuda raised error: %s",mess,cudaGetErrorString(rc));
+	internalCrash(line,file,"%s, cuda raised error: %s",mess,cudaGetErrorString(rc));
       }
   }
   
@@ -46,7 +46,7 @@ namespace nissa
   {
     int nDevices;
     if(cudaGetDeviceCount(&nDevices)!=cudaSuccess)
-      crash("no CUDA enabled device");
+      CRASH("no CUDA enabled device");
     
     printf("Number of CUDA enabled devices on rank[%ld] (%s) : %d\n",thisRank(),mpiGetProcessorName().c_str(),nDevices);
     for(int i=0;i<nDevices;i++)

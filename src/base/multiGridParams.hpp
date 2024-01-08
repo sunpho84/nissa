@@ -22,12 +22,12 @@ namespace nissa
   {
     T data[N];
     
-    CUDA_HOST_AND_DEVICE inline T& operator[](const size_t i)
+    HOST_DEVICE_ATTRIB inline T& operator[](const size_t i)
     {
       return data[i];
     }
     
-    CUDA_HOST_AND_DEVICE const inline T& operator[](const size_t i) const 
+    HOST_DEVICE_ATTRIB const inline T& operator[](const size_t i) const
     {
       return data[i];
     }

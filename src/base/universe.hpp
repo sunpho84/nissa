@@ -27,7 +27,7 @@ namespace nissa
   static constexpr Dir timeDir=0;
   
   /// Mapping of scidac to nissa directions
-  CUDA_DEVICE static constexpr Coords<Dir> scidacNissaDirMapping=
+  DEVICE_ATTRIB static constexpr Coords<Dir> scidacNissaDirMapping=
     [](const Dir& in)
     {
       if(in==timeDir)
@@ -39,7 +39,7 @@ namespace nissa
   /// Decompose lx index f into the coordinates in sizes s
   template <typename F,
 	    typename C>
-  INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
+  INLINE_FUNCTION HOST_DEVICE_ATTRIB constexpr
   Coords<C> decomposeLxToCoords(F f,
 				const Coords<C>& _s)
   {
@@ -61,7 +61,7 @@ namespace nissa
   /// Finds the index f of coordinates in sizes s
   template <typename F,
 	    typename C>
-  INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
+  INLINE_FUNCTION HOST_DEVICE_ATTRIB constexpr
   F lxOfCoords(const Coords<C>& _x,
 	       const Coords<C>& _s)
   {

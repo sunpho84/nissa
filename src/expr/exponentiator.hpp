@@ -17,7 +17,7 @@ namespace nissa
     template <typename RealPart,
 	      typename ImagPart,
 	      typename ReImDiscr>
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     static auto compute(RealPart&& r,
 			ImagPart&& i,
 			ReImDiscr&& rid)
@@ -33,7 +33,7 @@ namespace nissa
   struct Exponentiator
   {
     template <typename E>
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     static auto compute(E&& e)
     {
       return exp(std::forward<E>(e));
@@ -42,7 +42,7 @@ namespace nissa
   
   /// Catch exp(node)
   template <DerivedFromNode E>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
   auto exp(E&& e)
   {
     /// Detect complex

@@ -78,7 +78,7 @@ namespace nissa
       CompReducedExpr::execSpace;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     decltype(auto) getDynamicSizes() const
     {
       return subExpr.getDynamicSizes();
@@ -140,7 +140,7 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     /// Evaluate
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     Fund eval(const DerivedFromComp auto&...nTCs) const
     {
       /// Result
@@ -159,7 +159,7 @@ namespace nissa
     
     /// Construct
     template <typename T>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     CompReducer(T&& arg)
       requires(std::is_same_v<std::decay_t<T>,std::decay_t<_E>>)
       : subExpr(std::forward<T>(arg))
@@ -167,7 +167,7 @@ namespace nissa
     }
     
     /// Copy constructor
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     CompReducer(const CompReducer& oth) :
       subExpr(oth.subExpr)
     {
@@ -178,7 +178,7 @@ namespace nissa
   template <DerivedFromComp Rc,
 	    typename Combiner,
 	    DerivedFromNode _E>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+  HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
   decltype(auto) compReduce(_E&& e)
   {
     /// Base passed type
@@ -202,14 +202,14 @@ namespace nissa
     struct _CompReduce## NAME ## Functor			\
     {								\
       template <typename Fund>					\
-      INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE		\
+      INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB		\
       static void setToInitialValue(Fund& f)			\
       {								\
 	f=INIT;							\
       }								\
       								\
       template <typename Fund>					\
-      INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE		\
+      INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB		\
       static void reduce(Fund& out,				\
 			 const Fund& in)			\
       {								\
@@ -221,7 +221,7 @@ namespace nissa
   /* Reduces the component C of expression E over operato NAME */\
   template <DerivedFromComp C,					\
 	    DerivedFromNode E>					\
-  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
+  constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB		\
   decltype(auto) comp ## NAME (E&& e)				\
   {								\
     return compReduce<C,impl::_CompReduce ## NAME ##		\

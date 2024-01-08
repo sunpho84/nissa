@@ -77,7 +77,7 @@ namespace nissa
     DynamicComps dynamicSizes;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     decltype(auto) getDynamicSizes() const
     {
       return dynamicSizes;
@@ -119,7 +119,7 @@ namespace nissa
     
     /// Evaluate
     template <typename...Ci>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     Fund eval(const Ci&...c) const
     {
       return func(c...);
@@ -127,7 +127,7 @@ namespace nissa
     
     /// Construct
     template <DerivedFromComp...TD>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     FuncExpr(const Func& func,
 	     const CompsList<TD...>& td) :
       func(func),
@@ -157,14 +157,14 @@ namespace nissa
     static constexpr ExecSpace execSpace=
       ES;
     
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     FuncNodeWrapper(F f) :
       f(f)
     {
     }
     
     /// Evaluate
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     auto operator()(const C&...c) const
     {
       return f(c...);
@@ -177,7 +177,7 @@ namespace nissa
 	    typename F,
 	    typename Fund=decltype(std::apply(std::declval<F>(),std::declval<C>())),
 	    DerivedFromComp...TD>
-  constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
   auto funcNodeWrapper(F&& f,
 		       const CompsList<TD...>& ds)
   {

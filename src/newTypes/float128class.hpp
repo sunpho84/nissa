@@ -23,7 +23,7 @@ namespace nissa
     
 #define PROVIDE_SUBSCRIBE_OPERATOR(CONST)		\
     /*! Takes the high prec or low prec part */		\
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION	\
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION	\
     CONST double& operator[](const int i) CONST		\
     {							\
       return data[i];					\
@@ -36,7 +36,7 @@ namespace nissa
 #undef PROVIDE_SUBSCRIBE_OPERATOR
     
     /// Init knowing the two doubles
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     Float128(const double& a=0.0,
 	     const double& b=0.0) :
       data{a,b}
@@ -44,7 +44,7 @@ namespace nissa
     }
     
     /// Sum another Float128
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     Float128 operator+(const Float128& b) const
     {
       const Float128& a=*this;
@@ -59,7 +59,7 @@ namespace nissa
     }
     
     /// Subtract a Float128 from a double
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     friend Float128 operator+(const double& a,
 			      const Float128& b)
     {
@@ -67,7 +67,7 @@ namespace nissa
     }
     
     /// Sumassign another Float128
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     Float128& operator+=(const Float128& b)
     {
       *this=*this+b;
@@ -76,7 +76,7 @@ namespace nissa
     }
     
     /// Product with another Float128
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     Float128 operator*(const Float128& b) const
     {
       const Float128& a=*this;
@@ -105,7 +105,7 @@ namespace nissa
     }
     
     /// Multiplies a double for a Float128
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     friend Float128 operator*(const double& a,
 			      const Float128& b)
     {
@@ -113,7 +113,7 @@ namespace nissa
     }
     
     /// Assigns the product with another Float128
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     Float128& operator*=(const Float128& b)
     {
       *this=*this*b;
@@ -122,7 +122,7 @@ namespace nissa
     }
     
     /// Unary minus
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     Float128 operator-() const
     {
       const Float128& a=*this;
@@ -131,14 +131,14 @@ namespace nissa
     }
     
     /// Subtract another Float128
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     Float128 operator-(const Float128& b) const
     {
       return *this+(-b);
     }
     
     /// Subtract a Float128 from a double
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     friend Float128 operator-(const double& a,
 			      const Float128& b)
     {
@@ -146,7 +146,7 @@ namespace nissa
     }
     
     /// Assigns the difference with another Float128
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     Float128& operator-=(const Float128& b)
     {
       *this=*this-b;
@@ -155,7 +155,7 @@ namespace nissa
     }
     
     /// Divide two Float128
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     Float128 operator/(const Float128& b) const
     {
       const double c=1.0/(b[0]+b[1]);
@@ -171,7 +171,7 @@ namespace nissa
     }
     
     /// Assigns the ratio with another Float128
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     Float128& operator/=(const Float128& b)
     {
       *this=*this/b;
@@ -180,7 +180,7 @@ namespace nissa
     }
     
     /// Compare two Float128
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     bool operator==(const Float128& b) const
     {
       return (*this)[0]==b[0] and (*this)[1]==b[1];
@@ -188,7 +188,7 @@ namespace nissa
     
 #define PROVIDE_COMPARE(OP)				\
     /*/ Compare two Float128 */				\
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION	\
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION	\
     bool operator OP(const Float128& b) const		\
     {							\
       return						\
@@ -205,14 +205,14 @@ namespace nissa
 #undef PROVIDE_COMPARE
     
     /// Returns false if differ from b
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     bool operator!=(const Float128& b) const
     {
       return not ((*this)==b);
     }
     
     /// Sums two double returning a Float128
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     static Float128 sum(const double& a,
 			const double& b)
     {
@@ -226,7 +226,7 @@ namespace nissa
     }
     
     /// Multiplies two double returning a Float128
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     static Float128 prod(const double& a,
 			 const double& b)
     {
@@ -249,7 +249,7 @@ namespace nissa
     }
     
     /// Rounds down
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     double roundDown() const
     {
       if(data[1]>=0)
@@ -259,7 +259,7 @@ namespace nissa
     }
     
     /// Rounds up
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     double roundUp() const
     {
       if(data[1]<=0)

@@ -26,7 +26,7 @@ namespace nissa
     
 #define PROVIDE_SUBSCRIBE_OPERATOR(CONST)			  \
     /*! Subscribe operator */					  \
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		  \
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB		  \
     CONST U& operator[](const int& i) CONST			  \
     {								  \
       return val[i];						  \
@@ -39,14 +39,14 @@ namespace nissa
 #undef PROVIDE_SUBSCRIBE_OPERATOR
     
     /// Construct from value
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     MultiUint(const U& u=0) :
       val{u}
     {
     }
     
     /// Increment of a certain amount
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     MultiUint operator+(const U& z) const
     {
       /// Result
@@ -70,21 +70,21 @@ namespace nissa
     }
     
     /// Self increment
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB
     MultiUint& operator+=(const U& z)
     {
       return(*this)=(*this)+z;
     }
     
     /// Unitary self-increment
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB
     MultiUint& operator++()
     {
       return (*this)+=1;
     }
     
     /// Unitary self-increment
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB
     MultiUint operator++(int)
     {
       return (*this)+=1;

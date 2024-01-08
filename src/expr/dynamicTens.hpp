@@ -54,7 +54,7 @@ namespace nissa
     using Base::operator=;
     
     /// Copy assign
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     DynamicTens& operator=(const DynamicTens& oth)
     {
       //master_printf("Assigning through copy constructor\n");
@@ -65,7 +65,7 @@ namespace nissa
     }
     
     /// Move assign
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB
     DynamicTens& operator=(DynamicTens&& oth)
     {
       //master_printf("Assigning through move constructor\n");
@@ -112,7 +112,7 @@ namespace nissa
     DynamicComps dynamicSizes;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     const DynamicComps& getDynamicSizes() const
     {
       return dynamicSizes;
@@ -182,7 +182,7 @@ namespace nissa
 #undef PROVIDE_MERGE_COMPS
     
     /// Returns whether can assign
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     bool canAssign() const
     {
       if constexpr(IsRef)
@@ -192,16 +192,16 @@ namespace nissa
     }
     
     /// Check if the tensor is allocated
-    inline CUDA_HOST_AND_DEVICE
+    inline HOST_DEVICE_ATTRIB
     bool isAllocated() const
     {
       return storage!=nullptr;
     }
     
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     void assertCorrectExecSpace() const
     {
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
 # ifdef COMPILING_FOR_DEVICE
       if constexpr(MT==MemoryType::CPU)
 	assert(MT==MemoryType::GPU);
@@ -214,7 +214,7 @@ namespace nissa
 
 #define PROVIDE_EVAL(CONST_ATTRIB)					\
     template <typename...U>						\
-    CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION			\
+    HOST_DEVICE_ATTRIB constexpr INLINE_FUNCTION			\
     CONST_ATTRIB Fund& eval(const U&...cs) CONST_ATTRIB			\
     {									\
       assertCorrectExecSpace();						\
@@ -280,7 +280,7 @@ namespace nissa
     }
     
     /// Default constructor
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     DynamicTens()
     {
 #ifndef COMPILING_FOR_DEVICE
@@ -293,7 +293,7 @@ namespace nissa
     
     /// Create from another node
     template < DerivedFromNode Oth>
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     explicit DynamicTens(const Oth& oth)
       requires(not DerivedFromDynamicTens<Oth>):
       DynamicTens(oth.getDynamicSizes())
@@ -305,7 +305,7 @@ namespace nissa
     }
     
     /// Copy constructor
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     DynamicTens(const DynamicTens& oth) :
       dynamicSizes(oth.getDynamicSizes())
     {
@@ -328,7 +328,7 @@ namespace nissa
     }
     
     /// Copy constructor when reference, passing pointer and components
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB
     DynamicTens(const DynamicComps& ds,
 		Fund* storage,
 		const int64_t& nElements) :
@@ -344,7 +344,7 @@ namespace nissa
     /// Copy constructor when reference
     template <typename O>
     requires IsRef and isDynamicTens<O>
-     CUDA_HOST_AND_DEVICE
+     HOST_DEVICE_ATTRIB
     DynamicTens(O&& oth)  :
 		    DynamicTens(oth.getDynamicSizes(),
 				oth.storage,
@@ -382,7 +382,7 @@ namespace nissa
 #undef PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED
     
     /// Move constructor
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB
     DynamicTens(DynamicTens&& oth) :
       dynamicSizes(oth.dynamicSizes),
       storage(oth.storage),
@@ -411,7 +411,7 @@ namespace nissa
 #define PROVIDE_COMPS_CAST(CONST_ATTRIB)				\
     template <typename NComps,						\
 	      typename NDC>						\
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
     DynamicTens<NComps,CONST_ATTRIB Fund,MT,true> compsCast(const NDC& newDynamicSizes) CONST_ATTRIB \
     {									\
       auto cast=((CONST_ATTRIB DynamicTens<NComps,CONST_ATTRIB Fund,MT,IsRef>*)this)->getRef(); \
@@ -435,7 +435,7 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
 #define PROVIDE_GET_REF(ATTRIB)						\
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB			\
     auto getRef() ATTRIB						\
     {									\
       DynamicTens<Comps,ATTRIB Fund,MT,true> res;			\
@@ -472,7 +472,7 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     /// Destructor
-    CUDA_HOST_AND_DEVICE
+    HOST_DEVICE_ATTRIB
     ~DynamicTens()
     {
 // #ifndef __CUDA_ARCH__

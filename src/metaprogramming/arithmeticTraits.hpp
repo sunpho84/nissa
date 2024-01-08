@@ -20,14 +20,14 @@
 namespace nissa
 {
 #define PROVIDE_SET_TO_ZERO(PREFIX,TYPE,OP)			\
-  [[maybe_unused]] static INLINE_FUNCTION CUDA_HOST_AND_DEVICE	\
+  [[maybe_unused]] static INLINE_FUNCTION HOST_DEVICE_ATTRIB	\
   PREFIX void setToZero(TYPE& o)				\
   {								\
     o=OP;							\
   }								\
   
 #define PROVIDE_SUBSUMASSIGN_THE_PROD(SUBSUM,PREFIX,TYPE,OP)	\
-  [[maybe_unused]] static INLINE_FUNCTION CUDA_HOST_AND_DEVICE	\
+  [[maybe_unused]] static INLINE_FUNCTION HOST_DEVICE_ATTRIB	\
   PREFIX void SUBSUM ## AssignTheProd(TYPE& out,		\
 				      const TYPE& f1,		\
 				      const TYPE& f2)		\
@@ -161,7 +161,7 @@ namespace nissa
   template <typename T1,
 	    typename T2,
 	    typename T3>
-  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
   T1& sumAssignTheProd(T1& a,
 		       const T2& f1,
 		       const T3& f2)
@@ -173,7 +173,7 @@ namespace nissa
   template <typename T1,
 	    typename T2,
 	    typename T3>
-  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
   T1& subAssignTheProd(T1& a,
 		       const T2& f1,
 		       const T3& f2)
@@ -187,7 +187,7 @@ namespace nissa
   template <typename T1,
 	    typename T2>
   requires(canAssign<T1,T2>)
-  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
   T1& assign(T1& lhs,
 	     const T2& rhs)
   {

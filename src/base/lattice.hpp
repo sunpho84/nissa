@@ -58,7 +58,7 @@ namespace nissa
   {
     /// Remaps coordinates between nissa and scidac format
     template <typename T>
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     static Coords<T> scidacRemap(const Coords<T>& in)
     {
       Coords<T> out;
@@ -73,7 +73,7 @@ namespace nissa
     TYPE _ ## NAME;						\
     								\
     template <typename...Args>					\
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION		\
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION		\
     decltype(auto) get ## CAP_NAME(Args&&...args) const		\
     {								\
       if constexpr(sizeof...(args))				\
@@ -559,7 +559,7 @@ namespace nissa
     }
     
     /// Gets a global coordinate
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     auto glbCoord(const Dir& dir) const
     {
       return getGlbCoordsOfLocLx(dir);
@@ -592,12 +592,12 @@ namespace nissa
     
     /// Copy construct from reference
     template <bool OIR>
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     _Lattice(const _Lattice<OIR>& oth)
       requires(IsRef) :
       COPY_CONSTRUCTOR_BODY;
     
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     _Lattice(const _Lattice &oth)
       requires(IsRef) :
       COPY_CONSTRUCTOR_BODY;
@@ -605,14 +605,14 @@ namespace nissa
 #undef COPY_CONSTRUCTOR_BODY
     
     /// Returns a reference
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION
     _Lattice<true> getRef() const
     {
       return *this;
     }
     
     /// Returns rank and locSite of given global coordinates
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION
     std::tuple<MpiRank,LocLxSite> getRankAndLocLxSiteOf(const GlbCoords& g) const
     {
       /// Coordinates of the rank
@@ -671,7 +671,7 @@ namespace nissa
     Lattice lat;
     
     template <bool IsRef>
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     SpatOriginMaskFunctor(const _Lattice<IsRef>& lat) :
       lat(lat.getRef())
     {
@@ -682,7 +682,7 @@ namespace nissa
     SpatOriginMaskFunctor(SpatOriginMaskFunctor&&) = default;
     
     /// Evaluate
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     auto operator()(const LocLxSite& site) const
     {
       bool isSpatOrigin=true;

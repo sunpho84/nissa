@@ -30,7 +30,7 @@ namespace nissa
     delete _lat;
     
     delete cpuMemoryManager;
-#ifdef USE_CUDA
+#ifdef ENABLE_DEVICE_CODE
     delete gpuMemoryManager;
 #endif
     

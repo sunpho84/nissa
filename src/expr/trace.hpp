@@ -109,7 +109,7 @@ namespace nissa
       TracedExpr::execSpace;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     decltype(auto) getDynamicSizes() const
     {
       return subExpr.getDynamicSizes();
@@ -171,7 +171,7 @@ namespace nissa
     
     /// Evaluate
     template <typename...NTc>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     Fund eval(const NTc&...nTCs) const
     {
       if constexpr(std::tuple_size_v<TracedComps>)
@@ -196,7 +196,7 @@ namespace nissa
     
     /// Construct
     template <typename T>
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     Tracer(T&& arg)
       requires(std::is_same_v<std::decay_t<T>,std::decay_t<_E>>)
       : subExpr(std::forward<T>(arg))
@@ -204,7 +204,7 @@ namespace nissa
     }
     
     /// Copy constructor
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     Tracer(const Tracer& oth) :
       subExpr(oth.subExpr)
     {
@@ -213,7 +213,7 @@ namespace nissa
   
   /// Trace an expression
   template <DerivedFromNode _E>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+  HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
   decltype(auto) trace(_E&& e)
   {
     /// Base passed type
