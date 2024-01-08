@@ -20,6 +20,14 @@ namespace nissa
 {
   inline bool checkInversionResidue{false};
   
+  /// Ignore all arguments
+  template <typename...Args>
+  HOST_DEVICE_ATTRIB INLINE_ATTRIBUTE constexpr
+  void ignore(Args&&...args)
+  {
+    ((void)args,...);
+  }
+  
   /// Implements the trap to debug
   inline void debugLoop()
   {
@@ -69,17 +77,19 @@ namespace nissa
     free(strs);
   }
   
-#ifdef COMPILING_FOR_DEVICE
-# define CRASH(...) __trap()
-#else
 # define CRASH(...) nissa::internalCrash(__LINE__,__FILE__,__VA_ARGS__)
-#endif
-  
+ 
   /// Crash reporting the expanded error message
   inline void internalCrash(const int& line,
 			    const char *file,
 			    const char *templ,...)
   {
+#ifdef COMPILING_FOR_DEVICE
+    
+    __trap();
+    
+#else
+    
     fflush(stdout);
     fflush(stderr);
     
@@ -99,6 +109,7 @@ namespace nissa
 	printBacktraceList();
 	mpiAbort(0);
       }
+#endif
   }
   
 #define CRASH_PRINTING_ERROR(code,...)					\
