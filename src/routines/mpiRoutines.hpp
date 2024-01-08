@@ -130,20 +130,6 @@ namespace nissa
     return getMpiBcast(onMasterRank(f,std::forward<Args>(args)...));
   }
   
-  /// Return the name of the processor
-  inline std::string mpiGetProcessorName()
-  {
-#ifdef USE_MPI
-    int resultlen=MPI_MAX_PROCESSOR_NAME;
-    char name[MPI_MAX_PROCESSOR_NAME];
-    MPI_Get_processor_name(name,&resultlen);
-    
-    return name;
-#else
-    return "proc";
-#endif
-  }
-  
   /// Initialize mpi
   inline void mpiInit(int narg,
 		      char **arg)

@@ -6,7 +6,7 @@
 #endif
 
 #include <cstdarg>
-#include <routines/mpiRoutines.hpp>
+#include <routines/mpiRank.hpp>
 
 namespace nissa
 {
