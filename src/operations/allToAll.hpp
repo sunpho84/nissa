@@ -378,6 +378,7 @@ namespace nissa
 								return mergedHostInBuf(recvOffset,C(0)...);
 							      });
 	  //master_printf("Receiving %d bytes from rank %d ptr %p\n",nEl*nDof*sizeof(Fund),rcvRank(),&ptr);
+	  
 	  MPI_Irecv(&ptr,
 		    nEl*nDof*sizeof(Fund),
 		    MPI_CHAR,rcvRank(),0,MPI_COMM_WORLD,req++);

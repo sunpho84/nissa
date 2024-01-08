@@ -135,7 +135,7 @@ namespace nissa
       {
 	printf("at line %d of file %s launching kernel on loop [%d,%d) using blocks of size %d and grid of size %d\n",
 	       line,file,(int)compDecay(min),(int)compDecay(max),blockDimension.x,gridDimension.x);
-	initTime=take_time();
+	initTime=takeTime();
       }
     
     if(length>0)
@@ -145,7 +145,7 @@ namespace nissa
       }
     
     if(print)
-      printf(" finished in %lg s\n",take_time()-initTime);
+      printf(" finished in %lg s\n",takeTime()-initTime);
   }
 #endif
   

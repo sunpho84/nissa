@@ -165,7 +165,7 @@ namespace nissa
 				const int& nFft)
   {
     const double startTime=
-      take_time();
+      takeTime();
     
     auto b=
       (cufftDoubleComplex*)buf;
@@ -183,9 +183,9 @@ namespace nissa
 	      {E(INVALID_PLAN),E(ALLOC_FAILED),E(INVALID_VALUE),E(INTERNAL_ERROR),E(SETUP_FAILED),E(INVALID_SIZE)})
 #undef E
 	  if(err==res)
-	    crash("fft crashed at stage %s with error %s",stage,name);
+	    CRASH("fft crashed at stage %s with error %s",stage,name);
 	
-	crash("fft crashed at stage %s with unknown error %d %d",stage,res,CUFFT_SUCCESS);
+	CRASH("fft crashed at stage %s with unknown error %d %d",stage,res,CUFFT_SUCCESS);
       };
     
     cufftHandle plan;
@@ -195,7 +195,7 @@ namespace nissa
     
     decryptFftError(cufftDestroy(plan),"destroying the plan");
     
-    master_printf("fft executed on GPU in %lg s\n",take_time()-startTime);
+    masterPrintf("fft executed on GPU in %lg s\n",takeTime()-startTime);
   }
 #endif
 }

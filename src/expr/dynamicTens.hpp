@@ -207,7 +207,7 @@ namespace nissa
 	assert(MT==MemoryType::GPU);
 # else
       if constexpr(MT==MemoryType::GPU)
-	crash("Cannot evaluate on CPU");
+	CRASH("Cannot evaluate on CPU");
 # endif
 #endif
     }
