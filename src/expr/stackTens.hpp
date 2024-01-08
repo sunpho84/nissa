@@ -208,16 +208,16 @@ namespace nissa
   };
   
   template <typename T,
-	    DerivedFromComp...Ci>
+	    typename C>
   INLINE_FUNCTION constexpr
-  auto Node<T,CompsList<Ci...>>::closeToStackTens() const
+  auto closeExprToStackTens(const Node<T,C>& node)
     // requires(_canCloseToStackTens())
   {
     using Res=
       StackTens<typename T::Comps,
 		std::remove_cv_t<typename T::Fund>>;
       
-    return (Res)*this;
+    return (Res)node;
   }
 }
 

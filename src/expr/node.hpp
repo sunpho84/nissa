@@ -70,6 +70,15 @@ namespace nissa
     return impl::_CastToFund<std::decay_t<E>>::exec(std::forward<E>(t));
   }
   
+  /////////////////////////////////////////////////////////////////
+  
+  template <typename T,
+	    typename C>
+  INLINE_FUNCTION constexpr
+  auto closeExprToStackTens(const Node<T,C>& node);
+  
+  /////////////////////////////////////////////////////////////////
+  
 #define THIS Node<T,CompsList<Ci...>>
   
   /// Node, the base type to be evaluated as an expression
@@ -311,8 +320,11 @@ namespace nissa
     
     /// Closes to a StackTens
     INLINE_FUNCTION constexpr
-      auto closeToStackTens() const;
+      auto closeToStackTens() const
       // requires(_canCloseToStackTens());
+    {
+      return closeExprToStackTens(*this);
+    }
     
     /// Closes to a Field
     INLINE_FUNCTION constexpr
