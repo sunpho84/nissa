@@ -61,6 +61,7 @@ namespace nissa
     return ret
   
   /// Only master rank and thread print
+  __attribute__ ((format (printf,2,3)))
   inline int masterFprintf(FILE *stream,
 			   const char* format,
 			   ...)
@@ -69,6 +70,7 @@ namespace nissa
   }
   
   /// Only master rank and thread print
+  __attribute__ ((format (printf,1,2)))
   inline int masterPrintf(const char *format,
 			  ...)
   {
