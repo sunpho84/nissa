@@ -63,7 +63,8 @@ namespace nissa
     
     /// Type of I-th element
     template <size_t I>
-    using SubExpr=std::decay_t<decltype(subExprs.template get<I>())>;
+    using SubExpr=
+      std::decay_t<decltype(subExprs.template get<I>())>;
     
     /// Components
     using Comps=
