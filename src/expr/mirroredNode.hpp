@@ -219,10 +219,11 @@ namespace nissa
     {
     }
     
-    /// Forbids copy constructor for cleaness
-    MirroredNode(const MirroredNode&)
-      requires(storeByRef)
-    =delete;
+    // /// Forbids copy constructor for cleaness
+    /// Do not uncomment, this makes cuda mess up the allowed case
+    // MirroredNode(const MirroredNode&)
+    //   requires(storeByRef)
+    // =delete;
     
     /// Allow in the case data does not require storing by ref
     MirroredNode(const MirroredNode&)
