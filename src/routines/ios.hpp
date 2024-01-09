@@ -81,9 +81,9 @@ namespace nissa
   
 #undef MASTER_PRINTF_BODY
   
-  //create and check lock files
+  /// Create and check lock files
   template <class T=uint64_t>
-  class lock_file_t
+  class LockFile
   {
     //store whether is inited
     bool inited{false};
@@ -91,10 +91,11 @@ namespace nissa
     //variable containing the lock word
     T tag;
     
-    //path to lock
+    /// Path to lock
     std::string path;
     
-    void assert_inited()
+    /// Crashes if not inited
+    void assertInited()
     {
       if(not inited)
 	CRASH("Needs to be inited");
@@ -102,7 +103,7 @@ namespace nissa
     
   public:
     
-    //create the tag
+    /// Create the tag
     void init()
     {
       masterPrintf("Initializing the tag for a %zu bytes lock-file\n",sizeof(T));
@@ -111,25 +112,16 @@ namespace nissa
       inited=true;
     }
     
-    //try to open and write the tag
-    bool try_lock(const std::string &ext_path)
+    /// Try to open and write the tag
+    bool tryLock(const std::string &extPath)
     {
-      assert_inited();
+      assertInited();
       
-      //store the lock path
-      path=ext_path;
+      path=extPath;
       
-      //create the lock on master
-      int written=true;
-      if(isMasterRank())
-	if(std::ofstream(path)<<tag<<std::endl)
-	  written=true;
-	else
-	  written=false;
-      else
-	written=true;
-
-      mpiBcast(written);
+      /// Create the lock on master
+      const bool written=
+	mpiGetBcast(isMasterRank()?(std::ofstream(path)<<tag<<std::endl):true);
       
       if(written)
 	masterPrintf("Created lock file %s\n",path.c_str());
@@ -139,22 +131,20 @@ namespace nissa
       return written;
     }
     
-    //try to open and read the tag
-    bool check_lock()
+    /// Try to open and read the tag
+    bool checkLock()
     {
-      assert_inited();
-      //temporary tag read
-      T test_tag;
-      memset(&test_tag,0,sizeof(T));
+      assertInited();
+      
+      /// Temporary tag read
+      T testTag;
+      memset(&testTag,0,sizeof(T));
       
       //read on master
-      if(isMasterRank()) std::ifstream(path)>>test_tag;
+      if(isMasterRank())
+	std::ifstream(path)>>testTag;
       
-      //broadcast
-      MPI_Bcast(&test_tag,sizeof(T),MPI_CHAR,masterRank(),MPI_COMM_WORLD);
-      
-      //return the comparison
-      return (test_tag==tag);
+      return mpiGetBcast(testTag)==tag;
     }
   };
 }
