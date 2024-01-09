@@ -2,7 +2,7 @@
 #define _THREADS_HPP
 
 #ifdef HAVE_CONFIG_H
-# include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <cstdint>
@@ -12,6 +12,7 @@
 # include <base/cuda.hpp>
 #endif
 #include <expr/comp.hpp>
+#include <routines/ios.hpp>
 #include <routines/mpiRoutines.hpp>
 
 #define TO_READ(A) A=A.getReadable()
@@ -37,8 +38,8 @@ namespace nissa
     using Idx=std::common_type_t<IMin,IMax>;
     
     double initTime=0;
-    extern int verbosity_lv;
-    const bool print=(verbosity_lv>=1// 2
+    
+    const bool print=(verbosityLv>=1// 2
 		      and isMasterRank());
     if(print)
       {
@@ -70,7 +71,7 @@ namespace nissa
       std::common_type_t<IMin,IMax>;
     
     double initTime=0;
-    extern int verbosityLv;
+    
     const bool print=(verbosityLv>=1// 2
 		      and isMasterRank());
     if(print)
