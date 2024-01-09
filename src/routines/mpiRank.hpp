@@ -60,7 +60,7 @@ namespace nissa
   
   /// Returns the passed variable after broadcast
   template <TriviallyCopyable T>
-  T getMpiBcast(const T& t,
+  T mpiGetBcast(const T& t,
 	     const MpiRank& rank=masterRank)
     requires(not std::is_pointer_v<T>)
   {

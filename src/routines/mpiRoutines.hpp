@@ -127,7 +127,7 @@ namespace nissa
 			   Args&&...args)
     -> decltype(f(std::forward<Args>(args)...))
   {
-    return getMpiBcast(onMasterRank(f,std::forward<Args>(args)...));
+    return mpiGetBcast(onMasterRank(f,std::forward<Args>(args)...));
   }
   
   /// Initialize mpi
