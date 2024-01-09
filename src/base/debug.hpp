@@ -80,6 +80,8 @@ namespace nissa
 # define CRASH(...) nissa::internalCrash(__LINE__,__FILE__,__VA_ARGS__)
  
   /// Crash reporting the expanded error message
+  __attribute__((format (printf,3,4)))
+  __attribute__((noreturn))
   inline void internalCrash(const int& line,
 			    const char *file,
 			    const char *templ,...)

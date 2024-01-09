@@ -37,14 +37,14 @@ namespace nissa
   }
   
   /// Abort execution
-  inline void mpiAbort(const int& err)
+  __attribute__((noreturn))
+  inline void mpiAbort(const int& err) 
   {
-#ifdef USE_MPI
     printf("on rank %ld aborting\n",thisRank());
+#ifdef USE_MPI
     MPI_Abort(MPI_COMM_WORLD,0);
-#else
-    exit(0);
 #endif
+    exit(0);
   }
   
   /// Broadcast a passed variable
