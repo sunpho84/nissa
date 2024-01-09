@@ -220,6 +220,7 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    /// Gets the components to be contracted in each factor
     template <int I>
     using ContractedCompsForFact=
       std::conditional_t<(I==0),
@@ -244,7 +245,7 @@ namespace nissa
 	      typename E0,
 	      typename E1>
     HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
-    void _eval(std::bool_constant<true>,
+    void _eval(std::bool_constant<true> isComplProd,
 	       Res& res,
 	       A&& allNccs,
 	       E0&& e0,
