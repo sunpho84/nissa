@@ -230,12 +230,12 @@ namespace nissa
 	fread(&data,1,nbytesReq,file);
       
       if(nbytesRead!=nbytesReq)
-	CRASH("read %u bytes instead of %u required",nbytesRead,nbytesReq);
+	CRASH("read %lu bytes instead of %lu required",nbytesRead,nbytesReq);
       
       //padding
       seekToNextEightMultiple();
       
-      VERBOSITY_LV3_MASTER_PRINTF("record read: %u bytes\n",nbytesReq);
+      VERBOSITY_LV3_MASTER_PRINTF("record read: %lu bytes\n",nbytesReq);
     }
     
     /// Search next record
@@ -258,7 +258,7 @@ namespace nissa
 	  if(ignoreIldgMagicNumber)
 	    masterPrintf("Warning, %s\n",buf);
 	  else
-	    CRASH(buf);
+	    CRASH("%s",buf);
 	}
       
       return header;

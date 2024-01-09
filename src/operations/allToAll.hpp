@@ -158,7 +158,7 @@ namespace nissa
 	  const auto [dstRank,remDst]=f(locSrc);
 	  
 	  if(dstRank>=nRanks or dstRank<0)
-	    CRASH("destination rank %d does not exist!",dstRank);
+	    CRASH("destination rank %ld does not exist!",dstRank());
 	  
 	  locSrcsGroupedByDstRank[dstRank()].emplace_back(locSrc);
 	  remDstsGroupedByDstRank[dstRank()].emplace_back(remDst);
