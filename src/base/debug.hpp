@@ -77,26 +77,37 @@ namespace nissa
     free(strs);
   }
   
-# define CRASH(...) nissa::internalCrash(__LINE__,__FILE__,__VA_ARGS__)
- 
+#ifdef COMPILING_FOR_DEVICE
+  
+# ifdef __clang__
+  
+  /// Clang defines __trap as a device only, and mess up, so we have to define the host version here
+  void __trap()
+  {
+  }
+  
+# endif
+  
+# define CRASH(ARGS...) do{ignore(ARGS);__trap();}while(0)
+  
+#else
+  
+# define CRASH(ARGS...) internalCrash(__LINE__,__FILE__,ARGS)
+  
+#endif
+  
   /// Crash reporting the expanded error message
+  template <typename...Args>
   __attribute__((format (printf,3,4)))
   __attribute__((noreturn))
   inline void internalCrash(const int& line,
 			    const char *file,
-			    const char *templ,...)
+			    const char *templ,
+			    ...)
   {
-#ifdef COMPILING_FOR_DEVICE
-    
-    __trap();
-    
-#else
     
     fflush(stdout);
     fflush(stderr);
-    
-    //give time to master thread to crash, if possible
-    sleep(1);
     
     if(isMasterRank())
       {
@@ -104,23 +115,26 @@ namespace nissa
 	char mess[1024];
 	va_list ap;
 	va_start(ap,templ);
-	vsprintf(mess,templ,ap);
+	vsnprintf(mess,1024,templ,ap);
 	va_end(ap);
 	
 	fprintf(stderr,"\x1b[31m" "ERROR on line %d of file \"%s\", message error: \"%s\".\n\x1b[0m",line,file,mess);
 	printBacktraceList();
-	mpiAbort(0);
       }
-#endif
+    //give time to master thread to crash, if possible
+    //sleep(1);
+    
+    mpiAbort(0);
   }
   
 #define CRASH_PRINTING_ERROR(code,...)					\
   internalCrashPrintingError(__LINE__,__FILE__,code,__VA_ARGS__)
   
   inline void internalCrashPrintingError(const int& line,
-				  const char *file,
-				  const int& errCode,
-				  const char *templ,...)
+					 const char *file,
+					 const int& errCode,
+					 const char *templ,
+					 ...)
   {
     if(errCode)
       {
