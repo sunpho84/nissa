@@ -706,7 +706,7 @@ namespace nissa
   inline LatticeResources* _lat;
   
   /// Reference to the lattice
-  inline std::unique_ptr<Lattice> lat;
+  inline Lattice* lat;
 }
 
 #endif

@@ -165,7 +165,7 @@ namespace nissa
     void assign(O&& oth)
     {
 #define LOOP(LOOP_TYPE)							\
-      LOOP_TYPE(0,lat->getLocVol(),					\
+      LOOP_TYPE(0,lat->getLocVol(),				\
 		CAPTURE(self=this->getWritable(),			\
 			TO_READ(oth)),					\
 		site,							\
@@ -329,7 +329,7 @@ namespace nissa
     {
       return lat->getLocVol()+
 	((haloPresence>=WITH_HALO)?
-	 2*lat->getSurfSize():0);
+	 lat->getHaloSize():0);
     }
     
     /////////////////////////////////////////////////////////////////

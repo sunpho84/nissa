@@ -26,7 +26,6 @@ namespace nissa
     
     freeCommunicationBuffers();
     
-    lat.reset();
     delete _lat;
     
     delete cpuMemoryManager;
