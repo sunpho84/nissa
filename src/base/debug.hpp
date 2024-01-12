@@ -98,8 +98,7 @@ namespace nissa
   
   /// Crash reporting the expanded error message
   template <typename...Args>
-  __attribute__((format (printf,3,4)))
-  __attribute__((noreturn))
+  __attribute__((format (printf,3,4),noreturn))
   inline void internalCrash(const int& line,
 			    const char *file,
 			    const char *templ,

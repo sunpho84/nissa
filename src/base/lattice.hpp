@@ -372,10 +372,10 @@ namespace nissa
       _glbSizes=extGlbSizes;
       _glbVol=compProd<Dir>(getGlbSizes()).close()();
       
-      masterPrintf("Global lattice:\t%ld",getGlbSizes().dirRow(0));
+      masterPrintf("Global lattice:\t%ld",getGlbSizes().dirRow(0)());
       for(Dir mu=1;mu<NDIM;mu++)
 	masterPrintf("x%ld",getGlbSizes()[mu]());
-      masterPrintf(" = %ld\n",getGlbVol());
+      masterPrintf(" = %ld\n",getGlbVol()());
     }
     
     /// Sets the mpi ranks
@@ -511,11 +511,13 @@ namespace nissa
 				 
 				 lln(site,ori,dir)=neigh;
 				 
-				 masterPrintf("site %d ori %d dir %d sc %d isOnSurf %d asLoc %d neigh %d\n",site(),ori(),dir(),sc(dir)(),isOnSurf,asLoc(),lln(site,ori,dir)());
+				 masterPrintf("site %ld ori %d dir %d sc %ld isOnSurf %d asLoc %ld neigh %ld\n",site(),ori(),dir(),sc(dir)(),isOnSurf,asLoc(),lln(site,ori,dir)());
 				 
 				 if(neigh>=lat.getLocVol())
 				   {
-				     if(decltype(auto) f=lln(neigh,1-ori,dir);(not setupDebug) or f==-1)
+				     if(decltype(auto) f=
+					lln(neigh,1-ori,dir);
+					(not setupDebug) or f==-1)
 				       f=site;
 				     else
 				       CRASH("Site %ld is already pointing at halo site %ld in orientation %d dir %d\n",f(),site(),ori(),dir());

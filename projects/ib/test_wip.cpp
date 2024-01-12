@@ -2,17 +2,23 @@
 
 #include <nissa.hpp>
 
-#include <tuples/tuple.hpp>
-
 using namespace nissa;
 
 
 void ddd()
 {
-  static_assert(std::is_move_constructible_v<const CompsBinder<std::tuple<LocLxSite>,
-		const MirroredNode<std::tuple<LocLxSite, Dir>, DynamicTens<std::tuple<LocLxSite, Dir>, const GlbCoord, MemoryType::CPU, true>, DynamicTens<std::tuple<LocLxSite, Dir>, const GlbCoord, MemoryType::GPU, true>, const GlbCoord> , std::tuple<Dir>, const GlbCoord>>,"ccccc");
+#define CONST const
+//   static_assert(std::is_copy_constructible_v<CompsBinder<std::tuple<LocLxSite>,
+// 		CONST MirroredNode<std::tuple<LocLxSite, Dir>,DynamicTens<std::tuple<LocLxSite, Dir>,
+// 		CONST GlbCoord,MemoryType::CPU, true>,DynamicTens<std::tuple<LocLxSite, Dir>, CONST GlbCoord, MemoryType::GPU, true>, CONST GlbCoord> , std::tuple<Dir>, CONST GlbCoord>>,"ccc");
+//   static_assert(std::is_move_constructible_v<CompsBinder<std::tuple<LocLxSite>,
+// 		CONST MirroredNode<std::tuple<LocLxSite, Dir>,DynamicTens<std::tuple<LocLxSite, Dir>,
+// 		CONST GlbCoord,MemoryType::CPU, true>,DynamicTens<std::tuple<LocLxSite, Dir>, CONST GlbCoord, MemoryType::GPU, true>, CONST GlbCoord> , std::tuple<Dir>, CONST GlbCoord>>,"ddd");
+  static_assert(std::is_copy_constructible_v<CONST MirroredNode<std::tuple<LocLxSite, Dir>,DynamicTens<std::tuple<LocLxSite, Dir>,
+		CONST GlbCoord,MemoryType::CPU, true>,DynamicTens<std::tuple<LocLxSite, Dir>, CONST GlbCoord, MemoryType::GPU, true>, CONST GlbCoord>>,"eee");
+  static_assert(std::is_move_constructible_v<CONST MirroredNode<std::tuple<LocLxSite, Dir>,DynamicTens<std::tuple<LocLxSite, Dir>,
+		CONST GlbCoord,MemoryType::CPU, true>,DynamicTens<std::tuple<LocLxSite, Dir>, CONST GlbCoord, MemoryType::GPU, true>, CONST GlbCoord>>,"fff");
   }
-
 template <typename F,
 	  typename Float=typename F::Fund>
 Float plaquette(const F& conf)
@@ -216,8 +222,8 @@ void in_main(int narg,char **arg)
   
   _lat=new LatticeResources;
   _lat->init(T,L);
-  lat=std::make_unique<Lattice>(_lat->getRef());
-  
+  lat=new Lattice(_lat->getRef());
+
 #ifdef USE_QUDA
     if(use_quda) quda_iface::initialize();
 #endif
@@ -277,7 +283,7 @@ void in_main(int narg,char **arg)
    masterPrintf("plaq with new method: %.16lg\n",plaquette(tmp));
 
    
-   CRASH("");
+   CRASH(" ");
    auto printPhotonProp=
      [](const PhotonProp& prop)
      {
@@ -307,7 +313,7 @@ void in_main(int narg,char **arg)
     real(fft<ComplVectorField>(-1,prop*fft<ComplVectorField>(+1,eta)));
   
   printf("AAA %lg\n",phi.copyToMemorySpaceIfNeeded<MemoryType::CPU>().locLxSite(23).dirRow(0));
-  CRASH("");
+  CRASH(" ");
   /////////////////////////////////////////////////////////////////
   
   
@@ -693,8 +699,6 @@ void in_main(int narg,char **arg)
   
   localizer::dealloc();
   fftwFinalize();
-      lat.reset();
-      delete _lat;
 }
 
 int main(int narg,char **arg)

@@ -60,7 +60,7 @@ namespace nissa
 	    
 	    masterPrintf("%s\n",demangle(typeid(B).name()).c_str());
 	    
-	    masterPrintf("FFTing on Dir %d nFft=%d\n",D(),nFft);
+	    masterPrintf("FFTing on Dir %d nFft=%ld\n",D(),nFft);
 	  };
 	
 	cycleOnAllLocalDirections<OthComps,CompsList<ComplId>>(std::forward<Out>(out),in,f,in.getDynamicSizes());
