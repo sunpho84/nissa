@@ -203,12 +203,12 @@ namespace nissa
     {
     }
     
-    /// Copy constructor
-    HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
-    Tracer(const Tracer& oth) :
-      subExpr(oth.subExpr)
-    {
-    }
+    // /// Copy constructor
+    // HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
+    // Tracer(const Tracer& oth) :
+    //   subExpr(oth.subExpr)
+    // {
+    // }
   };
   
   /// Trace an expression
