@@ -129,8 +129,8 @@ namespace nissa
     const dim3 gridDimension((length+blockDimension.x-1)/blockDimension.x);
     
     double initTime=0;
-    extern int verbosity_lv;
-    const bool print=(verbosity_lv>=1// 2
+    
+    const bool print=(verbosityLv>=1// 2
 		      and isMasterRank());
     if(print)
       {
