@@ -149,7 +149,9 @@ namespace GammaBasis
 #undef GAMMA
 #undef E
   constexpr Gamma G5=T*X*Y*Z;
+  [[maybe_unused]]
   constexpr Gamma e=-G5.dag();
+  [[maybe_unused]]
   constexpr std::array<Gamma,16> basis{X*X,X,Y,Z,T,G5,G5*X,G5*Y,G5*Z,G5*T,T*X,T*Y,T*Z,Y*Z,Z*X,X*Y};
 }
 
