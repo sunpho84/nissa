@@ -364,7 +364,8 @@ namespace nissa
 	  MPI_Isend(&ptr,
 		    nEl*nDof*sizeof(Fund),
 		    MPI_CHAR,dstRank(),0,MPI_COMM_WORLD,req++);
-	  sendOffset+=nEl;
+	  /// Clang bug, see below
+	  asMutable(sendOffset)+=nEl;
 	}
       
       for(BufComp recvOffset=0;
@@ -382,7 +383,8 @@ namespace nissa
 	  MPI_Irecv(&ptr,
 		    nEl*nDof*sizeof(Fund),
 		    MPI_CHAR,rcvRank(),0,MPI_COMM_WORLD,req++);
-	  recvOffset+=nEl;
+	  /// Due to clang bug in version 17.0, we need to remove a spurious canst attribute, attached here who knows why
+	  asMutable(recvOffset)+=nEl;
 	}
       
       // Waits all communications

@@ -120,19 +120,21 @@ namespace nissa
       return (*this)();
     }
     
-    /// Convert to actual reference with const attribute
-    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
-    const Index& operator()() const &
-    {
-      return i;
+#define PROVIDE_CAST(RETURNED_TYPE,ATTRIB) \
+    /*! Convert to actual reference with const attribute */	\
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB		\
+    RETURNED_TYPE operator()() ATTRIB				\
+    {								\
+      return i;							\
     }
     
-    /// Convert to Index if rvalue reference
-    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
-    Index operator()() &&
-    {
-      return i;
-    }
+    PROVIDE_CAST(const Index&,const &);
+    
+    PROVIDE_CAST(Index&,&);
+    
+    PROVIDE_CAST(Index,&&);
+    
+#undef PROVIDE_CAST
     
     /// Convert to string
     INLINE_FUNCTION constexpr

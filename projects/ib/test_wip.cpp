@@ -307,7 +307,7 @@ void in_main(int narg,char **arg)
   
   const auto eta=
     getZ2PhotonField();
-  
+
   const PhotonField phi=
     real(fft<ComplVectorField>(-1,prop*fft<ComplVectorField>(+1,eta)));
   
