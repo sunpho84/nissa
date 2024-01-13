@@ -614,7 +614,7 @@ namespace nissa
     }
     
     /// Returns rank and locSite of given global coordinates
-    HOST_DEVICE_ATTRIB INLINE_FUNCTION
+    INLINE_FUNCTION
     std::tuple<MpiRank,LocLxSite> getRankAndLocLxSiteOf(const GlbCoords& g) const
     {
       /// Coordinates of the rank

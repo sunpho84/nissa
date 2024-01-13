@@ -1,5 +1,3 @@
-#include <memory>
-
 #include <nissa.hpp>
 
 using namespace nissa;
@@ -213,7 +211,6 @@ PhotonField getZ2PhotonField(const int offset=0)
 
 void in_main(int narg,char **arg)
 {
-  
   // constexpr ExecSpace ex(MemoryType::CPU);
   // constexpr MemoryType mt=getMemoryType<ex>();
   // constexpr bool t=ex.template runOn<MemoryType::CPU>();
