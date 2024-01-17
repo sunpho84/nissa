@@ -93,9 +93,13 @@ namespace nissa
 	{
 	  masterPrintf("%s buffer requested size %lu but allocated %lu reallocating\n",name,reqBufSize,curBufSize);
 	  if(buf)
-	    memoryManager<MemoryType::CPU>()->release(buf,true);
+	    {
+	      memoryManager<MemoryType::CPU>()->release(buf,true);
+	      masterPrintf("Freed the previously allocated buffer\n");
+	    }
 	  curBufSize=reqBufSize;
 	  buf=memoryManager<MemoryType::CPU>()->template provide<char>(reqBufSize);
+	  masterPrintf("Allocated the new buffer\n");
 	}
       
       return (T*)buf;
@@ -131,14 +135,6 @@ namespace nissa
     for(auto* size : {&curRecvBufSize,&curSendBufSize})
       (*size)=0;
   }
-  
-  /// Wait for communications to finish
-  inline void waitAsyncCommsFinish(std::vector<MPI_Request> requests)
-  {
-    VERBOSITY_LV3_MASTER_PRINTF("Entering MPI comm wait\n");
-    
-    MPI_Waitall(requests.size(),&requests[0],MPI_STATUS_IGNORE);
-  }
-  }
+}
 
 #endif
