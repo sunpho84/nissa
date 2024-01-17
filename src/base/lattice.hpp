@@ -195,21 +195,21 @@ namespace nissa
 	compProd<Dir>(g)()()/r;
       
       if constexpr(partitionDebug)
-	master_printf("Going to factorize l=%ld, r=%ld, g=%s with constraints: %s\n",l,r,coordsToStr(g).c_str(),coordsToStr(fixR).c_str());
+	masterPrintf("Going to factorize l=%ld, r=%ld, g=%s with constraints: %s\n",l,r,coordsToStr(g).c_str(),coordsToStr(fixR).c_str());
       
       /// Factors of l
       const std::vector<int64_t> lFactors=
 	factorize(l);
       
       if constexpr(partitionDebug)
-	master_printf("l factors: %s\n",vectToStr(lFactors).c_str());
+	masterPrintf("l factors: %s\n",vectToStr(lFactors).c_str());
       
       /// Factors of r
       const std::vector<int64_t> rFactors=
 	factorize(r);
       
       if constexpr(partitionDebug)
-	master_printf("r factors: %s\n",vectToStr(rFactors).c_str());
+	masterPrintf("r factors: %s\n",vectToStr(rFactors).c_str());
       
       /// Chooses if to factorize r, otherwise l
       const bool factorizeR=
@@ -241,9 +241,10 @@ namespace nissa
       const int64_t nCombo=
 	baseMask*nDim();
       
-      masterPrintf("nCombo: %ld\n",nCombo);
+      if constexpr(partitionDebug)
+	masterPrintf("nCombo: %ld\n",nCombo);
       
-      int64_t minLocSurf=l;
+      int64_t minLocSurf=std::numeric_limits<int64_t>::max();
       double minSurfVariance=-1;
       int64_t nextSupposedValid=0;
       for(int64_t iCombo=0;iCombo<nCombo;)
@@ -296,8 +297,8 @@ namespace nissa
 	      
 	      if constexpr(partitionDebug)
 		{
-		  masterPrintf("valid: %d \n",validPartitioning);
-		  printf("\n");
+		  masterPrintf("valid: %s %d \n",coordsToStr(R).c_str(),validPartitioning);
+		  masterPrintf("\n");
 		}
 	    }
 	  while(validPartitioning and iFact>=0);
@@ -360,7 +361,7 @@ namespace nissa
 		iCombo=nextSupposedValid;
 	    }
 	  if constexpr(partitionDebug)
-	    printf("\n");
+	    masterPrintf("\n");
 	}
       
       return res;

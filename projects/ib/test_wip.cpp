@@ -232,7 +232,7 @@ void in_main(int narg,char **arg)
   
   /////////////////////////////////////////////////////////////////
 
-   masterPrintf("TEST\n");
+  masterPrintf("TEST\n");
     // cudaGenericKernel<<<gridDimension,blockDimension>>>(0,locVol,[P=P.getWritable(),l=lat->glbCoordsOfLocLx.getReadable()] CUDA_DEVICE(auto i) mutable{P(LocLxSite(i))=l(LocLxSite(i));});
     // 	decrypt_cuda_error(cudaDeviceSynchronize(),"during kernel executionssss");
   
