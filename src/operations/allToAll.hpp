@@ -355,17 +355,17 @@ namespace nissa
 	{
 	  /// Pointer to location where the chunk for dstRank starts
 	  const Fund& ptr=
-	    invokeWithTypesOfTuple<MergedHostOutBufExtraComps>([&mergedHostOutBuf,
-								&sendOffset]<DerivedFromComp...C>()->const Fund&
+	    invokeWithTypesOfTuple<MergedHostOutBufExtraComps>([&mergedHostOutBuf, // Glitch in clang 17 forbids direct capture of sendOffset
+								off=sendOffset]<DerivedFromComp...C>()->const Fund&
 							       {
-								 return mergedHostOutBuf(sendOffset,C(0)...);
+								 return mergedHostOutBuf(off,C(0)...);
 							       });
 	  //master_printf("Sending nel %d ndof %d %d bytes to rank %d\n",nEl,nDof,nEl*nDof*sizeof(Fund),dstRank());
 	  MPI_Isend(&ptr,
 		    nEl*nDof*sizeof(Fund),
 		    MPI_CHAR,dstRank(),0,MPI_COMM_WORLD,req++);
-	  /// Clang bug, see below
-	  asMutable(sendOffset)+=nEl;
+	  
+	  sendOffset+=nEl;
 	}
       
       for(BufComp recvOffset=0;
@@ -373,18 +373,18 @@ namespace nissa
 	{
 	  /// Pointer to location where the chunk from recvRank starts
 	  Fund& ptr=
-	    invokeWithTypesOfTuple<MergedHostInBufExtraComps>([&mergedHostInBuf,
-							       &recvOffset]<DerivedFromComp...C>()->Fund&
+	    invokeWithTypesOfTuple<MergedHostInBufExtraComps>([&mergedHostInBuf, // Glitch in clang 17 forbids direct capture of recvOffset
+							       off=recvOffset]<DerivedFromComp...C>()->Fund&
 							      {
-								return mergedHostInBuf(recvOffset,C(0)...);
+								return mergedHostInBuf(off,C(0)...);
 							      });
 	  //master_printf("Receiving %d bytes from rank %d ptr %p\n",nEl*nDof*sizeof(Fund),rcvRank(),&ptr);
 	  
 	  MPI_Irecv(&ptr,
 		    nEl*nDof*sizeof(Fund),
 		    MPI_CHAR,rcvRank(),0,MPI_COMM_WORLD,req++);
-	  /// Due to clang bug in version 17.0, we need to remove a spurious canst attribute, attached here who knows why
-	  asMutable(recvOffset)+=nEl;
+	  
+	  recvOffset+=nEl;
 	}
       
       // Waits all communications
