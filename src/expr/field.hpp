@@ -28,7 +28,7 @@ namespace nissa
   };
   
   /// Start the communications of buffer interpreted as halo
-  std::vector<MPI_Request> startBufHaloNeighExchange(const size_t& bps);
+  std::vector<MpiRequest> startBufHaloNeighExchange(const size_t& bps);
   
   /// Specifies the order of components
   template <typename TP,
@@ -851,10 +851,13 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
-    static std::vector<MPI_Request> startBufHaloNeighExchange(const size_t& bps)
+    static std::vector<MpiRequest> startBufHaloNeighExchange(const size_t& bps)
     {
       /// Pending requests
-      std::vector<MPI_Request> requests;
+      std::vector<MpiRequest> requests;
+      
+      char* const sendBuf=getSendBuf(lat->getHaloSize()()*bps);
+      char* const recvBuf=getRecvBuf(lat->getHaloSize()()*bps);
       
       for(Dir mu=0;mu<NDIM;mu++)
 	if(isDirParallel[mu])
@@ -868,35 +871,31 @@ namespace nissa
 		 off=lat->getSurfOffsetOfDir(mu)(),
 		 messageTag=sendOri()+2*mu()]
 		(const char* oper,
-		 const auto sendOrRecv,
+		 const MpiSendOrRecvFlag& SR,
 		 auto* ptr,
 		 const Ori& ori)
 		{
 		  const size_t offset=(off+ns*ori)*bps;
 		  const MpiRank neighRank=neighRanks(ori,mu);
-		  const size_t messageLength=2*lat->getSurfSizePerDir()[mu]()*bps;
+		  const size_t messageLength=lat->getSurfSizePerDir()[mu]()*bps;
 		  // printf("rank %d %s ori %d dir %d, corresponding rank: %d, tag: %d length: %zu\n"
 		  //        ,rank,oper,ori,mu,neighRank,messageTag,messageLength);
 		  
-		  MPI_Request request;
-		  
-		  sendOrRecv(ptr+offset,messageLength,MPI_CHAR,neighRank(),
-			     messageTag,MPI_COMM_WORLD,&request);
-		  
-		  requests.push_back(request);
+		  requests.push_back(mpiISendOrRecv(SR,neighRank(),ptr+offset,messageLength,messageTag));
 		};
 	      
 	      const Ori recvOri=1-sendOri;
-	      
-	      sendOrRecv("send",MPI_Isend,getSendBuf(lat->getHaloSize()()*bps),sendOri);
-	      sendOrRecv("recv",MPI_Irecv,getRecvBuf(lat->getHaloSize()()*bps),recvOri);
+
+	      using enum MpiSendOrRecvFlag;
+	      sendOrRecv("send",Send,sendBuf,sendOri);
+	      sendOrRecv("recv",Recv,recvBuf,recvOri);
 	    }
       
       return requests;
     }
     
     /// Start the communications of halo
-    static std::vector<MPI_Request> startHaloAsyincComm()
+    static std::vector<MpiRequest> startHaloAsyincComm()
     {
       return startBufHaloNeighExchange(nInternalDegs*sizeof(Fund));
     }
@@ -904,10 +903,10 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     /// Start communication using halo
-    std::vector<MPI_Request> startCommunicatingHalo() const
+    std::vector<MpiRequest> startCommunicatingHalo() const
     {
       /// Pending requests
-      std::vector<MPI_Request> requests;
+      std::vector<MpiRequest> requests;
       
       //fill the communicator buffer, start the communication and take time
       fillSendingBufWithSurface();
@@ -917,13 +916,13 @@ namespace nissa
     }
     
     /// Finalize communications
-    void finishCommunicatingHalo(std::vector<MPI_Request> requests) const
+    void finishCommunicatingHalo(std::vector<MpiRequest>& requests) const
     {
       //take note of passed time and write some debug info
       VERBOSITY_LV3_MASTER_PRINTF("Finish communication of halo\n");
       
       //wait communication to finish, fill back the vector and take time
-      waitAsyncCommsFinish(requests);
+      mpiWaitAll(requests);
       fillHaloWithReceivingBuf();
       
       haloIsValid=true;
@@ -945,7 +944,7 @@ namespace nissa
 	{
 	  VERBOSITY_LV3_MASTER_PRINTF("Sync communication of halo\n");
 	  
-	  const std::vector<MPI_Request> requests=
+	  const std::vector<MpiRequest> requests=
 	    startCommunicatingHalo();
 	  finishCommunicatingHalo(requests);
       }
