@@ -56,14 +56,14 @@ namespace nissa
     constexpr int callstackLength=128;
     
     /// Callstack handle
-    void *callstack[callstackLength];
+    void* callstack[callstackLength];
     
     /// Count the number of frames and gets a handle to them
     const int frames=
       backtrace(callstack,callstackLength);
     
     /// Get the symbols as string
-    char **strs=
+    char** strs=
       backtrace_symbols(callstack,frames);
     
     //only master rank, but not master thread
@@ -104,7 +104,6 @@ namespace nissa
 			    const char *templ,
 			    ...)
   {
-    
     fflush(stdout);
     fflush(stderr);
     
@@ -120,9 +119,6 @@ namespace nissa
 	fprintf(stderr,"\x1b[31m" "ERROR on line %d of file \"%s\", message error: \"%s\".\n\x1b[0m",line,file,mess);
 	printBacktraceList();
       }
-    //give time to master thread to crash, if possible
-    //sleep(1);
-    
     mpiAbort(0);
   }
   

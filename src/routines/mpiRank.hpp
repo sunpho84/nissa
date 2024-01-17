@@ -38,7 +38,7 @@ namespace nissa
   
   /// Abort execution
   __attribute__((noreturn))
-  inline void mpiAbort(const int& err) 
+  inline void mpiAbort(const int& err)
   {
     printf("on rank %ld aborting\n",thisRank());
 #ifdef USE_MPI

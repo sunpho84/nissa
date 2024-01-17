@@ -105,6 +105,65 @@ namespace nissa
     return toRecv;
   }
   
+  /// Decide the direction of the MPI communication
+  enum class MpiSendOrRecvFlag{Send,Recv};
+  
+using MpiRequest=
+#ifdef USE_MPI
+  MPI_Request
+#else
+  std::tuple<void*,int,MpiSendOrRecvFlag,size_t>
+#endif
+  ;
+  
+  template <TriviallyCopyable T>
+  INLINE_FUNCTION
+  MpiRequest mpiISendOrRecv(MpiSendOrRecvFlag SR,
+			    const MpiRank& othRank,
+			    T* p,
+			    const size_t& lengthInUnitsOfT,
+			    const int& tag)
+  {
+    /// Full length
+    const size_t length=lengthInUnitsOfT*sizeof(T);
+    
+#ifdef USE_MPI
+    
+# define ARGS p,length*sizeof(T),MPI_CHAR,othRank(),tag,MPI_COMM_WORLD,&request
+    
+    MpiRequest request;
+    
+    if(SR==MpiSendOrRecvFlag::Recv)
+      MPI_Irecv(ARGS);
+    else
+      MPI_Isend(ARGS);
+    
+    return request;
+    
+# undef ARGS
+    
+#else
+    return {(void*)p,tag,SR,length};
+#endif
+  }
+  
+#define PROVIDE_MPI_ISEND_OR_IRECV(OPT)					\
+  template <TriviallyCopyable T>					\
+  INLINE_FUNCTION							\
+  MpiRequest mpiI ## OPT (const MpiRank& othRank,			\
+			  T* p,						\
+			  const size_t& length,				\
+			  const int& tag)				\
+  {									\
+    return mpiISendOrRecv(MpiSendOrRecvFlag::OPT,othRank,p,length,tag);	\
+  }
+  
+  PROVIDE_MPI_ISEND_OR_IRECV(Send);
+  
+  PROVIDE_MPI_ISEND_OR_IRECV(Recv);
+  
+#undef PROVIDE_MPI_ISEND_OR_IRECV
+  
   /// Exec only on master rank
   template <typename F,
 	    typename...Args>
@@ -198,6 +257,18 @@ namespace nissa
   
 #define decryptMpiError(...)					\
   internalDecryptMpiError(__LINE__,__FILE__,__VA_ARGS__)
+  
+  /// Wait for communications to finish
+  inline void mpiWaitAll(std::vector<MpiRequest>& requests)
+  {
+#ifdef USE_MPI
+    VERBOSITY_LV3_MASTER_PRINTF("Entering MPI comm wait\n");
+    
+    MPI_Waitall(requests.size(),&requests[0],MPI_STATUS_IGNORE);
+#else
+    CRASH("Some work is due to wire the bits");
+#endif
+  }
 }
 
 #endif
