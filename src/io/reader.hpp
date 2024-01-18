@@ -124,7 +124,7 @@ namespace nissa
 				    const std::string& path,
 				    const std::string& recordName)
   {
-    if constexpr(FieldLayout::CPU!=FL or MT!=MemoryType::CPU)
+    if constexpr(FL!=FieldLayout::CPU or MT!=MemoryType::CPU)
       {
 	Field<OfComps<C...>,Fund,FieldLayout::CPU,MemoryType::CPU> tmp;
 	readFieldFromIldgFile(tmp,path,recordName);
