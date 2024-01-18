@@ -303,7 +303,6 @@ namespace nissa
       }
       
       /// Destroy updating the device copy
-      HOST_DEVICE_ATTRIB
       ~FillableProxy()
       {
 	if constexpr(not compilingForDevice)
