@@ -944,7 +944,7 @@ namespace nissa
 	{
 	  VERBOSITY_LV3_MASTER_PRINTF("Sync communication of halo\n");
 	  
-	  const std::vector<MpiRequest> requests=
+	  std::vector<MpiRequest> requests=
 	    startCommunicatingHalo();
 	  finishCommunicatingHalo(requests);
       }
