@@ -452,6 +452,8 @@ namespace nissa
     {
       _glbCoordsOfLocLx.allocate(getLocVol());
       
+      _glbLxOfLocLx.allocate(getLocVol());
+      
       _glbCoordsOfLocLx.getFillable()=
 	getLocCoordsOfLocLx().template reinterpretFund<GlbCoord>()+
 	getOriginGlbCoords();
