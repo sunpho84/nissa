@@ -364,7 +364,7 @@ namespace nissa
     mutable bool haloIsValid;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr
+    INLINE_FUNCTION HOST_DEVICE_ATTRIB constexpr
     auto getDynamicSizes() const
     {
       return std::make_tuple(lat->getLocVol());
