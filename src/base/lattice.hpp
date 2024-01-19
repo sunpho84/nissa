@@ -586,11 +586,23 @@ namespace nissa
       COPY_CONSTRUCTOR_BODY;
     
     constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
-    _Lattice(const _Lattice &oth)
+    _Lattice(const _Lattice& oth)
       requires(IsRef) :
       COPY_CONSTRUCTOR_BODY;
     
 #undef COPY_CONSTRUCTOR_BODY
+    
+    /// Move assign
+    constexpr INLINE_FUNCTION
+    _Lattice& operator=(_Lattice&& oth)=default;
+    
+    /// Copy assign
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
+    _Lattice& operator=(const _Lattice& oth)
+    {
+      return
+	(*this)=oth.getRef();
+    }
     
     /// Returns a reference
     HOST_DEVICE_ATTRIB INLINE_FUNCTION

@@ -341,7 +341,7 @@ namespace nissa
     template <typename O>
     requires IsRef and isDynamicTens<O>
      HOST_DEVICE_ATTRIB
-    DynamicTens(O&& oth)  :
+    DynamicTens(O&& oth) :
 		    DynamicTens(oth.getDynamicSizes(),
 				oth.storage,
 				oth.nElements)

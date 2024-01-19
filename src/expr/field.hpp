@@ -250,6 +250,7 @@ namespace nissa
       subExpr=std::move(oth.subExpr);
       haloIsValid=oth.haloIsValid;
       haloPresence=oth.haloPresence;
+      latRef=oth.latRef;
       
       return *this;
     }
@@ -360,11 +361,14 @@ namespace nissa
     /// States whether the halo is updated
     mutable bool haloIsValid;
     
+    /// Lattice to which the field is referring to
+    LatticeRef latRef;
+    
     /// Returns the dynamic sizes
     INLINE_FUNCTION HOST_DEVICE_ATTRIB constexpr
     auto getDynamicSizes() const
     {
-      return std::make_tuple(lat->getLocVol());
+      return std::make_tuple(latRef.getLocVol());
     }
     
 #define PROVIDE_EVAL(ATTRIB)					\
@@ -579,6 +583,7 @@ namespace nissa
       nTotalAllocatedSites=nSitesToAllocate(haloPresence);
       subExpr.allocate(std::make_tuple(nTotalAllocatedSites));
       haloPresence=_haloPresence;
+      latRef=lat->getRef();
       
       invalidateHalo();
     }
@@ -617,7 +622,8 @@ namespace nissa
       nTotalAllocatedSites(oth.nTotalAllocatedSites),
       subExpr(oth.subExpr),
       haloPresence(oth.haloPresence),
-      haloIsValid(oth.haloIsValid)
+      haloIsValid(oth.haloIsValid),
+      latRef(oth.latRef)
     {
 #ifndef COMPILING_FOR_DEVICE
       if constexpr(not IsRef)
@@ -676,7 +682,8 @@ namespace nissa
       nTotalAllocatedSites(oth.nTotalAllocatedSites),
       subExpr(std::move(oth.subExpr)),
       haloPresence(oth.haloPresence),
-      haloIsValid(oth.haloIsValid)
+      haloIsValid(oth.haloIsValid),
+      latRef(oth.latRef)
     {
 #ifndef COMPILING_FOR_DEVICE
       VERBOSITY_LV3_MASTER_PRINTF("Using move constructor of Field\n");

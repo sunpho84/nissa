@@ -179,6 +179,12 @@ namespace nissa
       return *this;
     }
     
+    // /// Copy assign
+    // constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
+    // MirroredNode& operator=(const MirroredNode& oth)
+    //   requires(not storeByRef)
+    // =default;
+    
     /// Updates the device copy
     INLINE_FUNCTION constexpr
     void updateDeviceCopy()
