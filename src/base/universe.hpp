@@ -95,6 +95,45 @@ namespace nissa
     {
       return (perpDir()>=dir())?(perpDir()+1):perpDir();
     };
+  
+  
+  /// Remaps coordinates between nissa and scidac format
+  template <typename T>
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
+  Coords<T> scidacRemap(const Coords<T>& in)
+  {
+    Coords<T> out;
+    
+    for(Dir dir=0;dir<nDim;dir++)
+      out[scidacNissaDirMapping[dir]]=in[dir];
+    
+    return out;
+  }
+  
+  /// Returns a versor in the direction extDir
+  template <typename Fund=bool>
+  constexpr static auto getVersor(const Dir& extDir)
+  {
+    StackTens<CompsList<Dir>,Fund> res;
+    for(Dir dir=0;dir<nDim;dir++)
+      res[dir]=dir==extDir;
+    
+    return res;
+  }
+  
+  /// Hypercube diagonal
+  constexpr StackTens<CompsList<Dir>> hCubeDiag=1.0;
+  
+  /// All directions
+  constexpr StackTens<CompsList<Dir>,bool> allDirs=true;
+  
+  /// Versor in a given direction
+  constexpr StackTens<CompsList<Dir>,StackTens<CompsList<Dir>,bool>> versors=
+    getVersor<bool>;
+  
+  /// List of perpendicular directions
+  constexpr StackTens<CompsList<Dir>,StackTens<CompsList<Dir>,bool>> perpDirs=
+    allDirs-versors;
 }
 
 #endif

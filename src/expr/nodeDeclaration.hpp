@@ -9,8 +9,6 @@
 ///
 /// \brief Declares a node in the syntactic tree
 
-#include <tuple>
-
 #include <metaprogramming/feature.hpp>
 #include <metaprogramming/inline.hpp>
 

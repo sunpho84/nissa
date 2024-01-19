@@ -55,19 +55,6 @@ namespace nissa
   template <bool IsRef>
   struct _Lattice
   {
-    /// Remaps coordinates between nissa and scidac format
-    template <typename T>
-    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
-    static Coords<T> scidacRemap(const Coords<T>& in)
-    {
-      Coords<T> out;
-      
-      for(Dir dir=0;dir<nDim;dir++)
-	out[scidacNissaDirMapping[dir]]=in[dir];
-      
-      return out;
-    }
-    
 #define PROVIDE_MEMBER_WITH_ACCESSOR(NAME,CAP_NAME,TYPE...)	\
     TYPE _ ## NAME;						\
     								\
@@ -569,11 +556,6 @@ namespace nissa
       return getGlbCoordsOfLocLx(dir);
     }
     
-    /// Returns a function which evaluates to true on spatial origins
-    ///
-    /// Forward declaration
-    auto spatialOriginsMask() const;
-    
     /// Default constructor
     _Lattice() = default;
     
@@ -638,31 +620,6 @@ namespace nissa
       
       return std::make_tuple(destRank,locNissaSite);
     }
-    
-    /// Returns a versor in the direction extDir
-    template <typename Fund=bool>
-    constexpr static auto getVersor(const Dir& extDir)
-    {
-      StackTens<CompsList<Dir>,Fund> res;
-      for(Dir dir=0;dir<nDim;dir++)
-	res[dir]=dir==extDir;
-      
-      return res;
-    }
-    
-    /// Hypercube diagonal
-    static constexpr StackTens<CompsList<Dir>> hCubeDiag=1.0;
-    
-    /// All directions
-    static constexpr StackTens<CompsList<Dir>,bool> allDirs=true;
-    
-    /// Versor in a given direction
-    static constexpr StackTens<CompsList<Dir>,StackTens<CompsList<Dir>,bool>> versors=
-      getVersor<bool>;
-    
-    /// List of perpendicular directions
-    static constexpr StackTens<CompsList<Dir>,StackTens<CompsList<Dir>,bool>> perpDirs=
-      allDirs-versors;
   };
   
   /// Functor used to mak the spatial origin
@@ -702,10 +659,10 @@ namespace nissa
   
   /// Returns a function which evaluates to true on spatial origins
   template <bool IsRef>
-  auto _Lattice<IsRef>::spatialOriginsMask() const
+  auto spatialOriginsMask(const _Lattice<IsRef>& lat)
   {
     return
-      funcNodeWrapper<CompsList<LocLxSite>>(SpatOriginMaskFunctor{this->getRef()},std::make_tuple(getLocVol()));
+      funcNodeWrapper<CompsList<LocLxSite>>(SpatOriginMaskFunctor{lat.getRef()},std::make_tuple(lat.getLocVol()));
   }
   
   /// Stores the actual lattice

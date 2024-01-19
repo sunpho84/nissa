@@ -190,7 +190,7 @@ namespace nissa::localizer
     
     return {lat->getLocVol(),
       [dir,
-       glbPerpSizes=(lat->getGlbSizes()*Lattice::perpDirs(dir)+Lattice::versors[dir]).close()](const LocLxSite& locLxSite)
+       glbPerpSizes=(lat->getGlbSizes()*perpDirs(dir)+versors[dir]).close()](const LocLxSite& locLxSite)
 	    {
 	      /// Dimensions of the current direction
 	      const auto& [fcSize,locOsdSize]=
@@ -202,7 +202,7 @@ namespace nissa::localizer
 	      
 	      /// Coordinates in the perpendicular space
 	      const GlbCoords glbPerpCoords=
-		lat->getGlbCoordsOfLocLx(locLxSite)*Lattice::perpDirs(dir);
+		lat->getGlbCoordsOfLocLx(locLxSite)*perpDirs(dir);
 	      
 	      /// Global index in the space perpendicular to the current direction
 	      const OrthoSpaceTime glbOsd=
