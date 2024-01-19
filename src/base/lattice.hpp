@@ -6,7 +6,6 @@
 #endif
 
 #include <cmath>
-#include <memory>
 #include <sstream>
 
 #include <expr/cWiseCombine.hpp>
@@ -49,7 +48,7 @@ namespace nissa
     _Lattice<false>;
   
   /// Reference to a lattice
-  using Lattice=
+  using LatticeRef=
     _Lattice<true>;
   
   /// Holds all the info on the lattice
@@ -673,8 +672,10 @@ namespace nissa
     static constexpr ExecSpace execSpace=
       execOnCPUAndGPU;
     
-    Lattice lat;
+    /// Reference to the lattice
+    LatticeRef lat;
     
+    /// Initializes from lattice
     template <bool IsRef>
     constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
     SpatOriginMaskFunctor(const _Lattice<IsRef>& lat) :

@@ -115,6 +115,25 @@ namespace nissa
   /// Declares that can execute on both CPU and GPU
   constexpr ExecSpace currentExecSpace=
 	      compilingForDevice?execOnGPU:execOnCPU;
+  
+  /////////////////////////////////////////////////////////////////
+  
+  namespace impl
+  {
+    /// Generic equivalent of a type on device: unless specified, it
+    /// is the type itself
+    template <typename T>
+    struct _DeviceEquivalent
+    {
+      /// Actual type
+      using type=T;
+    };
+  }
+  
+  /// Device equivalent of a certain type
+  template <typename T>
+  using DeviceEquivalent=
+    impl::_DeviceEquivalent<T>::type;
 }
 
 #endif

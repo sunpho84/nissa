@@ -350,19 +350,19 @@ namespace nissa
 	resources::_ildgToNissaRemapper;
       
       if(not r.inited)
-	r.init(lat->getLocVol(),
+	r.init(lat.getLocVol(),
 	       [nRanksPerDir=nRanksPerDir.getReadable()](const LocLxSite& ildgChunkEl)
 	       {
 		 const LocLxSite ildgEl=
-		   thisRank()*lat->getLocVol()+ildgChunkEl;
+		   thisRank()*lat.getLocVol()+ildgChunkEl;
 		 
 		 const GlbCoords ildgSizes=
-		   Lattice::scidacRemap(lat->getGlbSizes());
+		   scidacRemap(lat.getGlbSizes());
 		 
 		 const GlbCoords ildgGlbCoords=
 		   decomposeLxToCoords(ildgEl,ildgSizes);
 		 
-		 return lat->getRankAndLocLxSiteOf(Lattice::scidacRemap(ildgGlbCoords));
+		 return lat.getRankAndLocLxSiteOf(scidacRemap(ildgGlbCoords));
 	       });
       
       return r;
@@ -560,7 +560,7 @@ namespace nissa
   // template <typename T>
   // void write_lattice_field(ILDGFile &file,T *data)
   // {
-  //   ILDGFile_write_ildg_data_all_raw(file,data,lat->getLocVol()()*sizeof(T));
+  //   ILDGFile_write_ildg_data_all_raw(file,data,lat.getLocVol()()*sizeof(T));
   // }
   
   // //Writes a field opening the file with given path (data is a vector of loc_vol) with no frill

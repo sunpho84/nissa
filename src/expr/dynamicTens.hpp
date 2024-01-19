@@ -46,10 +46,6 @@ namespace nissa
 #undef BASE
 #undef THIS
     
-    /// Equivalent Dynamic tens on the device
-    using DeviceEquivalent=
-      DynamicTens<CompsList<C...>,_Fund,maybeGpuMemoryType,IsRef>;
-    
     /// Importing assignment operator from Node
     using Base::operator=;
     
@@ -496,6 +492,21 @@ namespace nissa
     }
   };
   
+  namespace impl
+  {
+    ///  Equivalent DynamicTens on device
+    template <typename C,
+	      typename Fund,
+	      MemoryType MT,
+	      bool IsRef>
+    struct _DeviceEquivalent<DynamicTens<C,Fund,MT,IsRef>>
+    {
+      using type=
+	DynamicTens<C,Fund,maybeGpuMemoryType,IsRef>;
+    };
+  }
+  
+  /// Close a node to a DynamicTens
   template <typename T,
 	    DerivedFromComp...Ci>
   INLINE_FUNCTION constexpr
