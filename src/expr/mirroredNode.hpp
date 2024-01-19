@@ -5,14 +5,13 @@
 # include <config.hpp>
 #endif
 
-#include <assert.h>
-
 /// \file expr/mirroredNode.hpp
 
 /// Mirrored node exec normally on cpu, the device part is a mere mirror
 
 #include <expr/comps.hpp>
 #include <expr/execSpace.hpp>
+#include <expr/mirroredObj.hpp>
 #include <expr/node.hpp>
 #include <tuples/tuple.hpp>
 
@@ -42,28 +41,15 @@ namespace nissa
 	    typename _Fund>
   struct THIS :
     BASE,
+    MirroredObj<H,D>,
     MirroredNodeFeat
   {
-    H hostVal;
-    
-#ifdef ENABLE_DEVICE_CODE
-    D deviceVal;
-#endif
-    
     using This=THIS;
     
     using Base=BASE;
     
 #undef BASE
 #undef THIS
-    
-    using ContextNode=
-#ifdef COMPILING_FOR_DEVICE
-      D
-#else
-      H
-#endif
-      ;
     
     /// Components
     using Comps=
@@ -76,23 +62,6 @@ namespace nissa
     using DynamicComps=
       typename Base::DynamicComps;
     
-    /// Exec on both CPU and GPU
-    static constexpr ExecSpace execSpace=
-      execOnCPUAndGPU;
-    
-    /// Gets a reference for the given exectution space
-    template <ExecSpace ES>
-    requires UniqueExecSpace<ES>
-    decltype(auto) getRefForExecSpace() const
-    {
-#ifdef ENABLE_DEVICE_CODE
-      if constexpr(ES==execOnGPU)
-	return deviceVal.getRef();
-      else
-#endif
-	return hostVal.getRef();
-    }
-    
     /// Type obtained reinterpreting the fund
     template <typename NFund>
     using ReinterpretFund=
@@ -101,56 +70,37 @@ namespace nissa
 		   SameRefAs<D,typename std::decay_t<D>::template ReinterpretFund<NFund>>,
 		   NFund>;
     
-    /// Returns a reference
-    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
-    auto getRef()
-    {
-      using Res=MirroredNode<Comps,decltype(hostVal.getRef())>;
-      
-      Res res(hostVal.getRef()
 #ifdef ENABLE_DEVICE_CODE
-	      ,deviceVal.getRef()
-#endif
-	      );
-      
-      return res;
-    }
-    
-    /// Returns a const reference
-    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
-    auto getRef() const
-    {
-      using Res=MirroredNode<Comps,decltype(hostVal.getRef())>;
-      
-      Res res(hostVal.getRef()
-#ifdef ENABLE_DEVICE_CODE
-	      ,deviceVal.getRef()
-#endif
-	      );
-      
-      return res;
-    }
-    
-    /////////////////////////////////////////////////////////////////
-    
-    /// Gets the data structure for the appropriate context
-    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
-    const auto& getForCurrentContext() const
-    {
-      return
-#ifdef COMPILING_FOR_DEVICE
-	deviceVal
+# define GET_REF_DEVICE_PART ,this->deviceVal.getRef()
 #else
-	hostVal
+# define GET_REF_DEVICE_PART
 #endif
-	;
+    
+#define PROVIDE_GET_REF(ATTRIB)						\
+    /* Returns a reference */						\
+    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION			\
+    auto getRef() ATTRIB						\
+    {									\
+      return								\
+	MirroredNode<Comps,decltype(this->hostVal.getRef())>		\
+	(this->hostVal.getRef()						\
+	 GET_REF_DEVICE_PART						\
+	 );								\
     }
+    
+    PROVIDE_GET_REF(const);
+    
+    PROVIDE_GET_REF(/* non const */);
+    
+#undef GET_REF_DEVICE_PART
+    
+#undef PROVIDE_GET_REF
     
 #define DELEGATE_TO_CONTEXT(METHOD_NAME,ARGS,FORWARDING,CONST_METHOD)	\
     INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
     decltype(auto) METHOD_NAME(ARGS) CONST_METHOD			\
     {									\
-      return getForCurrentContext().METHOD_NAME(FORWARDING);		\
+      return this-> getForCurrentContext().METHOD_NAME(FORWARDING);	\
     }
     
     DELEGATE_TO_CONTEXT(getDynamicSizes,,,const);
@@ -186,36 +136,19 @@ namespace nissa
     static constexpr bool storeByRef=
       H::storeByRef;
     
-    /// Default constructor
-    template <typename...T>
-    requires(not (std::is_same_v<T,H> or...))
-    INLINE_FUNCTION constexpr
-    explicit MirroredNode(const T&...t) :
-      hostVal(t...)
-#ifdef ENABLE_DEVICE_CODE
-      ,deviceVal(t...)
-#endif
-    {
-    }
-    
     /// Returns the node as subexpressions
     INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     decltype(auto) getSubExprs() const
     {
-      return nissa::tie(getForCurrentContext());
+      return nissa::tie(this->getForCurrentContext());
     }
     
-    /// Create from H and D
+    /// Constructor
+    template <typename...T>
     constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
-    MirroredNode(const H& h
-#ifdef ENABLE_DEVICE_CODE
-		 ,const D& d
-#endif
-		 ) :
-      hostVal(h)
-#ifdef ENABLE_DEVICE_CODE
-      ,deviceVal(d)
-#endif
+    MirroredNode(T&&...t)
+      requires(not (std::is_same_v<std::decay_t<T>,MirroredNode> or...)) :
+      MirroredObj<H,D>(std::forward<T>(t)...)
     {
     }
     
@@ -238,9 +171,9 @@ namespace nissa
     constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     MirroredNode& operator=(MirroredNode&& oth)
     {
-      hostVal=std::move(oth.hostVal);
+      this->hostVal=std::move(oth.hostVal);
 #ifdef ENABLE_DEVICE_CODE
-      deviceVal=std::move(oth.deviceVal);
+      this->deviceVal=std::move(oth.deviceVal);
 #endif
       
       return *this;
@@ -251,69 +184,8 @@ namespace nissa
     void updateDeviceCopy()
     {
 #ifdef ENABLE_DEVICE_CODE
-      deviceVal=hostVal;
+      this->deviceVal=this->hostVal;
 #endif
-    }
-    
-    /// Allocates the data structures
-    template <typename...T>
-    INLINE_FUNCTION constexpr
-    void allocate(const T&...t)
-    {
-      hostVal.allocate(t...);
-#ifdef ENABLE_DEVICE_CODE
-      deviceVal.allocate(t...);
-#endif
-    }
-    
-    /// Proxy to fill the tables
-    struct FillableProxy
-    {
-      /// Assign from something
-      template <typename F>
-      constexpr INLINE_FUNCTION
-      FillableProxy operator=(F&& f) &&
-      {
-	ref.hostVal=f;
-	
-	return *this;
-      }
-      
-      /// Takes the reference to a MirroredNode
-      MirroredNode& ref;
-      
-      /// Subscribe operator
-      template <DerivedFromComp T>
-      decltype(auto) operator[](T&& t)
-      {
-	return ref.hostVal[std::forward<T>(t)];
-      }
-      
-      /// Callable operator
-      template <DerivedFromComp...T>
-      decltype(auto) operator()(T&&...t)
-      {
-	return ref.hostVal(std::forward<T>(t)...);
-      }
-      
-      /// Construct taking a reference
-      FillableProxy(MirroredNode& ref) :
-	ref(ref)
-      {
-      }
-      
-      /// Destroy updating the device copy
-      ~FillableProxy()
-      {
-	if constexpr(not compilingForDevice)
-	  ref.updateDeviceCopy();
-      }
-    };
-    
-    /// Returns a view which can be filled
-    FillableProxy getFillable()
-    {
-      return *this;
     }
   };
   
