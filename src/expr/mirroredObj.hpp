@@ -16,11 +16,29 @@
 
 namespace nissa
 {
+  namespace impl
+    {
+      /// Generic equivalent of a type on device
+      template <typename T>
+      struct _DeviceEquivalent
+      {
+	/// Actual type
+	using type=T;
+      };
+  }
+  
+  /// Device equivalent of a certain type
+  template <typename T>
+  using DeviceEquivalent=
+    impl::_DeviceEquivalent<T>::type;
+  
+  /////////////////////////////////////////////////////////////////
+  
   PROVIDE_FEATURE(MirroredObj);
   
   /// Mirrored obj
   template <typename H,
-	    typename D=typename H::DeviceEquivalent>
+	    typename D=DeviceEquivalent<H>>
   struct MirroredObj :
     MirroredObjFeat
   {

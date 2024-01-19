@@ -24,7 +24,7 @@ namespace nissa
   /// Forward declaration
   template <typename C,
 	    typename H,
-	    typename D=typename H::DeviceEquivalent,
+	    typename D=DeviceEquivalent<H>,
 	    typename Fund=typename H::Fund>
   struct MirroredNode;
   

@@ -91,10 +91,7 @@ namespace nissa
     /// Importing assignment operator from BaseTens
     using Base::operator=;
     
-    ///  Equivalent Field on device
-    using DeviceEquivalent=
-      Field<CompsList<C...>,_Fund,FieldLayout::GPU,maybeGpuMemoryType,IsRef>;
-    
+    /// Assignment
     template <FieldLayout OFL,
 	      MemoryType OMT,
 	      bool OIR>
@@ -950,6 +947,21 @@ namespace nissa
       }
     }
   };
+  
+  namespace impl
+  {
+    ///  Equivalent Field on device
+    template <typename InnerComps,
+	      typename Fund,
+	      FieldLayout FL,
+	      MemoryType MT,
+	      bool IsRef>
+    struct _DeviceEquivalent<Field<InnerComps,Fund,FL,MT,IsRef>>
+    {
+      using type=
+	Field<InnerComps,Fund,FieldLayout::GPU,maybeGpuMemoryType,IsRef>;
+    };
+  }
   
   template <typename T,
 	    DerivedFromComp...Ci>
