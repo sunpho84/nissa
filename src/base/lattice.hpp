@@ -671,7 +671,7 @@ namespace nissa
   inline LatticeResources* _lat;
   
   /// Reference to the lattice
-  inline Lattice* lat;
+  inline LatticeRef* lat;
 }
 
 #endif

@@ -350,19 +350,19 @@ namespace nissa
 	resources::_ildgToNissaRemapper;
       
       if(not r.inited)
-	r.init(lat.getLocVol(),
+	r.init(lat->getLocVol(),
 	       [nRanksPerDir=nRanksPerDir.getReadable()](const LocLxSite& ildgChunkEl)
 	       {
 		 const LocLxSite ildgEl=
-		   thisRank()*lat.getLocVol()+ildgChunkEl;
+		   thisRank()*lat->getLocVol()+ildgChunkEl;
 		 
 		 const GlbCoords ildgSizes=
-		   scidacRemap(lat.getGlbSizes());
+		   scidacRemap(lat->getGlbSizes());
 		 
 		 const GlbCoords ildgGlbCoords=
 		   decomposeLxToCoords(ildgEl,ildgSizes);
 		 
-		 return lat.getRankAndLocLxSiteOf(scidacRemap(ildgGlbCoords));
+		 return lat->getRankAndLocLxSiteOf(scidacRemap(ildgGlbCoords));
 	       });
       
       return r;
