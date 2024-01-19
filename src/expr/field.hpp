@@ -36,7 +36,7 @@ namespace nissa
 	    FieldLayout FL>
   struct FieldCompsProvider;
   
-#define PROVIDE_FIELD_COMPS_PROVIDER(LAYOUT,SITE,TYPES...)	\
+#define PROVIDE_FIELD_COMPS_PROVIDER(LAYOUT,SITE,TYPES...)		\
   									\
   template <typename...C,						\
 	    typename F>							\

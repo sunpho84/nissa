@@ -100,7 +100,7 @@ namespace nissa
     INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
     decltype(auto) METHOD_NAME(ARGS) CONST_METHOD			\
     {									\
-      return this-> getForCurrentContext().METHOD_NAME(FORWARDING);	\
+      return this->getForCurrentContext().METHOD_NAME(FORWARDING);	\
     }
     
     DELEGATE_TO_CONTEXT(getDynamicSizes,,,const);
