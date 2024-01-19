@@ -107,8 +107,10 @@ namespace nissa
       
       for(Dir mu=0;mu<nDim;mu++)
 	{
-	  if(L(mu)>2) out*=L(mu)-2;
-	  else out=0;
+	  if(L(mu)>2)
+	    out*=L(mu)-2;
+	  else
+	    out=0;
 	}
       
       return out;

@@ -100,6 +100,13 @@ namespace nissa
 	;
     }
     
+    /// Access the appropriate inner type
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
+    const auto* operator->() const
+    {
+      return &getForCurrentContext();
+    }
+    
     /// Default constructor
     template <typename...T>
     INLINE_FUNCTION constexpr
