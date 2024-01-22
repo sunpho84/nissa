@@ -410,13 +410,14 @@ namespace nissa
     {
       Field<CompsList<>,_Fund,FL,MT> buf;
       
-      PAR(0,this->nSites(),
-	  CAPTURE(t=this->getReadable(),
-		  TO_WRITE(buf)),
-	  site,
-	  {
-	    buf(site)=t(site).norm2();
-	  });
+      PAR_ON_EXEC_SPACE(execSpace,
+			0,this->nSites(),
+			CAPTURE(t=this->getReadable(),
+				TO_WRITE(buf)),
+			site,
+			{
+			  buf(site)=t(site).norm2();
+			});
       
       return buf.glbReduce();
     }
@@ -435,16 +436,17 @@ namespace nissa
 	  const Site nReductions=n/2;
 	  //verbosity_lv3_masterPrintf("n: %d, stride: %d, nreductions: %d \n",n(),stride(),nReductions());
 	  
-	  PAR(0,nReductions,
-	      CAPTURE(stride,
-		      t=this->getWritable()),
-	      iReduction,
-	      {
-		const Site first=iReduction;
-		const Site second=first+stride;
-		
-		t(first)=t(first)+t(second);
-	      });
+	  PAR_ON_EXEC_SPACE(execSpace,
+			    0,nReductions,
+			    CAPTURE(stride,
+				    t=this->getWritable()),
+			    iReduction,
+			    {
+			      const Site first=iReduction;
+			      const Site second=first+stride;
+			      
+			      t(first)=t(first)+t(second);
+			    });
 	  
 	  n=stride;
 	}
@@ -582,6 +584,9 @@ namespace nissa
     {
       nTotalAllocatedSites=nSitesToAllocate(haloPresence);
       subExpr.allocate(std::make_tuple(nTotalAllocatedSites));
+      // masterPrintf("Allocating\n");
+      // printBacktraceList();
+      // masterPrintf("allocated %p of size %zu\n",subExpr.storage,nTotalAllocatedSites()*sizeof(Fund));
       haloPresence=_haloPresence;
       latRef=lat->getRef();
       
@@ -728,26 +733,27 @@ namespace nissa
     void fillSendingBufWith(const F& f,
 			    const Site& n) const
     {
-      PAR(0,n,
-	  CAPTURE(f,
-		  t=this->getReadable(),
-		  sendBuf=getSendBuf<std::remove_cv_t<Fund>>(nInternalDegs*n()),
-		  dynamicSizes=this->getDynamicSizes()),
-	  i,
-	  {
-	    compsLoop<InnerComps>([i,
-				   t,
-				   dynamicSizes,
-				   sendBuf,
-				   f] DEVICE_ATTRIB (const auto&...c) INLINE_ATTRIBUTE
-	    {
-	      const auto internalDeg=
-		index(dynamicSizes,c...);
-	      
-	      sendBuf[internalDeg+nInternalDegs*i()]=
-		t(f(i),c...);
-	    },dynamicSizes);
-	  });
+      PAR_ON_EXEC_SPACE(execSpace,
+			0,n,
+			CAPTURE(f,
+				t=this->getReadable(),
+				sendBuf=getSendBuf<std::remove_cv_t<Fund>>(nInternalDegs*n()),
+				dynamicSizes=this->getDynamicSizes()),
+			i,
+			{
+			  compsLoop<InnerComps>([i,
+						 t,
+						 dynamicSizes,
+						 sendBuf,
+						 f](const auto&...c) INLINE_ATTRIBUTE
+			  {
+			    const auto internalDeg=
+			      index(dynamicSizes,c...);
+			    
+			    sendBuf[internalDeg+nInternalDegs*i()]=
+			      t(f(i),c...);
+			  },dynamicSizes);
+			});
     }
     
     /// Fill the sending buf using the data on the surface of a field
@@ -803,26 +809,27 @@ namespace nissa
     INLINE_FUNCTION
     void fillHaloWithReceivingBuf() const
     {
-      PAR(0,
-	  lat->getHaloSize(),
-	  CAPTURE(subExpr=this->subExpr.getWritable(),
-		  offset=lat->getLocVol(),
-		  recvBuf=getRecvBuf<Fund>(nInternalDegs*lat->getHaloSize()()),
-		  dynamicSizes=this->getDynamicSizes()),
-	  i,
-	  {
-	    compsLoop<InnerComps>([offset,
-				   i,
-				   recvBuf,
-				   &subExpr,
-				   dynamicSizes] DEVICE_ATTRIB (const auto&...c) INLINE_ATTRIBUTE
-	    {
-	      const auto internalDeg=index(dynamicSizes,c...);
-	      
-	      asMutable(subExpr(offset+i,c...))=
-		recvBuf[internalDeg+nInternalDegs*i()];
-	    },dynamicSizes);
-	  });
+      PAR_ON_EXEC_SPACE(execSpace,
+			0,
+			lat->getHaloSize(),
+			CAPTURE(subExpr=this->subExpr.getWritable(),
+				offset=lat->getLocVol(),
+				recvBuf=getRecvBuf<Fund>(nInternalDegs*lat->getHaloSize()()),
+				dynamicSizes=this->getDynamicSizes()),
+			i,
+			{
+			  compsLoop<InnerComps>([offset,
+						 i,
+						 recvBuf,
+						 &subExpr,
+						 dynamicSizes] (const auto&...c) INLINE_ATTRIBUTE
+			  {
+			    const auto internalDeg=index(dynamicSizes,c...);
+			    
+			    asMutable(subExpr(offset+i,c...))=
+			      recvBuf[internalDeg+nInternalDegs*i()];
+			  },dynamicSizes);
+			});
       
       // for(size_t i=0;i<bord_vol*StackTens<CompsList<C...>,Fund>::nElements;i++)
       // 	masterPrintf("r %zu %lg\n",i,((Fund*)recv_buf)[i]);
@@ -838,24 +845,25 @@ namespace nissa
       
       for(int bf=0;bf<2;bf++)
 	for(Dir mu=0;mu<NDIM;mu++)
-	  PAR(0,lat->getSurfSizePerDir()[mu],
-	      CAPTURE(bf,mu,f,
-		      n=lat->getSurfSize(),
-		      l=lat->getLocVol(),
-		      off=lat->getSurfOffsetOfDir(mu),
-		      sendBuf,
-		      t=this->getReadable()),
-	      iHaloOriDir,
-	      {
-		const int iHalo=
-		  bf*n+
-		  iHaloOriDir+off;
-		
-		f(sendBuf[iHalo],
-		  t[l+iHalo],
-		  bf,
-		  mu);
-	      });
+	  PAR_ON_EXEC_SPACE(execSpace,
+			    0,lat->getSurfSizePerDir()[mu],
+			    CAPTURE(bf,mu,f,
+				    n=lat->getSurfSize(),
+				    l=lat->getLocVol(),
+				    off=lat->getSurfOffsetOfDir(mu),
+				    sendBuf,
+				    t=this->getReadable()),
+			    iHaloOriDir,
+			    {
+			      const int iHalo=
+				bf*n+
+				iHaloOriDir+off;
+			      
+			      f(sendBuf[iHalo],
+				t[l+iHalo],
+				bf,
+				mu);
+			    });
     }
     
     /////////////////////////////////////////////////////////////////
