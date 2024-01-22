@@ -211,6 +211,7 @@ PhotonField getZ2PhotonField(const int offset=0)
   return res;
 }
 
+
 void in_main(int narg,char **arg)
 {
   // constexpr ExecSpace ex(MemoryType::CPU);
@@ -221,7 +222,7 @@ void in_main(int narg,char **arg)
   
   _lat=new LatticeResources;
   _lat->init(T,L);
-  lat=new Lattice(_lat->getRef());
+  lat=new LatticeRef(_lat->getRef());
 
 #ifdef USE_QUDA
     if(use_quda) quda_iface::initialize();

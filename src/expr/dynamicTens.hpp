@@ -492,6 +492,32 @@ namespace nissa
     }
   };
   
+  /// Moves a pointer to a dynamic tensor to a specificied memory space
+  template <MemoryType MT,
+	    typename C,
+	    typename Fund,
+	    MemoryType OMT,
+	    bool OIR>
+  auto* moveToMemorySpaceIfNeeded(DynamicTens<C,Fund,OMT,OIR>* &_d)
+  {
+    DynamicTens<C,Fund,OMT,OIR>* d=_d;
+    _d=nullptr;
+    
+    if constexpr(MT==OMT)
+      return d;
+    else
+      {
+	DynamicTens<C,Fund,MT>* r=
+	  new DynamicTens<C,Fund,MT>;
+	
+	*r=*d;
+	
+	delete d;
+	
+	return r;
+      }
+  }
+  
   namespace impl
   {
     ///  Equivalent DynamicTens on device

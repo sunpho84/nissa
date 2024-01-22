@@ -762,37 +762,42 @@ namespace nissa
       // 	masterPrintf("s %zu %lg\n",i,((Fund*)send_buf)[i]);
     }
     
-    /// Fill the surface using the data from the buffer
-    template <typename B,
-	      typename F>
-    void fillSurfaceWithReceivingBuf(const F& f)
-    {
-      B* recvBuf=
-	getRecvBuf<B>(lat->getHaloSize());
+    // /// Fill the surface using the data from the buffer
+    // template <typename B,
+    // 	      typename F>
+    // void fillSurfaceWithReceivingBuf(const F& f,
+    // 				     Buf<MemoryType::CPU>* actualRecvBuf)
+    // {
+    //   Buf<MT>* recvBuf=
+    // 	moveToMemorySpaceIfNeeded<MT>(actualRecvBuf);
       
-      for(int bf=0;bf<2;bf++)
-	for(Dir mu=0;mu<NDIM;mu++)
-	  PAR(0,lat->getSurfSizePerDir(mu),
-	      CAPTURE(f,bf,mu,
-		      n=lat->getSurfSize(),
-		      off=lat->getSurfOffsetOfDir(mu),
-		      recvBuf,
-		      t=this->getWritable()),
-	      iHaloOriDir,
-	      {
-		const LocLxSite iHalo=
-		  bf*n+
-		  iHaloOriDir+off;
-		
-		const LocLxSite iSurf=
-		  lat->getSurfSiteOfHaloSite(iHalo);
-		
-		f(t[iSurf],
-		  recvBuf[iHalo],
-		  bf,
-		  mu);
-	      });
-    }
+    //   for(int bf=0;bf<2;bf++)
+    // 	for(Dir mu=0;mu<NDIM;mu++)
+    // 	  PAR_ON_EXEC_SPACE(execSpace,
+    // 			    0,lat->getSurfSizePerDir(mu),
+    // 			    CAPTURE(f,bf,mu,
+    // 				    n=lat->getSurfSize(),
+    // 				    off=lat->getSurfOffsetOfDir(mu),
+    // 				    recvBuf=recvBuf->getReadable(),
+    // 				    t=this->getWritable()),
+    // 			    iHaloOriDir,
+    // 			    {
+    // 			      const LocLxSite iHalo=
+    // 				bf*n+
+    // 				iHaloOriDir+off;
+			      
+    // 			      const LocLxSite iSurf=
+    // 				lat->getSurfSiteOfHaloSite(iHalo);
+			      
+    // 			      f(t[iSurf],
+    // 				recvBuf[iHalo],
+    // 				bf,
+    // 				mu);
+    // 			    });
+      
+    //   delete recvBuf;
+    //   recvBuf=nullptr;
+    // }
     
     /// Fill the sending buf using the data with a given function
     INLINE_FUNCTION
@@ -882,14 +887,15 @@ namespace nissa
 		  const size_t offset=(off+ns*ori)*bps;
 		  const MpiRank neighRank=neighRanks(ori,mu);
 		  const size_t messageLength=lat->getSurfSizePerDir()[mu]()*bps;
-		  // printf("rank %d %s ori %d dir %d, corresponding rank: %d, tag: %d length: %zu\n"
-		  //        ,rank,oper,ori,mu,neighRank,messageTag,messageLength);
+		  // printf("rank %ld %s ori %d dir %d, corresponding rank: %ld, tag: %d length: %zu covers [%zu-%zu] bytes of %p\n"
+		  // 	 ,thisRank(),oper,ori(),mu(),neighRank(),messageTag,messageLength,
+		  // 	 offset,offset+messageLength,ptr);
 		  
 		  requests.push_back(mpiISendOrRecv(SR,neighRank(),ptr+offset,messageLength,messageTag));
 		};
 	      
 	      const Ori recvOri=1-sendOri;
-
+	      
 	      using enum MpiSendOrRecvFlag;
 	      sendOrRecv("send",Send,sendBuf,sendOri);
 	      sendOrRecv("recv",Recv,recvBuf,recvOri);
@@ -944,6 +950,8 @@ namespace nissa
     /// Communicate the halo
     void updateHalo(const bool& force=false) const
     {
+      assertHasHalo();
+      
       if(force or not haloIsValid)
 	{
 	  VERBOSITY_LV3_MASTER_PRINTF("Sync communication of halo\n");

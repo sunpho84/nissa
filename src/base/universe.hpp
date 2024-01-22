@@ -6,6 +6,7 @@
 #endif
 
 #include <expr/comps.hpp>
+#include <expr/cWiseCombine.hpp>
 #include <expr/stackTens.hpp>
 
 namespace nissa
