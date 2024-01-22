@@ -28,7 +28,7 @@ namespace nissa
   };
   
   /// Start the communications of buffer interpreted as halo
-  std::vector<MpiRequest> startBufHaloNeighExchange(const size_t& bps);
+  MpiRequests startBufHaloNeighExchange(const size_t& bps);
   
   /// Specifies the order of components
   template <typename TP,
@@ -868,10 +868,10 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
-    static std::vector<MpiRequest> startBufHaloNeighExchange(const size_t& bps)
+    static MpiRequests startBufHaloNeighExchange(const size_t& bps)
     {
       /// Pending requests
-      std::vector<MpiRequest> requests;
+      MpiRequests requests;
       
       char* const sendBuf=getSendBuf(lat->getHaloSize()()*bps);
       char* const recvBuf=getRecvBuf(lat->getHaloSize()()*bps);
@@ -913,7 +913,7 @@ namespace nissa
     }
     
     /// Start the communications of halo
-    static std::vector<MpiRequest> startHaloAsyincComm()
+    static MpiRequests startHaloAsyincComm()
     {
       return startBufHaloNeighExchange(nInternalDegs*sizeof(Fund));
     }
@@ -921,10 +921,10 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     /// Start communication using halo
-    std::vector<MpiRequest> startCommunicatingHalo() const
+    MpiRequests startCommunicatingHalo() const
     {
       /// Pending requests
-      std::vector<MpiRequest> requests;
+      MpiRequests requests;
       
       //fill the communicator buffer, start the communication and take time
       fillSendingBufWithSurface();
@@ -934,7 +934,7 @@ namespace nissa
     }
     
     /// Finalize communications
-    void finishCommunicatingHalo(std::vector<MpiRequest>& requests) const
+    void finishCommunicatingHalo(MpiRequests& requests) const
     {
       //take note of passed time and write some debug info
       VERBOSITY_LV3_MASTER_PRINTF("Finish communication of halo\n");
@@ -964,7 +964,7 @@ namespace nissa
 	{
 	  VERBOSITY_LV3_MASTER_PRINTF("Sync communication of halo\n");
 	  
-	  std::vector<MpiRequest> requests=
+	  MpiRequests requests=
 	    startCommunicatingHalo();
 	  finishCommunicatingHalo(requests);
       }

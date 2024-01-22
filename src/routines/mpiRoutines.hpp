@@ -9,8 +9,6 @@
 # include <mpi.h>
 #endif
 
-#include <algorithm>
-#include <concepts>
 #include <vector>
 
 #include <base/universe.hpp>
@@ -108,13 +106,17 @@ namespace nissa
   /// Decide the direction of the MPI communication
   enum class MpiSendOrRecvFlag{Send,Recv};
   
-using MpiRequest=
+  using MpiRequest=
 #ifdef USE_MPI
   MPI_Request
 #else
   std::tuple<void*,int,MpiSendOrRecvFlag,size_t>
 #endif
   ;
+  
+  /// List of requests to be accomplished
+  using MpiRequests=
+    std::vector<MpiRequest>;
   
   template <TriviallyCopyable T>
   INLINE_FUNCTION
@@ -263,6 +265,8 @@ using MpiRequest=
   {
 #ifdef USE_MPI
     VERBOSITY_LV3_MASTER_PRINTF("Entering MPI comm wait\n");
+    
+    VERBOSITY_LV3_MASTER_PRINTF("Waiting for %zu requests\n",requests.size());
     
     MPI_Waitall(requests.size(),&requests[0],MPI_STATUS_IGNORE);
 #else
