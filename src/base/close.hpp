@@ -21,10 +21,9 @@ namespace nissa
     masterPrintf("Closing nissa\n");
     
 #ifdef USE_QUDA
-    if(use_quda) quda_iface::finalize();
+    if(use_quda)
+      quda_iface::finalize();
 #endif
-    
-    freeCommunicationBuffers();
     
     delete _lat;
     

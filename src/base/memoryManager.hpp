@@ -16,6 +16,7 @@
 #ifdef ENABLE_DEVICE_CODE
 # include <base/cuda.hpp>
 #endif
+
 #include <base/memoryType.hpp>
 #include <expr/execSpace.hpp>
 #include <newTypes/valueWithExtreme.hpp>
@@ -357,6 +358,7 @@ namespace nissa
     }
   };
   
+  /// Memory manager for CPU memory type
   inline MemoryManager* cpuMemoryManager;
   
 #ifdef ENABLE_DEVICE_CODE
@@ -397,33 +399,43 @@ namespace nissa
     }
   };
   
+  /// Memory manager for GPU memory type
   inline MemoryManager* gpuMemoryManager;
   
 #endif
   
-  template <MemoryType MT>
-  inline MemoryManager* memoryManager()
+  /// Returns the memory manager dealing with memory type MT
+  constexpr inline MemoryManager* getMemoryManager(const MemoryType& MT)
   {
     switch(MT)
       {
-      case MemoryType::CPU:
-	return cpuMemoryManager;
-	break;
 #ifdef ENABLE_DEVICE_CODE
       case MemoryType::GPU:
 	return gpuMemoryManager;
 	break;
 #endif
-    }
+      default:
+	return cpuMemoryManager;
+	break;
+      }
+  }
+  
+  /// Gets the memory manager, as template type
+  template <MemoryType MT>
+  constexpr inline MemoryManager* memoryManager()
+  {
+    return getMemoryManager(MT);
   }
   
 #ifdef ENABLE_DEVICE_CODE
   
+  /// Determine the internal cuda parameter to deal with a given memory transfer
   template <MemoryType FROM,
 	    MemoryType TO>
   cudaMemcpyKind cudaMemcpyKindForTransferFromTo;
   
 #define PROVIDE_CUDA_MEMCPY_KIND_FOR_TRANSFER(MFROM,MTO,CFROM,CTO)	\
+  /* Cuda parameter to deal with memory transfer from MFROM to MTO */	\
   template <>								\
   constexpr								\
   cudaMemcpyKind cudaMemcpyKindForTransferFromTo<MemoryType::MFROM,MemoryType::MTO> =cudaMemcpy ## CFROM ## To ## CTO
@@ -437,6 +449,7 @@ namespace nissa
   
 #endif
   
+  /// Overload the memory transfer to hanlde the specific device cases
   template <MemoryType TO,
 	    MemoryType FROM>
   void memcpy(void* dst,
@@ -445,6 +458,27 @@ namespace nissa
   {
 #ifdef ENABLE_DEVICE_CODE
     decryptCudaError(cudaMemcpy(dst,src,count,cudaMemcpyKindForTransferFromTo<FROM,TO>),"calling cudaMemcpy");
+#else
+    ::memcpy(dst,src,count);
+#endif
+  }
+  
+  /// Overload the memory transfer to hanlde the specific device cases
+  inline void memcpy(const MemoryType& TO,
+		     const MemoryType& FROM,
+		     void* dst,
+		     const void* src,
+		     const size_t& count)
+  {
+#ifdef ENABLE_DEVICE_CODE
+    decryptCudaError(cudaMemcpy(dst,src,count,
+				(TO==MemoryType::GPU)?
+				((FROM==MemoryType::GPU)?
+				 cudaMemcpyDeviceToDevice:
+				 cudaMemcpyHostToDevice):
+				((FROM==MemoryType::GPU)?
+				 cudaMemcpyDeviceToHost:
+				 cudaMemcpyHostToHost)),"calling cudaMemcpy");
 #else
     ::memcpy(dst,src,count);
 #endif
@@ -460,7 +494,6 @@ namespace nissa
   /// Initialize the memory managers
   inline void initMemoryManagers()
   {
-    //initialize the memory manager
     cpuMemoryManager=new CPUMemoryManager;
 #ifdef ENABLE_DEVICE_CODE
     gpuMemoryManager=new GPUMemoryManager;
