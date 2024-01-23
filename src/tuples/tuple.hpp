@@ -89,13 +89,14 @@ namespace nissa
 	using ElementType=
 	decltype(tupleGet<J>(std::declval<_Tuple>()));
       
-#define PROVIDE_APPLY_TO(ATTRIB)		\
+#define PROVIDE_APPLY_TO(ATTRIB)				\
       /*! Pass the tuple arguments to the passed function */	\
-      template <typename F>			\
-	decltype(auto) applyTo(F&& f) ATTRIB	\
-      {						\
-	f(_TupleElementProvider<I,T>::t...);	\
-      }
+	template <typename F>					\
+	  decltype(auto) applyTo(F&& f) ATTRIB			\
+	{							\
+	  return						\
+	    f(_TupleElementProvider<I,T>::t...);		\
+	}
       
       PROVIDE_APPLY_TO(const);
       
