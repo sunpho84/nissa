@@ -161,33 +161,22 @@ namespace nissa
     INLINE_FUNCTION
     void assign(O&& oth)
     {
-#define LOOP(LOOP_TYPE)							\
-      LOOP_TYPE(0,lat->getLocVol(),				\
-		CAPTURE(self=this->getWritable(),			\
-			TO_READ(oth)),					\
-		site,							\
-		{							\
-		  using RhsComps=typename std::decay_t<O>::Comps;	\
-		  							\
-		  /*! we need to take care that the rhs might not have the site (such in the case of a scalar) */ \
-		  							\
-		  if constexpr(tupleHasType<RhsComps,Site>)		\
-		    OP::dispatch(self(site),oth(site));			\
-		  else							\
-		    OP::dispatch(self(site),oth);			\
-		})
-      
-#ifdef ENABLE_DEVICE_CODE
-      if constexpr(MT==MemoryType::GPU)
-	LOOP(DEVICE_PARALLEL_LOOP);
-      else
-#endif
-	if constexpr(MT==MemoryType::CPU)
-	  LOOP(HOST_PARALLEL_LOOP);
-	else
-	  CRASH("unkwnown condition");
-      
-#undef LOOP
+      PAR_ON_EXEC_SPACE(execSpace,
+			0,lat->getLocVol(),
+			CAPTURE(self=this->getWritable(),
+				TO_READ(oth)),
+			site,
+			{
+			  using RhsComps=
+			    typename std::decay_t<O>::Comps;
+			  
+			  // we need to take care that the rhs might not have the site (such in the case of a scalar)
+			  
+			  if constexpr(tupleHasType<RhsComps,Site>)
+			    OP::dispatch(self(site),oth(site));
+			  else
+			    OP::dispatch(self(site),oth);
+		});
     }
     
     /// Remap the possible Dir components from/to the nissa to/from Ildg order
@@ -963,9 +952,6 @@ namespace nissa
 	  CommHandles commHandles;
 	  startCommunicatingHalo(commHandles);
 	  finishCommunicatingHalo(commHandles);
-	  // commHandles.recv.free();
-	  // mpiWaitAll(commHandles.send.requests);
-	  // commHandles.send.free();
       }
     }
   };
