@@ -7,10 +7,10 @@
 
 #include <stdint.h>
 #include <mpi.h>
-#include <vector>
 
 #include <base/memoryManager.hpp>
 #include <routines/ios.hpp>
+#include <routines/mpiRoutines.hpp>
 
 /*
   Order in memory of borders for a 3^4 lattice.

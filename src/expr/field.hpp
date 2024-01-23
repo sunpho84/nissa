@@ -243,14 +243,14 @@ namespace nissa
     }
     
     /// Move assign
-    constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
+    constexpr INLINE_FUNCTION
     Field& operator=(Field&& oth)
     {
-      nTotalAllocatedSites=oth.nTotalAllocatedSites;
-      subExpr=std::move(oth.subExpr);
-      haloIsValid=oth.haloIsValid;
-      haloPresence=oth.haloPresence;
-      latRef=oth.latRef;
+      std::swap(nTotalAllocatedSites,oth.nTotalAllocatedSites);
+      std::swap(subExpr,oth.subExpr);
+      std::swap(haloIsValid,oth.haloIsValid);
+      std::swap(haloPresence,oth.haloPresence);
+      std::swap(latRef,oth.latRef);
       
       return *this;
     }
@@ -731,20 +731,23 @@ namespace nissa
     /// Fill the sending buf using the data with a given function
     template <typename F>
     void fillSendingBufWith(const F& f,
-			    const Site& n) const
+			    const Site& n,
+			    CommHandles& commHandles) const
     {
+      commHandles.send.allocate(nInternalDegs*n()*sizeof(Fund),MT);
+      
       PAR_ON_EXEC_SPACE(execSpace,
 			0,n,
 			CAPTURE(f,
 				t=this->getReadable(),
-				sendBuf=getSendBuf<std::remove_cv_t<Fund>>(nInternalDegs*n()),
+				sendBuf=(std::decay_t<Fund>*)commHandles.send.buf,
 				dynamicSizes=this->getDynamicSizes()),
 			i,
 			{
 			  compsLoop<InnerComps>([i,
 						 t,
 						 dynamicSizes,
-						 sendBuf,
+						 &sendBuf,
 						 f](const auto&...c) INLINE_ATTRIBUTE
 			  {
 			    const auto internalDeg=
@@ -757,12 +760,12 @@ namespace nissa
     }
     
     /// Fill the sending buf using the data on the surface of a field
-    void fillSendingBufWithSurface() const
+    void fillSendingBufWithSurface(CommHandles& commHandles) const
     {
       fillSendingBufWith([lat=lat->getRef()] DEVICE_ATTRIB (const Site& i) INLINE_ATTRIBUTE
       {
 	return lat.getSurfSiteOfHaloSite(i);
-      },lat->getHaloSize());
+      },lat->getHaloSize(),commHandles);
       
       // for(size_t i=0;i<bord_vol*StackTens<CompsList<C...>,Fund>::nElements;i++)
       // 	masterPrintf("s %zu %lg\n",i,((Fund*)send_buf)[i]);
@@ -807,14 +810,16 @@ namespace nissa
     
     /// Fill the sending buf using the data with a given function
     INLINE_FUNCTION
-    void fillHaloWithReceivingBuf() const
+    void fillHaloWithReceivingBuf(CommHandle& recvHandle) const
     {
+      recvHandle.makeAvailableOn(MT);
+      
       PAR_ON_EXEC_SPACE(execSpace,
 			0,
 			lat->getHaloSize(),
 			CAPTURE(subExpr=this->subExpr.getWritable(),
 				offset=lat->getLocVol(),
-				recvBuf=getRecvBuf<Fund>(nInternalDegs*lat->getHaloSize()()),
+				recvBuf=(Fund*)recvHandle.buf,
 				dynamicSizes=this->getDynamicSizes()),
 			i,
 			{
@@ -868,13 +873,11 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
-    static MpiRequests startBufHaloNeighExchange(const size_t& bps)
+    static void startBufHaloNeighExchange(CommHandles& commHandles,
+					  const size_t& bps)
     {
-      /// Pending requests
-      MpiRequests requests;
-      
-      char* const sendBuf=getSendBuf(lat->getHaloSize()()*bps);
-      char* const recvBuf=getRecvBuf(lat->getHaloSize()()*bps);
+      commHandles.send.makeAvailableOn(MemoryType::CPU);
+      commHandles.recv.allocate(commHandles.send.n,MemoryType::CPU);
       
       for(Dir mu=0;mu<NDIM;mu++)
 	if(isDirParallel[mu])
@@ -884,11 +887,11 @@ namespace nissa
 		[&mu,
 		 &bps,
 		 ns=lat->getSurfSize()(),
-		 &requests,
 		 off=lat->getSurfOffsetOfDir(mu)(),
 		 messageTag=sendOri()+2*mu()]
 		(const char* oper,
 		 const MpiSendOrRecvFlag& SR,
+		 MpiRequests& requests,
 		 auto* ptr,
 		 const Ori& ori)
 		{
@@ -905,43 +908,36 @@ namespace nissa
 	      const Ori recvOri=1-sendOri;
 	      
 	      using enum MpiSendOrRecvFlag;
-	      sendOrRecv("send",Send,sendBuf,sendOri);
-	      sendOrRecv("recv",Recv,recvBuf,recvOri);
+	      sendOrRecv("send",Send,commHandles.send.requests,commHandles.send.buf,sendOri);
+	      sendOrRecv("recv",Recv,commHandles.recv.requests,commHandles.recv.buf,recvOri);
 	    }
-      
-      return requests;
     }
     
     /// Start the communications of halo
-    static MpiRequests startHaloAsyincComm()
+    static void startHaloAsyincComm(CommHandles& commHandles)
     {
-      return startBufHaloNeighExchange(nInternalDegs*sizeof(Fund));
+      startBufHaloNeighExchange(commHandles,nInternalDegs*sizeof(Fund));
     }
     
     /////////////////////////////////////////////////////////////////
     
     /// Start communication using halo
-    MpiRequests startCommunicatingHalo() const
+    void startCommunicatingHalo(CommHandles& commHandles) const
     {
-      /// Pending requests
-      MpiRequests requests;
-      
       //fill the communicator buffer, start the communication and take time
-      fillSendingBufWithSurface();
-      requests=startHaloAsyincComm();
-      
-      return requests;
+      fillSendingBufWithSurface(commHandles);
+      startHaloAsyincComm(commHandles);
     }
     
     /// Finalize communications
-    void finishCommunicatingHalo(MpiRequests& requests) const
+    void finishCommunicatingHalo(CommHandles& commHandles) const
     {
       //take note of passed time and write some debug info
       VERBOSITY_LV3_MASTER_PRINTF("Finish communication of halo\n");
       
       //wait communication to finish, fill back the vector and take time
-      mpiWaitAll(requests);
-      fillHaloWithReceivingBuf();
+      mpiWaitAll(commHandles.recv.requests);
+      fillHaloWithReceivingBuf(commHandles.recv);
       
       haloIsValid=true;
     }
@@ -964,9 +960,12 @@ namespace nissa
 	{
 	  VERBOSITY_LV3_MASTER_PRINTF("Sync communication of halo\n");
 	  
-	  MpiRequests requests=
-	    startCommunicatingHalo();
-	  finishCommunicatingHalo(requests);
+	  CommHandles commHandles;
+	  startCommunicatingHalo(commHandles);
+	  finishCommunicatingHalo(commHandles);
+	  // commHandles.recv.free();
+	  // mpiWaitAll(commHandles.send.requests);
+	  // commHandles.send.free();
       }
     }
   };
