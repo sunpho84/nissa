@@ -119,22 +119,15 @@ namespace nissa
     static constexpr bool canAssignAtCompileTime=
       MergedExpr::canAssignAtCompileTime;
     
-//     /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
     
-#define PROVIDE_RECREATE_FROM_EXPR(ATTRIB)			\
-    /*! Returns a ATTRIB similar version */			\
-    template <typename T>					\
-    INLINE_FUNCTION						\
-    decltype(auto) recreateFromExprs(T&& t) ATTRIB		\
-    {								\
-      return mergeComps<Mc...>(std::forward<T>(t));		\
+    /// Returns a similar version
+    template <typename T>
+    INLINE_FUNCTION constexpr
+    auto recreateFromExprs(T&& t) const
+    {
+      return mergeComps<Mc...>(std::forward<T>(t));
     }
-    
-    PROVIDE_RECREATE_FROM_EXPR(/* non const */);
-    
-    PROVIDE_RECREATE_FROM_EXPR(const);
-    
-#undef PROVIDE_RECREATE_FROM_EXPR
     
     /////////////////////////////////////////////////////////////////
     

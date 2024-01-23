@@ -98,6 +98,13 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    //// Returns a copy
+    INLINE_FUNCTION
+    FuncExpr recreateFromExprs() const
+    {
+      return *this;
+    }
+    
 #define PROVIDE_GET_REF(ATTRIB)					\
     /*! Returns a reference */					\
     INLINE_FUNCTION						\

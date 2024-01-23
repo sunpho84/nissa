@@ -76,7 +76,7 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     FieldFeat,
-    SingleSubExpr<THIS>,
+    NoSubExprs,
     BASE
   {
     /// Import the base expression
@@ -236,7 +236,7 @@ namespace nissa
     Field& operator=(Field&& oth)
     {
       std::swap(nTotalAllocatedSites,oth.nTotalAllocatedSites);
-      std::swap(subExpr,oth.subExpr);
+      std::swap(data,oth.data);
       std::swap(haloIsValid,oth.haloIsValid);
       std::swap(haloPresence,oth.haloPresence);
       std::swap(latRef,oth.latRef);
@@ -329,13 +329,13 @@ namespace nissa
       indexMaxValue<C...>();
     
     /// Storage data
-    mutable Data subExpr;
+    mutable Data data;
     
 #define PROVIDE_GET_DATA(ATTRIB)			\
     HOST_DEVICE_ATTRIB constexpr INLINE_FUNCTION	\
     ATTRIB Data& getData() ATTRIB			\
     {							\
-      return subExpr;					\
+      return data;					\
     }
     
     PROVIDE_GET_DATA(const);
@@ -365,7 +365,7 @@ namespace nissa
     HOST_DEVICE_ATTRIB constexpr INLINE_FUNCTION		\
     ATTRIB Fund& eval(const U&...cs) ATTRIB			\
     {								\
-      return subExpr(cs...);					\
+      return data(cs...);					\
     }
     
     PROVIDE_EVAL(const);
@@ -451,7 +451,7 @@ namespace nissa
       buf.selfReduce();
       
       StackTens<CompsList<C...>,Fund> res;
-      memcpy<MemoryType::CPU,MT>(res.storage,buf.subExpr.storage,res.nElements*sizeof(Fund));
+      memcpy<MemoryType::CPU,MT>(res.storage,buf.data.storage,res.nElements*sizeof(Fund));
       
       return res;
     }
@@ -506,12 +506,16 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    /// Type to define the closing of the expression
+    using ClosingType=
+      Field<CompsList<C...>,std::decay_t<_Fund>,FL,MT>;
+    
 #define PROVIDE_RECREATE_FROM_EXPR(ATTRIB)			\
     /*! Returns itself */					\
     INLINE_FUNCTION						\
-    decltype(auto) recreateFromExprs() ATTRIB			\
+    ClosingType recreateFromExprs() ATTRIB			\
     {								\
-      return *this;						\
+      return haloPresence;					\
     }
     
     PROVIDE_RECREATE_FROM_EXPR(/* non const */);
@@ -519,10 +523,6 @@ namespace nissa
     PROVIDE_RECREATE_FROM_EXPR(const);
     
 #undef PROVIDE_RECREATE_FROM_EXPR
-    
-    /// Type to define the closing of the expression
-    using ClosingType=
-      Field<CompsList<C...>,std::decay_t<_Fund>,FL,MT>;
     
     /// Parameters to recreate an equivalent storage
     auto getEquivalentStoragePars() const
@@ -573,10 +573,10 @@ namespace nissa
     void allocate(const HaloPresence& _haloPresence=WITHOUT_HALO)
     {
       nTotalAllocatedSites=nSitesToAllocate(haloPresence);
-      subExpr.allocate(std::make_tuple(nTotalAllocatedSites));
+      data.allocate(std::make_tuple(nTotalAllocatedSites));
       // masterPrintf("Allocating\n");
       // printBacktraceList();
-      // masterPrintf("allocated %p of size %zu\n",subExpr.storage,nTotalAllocatedSites()*sizeof(Fund));
+      // masterPrintf("allocated %p of size %zu\n",data.storage,nTotalAllocatedSites()*sizeof(Fund));
       haloPresence=_haloPresence;
       latRef=lat->getRef();
       
@@ -615,7 +615,7 @@ namespace nissa
     Field(O&& oth,
 	   _CopyConstructInternalDispatcher*) :
       nTotalAllocatedSites(oth.nTotalAllocatedSites),
-      subExpr(oth.subExpr),
+      data(oth.data),
       haloPresence(oth.haloPresence),
       haloIsValid(oth.haloIsValid),
       latRef(oth.latRef)
@@ -631,7 +631,7 @@ namespace nissa
     Field<CompsList<C...>,_Fund,FL,OMT> copyToMemorySpace() const
     {
       Field<CompsList<C...>,_Fund,FL,OMT> res(haloPresence);
-      res.subExpr=subExpr;
+      res.data=data;
       
       return res;
     }
@@ -675,7 +675,7 @@ namespace nissa
     INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     Field(Field&& oth) :
       nTotalAllocatedSites(oth.nTotalAllocatedSites),
-      subExpr(std::move(oth.subExpr)),
+      data(std::move(oth.data)),
       haloPresence(oth.haloPresence),
       haloIsValid(oth.haloIsValid),
       latRef(oth.latRef)
@@ -807,7 +807,7 @@ namespace nissa
       PAR_ON_EXEC_SPACE(execSpace,
 			0,
 			lat->getHaloSize(),
-			CAPTURE(subExpr=this->subExpr.getWritable(),
+			CAPTURE(data=this->data.getWritable(),
 				offset=lat->getLocVol(),
 				recvBuf=(Fund*)recvHandle.buf,
 				dynamicSizes=this->getDynamicSizes()),
@@ -816,12 +816,12 @@ namespace nissa
 			  compsLoop<InnerComps>([offset,
 						 i,
 						 recvBuf,
-						 &subExpr,
+						 &data,
 						 dynamicSizes] (const auto&...c) INLINE_ATTRIBUTE
 			  {
 			    const auto internalDeg=index(dynamicSizes,c...);
 			    
-			    asMutable(subExpr(offset+i,c...))=
+			    asMutable(data(offset+i,c...))=
 			      recvBuf[internalDeg+nInternalDegs*i()];
 			  },dynamicSizes);
 			});

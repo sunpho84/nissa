@@ -34,7 +34,7 @@ namespace nissa
   struct NoSubExprs
   {
     INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
-    const Tuple<> getSubExprs() const
+    Tuple<> getSubExprs() const
     {
       return {};
     }

@@ -124,20 +124,13 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
-#define PROVIDE_RECREATE_FROM_EXPR(ATTRIB)			\
-    /*! Returns a ATTRIB similar version */			\
-    template <typename...T>					\
-    INLINE_FUNCTION						\
-    decltype(auto) recreateFromExprs(T&&...t) ATTRIB		\
-    {								\
-      return Comb::compute(std::forward<T>(t)...);		\
-    }
-    
-    PROVIDE_RECREATE_FROM_EXPR(/* non const */);
-    
-    PROVIDE_RECREATE_FROM_EXPR(const);
-    
-#undef PROVIDE_RECREATE_FROM_EXPR
+    /// Recreate from expressions
+    template <typename... T>
+    INLINE_FUNCTION
+    auto recreateFromExprs(T&&...t) const
+    {
+      return Comb::compute(std::forward<T>(t)...);
+    };
     
     /////////////////////////////////////////////////////////////////
     

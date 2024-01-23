@@ -176,6 +176,19 @@ namespace nissa
 	(Res)(std::move(*(Res*)this));
     }
     
+    /// Gets a copy
+    constexpr INLINE_FUNCTION
+    auto getCopy() const
+    {
+      return
+	(~*this).
+	getSubExprs().
+	applyTo([&self=~*this]<typename...A>(A&&...a)
+		{
+		  return self.recreateFromExprs(std::forward<A>(a)...);
+		});
+    }
+    
     /////////////////////////////////////////////////////////////////
     
     /// Unless explicitly overloaded

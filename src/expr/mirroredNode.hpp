@@ -42,7 +42,8 @@ namespace nissa
   struct THIS :
     BASE,
     MirroredObj<H,D>,
-    MirroredNodeFeat
+    MirroredNodeFeat,
+    NoSubExprs // We might have a thought on this
   {
     using This=THIS;
     
@@ -70,6 +71,13 @@ namespace nissa
 		   SameRefAs<D,typename std::decay_t<D>::template ReinterpretFund<NFund>>,
 		   NFund>;
     
+    /// Recreate from itself
+    constexpr INLINE_FUNCTION
+    const auto& recreateFromExprs() const&
+    {
+      return *this;
+    };
+    
 #ifdef ENABLE_DEVICE_CODE
 # define GET_REF_DEVICE_PART ,this->deviceVal.getRef()
 #else
@@ -87,7 +95,7 @@ namespace nissa
 	 GET_REF_DEVICE_PART						\
 	 );								\
     }
-    
+
     PROVIDE_GET_REF(const);
     
     PROVIDE_GET_REF(/* non const */);
@@ -136,12 +144,12 @@ namespace nissa
     static constexpr bool storeByRef=
       H::storeByRef;
     
-    /// Returns the node as subexpressions
-    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
-    decltype(auto) getSubExprs() const
-    {
-      return nissa::tie(this->getForCurrentContext());
-    }
+    // /// Returns the node as subexpressions
+    // INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
+    // decltype(auto) getSubExprs() const
+    // {
+    //   return nissa::tie(this->getForCurrentContext());
+    // }
     
     /// Constructor
     template <typename...T>
