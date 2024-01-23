@@ -502,7 +502,8 @@ namespace nissa
 				 
 				 lln(site,ori,dir)=neigh;
 				 
-				 masterPrintf("site %ld ori %d dir %d sc %ld isOnSurf %d asLoc %ld neigh %ld\n",site(),ori(),dir(),sc(dir)(),isOnSurf,asLoc(),lln(site,ori,dir)());
+				 if constexpr(setupDebug)
+				   masterPrintf("site %ld ori %d dir %d sc %ld isOnSurf %d asLoc %ld neigh %ld\n",site(),ori(),dir(),sc(dir)(),isOnSurf,asLoc(),lln(site,ori,dir)());
 				 
 				 if(neigh>=lat.getLocVol())
 				   {

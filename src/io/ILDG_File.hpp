@@ -361,7 +361,13 @@ namespace nissa
 		 
 		 const GlbCoords ildgGlbCoords=
 		   decomposeLxToCoords(ildgEl,ildgSizes);
-		 
+		 // masterPrintf("tara %ld\n",ildgEl());
+
+		 //  auto [a,b] = lat->getRankAndLocLxSiteOf(scidacRemap(ildgGlbCoords));
+		 //  auto i=scidacRemap(ildgGlbCoords);
+		 //  for(Dir mu=0;mu<4;mu++)
+		 //    masterPrintf("%ld %ld\n",i(mu)(),ildgGlbCoords(mu)());
+		 //  masterPrintf("tara2 %ld %ld\n",a(),b());
 		 return lat->getRankAndLocLxSiteOf(scidacRemap(ildgGlbCoords));
 	       });
       

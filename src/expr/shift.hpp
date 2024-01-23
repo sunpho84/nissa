@@ -225,7 +225,7 @@ namespace nissa
     // }
     else
       {
-	t.getSubExprs().applyTo([&t](auto&& s){(void)t;printf("%s updating subexprs halo %s\n",demangle(typeid(t).name()).c_str(),demangle(typeid(s).name()).c_str());});
+	//t.getSubExprs().applyTo([&t](auto&& s){(void)t;printf("%s updating subexprs halo %s\n",demangle(typeid(t).name()).c_str(),demangle(typeid(s).name()).c_str());});
 	t.getSubExprs().applyTo([](auto&& s)
 	{
 	  updateHaloForShift(s);

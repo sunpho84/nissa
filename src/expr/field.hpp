@@ -569,6 +569,7 @@ namespace nissa
       masterPrintf("avoiding allocation\n");
     }
     
+    /// Allocates the field
     void allocate(const HaloPresence& _haloPresence=WITHOUT_HALO)
     {
       nTotalAllocatedSites=nSitesToAllocate(haloPresence);
