@@ -12,9 +12,18 @@
 #include <execinfo.h>
 #include <unistd.h>
 #include <signal.h>
-#include <string>
 
 #include <routines/mpiRank.hpp>
+
+#if (defined COMPILING_FOR_DEVICE and defined __clang__)
+
+/// Clang defines __trap as a device only, and mess up, so we have to define the host version here
+INLINE_FUNCTION
+void __trap()
+{
+}
+
+#endif
 
 namespace nissa
 {
@@ -78,15 +87,6 @@ namespace nissa
   }
   
 #ifdef COMPILING_FOR_DEVICE
-  
-# ifdef __clang__
-  
-  /// Clang defines __trap as a device only, and mess up, so we have to define the host version here
-  void __trap()
-  {
-  }
-  
-# endif
   
 # define CRASH(ARGS...) do{ignore(ARGS);__trap();}while(0)
   
