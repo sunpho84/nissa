@@ -67,74 +67,109 @@
 
 namespace nissa
 {
-  namespace resources
+  /// Handle to manage async communications
+  struct CommHandle
   {
-    /// Receive buffer size
-    inline uint64_t curRecvBufSize{0};
+    /// Requests
+    MpiRequests requests;
     
-    /// Send buffer size
-    inline uint64_t curSendBufSize{0};
+    /// Buffer
+    char* buf;
     
-    /// Receive buffer
-    inline char* _recvBuf{nullptr};
+    /// Buffer size
+    size_t n;
     
-    /// Send buffer
-    inline char* _sendBuf{nullptr};
+    MemoryType CurMT;
     
-    /// Gets the buffer after checking if large enough or allocating if not allocated at all
-    template <typename T=char>
-    inline T* _getCommBuf(const char* name,
-			  uint64_t& curBufSize,
-			  char* & buf,
-			  const uint64_t& reqBufSizeInUnitsOfT)
+    /// Allocates the buffer
+    void allocate(const size_t& _n,
+		  const MemoryType& MT)
     {
-      if(const uint64_t reqBufSize=reqBufSizeInUnitsOfT*sizeof(T);
-	 curBufSize<reqBufSize)
-	{
-	  masterPrintf("%s buffer requested size %lu but allocated %lu reallocating\n",name,reqBufSize,curBufSize);
-	  if(buf)
-	    {
-	      memoryManager<MemoryType::CPU>()->release(buf,true);
-	      masterPrintf("Freed the previously allocated buffer\n");
-	    }
-	  curBufSize=reqBufSize;
-	  buf=memoryManager<MemoryType::CPU>()->template provide<char>(reqBufSize);
-	  masterPrintf("Allocated the new buffer\n");
-	}
+      if(buf)
+	CRASH("Already allocated");
       
-      return (T*)buf;
+      n=_n;
+      CurMT=MT;
+      
+      buf=getMemoryManager(CurMT)->provide<char>(n);
     }
-  }
+    
+    /// Free the buffers
+    void free()
+    {
+      if(not buf)
+	CRASH("Not allocated");
+      
+      getMemoryManager(CurMT)->release(buf);
+      n=0;
+    }
+    
+    /// Move the buffers to the given memory space
+    void makeAvailableOn(const MemoryType& OMT)
+    {
+      if(OMT!=CurMT)
+	{
+	  CommHandle tmp;
+	  tmp.allocate(n,OMT);
+	  nissa::memcpy(OMT,CurMT,tmp.buf,buf,n);
+	  std::swap(*this,tmp);
+	}
+    }
+    
+    /// Default constructor
+    CommHandle() :
+      buf(nullptr),
+      n(0)
+    {
+    }
+    
+    /// Construct with the knowledge of n and MT
+    CommHandle(const size_t& n,
+	       const MemoryType& MT)
+    {
+      allocate(n,MT);
+    }
+    
+    /// Move constructor
+    CommHandle(CommHandle&& oth) :
+      requests(std::move(oth.requests)),
+      buf(oth.buf),
+      n(oth.n),
+      CurMT(oth.CurMT)
+    {
+      oth.buf=nullptr;
+    }
+    
+    /// Move assign
+    CommHandle& operator=(CommHandle&& oth)
+    {
+      std::swap(buf,oth.buf);
+      std::swap(CurMT,oth.CurMT);
+      std::swap(n,oth.n);
+      
+      return *this;
+    }
+    
+    /// Destructor
+    ~CommHandle()
+    {
+      if(requests.size())
+	mpiWaitAll(requests);
+      
+      if(buf)
+	free();
+    }
+  };
   
-  /// Gets the receiving buffer
-  template <typename T=char>
-  inline T* getRecvBuf(const uint64_t& recvBufSizeInUnitsOfT)
+  /// Handle to communicate in and out communications
+  struct CommHandles
   {
-    using namespace resources;
+    /// Sending part
+    CommHandle send;
     
-    return _getCommBuf<T>("Receiving",curRecvBufSize,_recvBuf,recvBufSizeInUnitsOfT);
-  }
-  
-  /// Gets the sending buffer
-  template <typename T=char>
-  inline T* getSendBuf(const uint64_t& sendBufSizeInUnitsOfT)
-  {
-    using namespace resources;
-    
-    return _getCommBuf<T>("Sending",curSendBufSize,_sendBuf,sendBufSizeInUnitsOfT);
-  }
-  
-  /// Frees the communication buffers
-  inline void freeCommunicationBuffers()
-  {
-    using namespace resources;
-    
-    for(auto* buf : {_recvBuf,_sendBuf})
-      memoryManager<MemoryType::CPU>()->release(buf,true);
-    
-    for(auto* size : {&curRecvBufSize,&curSendBufSize})
-      (*size)=0;
-  }
+    /// Receiving part
+    CommHandle recv;
+  };
 }
 
 #endif
