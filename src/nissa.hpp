@@ -135,6 +135,7 @@
 #include "measures/fermions/tm_corr_op.hpp"
 #include "measures/fermions/tm_tuning.hpp"
 #include "measures/fermions/zumba.hpp"
+#include "measures/fermions/ellesettete.hpp"
 
 #include "measures/gauge/all_rectangles.hpp"
 #include "measures/gauge/pline.hpp"

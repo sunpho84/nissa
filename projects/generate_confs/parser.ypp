@@ -66,6 +66,7 @@
     nissa::all_rects_meas_pars_t *all_rects_meas;
     nissa::spectr_proj_meas_pars_t *spectr_proj_meas;
     nissa::tm_tuning_meas_pars_t *tm_tuning_meas;
+    nissa::ellesettete_meas_pars_t * ellesettete_meas;
     
     nissa::rnd_t rnd_type;
     
@@ -274,6 +275,9 @@
 //tm tuning meas
 %type <tm_tuning_meas> tm_tuning_meas
 %token TK_TM_TUNING
+//ellesettete
+%type <ellesettete_meas> ellesettete_meas
+%token TK_MEAS_ELLE7
 //gauge measures
 %token TK_USE_SMOOTH
 %token TK_MEAS_PLAQ_POL
@@ -356,6 +360,7 @@ global_specify: geometry
               | qed_corr_meas {driver->add_qed_corr_meas(*$1);delete $1;}
               | magnetization_meas {driver->add_magnetization_meas(*$1);delete $1;}
               | minmax_eigenvalues_meas {driver->add_minmax_eigenvalues_meas(*$1);delete $1;}
+              | ellesettete_meas {driver->add_ellesettete_meas(*$1);delete $1;}
 /////////////// gauge measures ////////////////////
               | plaq_pol_meas {driver->add_plaq_pol_meas(*$1);delete $1;}
               | top_meas {driver->add_top_meas(*$1);delete $1;}
@@ -783,6 +788,20 @@ tm_tuning_meas: TK_TM_TUNING {$$=new tm_tuning_meas_pars_t();}
                 | tm_tuning_meas ncopies {$$->ncopies=$2;}
                 | tm_tuning_meas noise_type {$$->rnd_type=$2;}
                 | tm_tuning_meas nhits {$$->nhits=$2;}
+;
+
+////////////////////////////////////////////////// ELLESETTETE //////////////////////////////////////////////////
+
+ellesettete_meas: TK_MEAS_ZUMBA {$$=new ellesettete_meas_pars_t();}
+                  | ellesettete_meas each {$$->each=$2;}
+                  | ellesettete_meas after {$$->after=$2;}
+                  | ellesettete_meas path {$$->path=(*$2);delete $2;}
+                  | ellesettete_meas residue {$$->residue=$2;}
+                  | ellesettete_meas itheory {$$->itheory=$2;}
+                  | ellesettete_meas ncopies {$$->ncopies=$2;}
+                  | ellesettete_meas noise_type {$$->rnd_type=$2;}
+                  | ellesettete_meas nhits {$$->nhits=$2;}
+                  | ellesettete_meas max_order {$$->max_order=$2;}
 ;
 
 ////////////////////////////////////////////////// ANALYSIS //////////////////////////////////////////////////
