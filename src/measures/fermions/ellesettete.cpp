@@ -1,3 +1,29 @@
+/////////////////////////// MATRIX ELEMENT METHOD 4 ELLESETTETE ////////////////////////////
+// We need to compute O=<0|P^0|pi_0> expanding the VEV around the Isosymmetric point up to 1st order in Δm
+// Thus <O> = <O>_0 - ΔmΣ_x<0|P^0 L_ib(x)|pi_0>_0
+// where ψ=(u,d),	L_ib(x)=ψ̅ σ_3ψ(x),	  P^0 = (u̅ g5 u + d̅ g5 d), 	pi_0 = (u̅ g5 d - d̅ g5 u)  *(Neglecting norm fact.)*
+// It turns out that only diagrams that contribute to <O> are the following ones:
+// (just considering one flavour)
+/* 1)connected:
+	   sink o(m)------->source o'(0)	   X:insertion of L_ib(n)    G(_|_)= D^-1(_|_) : porpagator isosymmetric point
+													  
+			  ***\X/***						Σ_n g5 g5 <0| u̅(m)u(m) u̅(n)u(n) u̅(0)u(0) |0> =
+		   **           **					Σ_n g5 g5 <0| G(m|n) G(n|0) G(0|m) |0> = 				       		  		
+		  o               o'	 ===>		Σ_n Tr[<0| G(m|n) G(n|0) g5 G(0|m) g5 |0>] =
+		   **           **					Σ_n Tr[<0| G(m|n) G(n|0) G(m|0)^† |0>] = (TF and proj to 0 momentum)
+			  *********					   ~Σ_n Σ_m Tr[<0| G(m|n) G(n|0) G(m|0)^†|0>]	
+
+
+	2)disconnected:
+		  ******        ******				Σ_n g5 g5 <0| u̅(m)u(m) u̅(n)u(n) u̅(0)u(0) |0> =
+		*        *    *        *			Σ_n g5 g5 <0| G(m|n) G(n|m) G(0|0) |0> =
+	   o          X  *          o'===>	    Σ_n Tr[<0| G(m|n) G(n|m) g5 |0>] Tr[<0| G(0|0) g5 |0>] = (TF and proj to 0 momentum)
+		*        *    *        *			~Σ_n Σ_m Tr[<0|G(m|n) G(n|m) g5|0>] Tr[<0| G(0|0)g5 |0>]
+		  ******        ******				
+
+*/
+
+
 #ifdef HAVE_CONFIG_H
  #include "config.hpp"
 #endif
