@@ -538,6 +538,7 @@ namespace nissa
       case SCALAR:prop_multiply_with_gamma(loop_source,0,ori,rel_t);break;
       case PSEUDO:prop_multiply_with_gamma(loop_source,5,ori,rel_t);break;
       case GAMMA:prop_multiply_with_gamma(loop_source,r,ori,rel_t);break;
+      case COLOR:prop_multiply_with_color_delta(loop_source,r,ori,rel_t);break;
       case PHOTON:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case PHOTON0:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[0],loc_hadr_curr);break;
       case PHOTON1:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[1],loc_hadr_curr);break;
