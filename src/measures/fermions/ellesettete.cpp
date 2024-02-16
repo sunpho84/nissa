@@ -203,7 +203,7 @@ void print_corr(eo_ptr<quad_su3> ext_conf,theory_pars_t &tp,ellesettete_meas_par
 				for(int t=0;t<glbSize[0];t++)
 				{
 					int ic = iflav*glbSize[0]+t;
-					master_fprintf(file1,"%d %+16.16lg %+16.16lg\n",t,corr[ic][RE]*norm,corr[ic][IM]*norm);
+					master_fprintf(file2,"%d %+16.16lg %+16.16lg\n",t,corr[ic][RE]*norm,corr[ic][IM]*norm);
 				}
 				master_fprintf(file2,"\n");
 			} 
