@@ -122,6 +122,7 @@
 
 #include "measures/contract/optimized_mesons_2pts.hpp"
 
+#include "measures/fermions/ellesettete.hpp"
 #include "measures/fermions/magnetization.hpp"
 #include "measures/fermions/mesons.hpp"
 #include "measures/fermions/minmax_eigenvalues.hpp"

@@ -50,6 +50,7 @@ namespace nissa
     std::vector<minmax_eigenvalues_meas_pars_t> minmax_eigenvalues_meas;
     std::vector<spectr_proj_meas_pars_t> spectral_proj_meas;
     std::vector<tm_tuning_meas_pars_t> tm_tuning_meas;
+    std::vector<ellesettete_meas_pars_t> ellesettete_meas;
     
     //check if any measure is due
     template <class T> int measure_is_due(std::vector<T> &pars,int itheory,int iconf)
@@ -61,6 +62,7 @@ namespace nissa
     int any_fermionic_measure_is_due(int itheory,int iconf)
     {
       return
+	measure_is_due(ellesettete_meas,itheory,iconf) or
 	measure_is_due(fermionic_putpourri_meas,itheory,iconf) or
 	measure_is_due(magnetization_meas,itheory,iconf) or
 	measure_is_due(minmax_eigenvalues_meas,itheory,iconf) or
@@ -94,7 +96,8 @@ namespace nissa
     void add_minmax_eigenvalues_meas(minmax_eigenvalues_meas_pars_t &m){minmax_eigenvalues_meas.push_back(m);}
     void add_spectr_proj_meas(spectr_proj_meas_pars_t &m){spectral_proj_meas.push_back(m);}
     void add_tm_tuning_meas(tm_tuning_meas_pars_t &m){tm_tuning_meas.push_back(m);}
-    
+    void add_ellesettete_meas(ellesettete_meas_pars_t &m){ellesettete_meas.push_back(m);}
+
     //gauge measures
     std::vector<gauge_obs_meas_pars_t> plaq_pol_meas;
     std::vector<top_meas_pars_t> top_meas;
@@ -189,6 +192,7 @@ namespace nissa
       os<<vector_get_str(minmax_eigenvalues_meas,full);
       os<<vector_get_str(spectral_proj_meas,full);
       os<<vector_get_str(tm_tuning_meas,full);
+      os<<vector_get_str(ellesettete_meas,full);
       //gauge masures
       os<<vector_get_str(plaq_pol_meas,full);
       os<<vector_get_str(top_meas,full);
