@@ -9,7 +9,11 @@
 	   sink o(m)------->source o'(0)	   X:insertion of L_ib(n)    G(_|_)= D^-1(_|_) : porpagator isosymmetric point
 													  
 			  
+<<<<<<< HEAD
                       ***\X/***					Σ_n g5 g5 <0| u̅(m)u(m) u̅(n)u(n) u̅(0)u(0) |0> =
+=======
+                      ***\X/ ***				Σ_n g5 g5 <0| u̅(m)u(m) u̅(n)u(n) u̅(0)u(0) |0> =
+>>>>>>> upstream/master
 		   **           **				Σ_n g5 g5 <0| G(m|n) G(n|0) G(0|m) |0> = 				       		  		
 		  o               o'	       ===>		Σ_n Tr[<0| G(m|n) G(n|0) g5 G(0|m) g5 |0>] =
 		   **           **				Σ_n Tr[<0| G(m|n) G(n|0) G(m|0)^† |0>] = (TF and proj to 0 momentum)
@@ -19,7 +23,11 @@
 	2)disconnected:
 		  ******        ******				Σ_n g5 g5 <0| u̅(m)u(m) u̅(n)u(n) u̅(0)u(0) |0> =
 		*        *    *        *			Σ_n g5 g5 <0| G(m|n) G(n|m) G(0|0) |0> =
+<<<<<<< HEAD
 	       o          X  *          o'     ===>	        Σ_n Tr[<0| G(m|n) G(n|m) g5 |0>] Tr[<0| G(0|0) g5 |0>] = (TF and proj to 0 momentum)
+=======
+	       o          X  *          o'     ===>             Σ_n Tr[<0| G(m|n) G(n|m) g5 |0>] Tr[<0| G(0|0) g5 |0>] = (TF and proj to 0 momentum)
+>>>>>>> upstream/master
 		*        *    *        *			~Σ_n Σ_m Tr[<0|G(m|n) G(n|m) g5|0>] Tr[<0| G(0|0)g5 |0>]
 		  ******        ******				
 
@@ -156,9 +164,13 @@ namespace nissa
 void print_corr(eo_ptr<quad_su3> ext_conf,theory_pars_t &tp,ellesettete_meas_pars_t &meas_pars,int iconf,int conf_created){
 	double norm=1.0/(meas_pars.nhits*glbSpatVol);
 	int nflavs=tp.nflavs();
+<<<<<<< HEAD
 	int size_corr=glbSize[0]*nflavs;
 	std::string path1=meas_pars.path + '/connected';		//check path thing... mkdir? 
 	std::string path2=meas_pars.path + '/disconnected';
+=======
+	int size_corr=glbSize[0]*nflavs;;
+>>>>>>> upstream/master
 	complex *corr=nissa_malloc("corr", size_corr, complex);
 	
 	

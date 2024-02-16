@@ -62,6 +62,7 @@ namespace nissa
     int any_fermionic_measure_is_due(int itheory,int iconf)
     {
       return
+	measure_is_due(ellesettete_meas,itheory,iconf) or
 	measure_is_due(fermionic_putpourri_meas,itheory,iconf) or
 	measure_is_due(magnetization_meas,itheory,iconf) or
 	measure_is_due(minmax_eigenvalues_meas,itheory,iconf) or

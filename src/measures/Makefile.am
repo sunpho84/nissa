@@ -4,6 +4,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/contract/optimized_mesons_2pts.cpp \
 	%D%/contract/tm_meson_2pts.cpp \
 	%D%/contract/tm_baryon.cpp \
+	%D%/fermions/ellesettete.cpp \
 	%D%/fermions/mesons.cpp \
 	%D%/fermions/magnetization.cpp \
 	%D%/fermions/minmax_eigenvalues.cpp \
@@ -26,6 +27,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 
 include_HEADERS+= \
 	%D%/contract/optimized_mesons_2pts.hpp \
+	%D%/fermions/ellesettete.hpp \
 	%D%/fermions/fermionic_meas.hpp \
 	%D%/fermions/mesons.hpp \
 	%D%/fermions/magnetization.hpp \

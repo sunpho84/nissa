@@ -257,7 +257,11 @@ MeasZumba DEBUG_PRINTF("Found MeasZumba\n");return TK_MEAS_ZUMBA;
 MeasSpinPol DEBUG_PRINTF("Found MeasSpinPol\n");return TK_MEAS_SPINPOL;
 MeasSpectrProj DEBUG_PRINTF("Found MeasSpectrProj\n");return TK_SPECTR_PROJ;
 MeasTMTuning DEBUG_PRINTF("Found MeasTMTuning\n");return TK_TM_TUNING;
+<<<<<<< HEAD
 MeasElle7 DEBUG_PRINTF("Found MeasElle7\n");return TK_MEAS_ELLE7;
+=======
+MeasElleSettete DEBUG_PRINTF("Found MeasElleSettete\n");return TK_MEAS_ELLESETTETE;
+>>>>>>> upstream/master
 
  /* nucleon smearing reimplementation */
 GaussSmeNsteps DEBUG_PRINTF("Found GaussSmeNsteps\n");return TK_GAUSS_SME_NSTEPS;

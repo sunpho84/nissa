@@ -277,7 +277,11 @@
 %token TK_TM_TUNING
 //ellesettete
 %type <ellesettete_meas> ellesettete_meas
+<<<<<<< HEAD
 %token TK_MEAS_ELLE7
+=======
+%token TK_MEAS_ELLESETTETE
+>>>>>>> upstream/master
 //gauge measures
 %token TK_USE_SMOOTH
 %token TK_MEAS_PLAQ_POL
