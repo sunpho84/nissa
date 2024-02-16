@@ -11,11 +11,8 @@ namespace nissa
   {
     int max_order;
     
-<<<<<<< HEAD
-    std::string def_path(){return "ellesettete";} //mkdir for connected and disconnected ?? idk the way files are propely stored (ask sunpho)
-=======
     std::string def_path(){return "ellesettete";}
->>>>>>> upstream/master
+
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
     
