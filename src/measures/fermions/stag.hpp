@@ -59,9 +59,29 @@ namespace nissa
     delete[] NAME2(loc,o)
 #define PRINT(A)							\
       master_fprintf(file,"%+16.16lg %+16.16lg\t",A[0]/meas_pars.nhits,A[1]/meas_pars.nhits)
+#define PRINT_VEC(A)							\
+      master_fprintf(file," # %s flav %d\n",#A,iflav);    \
+      for(int t=0;t<glbSize[0];t++)                     \
+      master_fprintf(file,"%+16.16lg %+16.16lg\t",A[t][0]/meas_pars.nhits,A[t][1]/meas_pars.nhits);         \
+      master_fprintf(file,"\n")                     
 #define SUMM_THE_TRACE_PRINT_AT_LAST_HIT(A,B,C)				\
       summ_the_trace((double*)A,point_result,B,C);			\
       if(ihit==meas_pars.nhits-1) PRINT(A)
+#define SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(A,B,C) \
+      summ_the_time_trace(A,point_result,B,C);	\
+      if(ihit==meas_pars.nhits-1) PRINT_VEC(A)
+#define PUT_G5G5_STAG_PHASES_WITH_NO_SHIFT(out,in)   \
+      eo_ptr<color> temp[2];				\
+      for(int itemp=0;itemp<2;itemp++)              \
+      for(int eo=0;eo<2;eo++)                  \
+        temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);   \
+      int mask = form_stag_meson_pattern_with_g5g5(15,15);	\
+      apply_shift_op(out, temp[0], temp[1], conf, u1b, 0, in);	\           //idk if u1b should be passed like this (sunpho?)
+      put_stag_phases(out, mask);				\
+      for(int itemp=0;itemp<2;itemp++)              \
+      for(int eo=0;eo<2;eo++)                  \
+        nissa_free(temp[itemp][eo]);
+
       
     void fill_source(eo_ptr<color> src,int twall,rnd_t noise_type);
     void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> right,complex *point_result);
@@ -71,7 +91,8 @@ namespace nissa
     void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars);
     void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,int ieo,int mu,void *pars),int t,void *pars=NULL);
     void summ_the_trace(double *out,complex *point_result,eo_ptr<color> A,eo_ptr<color> B);
-    
+    void summ_the_time_trace(double* out,complex* point_result,eo_ptr<color>  A,eo_ptr<color> B);
+
     enum shift_orie_t{UP,DW,BOTH};
     void apply_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side=BOTH);
     void summ_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side);
