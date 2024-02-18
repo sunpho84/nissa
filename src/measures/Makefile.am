@@ -18,7 +18,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/fermions/tm_corr_op.cpp \
 	%D%/fermions/tm_tuning.cpp \
 	%D%/fermions/zumba.cpp \
-	%D%/fermions/ellesettete.cpp \
 	%D%/gauge/all_rectangles.cpp \
 	%D%/gauge/pline.cpp \
 	%D%/gauge/topological_charge.cpp \
@@ -42,7 +41,6 @@ include_HEADERS+= \
 	%D%/fermions/tm_corr_op.hpp \
 	%D%/fermions/tm_tuning.hpp \
 	%D%/fermions/zumba.hpp \
-	%D%/fermions/ellesettete.hpp \
 	%D%/gauge/all_rectangles.hpp \
 	%D%/gauge/pline.hpp \
 	%D%/gauge/topological_charge.hpp \
