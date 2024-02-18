@@ -76,7 +76,7 @@ namespace nissa
       for(int eo=0;eo<2;eo++)                  \
         temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);   \
       int mask = form_stag_meson_pattern_with_g5g5(15,15);	\
-      apply_shift_op(out, temp[0], temp[1], conf, u1b, 0, in);	\           //idk if u1b should be passed like this (sunpho?)
+      apply_shift_op(out, temp[0], temp[1], conf, theory_pars->bakfield, 0, in);	\           //idk if u1b should be passed like this (sunpho?)
       put_stag_phases(out, mask);				\
       for(int itemp=0;itemp<2;itemp++)              \
       for(int eo=0;eo<2;eo++)                  \
