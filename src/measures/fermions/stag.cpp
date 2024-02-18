@@ -230,9 +230,7 @@ namespace nissa
       glb_reduce(&temp,point_result,locVol);
       if(IS_MASTER_THREAD) complex_summassign(out,temp);
     }
-	#define SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(A,B,C) \
-      summ_the_time_trace(A,point_result,B,C);	\
-      if(ihit==meas_pars.nhits-1) PRINT_VEC(A)
+	
 	void summ_the_time_trace(double* out,complex* point_result,eo_ptr<color>  A,eo_ptr<color>  B)
     {
       
