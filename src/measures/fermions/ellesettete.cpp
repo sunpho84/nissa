@@ -70,15 +70,10 @@ namespace nissa
     NEW_FIELD_T(g5_source);	//----> not needed.
 
     //vectors for calculation
-    NEW_FIELD_T(SIMPLE_PROP); // M^-1
-    NEW_FIELD_T(SEQ_PROP);        // M' M^-1
-    NEW_FIELD_T(G5_PROP);       // M'' M^-1
-    NEW_FIELD_T(M_M);         // M^-2
-    NEW_FIELD_T(dM_M_M);      // M' M^-2
-    NEW_FIELD_T(d2M_M_M);     // M'' M^-2
-    NEW_FIELD_T(dM_M_dM_M);   // (M' M^-1)^2
-    NEW_FIELD_T(M_dM_M_dM_M); // M^-1 (M' M^-1)^2
-    NEW_FIELD_T(TMP);         // parking variable
+    NEW_FIELD_T(SIMPLE_PROP); 
+    NEW_FIELD_T(SEQ_PROP);        
+    NEW_FIELD_T(G5_PROP);       
+   
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
       {
