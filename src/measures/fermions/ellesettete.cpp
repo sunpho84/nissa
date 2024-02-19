@@ -67,11 +67,12 @@ namespace nissa
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     complex *point_result=nissa_malloc("point_result",locVol,complex);
     NEW_FIELD_T(source);
-    
+    NEW_FIELD_T(g5_source);	//----> not needed.
+
     //vectors for calculation
-    NEW_FIELD_T(M);           // M^-1
-    NEW_FIELD_T(dM_M);        // M' M^-1
-    NEW_FIELD_T(d2M_M);       // M'' M^-1
+    NEW_FIELD_T(SIMPLE_PROP); // M^-1
+    NEW_FIELD_T(SEQ_PROP);        // M' M^-1
+    NEW_FIELD_T(G5_PROP);       // M'' M^-1
     NEW_FIELD_T(M_M);         // M^-2
     NEW_FIELD_T(dM_M_M);      // M' M^-2
     NEW_FIELD_T(d2M_M_M);     // M'' M^-2
@@ -88,133 +89,56 @@ namespace nissa
 	for(int iflav=0;iflav<nflavs;iflav++)
 	  {
 	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
+	    for(int glb_t=0; glb_t<glbSize[0]; t++)
+		{
+			//vectors for output
+			NEW_TRACE_RES(Tr_three_pts);
+			NEW_TRACE_RES(Tr_second_bubble);
+			NEW_TRACE_RES_VEC(Tr_first_bubble);
+			NEW_TRACE_RES_VEC(Tr_second_bubble);
+			
 	    
-	    //vectors for output
-	    NEW_TRACE_RES(Tr_M);
-	    NEW_TRACE_RES(Tr_dM_M);
-	    NEW_TRACE_RES(Tr_d2M_M);
-	    NEW_TRACE_RES(Tr_M_M);
-	    NEW_TRACE_RES(Tr_dM_M_M);
-	    NEW_TRACE_RES(Tr_d2M_M_M);
-	    NEW_TRACE_RES(Tr_dM_M_dM_M);
-	    NEW_TRACE_RES(Tr_M_dM_M_dM_M);
-	    
-	    //loop over hits
-	    for(int ihit=0;ihit<meas_pars.nhits;ihit++)
-	      {
-		//fill the source
-		fill_source(source,-1,meas_pars.rnd_type);
-		
-		//compute M^-1, M' M^-1, M'' M^-1
-		MINV(M,iflav,source);
-		DMDMU(dM_M,iflav,1,M);
-		DMDMU(d2M_M,iflav,2,M);
-		
-		//compute M^-2, M' M^-2, M'' M^-2
-		MINV(M_M,iflav,M);
-		DMDMU(dM_M_M,iflav,1,M_M);
-		DMDMU(d2M_M_M,iflav,2,M_M);
-		
-		//compute (M' M^-1)^2
-		DMDMU(dM_M_dM_M,iflav,1,M); // M' M^-1
-		MINV(TMP,iflav,dM_M_dM_M); // M^-1 M' M^-1
-		DMDMU(dM_M_dM_M,iflav,1,TMP);
-		
-		//compute M^-1 (M' M^-1)^2
-		MINV(M_dM_M_dM_M,iflav,dM_M_dM_M);
-		
-		//print traces
-		SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M,source,M);
-		SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_dM_M,source,dM_M);
-		SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_d2M_M,source,d2M_M);
-		SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_M,source,M_M);
-		SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_dM_M_M,source,dM_M_M);
-		SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_d2M_M_M,source,d2M_M_M);
-		SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_dM_M_dM_M,source,dM_M_dM_M);
-		SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_dM_M_dM_M,source,M_dM_M_dM_M);
-	      }
+	    	//loop over hits
+			for(int ihit=0;ihit<meas_pars.nhits;ihit++)
+			{
+				//fill the source
+				fill_source(source,glb_t,meas_pars.rnd_type);
+				
+				//compute std 2pts propagator G(m|n) ~ [D^-1(m|y) source(y)] source(n)*
+				MINV(SIMPLE_PROP,iflav,source);			
+				
+				//compute sequential propagator G(m|n) ~ [D^-1(m|y) source(y)] D^-1(y|n)
+				MINV(SEQ_PROP,iflav,SIMPLE_PROP); //
+				
+				//then glb reduction to compute the trace for the connected 3pts diagram
+				SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,SEQ_PROP);
+				
+				//////// disconnected ////////
+				PUT_G5G5_STAG_PHASES_WITH_NO_SHIFT(g5_source,source)  
+
+				MINV(G5_PROP,iflav,g5_source);
+				SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_first_bubble,G5_PROP,SIMPLE_PROP);    //maybe SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_first_bubble, SEQ_PROP, g5_source);
+				SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_second_bubble,SIMPLE_PROP, g5_source); 
+				
+			}
+		}	
 	  }
 	
 	master_fprintf(file,"\n");
       }
     
     //deallocate and close file
-    DELETE_FIELD_T(M);
-    DELETE_FIELD_T(dM_M);
-    DELETE_FIELD_T(d2M_M);
-    DELETE_FIELD_T(M_M);
-    DELETE_FIELD_T(dM_M_M);
-    DELETE_FIELD_T(d2M_M_M);
-    DELETE_FIELD_T(dM_M_dM_M);
-    DELETE_FIELD_T(M_dM_M_dM_M);
-    DELETE_FIELD_T(TMP);
+    DELETE_FIELD_T(SIMPLE_PROP);
+    DELETE_FIELD_T(SEQ_PROP);
+    DELETE_FIELD_T(G5_PROP);
+    
     
     close_file(file);
     nissa_free(point_result);
     DELETE_FIELD_T(source);
+	DELETE_FIELD_T(g5_source);
   }
   
-void print_corr(eo_ptr<quad_su3> ext_conf,theory_pars_t &tp,ellesettete_meas_pars_t &meas_pars,int iconf,int conf_created){
-	double norm=1.0/(meas_pars.nhits*glbSpatVol);
-	int nflavs=tp.nflavs();
-
-	int size_corr=glbSize[0]*nflavs;;
-
-	complex *corr=nissa_malloc("corr", size_corr, complex);
-	
-	
-	//maybe more generalizable? like for whatever spin/taste cobination for source/sink and insertion? boh 
-	int ncopies=meas_pars.ncopies;  // ncopies is the number of gauge configurations??? idk yet (???), if not delete it (same below)
-									// if it is, we can do just one loop over copies and compute both connected and disconnected at each it. 
-	FILE *file1=open_file(path1,conf_created?"w":"a"); //i would use std::ofstream 
-		for(int icopy=0;icopy<ncopies;icopy++){
-			
-			verbosity_lv2_master_printf("Computing copy %d/%d\n",icopy,ncopies);
-			//compute_connected(corr,ext_conf,&tp,&meas_pars) -----> to be implemented 
-			for(int iflav=0;iflav<nflavs;iflav++)
-			{
-
-				master_fprintf(file1," # conf %d ;"
-						" flv = %d , m = %lg\n",
-						iconf,iflav,tp.quarks[iflav].mass);
-
-				for(int t=0;t<glbSize[0];t++)
-				{
-				int ic = iflav*glbSize[0]+t;
-				master_fprintf(file1,"%d %+16.16lg %+16.16lg\n",t,corr[ic][RE]*norm,corr[ic][IM]*norm);
-				}
-				master_fprintf(file1,"\n");
-			}
-
-		}
-	close_file(file1);
-
-	FILE *file2=open_file(path2,conf_created?"w":"a");
-		for(int icopy=0;icopy<ncopies;icopy++)
-		{
-			verbosity_lv2_master_printf("Computing copy %d/%d\n",icopy,ncopies);
-			//compute_disconnected(corr,ext_conf,&tp,&meas_pars)-----> to be implemented 
-			for(int iflav=0;iflav<nflavs;iflav++)
-			{
-
-				master_fprintf(file2," # conf %d ;"
-						" flv = %d , m = %lg\n",
-						iconf,iflav,tp.quarks[iflav].mass);
-
-				for(int t=0;t<glbSize[0];t++)
-				{
-					int ic = iflav*glbSize[0]+t;
-					master_fprintf(file2,"%d %+16.16lg %+16.16lg\n",t,corr[ic][RE]*norm,corr[ic][IM]*norm);
-				}
-				master_fprintf(file2,"\n");
-			} 
-
-		}
-	close_file(file2);
-
-	nissa_free(corr);
-
-}
   //print
   std::string ellesettete_meas_pars_t::get_str(bool full)
   {
