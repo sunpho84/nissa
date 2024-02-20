@@ -88,7 +88,6 @@ namespace nissa
 		{
 			//vectors for output
 			NEW_TRACE_RES(Tr_three_pts);
-			NEW_TRACE_RES(Tr_second_bubble);
 			NEW_TRACE_RES_VEC(Tr_first_bubble);
 			NEW_TRACE_RES_VEC(Tr_second_bubble);
 						
