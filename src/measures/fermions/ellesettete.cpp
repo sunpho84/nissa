@@ -91,7 +91,7 @@ namespace nissa
 			NEW_TRACE_RES(Tr_second_bubble);
 			NEW_TRACE_RES_VEC(Tr_first_bubble);
 			NEW_TRACE_RES_VEC(Tr_second_bubble);
-			
+						
 	    
 	    	//loop over hits
 			for(int ihit=0;ihit<meas_pars.nhits;ihit++)
@@ -105,16 +105,15 @@ namespace nissa
 				//compute sequential propagator G(m|n) ~ [D^-1(m|y) source(y)] D^-1(y|n)
 				MINV(SEQ_PROP,iflav,SIMPLE_PROP); //
 				
-				//then glb reduction to compute the trace for the connected 3pts diagram
+				//then glb reduction to compute the trace for the connected 3pts diagram 
 				SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,SEQ_PROP);
 				
-				//////// disconnected ////////
-				PUT_G5G5_STAG_PHASES_WITH_NO_SHIFT(g5_source,source)  
-
+				//////// disconnected //////// 
+				PUT_G5G5_STAG_PHASES_WITH_NO_SHIFT(g5_source,iflav,source)  
+				
 				MINV(G5_PROP,iflav,g5_source);
 				SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_first_bubble,G5_PROP,SIMPLE_PROP);    //maybe SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_first_bubble, SEQ_PROP, g5_source);
-				SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_second_bubble,SIMPLE_PROP, g5_source); 
-				
+				SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_second_bubble,SIMPLE_PROP, g5_source);  
 			}
 		}	
 	  }

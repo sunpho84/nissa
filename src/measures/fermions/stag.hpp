@@ -70,19 +70,19 @@ namespace nissa
 #define SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(A,B,C) \
       summ_the_time_trace(A,point_result,B,C);	\
       if(ihit==meas_pars.nhits-1) PRINT_VEC(A)
-#define PUT_G5G5_STAG_PHASES_WITH_NO_SHIFT(out,in)   \
+#define PUT_G5G5_STAG_PHASES_WITH_NO_SHIFT(out,iflav,in)   \
       eo_ptr<color> temp[2];				\
       for(int itemp=0;itemp<2;itemp++)              \
       for(int eo=0;eo<2;eo++)                  \
         temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);   \
       int mask = form_stag_meson_pattern_with_g5g5(15,15);	\
-      apply_shift_op(out, temp[0], temp[1], conf, theory_pars->bakfield, 0, in);	\           //idk if u1b should be passed like this (sunpho?)
+      apply_shift_op(out, temp[0], temp[1], conf, theory_pars->bakfield[iflav], 0, in);	\           //idk if u1b should be passed like this (sunpho?)
       put_stag_phases(out, mask);				\
       for(int itemp=0;itemp<2;itemp++)              \
       for(int eo=0;eo<2;eo++)                  \
         nissa_free(temp[itemp][eo]);
 
-      
+    
     void fill_source(eo_ptr<color> src,int twall,rnd_t noise_type);
     void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> right,complex *point_result);
     void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double residue,eo_ptr<color> source);
