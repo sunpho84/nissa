@@ -21,8 +21,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/gauge/all_rectangles.cpp \
 	%D%/gauge/pline.cpp \
 	%D%/gauge/topological_charge.cpp \
-	%D%/gauge/watusso.cpp 
-
+	%D%/gauge/watusso.cpp
 
 include_HEADERS+= \
 	%D%/contract/optimized_mesons_2pts.hpp \

@@ -137,7 +137,6 @@
 #include "measures/fermions/tm_tuning.hpp"
 #include "measures/fermions/zumba.hpp"
 
-
 #include "measures/gauge/all_rectangles.hpp"
 #include "measures/gauge/pline.hpp"
 #include "measures/gauge/topological_charge.hpp"
