@@ -67,12 +67,12 @@ namespace nissa
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     complex *point_result=nissa_malloc("point_result",locVol,complex);
     NEW_FIELD_T(source);
-    NEW_FIELD_T(g5_source);	//----> not needed.
+    NEW_FIELD_T(g5_source);//----> not needed.
 
     //vectors for calculation
     NEW_FIELD_T(SIMPLE_PROP);
     NEW_FIELD_T(SEQ_PROP);
-    NEW_FIELD_T(G5_PROP);
+    //NEW_FIELD_T(G5_PROP);
    
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
@@ -99,20 +99,20 @@ namespace nissa
 				fill_source(source,glb_t,meas_pars.rnd_type);
 				
 				//compute std 2pts propagator G(m|n) ~ [D^-1(m|y) source(y)] source(n)*
-				MINV(SIMPLE_PROP,iflav,source);			
+				MINV(SIMPLE_PROP,iflav,source);
 				
 				//compute sequential propagator G(m|n) ~ [D^-1(m|y) source(y)] D^-1(y|n)
-				MINV(SEQ_PROP,iflav,SIMPLE_PROP); //
-				
+				MINV(SEQ_PROP,iflav,SIMPLE_PROP);
+
 				//then glb reduction to compute the trace for the connected 3pts diagram 
 				SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,SEQ_PROP);
 				
 				//////// disconnected //////// 
-				put_g5g5_stag_phases_with_no_shift(g5_source,iflav,source);  
+				apply_stag_op(g5_source,conf,theory_pars->backfield[iflav],source);
 				
-				MINV(G5_PROP,iflav,g5_source);
-				SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_first_bubble,G5_PROP,SIMPLE_PROP);    //maybe SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_first_bubble, SEQ_PROP, g5_source);
-				SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_second_bubble,SIMPLE_PROP, g5_source);  
+				//MINV(G5_PROP,iflav,g5_source); 
+				SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_first_bubble, SEQ_PROP, g5_source);
+				SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_second_bubble,SIMPLE_PROP,g5_source);
 			}
 		}	
 	  }
