@@ -108,7 +108,7 @@ namespace nissa
 				SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,SEQ_PROP);
 				
 				//////// disconnected //////// 
-				PUT_G5G5_STAG_PHASES_WITH_NO_SHIFT(g5_source,iflav,source)  
+				put_g5g5_stag_phases_with_no_shift(g5_source,iflav,source);  
 				
 				MINV(G5_PROP,iflav,g5_source);
 				SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_first_bubble,G5_PROP,SIMPLE_PROP);    //maybe SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_first_bubble, SEQ_PROP, g5_source);
