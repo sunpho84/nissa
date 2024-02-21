@@ -68,7 +68,7 @@ namespace nissa
       summ_the_trace((double*)A,point_result,B,C);			\
       if(ihit==meas_pars.nhits-1) PRINT(A)
 #define SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(A,B,C) \
-      summ_the_time_trace(A,point_result,B,C);	\
+      summ_the_time_trace((double*)A,point_result,B,C);	\
       if(ihit==meas_pars.nhits-1) PRINT_VEC(A)
 
     
