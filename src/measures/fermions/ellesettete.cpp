@@ -112,7 +112,7 @@ namespace nissa
 				
 				//MINV(G5_PROP,iflav,g5_source); 
 				SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_first_bubble, SEQ_PROP, g5_source);
-				SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_second_bubble,SIMPLE_PROP,g5_source);
+				SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_second_bubble,SIMPLE_PROP,15,15,g5_source);
 			}
 		}	
 	  }
