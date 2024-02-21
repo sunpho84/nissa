@@ -145,7 +145,7 @@ namespace nissa
       else for(int eo=0;eo<2;eo++) vector_copy(out[eo],in[eo]);
     }
     
-    
+    //add the phases
     void put_stag_phases(eo_ptr<color> source,int mask)
     {
       
@@ -260,10 +260,10 @@ namespace nissa
       
       // reduction over 3-spatial-volume
       complex temp[glbSize[0]];
-      glb_reduce(&temp,point_result,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);	//(ask sunpho)check if the parameters passed for the reduction over space are correct
+      glb_reduce(temp,point_result,locVol,glbSize[0],locSize[0]);	//(ask sunpho)check if the parameters passed for the reduction over space are correct
       if(IS_MASTER_THREAD) 
 	  	for(int glb_t; glb_t<glbSize[0]; glb_t ++)
-			complex_summassign(out[glb_t],temp[glb_t]);
+			out[glb_t]+=temp[glb_t][RE];
     }
     
     //multiply by the derivative of M w.r.t mu
