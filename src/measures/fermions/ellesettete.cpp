@@ -84,12 +84,12 @@ namespace nissa
 	for(int iflav=0;iflav<nflavs;iflav++)
 	  {
 	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
-	    for(int glb_t=0; glb_t<glbSize[0]; t++)
+	    for(int glb_t=0; glb_t<glbSize[0]; glb_t++)
 		{
 			//vectors for output
 			NEW_TRACE_RES(Tr_three_pts);
-			NEW_TRACE_RES_VEC(Tr_first_bubble);
-			NEW_TRACE_RES_VEC(Tr_second_bubble);
+			NEW_TRACE_RES_VEC(Tr_first_bubble, glbSize[0]);
+			NEW_TRACE_RES_VEC(Tr_second_bubble, glbSize[0]);
 						
 	    
 	    	//loop over hits
