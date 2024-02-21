@@ -70,17 +70,6 @@ namespace nissa
 #define SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(A,B,C) \
       summ_the_time_trace(A,point_result,B,C);	\
       if(ihit==meas_pars.nhits-1) PRINT_VEC(A)
-#define PUT_G5G5_STAG_PHASES_WITH_NO_SHIFT(out,iflav,in)   \
-      eo_ptr<color> temp[2];				\
-      for(int itemp=0;itemp<2;itemp++)              \
-      for(int eo=0;eo<2;eo++)                  \
-        temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);   \
-      int mask = form_stag_meson_pattern_with_g5g5(15,15);	\
-      apply_shift_op(out, temp[0], temp[1], conf, theory_pars->backfield[iflav], 0, in);	\           //idk if u1b should be passed like this (sunpho?)
-      put_stag_phases(out, mask);				\
-      for(int itemp=0;itemp<2;itemp++)              \
-      for(int eo=0;eo<2;eo++)                  \
-        nissa_free(temp[itemp][eo]);
 
     
     void fill_source(eo_ptr<color> src,int twall,rnd_t noise_type);
@@ -99,6 +88,7 @@ namespace nissa
     void apply_shift_op(eo_ptr<color> out,eo_ptr<color> single_perm,eo_ptr<color> internal_temp,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,int shift,eo_ptr<color> in);
     
     void put_stag_phases(eo_ptr<color> source,int mask);
+    void put_g5g5_stag_phases_with_no_shift(eo_ptr<color> out,int iflav,eo_ptr<color> in);
     enum GAMMA_INT{IDENTITY,GAMMA_0,GAMMA_1,SIGMA_0_1,GAMMA_2,SIGMA_0_2,SIGMA_1_2,GAMMA_5_SIGMA_3,GAMMA_3,SIGMA_0_3,SIGMA_1_3,GAMMA5_GAMMA_2,SIGMA_2_3,GAMMA_5_GAMMA_1,GAMMA_5_GAMMA_0,GAMMA_5};
     inline void apply_stag_op(eo_ptr<color> out,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,GAMMA_INT spin,GAMMA_INT taste,eo_ptr<color> in)
     {
@@ -122,6 +112,11 @@ namespace nissa
 	  nissa_free(temp[itemp][eo]);
     }
     
+
+
+
+
+
     void summ_dens(complex *dens,eo_ptr<color> quark,eo_ptr<color> temp0,eo_ptr<color> temp1,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> backfield,int shift,int mask,eo_ptr<color> chi,eo_ptr<color> eta);
     inline void compute_dens(complex *dens,eo_ptr<color> quark,eo_ptr<color> temp0,eo_ptr<color> temp1,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> backfield,int shift,int mask,eo_ptr<color> chi,eo_ptr<color> eta)
     {

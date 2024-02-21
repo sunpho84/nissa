@@ -145,7 +145,7 @@ namespace nissa
       else for(int eo=0;eo<2;eo++) vector_copy(out[eo],in[eo]);
     }
     
-    //add the phases
+    
     void put_stag_phases(eo_ptr<color> source,int mask)
     {
       
@@ -162,6 +162,21 @@ namespace nissa
 	  set_borders_invalid(source[eo]);
 	}
     }
+
+
+	void put_g5g5_stag_phases_with_no_shift(eo_ptr<color> out,int iflav,eo_ptr<color> in)
+	{
+		eo_ptr<color> temp[2];
+		for(int itemp=0;itemp<2;itemp++)
+			for(int eo=0;eo<2;eo++)
+				temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);
+		int mask = form_stag_meson_pattern_with_g5g5(15,15);
+		apply_shift_op(out, temp[0], temp[1], conf, theory_pars->backfield[iflav], 0, in);
+		put_stag_phases(out, mask);
+		for(int itemp=0;itemp<2;itemp++)
+			for(int eo=0;eo<2;eo++)
+				nissa_free(temp[itemp][eo]);
+	}
     
     //multiply by M^-1
     void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double residue,eo_ptr<color> source)
