@@ -72,7 +72,6 @@ namespace nissa
     //vectors for calculation
     NEW_FIELD_T(SIMPLE_PROP);
     NEW_FIELD_T(SEQ_PROP);
-    //NEW_FIELD_T(G5_PROP);
    
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
