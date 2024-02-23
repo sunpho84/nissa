@@ -26,11 +26,11 @@ namespace nissa
     //gauge for photon propagator
     char photon_gauge_str[100];
     read_str_str("PhotonGauge",photon_gauge_str,100);
-    if(strncasecmp(photon_gauge_str,"FEYNMAN",100)==0) photon.alpha=FEYNMAN_ALPHA;
+    if(strncasecmp(photon_gauge_str,"FEYNMAN",100)==0) photon.which_gauge=gauge_info::FEYNMAN;
     else
-      if(strncasecmp(photon_gauge_str,"LANDAU",100)==0) photon.alpha=LANDAU_ALPHA;
+      if(strncasecmp(photon_gauge_str,"LANDAU",100)==0) photon.which_gauge=gauge_info::LANDAU;
       else
-	if(strncasecmp(photon_gauge_str,"LANDAU",100)==0) read_str_double("Alpha",&photon.alpha);
+	if(strncasecmp(photon_gauge_str,"COULOMB",100)==0) photon.which_gauge=gauge_info::COULOMB;
 	else crash("Unkwnown photon gauge: %s",photon_gauge_str);
     
     //discretization for photon propagator

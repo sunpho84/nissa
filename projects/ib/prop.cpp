@@ -490,7 +490,7 @@ namespace nissa
     auto vphotonInsertCurr=[mass,theta](const BwFw bwFw,const int nu)
     {
       gauge_info insPhoton;
-      insPhoton.alpha=photon.alpha;
+      insPhoton.which_gauge=photon.which_gauge;
       insPhoton.bc[0]=0;
       for(int mu=1;mu<NDIM;mu++)
 	insPhoton.bc[mu]=theta[mu];
@@ -825,7 +825,7 @@ namespace nissa
     if(not file_exists("mom_list.txt")) fout=open_file(path_list,"w");
     
     //store the list of filtered
-    std::set<int> list_of_filtered;;
+    std::set<int> list_of_filtered;
     
     //scattering list
     all_to_all_scattering_list_t sl;

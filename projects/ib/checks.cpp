@@ -741,7 +741,7 @@ void init_simulation()
 {
   init_grid(T,L);
   
-  photon.alpha=FEYNMAN_ALPHA;
+  photon.which_gauge=gauge_info::FEYNMAN;
   photon.bc[0]=photon.bc[1]=photon.bc[2]=photon.bc[3]=0;
   photon.c1=WILSON_C1;
   photon.zms=UNNO_ALEMANNA;
