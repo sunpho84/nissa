@@ -575,7 +575,7 @@ namespace quda_iface
 	inv_mg_param.inv_type=QUDA_GCR_INVERTER;
 	inv_mg_param.inv_type_precondition=QUDA_INVALID_INVERTER;
 	inv_mg_param.maxiter=1000;
-	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
+	inv_mg_param.solve_type=QUDA_DIRECT_PC_SOLVE;
 	inv_mg_param.verbosity=QUDA_SUMMARIZE;//VERBOSE;
 	inv_mg_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
 	inv_mg_param.preserve_source=QUDA_PRESERVE_SOURCE_NO;
