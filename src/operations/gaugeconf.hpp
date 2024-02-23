@@ -2,6 +2,7 @@
 #define _GAUGECONF_HPP
 
 #include <sstream>
+#include <cstdint>
 
 #include "operations/su3_paths/gauge_sweeper.hpp"
 #include "operations/smearing/smooth.hpp"
