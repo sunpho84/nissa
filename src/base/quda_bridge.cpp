@@ -63,6 +63,11 @@ namespace nissa
 }
 #endif
 
+namespace nissa
+{
+  PROVIDE_HAS_MEMBER(cl_pad);
+}
+
 namespace quda_iface
 {
   using namespace nissa;
@@ -204,7 +209,8 @@ namespace quda_iface
 	
 	initCommsGridQuda(NDIM,grid,get_rank_of_quda_coords,NULL);
 	
-	initQuda(iCudaDevice);
+	// initQuda(iCudaDevice);
+	initQuda(-1);
 	
 	inited=1;
       }
@@ -430,8 +436,11 @@ namespace quda_iface
     
     //inv_param.tune=QUDA_TUNE_YES;
     
-    inv_param.sp_pad=0;
-    inv_param.cl_pad=0;
+    if constexpr(hasMember_cl_pad<decltype(inv_param)>)
+      {
+	inv_param.sp_pad=0;
+	inv_param.cl_pad=0;
+      }
     
     inv_param.Ls=1;
     
@@ -462,7 +471,9 @@ namespace quda_iface
 	inv_param.clover_coeff=csw*kappa;
 	// inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
 	// inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
-	// inv_param.cl_pad=0;
+	
+	if constexpr(hasMember_cl_pad<decltype(inv_param)>)
+	  inv_param.cl_pad=0;
 	// inv_param.dirac_order=QUDA_DIRAC_ORDER;
 	
 	loadCloverQuda(NULL,NULL,&inv_param);
@@ -1009,8 +1020,11 @@ namespace quda_iface
     printf("return_clover: %d\n",i.return_clover);
     printf("return_clover_inverse: %d\n",i.return_clover_inverse);
     printf("verbosity: %d\n",i.verbosity);
-    printf("sp_pad: %d\n",i.sp_pad);
-    printf("cl_pad: %d\n",i.cl_pad);
+    if constexpr(hasMember_cl_pad<decltype(i)>)
+      {
+	printf("sp_pad: %d\n",i.sp_pad);
+	printf("cl_pad: %d\n",i.cl_pad);
+      }
     printf("iter: %d\n",i.iter);
     printf("gflops: %lg\n",i.gflops);
     printf("secs: %lg\n",i.secs);

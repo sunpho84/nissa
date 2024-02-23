@@ -26,6 +26,16 @@ namespace nissa
     for(int ilev=0;ilev<nlevels;ilev++) nu_pre[ilev]=0;
     for(int ilev=0;ilev<nlevels;ilev++) nu_post[ilev]=7;
     
+    constexpr double def_coarse_solver_tol[MAX_MG_LEVELS]={0.15,0.22,0.46};
+    for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++) coarse_solver_tol[ilev]=def_coarse_solver_tol[ilev];
+    constexpr int def_coarse_solver_maxiter[MAX_MG_LEVELS]={100,100,100};
+    for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++) coarse_solver_maxiter[ilev]=def_coarse_solver_maxiter[ilev];
+    constexpr double def_smoother_tol[MAX_MG_LEVELS]={0.1,0.1,0.15};
+    for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++) smoother_tol[ilev]=def_smoother_tol[ilev];
+    constexpr double def_omega[MAX_MG_LEVELS]={0.85,0.85,0.85};
+    for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++) omega[ilev]=def_omega[ilev];
+    
+    
     if(nissa::file_exists(path))
       {
 	nissa::open_input(path);
