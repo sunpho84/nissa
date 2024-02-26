@@ -245,8 +245,8 @@ namespace nissa
       
       // reduction over 3-spatial-volume
       complex temp[glbSize[0]];
-      glb_reduce(temp,point_result,locVol,glbSize[0],locSize[0]);	//(ask sunpho)check if the parameters passed for the reduction over space are correct
-      if(IS_MASTER_THREAD) 
+      glb_reduce(temp,point_result,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+      if(IS_MASTER_THREAD)
 	  	for(int glb_t=0; glb_t<glbSize[0]; glb_t ++)
 			out[glb_t]+=temp[glb_t][RE];
     }

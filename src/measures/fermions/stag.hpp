@@ -62,13 +62,13 @@ namespace nissa
 #define PRINT_VEC(A)							\
       master_fprintf(file," # %s flav %d\n",#A,iflav);    \
       for(int t=0;t<glbSize[0];t++)                     \
-      master_fprintf(file,"%+16.16lg %+16.16lg\t",A[t][0]/meas_pars.nhits,A[t][1]/meas_pars.nhits);         \
+      master_fprintf(file,"%+16.16lg %+16.16lg\t",A[t]/meas_pars.nhits);         \
       master_fprintf(file,"\n")                     
 #define SUMM_THE_TRACE_PRINT_AT_LAST_HIT(A,B,C)				\
       summ_the_trace((double*)A,point_result,B,C);			\
       if(ihit==meas_pars.nhits-1) PRINT(A)
 #define SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(A,B,C) \
-      summ_the_time_trace((double*)A,point_result,B,C);	\
+      summ_the_time_trace(A,point_result,B,C);	\
       if(ihit==meas_pars.nhits-1) PRINT_VEC(A)
 
     
