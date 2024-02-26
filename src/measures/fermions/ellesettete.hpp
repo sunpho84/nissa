@@ -30,7 +30,6 @@ namespace nissa
   };
   
   void measure_ellesettete(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,ellesettete_meas_pars_t &meas_pars,int iconf,int conf_created);
-  void print_corr(eo_ptr<quad_su3> ext_conf,theory_pars_t &tp,ellesettete_meas_pars_t &meas_pars,int iconf,int conf_created);
 }
 
 #endif

@@ -107,7 +107,7 @@ namespace nissa
 				SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,SEQ_PROP);
 				
 				//////// disconnected //////// 
-				apply_stag_op(source_g5,conf,theory_pars->backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::GAMMA_5,source);
+				apply_stag_op(source_g5,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::GAMMA_5,source);
 				
 				//MINV(G5_PROP,iflav,g5_source); 
 				SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_first_bubble, SEQ_PROP, source_g5);

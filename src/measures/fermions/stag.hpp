@@ -79,6 +79,7 @@ namespace nissa
     void mult_dMdmu(eo_ptr<color> out,theory_pars_t *theory_pars,eo_ptr<quad_su3> conf,int iflav,int ord,eo_ptr<color> in);
     void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars);
     void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,int ieo,int mu,void *pars),int t,void *pars=NULL);
+    void local_trace(complex* point_result, eo_ptr<color> A, eo_ptr<color> B);
     void summ_the_trace(double *out,complex *point_result,eo_ptr<color> A,eo_ptr<color> B);
     void summ_the_time_trace(double* out,complex* point_result,eo_ptr<color>  A,eo_ptr<color> B);
 
