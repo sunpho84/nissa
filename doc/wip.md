@@ -6,8 +6,9 @@
 
 ### Nissa code, a bit of history
 
-Written since 2009 to provide a new framework replacing the TAO code of APE
-Rushed to be used in the BG/P Cineca machine Fermi, to profit from the opportunities of the first PRACE projects
+Written **since 20010** to provide a new framework replacing the TAO code used on APE machine (up to Nazario era).
+
+Rushed a bit, to be used in the BG/P Cineca machine Fermi, to profit from the opportunities of the first PRACE projects
 
 ![Old commits](oldCommits.png)
 
@@ -20,9 +21,11 @@ Allows to generate automatically contractions, supporting distributed data on cp
 
 ### Several experiments (since 2018 in C++17)
 
-[SUNphi](https://github.com/sunpho84/SUNphi.git)
-[CICCIO'S](https://github.com/qcdcode/ciccio-s.git||https://github.com/qcdcode/ciccio-s.git)
-[MAZE](https://github.com/sunpho84/maze.git||https://github.com/sunpho84/maze.git)
+* [SUNphi](https://github.com/sunpho84/SUNphi.git) studied metaprogramming
+
+* [CICCIO'S](https://github.com/qcdcode/ciccio-s.git||https://github.com/qcdcode/ciccio-s.git) simplified 
+
+* [MAZE](https://github.com/sunpho84/maze.git||https://github.com/sunpho84/maze.git) a-mazingly simple
 
 and more, now all tests have been moved directly in nissa.
 
@@ -208,5 +211,5 @@ Allow to parse parameters and serialize/deserialize data
 
 ```
 
-Ideas: define a language to specify correlation function in (say) latex & get the contractions code written for you!??
+Some crazy idea: **define a grammar to specify correlation function in (say) latex & get the contractions code written for you!??**
 
