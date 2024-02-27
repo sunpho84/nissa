@@ -4,7 +4,7 @@
   DynamicTens<OfComps<LocLxSite,Dir>,double> tens(lat->getLocVol());`
 ```
 
-allocate a tensor with a static-sized Lorentz index `Dir` and a dynamical-size specified index `LocLxSite`
+allocates a tensor with a static-sized Lorentz index `Dir` and a dynamical-size specified index `LocLxSite`
 
 One can add as many component as needed, and create new components
 
@@ -14,7 +14,7 @@ One can add as many component as needed, and create new components
   DynamicTens<OfComps<Dir,LocLxSite,Color>,double> tens2(lat->getLocVol());
 ```
 
-automatic understand tenosr algebra
+automatic understand tensor algebra
 
 ```c++
   DynamicTens<OfComps<LocLxSite,Color,Dir>,double> tens3=tens1*tens2;                            /// Direct product
@@ -22,7 +22,7 @@ automatic understand tenosr algebra
   DynamicTens<OfComps<LocLxSite>,double> tens5=dag(tens1)*tens2;                                 /// Scalar prodcut
 ```
 
-Indices can be accessed via member method or subscribing. Partial subscribing is supported, order of subscription is irrelevant. The constructions
+Indices can be accessed via member methods or subscribing. Partial subscribing is supported, order of subscription is irrelevant. The constructions
 
 ```c++
   tens4.colorRow(0).locLxSite(52);
