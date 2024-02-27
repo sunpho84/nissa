@@ -48,7 +48,7 @@ namespace nissa
 #define NEW_TRACE_RES(o)			\
     complex o={0,0}
 #define NEW_TRACE_RES_VEC(o,n)			\
-    complex o[n];memset(o,0,sizeof(complex)*n)
+    double o[n];memset(o,0,sizeof(double)*n)
 #define NEW_TIME_CORR(o)			\
       double *NAME2(glb,o)=nissa_malloc("glb"#o,glb_size[0],double);	\
       double *NAME2(loc,o)=new double[glb_size[0]];			\
@@ -59,10 +59,19 @@ namespace nissa
     delete[] NAME2(loc,o)
 #define PRINT(A)							\
       master_fprintf(file,"%+16.16lg %+16.16lg\t",A[0]/meas_pars.nhits,A[1]/meas_pars.nhits)
+#define PRINT_VEC(A)							\
+      master_fprintf(file," # %s flav %d\n",#A,iflav);    \
+      for(int t=0;t<glbSize[0];t++)                     \
+      master_fprintf(file,"%+16.16lg %+16.16lg\t",A[t]/meas_pars.nhits);         \
+      master_fprintf(file,"\n")                     
 #define SUMM_THE_TRACE_PRINT_AT_LAST_HIT(A,B,C)				\
       summ_the_trace((double*)A,point_result,B,C);			\
       if(ihit==meas_pars.nhits-1) PRINT(A)
-      
+#define SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(A,B,C) \
+      summ_the_time_trace(A,point_result,B,C);	\
+      if(ihit==meas_pars.nhits-1) PRINT_VEC(A)
+
+    
     void fill_source(eo_ptr<color> src,int twall,rnd_t noise_type);
     void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> right,complex *point_result);
     void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double residue,eo_ptr<color> source);
@@ -70,8 +79,10 @@ namespace nissa
     void mult_dMdmu(eo_ptr<color> out,theory_pars_t *theory_pars,eo_ptr<quad_su3> conf,int iflav,int ord,eo_ptr<color> in);
     void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars);
     void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,int ieo,int mu,void *pars),int t,void *pars=NULL);
+    void local_trace(complex* point_result, eo_ptr<color> A, eo_ptr<color> B);
     void summ_the_trace(double *out,complex *point_result,eo_ptr<color> A,eo_ptr<color> B);
-    
+    void summ_the_time_trace(double* out,complex* point_result,eo_ptr<color>  A,eo_ptr<color> B);
+
     enum shift_orie_t{UP,DW,BOTH};
     void apply_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side=BOTH);
     void summ_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side);
@@ -101,6 +112,11 @@ namespace nissa
 	  nissa_free(temp[itemp][eo]);
     }
     
+
+
+
+
+
     void summ_dens(complex *dens,eo_ptr<color> quark,eo_ptr<color> temp0,eo_ptr<color> temp1,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> backfield,int shift,int mask,eo_ptr<color> chi,eo_ptr<color> eta);
     inline void compute_dens(complex *dens,eo_ptr<color> quark,eo_ptr<color> temp0,eo_ptr<color> temp1,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> backfield,int shift,int mask,eo_ptr<color> chi,eo_ptr<color> eta)
     {

@@ -162,6 +162,7 @@ namespace nissa
 	  set_borders_invalid(source[eo]);
 	}
     }
+
     
     //multiply by M^-1
     void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double residue,eo_ptr<color> source)
@@ -212,23 +213,42 @@ namespace nissa
       generate_fully_undiluted_eo_source(src,noise_type,twall);
     }
     
+	void local_trace(complex* point_result, eo_ptr<color> A, eo_ptr<color> B)
+{
+    //compute results for single points
+    vector_reset(point_result);
+    for(int par=0;par<2;par++)
+        NISSA_PARALLEL_LOOP(ieo,0,locVolh)
+            for(int ic=0;ic<3;ic++)
+                complex_summ_the_conj1_prod(point_result[loclx_of_loceo[par][ieo]],A[par][ieo][ic],B[par][ieo][ic]);
+    NISSA_PARALLEL_LOOP_END;
+    THREAD_BARRIER();
+}
     //take the trace between A^dag and B
     void summ_the_trace(double* out,complex* point_result,eo_ptr<color>  A,eo_ptr<color>  B)
     {
       
       //compute results for single points
-      vector_reset(point_result);
-      for(int par=0;par<2;par++)
-	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  for(int ic=0;ic<3;ic++)
-	    complex_summ_the_conj1_prod(point_result[loclx_of_loceo[par][ieo]],A[par][ieo][ic],B[par][ieo][ic]);
-      NISSA_PARALLEL_LOOP_END;
-      THREAD_BARRIER();
+      local_trace(point_result, A, B);
       
       //final reduction
       complex temp;
       glb_reduce(&temp,point_result,locVol);
       if(IS_MASTER_THREAD) complex_summassign(out,temp);
+    }
+	
+	void summ_the_time_trace(double* out,complex* point_result,eo_ptr<color>  A,eo_ptr<color>  B)
+    {
+      
+      //compute results for single points
+      local_trace(point_result, A, B);
+      
+      // reduction over 3-spatial-volume
+      complex temp[glbSize[0]];
+      glb_reduce(temp,point_result,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+      if(IS_MASTER_THREAD)
+	  	for(int glb_t=0; glb_t<glbSize[0]; glb_t ++)
+			out[glb_t]+=temp[glb_t][RE];
     }
     
     //multiply by the derivative of M w.r.t mu

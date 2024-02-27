@@ -12,6 +12,7 @@ namespace nissa
     int max_order;
     
     std::string def_path(){return "ellesettete";}
+
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
     
@@ -29,7 +30,6 @@ namespace nissa
   };
   
   void measure_ellesettete(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,ellesettete_meas_pars_t &meas_pars,int iconf,int conf_created);
-  void print_corr(eo_ptr<quad_su3> ext_conf,theory_pars_t &tp,ellesettete_meas_pars_t &meas_pars,int iconf,int conf_created);
 }
 
 #endif
