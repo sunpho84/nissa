@@ -1,3 +1,8 @@
+# Nissa wip
+
+Work in progress to use C++20 metaprogramming to let `c++` understand tensor algebra.
+Allows to generate automatically contractions, supporting distributed data on cpu or gpu.
+
 ### Tensor algebra
 
 ```c++
@@ -48,12 +53,24 @@ are all equivalent, methods are automatically after the index is specified. Tens
 ### Field
 
 ``` c++
-  Field<OfComps<Dir,ColorRow,ColorCln,ComplId>,double> conf;
-     
+  using Indices=CompsList<Dir,ColorRow,ColorCln,ComplId>;
+  Field<Indices,double> conf;
 ```
 
-`conf` is a field with Lorentz index `Dir`, two color indices, a complex real/imag part, of basic type double, and implicit `LoclxSite` (spacetime)
+`conf` is a field with Lorentz index `Dir`, two color indices, a complex real/imag part, of basic type double, and implicit `LoclxSite` (spacetime). Datatype can be 
 
+Position of the `LocLxSite` w.r.t internal degrees of freedom is decided by the chosen `FieldLayoyut`.
+The data is allocated on `CPU` or `GPU` depending on `MemoryType`
+
+``` c++
+  Field<Indices,double,FieldLayout::GPU,MemoryType::CPU> gpuLayoutConfAllocatedOnCPU;
+```
+
+Replication on both memory type is supported
+
+```c++
+  MirroredTens<OfComps<LocLxSite,Dir>> mirroredTens(lat->getLocVol());
+```
 
 #### Paralleling transport whatever
 
@@ -99,7 +116,74 @@ double plaquette(const DerivedFromNode auto& conf) /// Support any expression
 
 * `conf` allocated on `gpu` -> kernels are issued
 * `conf` allocated on `cpu` -> thread loop is issued
-* Index order irrelevant
-* Closing partial expression could be automatized
+* all loops are issued
+* small loops are unrolled
 
+
+### Todo
+
+* Autotuner, improve specific operations e.g. reductions
+* Rebuild the nissa code to take advantage of the new API
+
+### Meantime (intermezzo)
+
+A fully compile time BNF grammar parser generator, able to parse any langauge
+
+### Example, json parser generator to parse json data at compile time
+
+```c++
+  constexpr char jsonGrammar[]=
+  "json {\
+     %whitespace \"[ \\t\\r\\n]*\";\
+     document: '{' attributes '}' [document] | ;\
+     attributes: attributes ',' attribute [add_to_object] | attribute [create_object] | ;\
+     attribute: name ':' value [attribute];\
+     elements: elements ',' value [add_to_array] | value [create_array] | ;\
+     value:\
+        null [null] |\
+        boolean [value] |\
+        integer [value] |\
+        real [value] |\
+        string [value] |\
+        '{' attributes '}' [object] |\
+        '[' elements ']' [array]\
+     ;\
+     name: \"[\\\"']:string:\";\
+     null: 'null';\
+     boolean: \"true|false\";\
+     integer: \"(\\+|\\-)?[0-9]+\";\
+     real: \"(\\+|\\-)?[0-9]+(\\.[0-9]+)?((e|E)(\\+|\\-)?[0-9]+)?\";\
+     string: \"[\\\"']:string:\";\
+  }";
+  
+  constexpr GrammarParser<jsonGrammar> jSonGrammarParser;
+
+  constexpr char jsonText[]=/* Some json text*/;
+  
+  constexpr auto parsedData=jsonGrammarParser(jsonText);
+
+  static_assert(parsedData.myParameter==42,"Check at compile failed");
+```
+
+Allow to parse parameters and serialize/deserialize data
+
+#### A new language embedded in c++?
+
+``` c++
+  constexpr char myNewLanguageGrammar[]=
+  "myNewLanguage {\
+   /* all the grammar */ \
+   };
+   
+   /* All actions supported by the language, of course to be implemented... */
+   
+  constexpr GrammarParser<myNewLanguageGrammar> myNewLanguageParser;
+   
+  constexpr char myNewCode[]= #include "mySource.my";
+  
+  myNewLanguageParser(myNewCode);
+
+```
+
+Ideas: define a language to specify correlation function in (say) latex & get the contractions code written for you!??
 
