@@ -2,11 +2,13 @@
 
 ### Aim: 
 * Target different architecture (GPU, CPU, and maybe other in the future), which needs different data layout/access pattern
+* Allow to write general code which specify algorithms which operates on various data type/theories
 * Simplify (?) writing code for lattice QCD
+* Have a good efficency
 
 ### Nissa code, a bit of history
 
-Written **since 20010** to provide a new framework replacing the TAO code used on APE machine (up to Nazario era).
+Written **since 2010** to provide a new framework replacing the TAO code used on APE machine (up to Nazario era).
 
 Rushed a bit, to be used in the BG/P Cineca machine Fermi, to profit from the opportunities of the first PRACE projects
 
