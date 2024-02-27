@@ -1,7 +1,30 @@
 # Nissa wip
 
+### Aim: 
+* Target different architecture (GPU, CPU, and maybe other in the future), which needs different data layout/access pattern
+* Simplify (?) writing code for lattice QCD
+
+### Nissa code, a bit of history
+
+Written since 2009 to provide a new framework replacing the TAO code of APE
+Rushed to be used in the BG/P Cineca machine Fermi, to profit from the opportunities of the first PRACE projects
+
+![Old commits](oldCommits.png)
+
+Employed in many many flavor physics projects within ETM/RM123 & staggered stout HMC with Pisa collaboration.
+
+#### Current status 
+
 Work in progress to use C++20 metaprogramming to let `c++` understand tensor algebra.
 Allows to generate automatically contractions, supporting distributed data on cpu or gpu.
+
+### Several experiments (since 2018 in C++17)
+
+[SUNphi](https://github.com/sunpho84/SUNphi.git)
+[CICCIO'S](https://github.com/qcdcode/ciccio-s.git||https://github.com/qcdcode/ciccio-s.git)
+[MAZE](https://github.com/sunpho84/maze.git||https://github.com/sunpho84/maze.git)
+
+and more, now all tests have been moved directly in nissa.
 
 ### Tensor algebra
 
