@@ -95,8 +95,8 @@ namespace nissa
       //Allocate temp
       eo_ptr<color> temp[2];
       for(int itemp=0;itemp<2;itemp++)
-      for(int eo=0;eo<2;eo++)
-	temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);
+	for(int eo=0;eo<2;eo++)
+	  temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);
       
       //Form the mask and shift
       int shift=(spin^taste);
@@ -112,11 +112,6 @@ namespace nissa
 	  nissa_free(temp[itemp][eo]);
     }
     
-
-
-
-
-
     void summ_dens(complex *dens,eo_ptr<color> quark,eo_ptr<color> temp0,eo_ptr<color> temp1,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> backfield,int shift,int mask,eo_ptr<color> chi,eo_ptr<color> eta);
     inline void compute_dens(complex *dens,eo_ptr<color> quark,eo_ptr<color> temp0,eo_ptr<color> temp1,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> backfield,int shift,int mask,eo_ptr<color> chi,eo_ptr<color> eta)
     {
