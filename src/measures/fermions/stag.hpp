@@ -49,28 +49,30 @@ namespace nissa
     complex o={0,0}
 #define NEW_TRACE_RES_VEC(o,n)			\
     double o[n];memset(o,0,sizeof(double)*n)
-#define NEW_TIME_CORR(o)			\
-      double *NAME2(glb,o)=nissa_malloc("glb"#o,glb_size[0],double);	\
-      double *NAME2(loc,o)=new double[glb_size[0]];			\
-      vector_reset(NAME2(glb,o));					\
-      memset(NAME2(loc,o),0,sizeof(double)*glb_size[0]
+#define NEW_TIME_CORR(o)						\
+    double *NAME2(glb,o)=nissa_malloc("glb"#o,glb_size[0],double);	\
+    double *NAME2(loc,o)=new double[glb_size[0]];			\
+    vector_reset(NAME2(glb,o));						\
+    memset(NAME2(loc,o),0,sizeof(double)*glb_size[0]
 #define DELETE_TIME_CORR(o)			\
     nissa_free(NAME2(glb,o));			\
     delete[] NAME2(loc,o)
 #define PRINT(A)							\
       master_fprintf(file,"%+16.16lg %+16.16lg\t",A[0]/meas_pars.nhits,A[1]/meas_pars.nhits)
 #define PRINT_VEC(A)							\
-      master_fprintf(file," # %s flav %d\n",#A,iflav);    \
-      for(int t=0;t<glbSize[0];t++)                     \
-      master_fprintf(file,"%+16.16lg %+16.16lg\t",A[t]/meas_pars.nhits);         \
-      master_fprintf(file,"\n")                     
+    {									\
+      master_fprintf(file," # %s flav %d\n",#A,iflav);			\
+      for(int t=0;t<glbSize[0];t++)					\
+	master_fprintf(file,"%+16.16lg %+16.16lg\t",A[t]/meas_pars.nhits); \
+      master_fprintf(file,"\n");					\
+    }
+    
 #define SUMM_THE_TRACE_PRINT_AT_LAST_HIT(A,B,C)				\
-      summ_the_trace((double*)A,point_result,B,C);			\
-      if(ihit==meas_pars.nhits-1) PRINT(A)
-#define SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(A,B,C) \
-      summ_the_time_trace(A,point_result,B,C);	\
-      if(ihit==meas_pars.nhits-1) PRINT_VEC(A)
-
+    summ_the_trace((double*)A,point_result,B,C);			\
+    if(ihit==meas_pars.nhits-1) PRINT(A)
+#define SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(A,B,C)		\
+    summ_the_time_trace(A,point_result,B,C);			\
+    if(ihit==meas_pars.nhits-1) PRINT_VEC(A)
     
     void fill_source(eo_ptr<color> src,int twall,rnd_t noise_type);
     void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> right,complex *point_result);
