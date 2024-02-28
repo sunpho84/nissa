@@ -498,6 +498,7 @@ void measurements(eo_ptr<quad_su3> temp,eo_ptr<quad_su3> conf,int iconf,int acc,
 	
 	RANGE_FERMIONIC_MEAS(drv,fermionic_putpourri);
 	RANGE_FERMIONIC_MEAS(drv,quark_rendens);
+	RANGE_FERMIONIC_MEAS(drv,ellesettete);
 	RANGE_FERMIONIC_MEAS(drv,chir_zumba);
 	RANGE_FERMIONIC_MEAS(drv,qed_corr);
 	RANGE_FERMIONIC_MEAS_EXTENDED(drv,spinpol,drv->theories[itheory].stout_pars,temp);
