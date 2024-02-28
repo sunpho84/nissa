@@ -4,13 +4,11 @@
 // where ψ=(u,d),	L_ib(x)=ψ̅ σ_3ψ(x),	  P^0 = (u̅ g5 u + d̅ g5 d), 	pi_0 = (u̅ g5 d - d̅ g5 u)  *(Neglecting norm fact.)*
 // It turns out that only diagrams that contribute to <O> are the following ones:
 // (just considering one flavour)
-/* 
+/** 
 	1)connected:
 	   sink o(m)------->source o'(0)	   X:insertion of L_ib(n)    G(_|_)= D^-1(_|_) : porpagator isosymmetric point
 													  
-			  
-
-                      ***\X/ ***					Σ_n g5 g5 <0| u̅(m)u(m) u̅(n)u(n) u̅(0)u(0) |0> =
+                      ***\X/ ***				Σ_n g5 g5 <0| u̅(m)u(m) u̅(n)u(n) u̅(0)u(0) |0> =
 		   **           **				Σ_n g5 g5 <0| G(m|n) G(n|0) G(0|m) |0> = 				       		  		
 		  o               o'	       ===>		Σ_n Tr[<0| G(m|n) G(n|0) g5 G(0|m) g5 |0>] =
 		   **           **				Σ_n Tr[<0| G(m|n) G(n|0) G(m|0)^† |0>] = (TF and proj to 0 momentum)
@@ -82,36 +80,39 @@ namespace nissa
 	  {
 	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
 	    
-	    for(int glb_t=0; glb_t<glbSize[0]; glb_t++)
-		{
-		  //vectors for output
-		  NEW_TRACE_RES(Tr_three_pts);
-		  NEW_TRACE_RES_VEC(Tr_first_bubble, glbSize[0]);
-		  NEW_TRACE_RES_VEC(Tr_second_bubble, glbSize[0]);
-		  
-		  //loop over hits
-		  for(int ihit=0;ihit<meas_pars.nhits;ihit++)
-		    {
-		      //fill the source
-		      fill_source(source,glb_t,meas_pars.rnd_type);
-		      
-		      //compute std 2pts propagator G(m|n) ~ [D^-1(m|y) source(y)] source(n)*
-		      MINV(SIMPLE_PROP,iflav,source);
-		      
-		      //compute sequential propagator G(m|n) ~ [D^-1(m|y) source(y)] D^-1(y|n)
-		      MINV(SEQ_PROP,iflav,SIMPLE_PROP);
-		      
-		      //then glb reduction to compute the trace for the connected 3pts diagram
-		      SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,SEQ_PROP);
-		      
-		      //////// disconnected ////////
-		      apply_stag_op(source_g5,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::GAMMA_5,source);
-		      
-		      //MINV(G5_PROP,iflav,g5_source);
-		      SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_first_bubble,SEQ_PROP,source_g5);
-		      SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_second_bubble,SIMPLE_PROP,source_g5);
-		    }
-		}
+	    for(int glb_t=0;glb_t<glbSize[0];glb_t++)
+	      {
+		//vectors for output
+		NEW_TRACE_RES_VEC(Tr_three_pts,glbSize[0]);
+		NEW_TRACE_RES(Tr_insertion_bubble);
+		NEW_TRACE_RES(Tr_no_insertion_bubble);
+		
+		master_fprintf(file," # source time %d\n",glb_t);
+		
+		//loop over hits
+		for(int ihit=0;ihit<meas_pars.nhits;ihit++)
+		  {
+		    //fill the source
+		    fill_source(source,glb_t,meas_pars.rnd_type);
+		    
+		    //compute std 2pts propagator G(m|n) ~ [D^-1(m|y) source(y)] source(n)*
+		    MINV(SIMPLE_PROP,iflav,source);
+		    
+		    //compute sequential propagator G(m|n) ~ [D^-1(m|y) source(y)] D^-1(y|n)
+		    MINV(SEQ_PROP,iflav,SIMPLE_PROP);
+		    
+		    //then glb reduction to compute the trace for the connected 3pts diagram
+		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,SEQ_PROP);
+		    
+		    //////// disconnected ////////
+		    apply_stag_op(source_g5,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::GAMMA_5,source);
+		    
+		    if(ihit==meas_pars.nhits-1) master_fprintf(file," # disconnected bubbles time %d\n",glb_t);
+		    
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,SIMPLE_PROP,source_g5);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,SEQ_PROP,source_g5);
+		  }
+	      }
 	  }
 	
 	master_fprintf(file,"\n");
