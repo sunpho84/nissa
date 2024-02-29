@@ -792,7 +792,7 @@ tm_tuning_meas: TK_TM_TUNING {$$=new tm_tuning_meas_pars_t();}
 
 ////////////////////////////////////////////////// ELLESETTETE //////////////////////////////////////////////////
 
-ellesettete_meas: TK_MEAS_ZUMBA {$$=new ellesettete_meas_pars_t();}
+ellesettete_meas: TK_MEAS_ELLESETTETE {$$=new ellesettete_meas_pars_t();}
                   | ellesettete_meas each {$$->each=$2;}
                   | ellesettete_meas after {$$->after=$2;}
                   | ellesettete_meas path {$$->path=(*$2);delete $2;}
