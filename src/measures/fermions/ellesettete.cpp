@@ -133,7 +133,7 @@ namespace nissa
   {
     std::ostringstream os;
     
-    os<<"MeasElleSette\n";
+    os<<"MeasElleSettete\n";
     os<<base_fermionic_meas_t::get_str(full);
     
     return os.str();
