@@ -63,7 +63,7 @@ namespace nissa
     {									\
       master_fprintf(file," # %s flav %d\n",#A,iflav);			\
       for(int t=0;t<glbSize[0];t++)					\
-	master_fprintf(file,"%+16.16lg %+16.16lg\t",A[t]/meas_pars.nhits); \
+	master_fprintf(file,"%+16.16lg \t",A[t]/meas_pars.nhits); \
       master_fprintf(file,"\n");					\
     }
     
