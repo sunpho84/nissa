@@ -73,7 +73,7 @@ namespace nissa
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
       {
 	//print conf id and copy id
-	master_fprintf(file,"%d\t%d\t",iconf,icopy);
+	master_fprintf(file,"# %d\t%d\t\n",iconf,icopy);
 	
 	//loop over flavors
 	for(int iflav=0;iflav<nflavs;iflav++)
