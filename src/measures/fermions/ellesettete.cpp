@@ -111,7 +111,8 @@ namespace nissa
 		    
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,SIMPLE_PROP,source_g5);
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,SEQ_PROP,source_g5);
-			master_fprintf(file,"\n");
+		    
+		    master_fprintf(file,"\n");
 		  }
 	      }
 	  }
