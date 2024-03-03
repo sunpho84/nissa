@@ -73,7 +73,7 @@ namespace nissa
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
       {
 	//print conf id and copy id
-	master_fprintf(file,"%d\t%d\t",iconf,icopy);
+	master_fprintf(file,"# %d\t%d\t\n",iconf,icopy);
 	
 	//loop over flavors
 	for(int iflav=0;iflav<nflavs;iflav++)
@@ -111,6 +111,7 @@ namespace nissa
 		    
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,SIMPLE_PROP,source_g5);
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,SEQ_PROP,source_g5);
+			master_fprintf(file,"\n");
 		  }
 	      }
 	  }
@@ -133,7 +134,7 @@ namespace nissa
   {
     std::ostringstream os;
     
-    os<<"MeasElleSette\n";
+    os<<"MeasElleSettete\n";
     os<<base_fermionic_meas_t::get_str(full);
     
     return os.str();
