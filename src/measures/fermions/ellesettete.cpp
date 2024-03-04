@@ -84,8 +84,8 @@ namespace nissa
 	      {
 		//vectors for output
 		NEW_TRACE_RES_VEC(Tr_three_pts,glbSize[0]);
-		NEW_TRACE_RES(Tr_insertion_bubble);
-		NEW_TRACE_RES(Tr_no_insertion_bubble);
+		NEW_TRACE_RES_VEC(Tr_insertion_bubble,glbSize[0]);
+		NEW_TRACE_RES_VEC(Tr_no_insertion_bubble,glbSize[0]);
 		
 		master_fprintf(file," # source time %d\n",glb_t);
 		
@@ -108,9 +108,8 @@ namespace nissa
 		    apply_stag_op(source_g5,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::GAMMA_5,source);
 		    
 		    if(ihit==meas_pars.nhits-1) master_fprintf(file," # disconnected bubbles\n");
-		    
-		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,SIMPLE_PROP,source_g5);
-		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,SEQ_PROP,source_g5);
+		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,SIMPLE_PROP,source_g5);
+		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,SEQ_PROP,source_g5);
 		    
 		    master_fprintf(file,"\n");
 		  }
