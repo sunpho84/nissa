@@ -5,7 +5,7 @@
 // It turns out that only diagrams that contribute to <O> are the following ones:
 // (just considering one flavour)
 /** 
-	1)connected:
+	1.a)connected with insertion:
 	   sink o(m)------->source o'(0)	   X:insertion of L_ib(n)    G(_|_)= D^-1(_|_) : porpagator isosymmetric point
 													  
                       ***\X/ ***				Σ_n g5 g5 <0| u̅(m)u(m) u̅(n)u(n) u̅(0)u(0) |0> =
@@ -14,6 +14,13 @@
 		   **           **				Σ_n Tr[<0| G(m|n) G(n|0) G(m|0)^† |0>] = (TF and proj to 0 momentum)
 		      *********					~Σ_n Σ_m Tr[<0| G(m|n) G(n|0) G(m|0)^†|0>]	
 
+	1.b)connected without insertion(isoSym):
+													  
+		      *********				         g5 g5 <0| u̅(m)u(m) u̅(0)u(0) |0> =
+		   **           **				 g5 g5 <0| G(m|0) G(0|m)  |0> = 				       		  		
+		  o               o'	       ===>		 Tr[<0| G(m|0) G(m|0)^† |0>] = (TF and proj to 0 momentum)
+		   **           **				~ Σ_m Tr[<0|G(m|0) G(m|0)^† |0>] 
+		      *********
 
 	2)disconnected:
 		  ******        ******				Σ_n g5 g5 <0| u̅(m)u(m) u̅(n)u(n) u̅(0)u(0) |0> =
@@ -36,7 +43,7 @@
 	thus Φ is sol to Σn D(m|n) Φ(n) = φ(m)
 	So the diagram should be prod of one "normal" φ and the sequential Φ*
 
-	one-end trick autmatically project to 0 momentum (?)
+	one-end trick autmatically project to 0 momentum 
 
 */
 
@@ -55,7 +62,7 @@ namespace nissa
 {
   using namespace stag;
   
-  // measure the chiral condensate and its derivative w.r.t mu
+  // correlators for the measurement of ellesettete
   void measure_ellesettete(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,ellesettete_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     int nflavs=theory_pars.nflavs();
@@ -73,7 +80,7 @@ namespace nissa
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
       {
 	//print conf id and copy id
-	master_fprintf(file,"# %d\t%d\t\n",iconf,icopy);
+	master_fprintf(file," # %d\t%d\t\n",iconf,icopy);
 	
 	//loop over flavors
 	for(int iflav=0;iflav<nflavs;iflav++)
@@ -83,6 +90,7 @@ namespace nissa
 	    for(int glb_t=0;glb_t<glbSize[0];glb_t++)
 	      {
 		//vectors for output
+		NEW_TRACE_RES_VEC(Tr_two_pts,glbSize[0]);
 		NEW_TRACE_RES_VEC(Tr_three_pts,glbSize[0]);
 		NEW_TRACE_RES_VEC(Tr_insertion_bubble,glbSize[0]);
 		NEW_TRACE_RES_VEC(Tr_no_insertion_bubble,glbSize[0]);
@@ -101,18 +109,20 @@ namespace nissa
 		    //compute sequential propagator G(m|n) ~ [D^-1(m|y) source(y)] D^-1(y|n)
 		    MINV(SEQ_PROP,iflav,SIMPLE_PROP);
 		    
-		    //then glb reduction to compute the trace for the connected 3pts diagram
+		    //then glb reduction to compute the trace for the connected 3pts diagram and the 2pts
 		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,SEQ_PROP);
-		    
+		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts,SIMPLE_PROP,SIMPLE_PROP);
+
 		    //////// disconnected ////////
 		    apply_stag_op(source_g5,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::GAMMA_5,source);
 		    
-		    if(ihit==meas_pars.nhits-1) master_fprintf(file," # disconnected bubbles\n");
-		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,SIMPLE_PROP,source_g5);
-		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,SEQ_PROP,source_g5);
-		    
+		    if(ihit==meas_pars.nhits-1) master_fprintf(file," # Tr_no_insertion_bubble source time %d\n", glb_t);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,SIMPLE_PROP,source_g5);
+			if(ihit==meas_pars.nhits-1) master_fprintf(file," # Tr_insertion_bubble source time %d\n", glb_t);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,SEQ_PROP,source_g5);
 		    master_fprintf(file,"\n");
 		  }
+		  master_fprintf(file,"\n");
 	      }
 	  }
 	
@@ -122,11 +132,10 @@ namespace nissa
     //deallocate and close file
     DELETE_FIELD_T(SIMPLE_PROP);
     DELETE_FIELD_T(SEQ_PROP);
-    
-    close_file(file);
-    nissa_free(point_result);
     DELETE_FIELD_T(source);
     DELETE_FIELD_T(source_g5);
+    nissa_free(point_result);
+	close_file(file);
   }
   
   //print
