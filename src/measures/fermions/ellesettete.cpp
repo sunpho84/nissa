@@ -107,7 +107,7 @@ namespace nissa
 		    //////// disconnected ////////
 		    apply_stag_op(source_g5,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::GAMMA_5,source);
 		    
-		    if(ihit==meas_pars.nhits-1) master_fprintf(file," # disconnected bubbles time %d\n",glb_t);
+		    if(ihit==meas_pars.nhits-1) master_fprintf(file," # disconnected bubbles\n");
 		    
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,SIMPLE_PROP,source_g5);
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,SEQ_PROP,source_g5);
