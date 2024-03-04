@@ -58,12 +58,12 @@ namespace nissa
     nissa_free(NAME2(glb,o));			\
     delete[] NAME2(loc,o)
 #define PRINT(A)							\
-      master_fprintf(file,"%+16.16lg %+16.16lg\t",A[0]/(meas_pars.nhits*glbSpatVol),A[1]/(meas_pars.nhits*glbSpatVol))
+      master_fprintf(file,"%+16.16lg %+16.16lg\n",A[0]/(meas_pars.nhits*glbSpatVol),A[1]/(meas_pars.nhits*glbSpatVol))
 #define PRINT_VEC(A)							\
     {									\
       master_fprintf(file," # %s flav %d\n",#A,iflav);			\
       for(int t=0;t<glbSize[0];t++)					\
-	master_fprintf(file,"%+16.16lg\t",A[t]/(meas_pars.nhits*glbSpatVol)); \
+	master_fprintf(file,"%+16.16lg\n",A[t]/(meas_pars.nhits*glbSpatVol)); \
       master_fprintf(file,"\n");					\
     }
     
