@@ -216,11 +216,11 @@ namespace nissa
   inline void read_nhits()
   {
     char text[128];
-    read_str_str("NHits",text,128);
+    read_str(text,128);
     if(strcasecmp(text,"NCopiesHits")==0)
       read_int(&ncopies);
     else if(strcasecmp(text,"NHits")!=0)
-      crash("Expecting NCopiesHits of nHits");
+      crash("Expecting NCopiesHits of NHits");
     
     read_int(&nhits);
     
