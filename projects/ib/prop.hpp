@@ -30,28 +30,28 @@ namespace nissa
   //hold name and information on how to build a propagator
   struct qprop_t
   {
-    bool is_source;
+    bool is_source{false};
     
-    double kappa;
-    double kappa_asymm[NDIM];
-    double mass;
-    int r;
-    double charge;
-    momentum_t theta;
+    double kappa{0};
+    double kappa_asymm[NDIM]{};
+    double mass{0};
+    int r{0};
+    double charge{0};
+    momentum_t theta{0};
     
-    insertion_t insertion;
-    std::vector<source_term_t> source_terms;
-    int tins;
-    double residue;
-    bool store;
+    insertion_t insertion{};
+    std::vector<source_term_t> source_terms{};
+    int tins{};
+    double residue{};
+    bool store{};
     
-    char ext_field_path[33];
+    char ext_field_path[33]{};
     
-    rnd_t noise_type;
-    double ori_source_norm2;
+    rnd_t noise_type{};
+    double ori_source_norm2{};
     
     //spincolor data
-    spincolor** sp;
+    spincolor** sp{};
     
     CUDA_HOST_AND_DEVICE
     spincolor* const &operator[](const int i) const
@@ -67,9 +67,12 @@ namespace nissa
     
     void alloc_spincolor()
     {
-      sp=nissa_malloc("sp",nso_spi*nso_col,spincolor*);
-      for(int i=0;i<nso_spi*nso_col;i++)
-	sp[i]=nissa_malloc("sp",locVol+bord_vol,spincolor);
+      if(sp==nullptr)
+	{
+	  sp=nissa_malloc("sp",nso_spi*nso_col,spincolor*);
+	  for(int i=0;i<nso_spi*nso_col;i++)
+	    sp[i]=nissa_malloc("sp",locVol+bord_vol,spincolor);
+	}
     }
     
     //initialize as a propagator
@@ -107,26 +110,14 @@ namespace nissa
       alloc_spincolor();
     }
     
-    qprop_t(insertion_t insertion,const std::vector<source_term_t>& source_terms,int tins,double residue,double kappa,double* kappa_asymm, double mass,char *ext_field_path,int r,double charge,const momentum_t& theta,bool store)
-    {
-      init_as_propagator(insertion,source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store);
-    }
-    
-    qprop_t(rnd_t noise_type,int tins,int r,bool store)
-    {
-      init_as_source(noise_type,tins,r,store);
-    }
-    
-    qprop_t()
-    {
-      is_source=0;
-    }
-    
     ~qprop_t()
     {
-      for(int i=0;i<nso_spi*nso_col;i++)
-	nissa_free(sp[i]);
-      nissa_free(sp);
+      if(sp)
+	{
+	  for(int i=0;i<nso_spi*nso_col;i++)
+	    nissa_free(sp[i]);
+	  nissa_free(sp);
+	}
     }
   };
   
