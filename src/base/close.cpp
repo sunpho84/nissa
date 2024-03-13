@@ -84,11 +84,6 @@ namespace nissa
     master_printf("Total communication time: %lg s\n",tot_comm_time);
 #endif
     
-    //free thread delays pattern
-#if THREAD_DEBUG>=2
-    free(delayed_thread_barrier);
-    free(delay_rnd_gen);
-#endif
     
     MPI_Barrier(MPI_COMM_WORLD);
     master_printf("   Ciao!\n\n");
