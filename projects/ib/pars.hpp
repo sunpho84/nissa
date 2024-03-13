@@ -19,6 +19,7 @@ namespace nissa
   
   /// New generator
   EXTERN_PARS int use_new_generator;
+  EXTERN_PARS int allowPropReusage;
   EXTERN_PARS FieldRngStream field_rng_stream;
   
   //Twisted run
