@@ -218,12 +218,17 @@ namespace nissa
   {
     char text[128];
     read_str(text,128);
+    master_printf("Read %s",text);
     if(strcasecmp(text,"NCopiesHits")==0)
-      read_int(&ncopies);
+      {
+	read_int(&ncopies);
+	master_printf(" %d",ncopies);
+      }
     else if(strcasecmp(text,"NHits")!=0)
       crash("Expecting NCopiesHits of NHits");
     
     read_int(&nhits);
+    master_printf(" %d\n",nhits);
     
     if(ncopies<=0)
       crash("nCopies must be a positive integer, %d unsupported",ncopies);

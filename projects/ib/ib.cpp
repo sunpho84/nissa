@@ -99,31 +99,31 @@ void init_simulation(int narg,char **arg)
   expect_str("Tins");
   expect_str("Store");
   //loop over sources
-  
-  for(int icopy=0;icopy<ncopies;icopy++)
+  for(int isource=0;isource<nsources;isource++)
     {
-      char suffix[128]="";
-      if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
-      
-      for(int isource=0;isource<nsources;isource++)
+      //name
+      char name[1024];
+      read_str(name,1024);
+      //noise type and tins
+      rnd_t noise_type=RND_ALL_PLUS_ONE;
+      int tins=ALL_TIMES;
+      if(stoch_source)
 	{
-	  //name
-	  char name[1024];
-	  read_str(name,1024);
-	  //noise type and tins
-	  rnd_t noise_type=RND_ALL_PLUS_ONE;
-	  int tins=ALL_TIMES;
-	  if(stoch_source)
-	    {
-	      char str_noise_type[20];
-	      read_str(str_noise_type,20);
-	      noise_type=convert_str_to_rnd_t(str_noise_type);
-	    }
-	  read_int(&tins);
-	  //store
-	  int store_source;
-	  read_int(&store_source);
-	  //add
+	  char str_noise_type[20];
+	  read_str(str_noise_type,20);
+	  noise_type=convert_str_to_rnd_t(str_noise_type);
+	}
+      read_int(&tins);
+      //store
+      int store_source;
+      read_int(&store_source);
+      
+      //add
+      for(int icopy=0;icopy<ncopies;icopy++)
+	{
+	  char suffix[128]="";
+	  if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+	  
 	  char fullName[1024+129];
 	  sprintf(fullName,"%s%s",name,suffix);
 	  ori_source_name_list[isource+nsources*icopy]=fullName;

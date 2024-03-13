@@ -62,13 +62,16 @@ namespace nissa
 	    char suffix[128]="";
 	    if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
 	    
+	    char full_name[1024+129];
+	    sprintf(full_name,"%s%s",name,suffix);
+	    
 	    char q_full_name[2][1024+129];
 	    for(int iq=0;iq<2;iq++)
 	      sprintf(q_full_name[iq],"%s%s",q_name[iq],suffix);
 	    for(int iq=0;iq<2;iq++)
 	      if(Q.find(q_full_name[iq])==Q.end()) crash("unable to find q%d %s",iq,q_full_name[iq]);
 	    
-	    mes2pts_contr_map.push_back(mes_contr_map_t(name,q_full_name[0],q_full_name[1]));
+	    mes2pts_contr_map.push_back(mes_contr_map_t(full_name,q_full_name[0],q_full_name[1]));
 	  }
       }
     
@@ -204,12 +207,14 @@ namespace nissa
 	    char suffix[128]="";
 	    if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
 	    
+	    char full_name[1024+129];
+	    sprintf(full_name,"%s%s",name,suffix);
 	    char q_full_name[3][1024+129];
 	    for(int iq=0;iq<3;iq++)
 	      sprintf(q_full_name[iq],"%s%s",q_name[iq],suffix);
 	    for(int iq=0;iq<3;iq++)
 	      if(Q.find(q_full_name[iq])==Q.end()) crash("unable to find q%d %s",iq,q_full_name[iq]);
-	    bar2pts_contr_map.push_back(bar_triplet_t(name,q_full_name[0],q_full_name[1],q_full_name[2]));
+	    bar2pts_contr_map.push_back(bar_triplet_t(full_name,q_full_name[0],q_full_name[1],q_full_name[2]));
 	  }
       }
   }
@@ -244,13 +249,15 @@ namespace nissa
 		char suffix[128]="";
 		if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
 		
+		char full_name[1024+129];
 		char bw_full[1024+129];
 		char fw_full[1024+129];
+		sprintf(full_name,"%s%s",name,suffix);
 		sprintf(bw_full,"%s%s",bw,suffix);
 		sprintf(fw_full,"%s%s",fw,suffix);
 		if(Q.find(bw_full)==Q.end()) crash("for bubble \'%s\' the first propagator \'%s\' is not present",name,bw_full);
 		if(Q.find(fw_full)==Q.end()) crash("for bubble \'%s\' the second propagator \'%s\' is not present",name,fw_full);
-		handcuffs_side_map.push_back(handcuffs_side_map_t(name,igamma,bw_full,fw_full,store));
+		handcuffs_side_map.push_back(handcuffs_side_map_t(full_name,igamma,bw_full,fw_full,store));
 	      }
 	  }
 	
@@ -263,20 +270,34 @@ namespace nissa
 	    char right[1024];
 	    read_str(left,1024);
 	    read_str(right,1024);
-	    //check if left and right is present in handcuffs_size_map
-	    bool left_hand_found=false;
-	    bool right_hand_found=false;
-	    for(auto &hand : handcuffs_side_map)
+	    
+	    for(int icopy=0;icopy<ncopies;icopy++)
 	      {
-		if(hand.name==left) left_hand_found=true;
-		if(hand.name==right) right_hand_found=true;
-		if(left_hand_found && right_hand_found) break;
+		char suffix[128]="";
+		if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+		
+		char full_name[1024+129];
+		char left_full[1024+129];
+		char right_full[1024+129];
+		sprintf(full_name,"%s%s",name,suffix);
+		sprintf(left_full,"%s%s",left,suffix);
+		sprintf(right_full,"%s%s",right,suffix);
+		
+		//check if left and right is present in handcuffs_size_map
+		bool left_hand_found=false;
+		bool right_hand_found=false;
+		for(auto &hand : handcuffs_side_map)
+		  {
+		    if(hand.name==left_full) left_hand_found=true;
+		    if(hand.name==right_full) right_hand_found=true;
+		    if(left_hand_found && right_hand_found) break;
+		  }
+		
+		if(!left_hand_found)   crash("for handcuffs \'%s\' the left bubble \'%s\' is not present",name,left_full);
+		if(!right_hand_found)  crash("for handcuffs \'%s\' the right bubble \'%s\' is not present",name,right_full);
+		
+		handcuffs_map.push_back(handcuffs_map_t(full_name,left_full,right_full));
 	      }
-	    
-	    if(!left_hand_found)   crash("for handcuffs \'%s\' the left bubble \'%s\' is not present",name,left);
-	    if(!right_hand_found)  crash("for handcuffs \'%s\' the right bubble \'%s\' is not present",name,right);
-	    
-	    handcuffs_map.push_back(handcuffs_map_t(name,left,right));
 	  }
       }
   }
