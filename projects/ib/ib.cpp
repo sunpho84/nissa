@@ -336,7 +336,7 @@ void init_simulation(int narg,char **arg)
       
       read_int(&store_prop);
       master_printf("Read variable 'Store' with value: %d\n",store_prop);
-
+      
       for(int icopy=0;icopy<ncopies;icopy++)
 	{
 	  char suffix[128]="";
@@ -354,7 +354,7 @@ void init_simulation(int narg,char **arg)
 	  if(Q.find(fullName)!=Q.end() and not allowPropReusage) crash("name \'%s\' already included",fullName);
 	  
 	  Q[fullName].init_as_propagator(ins_from_tag(ins),source_full_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
-	  qprop_name_list[iq+nprops*ncopies]=fullName;
+	  qprop_name_list[iq+nprops*icopy]=fullName;
 	}
     }
   
