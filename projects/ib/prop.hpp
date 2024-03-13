@@ -1,7 +1,7 @@
 #ifndef _PROP_HPP
 #define _PROP_HPP
 
-#include "nissa.hpp"
+#include <set>
 
 #include "conf.hpp"
 #include "meslep.hpp"
@@ -18,7 +18,7 @@ namespace nissa
 {
   //keep trace if generating photon is needed
   EXTERN_PROP int need_photon INIT_TO(0);
-
+  
   CUDA_HOST_AND_DEVICE
   inline int so_sp_col_ind(const int& sp,const int& col)
   {
@@ -65,7 +65,7 @@ namespace nissa
       return sp[i];
     }
     
-    void alloc_spincolor()
+    void alloc_storage()
     {
       if(sp==nullptr)
 	{
@@ -94,8 +94,6 @@ namespace nissa
       store=_store;
       
       if(is_photon_ins(insertion)) need_photon=true;
-      
-      alloc_spincolor();
     }
     
     //initialize as a source
@@ -107,10 +105,9 @@ namespace nissa
       tins=_tins;
       r=_r;
       store=_store;
-      alloc_spincolor();
     }
     
-    ~qprop_t()
+    void free_storage()
     {
       if(sp)
 	{
@@ -118,6 +115,11 @@ namespace nissa
 	    nissa_free(sp[i]);
 	  nissa_free(sp);
 	}
+    }
+    
+    ~qprop_t()
+    {
+      free_storage();
     }
   };
   
@@ -148,6 +150,7 @@ namespace nissa
   
   EXTERN_PROP std::map<std::string,qprop_t> Q;
   EXTERN_PROP std::vector<std::string> qprop_name_list;
+  EXTERN_PROP std::set<std::string> propsNeededToContr;
   EXTERN_PROP spinspin **L;
   
   EXTERN_PROP int nlprop;

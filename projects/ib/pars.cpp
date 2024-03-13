@@ -72,6 +72,8 @@ namespace nissa
 	      if(Q.find(q_full_name[iq])==Q.end()) crash("unable to find q%d %s",iq,q_full_name[iq]);
 	    
 	    mes2pts_contr_map.push_back(mes_contr_map_t(full_name,q_full_name[0],q_full_name[1]));
+	    for(int iq=0;iq<2;iq++)
+	      propsNeededToContr.insert(q_full_name[iq]);
 	  }
       }
     
@@ -215,6 +217,8 @@ namespace nissa
 	    for(int iq=0;iq<3;iq++)
 	      if(Q.find(q_full_name[iq])==Q.end()) crash("unable to find q%d %s",iq,q_full_name[iq]);
 	    bar2pts_contr_map.push_back(bar_triplet_t(full_name,q_full_name[0],q_full_name[1],q_full_name[2]));
+	    for(int iq=0;iq<3;iq++)
+	      propsNeededToContr.insert(q_full_name[iq]);
 	  }
       }
   }
@@ -258,6 +262,8 @@ namespace nissa
 		if(Q.find(bw_full)==Q.end()) crash("for bubble \'%s\' the first propagator \'%s\' is not present",name,bw_full);
 		if(Q.find(fw_full)==Q.end()) crash("for bubble \'%s\' the second propagator \'%s\' is not present",name,fw_full);
 		handcuffs_side_map.push_back(handcuffs_side_map_t(full_name,igamma,bw_full,fw_full,store));
+		for(auto& q : {bw_full,fw_full})
+		  propsNeededToContr.insert(q);
 	      }
 	  }
 	
@@ -327,6 +333,7 @@ namespace nissa
 		
 		if(Q.find(tag_full)==Q.end()) crash("unable to find %s",tag_full);
 		fft_prop_list.push_back(tag_full);
+		propsNeededToContr.insert(tag_full);
 	      }
 	  }
 	    

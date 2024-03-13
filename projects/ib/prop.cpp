@@ -585,6 +585,7 @@ namespace nissa
 	std::string &name=ori_source_name_list[i];
 	master_printf("Generating source \"%s\"\n",name.c_str());
 	qprop_t *q=&Q[name];
+	q->alloc_storage();
 	generate_original_source(q,skipOnly);
 	
 	if(not skipOnly)
@@ -627,11 +628,38 @@ namespace nissa
   //generate all the quark propagators
   void generate_quark_propagators(int ihit)
   {
+    /// Store all the dependencies
+    std::map<std::string,std::set<std::string>> propDep;
+    
+    // Insert all contractions
+    for(const std::string& i : propsNeededToContr)
+      propDep[i].insert("contractions");
+    
+    /// Iterate until no more dependencies are found
+    std::set<std::string> oldDepInserted=propsNeededToContr;
+    while(oldDepInserted.size())
+      {
+	std::set<std::string> newDepInserted;
+	for(const std::string& p : oldDepInserted)
+	  for(const auto& [n,w] : Q[p].source_terms)
+	    {
+	      newDepInserted.insert(n);
+	      propDep[n].insert(p);
+	    }
+	oldDepInserted=newDepInserted;
+      }
+    
+    // master_printf("Dependencies:\n");
+    // for(const auto& [n,d] : propDep)
+    //   for(const auto& p : d)
+    // 	master_printf("%s -> %s\n",n.c_str(),p.c_str());
+    
     for(size_t i=0;i<qprop_name_list.size();i++)
       {
 	//get names
 	std::string name=qprop_name_list[i];
 	qprop_t &q=Q[name];
+	q.alloc_storage();
 	
 	//get ori_source norm2
 	const std::string& first_source=q.source_terms.front().first;
@@ -717,6 +745,22 @@ namespace nissa
 		  master_printf("  finished the calculation of dirac index %d, color %d\n",id_so,ic_so);
 		}
 	    }
+	
+	for(const auto& [s,w] : q.source_terms)
+	  {
+	    if(propDep[s].erase(name)!=1)
+	      crash("unable to erase the dependency %s of %s!",name.c_str(),s.c_str());
+	    
+	    if(propDep[s].empty() and Q[s].sp)
+	      {
+		verbosity_lv2_master_printf("%s could be erased\n",s.c_str());
+		Q[s].free_storage();
+		// int nUsed=0;
+		// for(const auto& [dum,qi] : Q)
+		//   nUsed+=qi.sp!=nullptr;
+		// master_printf("NCurrently allocated props: %d\n",nUsed);
+	      }
+	  }
       }
   }
   
