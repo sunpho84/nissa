@@ -104,7 +104,7 @@ void init_simulation(int narg,char **arg)
   for(int icopy=0;icopy<ncopies;icopy++)
     {
       char suffix[128]="";
-      if(ncopies) sprintf(suffix,"_copy%d",icopy);
+      if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
       
       for(int isource=0;isource<nsources;isource++)
 	{
@@ -340,7 +340,7 @@ void init_simulation(int narg,char **arg)
       for(int icopy=0;icopy<ncopies;icopy++)
 	{
 	  char suffix[128]="";
-	  if(ncopies) sprintf(suffix,"_copy%d",icopy);
+	  if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
 	  
 	  std::vector<source_term_t> source_full_terms=source_terms;
 	  for(auto& [name,weight] : source_full_terms)
