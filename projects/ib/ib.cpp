@@ -350,7 +350,7 @@ void init_simulation(int narg,char **arg)
 	  
 	  char fullName[1024+129];
 	  sprintf(fullName,"%s%s",name,suffix);
-	  if(Q.find(fullName)!=Q.end() and not allowPropReusage) crash("name \'%s\' already included, if overwrite needed please export %s",fullName,ALLOW_PROP_REUSAGE_STRING);
+	  if(Q.find(fullName)!=Q.end() and not allowPropReusage) crash("name \'%s\' already included, to allow overwrite please export %s",fullName,ALLOW_PROP_REUSAGE_STRING);
 	  
 	  Q[fullName].init_as_propagator(ins_from_tag(ins),source_full_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
 	  qprop_name_list[iq+nprops*icopy]=fullName;
