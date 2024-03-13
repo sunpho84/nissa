@@ -93,34 +93,43 @@ void init_simulation(int narg,char **arg)
   read_nhits();
   int nsources;
   read_str_int("NSources",&nsources);
-  ori_source_name_list.resize(nsources);
+  ori_source_name_list.resize(nsources*ncopies);
   //discard header
   expect_str("Name");
   if(stoch_source) expect_str("NoiseType");
   expect_str("Tins");
   expect_str("Store");
   //loop over sources
-  for(int isource=0;isource<nsources;isource++)
+  
+  for(int icopy=0;icopy<ncopies;icopy++)
     {
-      //name
-      char name[1024];
-      read_str(name,1024);
-      //noise type and tins
-      rnd_t noise_type=RND_ALL_PLUS_ONE;
-      int tins=ALL_TIMES;
-      if(stoch_source)
+      char suffix[128]="";
+      if(ncopies) sprintf(suffix,"_copy%d",icopy);
+      
+      for(int isource=0;isource<nsources;isource++)
 	{
-	  char str_noise_type[20];
-	  read_str(str_noise_type,20);
-	  noise_type=convert_str_to_rnd_t(str_noise_type);
+	  //name
+	  char name[1024];
+	  read_str(name,1024);
+	  //noise type and tins
+	  rnd_t noise_type=RND_ALL_PLUS_ONE;
+	  int tins=ALL_TIMES;
+	  if(stoch_source)
+	    {
+	      char str_noise_type[20];
+	      read_str(str_noise_type,20);
+	      noise_type=convert_str_to_rnd_t(str_noise_type);
+	    }
+	  read_int(&tins);
+	  //store
+	  int store_source;
+	  read_int(&store_source);
+	  //add
+	  char fullName[1024+129];
+	  sprintf(fullName,"%s%s",name,suffix);
+	  ori_source_name_list[isource+nsources*icopy]=fullName;
+	  Q[fullName].init_as_source(noise_type,tins,0,store_source);
 	}
-      read_int(&tins);
-      //store
-      int store_source;
-      read_int(&store_source);
-      //add
-      ori_source_name_list[isource]=name;
-      Q[name].init_as_source(noise_type,tins,0,store_source);
     }
   
   read_twisted_run();
@@ -129,7 +138,7 @@ void init_simulation(int narg,char **arg)
   //NProps
   int nprops;
   read_str_int("NProps",&nprops);
-  qprop_name_list.resize(nprops);
+  qprop_name_list.resize(nprops*ncopies);
   //Discard header
   expect_str("Name");
   expect_str("Ins");
@@ -151,7 +160,6 @@ void init_simulation(int narg,char **arg)
       char name[1024];
       read_str(name,1024);
       master_printf("Read variable 'Name' with value: %s\n",name);
-      if(Q.find(name)!=Q.end() and not allowPropReusage) crash("name \'%s\' already included",name);
       
       //ins name
       char ins[INS_TAG_MAX_LENGTH+1];
@@ -181,7 +189,6 @@ void init_simulation(int narg,char **arg)
 	  if(multi_source)
 	    {
 	      read_str(source_name,1024);
-	      if(Q.find(source_name)==Q.end()) crash("unable to find source %s",source_name);
 	      
 	      master_printf("Read variable 'Sourcename' with value: %s\n",source_name);
 	      
@@ -197,8 +204,6 @@ void init_simulation(int narg,char **arg)
 	      weight.first=cweight.real();
 	      weight.second=cweight.imag();
 	    }
-	  else
-	    if(Q.find(source_name)==Q.end()) crash("unable to find source %s",source_name);
 	  
 	  source_terms.push_back(std::make_pair(source_name,weight));
 	}
@@ -331,9 +336,26 @@ void init_simulation(int narg,char **arg)
       
       read_int(&store_prop);
       master_printf("Read variable 'Store' with value: %d\n",store_prop);
-      
-      Q[name].init_as_propagator(ins_from_tag(ins),source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
-      qprop_name_list[iq]=name;
+
+      for(int icopy=0;icopy<ncopies;icopy++)
+	{
+	  char suffix[128]="";
+	  if(ncopies) sprintf(suffix,"_copy%d",icopy);
+	  
+	  std::vector<source_term_t> source_full_terms=source_terms;
+	  for(auto& [name,weight] : source_full_terms)
+	    {
+	      name+=suffix;
+	      if(Q.find(name)==Q.end()) crash("unable to find source %s",name.c_str());
+	    }
+	  
+	  char fullName[1024+129];
+	  sprintf(fullName,"%s%s",name,suffix);
+	  if(Q.find(fullName)!=Q.end() and not allowPropReusage) crash("name \'%s\' already included",fullName);
+	  
+	  Q[fullName].init_as_propagator(ins_from_tag(ins),source_full_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
+	  qprop_name_list[iq+nprops*ncopies]=fullName;
+	}
     }
   
   read_photon_pars();

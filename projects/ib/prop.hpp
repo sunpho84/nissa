@@ -274,7 +274,7 @@ namespace nissa
 	{
 	  fastOpen("r");
 	  
-	  if(fread(v,sizeof(T),locVol,fastFile)!=locVol)
+	  if(fread(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
 	    crash("Problem reading %s",path.c_str());
 	  
 	  fclose(fastFile);
@@ -291,7 +291,7 @@ namespace nissa
 	{
 	  fastOpen("w");
 	  
-	  if(fwrite(v,sizeof(T),locVol,fastFile)!=locVol)
+	  if(fwrite(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
 	    crash("Problem writing %s",path.c_str());
 	  
 	  fclose(fastFile);

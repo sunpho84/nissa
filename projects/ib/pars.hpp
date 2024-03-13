@@ -212,8 +212,23 @@ namespace nissa
   
   //number of hits
   EXTERN_PARS int nhits INIT_TO(1);
+  EXTERN_PARS int ncopies INIT_TO(1);
   inline void read_nhits()
-  {read_str_int("NHits",&nhits);}
+  {
+    char text[128];
+    read_str_str("NHits",text,128);
+    if(strcasecmp(text,"NCopiesHits")==0)
+      read_int(&ncopies);
+    else if(strcasecmp(text,"NHits")!=0)
+      crash("Expecting NCopiesHits of nHits");
+    
+    read_int(&nhits);
+    
+    if(ncopies<=0)
+      crash("nCopies must be a positive integer, %d unsupported",ncopies);
+    if(nhits<=0)
+      crash("nHits must be a positive integer, %d unsupported",nhits);
+  }
   
   //number of configurations
   inline void read_ngauge_conf()
