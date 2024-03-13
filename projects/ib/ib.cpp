@@ -19,6 +19,11 @@ void init_simulation(int narg,char **arg)
   
   const char *path=arg[1];
   
+  const char ALLOW_PROP_REUSAGE_STRING[]="ALLOW_PROP_REUSAGE";
+  allowPropResuage=(getenv(ALLOW_PROP_REUSAGE_STRING)!=nullptr);
+  if(not allowPropResuage)
+    master_printf("To allow prop reusage please export: %s\n",ALLOW_PROP_REUSAGE_STRING);
+  
   //parse the rest of the args
   for(int iarg=2;iarg<narg;iarg++)
     {
@@ -146,7 +151,7 @@ void init_simulation(int narg,char **arg)
       char name[1024];
       read_str(name,1024);
       master_printf("Read variable 'Name' with value: %s\n",name);
-      if(Q.find(name)!=Q.end()) crash("name \'%s\' already included",name);
+      if(Q.find(name)!=Q.end() and not allowPropReusage) crash("name \'%s\' already included",name);
       
       //ins name
       char ins[INS_TAG_MAX_LENGTH+1];
