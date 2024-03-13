@@ -19,7 +19,6 @@ void init_simulation(int narg,char **arg)
   
   const char *path=arg[1];
   
-  const char ALLOW_PROP_REUSAGE_STRING[]="ALLOW_PROP_REUSAGE";
   allowPropReusage=(getenv(ALLOW_PROP_REUSAGE_STRING)!=nullptr);
   if(not allowPropReusage)
     master_printf("To allow prop reusage please export: %s\n",ALLOW_PROP_REUSAGE_STRING);
@@ -351,7 +350,7 @@ void init_simulation(int narg,char **arg)
 	  
 	  char fullName[1024+129];
 	  sprintf(fullName,"%s%s",name,suffix);
-	  if(Q.find(fullName)!=Q.end() and not allowPropReusage) crash("name \'%s\' already included",fullName);
+	  if(Q.find(fullName)!=Q.end() and not allowPropReusage) crash("name \'%s\' already included, if overwrite needed please export %s",fullName,ALLOW_PROP_REUSAGE_STRING);
 	  
 	  Q[fullName].init_as_propagator(ins_from_tag(ins),source_full_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
 	  qprop_name_list[iq+nprops*icopy]=fullName;
