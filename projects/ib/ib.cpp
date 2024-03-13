@@ -20,8 +20,8 @@ void init_simulation(int narg,char **arg)
   const char *path=arg[1];
   
   const char ALLOW_PROP_REUSAGE_STRING[]="ALLOW_PROP_REUSAGE";
-  allowPropResuage=(getenv(ALLOW_PROP_REUSAGE_STRING)!=nullptr);
-  if(not allowPropResuage)
+  allowPropReusage=(getenv(ALLOW_PROP_REUSAGE_STRING)!=nullptr);
+  if(not allowPropReusage)
     master_printf("To allow prop reusage please export: %s\n",ALLOW_PROP_REUSAGE_STRING);
   
   //parse the rest of the args
