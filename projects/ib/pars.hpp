@@ -19,8 +19,6 @@ namespace nissa
   
   /// New generator
   EXTERN_PARS int use_new_generator;
-  constexpr char ALLOW_PROP_REUSAGE_STRING[]="ALLOW_PROP_REUSAGE";
-  EXTERN_PARS int allowPropReusage;
   EXTERN_PARS FieldRngStream field_rng_stream;
   
   //Twisted run
