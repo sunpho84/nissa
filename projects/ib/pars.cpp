@@ -60,7 +60,7 @@ namespace nissa
 	for(int icopy=0;icopy<ncopies;icopy++)
 	  {
 	    char suffix[128]="";
-	    if(ncopies) sprintf(suffix,"_copy%d",icopy);
+	    if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
 	    
 	    char q_full_name[2][1024+129];
 	    for(int iq=0;iq<2;iq++)
@@ -202,7 +202,7 @@ namespace nissa
 	for(int icopy=0;icopy<ncopies;icopy++)
 	  {
 	    char suffix[128]="";
-	    if(ncopies) sprintf(suffix,"_copy%d",icopy);
+	    if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
 	    
 	    char q_full_name[3][1024+129];
 	    for(int iq=0;iq<3;iq++)
@@ -242,7 +242,7 @@ namespace nissa
 	    for(int icopy=0;icopy<ncopies;icopy++)
 	      {
 		char suffix[128]="";
-		if(ncopies) sprintf(suffix,"_copy%d",icopy);
+		if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
 		
 		char bw_full[1024+129];
 		char fw_full[1024+129];
@@ -299,7 +299,7 @@ namespace nissa
 	    for(int icopy=0;icopy<ncopies;icopy++)
 	      {
 		char suffix[128]="";
-		if(ncopies) sprintf(suffix,"_copy%d",icopy);
+		if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
 		
 		char tag_full[1024+129];
 		sprintf(tag_full,"%s%s",tag,suffix);
