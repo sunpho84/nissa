@@ -113,7 +113,7 @@ namespace nissa
 		    //then glb reduction to compute the trace for the connected 3pts diagram and the 2pts
 		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts,SIMPLE_PROP,SIMPLE_PROP);
 		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,SEQ_PROP);
-			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_four_pts,SEQ_PROP,SEQ_PROP);
+		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_four_pts,SEQ_PROP,SEQ_PROP);
 
 		    //////// disconnected ////////
 		    apply_stag_op(source_g5,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::GAMMA_5,source);
