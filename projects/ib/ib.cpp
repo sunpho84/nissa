@@ -19,11 +19,6 @@ void init_simulation(int narg,char **arg)
   
   const char *path=arg[1];
   
-  const char ALLOW_PROP_REUSAGE_STRING[]="ALLOW_PROP_REUSAGE";
-  allowPropReusage=(getenv(ALLOW_PROP_REUSAGE_STRING)!=nullptr);
-  if(not allowPropReusage)
-    master_printf("To allow prop reusage please export: %s\n",ALLOW_PROP_REUSAGE_STRING);
-  
   //parse the rest of the args
   for(int iarg=2;iarg<narg;iarg++)
     {
@@ -93,7 +88,7 @@ void init_simulation(int narg,char **arg)
   read_nhits();
   int nsources;
   read_str_int("NSources",&nsources);
-  ori_source_name_list.resize(nsources);
+  ori_source_name_list.resize(nsources*ncopies);
   //discard header
   expect_str("Name");
   if(stoch_source) expect_str("NoiseType");
@@ -118,9 +113,18 @@ void init_simulation(int narg,char **arg)
       //store
       int store_source;
       read_int(&store_source);
+      
       //add
-      ori_source_name_list[isource]=name;
-      Q[name].init_as_source(noise_type,tins,0,store_source);
+      for(int icopy=0;icopy<ncopies;icopy++)
+	{
+	  char suffix[128]="";
+	  if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+	  
+	  char fullName[1024+129];
+	  sprintf(fullName,"%s%s",name,suffix);
+	  ori_source_name_list[isource+nsources*icopy]=fullName;
+	  Q[fullName].init_as_source(noise_type,tins,0,store_source);
+	}
     }
   
   read_twisted_run();
@@ -129,7 +133,7 @@ void init_simulation(int narg,char **arg)
   //NProps
   int nprops;
   read_str_int("NProps",&nprops);
-  qprop_name_list.resize(nprops);
+  qprop_name_list.resize(nprops*ncopies);
   //Discard header
   expect_str("Name");
   expect_str("Ins");
@@ -151,7 +155,6 @@ void init_simulation(int narg,char **arg)
       char name[1024];
       read_str(name,1024);
       master_printf("Read variable 'Name' with value: %s\n",name);
-      if(Q.find(name)!=Q.end() and not allowPropReusage) crash("name \'%s\' already included",name);
       
       //ins name
       char ins[INS_TAG_MAX_LENGTH+1];
@@ -181,7 +184,6 @@ void init_simulation(int narg,char **arg)
 	  if(multi_source)
 	    {
 	      read_str(source_name,1024);
-	      if(Q.find(source_name)==Q.end()) crash("unable to find source %s",source_name);
 	      
 	      master_printf("Read variable 'Sourcename' with value: %s\n",source_name);
 	      
@@ -197,8 +199,6 @@ void init_simulation(int narg,char **arg)
 	      weight.first=cweight.real();
 	      weight.second=cweight.imag();
 	    }
-	  else
-	    if(Q.find(source_name)==Q.end()) crash("unable to find source %s",source_name);
 	  
 	  source_terms.push_back(std::make_pair(source_name,weight));
 	}
@@ -252,6 +252,10 @@ void init_simulation(int narg,char **arg)
       for(const auto& possIns : {VPHOTON0,VPHOTON1,VPHOTON2,VPHOTON3,
 				 VBHOTON0,VBHOTON1,VBHOTON2,VBHOTON3})
 	vph|=(strcasecmp(ins,ins_tag[possIns])==0);
+      
+      bool ph=false;
+      for(const auto& possIns : {CVEC0,CVEC1,CVEC2,CVEC3})
+	ph|=(strcasecmp(ins,ins_tag[possIns])==0);
       
       if(vph)
 	{
@@ -320,13 +324,33 @@ void init_simulation(int narg,char **arg)
 	    }
 	  read_double(&charge);
 	  master_printf("Read variable 'Charge' with value: %lg\n",charge);
+	  
+	  if(ph)
+	    read_theta(theta);
 	}
       
       read_int(&store_prop);
       master_printf("Read variable 'Store' with value: %d\n",store_prop);
       
-      Q[name].init_as_propagator(ins_from_tag(ins),source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
-      qprop_name_list[iq]=name;
+      for(int icopy=0;icopy<ncopies;icopy++)
+	{
+	  char suffix[128]="";
+	  if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+	  
+	  std::vector<source_term_t> source_full_terms=source_terms;
+	  for(auto& [name,weight] : source_full_terms)
+	    {
+	      name+=suffix;
+	      if(Q.find(name)==Q.end()) crash("unable to find source %s",name.c_str());
+	    }
+	  
+	  char fullName[1024+129];
+	  sprintf(fullName,"%s%s",name,suffix);
+	  if(Q.find(fullName)!=Q.end()) crash("name \'%s\' already included",fullName);
+	  
+	  Q[fullName].init_as_propagator(ins_from_tag(ins),source_full_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
+	  qprop_name_list[iq+nprops*icopy]=fullName;
+	}
     }
   
   read_photon_pars();

@@ -51,6 +51,7 @@ namespace nissa
 {
   extern int rank;
   
+  EXTERN_IOS int prepend_time;
   EXTERN_IOS int verb_call;
   EXTERN_IOS int verbosity_lv;
   

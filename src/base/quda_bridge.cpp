@@ -63,6 +63,11 @@ namespace nissa
 }
 #endif
 
+namespace nissa
+{
+  PROVIDE_HAS_MEMBER(cl_pad);
+}
+
 namespace quda_iface
 {
   using namespace nissa;
@@ -204,7 +209,8 @@ namespace quda_iface
 	
 	initCommsGridQuda(NDIM,grid,get_rank_of_quda_coords,NULL);
 	
-	initQuda(iCudaDevice);
+	// initQuda(iCudaDevice);
+	initQuda(-1);
 	
 	inited=1;
       }
@@ -430,8 +436,11 @@ namespace quda_iface
     
     //inv_param.tune=QUDA_TUNE_YES;
     
-    inv_param.sp_pad=0;
-    inv_param.cl_pad=0;
+    if constexpr(hasMember_cl_pad<decltype(inv_param)>)
+      {
+	inv_param.sp_pad=0;
+	inv_param.cl_pad=0;
+      }
     
     inv_param.Ls=1;
     
@@ -439,8 +448,9 @@ namespace quda_iface
     
     inv_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
     inv_param.tol_hq=0.1;
-    inv_param.reliable_delta=1e-4;
+    inv_param.reliable_delta=nissa::multiGrid::reliable_delta;
     inv_param.use_sloppy_partial_accumulator=0;
+    inv_param.chrono_precision=QUDA_SINGLE_PRECISION;
   }
   
   /// Apply the dirac operator
@@ -462,7 +472,9 @@ namespace quda_iface
 	inv_param.clover_coeff=csw*kappa;
 	// inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
 	// inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
-	// inv_param.cl_pad=0;
+	
+	if constexpr(hasMember_cl_pad<decltype(inv_param)>)
+	  inv_param.cl_pad=0;
 	// inv_param.dirac_order=QUDA_DIRAC_ORDER;
 	
 	loadCloverQuda(NULL,NULL,&inv_param);
@@ -522,7 +534,7 @@ namespace quda_iface
     inv_param.tol=sqrt(residue);
     inv_param.maxiter=niter;
     inv_param.pipeline=0;
-    inv_param.gcrNkrylov=24;
+    inv_param.gcrNkrylov=nissa::multiGrid::gcrNkrylov;
     
     // domain decomposition preconditioner parameters
     inv_param.inv_type_precondition=QUDA_CG_INVERTER;
@@ -546,16 +558,19 @@ namespace quda_iface
 	  inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
 	
 	inv_param.inv_type=QUDA_GCR_INVERTER;
-	inv_param.gcrNkrylov=10; //from default in read_input.l
+	inv_param.gcrNkrylov=nissa::multiGrid::gcrNkrylov;
 	inv_param.inv_type_precondition=QUDA_MG_INVERTER;
 	inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
-	inv_param.reliable_delta=1e-10;
-	inv_param.reliable_delta_refinement=1e-10;
+	inv_param.reliable_delta=nissa::multiGrid::reliable_delta;
+	inv_param.reliable_delta_refinement=nissa::multiGrid::reliable_delta_refinement;
 	inv_param.precondition_cycle=1;
 	inv_param.tol_precondition=1e-1;
 	inv_param.maxiter_precondition=1;
 	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
-	inv_param.solve_type=QUDA_DIRECT_SOLVE;
+	inv_param.solve_type=QUDA_DIRECT_PC_SOLVE;
+#ifndef DYNAMIC_CLOVER
+# error Please compile quda with DYNAMIC_CLOVER switched on
+#endif
 	
 	inv_param.omega=1.0;
 	
@@ -674,9 +689,8 @@ namespace quda_iface
 	    
 	    //Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
 	    quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
-	    constexpr double t[3]={0.25,0.22,0.46};
-	    quda_mg_param.coarse_solver_tol[level]=t[level];          //Suggest setting each level to 0.25
-	    quda_mg_param.coarse_solver_maxiter[level]=100;//(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
+	    quda_mg_param.coarse_solver_tol[level]=nissa::multiGrid::coarse_solver_tol[level];          //Suggest setting each level to 0.25
+	    quda_mg_param.coarse_solver_maxiter[level]=nissa::multiGrid::coarse_solver_maxiter[level];//(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
 	    quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
 	    quda_mg_param.n_vec[level]=(level==1)?32:24;          //24 or 32 is supported presently
 	    quda_mg_param.nu_pre[level]=nissa::multiGrid::nu_pre[level];            //Suggest setting to 0
@@ -690,13 +704,13 @@ namespace quda_iface
 	    
 	    quda_mg_param.preserve_deflation=QUDA_BOOLEAN_FALSE;
 	    quda_mg_param.smoother[level]=(level+1==nlevels)?QUDA_MR_INVERTER:QUDA_CA_GCR_INVERTER;
-	    quda_mg_param.smoother_tol[level]=(level+1==nlevels)?0.25:0.22;                 //Suggest setting each level to 0.25
+	    quda_mg_param.smoother_tol[level]=nissa::multiGrid::smoother_tol[level];                 //Suggest setting each level to 0.25
 	    quda_mg_param.smoother_schwarz_cycle[level]=1;          //Experimental, set to 1 for each level
 	    //Suggest setting to QUDA_DIRECT_PC_SOLVE for all levels
 	    quda_mg_param.smoother_solve_type[level]=QUDA_DIRECT_PC_SOLVE;
 	    //Experimental, set to QUDA_INVALID_SCHWARZ for each level unless you know what you're doing
 	    quda_mg_param.smoother_schwarz_type[level]=QUDA_INVALID_SCHWARZ;
-	    //quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
+	    quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
 	    
 	    // when the Schwarz-alternating smoother is used, this can be set to NO, otherwise it must be YES
 	    quda_mg_param.global_reduction[level]=QUDA_BOOLEAN_YES;
@@ -708,7 +722,7 @@ namespace quda_iface
 	    quda_mg_param.coarse_grid_solution_type[level]=
 	      QUDA_MATPC_SOLUTION;
 	    //(inv_param.solve_type==QUDA_DIRECT_PC_SOLVE?QUDA_MATPC_SOLUTION:QUDA_MAT_SOLUTION);
-	    quda_mg_param.omega[level]=0.85;  //Set to 0.8-1.0
+	    quda_mg_param.omega[level]=nissa::multiGrid::omega[level];  //Set to 0.8-1.0
 	    
 	    quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    
@@ -929,7 +943,7 @@ namespace quda_iface
       printf("mu_factor: %lg\n",i.mu_factor[ilev]);
     for(int ilev=0;ilev<nlev;ilev++)
       printf("transfer_type: %d\n",i.transfer_type[ilev]);
-    printf("use_mma: %d\n",i.use_mma);
+    // printf("use_mma: %d\n",i.use_mma);
     printf("thin_update_only: %d\n",i.thin_update_only);
   }
 
@@ -1009,8 +1023,11 @@ namespace quda_iface
     printf("return_clover: %d\n",i.return_clover);
     printf("return_clover_inverse: %d\n",i.return_clover_inverse);
     printf("verbosity: %d\n",i.verbosity);
-    printf("sp_pad: %d\n",i.sp_pad);
-    printf("cl_pad: %d\n",i.cl_pad);
+    if constexpr(hasMember_cl_pad<decltype(i)>)
+      {
+	printf("sp_pad: %d\n",i.sp_pad);
+	printf("cl_pad: %d\n",i.cl_pad);
+      }
     printf("iter: %d\n",i.iter);
     printf("gflops: %lg\n",i.gflops);
     printf("secs: %lg\n",i.secs);

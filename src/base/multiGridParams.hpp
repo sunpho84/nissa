@@ -23,10 +23,17 @@ namespace nissa
     EXTERN_MULTIGRID int nlevels INIT_TO(1);
     EXTERN_MULTIGRID int nsetups[MAX_MG_LEVELS];
     EXTERN_MULTIGRID int smoother_iterations;
+    EXTERN_MULTIGRID int gcrNkrylov INIT_TO(24);
     EXTERN_MULTIGRID double mu_factor[MAX_MG_LEVELS];
+    EXTERN_MULTIGRID double coarse_solver_tol[MAX_MG_LEVELS];
+    EXTERN_MULTIGRID int coarse_solver_maxiter[MAX_MG_LEVELS];
+    EXTERN_MULTIGRID double smoother_tol[MAX_MG_LEVELS];
     EXTERN_MULTIGRID int nu_pre[MAX_MG_LEVELS];
     EXTERN_MULTIGRID int nu_post[MAX_MG_LEVELS];
+    EXTERN_MULTIGRID double omega[MAX_MG_LEVELS];
     EXTERN_MULTIGRID double max_mass INIT_TO(1e300);
+    EXTERN_MULTIGRID double reliable_delta INIT_TO(0.01);
+    EXTERN_MULTIGRID double reliable_delta_refinement INIT_TO(0.0001);
     EXTERN_MULTIGRID double max_mass_for_deflation INIT_TO(1e300);
     EXTERN_MULTIGRID bool block_size_set INIT_TO(false);
     EXTERN_MULTIGRID nissa::coords_t block_size[MAX_MG_LEVELS];

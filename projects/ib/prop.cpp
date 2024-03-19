@@ -411,6 +411,7 @@ namespace nissa
   
   void build_source(spincolor* out,std::vector<source_term_t>* source_terms,int isou)
   {
+    master_printf("Creating the source\n");
     
     vector_reset(out);
     
@@ -423,6 +424,8 @@ namespace nissa
 	NISSA_PARALLEL_LOOP_END;
       }
     set_borders_invalid(out);
+    
+    master_printf("Source created\n");
   }
   
   void generate_photon_source(spin1field *photon_eta)
@@ -477,15 +480,17 @@ namespace nissa
     spin1field *ext_field=nullptr;
     if(inser==EXT_FIELD)
       {
+	const std::string path=combine("%s/%s",outfolder,ext_field_path);
 	ext_field=nissa_malloc("ext_field",locVol+bord_vol,spin1field);
-	read_real_vector(ext_field,combine("%s/%s",outfolder,ext_field_path),"Current");
+	ReadWriteRealVector<spin1field> r(ext_field,ext_field_path);
+	r.read();
       }
     
     /// Function to insert the virtual photon emission projection
     auto vphotonInsertCurr=[mass,theta](const BwFw bwFw,const int nu)
     {
       gauge_info insPhoton;
-      insPhoton.alpha=photon.alpha;
+      insPhoton.which_gauge=photon.which_gauge;
       insPhoton.bc[0]=0;
       for(int mu=1;mu<NDIM;mu++)
 	insPhoton.bc[mu]=theta[mu];
@@ -533,6 +538,7 @@ namespace nissa
       case SCALAR:prop_multiply_with_gamma(loop_source,0,ori,rel_t);break;
       case PSEUDO:prop_multiply_with_gamma(loop_source,5,ori,rel_t);break;
       case GAMMA:prop_multiply_with_gamma(loop_source,r,ori,rel_t);break;
+      case COLOR:prop_multiply_with_color_delta(loop_source,r,ori,rel_t);break;
       case PHOTON:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case PHOTON0:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[0],loc_hadr_curr);break;
       case PHOTON1:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[1],loc_hadr_curr);break;
@@ -579,6 +585,7 @@ namespace nissa
 	std::string &name=ori_source_name_list[i];
 	master_printf("Generating source \"%s\"\n",name.c_str());
 	qprop_t *q=&Q[name];
+	q->alloc_storage();
 	generate_original_source(q,skipOnly);
 	
 	if(not skipOnly)
@@ -586,17 +593,19 @@ namespace nissa
 	    for(int ic_so=0;ic_so<nso_col;ic_so++)
 	      {
 		//combine the filename
-		std::string path=combine("%s/hit%d_source%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+		const std::string path=combine("%s/hit%d_source%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
 		
 		int isou=so_sp_col_ind(id_so,ic_so);
 		spincolor *sou=(*q)[isou];
 		
+		ReadWriteRealVector<spincolor> rw(sou,path);
+		
 		//if the prop exists read it
-		if(file_exists(path))
+		if(rw.canLoad())
 		  {
 		    master_printf("  loading the source dirac index %d, color %d\n",id_so,ic_so);
 		    START_TIMING(read_prop_time,nread_prop);
-		    read_real_vector(sou,path,"scidac-binary-data");
+		    rw.read();
 		    STOP_TIMING(read_prop_time);
 		  }
 		else
@@ -608,7 +617,7 @@ namespace nissa
 		      {
 			master_printf("  writing the source dirac index %d, color %d\n",id_so,ic_so);
 			START_TIMING(store_prop_time,nstore_prop);
-			write_real_vector(path,sou,64,"scidac-binary-data");
+			rw.write();
 			STOP_TIMING(store_prop_time);
 		      }
 		  }
@@ -619,11 +628,38 @@ namespace nissa
   //generate all the quark propagators
   void generate_quark_propagators(int ihit)
   {
+    /// Store all the dependencies
+    std::map<std::string,std::set<std::string>> propDep;
+    
+    // Insert all contractions
+    for(const std::string& i : propsNeededToContr)
+      propDep[i].insert("contractions");
+    
+    /// Iterate until no more dependencies are found
+    std::set<std::string> oldDepInserted=propsNeededToContr;
+    while(oldDepInserted.size())
+      {
+	std::set<std::string> newDepInserted;
+	for(const std::string& p : oldDepInserted)
+	  for(const auto& [n,w] : Q[p].source_terms)
+	    {
+	      newDepInserted.insert(n);
+	      propDep[n].insert(p);
+	    }
+	oldDepInserted=newDepInserted;
+      }
+    
+    // master_printf("Dependencies:\n");
+    // for(const auto& [n,d] : propDep)
+    //   for(const auto& p : d)
+    // 	master_printf("%s -> %s\n",n.c_str(),p.c_str());
+    
     for(size_t i=0;i<qprop_name_list.size();i++)
       {
 	//get names
 	std::string name=qprop_name_list[i];
 	qprop_t &q=Q[name];
+	q.alloc_storage();
 	
 	//get ori_source norm2
 	const std::string& first_source=q.source_terms.front().first;
@@ -640,7 +676,19 @@ namespace nissa
 	else            master_printf(" kappa[%d]=%lg, theta={%lg,%lg,%lg}\n",i,q.kappa,q.theta[1],q.theta[2],q.theta[3]);
 	
 	//compute the inverse clover term, if needed
-	if(clover_run) invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
+	if(clover_run and q.insertion==PROP)
+	  {
+	    static double m=0,k=0;
+	    if(m!=q.mass or k!=q.kappa)
+	      {
+		m=q.mass;
+		k=q.kappa;
+		const double init_time=take_time();
+		master_printf("Inverting clover\n");
+		invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
+		master_printf("Clover inverted in %lg s\n",take_time()-init_time);
+	      }
+	  }
 	
 	//create the description of the source
 	std::string source_descr;
@@ -669,14 +717,16 @@ namespace nissa
 	      spincolor *sol=q[isou];
 	      
 	      //combine the filename
-	      std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+	      const std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+	      
+	      ReadWriteRealVector<spincolor> rw(sol,path);
 	      
 	      //if the prop exists read it
-	      if(file_exists(path))
+	      if(rw.canLoad())
 		{
 		  master_printf("  loading the solution, dirac index %d, color %d\n",id_so,ic_so);
 		  START_TIMING(read_prop_time,nread_prop);
-		  read_real_vector(sol,path,"scidac-binary-data");
+		  rw.read();
 		  STOP_TIMING(read_prop_time);
 		}
 	      else
@@ -689,12 +739,28 @@ namespace nissa
 		  if(q.store)
 		    {
 		      START_TIMING(store_prop_time,nstore_prop);
-		      write_real_vector(path,sol,64,"scidac-binary-data");
+		      rw.write();
 		      STOP_TIMING(store_prop_time);
 		    }
 		  master_printf("  finished the calculation of dirac index %d, color %d\n",id_so,ic_so);
 		}
 	    }
+	
+	for(const auto& [s,w] : q.source_terms)
+	  {
+	    if(propDep[s].erase(name)!=1)
+	      crash("unable to erase the dependency %s of %s!",name.c_str(),s.c_str());
+	    
+	    if(propDep[s].empty() and Q[s].sp)
+	      {
+		verbosity_lv2_master_printf("%s could be erased\n",s.c_str());
+		Q[s].free_storage();
+		// int nUsed=0;
+		// for(const auto& [dum,qi] : Q)
+		//   nUsed+=qi.sp!=nullptr;
+		// master_printf("NCurrently allocated props: %d\n",nUsed);
+	      }
+	  }
       }
   }
   
@@ -740,14 +806,16 @@ namespace nissa
 	//combine the filename
 	std::string path=combine("%s/hit%d_field%s",outfolder,ihit,name.c_str());
 	
+	ReadWriteRealVector<spin1field> rw(ph,path);
+	
 	//if asked and the file exists read it
 	if(load_photons)
 	  {
-	    if(file_exists(path))
+	    if(rw.canLoad())
 	      {
 		master_printf("  loading the photon field %s\n",name.c_str());
 		START_TIMING(read_prop_time,nread_prop);
-		read_real_vector(ph,path,"scidac-binary-data");
+		rw.read();
 		STOP_TIMING(read_prop_time);
 	      }
 	    else master_printf("  file %s not available, skipping loading\n",path.c_str());
@@ -758,7 +826,7 @@ namespace nissa
 	  {
 	    master_printf("  storing the photon field %s\n",name.c_str());
 	    START_TIMING(store_prop_time,nstore_prop);
-	    write_real_vector(path,ph,64,"scidac-binary-data");
+	    rw.write();
 	    STOP_TIMING(store_prop_time);
 	  }
       }
@@ -802,7 +870,7 @@ namespace nissa
     if(not file_exists("mom_list.txt")) fout=open_file(path_list,"w");
     
     //store the list of filtered
-    std::set<int> list_of_filtered;;
+    std::set<int> list_of_filtered;
     
     //scattering list
     all_to_all_scattering_list_t sl;
