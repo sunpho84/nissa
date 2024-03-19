@@ -6,19 +6,16 @@
 #include "base/random.hpp"
 #include "base/vectors.hpp"
 #include "new_types/complex.hpp"
-#include "linalgs/reduce.hpp"
 #include "new_types/spin.hpp"
 #include "operations/fourier_transform.hpp"
 #include "routines/mpi_routines.hpp"
 #include "routines/ios.hpp"
-#include "threads/threads.hpp"
 
 #include "free_theory_types.hpp"
 
 #ifdef USE_EIGEN
  #include <Eigen/Dense>
  #include <Eigen/Eigenvalues>
- #include <iostream>
 #endif
 
 namespace nissa
@@ -182,7 +179,7 @@ namespace nissa
   void multiply_mom_space_sqrt_tlSym_gauge_propagator(spin1field* out,spin1field* in,gauge_info gl)
   {
 #ifndef USE_EIGEN
-    if(gl.alpha!=FEYNMAN_ALPHA or gl.c1!=0)
+    if(gl.which_gauge!=gauge_info::FEYNMAN or gl.c1!=0)
       crash("Eigen required when out of Wilson regularisation or in the Feynaman gauge");
 #endif
     
