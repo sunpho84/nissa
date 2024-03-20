@@ -63,56 +63,74 @@ int main(int narg,char **arg)
       
       //check of gamma10
       dirac_matr gamma10=base_gamma[4]*base_gamma[1];
+      dirac_matr gamma5_13=base_gamma[5]*base_gamma[13];
       printf("Gamma10 = Gamma4Gamma1  = %s as:\n",gtag[10]);
       printf("(a) defined by Silvano\n");
       print_dirac(base_gamma[10]);
       printf("(b) obtained by making explicite products\n");
       print_dirac(gamma10);
+      printf("(c) obtained by taking g5*%s\n",gtag[13]);
+      print_dirac(gamma5_13);
       printf("\n");
       
       //check of gamma11
       dirac_matr gamma11=base_gamma[4]*base_gamma[2];
+      dirac_matr gamma5_14=base_gamma[5]*base_gamma[14];
       printf("Gamma11 = Gamma4Gamma2  = %s as:\n",gtag[11]);
       printf("(a) defined by Silvano\n");
       print_dirac(base_gamma[11]);
       printf("(b) obtained by making explicite products\n");
       print_dirac(gamma11);
+      printf("(c) obtained by taking g5*%s\n",gtag[14]);
+      print_dirac(gamma5_14);
       printf("\n");
       
       //check of gamma12
       dirac_matr gamma12=base_gamma[4]*base_gamma[3];
+      dirac_matr gamma5_15=base_gamma[5]*base_gamma[15];
       printf("Gamma12 = Gamma4Gamma3  = %s as:\n",gtag[12]);
       printf("(a) defined by Silvano\n");
       print_dirac(base_gamma[12]);
       printf("(b) obtained by making explicite products\n");
       print_dirac(gamma12);
+      printf("(c) obtained by taking g5*%s\n",gtag[15]);
+      print_dirac(gamma5_15);
       printf("\n");
       
       //check of gamma13
       dirac_matr gamma13=base_gamma[2]*base_gamma[3];
+      dirac_matr gamma5_10=base_gamma[5]*base_gamma[10];
       printf("Gamma13 = Gamma2Gamma3  = %s as:\n",gtag[13]);
       printf("(a) defined by Silvano\n");
       print_dirac(base_gamma[13]);
       printf("(b) obtained by making explicite products\n");
       print_dirac(gamma13);
+      printf("(c) obtained by taking g5*%s\n",gtag[10]);
+      print_dirac(gamma5_10);
       printf("\n");
       
       //check of gamma14
       dirac_matr gamma14=base_gamma[3]*base_gamma[1];
+      dirac_matr gamma5_11=base_gamma[5]*base_gamma[11];
       printf("Gamma14 = Gamma3Gamma1  = %s as:\n",gtag[14]);
       printf("(a) defined by Silvano\n");
       print_dirac(base_gamma[14]);
       printf("(b) obtained by making explicite products\n");
       print_dirac(gamma14);
+      printf("(c) obtained by taking g5*%s\n",gtag[11]);
+      print_dirac(gamma5_11);
       printf("\n");
       
       //check of gamma15
       dirac_matr gamma15=base_gamma[1]*base_gamma[2];
+      dirac_matr gamma5_12=base_gamma[5]*base_gamma[12];
       printf("Gamma15 = Gamma1Gamma2  = %s as:\n",gtag[15]);
       printf("(a) defined by Silvano\n");
       print_dirac(base_gamma[15]);
       printf("(b) obtained by making explicite products\n");
       print_dirac(gamma15);
+      printf("(c) obtained by taking g5*%s\n",gtag[12]);
+      print_dirac(gamma5_12);
       printf("\n");
       
       complex one_over_rad2={1/sqrt(2),0};
