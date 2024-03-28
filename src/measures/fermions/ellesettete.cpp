@@ -44,7 +44,7 @@
 	So the diagram should be prod of one "normal" φ and the sequential Φ*
 
 	one-end trick autmatically project to 0 momentum 
-	test-git
+	
 */
 
 
