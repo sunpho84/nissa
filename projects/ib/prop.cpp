@@ -749,7 +749,9 @@ namespace nissa
 	for(const auto& [s,w] : q.source_terms)
 	  {
 	    if(propDep[s].erase(name)!=1)
-	      crash("unable to erase the dependency %s of %s!",name.c_str(),s.c_str());
+	      crash("unable to remove the dependency %s of %s!",name.c_str(),s.c_str());
+	    else
+	      master_printf("%s dependency of %s removed\n",name.c_str(),s.c_str());
 	    
 	    if(propDep[s].empty() and Q[s].sp)
 	      {
