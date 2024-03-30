@@ -655,115 +655,118 @@ namespace nissa
     // 	master_printf("%s -> %s\n",n.c_str(),p.c_str());
     
     for(size_t i=0;i<qprop_name_list.size();i++)
-      {
-	//get names
-	std::string name=qprop_name_list[i];
-	qprop_t &q=Q[name];
-	q.alloc_storage();
-	
-	//get ori_source norm2
-	const std::string& first_source=q.source_terms.front().first;
-	const double ori_source_norm2=q.ori_source_norm2=Q[first_source].ori_source_norm2;
-	for(auto& n : q.source_terms)
-	  {
-	    double this_source_norm2=Q[n.first].ori_source_norm2;
-	    if(ori_source_norm2!=this_source_norm2)
-	      crash("first source %s has different norm2 %lg than %s, %lg",first_source.c_str(),ori_source_norm2,n.first.c_str(),this_source_norm2);
-	  }
-	
-	//write info on mass and r
-	if(twisted_run) master_printf(" mass[%d]=%lg, r=%d, theta={%lg,%lg,%lg}\n",i,q.mass,q.r,q.theta[1],q.theta[2],q.theta[3]);
-	else            master_printf(" kappa[%d]=%lg, theta={%lg,%lg,%lg}\n",i,q.kappa,q.theta[1],q.theta[2],q.theta[3]);
-	
-	//compute the inverse clover term, if needed
-	if(clover_run and q.insertion==PROP)
-	  {
-	    static double m=0,k=0;
-	    if(m!=q.mass or k!=q.kappa)
-	      {
-		m=q.mass;
-		k=q.kappa;
-		const double init_time=take_time();
-		master_printf("Inverting clover\n");
-		invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
-		master_printf("Clover inverted in %lg s\n",take_time()-init_time);
-	      }
-	  }
-	
-	//create the description of the source
-	std::string source_descr;
-	if(q.source_terms.size()==1)
-	  source_descr=first_source;
-	else
-	  {
-	    source_descr="(";
-	    for(int i=0;i<(int)q.source_terms.size();i++)
-	      {
-		source_term_t& this_source=q.source_terms[i];
-		complex c={this_source.second.first,this_source.second.second};
-		if(i>0) source_descr+="+";
-		source_descr+=this_source.first+"*("+std::to_string(c[RE])+","+std::to_string(c[IM])+")";
-	      }
-	    source_descr+=")";
-	  }
-	
-	insertion_t insertion=q.insertion;
-	master_printf("Generating propagator %s inserting %s on source %s\n",name.c_str(),ins_name[insertion],source_descr.c_str());
-	for(int id_so=0;id_so<nso_spi;id_so++)
-	  for(int ic_so=0;ic_so<nso_col;ic_so++)
+      if(propDep[qprop_name_list[i]].size()==0)
+	master_printf("Skipping generation of prop %s as it has no dependencies\n",qprop_name_list[i].c_str());
+      else
+	{
+	  //get names
+	  std::string name=qprop_name_list[i];
+	  qprop_t &q=Q[name];
+	  q.alloc_storage();
+	  
+	  //get ori_source norm2
+	  const std::string& first_source=q.source_terms.front().first;
+	  const double ori_source_norm2=q.ori_source_norm2=Q[first_source].ori_source_norm2;
+	  for(auto& n : q.source_terms)
 	    {
-	      int isou=so_sp_col_ind(id_so,ic_so);
-	      generate_source(insertion,q.ext_field_path,q.mass,q.r,q.charge,q.kappa,q.kappa_asymm,q.theta,q.source_terms,isou,q.tins);
-	      spincolor *sol=q[isou];
-	      
-	      //combine the filename
-	      const std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
-	      
-	      ReadWriteRealVector<spincolor> rw(sol,path);
-	      
-	      //if the prop exists read it
-	      if(rw.canLoad())
+	      double this_source_norm2=Q[n.first].ori_source_norm2;
+	      if(ori_source_norm2!=this_source_norm2)
+		crash("first source %s has different norm2 %lg than %s, %lg",first_source.c_str(),ori_source_norm2,n.first.c_str(),this_source_norm2);
+	    }
+	  
+	  //write info on mass and r
+	  if(twisted_run) master_printf(" mass[%d]=%lg, r=%d, theta={%lg,%lg,%lg}\n",i,q.mass,q.r,q.theta[1],q.theta[2],q.theta[3]);
+	  else            master_printf(" kappa[%d]=%lg, theta={%lg,%lg,%lg}\n",i,q.kappa,q.theta[1],q.theta[2],q.theta[3]);
+	  
+	  //compute the inverse clover term, if needed
+	  if(clover_run and q.insertion==PROP)
+	    {
+	      static double m=0,k=0;
+	      if(m!=q.mass or k!=q.kappa)
 		{
-		  master_printf("  loading the solution, dirac index %d, color %d\n",id_so,ic_so);
-		  START_TIMING(read_prop_time,nread_prop);
-		  rw.read();
-		  STOP_TIMING(read_prop_time);
-		}
-	      else
-		{
-		  //otherwise compute it
-		  if(q.insertion==PROP) get_qprop(sol,loop_source,q.kappa,q.mass,q.r,q.charge,q.residue,q.theta);
-		  else                  vector_copy(sol,loop_source);
-		  
-		  //and store if needed
-		  if(q.store)
-		    {
-		      START_TIMING(store_prop_time,nstore_prop);
-		      rw.write();
-		      STOP_TIMING(store_prop_time);
-		    }
-		  master_printf("  finished the calculation of dirac index %d, color %d\n",id_so,ic_so);
+		  m=q.mass;
+		  k=q.kappa;
+		  const double init_time=take_time();
+		  master_printf("Inverting clover\n");
+		  invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
+		  master_printf("Clover inverted in %lg s\n",take_time()-init_time);
 		}
 	    }
-	
-	for(const auto& [s,w] : q.source_terms)
-	  {
-	    if(propDep[s].erase(name)!=1)
-	      crash("unable to remove the dependency %s of %s!",name.c_str(),s.c_str());
-	    else
-	      master_printf("%s dependency of %s removed\n",name.c_str(),s.c_str());
-	    
-	    if(propDep[s].empty() and Q[s].sp)
+	  
+	  //create the description of the source
+	  std::string source_descr;
+	  if(q.source_terms.size()==1)
+	    source_descr=first_source;
+	  else
+	    {
+	      source_descr="(";
+	      for(int i=0;i<(int)q.source_terms.size();i++)
+		{
+		  source_term_t& this_source=q.source_terms[i];
+		  complex c={this_source.second.first,this_source.second.second};
+		  if(i>0) source_descr+="+";
+		  source_descr+=this_source.first+"*("+std::to_string(c[RE])+","+std::to_string(c[IM])+")";
+		}
+	      source_descr+=")";
+	    }
+	  
+	  insertion_t insertion=q.insertion;
+	  master_printf("Generating propagator %s inserting %s on source %s\n",name.c_str(),ins_name[insertion],source_descr.c_str());
+	  for(int id_so=0;id_so<nso_spi;id_so++)
+	    for(int ic_so=0;ic_so<nso_col;ic_so++)
 	      {
-		verbosity_lv2_master_printf("%s could be erased\n",s.c_str());
-		Q[s].free_storage();
-		// int nUsed=0;
-		// for(const auto& [dum,qi] : Q)
-		//   nUsed+=qi.sp!=nullptr;
-		// master_printf("NCurrently allocated props: %d\n",nUsed);
+		int isou=so_sp_col_ind(id_so,ic_so);
+		generate_source(insertion,q.ext_field_path,q.mass,q.r,q.charge,q.kappa,q.kappa_asymm,q.theta,q.source_terms,isou,q.tins);
+		spincolor *sol=q[isou];
+		
+		//combine the filename
+		const std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+		
+		ReadWriteRealVector<spincolor> rw(sol,path);
+		
+		//if the prop exists read it
+		if(rw.canLoad())
+		  {
+		    master_printf("  loading the solution, dirac index %d, color %d\n",id_so,ic_so);
+		    START_TIMING(read_prop_time,nread_prop);
+		    rw.read();
+		    STOP_TIMING(read_prop_time);
+		  }
+		else
+		  {
+		    //otherwise compute it
+		    if(q.insertion==PROP) get_qprop(sol,loop_source,q.kappa,q.mass,q.r,q.charge,q.residue,q.theta);
+		    else                  vector_copy(sol,loop_source);
+		    
+		    //and store if needed
+		    if(q.store)
+		      {
+			START_TIMING(store_prop_time,nstore_prop);
+			rw.write();
+			STOP_TIMING(store_prop_time);
+		      }
+		    master_printf("  finished the calculation of dirac index %d, color %d\n",id_so,ic_so);
+		  }
 	      }
-	  }
-      }
+	  
+	  for(const auto& [s,w] : q.source_terms)
+	    {
+	      if(propDep[s].erase(name)!=1)
+		crash("unable to remove the dependency %s of %s!",name.c_str(),s.c_str());
+	      else
+		master_printf("%s dependency of %s removed\n",name.c_str(),s.c_str());
+	      
+	      if(propDep[s].empty() and Q[s].sp)
+		{
+		  verbosity_lv2_master_printf("%s could be erased\n",s.c_str());
+		  Q[s].free_storage();
+		  // int nUsed=0;
+		  // for(const auto& [dum,qi] : Q)
+		  //   nUsed+=qi.sp!=nullptr;
+		  // master_printf("NCurrently allocated props: %d\n",nUsed);
+		}
+	    }
+	}
   }
   
   /////////////////////////////////////////////// photon propagators ///////////////////////////////////////////
