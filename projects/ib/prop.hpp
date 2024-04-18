@@ -1,7 +1,7 @@
 #ifndef _PROP_HPP
 #define _PROP_HPP
 
-#include "nissa.hpp"
+#include <set>
 
 #include "conf.hpp"
 #include "meslep.hpp"
@@ -18,7 +18,7 @@ namespace nissa
 {
   //keep trace if generating photon is needed
   EXTERN_PROP int need_photon INIT_TO(0);
-
+  
   CUDA_HOST_AND_DEVICE
   inline int so_sp_col_ind(const int& sp,const int& col)
   {
@@ -30,28 +30,28 @@ namespace nissa
   //hold name and information on how to build a propagator
   struct qprop_t
   {
-    bool is_source;
+    bool is_source{false};
     
-    double kappa;
-    double kappa_asymm[NDIM];
-    double mass;
-    int r;
-    double charge;
-    momentum_t theta;
+    double kappa{0};
+    double kappa_asymm[NDIM]{};
+    double mass{0};
+    int r{0};
+    double charge{0};
+    momentum_t theta{0};
     
-    insertion_t insertion;
-    std::vector<source_term_t> source_terms;
-    int tins;
-    double residue;
-    bool store;
+    insertion_t insertion{};
+    std::vector<source_term_t> source_terms{};
+    int tins{};
+    double residue{};
+    bool store{};
     
-    char ext_field_path[33];
+    char ext_field_path[33]{};
     
-    rnd_t noise_type;
-    double ori_source_norm2;
+    rnd_t noise_type{};
+    double ori_source_norm2{};
     
     //spincolor data
-    spincolor** sp;
+    spincolor** sp{};
     
     CUDA_HOST_AND_DEVICE
     spincolor* const &operator[](const int i) const
@@ -65,11 +65,14 @@ namespace nissa
       return sp[i];
     }
     
-    void alloc_spincolor()
+    void alloc_storage()
     {
-      sp=nissa_malloc("sp",nso_spi*nso_col,spincolor*);
-      for(int i=0;i<nso_spi*nso_col;i++)
-	sp[i]=nissa_malloc("sp",locVol+bord_vol,spincolor);
+      if(sp==nullptr)
+	{
+	  sp=nissa_malloc("sp",nso_spi*nso_col,spincolor*);
+	  for(int i=0;i<nso_spi*nso_col;i++)
+	    sp[i]=nissa_malloc("sp",locVol+bord_vol,spincolor);
+	}
     }
     
     //initialize as a propagator
@@ -91,8 +94,6 @@ namespace nissa
       store=_store;
       
       if(is_photon_ins(insertion)) need_photon=true;
-      
-      alloc_spincolor();
     }
     
     //initialize as a source
@@ -104,29 +105,21 @@ namespace nissa
       tins=_tins;
       r=_r;
       store=_store;
-      alloc_spincolor();
     }
     
-    qprop_t(insertion_t insertion,const std::vector<source_term_t>& source_terms,int tins,double residue,double kappa,double* kappa_asymm, double mass,char *ext_field_path,int r,double charge,const momentum_t& theta,bool store)
+    void free_storage()
     {
-      init_as_propagator(insertion,source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store);
-    }
-    
-    qprop_t(rnd_t noise_type,int tins,int r,bool store)
-    {
-      init_as_source(noise_type,tins,r,store);
-    }
-    
-    qprop_t()
-    {
-      is_source=0;
+      if(sp)
+	{
+	  for(int i=0;i<nso_spi*nso_col;i++)
+	    nissa_free(sp[i]);
+	  nissa_free(sp);
+	}
     }
     
     ~qprop_t()
     {
-      for(int i=0;i<nso_spi*nso_col;i++)
-	nissa_free(sp[i]);
-      nissa_free(sp);
+      free_storage();
     }
   };
   
@@ -157,6 +150,7 @@ namespace nissa
   
   EXTERN_PROP std::map<std::string,qprop_t> Q;
   EXTERN_PROP std::vector<std::string> qprop_name_list;
+  EXTERN_PROP std::set<std::string> propsNeededToContr;
   EXTERN_PROP spinspin **L;
   
   EXTERN_PROP int nlprop;
@@ -239,6 +233,67 @@ namespace nissa
     if(nquark_lep_combos) generate_lepton_propagators();
     generate_quark_propagators(ihit);
   }
+  
+  template <typename T>
+  struct ReadWriteRealVector
+  {
+    T* v;
+    std::string path;
+    FILE* fastFile;
+    
+    ReadWriteRealVector(T* v,const std::string& _path) :
+      v(v),path(_path)
+    {
+      if(fast_read_write_vectors)
+	path+="_rank"+std::to_string(rank);
+    }
+    
+    bool canLoad() const
+    {
+      return file_exists(path);
+    }
+    
+    void fastOpen(const char* mode)
+    {
+      fastFile=fopen(path.c_str(),mode);
+      if(fastFile==nullptr)
+	crash("Unable to open path %s",path.c_str());
+    }
+    
+    void read()
+    {
+      master_printf("Reading %s\n",path.c_str());
+      
+      if(fast_read_write_vectors)
+	{
+	  fastOpen("r");
+	  
+	  if(fread(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
+	    crash("Problem reading %s",path.c_str());
+	  
+	  fclose(fastFile);
+	}
+      else
+	read_real_vector(v,path,"scidac-binary-data");
+    }
+    
+    void write()
+    {
+      master_printf("Writing %s, %zu %p\n",path.c_str(),sizeof(T),v);
+      
+      if(fast_read_write_vectors)
+	{
+	  fastOpen("w");
+	  
+	  if(fwrite(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
+	    crash("Problem writing %s",path.c_str());
+	  
+	  fclose(fastFile);
+	}
+      else
+	write_real_vector(path,v,64,"scidac-binary-data");
+    }
+  };
 }
 
 #undef INIT_TO

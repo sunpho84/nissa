@@ -267,7 +267,7 @@ namespace nissa
   rnd_t convert_str_to_rnd_t(const char *str)
   {
     for(int i=0;i<nrnd_type;i++) if(strcasecmp(str,rnd_t_str[i])==0) return (rnd_t)i;
-    master_fprintf(stderr,"Error, unknown random string %s,known ones:\n",str);
+    master_fprintf(stderr,"Error, unknown random string %s, known ones:\n",str);
     for(int i=0;i<nrnd_type;i++) master_fprintf(stderr," %s\n",rnd_t_str[i]);
     crash("Choose one of them");
     return (rnd_t)RND_ALL_MINUS_ONE;

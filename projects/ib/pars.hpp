@@ -19,7 +19,6 @@ namespace nissa
   
   /// New generator
   EXTERN_PARS int use_new_generator;
-  EXTERN_PARS int allowPropReusage;
   EXTERN_PARS FieldRngStream field_rng_stream;
   
   //Twisted run
@@ -60,11 +59,11 @@ namespace nissa
   
   //define types of quark propagator used
   constexpr int INS_TAG_MAX_LENGTH=4;
-  const int nins_kind=31;
-  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , VPHOTON0 , VPHOTON1 , VPHOTON2 , VPHOTON3 , VBHOTON0 , VBHOTON1 , VBHOTON2 , VBHOTON3 , WFLOW , BACK_WFLOW , SMEARING , ANYSM , PHASING , EXT_FIELD , GAMMA };
-  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , VPHOTON0 , VPHOTON1 , VPHOTON2 , VPHOTON3 , VBHOTON0 , VBHOTON1 , VBHOTON2 , VBHOTON3 , WFLOW , BACK_WFLOW , SMEARING, ANYSM, PHASING , EXT_FIELD , GAMMA };
-  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE","CVEC","CVEC0","CVEC1","CVEC2","CVEC3","PHOTON0","PHOTON1","PHOTON2","PHOTON3","VPHOTON0","VPHOTON1","VPHOTON2","VPHOTON3","VBHOTON0","VBHOTON1","VBHOTON2","VBHOTON3","WFLOW","BACK_WFLOW","SMEARING","ANYSM","PHASING","EXT_FIELD","GAMMA"};
-  const char ins_tag[nins_kind][INS_TAG_MAX_LENGTH+1]=    {"-"   ,"S"     ,"P"     ,"F"     ,"A"         ,"C"         ,"T"      ,"V"   ,"V0"   ,"V1"   ,"V2"   ,"V3"   ,"F0"     ,"F1"     ,"F2"     ,"F3"     ,"VF0"     ,"VF1"     ,"VF2"     ,"VF3"     ,"VB0"     ,"VB1"     ,"VB2"     ,"VB3"     ,"WF"   ,"BF"       ,"SM"     ,"AN"     ,"PH"     ,"X"    ,"G"    };
+  const int nins_kind=32;
+  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , VPHOTON0 , VPHOTON1 , VPHOTON2 , VPHOTON3 , VBHOTON0 , VBHOTON1 , VBHOTON2 , VBHOTON3 , WFLOW , BACK_WFLOW , SMEARING , ANYSM , PHASING , EXT_FIELD , GAMMA , COLOR };
+  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , VPHOTON0 , VPHOTON1 , VPHOTON2 , VPHOTON3 , VBHOTON0 , VBHOTON1 , VBHOTON2 , VBHOTON3 , WFLOW , BACK_WFLOW , SMEARING, ANYSM, PHASING , EXT_FIELD , GAMMA , COLOR};
+  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE","CVEC","CVEC0","CVEC1","CVEC2","CVEC3","PHOTON0","PHOTON1","PHOTON2","PHOTON3","VPHOTON0","VPHOTON1","VPHOTON2","VPHOTON3","VBHOTON0","VBHOTON1","VBHOTON2","VBHOTON3","WFLOW","BACK_WFLOW","SMEARING","ANYSM","PHASING","EXT_FIELD","GAMMA","COLOR"};
+  const char ins_tag[nins_kind][INS_TAG_MAX_LENGTH+1]=    {"-"   ,"S"     ,"P"     ,"F"     ,"A"         ,"C"         ,"T"      ,"V"   ,"V0"   ,"V1"   ,"V2"   ,"V3"   ,"F0"     ,"F1"     ,"F2"     ,"F3"     ,"VF0"     ,"VF1"     ,"VF2"     ,"VF3"     ,"VB0"     ,"VB1"     ,"VB2"     ,"VB3"     ,"WF"   ,"BF"       ,"SM"     ,"AN"     ,"PH"     ,"X"    ,"G"    ,"COL"    };
   inline insertion_t ins_from_tag(const char *tag)
   {
     int i=0;
@@ -212,8 +211,28 @@ namespace nissa
   
   //number of hits
   EXTERN_PARS int nhits INIT_TO(1);
+  EXTERN_PARS int ncopies INIT_TO(1);
   inline void read_nhits()
-  {read_str_int("NHits",&nhits);}
+  {
+    char text[128];
+    read_str(text,128);
+    master_printf("Read %s",text);
+    if(strcasecmp(text,"NCopiesHits")==0)
+      {
+	read_int(&ncopies);
+	master_printf(" %d",ncopies);
+      }
+    else if(strcasecmp(text,"NHits")!=0)
+      crash("Expecting NCopiesHits of NHits");
+    
+    read_int(&nhits);
+    master_printf(" %d\n",nhits);
+    
+    if(ncopies<=0)
+      crash("nCopies must be a positive integer, %d unsupported",ncopies);
+    if(nhits<=0)
+      crash("nHits must be a positive integer, %d unsupported",nhits);
+  }
   
   //number of configurations
   inline void read_ngauge_conf()

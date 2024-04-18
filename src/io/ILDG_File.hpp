@@ -41,6 +41,7 @@ namespace nissa
 #endif
   
   EXTERN_ILDG int ignore_ILDG_magic_number INIT_TO(false);
+  EXTERN_ILDG int fast_read_write_vectors INIT_TO(false);
   
   //ILDG header
   struct ILDG_header
@@ -49,7 +50,7 @@ namespace nissa
     uint16_t version;
     uint16_t mbme_flag;
     uint64_t data_length;
-    char type[128];
+    char type[128]={};
   };
   
   //store messages

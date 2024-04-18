@@ -3,6 +3,7 @@
 
 #include <mpi.h>
 #include <algorithm>
+#include <string>
 
 #include "geometry/geometry_lx.hpp"
 #include "math_routines.hpp"
