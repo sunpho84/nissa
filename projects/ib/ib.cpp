@@ -349,7 +349,7 @@ void init_simulation(int narg,char **arg)
 	  if(Q.find(fullName)!=Q.end()) crash("name \'%s\' already included",fullName);
 	  
 	  Q[fullName].init_as_propagator(ins_from_tag(ins),source_full_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
-	  qprop_name_list[iq+nprops*icopy]=fullName;
+	  qprop_name_list[icopy+ncopies*iq]=fullName;
 	}
     }
   
