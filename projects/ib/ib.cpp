@@ -411,6 +411,98 @@ void init_simulation(int narg,char **arg)
   lock_file.init();
 }
 
+//carry out a single hit
+void hit_loop(int ihit)
+{
+  /// Store all the dependencies
+  std::map<std::string,std::set<std::string>> propDep;
+  
+  std::vector<std::string> oldDepInserted;
+  // Insert all contractions
+  for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
+    for(const std::string& p : {mes2pts_contr_map[icombo].a,mes2pts_contr_map[icombo].b})
+      {
+	propDep[p].insert("2pts_"+std::to_string(icombo));
+	oldDepInserted.push_back(p);
+      }
+  
+  /// Iterate until no more dependencies are found
+  while(oldDepInserted.size())
+    {
+      std::vector<std::string> newDepInserted;
+      for(const std::string& p : oldDepInserted)
+	for(const auto& [n,w] : Q[p].source_terms)
+	  {
+	    newDepInserted.push_back(n);
+	    propDep[n].insert(p);
+	  }
+      oldDepInserted=newDepInserted;
+    }
+  
+  // master_printf("Dependencies:\n");
+  // for(const auto& [n,d] : propDep)
+  //   for(const auto& p : d)
+  // 	master_printf("%s -> %s\n",n.c_str(),p.c_str());
+  
+  std::set<std::string> computedProps;
+  std::set<int> computed2pts;
+  
+  for(size_t i=0;i<qprop_name_list.size();i++)
+    if(propDep[qprop_name_list[i]].size()==0)
+      master_printf("Skipping generation of prop %s as it has no dependencies\n",qprop_name_list[i].c_str());
+    else
+      {
+	//get names
+	std::string name=qprop_name_list[i];
+	qprop_t &q=Q[name];
+	
+	generate_quark_propagator(name,q,ihit);
+	computedProps.insert(name);
+	
+	for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
+	  if(const std::string& a=mes2pts_contr_map[icombo].a,
+	     b=mes2pts_contr_map[icombo].b;
+	     computedProps.count(a) and
+	     computedProps.count(b) and
+	     computed2pts.count(icombo)==0)
+	    {
+	      master_printf("Can compute contraction: %s %s -> %s, %zu/%zu\n",
+			    a.c_str(),b.c_str(),mes2pts_contr_map[icombo].name.c_str(),computed2pts.size(),mes2pts_contr_map.size());
+	      
+	      // Insert the correlation in the computed list
+	      computed2pts.insert(icombo);
+	      
+	      // Compute the correlation
+	      compute_mes2pt_contr(icombo);
+	      
+	      // Remove the dependency from the 2pts of the props
+	      for(const std::string& p : {mes2pts_contr_map[icombo].a,mes2pts_contr_map[icombo].b})
+		propDep[p].erase("2pts_"+std::to_string(icombo));
+	    }
+	
+	// Remove the dependencies from all sources
+	for(const auto& [s,w] : q.source_terms)
+	  if(propDep[s].erase(name)!=1)
+	    crash("unable to remove the dependency %s of %s!",name.c_str(),s.c_str());
+	  else
+	    master_printf("%s dependency of %s removed\n",name.c_str(),s.c_str());
+	
+	// Freeing all possible props
+	for(const auto& l : {&qprop_name_list,&ori_source_name_list})
+	  for(const auto& s : *l)
+	    if(propDep[s].empty() and Q[s].sp)
+	      {
+		Q[s].free_storage();
+		
+		int nAll=0;
+		for(const auto& q : Q)
+		  nAll+=q.second.sp!=nullptr;
+		
+		master_printf("%s erased, remaining allocated: %d\n",s.c_str(),nAll);
+	      }
+      }
+}
+
 //close deallocating everything
 void close()
 {
@@ -463,9 +555,10 @@ void in_main(int narg,char **arg)
       for(int ihit=0;ihit<nhits;ihit++)
 	{
 	  start_hit(ihit);
-	  generate_propagators(ihit);
-	  compute_contractions();
-	  propagators_fft(ihit);
+	  
+	  hit_loop(ihit);
+	  compute_contractions(); //not working, here only to emit errors
+	  propagators_fft(ihit); // same
 	}
       
       free_confs();

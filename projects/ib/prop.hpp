@@ -4,7 +4,6 @@
 #include <set>
 
 #include "conf.hpp"
-#include "meslep.hpp"
 #include "pars.hpp"
 
 #ifndef EXTERN_PROP
@@ -177,9 +176,9 @@ namespace nissa
   void generate_original_sources(int ihit,bool skip_io=false);
   void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,bool *dirs);
   void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,bool *dirs,int loc);
+  void generate_quark_propagator(std::string& name,qprop_t& q,int ihit);
   void generate_photon_source(spin1field *photon_eta);
   void generate_source(insertion_t inser,int r,double charge,double kappa,const momentum_t& theta,spincolor *ori,int t);
-  void generate_quark_propagators(int isource);
   void generate_photon_stochastic_propagator(int ihit);
   //CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const momentum_t bc);
   void generate_lepton_propagators();
@@ -226,12 +225,6 @@ namespace nissa
 	  generate_photon_stochastic_propagator(ihit);
       }
     generate_original_sources(ihit,skip);
-  }
-  
-  inline void generate_propagators(int ihit)
-  {
-    if(nquark_lep_combos) generate_lepton_propagators();
-    generate_quark_propagators(ihit);
   }
   
   template <typename T>
