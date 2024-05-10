@@ -485,7 +485,7 @@ void hit_loop(int ihit)
 	  if(propDep[s].erase(name)!=1)
 	    crash("unable to remove the dependency %s of %s!",name.c_str(),s.c_str());
 	  else
-	    master_printf("%s dependency of %s removed\n",name.c_str(),s.c_str());
+	    master_printf("%s dependency of %s removed, %s has still %zu dependencies\n",name.c_str(),s.c_str(),s.c_str(),propDep[s].size());
 	
 	// Freeing all possible props
 	for(const auto& l : {&qprop_name_list,&ori_source_name_list})
