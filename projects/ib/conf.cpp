@@ -127,6 +127,9 @@ namespace nissa
     if(not inner_conf_valid)
       {
 	master_printf("Inner conf not valid: updating it\n");
+#ifdef USE_EXTERNAL_SOLVER
+	export_conf::export_bypass=export_conf::NO_BYPASS;
+#endif
 	
 	//copy
 	vector_copy(inner_conf,in_conf);
@@ -140,7 +143,12 @@ namespace nissa
 	if(charge) add_photon_field_to_conf(inner_conf,charge);
       }
     else
-      master_printf("Inner conf valid, no need to update\n");
+      {
+	master_printf("Inner conf valid, no need to update\n");
+#ifdef USE_EXTERNAL_SOLVER
+	export_conf::export_bypass=export_conf::AVOID_EXPORT;
+#endif
+      }
     
     //update value and set valid
     stored_conf=in_conf;
