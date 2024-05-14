@@ -662,7 +662,6 @@ namespace nissa
     else            master_printf(" kappa=%lg, theta={%lg,%lg,%lg}\n",q.kappa,q.theta[1],q.theta[2],q.theta[3]);
     
     //compute the inverse clover term, if needed
-#ifndef USE_EXTERNAL_SOLVER
     if(clover_run and q.insertion==PROP)
       {
 	static double m=0,k=0;
@@ -676,7 +675,6 @@ namespace nissa
 	    master_printf("Clover inverted in %lg s\n",take_time()-init_time);
 	  }
       }
-#endif
     
     //create the description of the source
     std::string source_descr;
