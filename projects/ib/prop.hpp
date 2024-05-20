@@ -1,6 +1,7 @@
 #ifndef _PROP_HPP
 #define _PROP_HPP
 
+#include <filesystem>
 #include <set>
 
 #include "conf.hpp"
@@ -251,6 +252,11 @@ namespace nissa
       fastFile=fopen(path.c_str(),mode);
       if(fastFile==nullptr)
 	crash("Unable to open path %s",path.c_str());
+    }
+    
+    void cleanFiles()
+    {
+      std::filesystem::remove(path);
     }
     
     void fastRead()

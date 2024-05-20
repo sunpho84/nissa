@@ -726,10 +726,14 @@ namespace nissa
 	      double testBeg=take_time();
 	      rwTest.fastWrite();
 	      double testInt=take_time();
-	      rwTest.fastWrite();
+	      rwTest.fastRead();
 	      double testEnd=take_time();
+	      rwTest.cleanFiles();
+	      double testEnd2=take_time();
+	      
 	      master_printf("Storing took: %lg s\n",testInt-testBeg);
 	      master_printf("Reading took: %lg s\n",testEnd-testInt);
+	      master_printf("Cleaning took: %lg s\n",testEnd2-testEnd);
 	      
 	      //and store if needed
 	      if(q.store)
