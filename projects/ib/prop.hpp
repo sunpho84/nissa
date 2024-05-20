@@ -284,22 +284,25 @@ namespace nissa
     {
       fastOpen("w");
       
-      size_t written=0;
-      bool seekingError=false;
-      const size_t totData=locVol*sizeof(T);
-#pragma omp parallel reduction(+:written) reduction(||:seekingError)
-      {
-	const size_t nThr=omp_get_num_threads();
-	const size_t iThr=omp_get_thread_num();
-	const size_t maxThrData=(totData+nThr-1)/nThr;
-	const size_t begData=maxThrData*iThr;
-	const size_t endData=std::min(begData+maxThrData,totData);
-	const size_t thrData=endData-begData;
-	seekingError|=fseek(fastFile,begData,SEEK_SET);
-	written+=fwrite(v,1,thrData,fastFile);
-      }
-      if(written!=totData or seekingError)
-	crash("Problem writing %s, total written: %zu when %zu expected, seek worked: %d",path.c_str(),written,totData,(int)seekingError);
+      if(fwrite(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
+	crash("Problem writing %s",path.c_str());
+      
+//       size_t written=0;
+//       bool seekingError=false;
+//       const size_t totData=locVol*sizeof(T);
+// #pragma omp parallel reduction(+:written) reduction(||:seekingError)
+//       {
+// 	const size_t nThr=omp_get_num_threads();
+// 	const size_t iThr=omp_get_thread_num();
+// 	const size_t maxThrData=(totData+nThr-1)/nThr;
+// 	const size_t begData=maxThrData*iThr;
+// 	const size_t endData=std::min(begData+maxThrData,totData);
+// 	const size_t thrData=endData-begData;
+// 	seekingError|=fseek(fastFile,begData,SEEK_SET);
+// 	written+=fwrite(v,1,thrData,fastFile);
+//       }
+//       if(written!=totData or seekingError)
+// 	crash("Problem writing %s, total written: %zu when %zu expected, seek worked: %d",path.c_str(),written,totData,(int)seekingError);
       
       fclose(fastFile);
     }
