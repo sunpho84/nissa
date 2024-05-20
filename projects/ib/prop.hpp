@@ -291,7 +291,7 @@ namespace nissa
       {
 	const size_t nThr=omp_get_num_threads();
 	const size_t iThr=omp_get_thread_num();
-	const size_t maxThrData=(v+nThr-1)/nThr;
+	const size_t maxThrData=(totData+nThr-1)/nThr;
 	const size_t begData=maxThrData*iThr;
 	const size_t endData=std::min(begData+maxThrData,totData);
 	const size_t thrData=endData-begData;
