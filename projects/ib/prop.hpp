@@ -253,21 +253,34 @@ namespace nissa
 	crash("Unable to open path %s",path.c_str());
     }
     
+    void fastRead()
+    {
+      fastOpen("r");
+      
+      if(fread(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
+	crash("Problem reading %s",path.c_str());
+      
+      fclose(fastFile);
+    }
+    
     void read()
     {
       master_printf("Reading %s\n",path.c_str());
       
       if(fast_read_write_vectors)
-	{
-	  fastOpen("r");
-	  
-	  if(fread(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
-	    crash("Problem reading %s",path.c_str());
-	  
-	  fclose(fastFile);
-	}
+	fastRead();
       else
 	read_real_vector(v,path,"scidac-binary-data");
+    }
+    
+    void fastWrite()
+    {
+      fastOpen("w");
+      
+      if(fwrite(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
+	crash("Problem writing %s",path.c_str());
+      
+      fclose(fastFile);
     }
     
     void write()
@@ -275,14 +288,7 @@ namespace nissa
       master_printf("Writing %s, %zu %p\n",path.c_str(),sizeof(T),v);
       
       if(fast_read_write_vectors)
-	{
-	  fastOpen("w");
-	  
-	  if(fwrite(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
-	    crash("Problem writing %s",path.c_str());
-	  
-	  fclose(fastFile);
-	}
+	fastWrite();
       else
 	write_real_vector(path,v,64,"scidac-binary-data");
     }
