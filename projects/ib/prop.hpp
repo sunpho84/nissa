@@ -251,7 +251,7 @@ namespace nissa
     {
       fastFile=fopen(path.c_str(),mode);
       if(fastFile==nullptr)
-	crash("Unable to open path %s",path.c_str());
+	crash("Unable to open path %s with mode %s",path.c_str(),mode);
     }
     
     void cleanFiles()
