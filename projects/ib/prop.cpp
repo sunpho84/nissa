@@ -727,13 +727,15 @@ namespace nissa
 	      
 	      rwTest.fastWrite();
 	      double testInt=take_time();
-	      ranks_barrier();
-	      master_printf("Storing took: %lg s\n",testInt-testBeg);
+	      checksum checkBeg{};
+	      checksum_compute_nissa_data(checkBeg,sol,sizeof(double)*8,sizeof(spincolor));
+	      printf("Storing took: %lg s. checksum %x %x\n",testInt-testBeg,checkBeg.data[0],checkBeg.data[1]);
 	      
 	      rwTest.fastRead();
 	      double testEnd=take_time();
-	      ranks_barrier();
-	      master_printf("Reading took: %lg s\n",testEnd-testInt);
+	      checksum checkEnd{};
+	      checksum_compute_nissa_data(checkEnd,sol,sizeof(double)*8,sizeof(spincolor));
+	      master_printf("Reading took: %lg s checksum %x %x\n",testEnd-testInt,checkEnd.data[0],checkEnd.data[1]);
 	      
 	      rwTest.cleanFiles();
 	      double testEnd2=take_time();
