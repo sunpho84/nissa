@@ -721,7 +721,7 @@ namespace nissa
 	      if(q.insertion==PROP) get_qprop(sol,loop_source,q.kappa,q.mass,q.r,q.charge,q.residue,q.theta);
 	      else                  vector_copy(sol,loop_source);
 	      
-	      ReadWriteRealVector<spincolor> rwTest(sol,path);
+	      ReadWriteRealVector<spincolor> rwTest(sol,path,true);
 	      
 	      double testBeg=take_time();
 	      

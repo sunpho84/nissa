@@ -233,12 +233,13 @@ namespace nissa
   {
     T* v;
     std::string path;
+    bool fast;
     FILE* fastFile;
     
-    ReadWriteRealVector(T* v,const std::string& _path) :
-      v(v),path(_path)
+    ReadWriteRealVector(T* v,const std::string& _path,const bool fast=fast_read_write_vectors) :
+      v(v),path(_path),fast(fast)
     {
-      if(fast_read_write_vectors)
+      if(fast)
 	path+="_rank"+std::to_string(rank);
     }
     
