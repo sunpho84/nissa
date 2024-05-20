@@ -729,7 +729,7 @@ namespace nissa
 	      double testInt=take_time();
 	      checksum checkBeg{};
 	      checksum_compute_nissa_data(checkBeg,sol,sizeof(double)*8,sizeof(spincolor));
-	      printf("Storing took: %lg s. checksum %x %x\n",testInt-testBeg,checkBeg.data[0],checkBeg.data[1]);
+	      master_printf("Storing took: %lg s. checksum %x %x\n",testInt-testBeg,checkBeg.data[0],checkBeg.data[1]);
 	      
 	      rwTest.fastRead();
 	      double testEnd=take_time();
