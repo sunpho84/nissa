@@ -411,96 +411,324 @@ void init_simulation(int narg,char **arg)
   lock_file.init();
 }
 
-//carry out a single hit
-void hit_loop(int ihit)
+struct HitLooper
 {
   /// Store all the dependencies
   std::map<std::string,std::set<std::string>> propDep;
   
   std::vector<std::string> oldDepInserted;
-  // Insert all contractions
-  for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
-    for(const std::string& p : {mes2pts_contr_map[icombo].a,mes2pts_contr_map[icombo].b})
-      {
-	propDep[p].insert("2pts_"+std::to_string(icombo));
-	oldDepInserted.push_back(p);
-      }
   
-  /// Iterate until no more dependencies are found
-  while(oldDepInserted.size())
-    {
-      std::vector<std::string> newDepInserted;
-      for(const std::string& p : oldDepInserted)
-	for(const auto& [n,w] : Q[p].source_terms)
-	  {
-	    newDepInserted.push_back(n);
-	    propDep[n].insert(p);
-	  }
-      oldDepInserted=newDepInserted;
-    }
-  
-  // master_printf("Dependencies:\n");
-  // for(const auto& [n,d] : propDep)
-  //   for(const auto& p : d)
-  // 	master_printf("%s -> %s\n",n.c_str(),p.c_str());
-  
+  /// List of computed propagators
   std::set<std::string> computedProps;
+  
+  /// List of computed 2pts
   std::set<int> computed2pts;
   
-  for(size_t i=0;i<qprop_name_list.size();i++)
-    if(propDep[qprop_name_list[i]].size()==0)
-      master_printf("Skipping generation of prop %s as it has no dependencies\n",qprop_name_list[i].c_str());
-    else
+  /// Ordered dependecies
+  std::vector<std::string> orderedDep;
+  
+  /// Number of passed dependencies
+  int nPassedDep=0;
+  
+  /// Number of propagators which have been offloaded
+  int nOffloaded=0;
+  
+  /// Number of propagators which have been recalled
+  int nRecalled=0;
+  
+  /// Propagator status
+  enum Status{NOT_COMPUTED,IN_MEMORY,OFFLOADED};
+  
+  /// Status of all propagators
+  std::map<std::string,Status> status;
+  
+  /// List of props which have been offloaded
+  std::set<std::string> offloadedList;
+  
+  enum ORE{OFFLOAD,RECALL,ERASE};
+  
+  /// Offload or recall individual propagators
+  void offloadRecallErase(const std::string& name,const ORE ore)
+  {
+    qprop_t& q=Q[name];
+    
+    if(ore==RECALL)
       {
-	//get names
-	std::string name=qprop_name_list[i];
-	qprop_t &q=Q[name];
+	if(status[name]!=OFFLOADED)
+	  crash("Asking to recall something not offloaded");
 	
-	generate_quark_propagator(name,q,ihit);
-	computedProps.insert(name);
-	
-	for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
-	  if(const std::string& a=mes2pts_contr_map[icombo].a,
-	     b=mes2pts_contr_map[icombo].b;
-	     computedProps.count(a) and
-	     computedProps.count(b) and
-	     computed2pts.count(icombo)==0)
-	    {
-	      master_printf("Can compute contraction: %s %s -> %s, %zu/%zu\n",
-			    a.c_str(),b.c_str(),mes2pts_contr_map[icombo].name.c_str(),computed2pts.size(),mes2pts_contr_map.size());
-	      
-	      // Insert the correlation in the computed list
-	      computed2pts.insert(icombo);
-	      
-	      // Compute the correlation
-	      compute_mes2pt_contr(icombo);
-	      
-	      // Remove the dependency from the 2pts of the props
-	      for(const std::string& p : {mes2pts_contr_map[icombo].a,mes2pts_contr_map[icombo].b})
-		propDep[p].erase("2pts_"+std::to_string(icombo));
-	    }
-	
-	// Remove the dependencies from all sources
-	for(const auto& [s,w] : q.source_terms)
-	  if(propDep[s].erase(name)!=1)
-	    crash("unable to remove the dependency %s of %s!",name.c_str(),s.c_str());
-	  else
-	    master_printf("%s dependency of %s removed, %s has still %zu dependencies\n",name.c_str(),s.c_str(),s.c_str(),propDep[s].size());
-	
-	// Freeing all possible props
-	for(const auto& l : {&qprop_name_list,&ori_source_name_list})
-	  for(const auto& s : *l)
-	    if(propDep[s].empty() and Q[s].sp)
-	      {
-		Q[s].free_storage();
-		
-		int nAll=0;
-		for(const auto& q : Q)
-		  nAll+=q.second.sp!=nullptr;
-		
-		master_printf("%s erased, remaining allocated: %d\n",s.c_str(),nAll);
-	      }
+	offloadIfNeededToAccommodate(1);
+	q.alloc_storage();
+	status[name]=IN_MEMORY;
+	nRecalled++;
       }
+    
+    double rwBeg=take_time();
+    for(int id_so=0;id_so<nso_spi;id_so++)
+      for(int ic_so=0;ic_so<nso_col;ic_so++)
+	{
+	  int isou=so_sp_col_ind(id_so,ic_so);
+	  spincolor *sol=q[isou];
+	  const std::string path=combine("%s/prop%s_idso%d_icso%d",outfolder,name.c_str(),id_so,ic_so);
+	  ReadWriteRealVector<spincolor> rwTest(sol,path,true);
+	  
+	  switch(ore)
+	    {
+	    case OFFLOAD:
+	      rwTest.fastWrite();
+	      break;
+	    case RECALL:
+	      rwTest.fastRead();
+	      break;
+	    case ERASE:
+	      rwTest.cleanFiles();
+	      break;
+	    }
+	}
+    const char tag[3][15]={"Offloading","Recalling","Erasing"};
+    master_printf("%s took: %lg s\n",tag[ore],take_time()-rwBeg);
+    
+    if(ore==OFFLOAD)
+      {
+	if(status[name]!=IN_MEMORY)
+	  crash("Asking to offload something not in memory");
+	
+	q.free_storage();
+	status[name]=OFFLOADED;
+	nOffloaded++;
+      }
+  }
+  
+  /// Erase all the propagators which are not needed
+  void eraseUnnededProps()
+  {
+    master_printf("Checking what can be erased\n");
+    
+    /// List of propagators to be erased
+    std::set<std::string> toErase;
+    for(const auto& [n,s] : status)
+      {
+	if(propDep[n].empty())
+	  {
+	    master_printf("Erasing %s\n",n.c_str());
+	    toErase.insert(n);
+	  }
+	else
+	  verbosity_lv3_master_printf("keeping %s as it has %zu deps, first is: %s\n",n.c_str(),propDep[n].size(),propDep[n].begin()->c_str());
+      }
+    
+    for(const auto& e : toErase)
+      {
+	status.erase(e);
+	
+	if(auto o=offloadedList.find(e);o!=offloadedList.end())
+	  {
+	    offloadedList.erase(o);
+	    offloadRecallErase(e,ERASE);
+	  }
+      }
+    
+    verbosity_lv2_master_printf("n Live props: %zu\n",status.size());
+    verbosity_lv2_master_printf("n offloaded props: %zu\n",offloadedList.size());
+  }
+  
+  /// Offload some propagators, to accommodate nToAccommodate more
+  void offloadIfNeededToAccommodate(const int nToAccommodate)
+  {
+    if(nMaxPropsAllocated==0)
+      return;
+    
+    /// Build the list of future dependencies
+    std::vector<std::pair<int,std::string>> futureDeps;
+    for(const auto& [s,n] : status)
+      if(n==1)
+	{
+	  size_t firstUsage=nPassedDep;
+	  while(firstUsage<orderedDep.size() and orderedDep[firstUsage]!=s)
+	    firstUsage++;
+	  
+	  if(firstUsage==orderedDep.size())
+	    crash("At nPassedDep %d unable to find the first usage for %s, why is it allocated?",nPassedDep,s.c_str());
+	  else
+	    futureDeps.emplace_back(firstUsage-nPassedDep,s);
+	}
+    
+    master_printf("futureDeps:\n");
+    for(const auto& [delay,name] : futureDeps)
+      master_printf(" %zu %s\n",delay,name.c_str());
+    
+    // \todo simplify
+    
+    int nLoaded=0;
+    for(const auto& s : status)
+      nLoaded+=(s.second==1);
+    verbosity_lv2_master_printf("n Loaded props: %zu\n",nLoaded);
+    
+    if((int)futureDeps.size()!=nLoaded)
+      crash("unmatched loaded and future deps, %d %zu",nLoaded,futureDeps.size());
+    
+    if(nLoaded+nToAccommodate>nMaxPropsAllocated)
+      master_printf("Needs to accommodate %d more props, but %d are loaded and max is %d, needs to offload %d\n",
+		    nToAccommodate,nLoaded,nMaxPropsAllocated,nLoaded+nToAccommodate-nMaxPropsAllocated);
+    
+    std::sort(futureDeps.begin(),futureDeps.end());
+    for(size_t i=nMaxPropsAllocated-nToAccommodate;i<futureDeps.size();i++)
+      {
+	const auto& [delay,name]=futureDeps[i];
+	if(delay==0)
+	  crash("Unable to offload %s which will be needed immediately!",name.c_str());
+	master_printf("Offloading %s which will be used in %d\n",name.c_str(),delay);
+	offloadRecallErase(name,OFFLOAD);
+	offloadedList.insert(name);
+      }
+  }
+  
+  /// Ensure that a prop is in memory
+  void ensureInMemory(const std::string& name)
+  {
+    if(status[name]==OFFLOADED)
+      {
+	master_printf("Recalling %s\n",name.c_str());
+	offloadRecallErase(name,RECALL);
+      }
+  }
+  
+  /// Perform one of step: dryRun, or eval
+  void run(const int runStep,const size_t iHit)
+  {
+    status.clear();
+    
+    /// Keep backup of the propagators dependencies
+    const std::map<std::string,std::set<std::string>> propDepBack=propDep;
+    
+    if(runStep==2)
+      for(const auto& s : ori_source_name_list)
+	status[s]=IN_MEMORY;
+    
+    for(size_t i=0;i<qprop_name_list.size();i++)
+      if(propDep[qprop_name_list[i]].size()==0)
+	master_printf("Skipping generation of prop %s as it has no dependencies\n",qprop_name_list[i].c_str());
+      else
+	{
+	  //get names
+	  std::string name=qprop_name_list[i];
+	  if(runStep==2)
+	    master_printf("Computing prop %s\n",name.c_str());
+	  
+	  qprop_t &q=Q[name];
+	  
+	  for(const auto& [name,w] : Q[name].source_terms)
+	    if(runStep==1)
+	      orderedDep.push_back(name);
+	    else
+	      ensureInMemory(name);
+	  
+	  if(runStep==2)
+	    {
+	      offloadIfNeededToAccommodate(1);
+	      generate_quark_propagator(name,q,iHit);
+	      status[name]=IN_MEMORY;
+	    }
+	  
+	  computedProps.insert(name);
+	  
+	  // Remove the dependencies from all sources
+	  for(const auto& [s,w] : q.source_terms)
+	    if(propDep[s].erase(name)!=1)
+	      crash("unable to remove the dependency %s of %s!",name.c_str(),s.c_str());
+	    else
+	      verbosity_lv2_master_printf("Erased dependency of %s from %s which has still %zu dependencies\n",name.c_str(),s.c_str(),propDep[s].size());
+	  
+	  if(runStep==2)
+	    {
+	      nPassedDep+=Q[name].source_terms.size();
+	      eraseUnnededProps();
+	    }
+	  
+	  for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
+	    if(const std::string& a=mes2pts_contr_map[icombo].a,
+	       b=mes2pts_contr_map[icombo].b;
+	       computedProps.count(a) and
+	       computedProps.count(b) and
+	       computed2pts.count(icombo)==0)
+	      {
+		if(runStep==2)
+		  master_printf("Can compute contraction: %s %s -> %s, %zu/%zu\n",
+			      a.c_str(),b.c_str(),mes2pts_contr_map[icombo].name.c_str(),computed2pts.size(),mes2pts_contr_map.size());
+		
+		// Insert the correlation in the computed list
+		computed2pts.insert(icombo);
+		
+		for(const std::string& p : {a,b})
+		  if(runStep==1)
+		    orderedDep.push_back(p);
+		  else
+		    ensureInMemory(p);
+		
+		// Compute the correlation function
+		if(runStep==2)
+		  compute_mes2pt_contr(icombo);
+		
+		// Remove the dependency from the 2pts of the props
+		for(const std::string& p : {a,b})
+		  propDep[p].erase("2pts_"+std::to_string(icombo));
+		
+		if(runStep==2)
+		  {
+		    eraseUnnededProps();
+		    nPassedDep+=2;
+		  }
+	      }
+	}
+    
+    computedProps.clear();
+    computed2pts.clear();
+    propDep=propDepBack;
+    offloadedList.clear();
+    
+    if(runStep==1)
+      {
+	for(const auto& s : orderedDep)
+	  verbosity_lv2_master_printf("  %s\n",s.c_str());
+	verbosity_lv2_master_printf("Dependencies end\n");
+      }
+  }
+  
+  /// Constructor
+  HitLooper()
+  {
+    // Insert all contractions
+    for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
+      for(const std::string& p : {mes2pts_contr_map[icombo].a,mes2pts_contr_map[icombo].b})
+	{
+	  propDep[p].insert("2pts_"+std::to_string(icombo));
+	  oldDepInserted.push_back(p);
+	}
+    
+    /// Iterate until no more dependencies are found
+    while(oldDepInserted.size())
+      {
+	std::vector<std::string> newDepInserted;
+	for(const std::string& p : oldDepInserted)
+	  for(const auto& [n,w] : Q[p].source_terms)
+	    {
+	      newDepInserted.push_back(n);
+	      propDep[n].insert(p);
+	    }
+	oldDepInserted=newDepInserted;
+      }
+  }
+};
+
+//carry out a single hit
+void hit_loop(int iHit)
+{
+  HitLooper hitLooper;
+  for(int runStep=1;runStep<=2;runStep++)
+    hitLooper.run(runStep,iHit);
+  
+  master_printf("NOffloaded: %d\n",hitLooper.nOffloaded);
+  master_printf("NRecalled: %d\n",hitLooper.nRecalled);
 }
 
 //close deallocating everything
@@ -547,6 +775,18 @@ void in_main(int narg,char **arg)
   
   //init simulation according to input file
   init_simulation(narg,arg);
+  
+  constexpr char NMAX_PROPS_ALLOCATED_STR[]="NMAX_PROPS_ALLOCATED";
+  if(const char* nMaxAllocatedStr=getenv(NMAX_PROPS_ALLOCATED_STR))
+    {
+      nMaxPropsAllocated=atoi(nMaxAllocatedStr);
+      master_printf("NMAX_PROPS_ALLOCATED=%d\n",nMaxPropsAllocated);
+    }
+  else
+    {
+      master_printf("No maximum number of propagators to be allocated passed\n");
+      master_printf("Optionally specify the maximal number of propagators to be allocated by exporting %s\n",NMAX_PROPS_ALLOCATED_STR);
+    }
   
   //loop over the configs
   int iconf=0;
