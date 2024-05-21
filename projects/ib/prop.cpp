@@ -596,7 +596,6 @@ namespace nissa
   //Generate all the original sources
   void generate_original_sources(int ihit,bool skipOnly)
   {
-    
     for(size_t i=0;i<ori_source_name_list.size();i++)
       {
 	std::string &name=ori_source_name_list[i];
