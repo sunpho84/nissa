@@ -66,7 +66,9 @@ namespace nissa
     if(not free_theory)
       {
 	START_TIMING(conf_load_time,nconf_load);
+	const double beg=take_time();
 	read_ildg_gauge_conf(conf,conf_path);
+	master_printf("Full loading took %lg s\n",take_time()-beg);
 	STOP_TIMING(conf_load_time);
 	master_printf("plaq: %+16.16g\n",global_plaquette_lx_conf(conf));
       }
