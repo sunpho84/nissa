@@ -553,9 +553,9 @@ struct HitLooper
 	    futureDeps.emplace_back(firstUsage-nPassedDep,s);
 	}
     
-    master_printf("futureDeps:\n");
+    verbosity_lv2_master_printf("futureDeps:\n");
     for(const auto& [delay,name] : futureDeps)
-      master_printf(" %zu %s\n",delay,name.c_str());
+      verbosity_lv2_master_printf(" %zu %s\n",delay,name.c_str());
     
     // \todo simplify
     
@@ -567,9 +567,8 @@ struct HitLooper
     if((int)futureDeps.size()!=nLoaded)
       crash("unmatched loaded and future deps, %d %zu",nLoaded,futureDeps.size());
     
-    if(nLoaded+nToAccommodate>nMaxPropsAllocated)
-      master_printf("Needs to accommodate %d more props, but %d are loaded and max is %d, needs to offload %d\n",
-		    nToAccommodate,nLoaded,nMaxPropsAllocated,nLoaded+nToAccommodate-nMaxPropsAllocated);
+    master_printf("Needs to accommodate %d more props, %d are loaded and max is %d, needs to offload %d\n",
+		  nToAccommodate,nLoaded,nMaxPropsAllocated,nLoaded+nToAccommodate-nMaxPropsAllocated);
     
     std::sort(futureDeps.begin(),futureDeps.end());
     for(size_t i=nMaxPropsAllocated-nToAccommodate;i<futureDeps.size();i++)
