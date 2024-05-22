@@ -492,8 +492,11 @@ struct HitLooper
       {
 	if(status[name]!=IN_MEMORY)
 	  crash("Asking to offload something not in memory");
-	
-	q.free_storage();
+
+        const int64_t pre=required_memory;
+        q.free_storage();
+        const int64_t aft=required_memory;
+	master_printf("Freed after offloading, memory before: %ld bytes, after: %ld bytes\n",pre,aft);
 	status[name]=OFFLOADED;
 	nOffloaded++;
       }
