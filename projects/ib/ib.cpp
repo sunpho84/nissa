@@ -524,17 +524,19 @@ struct HitLooper
       {
 	status.erase(e);
 	Q[e].free_storage();
+	master_printf("%s freed\n",e.c_str());
 	
 	// Phyiscally remove from disk
 	if(auto o=offloadedList.find(e);o!=offloadedList.end())
 	  {
+	    master_printf("%s can be deleted from disk\n",e.c_str());
 	    offloadedList.erase(o);
 	    offloadRecallDelete(e,DELETE);
 	  }
       }
     
-    verbosity_lv2_master_printf("n Live props: %zu\n",status.size());
-    verbosity_lv2_master_printf("n offloaded props: %zu\n",offloadedList.size());
+    master_printf("n Live props: %zu\n",status.size());
+    master_printf("n offloaded props: %zu\n",offloadedList.size());
   }
   
   /// Offload some propagators, to accommodate nToAccommodate more
