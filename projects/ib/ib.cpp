@@ -468,7 +468,9 @@ struct HitLooper
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
 	  int isou=so_sp_col_ind(id_so,ic_so);
-	  spincolor *sol=q[isou];
+	  spincolor *sol=nullptr;
+	  if(ord!=DELETE)
+	    sol=q[isou];
 	  const std::string path=combine("%s/prop%s_idso%d_icso%d",outfolder,name.c_str(),id_so,ic_so);
 	  ReadWriteRealVector<spincolor> rwTest(sol,path,true);
 	  
