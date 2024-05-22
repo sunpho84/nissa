@@ -445,14 +445,14 @@ struct HitLooper
   /// List of props which have been offloaded
   std::set<std::string> offloadedList;
   
-  enum ORE{OFFLOAD,RECALL,ERASE};
+  enum ORD{OFFLOAD,RECALL,DELETE};
   
-  /// Offload or recall individual propagators
-  void offloadRecallErase(const std::string& name,const ORE ore)
+  /// Offload, recall or delete individual propagators
+  void offloadRecallDelete(const std::string& name,const ORD ord)
   {
     qprop_t& q=Q[name];
     
-    if(ore==RECALL)
+    if(ord==RECALL)
       {
 	if(status[name]!=OFFLOADED)
 	  crash("Asking to recall something not offloaded");
@@ -472,7 +472,7 @@ struct HitLooper
 	  const std::string path=combine("%s/prop%s_idso%d_icso%d",outfolder,name.c_str(),id_so,ic_so);
 	  ReadWriteRealVector<spincolor> rwTest(sol,path,true);
 	  
-	  switch(ore)
+	  switch(ord)
 	    {
 	    case OFFLOAD:
 	      rwTest.fastWrite();
@@ -480,19 +480,19 @@ struct HitLooper
 	    case RECALL:
 	      rwTest.fastRead();
 	      break;
-	    case ERASE:
+	    case DELETE:
 	      rwTest.cleanFiles();
 	      break;
 	    }
 	}
     const char tag[3][15]={"Offloading","Recalling","Erasing"};
-    master_printf("%s took: %lg s\n",tag[ore],take_time()-rwBeg);
+    master_printf("%s took: %lg s\n",tag[ord],take_time()-rwBeg);
     
-    if(ore==OFFLOAD)
+    if(ord==OFFLOAD)
       {
 	if(status[name]!=IN_MEMORY)
 	  crash("Asking to offload something not in memory");
-
+	
         const int64_t pre=required_memory;
         q.free_storage();
         const int64_t aft=required_memory;
@@ -523,11 +523,13 @@ struct HitLooper
     for(const auto& e : toErase)
       {
 	status.erase(e);
+	Q[e].free_storage();
 	
+	// Phyiscally remove from disk
 	if(auto o=offloadedList.find(e);o!=offloadedList.end())
 	  {
 	    offloadedList.erase(o);
-	    offloadRecallErase(e,ERASE);
+	    offloadRecallDelete(e,DELETE);
 	  }
       }
     
@@ -580,7 +582,7 @@ struct HitLooper
 	if(delay==0)
 	  crash("Unable to offload %s which will be needed immediately!",name.c_str());
 	master_printf("Offloading %s which will be used in %d\n",name.c_str(),delay);
-	offloadRecallErase(name,OFFLOAD);
+	offloadRecallDelete(name,OFFLOAD);
 	offloadedList.insert(name);
       }
   }
@@ -591,7 +593,7 @@ struct HitLooper
     if(status[name]==OFFLOADED)
       {
 	master_printf("Recalling %s\n",name.c_str());
-	offloadRecallErase(name,RECALL);
+	offloadRecallDelete(name,RECALL);
       }
   }
   
