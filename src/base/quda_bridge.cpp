@@ -822,15 +822,16 @@ namespace quda_iface
 	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
 	
 	using namespace nissa::Robbery;
-	quda::multigrid_solver* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner); ///entire MG preconditioner
-	quda::MGParam* mgLevParam=cur->mgParam;
+	quda::MG* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner)->mg; ///entire MG preconditioner
 	int lev=0;
-	while(mgLevParam!=nullptr)
+	while(cur!=nullptr)
 	  {
-	    const size_t nB=cur->B.size();
+	    quda::MGParam* mgLevParam=cur->*get(Shadower<quda::MG,param_coarse>());
+	    const size_t nB=mgLevParam->B.size();
 	    master_printf("n of B at lev[%d]: %d\n",lev,nB);
+	    cur=cur->*get(Shadower<quda::MG,coarse>());
 	    
-	    mgLevParam=mgLevParam->coarse->*get(Shadower<quda::MG,param_coarse>());
+	    //mgLevParam=mgLevParam->coarse->*get(Shadower<quda::MG,param_coarse>());
 	    lev++;
 	  }
 	
