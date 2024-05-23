@@ -702,8 +702,9 @@ namespace quda_iface
 	    quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    quda_mg_param.setup_location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    
-	    strcpy(quda_mg_param.vec_outfile[level],"");
-	    quda_mg_param.vec_store[level]=QUDA_BOOLEAN_TRUE;
+	    // strcpy(quda_mg_param.vec_outfile[level],"");
+	    
+	    // quda_mg_param.vec_store[level]=QUDA_BOOLEAN_TRUE;
 	    quda_mg_param.preserve_deflation=QUDA_BOOLEAN_FALSE;
 	    quda_mg_param.smoother[level]=(level+1==nlevels)?QUDA_MR_INVERTER:QUDA_CA_GCR_INVERTER;
 	    quda_mg_param.smoother_tol[level]=nissa::multiGrid::smoother_tol[level];                 //Suggest setting each level to 0.25
@@ -819,6 +820,20 @@ namespace quda_iface
 	
 	master_printf("mg setup due:\n");
 	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
+	
+	using namespace nissa::Robbery;
+	quda::multigrid_solver* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner); ///entire MG preconditioner
+	quda::MGParam* mgLevParam=cur->mgParam;
+	int lev=0;
+	while(mgLevParam!=nullptr)
+	  {
+	    const size_t nB=cur->B.size();
+	    master_printf("n of B at lev[%d]: %d\n",lev,nB);
+	    
+	    mgLevParam=mgLevParam->coarse->*get(Shadower<quda::MG,param_coarse>());
+	    lev++;
+	  }
+	
 	master_printf("mg setup done!\n");
 	
 	setup_valid=true;

@@ -20,6 +20,19 @@
  #define INIT_QUDA_BRIDGE_TO(cond) cond
 #endif
 
+#ifdef USE_QUDA
+namespace nissa
+{
+  namespace Robbery
+  {
+    enum ROB_MG{param_coarse};
+    
+    /// Allow to rob the param_coarse
+    template struct Rob<param_coarse,quda::MG,&quda::MG::param_coarse>;
+  }
+}
+#endif
+
 namespace quda_iface
 {
   using su3_ptr=nissa::su3*;
