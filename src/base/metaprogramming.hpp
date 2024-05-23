@@ -327,6 +327,38 @@ namespace nissa
   template <typename TupleToSearch,
 	    typename TupleBeingSearched>
   using TupleCommonTypes=TupleFilter<TypeIsInList<1,TupleToSearch>::template t,TupleBeingSearched>;
+  
+  namespace Robbery
+  {
+    /// Returns the shadow pointer
+    template <typename T,
+	      const int Tag>
+    struct Shadower
+    {
+      typedef T* T::*type;
+      
+#if (defined(__GNUC__) && !defined(__clang__))
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnon-template-friend"
+#endif
+      friend auto get(Shadower<T,Tag>);
+#if (defined(__GNUC__) && !defined(__clang__))
+#pragma GCC diagnostic pop
+#endif
+    };
+    
+    /// Performs robbery
+    template<const int TagName,
+	     typename T,
+	     auto M>
+    struct Rob
+    {
+      friend auto get(Shadower<T,TagName>)
+      {
+	return M;
+      }
+    };
+  }
 }
 
 #endif
