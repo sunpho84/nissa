@@ -692,7 +692,7 @@ namespace quda_iface
 	    quda_mg_param.coarse_solver_tol[level]=nissa::multiGrid::coarse_solver_tol[level];          //Suggest setting each level to 0.25
 	    quda_mg_param.coarse_solver_maxiter[level]=nissa::multiGrid::coarse_solver_maxiter[level];//(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
 	    quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
-	    quda_mg_param.n_vec[level]=(level==1)?32:24;          //24 or 32 is supported presently
+	    quda_mg_param.n_vec[level]=(level>=1)?32:24;          //24 or 32 is supported presently
 	    quda_mg_param.nu_pre[level]=nissa::multiGrid::nu_pre[level];            //Suggest setting to 0
 	    quda_mg_param.nu_post[level]=nissa::multiGrid::nu_post[level];          //Suggest setting to 8
 	    
