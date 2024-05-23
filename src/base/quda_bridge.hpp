@@ -7,6 +7,7 @@
 
 #ifdef USE_QUDA
 # include <quda.h>
+# include <multigrid.h>
 #endif
 
 #include "base/multiGridParams.hpp"
