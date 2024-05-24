@@ -702,9 +702,13 @@ namespace quda_iface
 	    quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    quda_mg_param.setup_location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    
-	    // strcpy(quda_mg_param.vec_outfile[level],"");
+	    const char TEST_STORING_V[]="TEST_STORING_V";
+	    if(getenv(TEST_STORING_V)!=nullptr)
+	      {
+		strcpy(quda_mg_param.vec_outfile[level],"");
+		quda_mg_param.vec_store[level]=QUDA_BOOLEAN_TRUE;
+	      }
 	    
-	    // quda_mg_param.vec_store[level]=QUDA_BOOLEAN_TRUE;
 	    quda_mg_param.preserve_deflation=QUDA_BOOLEAN_FALSE;
 	    quda_mg_param.smoother[level]=(level+1==nlevels)?QUDA_MR_INVERTER:QUDA_CA_GCR_INVERTER;
 	    quda_mg_param.smoother_tol[level]=nissa::multiGrid::smoother_tol[level];                 //Suggest setting each level to 0.25
