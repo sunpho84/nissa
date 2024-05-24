@@ -569,7 +569,7 @@ namespace quda_iface
 	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
 	inv_param.solve_type=QUDA_DIRECT_PC_SOLVE;
 #ifndef DYNAMIC_CLOVER
-# error Please compile quda with DYNAMIC_CLOVER switched on
+# warning Please compile quda with DYNAMIC_CLOVER switched on
 #endif
 	
 	inv_param.omega=1.0;
@@ -821,18 +821,22 @@ namespace quda_iface
 	master_printf("mg setup due:\n");
 	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
 	
-	using namespace nissa::Robbery;
-	quda::MG* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner)->mg; ///entire MG preconditioner
-	int lev=0;
-	while(cur!=nullptr)
+	const char QUDA_DEBUG_EV[]="QUDA_DEBUG_EV";
+	if(getenv(QUDA_DEBUG_EV)!=nullptr)
 	  {
-	    quda::MGParam* mgLevParam=cur->*get(Shadower<quda::MG,param_coarse>());
-	    const size_t nB=mgLevParam->B.size();
-	    master_printf("n of B at lev[%d]: %d\n",lev,nB);
-	    cur=cur->*get(Shadower<quda::MG,coarse>());
-	    
-	    //mgLevParam=mgLevParam->coarse->*get(Shadower<quda::MG,param_coarse>());
-	    lev++;
+	    using namespace nissa::Robbery;
+	    quda::MG* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner)->mg; ///entire MG preconditioner
+	    int lev=0;
+	    while(cur!=nullptr)
+	      {
+		quda::MGParam* mgLevParam=cur->*get(Shadower<quda::MG,param_coarse>());
+		const size_t nB=mgLevParam->B.size();
+		master_printf("n of B at lev[%d]: %d\n",lev,nB);
+		cur=cur->*get(Shadower<quda::MG,coarse>());
+		
+		//mgLevParam=mgLevParam->coarse->*get(Shadower<quda::MG,param_coarse>());
+		lev++;
+	      }
 	  }
 	
 	master_printf("mg setup done!\n");
