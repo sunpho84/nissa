@@ -1,0 +1,704 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+\usepackage{slashed}
+\renewcommand\[{\begin{equation}}
+\renewcommand\]{\end{equation}}
+\usepackage{skull} 
+\usepackage{emerald}
+\input Starburst.fd
+\newcommand*\initfamily{\usefont{U}{Starburst}{xl}{n}}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2cm
+\topmargin 2cm
+\rightmargin 2cm
+\bottommargin 2cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Oet for single traces
+\end_layout
+
+\begin_layout Section
+Basic relations of the Dirac operator
+\end_layout
+
+\begin_layout Standard
+In twisted basis the Dirac operators obeys the relation:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+M_{u}-M_{d}=2\mu i\gamma_{5}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Multiplying from the left by the inverse of the Dirac operator of the up
+ quark, and from the right by the down one, one gets 
+\begin_inset Formula 
+\[
+M_{d}^{-1}-M_{u}^{-1}=2\mu iM_{u}^{-1}\gamma_{5}M_{d}^{-1},
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now rotating to physical basis:
+\begin_inset Formula 
+\[
+e^{i\pi\gamma_{5}/4}S_{d}^{-1}e^{i\pi\gamma_{5}/4}-e^{-i\pi\gamma_{5}/4}S_{u}^{-1}e^{-i\pi\gamma_{5}/4}=2\mu ie^{-i\pi\gamma_{5}/4}S_{u}^{-1}\gamma_{5}S_{d}^{-1}e^{i\pi\gamma_{5}/4},
+\]
+
+\end_inset
+
+which means
+\begin_inset Formula 
+\[
+S_{d}^{-1}e^{i\pi\gamma_{5}/2}-e^{-i\pi\gamma_{5}/2}S_{u}^{-1}=2\mu ie^{-i\pi\gamma_{5}/2}S_{u}^{-1}\gamma_{5}S_{d}^{-1}e^{i\pi\gamma_{5}/2},
+\]
+
+\end_inset
+
+remembering that 
+\begin_inset Formula $e^{\pm i\pi\gamma_{5}/2}=\pm i\gamma_{5}$
+\end_inset
+
+,
+\begin_inset Formula 
+\[
+S_{d}^{-1}\gamma_{5}+\gamma_{5}S_{u}^{-1}=2\mu\gamma_{5}S_{u}^{-1}\gamma_{5}S_{d}^{-1}\gamma_{5},
+\]
+
+\end_inset
+
+multiplying by 
+\begin_inset Formula $\gamma_{5}$
+\end_inset
+
+ from the right one gets:
+\begin_inset Formula 
+\[
+S_{d}^{-1}+\gamma_{5}S_{u}^{-1}\gamma_{5}=2\mu\gamma_{5}S_{u}^{-1}\gamma_{5}S_{d}^{-1}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Application to the single trace
+\end_layout
+
+\begin_layout Standard
+Taking the trace with a certain 
+\begin_inset Formula $\Gamma$
+\end_inset
+
+,
+\begin_inset Formula 
+\[
+{\rm Tr}\left[\Gamma S_{d}^{-1}\pm\Gamma S_{u}^{-1}\right]=2\mu{\rm Tr}\left[\Gamma\gamma_{5}S_{u}^{-1}\gamma_{5}S_{d}^{-1}\right],
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $+$
+\end_inset
+
+(-) must be taken if 
+\begin_inset Formula $\Gamma$
+\end_inset
+
+ commutes (anticommutes) with 
+\begin_inset Formula $\gamma_{5}$
+\end_inset
+
+, which means:
+\begin_inset Formula 
+\[
+\begin{array}{cccccccccccccccc}
+S & V_{x} & V_{y} & V_{z} & V_{t} & P & A_{x} & A_{y} & A_{z} & A_{t} & T_{1} & T_{2} & T_{3} & B_{1} & B_{2} & B_{3}\\
++ & - & - & - & - & + & - & - & - & - & + & + & + & + & + & +
+\end{array}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+So if we are interested in computing the sum, which is the physically-meaningful
+ quantity, we can apply the method only to 
+\begin_inset Formula 
+\[
+S,\,P,\,T,\,B
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+What does it mean?
+\end_layout
+
+\begin_layout Standard
+Remembering that: 
+\begin_inset Formula 
+\[
+\pm{\rm Tr}\left[\Gamma S_{u}^{-1}\right]={\rm Tr}\left[\gamma_{5}\Gamma\gamma_{5}S_{u}^{-1}\right]={\rm Tr}\left[\Gamma\gamma_{5}S_{u}^{-1}\gamma_{5}\right]={\rm Tr}\left[\Gamma\left(S_{d}^{-1}\right)^{\dagger}\right]=\pm^{\prime}{\rm Tr}\left[\Gamma^{\dagger}\left(S_{d}^{-1}\right)^{\dagger}\right]=\pm^{\prime}{\rm Tr}\left[\Gamma S_{d}^{-1}\right]^{\ast}
+\]
+
+\end_inset
+
+one has
+\begin_inset Formula 
+\[
+{\rm Tr}\left[\Gamma S_{d}^{-1}\pm\Gamma S_{u}^{-1}\right]={\rm Tr}\left[\Gamma S_{d}^{-1}\right]\pm^{\prime}{\rm Tr}\left[\Gamma S_{d}^{-1}\right]^{\ast}=2{\rm Re}/{\rm Im}{\rm Tr}\left[\Gamma S_{d}^{-1}\right]
+\]
+
+\end_inset
+
+where the imaginary part holds if 
+\begin_inset Formula $\Gamma$
+\end_inset
+
+ is antihermitean, as per the following table:
+\begin_inset Formula 
+\[
+\begin{array}{cccccccccccccccc}
+S & V_{x} & V_{y} & V_{z} & V_{t} & P & A_{x} & A_{y} & A_{z} & A_{t} & T_{1} & T_{2} & T_{3} & B_{1} & B_{2} & B_{3}\\
+Re & Re & Re & Re & Re & Re & Im & Im & Im & Im & Im & Im & Im & Im & Im & Im
+\end{array}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Hence, the OET is actually 
+\bar under
+a trick to compute the real part, or the imaginary
+\bar default
+, but not both.
+ This relation holds no matter the regularization! It is true also in Wilson
+ regularization, where it simply reads:
+\begin_inset Formula 
+\[
+{\rm Re}/{\rm Im}{\rm Tr}\left[\Gamma S^{-1}\right]=\mu{\rm Tr}\left[\Gamma\gamma_{5}S^{-1}\gamma_{5}S^{-1}\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Physically, one has
+\begin_inset Formula 
+\[
+{\rm Tr}\left[\Gamma S_{r}^{-1}\left(x,x\right)\right]^{\ast}={\rm Tr}\left[\Gamma^{\dagger}S_{r}^{-1}\left(x,x\right)^{\dagger}\right]=\pm\pm^{\prime}{\rm Tr}\left[\Gamma S_{-r}^{-1}\left(x,x\right)\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now since the value of 
+\begin_inset Formula $r$
+\end_inset
+
+ is immaterial in the physical world, the trace is real or imaginary depending
+ on its commutation with 
+\begin_inset Formula $\gamma_{5}$
+\end_inset
+
+ and hermiticity, according to the following relation
+\begin_inset Formula 
+\[
+\begin{array}{cccccccccccccccc}
+S & V_{x} & V_{y} & V_{z} & V_{t} & P & A_{x} & A_{y} & A_{z} & A_{t} & T_{1} & T_{2} & T_{3} & B_{1} & B_{2} & B_{3}\\
+Re & Im & Im & Im & Im & Re & Re & Re & Re & Re & Im & Im & Im & Im & Im & Im
+\end{array}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Combining this with the previous table, one reads immediately that the method
+ allows one to compute only the physical part of the following bubbles:
+\begin_inset Formula 
+\[
+S,\,P,\,T,\,B
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Why is this supposedly better?
+\end_layout
+
+\begin_layout Standard
+Ok we have understood that writing 
+\begin_inset Formula 
+\[
+C_{\Gamma}\left(t\right)\equiv\mu{\rm Tr}\sum_{\vec{x},y}\left[\Gamma\gamma_{5}S_{u}^{-1}\left(\vec{x},t;y\right)\gamma_{5}S_{d}^{-1}\left(y;\vec{x},t\right)\right],
+\]
+
+\end_inset
+
+is equivalent to 
+\begin_inset Formula 
+\[
+D_{\Gamma}\left(t\right)\equiv{\rm Tr}\sum_{\vec{x}}\left[\Gamma S_{d/u}^{-1}\left(\vec{x},t;\vec{x},t\right)\right],
+\]
+
+\end_inset
+
+for 
+\begin_inset Formula $\Gamma\in\left\{ S,\,P,\,T,\,B\right\} $
+\end_inset
+
+.
+ Since this is an analytical property, it is hard to understand why this
+ should be better.
+ It is actually possible to evaluate 
+\begin_inset Formula $C_{\Gamma}\left(t\right)$
+\end_inset
+
+ and 
+\begin_inset Formula $D_{\Gamma}\left(t\right)$
+\end_inset
+
+ in two different ways.
+ One can either create a volume source 
+\begin_inset Formula $\eta\left(x\right)$
+\end_inset
+
+ or a wall source 
+\begin_inset Formula $\eta_{t}\left(x\right)=\eta\left(x\right)\delta_{x_{0},t}$
+\end_inset
+
+.
+ For the time being we focus on the volume source.
+\end_layout
+
+\begin_layout Standard
+One defines the stochastic propagator: 
+\begin_inset Formula 
+\[
+\phi\left(x\right)=S_{u}^{-1}\left(x;y\right)\eta\left(y\right),
+\]
+
+\end_inset
+
+then one get the estimate of 
+\begin_inset Formula $D_{\Gamma}\left(t\right)$
+\end_inset
+
+ as:
+\begin_inset Formula 
+\[
+d_{\Gamma}\left(t\right)\equiv\sum_{\vec{x}}\eta^{\dagger}\left(\vec{x},t\right)\Gamma\phi\left(\vec{x},t\right),
+\]
+
+\end_inset
+
+in facts it is easy to see that the expectation value is
+\begin_inset Formula 
+\[
+\left\langle d_{\Gamma}\left(t\right)\right\rangle =\sum_{\vec{x},y}\left\langle \eta^{\dagger}\left(\vec{x},t\right)\Gamma S_{u}^{-1}\left(x;y\right)\eta\left(y\right)\right\rangle =\sum_{\vec{x}}{\rm Tr}\left[\Gamma S_{u}^{-1}\left(\vec{x},t;\vec{x},t\right)\right].
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+When it comes to 
+\begin_inset Formula $C_{\Gamma}\left(t\right)$
+\end_inset
+
+ one can use the following estimator:
+\begin_inset Formula 
+\[
+c_{\Gamma}\left(t\right)\equiv\mu\sum_{\vec{x}}\left[\phi^{\dagger}\left(\vec{x},t\right)\Gamma\phi\left(\vec{x},t\right)\right],
+\]
+
+\end_inset
+
+which has the correct expectation value since
+\begin_inset Formula 
+\begin{align*}
+\left\langle c_{\Gamma}\left(t\right)\right\rangle  & =\mu\sum_{\vec{x},y,z}\left[\eta^{\dagger}\left(z\right)S_{u}^{-1}\left(\vec{x},t;z\right)^{\dagger}\Gamma S_{u}^{-1}\left(\vec{x},t;y\right)\eta\left(y\right)\right]=,\\
+ & =\mu{\rm Tr}\sum_{\vec{x},y}\left[\gamma_{5}S_{d}^{-1}\left(y;\vec{x},t\right)\gamma_{5}\Gamma S_{u}^{-1}\left(\vec{x},t;y\right)\right],
+\end{align*}
+
+\end_inset
+
+which is what needed.
+ Since in both cases we have used 1 stochastic propagator, it is not clear
+ what is the advantage.
+ To understand it, we should estimate the variance.
+ We should notice that introducing the stochastic source is equivalent to
+ reintroduce the quark fields (with bosonic statistics).
+ Let us start from the disconnected version:
+\begin_inset Formula 
+\[
+\sigma^{2}d_{\Gamma}\left(t\right)=\left\langle \left|d_{\Gamma}\left(t\right)\right|^{2}\right\rangle -\left|\left\langle d_{\Gamma}\left(t\right)\right\rangle \right|^{2}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left\langle \left|d_{\Gamma}\left(t\right)\right|^{2}\right\rangle =\left\langle d_{\Gamma}\left(t\right)d_{\Gamma}^{\ast}\left(t\right)\right\rangle =\sum_{\vec{x},\vec{y}}\left\langle {\rm Tr}\left[\eta^{\dagger}\left(\vec{x},t\right)\Gamma\phi\left(\vec{x},t\right)\right]{\rm Tr}\left[\phi^{\dagger}\left(\vec{y},t\right)\Gamma^{\dagger}\eta\left(\vec{y},t\right)\right]\right\rangle =
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+=\sum_{\vec{x},\vec{y},z,w}\left\langle \eta^{\dagger}\left(\vec{x},t\right)\Gamma S_{u}^{-1}\left(\vec{x},t;z\right)\eta\left(z\right)\eta^{\dagger}\left(w\right)S_{u}^{-1\dagger}\left(\vec{y},tw;\right)\Gamma^{\dagger}\eta\left(\vec{y},t\right)\right\rangle .
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If 
+\begin_inset Formula $\left\langle \prod_{i=1}^{N}\eta\left(x_{i}\right)\right\rangle =0$
+\end_inset
+
+ for each value of 
+\begin_inset Formula $N$
+\end_inset
+
+, as is the case of gaussian noise, the only contractions are:
+\begin_inset Formula 
+\begin{align*}
+\left\langle \left|d_{\Gamma}\left(t\right)\right|^{2}\right\rangle  & =\left|{\rm Tr}\left[\Gamma S_{u}^{-1}\left(\vec{x},t;\vec{x},t\right)\right]\right|^{2}+\\
+ & +{\rm Tr}\sum_{y}\left[S_{u}^{-1}\left(\vec{x},t;y\right)\gamma_{5}S_{d}^{-1}\left(y;\vec{x},t\right)\gamma_{5}\right]
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The first line is the same of the modulus square of 
+\begin_inset Formula $\left\langle d_{\Gamma}\left(t\right)\right\rangle $
+\end_inset
+
+, whereas using 
+\begin_inset Formula $\gamma_{5}$
+\end_inset
+
+ hermiticity one can rewrite the second as:
+\begin_inset Formula 
+\[
+\sigma^{2}d_{\Gamma}\left(t\right)={\rm Tr}\left[\sum_{y}\left|S_{u}^{-1}\left(\vec{x},t;y\right)\right|^{2}\right].
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Coming to the second estimator, one has
+\begin_inset Formula 
+\[
+\sigma^{2}c_{\Gamma}\left(t\right)=\left\langle \left|c_{\Gamma}\left(t\right)\right|^{2}\right\rangle -\left|\left\langle c_{\Gamma}\left(t\right)\right\rangle \right|^{2}
+\]
+
+\end_inset
+
+with 
+\begin_inset Formula 
+\[
+\left\langle \left|c_{\Gamma}\left(t\right)\right|^{2}\right\rangle =\left\langle c_{\Gamma}\left(t\right)c_{\Gamma}^{\ast}\left(t\right)\right\rangle =
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+=\mu^{2}\sum_{\vec{x},y,z}\left[\eta^{\dagger}\left(z\right)S_{u}^{-1}\left(\vec{x},t;z\right)^{\dagger}\Gamma S_{u}^{-1}\left(\vec{x},t;y\right)\eta\left(y\right)\right]\sum_{\vec{x}^{\prime},y^{\prime},z^{\prime}}\left[\eta^{\dagger}\left(y^{\prime}\right)S_{u}^{-1\dagger}\left(\vec{x}^{\prime},t;y^{\prime}\right)\Gamma^{\dagger}S_{u}^{-1}\left(\vec{x}^{\prime},t;z^{\prime}\right)\eta\left(z^{\prime}\right)\right].
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Dropping from the beginning the disconnected contraction, one gets 
+\begin_inset Formula 
+\[
+\sigma^{2}c_{\Gamma}\left(t\right)=\mu^{2}{\rm Tr}\sum_{y,z}\left|\sum_{\vec{x}}\gamma_{5}S_{d}^{-1}\left(z;\vec{x},t\right)\gamma_{5}\Gamma S_{u}^{-1}\left(\vec{x},t;y\right)\right|^{2}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Is this better? If yes, why?
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename oet.png
+	lyxscale 50
+	height 8cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Now the other combination
+\end_layout
+
+\begin_layout Standard
+In twisted basis the Dirac operators obeys the relation:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+M_{u}+M_{d}=2M_{0}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Multiplying from the left by the inverse of the Dirac operator of the up
+ quark, and from the right by the down one, one gets 
+\begin_inset Formula 
+\[
+M_{d}^{-1}+M_{u}^{-1}=2M_{u}^{-1}M_{0}M_{d}^{-1},
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now rotating to physical basis:
+\begin_inset Formula 
+\begin{align*}
+e^{i\pi\gamma_{5}/4}S_{d}^{-1}e^{i\pi\gamma_{5}/4}+e^{-i\pi\gamma_{5}/4}S_{u}^{-1}e^{-i\pi\gamma_{5}/4} & =\\
+=2e^{-i\pi\gamma_{5}/4}S_{u}^{-1}e^{-i\pi\gamma_{5}/4}M_{0}e^{i\pi\gamma_{5}/4}S_{d}^{-1}e^{i\pi\gamma_{5}/4} & =\\
+=ie^{-i\pi\gamma_{5}/4}S_{u}^{-1}\left(\gamma_{5}S_{d,0}+S_{u,0}\gamma_{5}\right)S_{d}^{-1}e^{i\pi\gamma_{5}/4}
+\end{align*}
+
+\end_inset
+
+which means
+\begin_inset Formula 
+\[
+e^{+i\pi\gamma_{5}/2}S_{d}^{-1}+S_{u}^{-1}e^{-i\pi\gamma_{5}/2}=2ie^{-i\pi\gamma_{5}/2}S_{u}^{-1}S_{u,0}\gamma_{5}S_{d}^{-1}e^{i\pi\gamma_{5}/2},
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\gamma_{5}S_{d}^{-1}-S_{u}^{-1}\gamma_{5}=2\gamma_{5}S_{u}^{-1}S_{u,0}\gamma_{5}S_{d}^{-1}\gamma_{5},
+\]
+
+\end_inset
+
+multiplying by 
+\begin_inset Formula $\gamma_{5}$
+\end_inset
+
+ from the left one gets:
+\begin_inset Formula 
+\[
+S_{d}^{-1}-\gamma_{5}S_{u}^{-1}\gamma_{5}=2S_{u}^{-1}S_{u,0}\gamma_{5}S_{d}^{-1}\gamma_{5}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Taking the trace with a certain 
+\begin_inset Formula $\Gamma$
+\end_inset
+
+,
+\begin_inset Formula 
+\[
+{\rm Tr}\left[\Gamma S_{d}^{-1}\mp\Gamma S_{u}^{-1}\right]=2{\rm Tr}\left[\Gamma\gamma_{5}S_{u}^{-1}S_{u,0}\gamma_{5}S_{d}^{-1}\right]\,.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+One would be tempted to use the same approach, and insert the stochastic
+ identity between 
+\begin_inset Formula $S_{d}^{-1}$
+\end_inset
+
+ and 
+\begin_inset Formula $\Gamma$
+\end_inset
+
+, this way one gets
+\begin_inset Formula 
+\[
+2{\rm Tr}\left[\Gamma\gamma_{5}S_{u}^{-1}S_{u,0}\gamma_{5}S_{d}^{-1}\right]=
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+=2{\rm Tr}\left[\Gamma\gamma_{5}S_{u}^{-1}S_{u}\gamma_{5}S_{d}^{-1}\right]-2\mu{\rm Tr}\left[\Gamma\gamma_{5}S_{u}^{-1}\gamma_{5}S_{d}^{-1}\right]=
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+=2{\rm Tr}\left[\Gamma S_{d}^{-1}\right]-{\rm Tr}\left[\Gamma S_{d}^{-1}\pm\Gamma S_{u}^{-1}\right]=
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+={\rm Tr}\left[\Gamma S_{d}^{-1}\pm\Gamma S_{u}^{-1}\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
