@@ -826,6 +826,7 @@ namespace quda_iface
 	    int lev=0;
 	    while(cur!=nullptr)
 	      {
+		master_printf("Studying level: %d\n",(*(quda::MGParam**)cur)->level);
 		quda::MGParam* mgLevParam=cur->*get(Shadower<quda::MG,param_coarse>());
 		const size_t nB=mgLevParam->B.size();
 		master_printf("n of B at lev[%d]: %d\n",lev,nB);
