@@ -845,7 +845,7 @@ namespace quda_iface
 		else
 		  master_printf("no coarse_solver\n");
 		
-		quda::Solver* sv=cur->*get(Shadower<quda::MG,solver>());
+		quda::Solver* sv=cur->*get(Shadower<quda::MG,coarse>());
 		if(sv)
 		  {
 		    auto& eVecs=sv->*get(Shadower<quda::Solver,evecs>());
