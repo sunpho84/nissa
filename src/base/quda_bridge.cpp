@@ -833,8 +833,14 @@ namespace quda_iface
 		quda::Solver* sv=cur->*get(Shadower<quda::MG,coarse_solver>());
 		if(sv)
 		  {
-		    const size_t nEig=(sv->*get(Shadower<quda::Solver,evecs>())).size();
+		    auto& eVecs=sv->*get(Shadower<quda::Solver,evecs>());
+		    const size_t nEig=eVecs.size();
 		    master_printf("n of eig at lev %d: %zu\n",lev,nEig);
+		    if(nEig)
+		      {
+			const size_t byteSize=eVecs[0]->Bytes();
+		    master_printf("byteSize: %zu\n",byteSize);
+		      }
 		  }
 		else
 		  master_printf("no coarse_solver\n");
