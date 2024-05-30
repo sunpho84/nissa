@@ -826,6 +826,8 @@ namespace quda_iface
 	    int lev=0;
 	    while(cur!=nullptr)
 	      {
+		master_printf("lev %d cur: %p\n",lev,cur);
+
 		quda::MGParam* mgLevParam=cur->*get(Shadower<quda::MG,param_coarse>());
 		const size_t nB=mgLevParam->B.size();
 		master_printf("n of B at lev[%d]: %zu\n",lev,nB);
@@ -860,7 +862,6 @@ namespace quda_iface
 		else
 		  master_printf("no coarse_solver\n");
 		
-
 		cur=cur->*get(Shadower<quda::MG,coarse>());
 		master_printf("next cur: %p\n",cur);
 		//mgLevParam=mgLevParam->coarse->*get(Shadower<quda::MG,param_coarse>());
