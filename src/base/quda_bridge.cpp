@@ -828,14 +828,14 @@ namespace quda_iface
 	      {
 		quda::MGParam* mgLevParam=cur->*get(Shadower<quda::MG,param_coarse>());
 		const size_t nB=mgLevParam->B.size();
-		master_printf("n of B at lev[%d]: %zu %zu\n",lev,nB);
+		master_printf("n of B at lev[%d]: %zu\n",lev,nB);
 		
-		quda::Solver* sv=cur->*get(Shadower<quda::MG,coarse_solver>());
-		if(sv)
+		quda::Solver* csv=cur->*get(Shadower<quda::MG,coarse_solver>());
+		if(csv)
 		  {
-		    auto& eVecs=sv->*get(Shadower<quda::Solver,evecs>());
+		    auto& eVecs=csv->*get(Shadower<quda::Solver,evecs>());
 		    const size_t nEig=eVecs.size();
-		    master_printf("n of eig at lev %d: %zu\n",lev,nEig);
+		    master_printf("n of eig of coarse solver at lev %d: %zu\n",lev,nEig);
 		    if(nEig)
 		      {
 			const size_t byteSize=eVecs[0]->Bytes();
@@ -845,8 +845,24 @@ namespace quda_iface
 		else
 		  master_printf("no coarse_solver\n");
 		
-		cur=cur->*get(Shadower<quda::MG,coarse>());
+		quda::Solver* sv=cur->*get(Shadower<quda::MG,solver>());
+		if(sv)
+		  {
+		    auto& eVecs=sv->*get(Shadower<quda::Solver,evecs>());
+		    const size_t nEig=eVecs.size();
+		    master_printf("n of eig of solver at lev %d: %zu\n",lev,nEig);
+		    if(nEig)
+		      {
+			const size_t byteSize=eVecs[0]->Bytes();
+		    master_printf("byteSize: %zu\n",byteSize);
+		      }
+		  }
+		else
+		  master_printf("no coarse_solver\n");
 		
+
+		cur=cur->*get(Shadower<quda::MG,coarse>());
+		master_printf("next cur: %p\n",cur);
 		//mgLevParam=mgLevParam->coarse->*get(Shadower<quda::MG,param_coarse>());
 		lev++;
 	      }
