@@ -837,7 +837,7 @@ namespace quda_iface
 		  {
 		    auto& eVecs=csv->*get(Shadower<quda::Solver,evecs>());
 		    const size_t nEig=eVecs.size();
-		    master_printf("n of eig of coarse solver at lev %d: %zu\n",lev,nEig);
+		    master_printf("n of eig of coarse solver %p at lev %d: %zu\n",csv,lev,nEig);
 		    if(nEig)
 		      {
 			const size_t byteSize=eVecs[0]->Bytes();
@@ -852,7 +852,7 @@ namespace quda_iface
 		  {
 		    auto& eVecs=sv->*get(Shadower<quda::Solver,evecs>());
 		    const size_t nEig=eVecs.size();
-		    master_printf("n of eig of solver at lev %d: %zu\n",lev,nEig);
+		    master_printf("n of eig of solver %p at lev %d: %zu\n",sv,lev,nEig);
 		    if(nEig)
 		      {
 			const size_t byteSize=eVecs[0]->Bytes();
