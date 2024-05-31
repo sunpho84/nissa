@@ -116,12 +116,12 @@ namespace nissa
 		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_four_pts,SEQ_PROP,SEQ_PROP);
 
 		    //////// disconnected ////////
-		    apply_stag_op(source_g5,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::GAMMA_5,source);
+		    apply_stag_op(source_g5_id,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::IDENTITY,source);
 			
 		    if(ihit==meas_pars.nhits-1) master_fprintf(file," # Tr_no_insertion_bubble source time %d\n", glb_t);
-		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,SIMPLE_PROP,source_g5);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,SIMPLE_PROP,source_g5_id);
 		    if(ihit==meas_pars.nhits-1) master_fprintf(file,"\n # Tr_insertion_bubble source time %d\n", glb_t);
-		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,SEQ_PROP,source_g5);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,SEQ_PROP,source_g5_id);
 		    master_fprintf(file,"\n");
 		  }
 		  master_fprintf(file,"\n");
@@ -135,7 +135,7 @@ namespace nissa
     DELETE_FIELD_T(SIMPLE_PROP);
     DELETE_FIELD_T(SEQ_PROP);
     DELETE_FIELD_T(source);
-    DELETE_FIELD_T(source_g5);
+    DELETE_FIELD_T(source_g5_id);
     nissa_free(point_result);
 	close_file(file);
   }
