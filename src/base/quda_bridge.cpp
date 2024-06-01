@@ -824,7 +824,7 @@ namespace quda_iface
 	    using namespace nissa::Robbery;
 	    quda::MG* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner)->mg; ///entire MG preconditioner
 	    int lev=0;
-	    while(cur!=nullptr)
+	    while(lev<multiGrid::nlevels and cur!=nullptr)
 	      {
 		master_printf("lev %d cur: %p\n",lev,cur);
 
@@ -838,6 +838,13 @@ namespace quda_iface
 		    auto& eVecs=csv->*get(Shadower<quda::Solver,evecs>());
 		    const size_t nEig=eVecs.size();
 		    master_printf("n of eig of coarse solver %p at lev %d: %zu\n",csv,lev,nEig);
+		    quda::Solver* nestedSolver=((quda::PreconditionedSolver*)coarse_solver)->*get(Shadower<quda::PreconditionedSolver,solver>());
+		    auto& eVecs2=nestedSolver->*get(Shadower<quda::Solver,evecs>());
+		    const size_t nEig2=eVecs2.size();
+		    master_printf("n of eig of coarse solver %p at lev %d: %zu\n",csv,lev,nEig);
+		    master_printf("n of eig of coarse nested solver %p at lev %d: %zu\n",csv,lev,nEig2);
+
+		    
 		    if(nEig)
 		      {
 			const size_t byteSize=eVecs[0]->Bytes();
