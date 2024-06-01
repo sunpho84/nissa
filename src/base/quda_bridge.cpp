@@ -838,12 +838,14 @@ namespace quda_iface
 		    auto& eVecs=csv->*get(Shadower<quda::Solver,evecs>());
 		    const size_t nEig=eVecs.size();
 		    master_printf("n of eig of coarse solver %p at lev %d: %zu\n",csv,lev,nEig);
-		    quda::Solver* nestedSolver=((quda::PreconditionedSolver*)coarse_solver)->*get(Shadower<quda::PreconditionedSolver,solver>());
-		    auto& eVecs2=nestedSolver->*get(Shadower<quda::Solver,evecs>());
-		    const size_t nEig2=eVecs2.size();
-		    master_printf("n of eig of coarse solver %p at lev %d: %zu\n",csv,lev,nEig);
-		    master_printf("n of eig of coarse nested solver %p at lev %d: %zu\n",csv,lev,nEig2);
 
+		    if(multiGrid::use_deflated_solver and lev==multiGrid::nlevels-1)
+		      {
+			quda::Solver* nestedSolver=((quda::PreconditionedSolver*)coarse_solver)->*get(Shadower<quda::PreconditionedSolver,solver>());
+			auto& eVecs2=nestedSolver->*get(Shadower<quda::Solver,evecs>());
+			const size_t nEig2=eVecs2.size();
+			master_printf("n of eig of coarse nested solver %p at lev %d: %zu\n",csv,lev,nEig2);
+		      }
 		    
 		    if(nEig)
 		      {
