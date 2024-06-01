@@ -26,7 +26,7 @@ namespace nissa
 {
   namespace Robbery
   {
-    enum ROB_MG{param_coarse,coarse,coarse_solver,evecs};
+    enum ROB_MG{param_coarse,coarse,coarse_solver,solver,evecs};
     
     /// Allow to rob the param_coarse
     template struct Rob<param_coarse,quda::MG,&quda::MG::param_coarse>;
@@ -36,6 +36,9 @@ namespace nissa
     
     /// Allow to rob the coarse_solver
     template struct Rob<coarse_solver,quda::MG,&quda::MG::coarse_solver>;
+    
+    /// Allow to rob the solver
+    template struct Rob<solver,quda::PreconditionedSolver,&quda::PreconditionedSolver::solver>;
     
     /// Allow to rob the evecs
     template struct Rob<evecs,quda::Solver,&quda::Solver::evecs>;
