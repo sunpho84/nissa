@@ -839,7 +839,7 @@ namespace quda_iface
 		    const size_t nEig=eVecs.size();
 		    master_printf("n of eig of coarse solver %p at lev %d: %zu\n",csv,lev,nEig);
 
-		    if(multiGrid::use_deflated_solver and lev==multiGrid::nlevels-1)
+		    if(multiGrid::use_deflated_solver and lev==multiGrid::nlevels-2)
 		      {
 			quda::Solver* nestedSolver=((quda::PreconditionedSolver*)coarse_solver)->*get(Shadower<quda::PreconditionedSolver,solver>());
 			auto& eVecs2=nestedSolver->*get(Shadower<quda::Solver,evecs>());
