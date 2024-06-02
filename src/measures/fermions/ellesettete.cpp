@@ -71,7 +71,7 @@ namespace nissa
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     complex *point_result=nissa_malloc("point_result",locVol,complex);
     NEW_FIELD_T(source);
-    NEW_FIELD_T(source_g5);
+    NEW_FIELD_T(source_g5_id);
     
     //vectors for calculation
     NEW_FIELD_T(SIMPLE_PROP);
