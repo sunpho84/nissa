@@ -10,6 +10,8 @@
 # include <multigrid.h>
 #endif
 
+#include <complex>
+
 #include "base/multiGridParams.hpp"
 #include "routines/ios.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -20,6 +22,20 @@
 #else
  #define INIT_QUDA_BRIDGE_TO(cond) cond
 #endif
+
+namespace quda_iface
+{
+  struct QudaSetup
+  {
+    std::vector<std::vector<void*>> B;
+    
+    std::vector<void*> eVecs;
+    
+    std::vector<std::complex<double>> eVals;
+  };
+  
+  EXTERN_QUDA_BRIDGE QudaSetup qudaSetup;
+}
 
 #ifdef USE_QUDA
 namespace nissa

@@ -824,7 +824,7 @@ namespace quda_iface
 	    using namespace nissa::Robbery;
 	    quda::MG* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner)->mg; ///entire MG preconditioner
 	    int lev=0;
-	    while(lev<multiGrid::nlevels and cur!=nullptr)
+	    while(lev<multiGrid::nlevels-1)
 	      {
 		master_printf("lev %d cur: %p\n",lev,cur);
 		
@@ -908,6 +908,7 @@ namespace quda_iface
 	}
       else
 	master_printf("No need to update the multigrid\n");
+    crash("go");
     
     inv_param.preconditioner=quda_mg_preconditioner;
     
