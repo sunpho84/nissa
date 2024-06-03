@@ -6,6 +6,7 @@
 # include "quda_bridge.hpp"
 
 #include "base/cuda.hpp"
+#include "io/checksum.hpp"
 #include "base/export_conf_to_external_solver.hpp"
 #include "base/multiGridParams.hpp"
 #include "base/vectors.hpp"
@@ -822,7 +823,12 @@ namespace quda_iface
 	if(getenv(QUDA_DEBUG_EV)!=nullptr)
 	  {
 	    using namespace nissa::Robbery;
-	    quda::MG* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner)->mg; ///entire MG preconditioner
+	    
+	    extern nissa::checksum check_old;
+	    
+	    QudaSetup& qudaSetup=qudaSetups[check_old];
+	    
+	    quda::MG* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner)->mg;
 	    int lev=0;
 	    
 	    qudaSetup.B.resize(multiGrid::nlevels-1);

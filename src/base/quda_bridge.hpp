@@ -13,6 +13,7 @@
 #include <complex>
 
 #include "base/multiGridParams.hpp"
+#include "io/checksum.hpp"
 #include "routines/ios.hpp"
 #include "geometry/geometry_eo.hpp"
 
@@ -34,7 +35,7 @@ namespace quda_iface
     std::vector<std::complex<double>> eVals;
   };
   
-  EXTERN_QUDA_BRIDGE QudaSetup qudaSetup;
+  EXTERN_QUDA_BRIDGE std::map<nissa::checksum,QudaSetup> qudaSetups;
 }
 
 #ifdef USE_QUDA
