@@ -827,7 +827,7 @@ namespace quda_iface
 	    while(lev<multiGrid::nlevels and cur!=nullptr)
 	      {
 		master_printf("lev %d cur: %p\n",lev,cur);
-
+		
 		quda::MGParam* mgLevParam=cur->*get(Shadower<quda::MG,param_coarse>());
 		auto& B=mgLevParam->B;
 		const size_t nB=B.size();
@@ -851,6 +851,14 @@ namespace quda_iface
 			  {
 			    const size_t byteSize=eVecs[0]->Bytes();
 			    master_printf("byteSize: %zu\n",byteSize);
+			    
+			    double* v=new double[byteSize];
+			    for(size_t iEig=0;iEig<nEig;iEig++)
+			      {
+				qudaMemcpy(v,eVecs[iEig]->V(),byteSize,cudaMemcpyDeviceToHost);
+				master_printf("Successfully copied eig %zu\n",iEig);
+			      }
+			    delete[] v;
 			  }
 		      }
 		  }
