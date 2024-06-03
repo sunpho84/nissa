@@ -829,8 +829,14 @@ namespace quda_iface
 		master_printf("lev %d cur: %p\n",lev,cur);
 
 		quda::MGParam* mgLevParam=cur->*get(Shadower<quda::MG,param_coarse>());
-		const size_t nB=mgLevParam->B.size();
+		auto& B=mgLevParam->B;
+		const size_t nB=B.size();
 		master_printf("n of B at lev[%d]: %zu\n",lev,nB);
+		if(nB)
+		  {
+		    const size_t byteSize=B[0]->Bytes();
+		    master_printf("byteSize: %zu\n",byteSize);
+		  }
 		
 		quda::Solver* csv=cur->*get(Shadower<quda::MG,coarse_solver>());
 		if(csv)
