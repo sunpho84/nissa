@@ -892,6 +892,7 @@ namespace quda_iface
 	master_printf("mg setup done!\n");
 	
 	setup_valid=true;
+	crash("go, we have used %zu bytes",allocatedMemory);
       }
     else
       if(storedMu!=inv_param.mu or
@@ -904,8 +905,6 @@ namespace quda_iface
       else
 	master_printf("No need to update the multigrid\n");
     
-    
-    crash("go, we have used %zu bytes",allocatedMemory);
     
     inv_param.preconditioner=quda_mg_preconditioner;
     
