@@ -833,8 +833,9 @@ namespace quda_iface
 	    eValsDev=qudaSetup.eVals;
 	    
 	    cur=cur->*get(Shadower<quda::MG,coarse>());
-	    lev++;
 	  }
+	
+	lev++;
 	
 	master_printf("Everything recycled in the mg, fingers crossed while updating mg\n");
 	QudaBoolean p=quda_mg_param.thin_update_only;
