@@ -887,12 +887,12 @@ namespace quda_iface
 	    master_printf("next cur: %p\n",cur);
 	    
 	    lev++;
+	    crash("go, we have used %zu bytes",allocatedMemory);
 	  }
 	
 	master_printf("mg setup done!\n");
 	
 	setup_valid=true;
-	crash("go, we have used %zu bytes",allocatedMemory);
       }
     else
       if(storedMu!=inv_param.mu or
