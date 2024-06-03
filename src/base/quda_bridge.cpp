@@ -912,7 +912,7 @@ namespace quda_iface
 	lev++;
       }
     
-    crash("go, we have used %zu bytes",allocatedMemory);
+    master_printf("we have used %zu bytes to store the setup\n",allocatedMemory);
   }
   
   void setup_quda_multigrid()
