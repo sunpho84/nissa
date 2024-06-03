@@ -881,10 +881,10 @@ namespace quda_iface
 		    for(size_t iEiva=0;iEiva<nEva;iEiva++)
 		      master_printf("(%lg,%lg)\n",eValsDev[iEiva].real(),eValsDev[iEiva].imag());
 		  }
+		
+		cur=cur->*get(Shadower<quda::MG,coarse>());
+		master_printf("next cur: %p\n",cur);
 	      }
-	    
-	    cur=cur->*get(Shadower<quda::MG,coarse>());
-	    master_printf("next cur: %p\n",cur);
 	    
 	    lev++;
 	    crash("go, we have used %zu bytes",allocatedMemory);
@@ -904,7 +904,6 @@ namespace quda_iface
 	}
       else
 	master_printf("No need to update the multigrid\n");
-    
     
     inv_param.preconditioner=quda_mg_preconditioner;
     
