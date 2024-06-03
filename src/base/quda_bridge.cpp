@@ -824,74 +824,65 @@ namespace quda_iface
 	    using namespace nissa::Robbery;
 	    quda::MG* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner)->mg; ///entire MG preconditioner
 	    int lev=0;
+	    
+	    qudaSetup.B.resize(multiGrid::nlevels-1);
 	    while(lev<multiGrid::nlevels-1)
 	      {
 		master_printf("lev %d cur: %p\n",lev,cur);
 		
 		quda::MGParam* mgLevParam=cur->*get(Shadower<quda::MG,param_coarse>());
-		auto& B=mgLevParam->B;
-		const size_t nB=B.size();
+		auto& Bdev=mgLevParam->B;
+		const size_t nB=Bdev.size();
 		master_printf("n of B at lev[%d]: %zu\n",lev,nB);
 		if(nB)
 		  {
-		    const size_t byteSize=B[0]->Bytes();
+		    const size_t byteSize=Bdev[0]->Bytes();
 		    master_printf("byteSize: %zu\n",byteSize);
+		    
+		    for(size_t iB=0;iB<nB;iB++)
+		      {
+			char* Bi=qudaSetup.B[lev][iB]=new char[byteSize];
+			qudaMemcpy(Bi,Bdev[iB]->V(),byteSize,cudaMemcpyDeviceToHost);
+			master_printf("Successfully copied B %zu\n",iB);
+		      }
 		  }
 		
 		quda::Solver* csv=cur->*get(Shadower<quda::MG,coarse_solver>());
-		if(csv)
+		if(csv and multiGrid::use_deflated_solver and lev==multiGrid::nlevels-2)
 		  {
-		    if(multiGrid::use_deflated_solver and lev==multiGrid::nlevels-2)
-		      {
-			quda::Solver* nestedSolver=((quda::PreconditionedSolver*)csv)->*get(Shadower<quda::PreconditionedSolver,solver>());
-			auto& eVecs=nestedSolver->*get(Shadower<quda::Solver,evecs>());
-			auto& eVals=nestedSolver->*get(Shadower<quda::Solver,evals>());
-			const size_t nEig=eVecs.size();
-			const size_t nEva=eVals.size();
-			master_printf("n of eig of coarse nested solver %p at lev %d: %zu %zu\n",csv,lev,nEig,nEva);
-			if(nEig)
-			  {
-			    const size_t byteSize=eVecs[0]->Bytes();
-			    master_printf("byteSize: %zu\n",byteSize);
-			    
-			    double* v=new double[byteSize];
-			    for(size_t iEig=0;iEig<nEig;iEig++)
-			      {
-				qudaMemcpy(v,eVecs[iEig]->V(),byteSize,cudaMemcpyDeviceToHost);
-				master_printf("Successfully copied eig %zu\n",iEig);
-				if(iEig<nEva)
-				  {
-				    const std::complex<double>& c=eVals[iEig];
-				    master_printf("(%lg,%lg)\n",c.real(),c.imag());
-				  }
-			      }
-			    delete[] v;
-			  }
-		      }
-		  }
-		else
-		  master_printf("no coarse_solver\n");
-		
-		quda::Solver* sv=cur->*get(Shadower<quda::MG,coarse>());
-		if(sv)
-		  {
-		    auto& eVecs=sv->*get(Shadower<quda::Solver,evecs>());
-		    const size_t nEig=eVecs.size();
-		    master_printf("n of eig of solver %p at lev %d: %zu\n",sv,lev,nEig);
+		    quda::Solver* nestedSolver=((quda::PreconditionedSolver*)csv)->*get(Shadower<quda::PreconditionedSolver,solver>());
+		    
+		    auto& eVecsDev=nestedSolver->*get(Shadower<quda::Solver,evecs>());
+		    const size_t nEig=eVecsDev.size();
+		    
+		    qudaSetup.eVecs.resize(nEig);
+		    master_printf("n of eig of coarse nested solver %p at lev %d: %zu\n",csv,lev,nEig);
 		    if(nEig)
 		      {
-			const size_t byteSize=eVecs[0]->Bytes();
-		    master_printf("byteSize: %zu\n",byteSize);
+			const size_t byteSize=eVecsDev[0]->Bytes();
+			master_printf("byteSize: %zu\n",byteSize);
+			
+			for(size_t iEig=0;iEig<nEig;iEig++)
+			  {
+			    void* Ei=qudaSetup.eVecs[iEig]=new char[byteSize];
+			    qudaMemcpy(Ei,eVecsDev[iEig]->V(),byteSize,cudaMemcpyDeviceToHost);
+			    master_printf("Successfully copied eigv %zu\n",iEig);
+			  }
 		      }
+		    
+		    auto& eValsDev=nestedSolver->*get(Shadower<quda::Solver,evals>());
+		    const size_t nEva=eValsDev.size();
+		    qudaSetup.eVals=eValsDev;
+		    
+		    for(size_t iEiva=0;iEiva<nEva;iEiva++)
+		      master_printf("(%lg,%lg)\n",eValsDev[iEiva].real(),eValsDev[iEiva].imag());
 		  }
-		else
-		  master_printf("no coarse_solver\n");
-		
-		cur=cur->*get(Shadower<quda::MG,coarse>());
-		master_printf("next cur: %p\n",cur);
-		//mgLevParam=mgLevParam->coarse->*get(Shadower<quda::MG,param_coarse>());
-		lev++;
 	      }
+	    
+	    cur=cur->*get(Shadower<quda::MG,coarse>());
+	    master_printf("next cur: %p\n",cur);
+	    
+	    lev++;
 	  }
 	
 	master_printf("mg setup done!\n");

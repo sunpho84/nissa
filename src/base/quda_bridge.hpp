@@ -27,9 +27,9 @@ namespace quda_iface
 {
   struct QudaSetup
   {
-    std::vector<std::vector<void*>> B;
+    std::vector<std::vector<char*>> B;
     
-    std::vector<void*> eVecs;
+    std::vector<char*> eVecs;
     
     std::vector<std::complex<double>> eVals;
   };
