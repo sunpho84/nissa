@@ -826,6 +826,7 @@ namespace quda_iface
 	    int lev=0;
 	    
 	    qudaSetup.B.resize(multiGrid::nlevels-1);
+	    size_t allocatedMemory=0;
 	    while(lev<multiGrid::nlevels-1)
 	      {
 		master_printf("lev %d cur: %p\n",lev,cur);
@@ -837,8 +838,10 @@ namespace quda_iface
 		if(nB)
 		  {
 		    const size_t byteSize=Bdev[0]->Bytes();
+		    allocatedMemory+=byteSize;
 		    master_printf("byteSize: %zu\n",byteSize);
 		    
+		    qudaSetup.B[lev].resize(nB);
 		    for(size_t iB=0;iB<nB;iB++)
 		      {
 			char* Bi=qudaSetup.B[lev][iB]=new char[byteSize];
@@ -860,6 +863,7 @@ namespace quda_iface
 		    if(nEig)
 		      {
 			const size_t byteSize=eVecsDev[0]->Bytes();
+			allocatedMemory+=byteSize;
 			master_printf("byteSize: %zu\n",byteSize);
 			
 			for(size_t iEig=0;iEig<nEig;iEig++)
@@ -899,7 +903,9 @@ namespace quda_iface
 	}
       else
 	master_printf("No need to update the multigrid\n");
-    crash("go");
+    
+    
+    crash("go, we have used %zu bytes",allocatedMemory);
     
     inv_param.preconditioner=quda_mg_preconditioner;
     
