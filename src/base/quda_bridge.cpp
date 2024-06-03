@@ -802,11 +802,11 @@ namespace quda_iface
       }
   }
   
-  void reuseStoredSetup(const checksum& check)
+  void reuseStoredSetup(const SetupID& setupId)
   {
     using namespace nissa::Robbery;
     
-    QudaSetup& qudaSetup=qudaSetups[check];
+    QudaSetup& qudaSetup=qudaSetups[setupId];
     
     quda::MG* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner)->mg;
     int lev=0;
@@ -841,11 +841,11 @@ namespace quda_iface
       }
   }
   
-  void storeTheSetup(const checksum& check)
+  void storeTheSetup(const SetupID& setupId)
   {
     using namespace nissa::Robbery;
     
-    QudaSetup& qudaSetup=qudaSetups[check];
+    QudaSetup& qudaSetup=qudaSetups[setupId];
     
     quda::MG* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner)->mg;
     int lev=0;
@@ -923,18 +923,20 @@ namespace quda_iface
     
     const char QUDA_DEBUG_EV[]="QUDA_DEBUG_EV";
     const bool doTheStorage=getenv(QUDA_DEBUG_EV)!=nullptr;
-    checksum& check=nissa::export_conf::check_old;
+    
+    SetupID setupId=std::make_tuple(export_conf::confTag,export_conf::check_old);
     
     bool& setup_valid=multiGrid::setup_valid;
     if(not setup_valid)
       {
 	master_printf("QUDA multigrid setup not valid\n");
 	
-	const bool canReuseStoredSetup=(qudaSetups.find(check)!=qudaSetups.end());
-	master_printf("CanReuseStoredSetup (%zu,%zu): %s\n",check[0],check[1],canReuseStoredSetup?"true":"false");
+	const bool canReuseStoredSetup=(qudaSetups.find(setupId)!=qudaSetups.end());
+	const auto [tag,fs]=setupId;
+	master_printf("CanReuseStoredSetup (%s,%zu,%zu): %s\n",tag.c_str(),fs[0],fs[1],canReuseStoredSetup?"true":"false");
 	
 	if(canReuseStoredSetup)
-	  reuseStoredSetup(check);
+	  reuseStoredSetup(setupId);
 	else
 	  {
 	    if(quda_mg_preconditioner!=nullptr)
@@ -944,7 +946,7 @@ namespace quda_iface
 	    quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
 	    
 	    if(doTheStorage)
-	      storeTheSetup(check);
+	      storeTheSetup(setupId);
 	  }
 	
 	master_printf("mg setup done!\n");

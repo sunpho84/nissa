@@ -61,20 +61,11 @@ namespace nissa
 	
 	master_printf("   inverting explicitly\n");
 #ifdef USE_EXTERNAL_SOLVER
-	static std::string storedConfTag="";
 	
-	std::string confTag=conf_path+std::string("ch")+std::to_string(charge);
+	export_conf::confTag=conf_path+std::string("ch")+std::to_string(charge);
 	for(int mu=0;mu<NDIM;mu++)
-	  confTag+="th["+std::to_string(mu)+"]"+std::to_string(theta[mu]);
+	  export_conf::confTag+="th["+std::to_string(mu)+"]"+std::to_string(theta[mu]);
 	
-	master_printf("previously exported conf tag: \"%s\", to be exported: \"%s\"\n",storedConfTag.c_str(),confTag.c_str());
-	
-	export_conf::export_bypass=
-	  (storedConfTag==confTag)?
-	  export_conf::AVOID_EXPORT:
-	  export_conf::FORCE_EXPORT;
-
-	storedConfTag=confTag;
 #endif
 
 	if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);

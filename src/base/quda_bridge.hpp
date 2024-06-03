@@ -26,6 +26,8 @@
 
 namespace quda_iface
 {
+  using SetupID=std::tuple<std::string,nissa::checksum>;
+  
   struct QudaSetup
   {
     std::vector<std::vector<char*>> B;
@@ -35,7 +37,7 @@ namespace quda_iface
     std::vector<std::complex<double>> eVals;
   };
   
-  EXTERN_QUDA_BRIDGE std::map<nissa::checksum,QudaSetup> qudaSetups;
+  EXTERN_QUDA_BRIDGE std::map<SetupID,QudaSetup> qudaSetups;
 }
 
 #ifdef USE_QUDA

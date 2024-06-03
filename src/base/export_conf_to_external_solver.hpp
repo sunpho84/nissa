@@ -31,6 +31,8 @@ namespace nissa
     enum ExportBypass{NO_BYPASS,AVOID_EXPORT,FORCE_EXPORT};
     EXTERN_EXPORT_CONF ExportBypass export_bypass INIT_EXPORT_CONF_TO(=NO_BYPASS);
     EXTERN_EXPORT_CONF checksum check_old INIT_EXPORT_CONF_TO(={0,0});
+    EXTERN_EXPORT_CONF std::string confTagOld INIT_EXPORT_CONF_TO(="");
+    EXTERN_EXPORT_CONF std::string confTag INIT_EXPORT_CONF_TO(="");
   }
   
   /// Keep track of the exported conf
@@ -44,6 +46,16 @@ namespace nissa
     
     //verify if export needed
     bool export_needed=false;
+    
+    if(confTag!=confTagOld)
+      {
+	master_printf("previously exported conf tag: \"%s\", to be exported: \"%s\"\n",confTagOld.c_str(),confTag.c_str());
+	
+	export_conf::export_bypass=
+	  export_conf::FORCE_EXPORT;
+	
+	confTagOld=confTag;
+      }
     
     if(export_bypass==FORCE_EXPORT)
       export_needed=true;
