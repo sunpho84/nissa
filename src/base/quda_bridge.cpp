@@ -930,8 +930,8 @@ namespace quda_iface
       {
 	master_printf("QUDA multigrid setup not valid\n");
 	
-	const bool canReuseStoredSetup=(qudaSetups.find(check)==qudaSetups.end());
-	master_printf("CanReuseStoredSetup %zu %zu: %d\n",check[0],check[1],canReuseStoredSetup);
+	const bool canReuseStoredSetup=(qudaSetups.find(check)!=qudaSetups.end());
+	master_printf("CanReuseStoredSetup (%zu,%zu): %s\n",check[0],check[1],canReuseStoredSetup?"true","false");
 	
 	if(canReuseStoredSetup)
 	  reuseStoredSetup(check);
