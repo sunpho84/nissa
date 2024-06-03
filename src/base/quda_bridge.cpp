@@ -884,9 +884,9 @@ namespace quda_iface
 		
 		cur=cur->*get(Shadower<quda::MG,coarse>());
 		master_printf("next cur: %p\n",cur);
+		lev++;
 	      }
 	    
-	    lev++;
 	    crash("go, we have used %zu bytes",allocatedMemory);
 	  }
 	
