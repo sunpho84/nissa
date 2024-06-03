@@ -845,8 +845,10 @@ namespace quda_iface
 		      {
 			quda::Solver* nestedSolver=((quda::PreconditionedSolver*)csv)->*get(Shadower<quda::PreconditionedSolver,solver>());
 			auto& eVecs=nestedSolver->*get(Shadower<quda::Solver,evecs>());
+			auto& eVals=nestedSolver->*get(Shadower<quda::Solver,evals>());
 			const size_t nEig=eVecs.size();
-			master_printf("n of eig of coarse nested solver %p at lev %d: %zu\n",csv,lev,nEig);
+			const size_t nEva=eVals.size();
+			master_printf("n of eig of coarse nested solver %p at lev %d: %zu %zu\n",csv,lev,nEig,nEva);
 			if(nEig)
 			  {
 			    const size_t byteSize=eVecs[0]->Bytes();
@@ -857,6 +859,11 @@ namespace quda_iface
 			      {
 				qudaMemcpy(v,eVecs[iEig]->V(),byteSize,cudaMemcpyDeviceToHost);
 				master_printf("Successfully copied eig %zu\n",iEig);
+				if(iEig<nEva)
+				  {
+				    const std::complex<double>& c=eVals[iEig];
+				    master_printf("(%lg,%lg)\n",c.real(),c.imag());
+				  }
 			      }
 			    delete[] v;
 			  }
