@@ -172,7 +172,7 @@ namespace quda_iface
 		  qudaMemcpy(h,d,byteSize,cudaMemcpyDeviceToHost);
 		else
 		  qudaMemcpy(d,h,byteSize,cudaMemcpyHostToDevice);
-		master_printf("Copied vector %zu\n",iEig);
+		master_printf("Copied eigenvector %zu\n",iEig);
 	      }
 	    
 	    auto& eValsDev=rob<evals>(nestedSolver);
@@ -180,6 +180,7 @@ namespace quda_iface
 	      eVals=eValsDev;
 	    else
 	      eValsDev=eVals;
+	    master_printf("Copied eigenvalues\n");
 	  }
 	
 	cur=rob<coarse>(cur);
