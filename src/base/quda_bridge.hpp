@@ -65,10 +65,18 @@ namespace quda_iface
     std::vector<std::complex<double>> eVals;
     
     /// Implants this setup into Quda
-    void restore() const;
+    void restore()
+    {
+      restoreOrTakeCopy(false);
+    }
     
     /// Explant the current Quda setup into this setup
-    void takeCopy();
+    void takeCopy()
+    {
+      restoreOrTakeCopy(true);
+    }
+    
+    void restoreOrTakeCopy(const bool takeCopy=false);
   };
   
   EXTERN_QUDA_BRIDGE std::map<SetupID,QudaSetup> qudaSetups;

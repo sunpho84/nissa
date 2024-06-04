@@ -102,7 +102,7 @@ namespace quda_iface
     return out;
   }
   
-  void QudaSetup::restore() const
+  void QudaSetup::restoreOrTakeCopy(const bool takeCopy)
   {
     using namespace nissa::Robbery;
     using namespace quda;
@@ -110,32 +110,80 @@ namespace quda_iface
     MG* cur=static_cast<multigrid_solver*>(quda_mg_preconditioner)->mg;
     int lev=0;
     
+    size_t allocatedMemory=0;
+    
+    if(takeCopy)
+      B.resize(multiGrid::nlevels-1);
+    
     while(lev<multiGrid::nlevels-1)
       {
-	MGParam* mgLevParam=cur->*get(Shadower<MG,param_coarse>());
+	MGParam* mgLevParam=rob<param_coarse>(cur);
 	auto& Bdev=mgLevParam->B;
 	
-	for(size_t iB=0;iB<Bdev.size();iB++)
-	  qudaMemcpy(Bdev[iB]->V(),B[lev][iB],Bdev[0]->Bytes(),cudaMemcpyHostToDevice);
+	const size_t nB=Bdev.size();
+	const size_t byteSize=nB?(Bdev[0]->Bytes()):0;
 	
-	Solver* csv=cur->*get(Shadower<MG,coarse_solver>());
-	if(csv and multiGrid::use_deflated_solver and lev==multiGrid::nlevels-2)
+	if(takeCopy)
 	  {
-	    Solver* nestedSolver=((PreconditionedSolver*)csv)->*get(Shadower<PreconditionedSolver,solver>());
-	    
-	    auto& eVecsDev=nestedSolver->*get(Shadower<Solver,evecs>());
-	    
-	    for(size_t iEig=0;iEig<eVecsDev.size();iEig++)
-	      qudaMemcpy(eVecs[iEig],eVecsDev[iEig]->V(),eVecsDev[0]->Bytes(),cudaMemcpyHostToDevice);
-	    
-	    auto& eValsDev=nestedSolver->*get(Shadower<Solver,evals>());
-	    eValsDev=eVals;
-	    
-	    cur=cur->*get(Shadower<MG,coarse>());
+	    B[lev].resize(nB);
+	    for(size_t iB=0;iB<nB;iB++)
+	      B[lev][iB]=nissa_malloc("Bi",byteSize,char);
+	    allocatedMemory+=nB*byteSize;
 	  }
 	
-	lev++;
+	for(size_t iB=0;iB<nB;iB++)
+	  {
+	    void* h=B[lev][iB];
+	    void* d=Bdev[iB]->V();
+	    if(takeCopy)
+	      qudaMemcpy(h,d,byteSize,cudaMemcpyDeviceToHost);
+	    else
+	      qudaMemcpy(d,h,byteSize,cudaMemcpyHostToDevice);
+	  }
 	
+	Solver* csv=rob<coarse_solver>(cur);
+	if(csv and multiGrid::use_deflated_solver and lev==multiGrid::nlevels-2)
+	  {
+	    Solver* nestedSolver=rob<solver>((PreconditionedSolver*)csv);
+	    
+	    auto& eVecsDev=rob<evecs>(nestedSolver);
+	    const size_t nEig=eVecsDev.size();
+	    
+	    if(takeCopy)
+	      {
+		eVecs.resize(nEig);
+		const size_t byteSize=nEig?(eVecsDev[0]->Bytes()):0;
+		for(size_t iEig=0;iEig<nEig;iEig++)
+		  eVecs[iEig]=nissa_malloc("ei",byteSize,char);
+		allocatedMemory+=byteSize*nEig;
+	      }
+	    
+	    for(size_t iEig=0;iEig<nEig;iEig++)
+	      {
+		void* d=eVecsDev[iEig]->V();
+		void* h=eVecs[iEig];
+		if(takeCopy)
+		  qudaMemcpy(h,d,byteSize,cudaMemcpyDeviceToHost);
+		else
+		  qudaMemcpy(d,h,byteSize,cudaMemcpyHostToDevice);
+	      }
+	    
+	    auto& eValsDev=rob<evals>(nestedSolver);
+	    if(takeCopy)
+	      eVals=eValsDev;
+	    else
+	      eValsDev=eVals;
+	  }
+	
+	cur=rob<coarse>(cur);
+	
+	lev++;
+      }
+    
+    if(takeCopy)
+      master_printf("we have used %zu bytes to store the setup\n",allocatedMemory);
+    else
+      {
 	master_printf("Everything recycled in the mg, fingers crossed while updating mg\n");
 	QudaBoolean p=quda_mg_param.thin_update_only;
 	quda_mg_param.thin_update_only=QUDA_BOOLEAN_TRUE;
@@ -842,72 +890,6 @@ namespace quda_iface
 	quda_mg_param.run_verify=QUDA_BOOLEAN_FALSE;
 	quda_mg_param.preserve_deflation=QUDA_BOOLEAN_FALSE;
       }
-  }
-  
-  void QudaSetup::takeCopy()
-  {
-    using namespace nissa::Robbery;
-    
-    quda::MG* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner)->mg;
-    int lev=0;
-    
-    B.resize(multiGrid::nlevels-1);
-    size_t allocatedMemory=0;
-    
-    while(lev<multiGrid::nlevels-1)
-      {
-	quda::MGParam* mgLevParam=cur->*get(Shadower<quda::MG,param_coarse>());
-	auto& Bdev=mgLevParam->B;
-	const size_t nB=Bdev.size();
-	
-	if(nB)
-	  {
-	    const size_t byteSize=Bdev[0]->Bytes();
-	    allocatedMemory+=byteSize;
-	    
-	    B[lev].resize(nB);
-	    for(size_t iB=0;iB<nB;iB++)
-	      {
-		char* Bi=B[lev][iB]=new char[byteSize];
-		qudaMemcpy(Bi,Bdev[iB]->V(),byteSize,cudaMemcpyDeviceToHost);
-	      }
-	  }
-	
-	quda::Solver* csv=cur->*get(Shadower<quda::MG,coarse_solver>());
-	if(csv and multiGrid::use_deflated_solver and lev==multiGrid::nlevels-2)
-	  {
-	    quda::Solver* nestedSolver=((quda::PreconditionedSolver*)csv)->*get(Shadower<quda::PreconditionedSolver,solver>());
-	    
-	    auto& eVecsDev=nestedSolver->*get(Shadower<quda::Solver,evecs>());
-	    const size_t nEig=eVecsDev.size();
-			
-	    eVecs.resize(nEig);
-	    
-	    if(nEig)
-	      {
-		const size_t byteSize=eVecsDev[0]->Bytes();
-		allocatedMemory+=byteSize;
-		
-		for(size_t iEig=0;iEig<nEig;iEig++)
-		  {
-		    void* Ei=eVecs[iEig]=new char[byteSize];
-		    qudaMemcpy(Ei,eVecsDev[iEig]->V(),byteSize,cudaMemcpyDeviceToHost);
-		  }
-	      }
-	    
-	    auto& eValsDev=nestedSolver->*get(Shadower<quda::Solver,evals>());
-	    const size_t nEva=eValsDev.size();
-	    eVals=eValsDev;
-	    
-	    // for(size_t iEiva=0;iEiva<nEva;iEiva++)
-	    //   master_printf("(%lg,%lg)\n",eValsDev[iEiva].real(),eValsDev[iEiva].imag());
-	  }
-	
-	cur=cur->*get(Shadower<quda::MG,coarse>());
-	lev++;
-      }
-    
-    master_printf("we have used %zu bytes to store the setup\n",allocatedMemory);
   }
   
   void setup_quda_multigrid()
