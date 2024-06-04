@@ -358,6 +358,14 @@ namespace nissa
 	return M;
       }
     };
+    
+    /// Performs the robbery on the passed pointer
+    template <auto Tag,
+	      typename P>
+    decltype(auto) rob(P* p)
+    {
+      return p->*get(Shadower<P,Tag>());
+    }
   }
 }
 
