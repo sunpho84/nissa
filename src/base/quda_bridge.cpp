@@ -146,7 +146,7 @@ namespace quda_iface
 	  }
 	
 	Solver* csv=rob<coarse_solver>(cur);
-	if(csv and quda_mg_param.use_eig_solver[lev]==QUDA_BOOLEAN_YES)
+	if(csv and quda_mg_param.use_eig_solver[lev+1]==QUDA_BOOLEAN_YES)
 	  {
 	    Solver* nestedSolver=rob<solver>((PreconditionedSolver*)csv);
 	    
