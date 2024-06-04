@@ -171,8 +171,6 @@ namespace quda_iface
 		for(size_t iEig=0;iEig<nEig;iEig++)
 		  eVecs[iEig]=nissa_malloc(("ei"+std::to_string(iEig)).c_str(),byteSize,char);
 		allocatedMemory+=byteSize*nEig;
-		master_printf("Going to print\n");
-		print_all_vect_content();
 	      }
 	    else
 	      if(nEig!=eVecs.size())
@@ -189,6 +187,8 @@ namespace quda_iface
 		master_printf("Copied eigenvector %zu\n",iEig);
 	      }
 	    
+		master_printf("Going to print\n");
+		print_all_vect_content();
 	    auto& eValsDev=rob<evals>(nestedSolver);
 	    if(takeCopy)
 	      eVals=eValsDev;
