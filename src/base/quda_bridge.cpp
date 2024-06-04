@@ -117,6 +117,8 @@ namespace quda_iface
     
     while(lev<multiGrid::nlevels-1)
       {
+	master_printf("Lev %zu\n",lev);
+	
 	MGParam* mgLevParam=rob<param_coarse>(cur);
 	auto& Bdev=mgLevParam->B;
 	
@@ -129,6 +131,7 @@ namespace quda_iface
 	    for(size_t iB=0;iB<nB;iB++)
 	      B[lev][iB]=nissa_malloc("Bi",byteSize,char);
 	    allocatedMemory+=nB*byteSize;
+	    master_printf("Needs to copy %zu vectors of size %zu each\n",nB,byteSize);
 	  }
 	
 	for(size_t iB=0;iB<nB;iB++)
@@ -139,6 +142,7 @@ namespace quda_iface
 	      qudaMemcpy(h,d,byteSize,cudaMemcpyDeviceToHost);
 	    else
 	      qudaMemcpy(d,h,byteSize,cudaMemcpyHostToDevice);
+	    master_printf("Copied vector %zu\n",iB);
 	  }
 	
 	Solver* csv=rob<coarse_solver>(cur);
@@ -156,6 +160,8 @@ namespace quda_iface
 		for(size_t iEig=0;iEig<nEig;iEig++)
 		  eVecs[iEig]=nissa_malloc("ei",byteSize,char);
 		allocatedMemory+=byteSize*nEig;
+		
+		master_printf("Needs to copy %zu eigenvectors of size %zu each\n",nEig,byteSize);
 	      }
 	    
 	    for(size_t iEig=0;iEig<nEig;iEig++)
@@ -166,6 +172,7 @@ namespace quda_iface
 		  qudaMemcpy(h,d,byteSize,cudaMemcpyDeviceToHost);
 		else
 		  qudaMemcpy(d,h,byteSize,cudaMemcpyHostToDevice);
+		master_printf("Copied vector %zu\n",iEig);
 	      }
 	    
 	    auto& eValsDev=rob<evals>(nestedSolver);

@@ -76,7 +76,29 @@ namespace quda_iface
       restoreOrTakeCopy(true);
     }
     
+    /// Unified method to take copy or restore
     void restoreOrTakeCopy(const bool takeCopy=false);
+    
+    /// Reset the setup
+    void reset()
+    {
+      for(auto& Bi : B)
+	nissa::nissa_free(Bi);
+      B.clear();
+      
+      for(auto& ei : eVecs)
+	nissa::nissa_free(ei);
+      eVecs.clear();
+      
+      eVals.clear();
+    }
+    
+    /// Destructor
+    ~QudaSetup()
+    {
+      reset();
+    }
+    
   };
   
   EXTERN_QUDA_BRIDGE std::map<SetupID,QudaSetup> qudaSetups;
