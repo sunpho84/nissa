@@ -102,6 +102,48 @@ namespace quda_iface
     return out;
   }
   
+  void QudaSetup::restore() const
+  {
+    using namespace nissa::Robbery;
+    using namespace quda;
+    
+    MG* cur=static_cast<multigrid_solver*>(quda_mg_preconditioner)->mg;
+    int lev=0;
+    
+    while(lev<multiGrid::nlevels-1)
+      {
+	MGParam* mgLevParam=cur->*get(Shadower<MG,param_coarse>());
+	auto& Bdev=mgLevParam->B;
+	
+	for(size_t iB=0;iB<Bdev.size();iB++)
+	  qudaMemcpy(Bdev[iB]->V(),B[lev][iB],Bdev[0]->Bytes(),cudaMemcpyHostToDevice);
+	
+	Solver* csv=cur->*get(Shadower<MG,coarse_solver>());
+	if(csv and multiGrid::use_deflated_solver and lev==multiGrid::nlevels-2)
+	  {
+	    Solver* nestedSolver=((PreconditionedSolver*)csv)->*get(Shadower<PreconditionedSolver,solver>());
+	    
+	    auto& eVecsDev=nestedSolver->*get(Shadower<Solver,evecs>());
+	    
+	    for(size_t iEig=0;iEig<eVecsDev.size();iEig++)
+	      qudaMemcpy(eVecs[iEig],eVecsDev[iEig]->V(),eVecsDev[0]->Bytes(),cudaMemcpyHostToDevice);
+	    
+	    auto& eValsDev=nestedSolver->*get(Shadower<Solver,evals>());
+	    eValsDev=eVals;
+	    
+	    cur=cur->*get(Shadower<MG,coarse>());
+	  }
+	
+	lev++;
+	
+	master_printf("Everything recycled in the mg, fingers crossed while updating mg\n");
+	QudaBoolean p=quda_mg_param.thin_update_only;
+	quda_mg_param.thin_update_only=QUDA_BOOLEAN_TRUE;
+	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+	quda_mg_param.thin_update_only=p;
+      }
+  }
+
   /// Set the verbosity
   QudaVerbosity get_quda_verbosity()
   {
@@ -802,80 +844,32 @@ namespace quda_iface
       }
   }
   
-  void reuseStoredSetup(const SetupID& setupId)
+  void QudaSetup::takeCopy()
   {
     using namespace nissa::Robbery;
-    
-    QudaSetup& qudaSetup=qudaSetups[setupId];
     
     quda::MG* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner)->mg;
     int lev=0;
     
-    while(lev<multiGrid::nlevels-1)
-      {
-	quda::MGParam* mgLevParam=cur->*get(Shadower<quda::MG,param_coarse>());
-	auto& Bdev=mgLevParam->B;
-	
-	for(size_t iB=0;iB<Bdev.size();iB++)
-	  qudaMemcpy(Bdev[iB]->V(),qudaSetup.B[lev][iB],Bdev[0]->Bytes(),cudaMemcpyHostToDevice);
-	
-	quda::Solver* csv=cur->*get(Shadower<quda::MG,coarse_solver>());
-	if(csv and multiGrid::use_deflated_solver and lev==multiGrid::nlevels-2)
-	  {
-	    quda::Solver* nestedSolver=((quda::PreconditionedSolver*)csv)->*get(Shadower<quda::PreconditionedSolver,solver>());
-	    
-	    auto& eVecsDev=nestedSolver->*get(Shadower<quda::Solver,evecs>());
-	    
-	    for(size_t iEig=0;iEig<eVecsDev.size();iEig++)
-	      qudaMemcpy(qudaSetup.eVecs[iEig],eVecsDev[iEig]->V(),eVecsDev[0]->Bytes(),cudaMemcpyHostToDevice);
-	    
-	    auto& eValsDev=nestedSolver->*get(Shadower<quda::Solver,evals>());
-	    eValsDev=qudaSetup.eVals;
-	    
-	    cur=cur->*get(Shadower<quda::MG,coarse>());
-	  }
-	
-	lev++;
-	
-	master_printf("Everything recycled in the mg, fingers crossed while updating mg\n");
-	QudaBoolean p=quda_mg_param.thin_update_only;
-	quda_mg_param.thin_update_only=QUDA_BOOLEAN_TRUE;
-	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
-	quda_mg_param.thin_update_only=p;
-      }
-  }
-  
-  void storeTheSetup(const SetupID& setupId)
-  {
-    using namespace nissa::Robbery;
-    
-    QudaSetup& qudaSetup=qudaSetups[setupId];
-    
-    quda::MG* cur=static_cast<quda::multigrid_solver*>(quda_mg_preconditioner)->mg;
-    int lev=0;
-    
-    qudaSetup.B.resize(multiGrid::nlevels-1);
+    B.resize(multiGrid::nlevels-1);
     size_t allocatedMemory=0;
+    
     while(lev<multiGrid::nlevels-1)
       {
-	master_printf("lev %d cur: %p\n",lev,cur);
-	
 	quda::MGParam* mgLevParam=cur->*get(Shadower<quda::MG,param_coarse>());
 	auto& Bdev=mgLevParam->B;
 	const size_t nB=Bdev.size();
-	master_printf("n of B at lev[%d]: %zu\n",lev,nB);
+	
 	if(nB)
 	  {
 	    const size_t byteSize=Bdev[0]->Bytes();
 	    allocatedMemory+=byteSize;
-	    master_printf("byteSize: %zu\n",byteSize);
 	    
-	    qudaSetup.B[lev].resize(nB);
+	    B[lev].resize(nB);
 	    for(size_t iB=0;iB<nB;iB++)
 	      {
-		char* Bi=qudaSetup.B[lev][iB]=new char[byteSize];
+		char* Bi=B[lev][iB]=new char[byteSize];
 		qudaMemcpy(Bi,Bdev[iB]->V(),byteSize,cudaMemcpyDeviceToHost);
-		master_printf("Successfully copied B %zu\n",iB);
 	      }
 	  }
 	
@@ -887,32 +881,29 @@ namespace quda_iface
 	    auto& eVecsDev=nestedSolver->*get(Shadower<quda::Solver,evecs>());
 	    const size_t nEig=eVecsDev.size();
 			
-	    qudaSetup.eVecs.resize(nEig);
-	    master_printf("n of eig of coarse nested solver %p at lev %d: %zu\n",csv,lev,nEig);
+	    eVecs.resize(nEig);
+	    
 	    if(nEig)
 	      {
 		const size_t byteSize=eVecsDev[0]->Bytes();
 		allocatedMemory+=byteSize;
-		master_printf("byteSize: %zu\n",byteSize);
 		
 		for(size_t iEig=0;iEig<nEig;iEig++)
 		  {
-		    void* Ei=qudaSetup.eVecs[iEig]=new char[byteSize];
+		    void* Ei=eVecs[iEig]=new char[byteSize];
 		    qudaMemcpy(Ei,eVecsDev[iEig]->V(),byteSize,cudaMemcpyDeviceToHost);
-		    master_printf("Successfully copied eigv %zu\n",iEig);
 		  }
 	      }
 	    
 	    auto& eValsDev=nestedSolver->*get(Shadower<quda::Solver,evals>());
 	    const size_t nEva=eValsDev.size();
-	    qudaSetup.eVals=eValsDev;
+	    eVals=eValsDev;
 	    
-	    for(size_t iEiva=0;iEiva<nEva;iEiva++)
-	      master_printf("(%lg,%lg)\n",eValsDev[iEiva].real(),eValsDev[iEiva].imag());
+	    // for(size_t iEiva=0;iEiva<nEva;iEiva++)
+	    //   master_printf("(%lg,%lg)\n",eValsDev[iEiva].real(),eValsDev[iEiva].imag());
 	  }
 	
 	cur=cur->*get(Shadower<quda::MG,coarse>());
-	master_printf("next cur: %p\n",cur);
 	lev++;
       }
     
@@ -940,7 +931,7 @@ namespace quda_iface
 	master_printf("CanReuseStoredSetup (%s,%zu,%zu): %s\n",tag.c_str(),fs[0],fs[1],canReuseStoredSetup?"true":"false");
 	
 	if(canReuseStoredSetup)
-	  reuseStoredSetup(setupId);
+	  qudaSetups[setupId].restore();
 	else
 	  {
 	    if(quda_mg_preconditioner!=nullptr)
@@ -950,7 +941,7 @@ namespace quda_iface
 	    quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
 	    
 	    if(doTheStorage)
-	      storeTheSetup(setupId);
+	      qudaSetups[setupId].takeCopy();
 	  }
 	
 	master_printf("mg setup done!\n");

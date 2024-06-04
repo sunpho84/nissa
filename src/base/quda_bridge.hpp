@@ -24,22 +24,6 @@
  #define INIT_QUDA_BRIDGE_TO(cond) cond
 #endif
 
-namespace quda_iface
-{
-  using SetupID=std::tuple<std::string,nissa::checksum>;
-  
-  struct QudaSetup
-  {
-    std::vector<std::vector<char*>> B;
-    
-    std::vector<char*> eVecs;
-    
-    std::vector<std::complex<double>> eVals;
-  };
-  
-  EXTERN_QUDA_BRIDGE std::map<SetupID,QudaSetup> qudaSetups;
-}
-
 #ifdef USE_QUDA
 namespace nissa
 {
@@ -67,6 +51,28 @@ namespace nissa
   }
 }
 #endif
+
+namespace quda_iface
+{
+  using SetupID=std::tuple<std::string,nissa::checksum>;
+  
+  struct QudaSetup
+  {
+    std::vector<std::vector<char*>> B;
+    
+    std::vector<char*> eVecs;
+    
+    std::vector<std::complex<double>> eVals;
+    
+    /// Implants this setup into Quda
+    void restore() const;
+    
+    /// Explant the current Quda setup into this setup
+    void takeCopy();
+  };
+  
+  EXTERN_QUDA_BRIDGE std::map<SetupID,QudaSetup> qudaSetups;
+}
 
 namespace quda_iface
 {
