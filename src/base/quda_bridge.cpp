@@ -107,13 +107,20 @@ namespace quda_iface
     using namespace nissa::Robbery;
     using namespace quda;
     
+		master_printf("Going to preprint\n");
+		print_all_vect_content();
     MG* cur=static_cast<multigrid_solver*>(quda_mg_preconditioner)->mg;
     int lev=0;
     
     size_t allocatedMemory=0;
     
     if(takeCopy)
-      B.resize(multiGrid::nlevels-1);
+      {
+	if(not B.empty()) crash("setup already in use!");
+	B.resize(multiGrid::nlevels-1);
+      }
+    else
+      if(B.empty()) crash("setup not in use!");
     
     while(lev<multiGrid::nlevels-1)
       {
@@ -133,6 +140,9 @@ namespace quda_iface
 	    allocatedMemory+=nB*byteSize;
 	    master_printf("Needs to copy %zu vectors of size %zu each\n",nB,byteSize);
 	  }
+	else
+	  if(nB!=B.size())
+	    crash("B size not matching, this is %zu and device setup is %zu",B.size(),nB);
 	
 	for(size_t iB=0;iB<nB;iB++)
 	  {
@@ -164,6 +174,9 @@ namespace quda_iface
 		master_printf("Going to print\n");
 		print_all_vect_content();
 	      }
+	    else
+	      if(nEig!=eVecs.size())
+		crash("eig size not matching, this is %zu and device setup is %zu",eVecs.size(),nEig);
 	    
 	    for(size_t iEig=0;iEig<nEig;iEig++)
 	      {
