@@ -107,13 +107,20 @@ namespace quda_iface
     using namespace nissa::Robbery;
     using namespace quda;
     
+		master_printf("Going to preprint\n");
+		print_all_vect_content();
     MG* cur=static_cast<multigrid_solver*>(quda_mg_preconditioner)->mg;
     int lev=0;
     
     size_t allocatedMemory=0;
     
     if(takeCopy)
-      B.resize(multiGrid::nlevels-1);
+      {
+	if(not B.empty()) crash("setup already in use!");
+	B.resize(multiGrid::nlevels-1);
+      }
+    else
+      if(B.empty()) crash("setup not in use!");
     
     while(lev<multiGrid::nlevels-1)
       {
