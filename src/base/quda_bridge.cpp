@@ -162,11 +162,11 @@ namespace quda_iface
 	    
 	    auto& eVecsDev=rob<evecs>(nestedSolver);
 	    const size_t nEig=eVecsDev.size();
+	    const size_t byteSize=nEig?(eVecsDev[0]->Bytes()):0;
 	    
 	    if(takeCopy)
 	      {
 		eVecs.resize(nEig);
-		const size_t byteSize=nEig?(eVecsDev[0]->Bytes()):0;
 		master_printf("Needs to copy %zu eigenvectors of size %zu each\n",nEig,byteSize);
 		for(size_t iEig=0;iEig<nEig;iEig++)
 		  eVecs[iEig]=nissa_malloc(("ei"+std::to_string(iEig)).c_str(),byteSize,char);
