@@ -212,8 +212,11 @@ namespace quda_iface
 	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
 	quda_mg_param.thin_update_only=p;
       }
+    
+    master_printf("Going to postrint\n");
+    print_all_vect_content();
   }
-
+  
   /// Set the verbosity
   QudaVerbosity get_quda_verbosity()
   {
@@ -935,7 +938,11 @@ namespace quda_iface
 	master_printf("CanReuseStoredSetup (%s,%zu,%zu): %s\n",tag.c_str(),fs[0],fs[1],canReuseStoredSetup?"true":"false");
 	
 	if(canReuseStoredSetup)
-	  qudaSetups[setupId].restore();
+	  {
+	    master_printf("Going to pre2print\n");
+	    print_all_vect_content();
+	    qudaSetups[setupId].restore();
+	  }
 	else
 	  {
 	    if(quda_mg_preconditioner!=nullptr)
