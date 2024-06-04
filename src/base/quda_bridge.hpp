@@ -100,6 +100,9 @@ namespace quda_iface
       reset();
     }
     
+    QudaSetup(const QudaSetup&)=default;
+    
+    QudaSetup(QudaSetup&&)=default;
   };
   
   EXTERN_QUDA_BRIDGE std::map<SetupID,QudaSetup> qudaSetups;
