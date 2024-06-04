@@ -146,7 +146,7 @@ namespace quda_iface
 	  }
 	
 	Solver* csv=rob<coarse_solver>(cur);
-	if(csv and multiGrid::use_deflated_solver and lev==multiGrid::nlevels-2)
+	if(csv and quda_mg_param.use_eig_solver[lev]==QUDA_BOOLEAN_YES)
 	  {
 	    Solver* nestedSolver=rob<solver>((PreconditionedSolver*)csv);
 	    
