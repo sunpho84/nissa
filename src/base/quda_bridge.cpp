@@ -129,7 +129,7 @@ namespace quda_iface
 	  {
 	    B[lev].resize(nB);
 	    for(size_t iB=0;iB<nB;iB++)
-	      B[lev][iB]=nissa_malloc("Bi",byteSize,char);
+	      B[lev][iB]=nissa_malloc(("Bi"+std::to_string(iB)).c_str(),byteSize,char);
 	    allocatedMemory+=nB*byteSize;
 	    master_printf("Needs to copy %zu vectors of size %zu each\n",nB,byteSize);
 	  }
@@ -158,7 +158,7 @@ namespace quda_iface
 		eVecs.resize(nEig);
 		const size_t byteSize=nEig?(eVecsDev[0]->Bytes()):0;
 		for(size_t iEig=0;iEig<nEig;iEig++)
-		  eVecs[iEig]=nissa_malloc("ei",byteSize,char);
+		  eVecs[iEig]=nissa_malloc(("ei"+std::to_string(iEig)).c_str(),byteSize,char);
 		allocatedMemory+=byteSize*nEig;
 		
 		master_printf("Needs to copy %zu eigenvectors of size %zu each\n",nEig,byteSize);

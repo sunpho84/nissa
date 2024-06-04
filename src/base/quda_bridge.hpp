@@ -82,6 +82,7 @@ namespace quda_iface
     /// Reset the setup
     void reset()
     {
+      master_printf("Resetting stored setup\n");
       for(auto& Bi : B)
 	nissa::nissa_free(Bi);
       B.clear();
