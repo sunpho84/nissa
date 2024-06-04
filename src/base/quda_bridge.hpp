@@ -100,6 +100,8 @@ namespace quda_iface
       reset();
     }
     
+    QudaSetup()=default;
+    
     QudaSetup(const QudaSetup&)=default;
     
     QudaSetup(QudaSetup&&)=default;
