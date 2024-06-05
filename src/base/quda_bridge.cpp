@@ -125,7 +125,7 @@ namespace quda_iface
       }
     else
       if(nB!=B.size())
-	crash("B size not matching, this is %zu and device setup is %zu",B.size(),nB);
+	crash("B size not matching, this is %zu and device setup is %zu",B[lev].size(),nB);
     
     for(size_t iB=0;iB<nB;iB++)
       {
