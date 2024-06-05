@@ -350,6 +350,8 @@ namespace quda_iface
 	nissa_free(color_in);
 	nissa_free(color_out);
 	
+	quda_iface::qudaSetups.clear();
+	
 	//free the clover and gauge conf
 	freeGaugeQuda();
 	freeCloverQuda();
