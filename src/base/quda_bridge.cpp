@@ -173,8 +173,6 @@ namespace quda_iface
 	master_printf("Copied eigenvector %zu\n",iEig);
       }
     
-    master_printf("Going to print\n");
-    print_all_vect_content();
     auto& eValsDev=rob<evals>(nestedSolver);
     if(takeCopy)
       eVals=eValsDev;
@@ -188,8 +186,6 @@ namespace quda_iface
     using namespace nissa::Robbery;
     using namespace quda;
     
-    master_printf("Going to preprint\n");
-    print_all_vect_content();
     MG* cur=static_cast<multigrid_solver*>(quda_mg_preconditioner)->mg;
     int lev=0;
     
@@ -228,9 +224,6 @@ namespace quda_iface
 	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
 	quda_mg_param.thin_update_only=p;
       }
-    
-    master_printf("Going to postrint\n");
-    print_all_vect_content();
   }
   
   /// Set the verbosity
@@ -954,11 +947,7 @@ namespace quda_iface
 	master_printf("CanReuseStoredSetup (%s,%zu,%zu): %s\n",tag.c_str(),fs[0],fs[1],canReuseStoredSetup?"true":"false");
 	
 	if(canReuseStoredSetup)
-	  {
-	    master_printf("Going to pre2print\n");
-	    print_all_vect_content();
-	    qudaSetups[setupId].restore();
-	  }
+	  qudaSetups[setupId].restore();
 	else
 	  {
 	    if(quda_mg_preconditioner!=nullptr)
