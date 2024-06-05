@@ -58,6 +58,8 @@ namespace quda_iface
   
   struct QudaSetup
   {
+    size_t allocatedMemory;
+    
     std::vector<std::vector<char*>> B;
     
     std::vector<char*> eVecs;
@@ -76,6 +78,13 @@ namespace quda_iface
       restoreOrTakeCopy(true);
     }
     
+    void restoreOrTakeCopyOfB(const bool takeCopy,
+			      quda::MG* cur,
+			      const size_t lev);
+    
+    void restoreOrTakeCopyOfEig(const bool takeCopy,
+				quda::Solver* csv);
+    
     /// Unified method to take copy or restore
     void restoreOrTakeCopy(const bool takeCopy=false);
     
@@ -92,6 +101,8 @@ namespace quda_iface
       eVecs.clear();
       
       eVals.clear();
+      
+      allocatedMemory=0;
     }
     
     /// Destructor

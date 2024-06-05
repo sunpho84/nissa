@@ -102,17 +102,98 @@ namespace quda_iface
     return out;
   }
   
+  void QudaSetup::restoreOrTakeCopyOfB(const bool takeCopy,
+				       quda::MG* cur,
+				       const size_t lev)
+  {
+    using namespace nissa::Robbery;
+    
+    quda::MGParam* mgLevParam=rob<param_coarse>(cur);
+    
+    auto& Bdev=mgLevParam->B;
+    
+    const size_t nB=Bdev.size();
+    const size_t byteSize=nB?(Bdev[0]->Bytes()):0;
+    
+    if(takeCopy)
+      {
+	B[lev].resize(nB);
+	for(size_t iB=0;iB<nB;iB++)
+	  B[lev][iB]=nissa_malloc(("Bi"+std::to_string(iB)).c_str(),byteSize,char);
+	allocatedMemory+=nB*byteSize;
+	master_printf("Needs to copy %zu vectors of size %zu each\n",nB,byteSize);
+      }
+    else
+      if(nB!=B.size())
+	crash("B size not matching, this is %zu and device setup is %zu",B.size(),nB);
+    
+    for(size_t iB=0;iB<nB;iB++)
+      {
+	void* h=B[lev][iB];
+	void* d=Bdev[iB]->V();
+	if(takeCopy)
+	  qudaMemcpy(h,d,byteSize,cudaMemcpyDeviceToHost);
+	else
+	  qudaMemcpy(d,h,byteSize,cudaMemcpyHostToDevice);
+	master_printf("Copied vector %zu\n",iB);
+      }
+  }
+  
+  void QudaSetup::restoreOrTakeCopyOfEig(const bool takeCopy,
+					 quda::Solver* csv)
+  {
+    using namespace nissa::Robbery;
+    
+    quda::Solver* nestedSolver=rob<solver>((quda::PreconditionedSolver*)csv);
+    
+    auto& eVecsDev=rob<evecs>(nestedSolver);
+    const size_t nEig=eVecsDev.size();
+    const size_t byteSize=nEig?(eVecsDev[0]->Bytes()):0;
+    
+    if(takeCopy)
+      {
+	eVecs.resize(nEig);
+	master_printf("Needs to copy %zu eigenvectors of size %zu each\n",nEig,byteSize);
+	for(size_t iEig=0;iEig<nEig;iEig++)
+	  eVecs[iEig]=nissa_malloc(("ei"+std::to_string(iEig)).c_str(),byteSize,char);
+	allocatedMemory+=byteSize*nEig;
+      }
+    else
+      if(nEig!=eVecs.size())
+	crash("eig size not matching, this is %zu and device setup is %zu",eVecs.size(),nEig);
+    
+    for(size_t iEig=0;iEig<nEig;iEig++)
+      {
+	void* d=eVecsDev[iEig]->V();
+	void* h=eVecs[iEig];
+	if(takeCopy)
+	  qudaMemcpy(h,d,byteSize,cudaMemcpyDeviceToHost);
+	else
+	  qudaMemcpy(d,h,byteSize,cudaMemcpyHostToDevice);
+	master_printf("Copied eigenvector %zu\n",iEig);
+      }
+    
+    master_printf("Going to print\n");
+    print_all_vect_content();
+    auto& eValsDev=rob<evals>(nestedSolver);
+    if(takeCopy)
+      eVals=eValsDev;
+    else
+      eValsDev=eVals;
+    master_printf("Copied eigenvalues\n");
+  }
+  
   void QudaSetup::restoreOrTakeCopy(const bool takeCopy)
   {
     using namespace nissa::Robbery;
     using namespace quda;
     
-		master_printf("Going to preprint\n");
-		print_all_vect_content();
+    master_printf("Going to preprint\n");
+    print_all_vect_content();
     MG* cur=static_cast<multigrid_solver*>(quda_mg_preconditioner)->mg;
     int lev=0;
     
-    size_t allocatedMemory=0;
+    allocatedMemory=0;
     
     if(takeCopy)
       {
@@ -126,76 +207,11 @@ namespace quda_iface
       {
 	master_printf("Lev %zu\n",lev);
 	
-	MGParam* mgLevParam=rob<param_coarse>(cur);
-	auto& Bdev=mgLevParam->B;
-	
-	const size_t nB=Bdev.size();
-	const size_t byteSize=nB?(Bdev[0]->Bytes()):0;
-	
-	if(takeCopy)
-	  {
-	    B[lev].resize(nB);
-	    for(size_t iB=0;iB<nB;iB++)
-	      B[lev][iB]=nissa_malloc(("Bi"+std::to_string(iB)).c_str(),byteSize,char);
-	    allocatedMemory+=nB*byteSize;
-	    master_printf("Needs to copy %zu vectors of size %zu each\n",nB,byteSize);
-	  }
-	else
-	  if(nB!=B.size())
-	    crash("B size not matching, this is %zu and device setup is %zu",B.size(),nB);
-	
-	for(size_t iB=0;iB<nB;iB++)
-	  {
-	    void* h=B[lev][iB];
-	    void* d=Bdev[iB]->V();
-	    if(takeCopy)
-	      qudaMemcpy(h,d,byteSize,cudaMemcpyDeviceToHost);
-	    else
-	      qudaMemcpy(d,h,byteSize,cudaMemcpyHostToDevice);
-	    master_printf("Copied vector %zu\n",iB);
-	  }
+	restoreOrTakeCopyOfB(takeCopy,cur,lev);
 	
 	Solver* csv=rob<coarse_solver>(cur);
 	if(csv and quda_mg_param.use_eig_solver[lev+1]==QUDA_BOOLEAN_YES)
-	  {
-	    Solver* nestedSolver=rob<solver>((PreconditionedSolver*)csv);
-	    
-	    auto& eVecsDev=rob<evecs>(nestedSolver);
-	    const size_t nEig=eVecsDev.size();
-	    const size_t byteSize=nEig?(eVecsDev[0]->Bytes()):0;
-	    
-	    if(takeCopy)
-	      {
-		eVecs.resize(nEig);
-		master_printf("Needs to copy %zu eigenvectors of size %zu each\n",nEig,byteSize);
-		for(size_t iEig=0;iEig<nEig;iEig++)
-		  eVecs[iEig]=nissa_malloc(("ei"+std::to_string(iEig)).c_str(),byteSize,char);
-		allocatedMemory+=byteSize*nEig;
-	      }
-	    else
-	      if(nEig!=eVecs.size())
-		crash("eig size not matching, this is %zu and device setup is %zu",eVecs.size(),nEig);
-	    
-	    for(size_t iEig=0;iEig<nEig;iEig++)
-	      {
-		void* d=eVecsDev[iEig]->V();
-		void* h=eVecs[iEig];
-		if(takeCopy)
-		  qudaMemcpy(h,d,byteSize,cudaMemcpyDeviceToHost);
-		else
-		  qudaMemcpy(d,h,byteSize,cudaMemcpyHostToDevice);
-		master_printf("Copied eigenvector %zu\n",iEig);
-	      }
-	    
-		master_printf("Going to print\n");
-		print_all_vect_content();
-	    auto& eValsDev=rob<evals>(nestedSolver);
-	    if(takeCopy)
-	      eVals=eValsDev;
-	    else
-	      eValsDev=eVals;
-	    master_printf("Copied eigenvalues\n");
-	  }
+	  restoreOrTakeCopyOfEig(takeCopy,csv);
 	
 	cur=rob<coarse>(cur);
 	
