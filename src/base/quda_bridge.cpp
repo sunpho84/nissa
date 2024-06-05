@@ -122,8 +122,8 @@ namespace quda_iface
 	allocatedMemory+=nB*byteSize;
       }
     else
-      if(nB!=B.size())
-	crash("B size not matching, this is %zu and device setup is %zu",B[lev].size(),nB);
+      if(const size_t nBHost=B[lev].size();nBHost!=nB)
+	crash("B size not matching, this is %zu and device setup is %zu",nBHost,nB);
     
     for(size_t iB=0;iB<nB;iB++)
       restoreOrTakeCopyOfData(B[lev][iB],Bdev[iB]->V(),byteSize,takeCopy);
