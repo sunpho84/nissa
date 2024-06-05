@@ -114,8 +114,9 @@ namespace quda_iface
     void reset()
     {
       master_printf("Resetting stored setup\n");
-      for(auto& Bi : B)
-	nissa::nissa_free(Bi);
+      for(auto& Bl : B)
+	for(auto& Bli : Bl)
+	nissa::nissa_free(Bli);
       B.clear();
       
       for(auto& ei : eVecs)
