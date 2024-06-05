@@ -25,6 +25,7 @@
 #endif
 
 #ifdef USE_QUDA
+
 namespace nissa
 {
   namespace Robbery
@@ -50,20 +51,28 @@ namespace nissa
     template struct Rob<evals,quda::Solver,&quda::Solver::evals>;
   }
 }
+
 #endif
 
 namespace quda_iface
 {
-  using SetupID=std::tuple<std::string,nissa::checksum>;
+  /// Tags needed to define a setup
+  using SetupID=
+    std::tuple<std::string,nissa::checksum>;
   
+  /// Store a full setup of the multigrid
   struct QudaSetup
   {
+    /// Allocated memory on B and eVecs
     size_t allocatedMemory;
     
+    /// B vectors needed to restrain/prolongate
     std::vector<std::vector<char*>> B;
     
+    /// Eigenvectors
     std::vector<char*> eVecs;
     
+    /// Eigenvalues
     std::vector<std::complex<double>> eVals;
     
     /// Implants this setup into Quda
@@ -78,10 +87,23 @@ namespace quda_iface
       restoreOrTakeCopy(true);
     }
     
+    /// Restore or take copy of raw data, taking care of the direction of the request
+    void restoreOrTakeCopyOfData(void* host,
+				 void* device,
+				 const size_t& size,
+				 const bool takeCopy)
+    {
+      qudaMemcpy(takeCopy?host:device,
+		 takeCopy?device:host,
+		 size,takeCopy?cudaMemcpyDeviceToHost:cudaMemcpyHostToDevice);
+    }
+    
+    /// Restore or take copy of the B vectors for a given level
     void restoreOrTakeCopyOfB(const bool takeCopy,
 			      quda::MG* cur,
 			      const size_t lev);
     
+    /// Restore or take copy of the eigenvectors
     void restoreOrTakeCopyOfEig(const bool takeCopy,
 				quda::Solver* csv);
     

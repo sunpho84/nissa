@@ -111,7 +111,6 @@ namespace quda_iface
     quda::MGParam* mgLevParam=rob<param_coarse>(cur);
     
     auto& Bdev=mgLevParam->B;
-    
     const size_t nB=Bdev.size();
     const size_t byteSize=nB?(Bdev[0]->Bytes()):0;
     
@@ -121,22 +120,13 @@ namespace quda_iface
 	for(size_t iB=0;iB<nB;iB++)
 	  B[lev][iB]=nissa_malloc(("Bi"+std::to_string(iB)).c_str(),byteSize,char);
 	allocatedMemory+=nB*byteSize;
-	master_printf("Needs to copy %zu vectors of size %zu each\n",nB,byteSize);
       }
     else
       if(nB!=B.size())
 	crash("B size not matching, this is %zu and device setup is %zu",B[lev].size(),nB);
     
     for(size_t iB=0;iB<nB;iB++)
-      {
-	void* h=B[lev][iB];
-	void* d=Bdev[iB]->V();
-	if(takeCopy)
-	  qudaMemcpy(h,d,byteSize,cudaMemcpyDeviceToHost);
-	else
-	  qudaMemcpy(d,h,byteSize,cudaMemcpyHostToDevice);
-	master_printf("Copied vector %zu\n",iB);
-      }
+      restoreOrTakeCopyOfData(B[lev][iB],Bdev[iB]->V(),byteSize,takeCopy);
   }
   
   void QudaSetup::restoreOrTakeCopyOfEig(const bool takeCopy,
@@ -153,7 +143,6 @@ namespace quda_iface
     if(takeCopy)
       {
 	eVecs.resize(nEig);
-	master_printf("Needs to copy %zu eigenvectors of size %zu each\n",nEig,byteSize);
 	for(size_t iEig=0;iEig<nEig;iEig++)
 	  eVecs[iEig]=nissa_malloc(("ei"+std::to_string(iEig)).c_str(),byteSize,char);
 	allocatedMemory+=byteSize*nEig;
@@ -163,22 +152,16 @@ namespace quda_iface
 	crash("eig size not matching, this is %zu and device setup is %zu",eVecs.size(),nEig);
     
     for(size_t iEig=0;iEig<nEig;iEig++)
-      {
-	void* d=eVecsDev[iEig]->V();
-	void* h=eVecs[iEig];
-	if(takeCopy)
-	  qudaMemcpy(h,d,byteSize,cudaMemcpyDeviceToHost);
-	else
-	  qudaMemcpy(d,h,byteSize,cudaMemcpyHostToDevice);
-	master_printf("Copied eigenvector %zu\n",iEig);
-      }
+      restoreOrTakeCopyOfData(eVecs[iEig],
+			      eVecsDev[iEig]->V(),
+			      byteSize,
+			      takeCopy);
     
     auto& eValsDev=rob<evals>(nestedSolver);
     if(takeCopy)
       eVals=eValsDev;
     else
       eValsDev=eVals;
-    master_printf("Copied eigenvalues\n");
   }
   
   void QudaSetup::restoreOrTakeCopy(const bool takeCopy)
