@@ -60,12 +60,15 @@ namespace nissa
 	quad_su3 *conf=get_updated_conf(charge,theta,glb_conf);
 	
 	master_printf("   inverting explicitly\n");
+	
 #ifdef USE_EXTERNAL_SOLVER
 	
-	export_conf::confTag=conf_path+std::string("ch")+std::to_string(charge);
+	std::ostringstream os;
+	os.precision(16);
+	os<<conf_path<<"ch"<<charge;
 	for(int mu=0;mu<NDIM;mu++)
-	  export_conf::confTag+="th["+std::to_string(mu)+"]"+std::to_string(theta[mu]);
-	
+	  os<<"th["<<mu<<"]"<<theta[mu];
+	export_conf::confTag=os.str();
 #endif
 
 	if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
