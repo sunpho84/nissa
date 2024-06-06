@@ -58,7 +58,10 @@ namespace nissa
       }
     
     if(export_bypass==FORCE_EXPORT)
-      export_needed=true;
+      {
+	master_printf("Forcing export of the conf to external library\n");
+	export_needed=true;
+      }
     else
 	{
 	  checksum check_cur{};
@@ -70,11 +73,11 @@ namespace nissa
 	    {
 	      //check inited
 	      bool export_since_new=(check_old[i]==0);
-	      if(not export_needed and export_since_new) master_printf("external library: Old checksum 0, need to export the conf\n");
+	      if(export_since_new) master_printf("external library: Old checksum 0, need to export the conf\n");
 	      export_needed|=export_since_new;
 	      //check diff
 	      bool export_since_diff=(check_old[i]!=check_cur[i]);
-	      if(not export_needed and export_since_diff) master_printf("external library Old checksum %d is %x, new is %x, need to import\n",i,check_old[i],check_cur[i]);
+	      if(export_since_diff) master_printf("external library Old checksum %d is %x, new is %x, need to import\n",i,check_old[i],check_cur[i]);
 	      export_needed|=export_since_diff;
 	      //save
 	      check_old[i]=check_cur[i];
