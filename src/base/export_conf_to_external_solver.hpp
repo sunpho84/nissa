@@ -49,7 +49,7 @@ namespace nissa
     
     if(confTag!=confTagOld)
       {
-	master_printf("previously exported conf tag: \"%s\", to be exported: \"%s\"\n",confTagOld.c_str(),confTag.c_str());
+	master_printf("previously exported conf tag: \"%s\", to be exported: \"%s\", bypassing the checksum\n",confTagOld.c_str(),confTag.c_str());
 	
 	export_conf::export_bypass=
 	  export_conf::FORCE_EXPORT;

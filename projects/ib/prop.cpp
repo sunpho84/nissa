@@ -69,8 +69,9 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  os<<"th["<<mu<<"]"<<theta[mu];
 	export_conf::confTag=os.str();
+	
 #endif
-
+	
 	if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
 	else inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
       }
