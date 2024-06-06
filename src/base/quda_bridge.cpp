@@ -184,8 +184,6 @@ namespace quda_iface
     
     while(lev<multiGrid::nlevels-1)
       {
-	master_printf("Lev %zu\n",lev);
-	
 	restoreOrTakeCopyOfB(takeCopy,cur,lev);
 	
 	Solver* csv=rob<coarse_solver>(cur);
