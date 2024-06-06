@@ -200,10 +200,10 @@ namespace quda_iface
     else
       {
 	master_printf("Everything recycled in the mg, fingers crossed while updating mg\n");
-	QudaBoolean p=quda_mg_param.thin_update_only;
-	quda_mg_param.thin_update_only=QUDA_BOOLEAN_TRUE;
+	// QudaBoolean p=quda_mg_param.thin_update_only;
+	// quda_mg_param.thin_update_only=QUDA_BOOLEAN_TRUE;
 	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
-	quda_mg_param.thin_update_only=p;
+	// quda_mg_param.thin_update_only=p;
       }
   }
   
