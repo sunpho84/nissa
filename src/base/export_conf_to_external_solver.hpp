@@ -61,6 +61,7 @@ namespace nissa
       {
 	master_printf("Forcing export of the conf to external library\n");
 	export_needed=true;
+	export_bypass=NO_BYPASS;
       }
     else
 	{
