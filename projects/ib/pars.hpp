@@ -60,12 +60,12 @@ namespace nissa
   const int follow_chris=0,follow_nazario=1;
   
   //define types of quark propagator used
-  constexpr int INS_TAG_MAX_LENGTH=4;
-  const int nins_kind=32;
-  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , VPHOTON0 , VPHOTON1 , VPHOTON2 , VPHOTON3 , VBHOTON0 , VBHOTON1 , VBHOTON2 , VBHOTON3 , WFLOW , BACK_WFLOW , SMEARING , ANYSM , PHASING , EXT_FIELD , GAMMA , COLOR };
-  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , VPHOTON0 , VPHOTON1 , VPHOTON2 , VPHOTON3 , VBHOTON0 , VBHOTON1 , VBHOTON2 , VBHOTON3 , WFLOW , BACK_WFLOW , SMEARING, ANYSM, PHASING , EXT_FIELD , GAMMA , COLOR};
-  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE","CVEC","CVEC0","CVEC1","CVEC2","CVEC3","PHOTON0","PHOTON1","PHOTON2","PHOTON3","VPHOTON0","VPHOTON1","VPHOTON2","VPHOTON3","VBHOTON0","VBHOTON1","VBHOTON2","VBHOTON3","WFLOW","BACK_WFLOW","SMEARING","ANYSM","PHASING","EXT_FIELD","GAMMA","COLOR"};
-  const char ins_tag[nins_kind][INS_TAG_MAX_LENGTH+1]=    {"-"   ,"S"     ,"P"     ,"F"     ,"A"         ,"C"         ,"T"      ,"V"   ,"V0"   ,"V1"   ,"V2"   ,"V3"   ,"F0"     ,"F1"     ,"F2"     ,"F3"     ,"VF0"     ,"VF1"     ,"VF2"     ,"VF3"     ,"VB0"     ,"VB1"     ,"VB2"     ,"VB3"     ,"WF"   ,"BF"       ,"SM"     ,"AN"     ,"PH"     ,"X"    ,"G"    ,"COL"    };
+  constexpr int INS_TAG_MAX_LENGTH=5;
+  const int nins_kind=33;
+  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , VPHOTON0 , VPHOTON1 , VPHOTON2 , VPHOTON3 , VBHOTON0 , VBHOTON1 , VBHOTON2 , VBHOTON3 , WFLOW , BACK_WFLOW , SMEARING , ANYSM , PHASING , EXT_FIELD , GAMMA , COLOR , DIROP };
+  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , VPHOTON0 , VPHOTON1 , VPHOTON2 , VPHOTON3 , VBHOTON0 , VBHOTON1 , VBHOTON2 , VBHOTON3 , WFLOW , BACK_WFLOW , SMEARING, ANYSM, PHASING , EXT_FIELD , GAMMA , COLOR, DIROP};
+  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE","CVEC","CVEC0","CVEC1","CVEC2","CVEC3","PHOTON0","PHOTON1","PHOTON2","PHOTON3","VPHOTON0","VPHOTON1","VPHOTON2","VPHOTON3","VBHOTON0","VBHOTON1","VBHOTON2","VBHOTON3","WFLOW","BACK_WFLOW","SMEARING","ANYSM","PHASING","EXT_FIELD","GAMMA","COLOR","DIROP"};
+  const char ins_tag[nins_kind][INS_TAG_MAX_LENGTH+1]=    {"-"   ,"S"     ,"P"     ,"F"     ,"A"         ,"C"         ,"T"      ,"V"   ,"V0"   ,"V1"   ,"V2"   ,"V3"   ,"F0"     ,"F1"     ,"F2"     ,"F3"     ,"VF0"     ,"VF1"     ,"VF2"     ,"VF3"     ,"VB0"     ,"VB1"     ,"VB2"     ,"VB3"     ,"WF"   ,"BF"       ,"SM"     ,"AN"     ,"PH"     ,"X"    ,"G"    ,"COL"    ,"DIROP"  };
   inline insertion_t ins_from_tag(const char *tag)
   {
     int i=0;
