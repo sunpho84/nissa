@@ -116,7 +116,7 @@ namespace nissa
 		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_four_pts,SEQ_PROP,SEQ_PROP);
 
 		    //////// disconnected ////////
-		    apply_stag_op(source_g5_id,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::GAMMA_5_GAMMA_1,source);
+		    apply_stag_op(source_g5_g1,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::GAMMA_5_GAMMA_1,source);
 			
 		    if(ihit==meas_pars.nhits-1) master_fprintf(file," # Tr_no_insertion_bubble source time %d\n", glb_t);
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,SIMPLE_PROP,source_g5_g1);
