@@ -28,8 +28,9 @@ namespace nissa
 {
   namespace export_conf
   {
-    enum ExportBypass{NO_BYPASS,AVOID_EXPORT,FORCE_EXPORT};
-    EXTERN_EXPORT_CONF ExportBypass export_bypass INIT_EXPORT_CONF_TO(=NO_BYPASS);
+    enum ExportRule{DO_THE_CHECK,FORCE_EXPORT,AVOID_EXPORT};
+    EXTERN_EXPORT_CONF ExportRule export_rule INIT_EXPORT_CONF_TO(=DO_THE_CHECK);
+    EXTERN_EXPORT_CONF bool relyOnTag INIT_EXPORT_CONF_TO(=false);
     EXTERN_EXPORT_CONF checksum check_old INIT_EXPORT_CONF_TO(={0,0});
     EXTERN_EXPORT_CONF std::string confTagOld INIT_EXPORT_CONF_TO(="");
     EXTERN_EXPORT_CONF std::string confTag INIT_EXPORT_CONF_TO(="");
@@ -41,30 +42,35 @@ namespace nissa
   {
     using namespace export_conf;
     
-    if(export_bypass==AVOID_EXPORT)
+    if(export_rule==AVOID_EXPORT)
       return false;
     
     //verify if export needed
     bool export_needed=false;
-    
-    if(confTag!=confTagOld)
-      {
-	master_printf("previously exported conf tag: \"%s\", to be exported: \"%s\", bypassing the checksum\n",confTagOld.c_str(),confTag.c_str());
-	
-	export_conf::export_bypass=
-	  export_conf::FORCE_EXPORT;
-	
-	confTagOld=confTag;
-      }
-    
-    if(export_bypass==FORCE_EXPORT)
+    if(export_rule==FORCE_EXPORT)
       {
 	master_printf("Forcing export of the conf to external library\n");
 	export_needed=true;
-	export_bypass=NO_BYPASS;
       }
     else
+      if(relyOnTag)
 	{
+	  master_printf("Relying on tag to check,\n old tag: \"%s\"\n",confTagOld.c_str());
+	  
+	  if(confTag!=confTagOld)
+	    {
+	      master_printf("new tag: \"%s\"\n -> export needed\n",confTag.c_str());
+	      
+	      confTagOld=confTag;
+	      export_needed=true;
+	    }
+	  else
+	    master_printf(" -> tag not changed, avoiding export\n",confTag.c_str());
+	}
+      else
+	{
+	  master_printf("Relying on checksum to check\n");
+	  
 	  checksum check_cur{};
 	  
 	  //compute checksum
