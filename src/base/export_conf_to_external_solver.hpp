@@ -59,7 +59,7 @@ namespace nissa
 	  
 	  if(confTag!=confTagOld)
 	    {
-	      master_printf("new tag: \"%s\"\n -> export needed\n",confTag.c_str());
+	      master_printf(" new tag: \"%s\"\n -> export needed\n",confTag.c_str());
 	      
 	      confTagOld=confTag;
 	      export_needed=true;
