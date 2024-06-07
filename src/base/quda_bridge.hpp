@@ -75,6 +75,8 @@ namespace quda_iface
     /// Eigenvalues
     std::vector<std::complex<double>> eVals;
     
+#ifdef USE_QUDA
+    
     /// Implants this setup into Quda
     void restore()
     {
@@ -86,7 +88,7 @@ namespace quda_iface
     {
       restoreOrTakeCopy(true);
     }
-    
+
     /// Restore or take copy of raw data, taking care of the direction of the request
     void restoreOrTakeCopyOfData(void* host,
 				 void* device,
@@ -133,6 +135,8 @@ namespace quda_iface
     {
       reset();
     }
+    
+#endif
     
     QudaSetup()=default;
     
