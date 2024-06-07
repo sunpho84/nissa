@@ -127,6 +127,8 @@ namespace quda_iface
     
     for(size_t iB=0;iB<nB;iB++)
       restoreOrTakeCopyOfData(B[lev][iB],Bdev[iB]->V(),byteSize,takeCopy);
+    
+    master_printf("B vecs of lev %zu %s\n",lev,takeCopy?"stored":"restored");
   }
   
   void QudaSetup::restoreOrTakeCopyOfEig(const bool takeCopy,
@@ -162,6 +164,8 @@ namespace quda_iface
       eVals=eValsDev;
     else
       eValsDev=eVals;
+    
+    master_printf("eigenvecs %s\n",takeCopy?"stored":"restored");
   }
   
   void QudaSetup::restoreOrTakeCopy(const bool takeCopy)
