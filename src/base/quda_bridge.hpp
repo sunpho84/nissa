@@ -11,6 +11,7 @@
 #endif
 
 #include <complex>
+#include <map>
 
 #include "base/multiGridParams.hpp"
 #include "io/checksum.hpp"
