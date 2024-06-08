@@ -217,7 +217,7 @@ void init_simulation(int narg,char **arg)
       
       bool decripted=false;
       
-      if(strcasecmp(ins,ins_tag[PROP])==0)
+      if(strcasecmp(ins,ins_tag[PROP])==0 or strcasecmp(ins,ins_tag[DIROP])==0)
 	{
 	  decripted=true;
 	  
@@ -236,8 +236,11 @@ void init_simulation(int narg,char **arg)
 	  read_double(&charge);
 	  master_printf("Read variable 'Charge' with value: %lg\n",charge);
 	  read_theta(theta);
-	  read_double(&residue);
-	  master_printf("Read variable 'Residue' with value: %lg\n",residue);
+	  if(strcasecmp(ins,ins_tag[DIROP])!=0)
+	    {
+	      read_double(&residue);
+	      master_printf("Read variable 'Residue' with value: %lg\n",residue);
+	    }
 	}
       
       //read phasing

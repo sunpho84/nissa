@@ -923,7 +923,8 @@ namespace quda_iface
     const char QUDA_DEBUG_EV[]="QUDA_DEBUG_EV";
     const bool doTheStorage=getenv(QUDA_DEBUG_EV)!=nullptr;
     
-    SetupID setupId=std::make_tuple(export_conf::confTag,export_conf::check_old);
+    SetupID setupId=
+      std::make_tuple(export_conf::confTag,export_conf::check_old);
     
     bool& setup_valid=multiGrid::setup_valid;
     if(not setup_valid)
