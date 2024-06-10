@@ -370,50 +370,52 @@ void init_simulation(int narg,char **arg)
   //mesons
   read_mes2pts_contr_pars();
   
-  for(const auto& [name,bw,fw] : mes2pts_contr_map)
-    {
-      int bwOrder=0;
-	  std::string line;
-      for(const std::string& u : {bw,fw})
-	{
-	  std::string cur=u;
-	  while(not Q[cur].is_source)
-	    {
-	      std::string wh;
-	      switch(Q[cur].insertion)
-		{
-		case PROP:
-		  wh="-";
-		  break;
-		case SCALAR:
-		  wh="G[0]";
-		  break;
-		case PSEUDO:
-		  wh="G[5]";
-		  break;
-		case GAMMA:
-		  wh="G["+std::to_string(Q[cur].r)+"]";
-		  break;
-		default:
-		  break;
-              }
-	      
-	      if(const int t=Q[cur].tins;t!=-1)
-		wh+="|t="+std::to_string(t)+"|";
-	      
-	      if(bwOrder==0)
-		line=wh+line;
-	      else
-		line=line+wh;
-	      
-	      cur=Q[cur].source_terms.front().first;
-	    }
-	  
-	  line+="     ";
-	  bwOrder++;
-	}
-      master_printf("Decrypting %s = %s\n",name.c_str(),line.c_str());
-    }
+  constexpr bool decryptNameTest=false;
+  if(decryptNameTest)
+    for(const auto& [name,bw,fw] : mes2pts_contr_map)
+      {
+	int bwOrder=0;
+	std::string line;
+	for(const std::string& u : {bw,fw})
+	  {
+	    std::string cur=u;
+	    while(not Q[cur].is_source)
+	      {
+		std::string wh;
+		switch(Q[cur].insertion)
+		  {
+		  case PROP:
+		    wh="-";
+		    break;
+		  case SCALAR:
+		    wh="G[0]";
+		    break;
+		  case PSEUDO:
+		    wh="G[5]";
+		    break;
+		  case GAMMA:
+		    wh="G["+std::to_string(Q[cur].r)+"]";
+		    break;
+		  default:
+		    break;
+		  }
+		
+		if(const int t=Q[cur].tins;t!=-1)
+		  wh+="|t="+std::to_string(t)+"|";
+		
+		if(bwOrder==0)
+		  line=wh+line;
+		else
+		  line=line+wh;
+		
+		cur=Q[cur].source_terms.front().first;
+	      }
+	    
+	    line+="     ";
+	    bwOrder++;
+	  }
+	master_printf("Decrypting %s = %s\n",name.c_str(),line.c_str());
+      }
   
   //meslept
   read_meslep_contr_pars();
