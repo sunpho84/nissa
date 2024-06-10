@@ -173,8 +173,6 @@ namespace nissa
   CUDA_MANAGED EXTERN_PROP spinspin *temp_lep;
   
   void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double q,double residue,const momentum_t& theta);
-  void generate_original_source(qprop_t *sou);
-  void generate_original_sources(int ihit,bool skip_io=false);
   void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,bool *dirs);
   void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,bool *dirs,int loc);
   void generate_quark_propagator(std::string& name,qprop_t& q,int ihit);
@@ -199,34 +197,6 @@ namespace nissa
   };
   
   EXTERN_PROP std::vector<fft_filterer_t> fft_filterer;
-  
-  inline void start_hit(int ihit,bool skip=false)
-  {
-    master_printf("\n=== Hit %d/%d ====\n",ihit+1,nhits);
-    if(use_new_generator)
-      {
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    using C=double[1];
-	    C c;
-	    field_rng_stream.drawScalar(c);
-	    source_coord[mu]=c[0]*glbSize[mu];
-	  }
-      }
-    else
-      source_coord=generate_random_coord();
-    
-    if(stoch_source) master_printf(" source time: %d\n",source_coord[0]);
-    else             master_printf(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
-    if(need_photon)
-      {
-	if(skip)
-	  generate_photon_source(photon_eta);
-	else
-	  generate_photon_stochastic_propagator(ihit);
-      }
-    generate_original_sources(ihit,skip);
-  }
   
   template <typename T>
   struct ReadWriteRealVector
