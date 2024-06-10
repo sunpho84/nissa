@@ -3,9 +3,10 @@
 #define EXTERN_CONF
  #include "conf.hpp"
 
-#include "contr.hpp"
-#include "pars.hpp"
-#include "prop.hpp"
+#include "ib/contr.hpp"
+#include "ib/hit.hpp"
+#include "ib/pars.hpp"
+#include "ib/prop.hpp"
 
 namespace nissa
 {
@@ -199,8 +200,9 @@ namespace nissa
   //handle to discard the source
   void skip_conf()
   {
+    HitLooper hitLooper;
     for(int ihit=0;ihit<nhits;ihit++)
-      start_hit(ihit,true);
+      hitLooper.start_hit(ihit,true);
   }
   
   //find a new conf
