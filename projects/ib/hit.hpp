@@ -349,7 +349,6 @@ struct HitLooper
 	qprop_t *q=&Q[name];
 	q->alloc_storage();
 	generate_original_source(q,skipOnly);
-	computedProps.insert(name);
 	
 	if(not skipOnly)
 	  for(int id_so=0;id_so<nso_spi;id_so++)
@@ -392,8 +391,6 @@ struct HitLooper
   {
     master_printf("\n=== Hit %d/%d ====\n",ihit+1,nhits);
     
-    computedProps.clear();
-    
     if(use_new_generator)
       {
 	for(int mu=0;mu<NDIM;mu++)
@@ -420,17 +417,21 @@ struct HitLooper
   }
   
   /// Perform one of step: dryRun, or eval
-  void run(const int runStep,const size_t iHit)
+  void internalRun(const int runStep,const size_t iHit)
   {
+    computedProps.clear();
     status.clear();
     
     /// Keep backup of the propagators dependencies
     const std::map<std::string,std::set<std::string>> propDepBack=propDep;
     
-    // Mark all the original sources as in memory
+    // Mark all the original sources as in memory and computed
     if(runStep==2)
       for(const auto& s : ori_source_name_list)
-	status[s]=IN_MEMORY;
+	{
+	  status[s]=IN_MEMORY;
+	  computedProps.insert(s);
+	}
     
     for(size_t i=0;i<qprop_name_list.size();i++)
       if(propDep[qprop_name_list[i]].size()==0)
@@ -519,6 +520,23 @@ struct HitLooper
 	  verbosity_lv2_master_printf("  %s\n",s.c_str());
 	verbosity_lv2_master_printf("Dependencies end\n");
       }
+  }
+  
+  void run(const size_t iHit)
+  {
+    for(int runStep=1;runStep<=2;runStep++)
+      internalRun(runStep,iHit);
+    
+    std::ostringstream os;
+    for(size_t iContr=0;iContr<mes2pts_contr_map.size();iContr++)
+      {
+	const auto& m=mes2pts_contr_map[iContr];
+	if(computed2pts.find(iContr)==computed2pts.end())
+	  os<<" not computed corr "<<m.name<<" between "<<m.a<<" and "<<m.b<<std::endl;
+      }
+    
+    if(os.str().size())
+      crash("%s",os.str().c_str());
   }
   
   /// Constructor
