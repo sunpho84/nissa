@@ -420,6 +420,8 @@ struct HitLooper
   void internalRun(const int runStep,const size_t iHit)
   {
     computedProps.clear();
+    computed2pts.clear();
+    offloadedList.clear();
     status.clear();
     
     /// Keep backup of the propagators dependencies
@@ -509,10 +511,7 @@ struct HitLooper
 	      }
 	}
     
-    computedProps.clear();
-    computed2pts.clear();
     propDep=propDepBack;
-    offloadedList.clear();
     
     if(runStep==1)
       {
@@ -529,11 +528,8 @@ struct HitLooper
     
     std::ostringstream os;
     for(size_t iContr=0;iContr<mes2pts_contr_map.size();iContr++)
-      {
-	const auto& m=mes2pts_contr_map[iContr];
-	if(computed2pts.find(iContr)==computed2pts.end())
-	  os<<" not computed corr "<<m.name<<" between "<<m.a<<" and "<<m.b<<std::endl;
-      }
+      if(const auto& m=mes2pts_contr_map[iContr];computed2pts.find(iContr)==computed2pts.end())
+	os<<" not computed corr "<<m.name<<" between "<<m.a<<" and "<<m.b<<std::endl;
     
     if(os.str().size())
       crash("%s",os.str().c_str());
