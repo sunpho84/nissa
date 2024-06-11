@@ -319,9 +319,9 @@ namespace nissa
   //multiply for the Dirac operator
   void mult_by_Dop(spincolor *out,spincolor *in,double kappa,double mass,int r,double charge,const momentum_t& theta)
   {
-    //rotate the source index - the propagator rotate AS the sign of mass term
+    //rotate the source index - the dirac operator rotate opposite of the mass term
     if(twisted_run>0)
-      safe_dirac_prod_spincolor(in,(tau3[r]==-1)?Pminus:Pplus,in);
+      safe_dirac_prod_spincolor(in,(tau3[r]==+1)?Pminus:Pplus,in);
     
     quad_su3 *conf=get_updated_conf(charge,theta,glb_conf);
     
@@ -332,7 +332,7 @@ namespace nissa
     
     //rotate the sink index
     if(twisted_run>0)
-      safe_dirac_prod_spincolor(out,(tau3[r]==-1)?Pminus:Pplus,out);
+      safe_dirac_prod_spincolor(out,(tau3[r]==+1)?Pminus:Pplus,out);
   }
   
   enum class BwFw {BW,FW};
