@@ -14,6 +14,8 @@ namespace nissa
 {
   void apply_tmclovQ(spincolor* out,quad_su3* conf,double kappa,clover_term_t* Cl,double mu,spincolor* in)
   {
+    master_printf("DEBUG multiplying by tmclovQ, mu=%lg\n",mu);
+    
     communicate_lx_spincolor_borders(in);
     communicate_lx_quad_su3_borders(conf);
     

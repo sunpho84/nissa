@@ -453,7 +453,7 @@ namespace nissa
       case WFLOW:flow_prop(loop_source,conf,ori,rel_t,kappa,r);break;
       case BACK_WFLOW:back_flow_prop(loop_source,conf,ori,rel_t,kappa,r);break;
       case PHASING:phase_prop(loop_source,ori,rel_t,theta);break;
-      case DIROP:mult_by_Dop(loop_source,ori,kappa,mass*tau3[r],r,charge,theta);break;
+      case DIROP:mult_by_Dop(loop_source,ori,kappa,mass,r,charge,theta);break;
       }
     
     nissa_free(ori);
