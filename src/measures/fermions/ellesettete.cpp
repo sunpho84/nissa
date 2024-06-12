@@ -72,11 +72,11 @@ namespace nissa
     complex *point_result=nissa_malloc("point_result",locVol,complex);
     NEW_FIELD_T(source);
     NEW_FIELD_T(g5_id_source);
-	NEW_FIELD_T(id_g5_source);
+    NEW_FIELD_T(id_g5_source);
     
     //vectors for calculation
     NEW_FIELD_T(SIMPLE_PROP);
-	NEW_FIELD_T(ID_G5_PROP);
+    NEW_FIELD_T(ID_G5_PROP);
     NEW_FIELD_T(SEQ_PROP);
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
@@ -106,14 +106,14 @@ namespace nissa
 		    //prepare the sources with the right structure spin x taste
 		    fill_source(source,glb_t,meas_pars.rnd_type);
 		    apply_stag_op(g5_id_source,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::IDENTITY,source);
-			apply_stag_op(id_g5_source,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,source);
+		    apply_stag_op(id_g5_source,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,source);
 
 		    //compute std 2pts propagator G(m|n) ~ [D^-1(m|y) source(y)] source(n)*
 		    MINV(SIMPLE_PROP,iflav,source);
 		    
-			//compute  2pts propagator with id x g5 at source and apply id x g5 at sink
-			MINV(ID_G5_PROP,iflav,id_g5_source);
-			apply_stag_op(ID_G5_PROP,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,ID_G5_PROP);
+		    //compute  2pts propagator with id x g5 at source and apply id x g5 at sink
+		    MINV(ID_G5_PROP,iflav,id_g5_source);
+		    apply_stag_op(ID_G5_PROP,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,ID_G5_PROP);
 
 		    //compute sequential propagator with id x g5 at source and apply id x g5 at sink
 		    MINV(SEQ_PROP,iflav,ID_G5_PROP);
@@ -122,12 +122,12 @@ namespace nissa
 		    //then glb reduction to compute the trace for the connected 2pts, 3pts and 4pts diagrams
 		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts,SIMPLE_PROP,ID_G5_PROP);
 		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,SEQ_PROP);
-			apply_stag_op(SEQ_PROP,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,SEQ_PROP); //s.t. at sink we have back id x id
+		    apply_stag_op(SEQ_PROP,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,SEQ_PROP); //s.t. at sink we have back id x id
 		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_four_pts,SEQ_PROP,SEQ_PROP);
 
 		    //////// disconnected ////////
-			//here we need a simple seq prop with nothing at source
-			MINV(SEQ_PROP,iflav,SIMPLE_PROP);
+		    //here we need a simple seq prop with nothing at source
+		    MINV(SEQ_PROP,iflav,SIMPLE_PROP);
 		    if(ihit==meas_pars.nhits-1) master_fprintf(file," # Tr_no_insertion_bubble source time %d\n", glb_t);
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,SIMPLE_PROP,g5_id_source);
 		    if(ihit==meas_pars.nhits-1) master_fprintf(file,"\n # Tr_insertion_bubble source time %d\n", glb_t);
@@ -143,13 +143,13 @@ namespace nissa
     
     //deallocate and close file
     DELETE_FIELD_T(SIMPLE_PROP);
-	DELETE_FIELD_T(ID_G5_PROP);
+    DELETE_FIELD_T(ID_G5_PROP);
     DELETE_FIELD_T(SEQ_PROP);
     DELETE_FIELD_T(source);
     DELETE_FIELD_T(g5_id_source);
-	DELETE_FIELD_T(id_g5_source);
+    DELETE_FIELD_T(id_g5_source);
     nissa_free(point_result);
-	close_file(file);
+    close_file(file);
   }
   
   //print
