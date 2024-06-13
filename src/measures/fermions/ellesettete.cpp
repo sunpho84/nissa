@@ -77,10 +77,10 @@ namespace nissa
     //vectors for propagators calculation
     NEW_FIELD_T(SIMPLE_PROP);
     NEW_FIELD_T(PROP_ID_G5);
-	NEW_FIELD_T(ID_G5_PROP_ID_G5);
+    NEW_FIELD_T(ID_G5_PROP_ID_G5);
     NEW_FIELD_T(SEQ_PROP);
-	NEW_FIELD_T(SEQ_PROP_ID_G5);
-	NEW_FIELD_T(ID_G5_SEQ_PROP_ID_G5);
+    NEW_FIELD_T(SEQ_PROP_ID_G5);
+    NEW_FIELD_T(ID_G5_SEQ_PROP_ID_G5);
 	
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
@@ -119,7 +119,7 @@ namespace nissa
 
 		    //compute  2pts propagator with id x g5 at source and apply id x g5 at sink
 		    MINV(PROP_ID_G5,iflav,id_g5_source);
-			apply_stag_op(ID_G5_PROP_ID_G5,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,PROP_ID_G5);
+		    apply_stag_op(ID_G5_PROP_ID_G5,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,PROP_ID_G5);
 
 		    //compute sequential propagator with id x g5 at source and apply id x g5 at sink
 		    MINV(SEQ_PROP_ID_G5,iflav,ID_G5_PROP);
@@ -127,7 +127,7 @@ namespace nissa
 			
 
 		    //then glb reduction to compute the trace for the connected 2pts_iso, 2pts, 3pts and 4pts diagrams
-			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts_iso,SIMPLE_PROP,SIMPLE_PROP);
+		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts_iso,SIMPLE_PROP,SIMPLE_PROP);
 		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts,SIMPLE_PROP,ID_G5_PROP_ID_G5);
 		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,ID_G5_SEQ_PROP_ID_G5);
 		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_four_pts,SEQ_PROP,ID_G5_SEQ_PROP_ID_G5);
@@ -150,10 +150,10 @@ namespace nissa
     //deallocate and close file
     DELETE_FIELD_T(SIMPLE_PROP);
     DELETE_FIELD_T(PROP_ID_G5);
-	DELETE_FIELD_T(ID_G5_PROP_ID_G5);
+    DELETE_FIELD_T(ID_G5_PROP_ID_G5);
     DELETE_FIELD_T(SEQ_PROP);
-	DELETE_FIELD_T(SEQ_PROP_ID_G5);
-	DELETE_FIELD_T(ID_G5_SEQ_PROP_ID_G5);
+    DELETE_FIELD_T(SEQ_PROP_ID_G5);
+    DELETE_FIELD_T(ID_G5_SEQ_PROP_ID_G5);
     DELETE_FIELD_T(source);
     DELETE_FIELD_T(g5_id_source);
     DELETE_FIELD_T(id_g5_source);
