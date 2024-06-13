@@ -122,7 +122,7 @@ namespace nissa
 		    apply_stag_op(ID_G5_PROP_ID_G5,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,PROP_ID_G5);
 
 		    //compute sequential propagator with id x g5 at source and apply id x g5 at sink
-		    MINV(SEQ_PROP_ID_G5,iflav,ID_G5_PROP);
+		    MINV(SEQ_PROP_ID_G5,iflav,PROP_ID_G5);
 		    apply_stag_op(ID_G5_SEQ_PROP_ID_G5,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,SEQ_PROP_ID_G5);
 			
 
