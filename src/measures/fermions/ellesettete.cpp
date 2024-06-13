@@ -71,11 +71,17 @@ namespace nissa
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     complex *point_result=nissa_malloc("point_result",locVol,complex);
     NEW_FIELD_T(source);
-    NEW_FIELD_T(source_g5);
+    NEW_FIELD_T(g5_id_source);
+    NEW_FIELD_T(id_g5_source);
     
-    //vectors for calculation
+    //vectors for propagators calculation
     NEW_FIELD_T(SIMPLE_PROP);
+    NEW_FIELD_T(PROP_ID_G5);
+    NEW_FIELD_T(ID_G5_PROP_ID_G5);
     NEW_FIELD_T(SEQ_PROP);
+    NEW_FIELD_T(SEQ_PROP_ID_G5);
+    NEW_FIELD_T(ID_G5_SEQ_PROP_ID_G5);
+	
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
       {
@@ -90,6 +96,7 @@ namespace nissa
 	    for(int glb_t=0;glb_t<glbSize[0];glb_t++)
 	      {
 		//vectors for output
+		NEW_TRACE_RES_VEC(Tr_two_pts_iso,glbSize[0]);
 		NEW_TRACE_RES_VEC(Tr_two_pts,glbSize[0]);
 		NEW_TRACE_RES_VEC(Tr_three_pts,glbSize[0]);
 		NEW_TRACE_RES_VEC(Tr_four_pts,glbSize[0]);
@@ -101,27 +108,36 @@ namespace nissa
 		//loop over hits
 		for(int ihit=0;ihit<meas_pars.nhits;ihit++)
 		  {
-		    //fill the source
+		    //prepare the sources with the right structure spin x taste
 		    fill_source(source,glb_t,meas_pars.rnd_type);
-		    
-		    //compute std 2pts propagator G(m|n) ~ [D^-1(m|y) source(y)] source(n)*
+		    apply_stag_op(g5_id_source,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::IDENTITY,source);
+		    apply_stag_op(id_g5_source,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,source);
+
+		    //compute std 2pts propagator G(m|n) ~ [D^-1(m|y) source(y)] source(n)* and simple sequential propagator
 		    MINV(SIMPLE_PROP,iflav,source);
-		    
-		    //compute sequential propagator G(m|n) ~ [D^-1(m|y) source(y)] D^-1(y|n)
 		    MINV(SEQ_PROP,iflav,SIMPLE_PROP);
-		    
-		    //then glb reduction to compute the trace for the connected 3pts diagram and the 2pts
-		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts,SIMPLE_PROP,SIMPLE_PROP);
-		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,SEQ_PROP);
-		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_four_pts,SEQ_PROP,SEQ_PROP);
+
+		    //compute  2pts propagator with id x g5 at source and apply id x g5 at sink
+		    MINV(PROP_ID_G5,iflav,id_g5_source);
+		    apply_stag_op(ID_G5_PROP_ID_G5,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,PROP_ID_G5);
+
+		    //compute sequential propagator with id x g5 at source and apply id x g5 at sink
+		    MINV(SEQ_PROP_ID_G5,iflav,PROP_ID_G5);
+		    apply_stag_op(ID_G5_SEQ_PROP_ID_G5,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,SEQ_PROP_ID_G5);
+			
+
+		    //then glb reduction to compute the trace for the connected 2pts_iso, 2pts, 3pts and 4pts diagrams
+		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts_iso,SIMPLE_PROP,SIMPLE_PROP);
+		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts,SIMPLE_PROP,ID_G5_PROP_ID_G5);
+		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,ID_G5_SEQ_PROP_ID_G5);
+		    SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_four_pts,SEQ_PROP,ID_G5_SEQ_PROP_ID_G5);
 
 		    //////// disconnected ////////
-		    apply_stag_op(source_g5_id,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::IDENTITY,source);
-			
+		    //here we need just simple seq prop with nothing at source
 		    if(ihit==meas_pars.nhits-1) master_fprintf(file," # Tr_no_insertion_bubble source time %d\n", glb_t);
-		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,SIMPLE_PROP,source_g5_id);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,g5_id_source,SIMPLE_PROP);
 		    if(ihit==meas_pars.nhits-1) master_fprintf(file,"\n # Tr_insertion_bubble source time %d\n", glb_t);
-		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,SEQ_PROP,source_g5_id);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,g5_id_source,SEQ_PROP);
 		    master_fprintf(file,"\n");
 		  }
 		  master_fprintf(file,"\n");
@@ -133,11 +149,16 @@ namespace nissa
     
     //deallocate and close file
     DELETE_FIELD_T(SIMPLE_PROP);
+    DELETE_FIELD_T(PROP_ID_G5);
+    DELETE_FIELD_T(ID_G5_PROP_ID_G5);
     DELETE_FIELD_T(SEQ_PROP);
+    DELETE_FIELD_T(SEQ_PROP_ID_G5);
+    DELETE_FIELD_T(ID_G5_SEQ_PROP_ID_G5);
     DELETE_FIELD_T(source);
-    DELETE_FIELD_T(source_g5_id);
+    DELETE_FIELD_T(g5_id_source);
+    DELETE_FIELD_T(id_g5_source);
     nissa_free(point_result);
-	close_file(file);
+    close_file(file);
   }
   
   //print
