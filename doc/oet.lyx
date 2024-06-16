@@ -603,9 +603,25 @@ We can play two different estimators:
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+This estimator is,
+ analytically equivalent to computing from the very beginning the naive estimator.
+\end_layout
+
+\begin_layout Standard
 \begin_inset Formula 
 \[
-2\left(\phi,\Gamma S_{u}\left(\mu=0\right)\phi\right)=2\eta^{\dagger}\gamma_{5}S_{d}^{-1}\gamma_{5}\Gamma S_{u}\left(\mu=0\right)S_{u}^{-1}\eta=2\eta^{\dagger}\Gamma S_{d}^{-1}\eta-2\eta^{\dagger}\gamma_{5}S_{d}^{-1}\mu\gamma_{5}\Gamma S_{u}^{-1}\eta=2\eta^{\dagger}\Gamma S_{d}^{-1}\eta-2\mu\left(\phi,\Gamma\phi\right).
+2\left(\phi,\Gamma S_{u}\left(\mu=0\right)\phi\right)=2\eta^{\dagger}\gamma_{5}S_{d}^{-1}\gamma_{5}\Gamma S_{u}\left(\mu=0\right)S_{u}^{-1}\eta=2\eta^{\dagger}\Gamma S_{d}^{-1}\eta-2\eta^{\dagger}\gamma_{5}S_{d}^{-1}\mu\gamma_{5}\Gamma S_{u}^{-1}\eta=
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+=2\eta^{\dagger}\Gamma S_{d}^{-1}\eta-2\mu\left(\phi,\Gamma\phi\right).
 \]
 
 \end_inset
@@ -614,13 +630,7 @@ We can play two different estimators:
 \end_layout
 
 \begin_layout Standard
-The first estimator is,
- again,
- analytically equivalent to computing from the very beginning the naive estimator.
-\end_layout
-
-\begin_layout Standard
-The second estimator is different,
+The second estimator is actually different,
  and in facts is not exactly equivalent.
  In particular,
  it is not exactly real or imaginary at fixed 
@@ -630,8 +640,14 @@ The second estimator is different,
 .
  In practice the difference is real or imaginary when the estimator is imaginary or real,
  so nothing changes on the physical part:
- this estimator is equivalent to the naive trace,
- for what is concerned.
+ this estimator too is equivalent to the naive trace,
+ for the real/imaginary part concerned.
+ It is different from zero on the other part,
+ but such difference averages to zero in the infinite 
+\begin_inset Formula $\eta$
+\end_inset
+
+ limit.
 \end_layout
 
 \end_body
