@@ -153,9 +153,10 @@ Taking the trace with a certain
 \end_inset
 
 ,
+ we can compute
 \begin_inset Formula 
 \[
-{\rm Tr}\left[\Gamma S_{d}^{-1}+\gamma_{5}\Gamma\gamma_{5}S_{u}^{-1}\right]=2\mu{\rm Tr}\left[\Gamma\gamma_{5}S_{d}^{-1}\gamma_{5}S_{u}^{-1}\right],
+{\rm Tr}\left[\Gamma S_{d}^{-1}+\gamma_{5}\Gamma\gamma_{5}S_{u}^{-1}\right]={\rm Tr}\left[\Gamma S_{d}^{-1}\pm\Gamma S_{u}^{-1}\right]=2\mu{\rm Tr}\left[\Gamma\gamma_{5}S_{d}^{-1}\gamma_{5}S_{u}^{-1}\right],
 \]
 
 \end_inset
@@ -183,7 +184,7 @@ Remembering that:
  
 \begin_inset Formula 
 \[
-\pm{\rm Tr}\left[\Gamma S_{u}^{-1}\right]={\rm Tr}\left[\gamma_{5}\Gamma\gamma_{5}S_{u}^{-1}\right]={\rm Tr}\left[\Gamma\gamma_{5}S_{u}^{-1}\gamma_{5}\right]={\rm Tr}\left[\Gamma\left(S_{d}^{-1}\right)^{\dagger}\right]=\pm^{\prime}{\rm Tr}\left[\Gamma^{\dagger}\left(S_{d}^{-1}\right)^{\dagger}\right]=\pm^{\prime}{\rm Tr}\left[\Gamma S_{d}^{-1}\right]^{\ast}
+{\rm Tr}\left[\gamma_{5}\Gamma\gamma_{5}S_{u}^{-1}\right]={\rm Tr}\left[\Gamma\gamma_{5}S_{u}^{-1}\gamma_{5}\right]={\rm Tr}\left[\Gamma\left(S_{d}^{-1}\right)^{\dagger}\right]=\pm{\rm Tr}\left[\Gamma\left(S_{d}^{-1}\right)\right]^{\ast}
 \]
 
 \end_inset
@@ -191,16 +192,16 @@ Remembering that:
 one has
 \begin_inset Formula 
 \[
-{\rm Tr}\left[\Gamma S_{d}^{-1}\pm\Gamma S_{u}^{-1}\right]={\rm Tr}\left[\Gamma S_{d}^{-1}\right]\pm^{\prime}{\rm Tr}\left[\Gamma S_{d}^{-1}\right]^{\ast}=2{\rm Re}/{\rm Im}{\rm Tr}\left[\Gamma S_{d}^{-1}\right]
+{\rm Tr}\left[\Gamma S_{d}^{-1}+\gamma_{5}\Gamma\gamma_{5}S_{u}^{-1}\right]={\rm Tr}\left[\Gamma S_{d}^{-1}\right]\pm{\rm Tr}\left[\Gamma S_{d}^{-1}\right]^{\ast}=2{\rm Re}/i{\rm Im}{\rm Tr}\left[\Gamma S_{d}^{-1}\right]
 \]
 
 \end_inset
 
-where the imaginary part holds if 
+where the real/imaginary part holds if 
 \begin_inset Formula $\Gamma$
 \end_inset
 
- is antihermitean,
+ is hermitean/antihermitean,
  as per the following table:
 \begin_inset Formula 
 \[
@@ -238,45 +239,7 @@ a trick to compute the real part,
 \end_layout
 
 \begin_layout Standard
-Physically,
- one has
-\begin_inset Formula 
-\[
-{\rm Tr}\left[\Gamma S_{r}^{-1}\left(x,x\right)\right]^{\ast}={\rm Tr}\left[\Gamma^{\dagger}S_{r}^{-1}\left(x,x\right)^{\dagger}\right]=\pm\pm^{\prime}{\rm Tr}\left[\Gamma S_{-r}^{-1}\left(x,x\right)\right]
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Now since the value of 
-\begin_inset Formula $r$
-\end_inset
-
- is immaterial in the physical world,
- the trace is real or imaginary depending on its commutation with 
-\begin_inset Formula $\gamma_{5}$
-\end_inset
-
- and hermiticity,
- according to the following relation
-\begin_inset Formula 
-\[
-\begin{array}{cccccccccccccccc}
-S & V_{x} & V_{y} & V_{z} & V_{t} & P & A_{x} & A_{y} & A_{z} & A_{t} & T_{1} & T_{2} & T_{3} & B_{1} & B_{2} & B_{3}\\
-Re & Im & Im & Im & Im & Re & Re & Re & Re & Re & Im & Im & Im & Im & Im & Im
-\end{array}
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Combining this with the previous table,
+Since only the sum of the bubble has a physical meaning,
  one reads immediately that the method allows one to compute only the physical part of the following bubbles:
 \begin_inset Formula 
 \[
@@ -374,7 +337,7 @@ nolink "false"
  
 \begin_inset Formula 
 \[
-2\mu\left(\phi,\phi\Gamma\right)=\eta^{\dagger}\left(x\right)\left(S_{u}^{-1}+S_{d}^{-1}\right)\left(x,z\right)_{\alpha\beta}\Gamma_{\beta\alpha}\eta\left(z\right)=2{\rm Re}/i{\rm Im}\left(\eta,\phi\Gamma\right),
+2\mu\left(\phi,\phi\Gamma\right)=\eta^{\dagger}\left(x\right)\left(\gamma_{5}S_{u}^{-1}\gamma_{5}+S_{d}^{-1}\right)\left(x,z\right)_{\alpha\beta}\Gamma_{\beta\alpha}\eta\left(z\right)=2{\rm Re}/i{\rm Im}\left(\eta,\phi\Gamma\right),
 \]
 
 \end_inset
@@ -410,12 +373,30 @@ d_{\Gamma}\equiv\eta^{\dagger}\left(x\right)\Gamma\phi\left(x\right).
 \begin_layout Standard
 But the second estimator,
  cannot be brought back to the original form.
- TO BE DONE:
- SHOW THAT EVEN AT FIXED 
-\begin_inset Formula $\eta$
+ 
+\end_layout
+
+\begin_layout Standard
+It is useful to note that both estimators are purely real or imaginary:
+\begin_inset Formula 
+\[
+\left(\phi,\phi\Gamma\right)^{\ast}=\left(\phi\Gamma,\phi\right)=\left(\phi,\phi\Gamma^{\dagger}\right)=\pm\left(\phi,\phi\Gamma\right).
+\]
+
 \end_inset
 
- this has definite parity
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(\phi,\Gamma\phi\right)^{\ast}=\left(\Gamma\phi,\phi\right)=\left(\phi,\Gamma^{\dagger}\phi\right)=\pm\left(\phi,\Gamma\phi\right).
+\]
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -641,10 +622,16 @@ The first estimator is,
 \begin_layout Standard
 The second estimator is different,
  and in facts is not exactly equivalent.
- To make it equivalent,
- we in practice take only the imaginary or real part of it,
- opposite of what done for the standard estimator.
- 
+ In particular,
+ it is not exactly real or imaginary at fixed 
+\begin_inset Formula $\eta$
+\end_inset
+
+.
+ In practice the difference is real or imaginary when the estimator is imaginary or real,
+ so nothing changes on the physical part:
+ this estimator is equivalent to the naive trace,
+ for what is concerned.
 \end_layout
 
 \end_body
