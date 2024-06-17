@@ -233,11 +233,11 @@ namespace quda_iface
 	double* p=(double*)yd->Gauge_p();
 	
 	constexpr size_t nTop=10;
-	double *d=new double[nTop];
-	restoreOrTakeCopyOfData(d,p,sizeof(double)*nTop,true);
+	double *h=new double[nTop];
+	restoreOrTakeCopyOfData(h,p,sizeof(double)*nTop,true);
 	for(int i=0;i<nTop;i++)
-	  master_printf("y[%zu]: %.16lg\n",i,d[i]);
-	delete[] d;
+	  master_printf("y[%zu]: %.16lg %f\n",i,h[i],((float*)h)[i]);
+	delete[] h;
 	
 	cur=rob<coarse>(cur);
 	
