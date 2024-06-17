@@ -129,6 +129,7 @@ namespace quda_iface
       restoreOrTakeCopyOfData(B[lev][iB],Bdev[iB]->V(),byteSize,takeCopy);
     
     master_printf("B vecs of lev %zu %s\n",lev,takeCopy?"stored":"restored");
+    
   }
   
   void QudaSetup::restoreOrTakeCopyOfEig(const bool takeCopy,
@@ -190,6 +191,7 @@ namespace quda_iface
       {
 	restoreOrTakeCopyOfB(takeCopy,cur,lev);
 	
+	//Dirac* dc=rob<diracCoarseSmoother>(cur);
 	Solver* csv=rob<coarse_solver>(cur);
 	if(csv and quda_mg_param.use_eig_solver[lev+1]==QUDA_BOOLEAN_YES)
 	  restoreOrTakeCopyOfEig(takeCopy,csv);
@@ -212,6 +214,33 @@ namespace quda_iface
       }
   }
   
+  void probeY()
+  {
+    using namespace nissa::Robbery;
+    using namespace quda;
+    
+    MG* cur=static_cast<multigrid_solver*>(quda_mg_preconditioner)->mg;
+    int lev=0;
+    
+    while(lev<multiGrid::nlevels-1)
+      {
+	DiracCoarse* dc=static_cast<DiracCoarse*>(rob<diracCoarseSmoother>(cur));
+	cudaGaugeField* yd=rob<Y_d>(dc);
+	//yd->Bytes();
+	double* p=(double*)yd->Gauge_p();
+	constexpr size_t nTop=10;
+	double *d=new double[nTop];
+	restoreOrTakeCopyOfData(d,p,sizeof(double)*nTop,true);
+	for(int i=0;i<nTop;i++)
+	  master_printf("y[%zu]: %.16lg\n",d[i]);
+	delete[] d;
+	
+	cur=rob<coarse>(cur);
+	
+	lev++;
+      }
+  }
+
   /// Set the verbosity
   QudaVerbosity get_quda_verbosity()
   {
@@ -965,6 +994,8 @@ namespace quda_iface
 	master_printf("No need to update the multigrid\n");
     
     inv_param.preconditioner=quda_mg_preconditioner;
+    
+    probeY();
     
     storedMu=inv_param.mu;
     storedKappa=inv_param.kappa;

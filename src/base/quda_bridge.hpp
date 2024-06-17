@@ -31,7 +31,7 @@ namespace nissa
 {
   namespace Robbery
   {
-    enum ROB_MG{param_coarse,coarse,coarse_solver,solver,evecs,evals};
+    enum ROB_MG{param_coarse,coarse,coarse_solver,solver,evecs,evals,diracCoarseSmoother,Y_d,Yhat_d,gauge};
     
     /// Allow to rob the param_coarse
     template struct Rob<param_coarse,quda::MG,&quda::MG::param_coarse>;
@@ -50,6 +50,15 @@ namespace nissa
     
     /// Allow to rob the evals
     template struct Rob<evals,quda::Solver,&quda::Solver::evals>;
+    
+    /// Allow to rob the diracCoarseSmoother of a MG
+    template struct Rob<diracCoarseSmoother,quda::MG,&quda::MG::diracCoarseSmoother>;
+    
+    /// Allow to rob the Y_d of a DiracCoarse
+    template struct Rob<Y_d,quda::DiracCoarse,&quda::DiracCoarse::Y_d>;
+    
+    /// Allow to rob the Yhat_h of a DiracCoarse
+    template struct Rob<Yhat_d,quda::DiracCoarse,&quda::DiracCoarse::Yhat_d>;
   }
 }
 
@@ -60,6 +69,19 @@ namespace quda_iface
   /// Tags needed to define a setup
   using SetupID=
     std::tuple<std::string,nissa::checksum>;
+
+#ifdef USE_QUDA
+  /// Restore or take copy of raw data, taking care of the direction of the request
+  inline void restoreOrTakeCopyOfData(void* host,
+				      void* device,
+				      const size_t& size,
+				      const bool takeCopy)
+  {
+    qudaMemcpy(takeCopy?host:device,
+	       takeCopy?device:host,
+	       size,takeCopy?cudaMemcpyDeviceToHost:cudaMemcpyHostToDevice);
+  }
+#endif
   
   /// Store a full setup of the multigrid
   struct QudaSetup
@@ -88,17 +110,6 @@ namespace quda_iface
     void takeCopy()
     {
       restoreOrTakeCopy(true);
-    }
-
-    /// Restore or take copy of raw data, taking care of the direction of the request
-    void restoreOrTakeCopyOfData(void* host,
-				 void* device,
-				 const size_t& size,
-				 const bool takeCopy)
-    {
-      qudaMemcpy(takeCopy?host:device,
-		 takeCopy?device:host,
-		 size,takeCopy?cudaMemcpyDeviceToHost:cudaMemcpyHostToDevice);
     }
     
     /// Restore or take copy of the B vectors for a given level
