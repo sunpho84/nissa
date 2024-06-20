@@ -180,7 +180,7 @@ namespace quda_iface
 
     multigrid_solver* mgs=static_cast<multigrid_solver*>(quda_mg_preconditioner);
     MG* cur=mgs->mg;
-    int lev=1;
+    int lev=0;
     
     allocatedMemory=0;
     
@@ -193,6 +193,8 @@ namespace quda_iface
       if(B.empty()) crash("setup not in use!");
     
     restoreOrTakeCopyOfB(takeCopy,mgs->B,lev);
+    
+    lev=1;
     while(lev<multiGrid::nlevels-1)
       {
 	MGParam* mgLevParam=rob<param_coarse>(cur);
