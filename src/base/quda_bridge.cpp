@@ -715,7 +715,7 @@ namespace quda_iface
 	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
 	inv_param.solve_type=QUDA_DIRECT_PC_SOLVE;
 #ifndef DYNAMIC_CLOVER
-# warning Please compile quda with DYNAMIC_CLOVER switched on
+# error Please compile quda with DYNAMIC_CLOVER switched on
 #endif
 	
 	inv_param.omega=1.0;
