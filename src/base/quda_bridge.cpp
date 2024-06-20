@@ -113,6 +113,7 @@ namespace quda_iface
     auto& Bdev=mgLevParam->B;
     const size_t nB=Bdev.size();
     const size_t byteSize=nB?(Bdev[0]->Bytes()):0;
+    master_printf("B size: %zu bytes for each of the %zu vectors, corresponding to %zu complex doubles\n",byteSize,nB,byteSize/16);
     
     if(takeCopy)
       {
@@ -167,9 +168,11 @@ namespace quda_iface
     else
       eValsDev=eVals;
     
-    master_printf("eigenvecs %s, first entries: (%lg,%lg) (%lg,%lg)\n",takeCopy?"stored":"restored",
+    master_printf("eigenvecs %s, first entries of evals: (%lg,%lg) (%lg,%lg), of eVecs: (%lg,%lg) (%lg,%lg))\n",takeCopy?"stored":"restored",
 		  eVals[0].real(),eVals[0].imag(),
-		  eVals[1].real(),eVals[1].imag());
+		  eVals[1].real(),eVals[1].imag(),
+		  ((double*)(eVecs[0]))[0],((double*)(eVecs[0]))[1],
+		  ((double*)(eVecs[1]))[0],((double*)(eVecs[1]))[1]);
   }
   
   void QudaSetup::restoreOrTakeCopy(const bool takeCopy)
@@ -247,7 +250,7 @@ namespace quda_iface
 	lev++;
       }
   }
-
+  
   /// Set the verbosity
   QudaVerbosity get_quda_verbosity()
   {
