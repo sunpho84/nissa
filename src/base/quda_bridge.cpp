@@ -103,14 +103,12 @@ namespace quda_iface
   }
   
   void QudaSetup::restoreOrTakeCopyOfB(const bool takeCopy,
-				       quda::MG* cur,
+				       std::vector<quda::ColorSpinorField*>& Bdev,
 				       const size_t lev)
   {
     using namespace nissa::Robbery;
     
-    quda::MGParam* mgLevParam=rob<param_coarse>(cur);
     
-    auto& Bdev=mgLevParam->B;
     const size_t nB=Bdev.size();
     const size_t byteSize=nB?(Bdev[0]->Bytes()):0;
     master_printf("B size: %zu bytes for each of the %zu vectors, corresponding to %zu complex doubles\n",byteSize,nB,byteSize/16);
@@ -179,9 +177,10 @@ namespace quda_iface
   {
     using namespace nissa::Robbery;
     using namespace quda;
-    
-    MG* cur=static_cast<multigrid_solver*>(quda_mg_preconditioner)->mg;
-    int lev=0;
+
+    multigrid_solver* mgs=static_cast<multigrid_solver*>(quda_mg_preconditioner);
+    MG* cur=mgs->mg;
+    int lev=1;
     
     allocatedMemory=0;
     
@@ -193,9 +192,12 @@ namespace quda_iface
     else
       if(B.empty()) crash("setup not in use!");
     
+    restoreOrTakeCopyOfB(takeCopy,mgs->B,lev);
     while(lev<multiGrid::nlevels-1)
       {
-	restoreOrTakeCopyOfB(takeCopy,cur,lev);
+	MGParam* mgLevParam=rob<param_coarse>(cur);
+	std::vector<ColorSpinorField*>& Bdev=mgLevParam->B;
+	restoreOrTakeCopyOfB(takeCopy,Bdev,lev);
 	
 	//Dirac* dc=rob<diracCoarseSmoother>(cur);
 	Solver* csv=rob<coarse_solver>(cur);

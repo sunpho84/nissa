@@ -36,7 +36,7 @@ namespace nissa
     /// Allow to rob the param_coarse
     template struct Rob<param_coarse,quda::MG,&quda::MG::param_coarse>;
     
-    /// Allow to rob the param_coarse
+    /// Allow to rob the coarse
     template struct Rob<coarse,quda::MG,&quda::MG::coarse>;
     
     /// Allow to rob the coarse_solver
@@ -114,7 +114,7 @@ namespace quda_iface
     
     /// Restore or take copy of the B vectors for a given level
     void restoreOrTakeCopyOfB(const bool takeCopy,
-			      quda::MG* cur,
+			      std::vector<quda::ColorSpinorField*>& Bdev,
 			      const size_t lev);
     
     /// Restore or take copy of the eigenvectors
