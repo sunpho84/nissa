@@ -126,10 +126,11 @@ namespace quda_iface
 	crash("B size not matching, this is %zu and device setup is %zu",nBHost,nB);
     
     for(size_t iB=0;iB<nB;iB++)
-      restoreOrTakeCopyOfData(B[lev][iB],Bdev[iB]->V(),byteSize,takeCopy);
-    
-    master_printf("B vecs of lev %zu %s\n",lev,takeCopy?"stored":"restored");
-    
+      {
+	restoreOrTakeCopyOfData(B[lev][iB],Bdev[iB]->V(),byteSize,takeCopy);
+	
+	master_printf("B[%zu] vec of lev %zu %s, first entries: %lg %lg\n",iB,lev,takeCopy?"stored":"restored",((double*)(B[lev])[iB])[0],((double*)(B[lev])[iB])[1]);
+      }
   }
   
   void QudaSetup::restoreOrTakeCopyOfEig(const bool takeCopy,
@@ -166,7 +167,9 @@ namespace quda_iface
     else
       eValsDev=eVals;
     
-    master_printf("eigenvecs %s\n",takeCopy?"stored":"restored");
+    master_printf("eigenvecs %s, first entries: (%lg,%lg) (%lg,%lg)\n",takeCopy?"stored":"restored",
+		  eVals[0].real(),eVals[0].imag(),
+		  eVals[1].real(),eVals[1].imag());
   }
   
   void QudaSetup::restoreOrTakeCopy(const bool takeCopy)
