@@ -108,13 +108,11 @@ namespace quda_iface
   {
     using namespace nissa::Robbery;
 
-    const char tags[4][40]={
-      "QUDA_QUARTER_PRECISION","QUDA_HALF_PRECISION","QUDA_SINGLE_PRECISION","QUDA_DOUBLE_PRECISION"};
     
     const size_t nB=Bdev.size();
     const int prec=Bdev[0]->Precision();
     const size_t byteSize=nB?(Bdev[0]->Bytes()):0;
-    master_printf("B size: %zu bytes, precision %s for each of the %zu vectors, corresponding to %zu complex doubles\n",byteSize,tags[prec],nB,byteSize/16);
+    master_printf("B size: %zu bytes, precision %d for each of the %zu vectors, corresponding to %zu complex doubles\n",byteSize,prec,nB,byteSize/16);
     
     if(takeCopy)
       {
@@ -142,9 +140,11 @@ namespace quda_iface
     using namespace nissa::Robbery;
     
     quda::Solver* nestedSolver=rob<solver>((quda::PreconditionedSolver*)csv);
+    master_printf("nested solver: %p\n",nestedSolver);
     
     auto& eVecsDev=rob<evecs>(nestedSolver);
     const size_t nEig=eVecsDev.size();
+    master_printf("nEig: %zu\n",nEig);
     const size_t byteSize=nEig?(eVecsDev[0]->Bytes()):0;
     
     if(takeCopy)
