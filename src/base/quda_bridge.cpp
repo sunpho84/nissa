@@ -129,6 +129,7 @@ namespace quda_iface
 	restoreOrTakeCopyOfData(B[lev][iB],Bdev[iB]->V(),byteSize,takeCopy);
 	
 	master_printf("B[%zu] vec of lev %zu %s, first entries: %lg %lg\n",iB,lev,takeCopy?"stored":"restored",((double*)(B[lev])[iB])[0],((double*)(B[lev])[iB])[1]);
+	master_printf("B[%zu] vec of lev %zu %s, first entries: %f %f\n",iB,lev,takeCopy?"stored":"restored",((float*)(B[lev])[iB])[0],((float*)(B[lev])[iB])[1]);
       }
   }
   
