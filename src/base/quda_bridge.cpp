@@ -192,7 +192,8 @@ namespace quda_iface
     else
       if(B.empty()) crash("setup not in use!");
     
-    restoreOrTakeCopyOfB(takeCopy,mgs->B,lev);
+    master_printf("&mgs->B %p , &mgs->mgParam.B %p\n",&mgs->B,&mgs->mgParam->B);
+    restoreOrTakeCopyOfB(takeCopy,mgs->mgParam->B,lev);
     
     lev=1;
     while(lev<multiGrid::nlevels-1)
@@ -207,6 +208,8 @@ namespace quda_iface
 	  restoreOrTakeCopyOfEig(takeCopy,csv);
 	
 	cur=rob<coarse>(cur);
+	
+	master_printf("Done with lev %d\n",lev);
 	
 	lev++;
       }
