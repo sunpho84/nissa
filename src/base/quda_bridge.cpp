@@ -107,11 +107,14 @@ namespace quda_iface
 				       const size_t lev)
   {
     using namespace nissa::Robbery;
-    
+
+    const char tags[4][40]={
+      "QUDA_QUARTER_PRECISION","QUDA_HALF_PRECISION","QUDA_SINGLE_PRECISION","QUDA_DOUBLE_PRECISION"};
     
     const size_t nB=Bdev.size();
+    const int prec=Bdev[0]->Precision();
     const size_t byteSize=nB?(Bdev[0]->Bytes()):0;
-    master_printf("B size: %zu bytes for each of the %zu vectors, corresponding to %zu complex doubles\n",byteSize,nB,byteSize/16);
+    master_printf("B size: %zu bytes, precision %s for each of the %zu vectors, corresponding to %zu complex doubles\n",byteSize,tags[prec],nB,byteSize/16);
     
     if(takeCopy)
       {
@@ -205,8 +208,12 @@ namespace quda_iface
 	
 	//Dirac* dc=rob<diracCoarseSmoother>(cur);
 	Solver* csv=rob<coarse_solver>(cur);
+	master_printf("csv: %p\n",csv);
 	if(csv and quda_mg_param.use_eig_solver[lev+1]==QUDA_BOOLEAN_YES)
-	  restoreOrTakeCopyOfEig(takeCopy,csv);
+	  {
+	    master_printf("Going to to the eig part\n");
+	    restoreOrTakeCopyOfEig(takeCopy,csv);
+	  }
 	
 	cur=rob<coarse>(cur);
 	
