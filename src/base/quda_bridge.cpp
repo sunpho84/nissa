@@ -102,17 +102,34 @@ namespace quda_iface
     return out;
   }
   
+  const char* getPrecTag(const int precision)
+    {
+      switch (precision)
+	{
+	case QUDA_DOUBLE_PRECISION:
+	  return "QUDA_DOUBLE_PRECISION";
+	case QUDA_SINGLE_PRECISION:
+	  return "QUDA_SINGLE_PRECISION";
+	case QUDA_HALF_PRECISION:
+	  return "QUDA_HALF_PRECISION";
+	case QUDA_QUARTER_PRECISION:
+	  return "QUDA_QUARTER_PRECISION";
+	  break;
+	default:
+	  return "";
+	}
+    }
+  
   void QudaSetup::restoreOrTakeCopyOfB(const bool takeCopy,
 				       std::vector<quda::ColorSpinorField*>& Bdev,
 				       const size_t lev)
   {
     using namespace nissa::Robbery;
-
     
     const size_t nB=Bdev.size();
     const int prec=Bdev[0]->Precision();
     const size_t byteSize=nB?(Bdev[0]->Bytes()):0;
-    master_printf("B size: %zu bytes, precision %d for each of the %zu vectors, corresponding to %zu complex doubles\n",byteSize,prec,nB,byteSize/16);
+    master_printf("B size: %zu bytes, precision %d (%s) for each of the %zu vectors, corresponding to %zu complex doubles\n",byteSize,prec,getPrecTag(prec),nB,byteSize/16);
     
     if(takeCopy)
       {
@@ -181,7 +198,7 @@ namespace quda_iface
   {
     using namespace nissa::Robbery;
     using namespace quda;
-
+    
     multigrid_solver* mgs=static_cast<multigrid_solver*>(quda_mg_preconditioner);
     MG* cur=mgs->mg;
     int lev=0;
@@ -191,7 +208,7 @@ namespace quda_iface
     if(takeCopy)
       {
 	if(not B.empty()) crash("setup already in use!");
-	B.resize(multiGrid::nlevels-1);
+	B.resize(multiGrid::nlevels);
       }
     else
       if(B.empty()) crash("setup not in use!");
@@ -200,7 +217,7 @@ namespace quda_iface
     restoreOrTakeCopyOfB(takeCopy,mgs->mgParam->B,lev);
     
     lev=1;
-    while(lev<multiGrid::nlevels-1)
+    while(lev<multiGrid::nlevels)
       {
 	MGParam* mgLevParam=rob<param_coarse>(cur);
 	std::vector<ColorSpinorField*>& Bdev=mgLevParam->B;
