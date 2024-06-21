@@ -232,11 +232,14 @@ namespace quda_iface
     else
       eValsDev=eVals;
     
-    master_printf("eigenvecs %s, first entries of evals: (%lg,%lg) (%lg,%lg), of eVecs: (%lg,%lg) (%lg,%lg))\n",takeCopy?"stored":"restored",
+    master_printf("eigenvecs %s, first entries of evals: (%lg,%lg) (%lg,%lg), of eVecs: ",takeCopy?"stored":"restored",
 		  eVals[0].real(),eVals[0].imag(),
-		  eVals[1].real(),eVals[1].imag(),
-		  ((double*)(eVecs[0]))[0],((double*)(eVecs[0]))[1],
-		  ((double*)(eVecs[1]))[0],((double*)(eVecs[1]))[1]);
+		  eVals[1].real(),eVals[1].imag());
+    for(int i=0;i<2;i++)
+      master_printf("(%lg,%lg) ",
+		    getFromCustomPrecArray(eVecs[i],0+2*i,eVecsDev[0]->Precision()),
+		    getFromCustomPrecArray(eVecs[i],1+2*i,eVecsDev[0]->Precision()));
+    master_printf("\n");
   }
   
   void QudaSetup::restoreOrTakeCopy(const bool takeCopy)
