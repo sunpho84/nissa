@@ -12,6 +12,7 @@
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3_op.hpp"
+#include "new_types/custom_real_numb.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
@@ -120,6 +121,47 @@ namespace quda_iface
 	}
     }
   
+  namespace internal
+  {
+    template <QudaPrecision>
+    struct _CustomRealOfQudaPrecision;
+
+#define PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION(QUDA_ENUM,TYPE)	\
+    template <>							\
+    struct _CustomRealOfQudaPrecision<QUDA_ENUM>		\
+    {								\
+      using type=TYPE;						\
+    }
+    
+    PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION(QUDA_DOUBLE_PRECISION,CustomDouble);
+    PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION(QUDA_SINGLE_PRECISION,CustomFloat);
+    PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION(QUDA_HALF_PRECISION,CustomHalf);
+    
+#undef PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION
+  }
+
+  /// Custom type corresponding to quda precision
+  template <QudaPrecision Prec>
+  using CustomRealOfQudaPrecision=
+    typename internal::_CustomRealOfQudaPrecision<Prec>::type;
+  
+  /// Gets the i-th entry of an array v, interpeting entries as Prec type 
+  double getFromCustomPrecArray(const void* v,
+				const size_t& i,
+				const size_t prec)
+  {
+    if(prec==8)
+      return (double)((CustomRealOfQudaPrecision<QUDA_DOUBLE_PRECISION>*)v)[i];
+    else if(prec==4)
+      return (double)((CustomRealOfQudaPrecision<QUDA_SINGLE_PRECISION>*)v)[i];
+    else if(prec==2)
+      return (double)((CustomRealOfQudaPrecision<QUDA_HALF_PRECISION>*)v)[i];
+    else
+      crash("Unknown precision %d",prec);
+    
+    return 0;
+  }
+  
   void QudaSetup::restoreOrTakeCopyOfB(const bool takeCopy,
 				       std::vector<quda::ColorSpinorField*>& Bdev,
 				       const size_t lev)
@@ -129,7 +171,7 @@ namespace quda_iface
     const size_t nB=Bdev.size();
     const int prec=Bdev[0]->Precision();
     const size_t byteSize=nB?(Bdev[0]->Bytes()):0;
-    master_printf("B size: %zu bytes, precision %d (%s) for each of the %zu vectors, corresponding to %zu complex doubles\n",byteSize,prec,getPrecTag(prec),nB,byteSize/16);
+    master_printf("B size: %zu bytes, precision %d (%s) for each of the %zu vectors, corresponding to %zu complex\n",byteSize,prec,getPrecTag(prec),nB,byteSize/(2*prec));
     
     if(takeCopy)
       {
@@ -146,8 +188,11 @@ namespace quda_iface
       {
 	restoreOrTakeCopyOfData(B[lev][iB],Bdev[iB]->V(),byteSize,takeCopy);
 	
-	master_printf("B[%zu] vec of lev %zu %s, first entries: %lg %lg\n",iB,lev,takeCopy?"stored":"restored",((double*)(B[lev])[iB])[0],((double*)(B[lev])[iB])[1]);
-	master_printf("B[%zu] vec of lev %zu %s, first entries: %f %f\n",iB,lev,takeCopy?"stored":"restored",((float*)(B[lev])[iB])[0],((float*)(B[lev])[iB])[1]);
+	master_printf("B[%zu] vec of lev %zu %s, first entries:",iB,lev,takeCopy?"stored":"restored");
+	for(int i=0;i<2;i++)
+	  master_printf("%lg ",getFromCustomPrecArray((B[lev])[iB],i,prec));
+	
+	master_printf("\n");
       }
   }
   
@@ -274,7 +319,7 @@ namespace quda_iface
 	double *h=new double[nTop];
 	restoreOrTakeCopyOfData(h,p,sizeof(double)*nTop,true);
 	for(int i=0;i<nTop;i++)
-	  master_printf("y[%zu]: %.16lg %f\n",i,h[i],((float*)h)[i]);
+	  master_printf("y[%zu]: %.16lg %f\n",i,h[i],getFromCustomPrecArray(h,i,yd->Precision()));
 	delete[] h;
 	
 	cur=rob<coarse>(cur);
