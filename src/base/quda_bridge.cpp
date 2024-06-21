@@ -226,7 +226,7 @@ namespace quda_iface
 	//Dirac* dc=rob<diracCoarseSmoother>(cur);
 	Solver* csv=rob<coarse_solver>(cur);
 	master_printf("csv: %p\n",csv);
-	if(csv and quda_mg_param.use_eig_solver[lev+1]==QUDA_BOOLEAN_YES)
+	if(csv and quda_mg_param.use_eig_solver[lev]==QUDA_BOOLEAN_YES)
 	  {
 	    master_printf("Going to to the eig part\n");
 	    restoreOrTakeCopyOfEig(takeCopy,csv);
