@@ -1,10 +1,12 @@
 #ifndef _METAPROGRAMMING_HPP
 #define _METAPROGRAMMING_HPP
 
+#include <sstream>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 
+#include <base/debug.hpp>
 #include <routines/math_routines.hpp>
 
 namespace nissa
