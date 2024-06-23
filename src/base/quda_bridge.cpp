@@ -142,7 +142,7 @@ namespace quda_iface
     
 #undef PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION
   }
-
+  
   /// Custom type corresponding to quda precision
   template <QudaPrecision Prec>
   using CustomRealOfQudaPrecision=
@@ -174,7 +174,8 @@ namespace quda_iface
     const size_t nB=Bdev.size();
     const int prec=Bdev[0]->Precision();
     const size_t byteSize=nB?(Bdev[0]->Bytes()):0;
-    master_printf("B size: %zu bytes, precision %d (%s) for each of the %zu vectors, corresponding to %zu complex\n",byteSize,prec,getPrecTag(prec),nB,byteSize/(2*prec));
+    const size_t ghostSize=nB?Bdev[0]->GhostBytes():0;
+    master_printf("B size: %zu bytes, precision %d (%s) for each of the %zu vectors, corresponding to %zu complex, ghost size: %zu\n",byteSize,prec,getPrecTag(prec),nB,byteSize/(2*prec),ghostSize);
     
     if(takeCopy)
       {
@@ -191,7 +192,7 @@ namespace quda_iface
       {
 	restoreOrTakeCopyOfData(B[lev][iB],Bdev[iB]->V(),byteSize,takeCopy);
 	
-	master_printf("B[%zu] vec of lev %zu %s, first entries:",iB,lev,takeCopy?"stored":"restored");
+	master_printf("B[%zu] vec of lev %zu %s, first entries: ",iB,lev,takeCopy?"stored":"restored");
 	for(int i=0;i<2;i++)
 	  master_printf("%lg ",getFromCustomPrecArray((B[lev])[iB],i,prec));
 	
