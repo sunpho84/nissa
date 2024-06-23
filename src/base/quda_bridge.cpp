@@ -5,6 +5,8 @@
 #define EXTERN_QUDA_BRIDGE
 # include "quda_bridge.hpp"
 
+#include <quda_fp16.cuh>
+
 #include "base/cuda.hpp"
 #include "io/checksum.hpp"
 #include "base/export_conf_to_external_solver.hpp"
@@ -154,8 +156,8 @@ namespace quda_iface
       return (double)((CustomRealOfQudaPrecision<QUDA_DOUBLE_PRECISION>*)v)[i];
     else if(prec==4)
       return (double)((CustomRealOfQudaPrecision<QUDA_SINGLE_PRECISION>*)v)[i];
-    else if(prec==2)
-      return (double)((CustomRealOfQudaPrecision<QUDA_HALF_PRECISION>*)v)[i];
+    else if(prec==QUDA_HALF_PRECISION)
+      return __half2float(((__half*)v)[i]);
     else
       crash("Unknown precision %d",prec);
     

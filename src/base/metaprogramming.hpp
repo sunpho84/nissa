@@ -367,6 +367,26 @@ namespace nissa
       return p->*get(Shadower<P,Tag>());
     }
   }
+  
+  /// Pass Val as a templated argument of the lambda f, allows only the given options
+  template <auto f,
+	    auto HeadOpt,
+	    auto...TailOpt,
+	    typename Val>
+  auto templatedLambdaRuntimeDispatch(const Val& val)
+  {
+    if(val==HeadOpt)
+      return f.template operator()<HeadOpt>();
+    else
+      if constexpr(sizeof...(TailOpt))
+	return templatedLambdaRuntimeDispatch<f,TailOpt...>(val);
+      else
+	{
+	  std::ostringstream osVal;
+	  osVal<<val;
+	  crash("Passed lambda does not allow the value: %s",osVal.str().c_str());
+	}
+  }
 }
 
 #endif
