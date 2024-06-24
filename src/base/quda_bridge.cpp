@@ -314,19 +314,19 @@ namespace quda_iface
     
     while(lev<multiGrid::nlevels-1)
       {
-	master_printf("Lev: %d\n",lev);
-	master_printf("--------\n");
-	
 	DiracCoarse* dc=static_cast<DiracCoarse*>(rob<diracCoarseSmoother>(cur));
 	cudaGaugeField* yd=rob<Y_d>(dc);
 	//yd->Bytes();
+	master_printf("Lev: %d, probing y of prec %d\n",lev,yd->Precision());
+	master_printf("--------\n");
+	
 	double* p=(double*)yd->Gauge_p();
 	
 	constexpr size_t nTop=10;
 	double *h=new double[nTop];
 	restoreOrTakeCopyOfData(h,p,sizeof(double)*nTop,true);
 	for(int i=0;i<nTop;i++)
-	  master_printf("y[%zu]: %.16lg %f\n",i,h[i],getFromCustomPrecArray(h,i,yd->Precision()));
+	  master_printf("y[%zu]: %.16lg\n",i,getFromCustomPrecArray(h,i,yd->Precision()));
 	delete[] h;
 	
 	cur=rob<coarse>(cur);
