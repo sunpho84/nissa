@@ -404,7 +404,7 @@ namespace quda_iface
 	color_in=nissa_malloc("color_in",locVol,color);
 	color_out=nissa_malloc("color_out",locVol,color);
 	
-	setVerbosityQuda(QUDA_SUMMARIZE,"# QUDA: ",stdout);
+	setVerbosityQuda(QUDA_VERBOSE,"# QUDA: ",stdout);
 	
 	/////////////////////////// gauge params ////////////////////////////////
 	
