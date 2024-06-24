@@ -92,6 +92,12 @@ namespace quda_iface
     /// B vectors needed to restrain/prolongate
     std::vector<std::vector<char*>> B;
     
+    /// Y vectors needed to implement operator
+    std::vector<char*> Y;
+    
+    /// Yhat vectors needed to implement operator
+    std::vector<char*> Yhat;
+    
     /// Eigenvectors
     std::vector<char*> eVecs;
     
@@ -120,6 +126,11 @@ namespace quda_iface
     /// Restore or take copy of the eigenvectors
     void restoreOrTakeCopyOfEig(const bool takeCopy,
 				quda::Solver* csv);
+    
+    /// Restore or take copy of the Y and Yhat
+    void restoreOrTakeCopyOfY(const bool takeCopy,
+			      quda::MG* cur,
+			      const size_t lev);
     
     /// Unified method to take copy or restore
     void restoreOrTakeCopy(const bool takeCopy=false);

@@ -246,6 +246,31 @@ namespace quda_iface
 		    getFromCustomPrecArray(eVecs[i],1+2*i,eVecsDev[0]->Precision()));
     master_printf("\n");
   }
+
+  void QudaSetup::restoreOrTakeCopyOfY(const bool takeCopy,
+				       quda::MG* cur,
+				       const size_t lev)
+  {
+    using namespace nissa::Robbery;
+    using namespace quda;
+    
+    DiracCoarse* dc=static_cast<DiracCoarse*>(rob<diracCoarseSmoother>(cur));
+    cudaGaugeField* yd=rob<Y_d>(dc);
+    cudaGaugeField* yhat_d=rob<Yhat_d>(dc);
+    
+    if(takeCopy)
+      {
+	Y[lev]=nissa_malloc("Y",yd->Bytes(),char);
+	Yhat[lev]=nissa_malloc("Yhat",yhat_d->Bytes(),char);
+	allocatedMemory+=yd->Bytes()+yhat_d->Bytes();
+      }
+    
+    restoreOrTakeCopyOfData(Y[lev],yd->Gauge_p(),yd->Bytes(),takeCopy);
+    restoreOrTakeCopyOfData(Yhat[lev],yhat_d->Gauge_p(),yhat_d->Bytes(),takeCopy);
+	
+    for(int i=0;i<10;i++)
+      master_printf("y[%zu]: %.16lg\n",i,getFromCustomPrecArray(Y[lev],i,yd->Precision()));
+  }
   
   void QudaSetup::restoreOrTakeCopy(const bool takeCopy)
   {
@@ -264,14 +289,17 @@ namespace quda_iface
     
     if(takeCopy)
       {
-	if(not B.empty()) crash("setup already in use!");
+	if(not (B.empty() and Y.empty() and Yhat.empty())) crash("setup already in use!");
 	B.resize(multiGrid::nlevels);
+	for(auto& p : {&Y,&Yhat})
+	  p->resize(multiGrid::nlevels);
       }
     else
-      if(B.empty()) crash("setup not in use!");
+      if(B.empty() or Y.empty() or Yhat.empty()) crash("setup not in use!");
     
     master_printf("&mgs->B %p , &mgs->mgParam.B %p\n",&mgs->B,&mgs->mgParam->B);
     restoreOrTakeCopyOfB(takeCopy,mgs->mgParam->B,lev);
+    restoreOrTakeCopyOfY(takeCopy,cur,lev);
     
     lev=1;
     while(lev<multiGrid::nlevels)
@@ -279,6 +307,7 @@ namespace quda_iface
 	MGParam* mgLevParam=rob<param_coarse>(cur);
 	std::vector<ColorSpinorField*>& Bdev=mgLevParam->B;
 	restoreOrTakeCopyOfB(takeCopy,Bdev,lev);
+	restoreOrTakeCopyOfY(takeCopy,cur,lev);
 	
 	//Dirac* dc=rob<diracCoarseSmoother>(cur);
 	Solver* csv=rob<coarse_solver>(cur);
@@ -312,37 +341,6 @@ namespace quda_iface
 	// p=QUDA_BOOLEAN_TRUE;
 	// updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
 	// p=oldP;
-      }
-  }
-  
-  void probeY()
-  {
-    using namespace nissa::Robbery;
-    using namespace quda;
-    
-    MG* cur=static_cast<multigrid_solver*>(quda_mg_preconditioner)->mg;
-    int lev=0;
-    
-    while(lev<multiGrid::nlevels-1)
-      {
-	DiracCoarse* dc=static_cast<DiracCoarse*>(rob<diracCoarseSmoother>(cur));
-	cudaGaugeField* yd=rob<Y_d>(dc);
-	//yd->Bytes();
-	master_printf("Lev: %d, probing y of prec %d\n",lev,yd->Precision());
-	master_printf("--------\n");
-	
-	double* p=(double*)yd->Gauge_p();
-	
-	constexpr size_t nTop=10;
-	double *h=new double[nTop];
-	restoreOrTakeCopyOfData(h,p,sizeof(double)*nTop,true);
-	for(int i=0;i<nTop;i++)
-	  master_printf("y[%zu]: %.16lg\n",i,getFromCustomPrecArray(h,i,yd->Precision()));
-	delete[] h;
-	
-	cur=rob<coarse>(cur);
-	
-	lev++;
       }
   }
   
@@ -1119,8 +1117,6 @@ namespace quda_iface
 	master_printf("No need to update the multigrid\n");
     
     inv_param.preconditioner=quda_mg_preconditioner;
-    
-    probeY();
     
     storedMu=inv_param.mu;
     storedKappa=inv_param.kappa;
