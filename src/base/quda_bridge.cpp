@@ -236,9 +236,10 @@ namespace quda_iface
     else
       eValsDev=eVals;
     
-    master_printf("eigenvecs %s, first entries of evals: (%lg,%lg) (%lg,%lg), of eVecs: ",takeCopy?"stored":"restored",
+    master_printf("eigenvecs %s, first entries of evals: (%lg,%lg) (%lg,%lg), of eVecs of prec %d: ",takeCopy?"stored":"restored",
 		  eVals[0].real(),eVals[0].imag(),
-		  eVals[1].real(),eVals[1].imag());
+		  eVals[1].real(),eVals[1].imag(),
+		  eVecsDev[0]->Precision());
     for(int i=0;i<2;i++)
       master_printf("(%lg,%lg) ",
 		    getFromCustomPrecArray(eVecs[i],0+2*i,eVecsDev[0]->Precision()),
@@ -295,7 +296,11 @@ namespace quda_iface
       master_printf("we have used %zu bytes to store the setup\n",allocatedMemory);
     else
       {
-	master_printf("Everything recycled in the mg, fingers crossed while updating mg\n");
+	master_printf("Everything recycled in the mg, fingers crossed while updating mg, bit first let us verify\n");
+	multigrid_solver* mgs=static_cast<multigrid_solver*>(quda_mg_preconditioner);
+	MG* cur=mgs->mg;
+	cur->verify();
+	
 	QudaBoolean& p=quda_mg_param.preserve_deflation; //thin_update_only
 	const QudaBoolean oldP=p;
 	p=QUDA_BOOLEAN_TRUE;
