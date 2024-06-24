@@ -246,31 +246,38 @@ namespace quda_iface
 		    getFromCustomPrecArray(eVecs[i],1+2*i,eVecsDev[0]->Precision()));
     master_printf("\n");
   }
-
-  void QudaSetup::restoreOrTakeCopyOfY(const bool takeCopy,
-				       quda::MG* cur,
-				       const size_t lev)
+  
+  void QudaSetup::restoreOrTakeCopyOfAllY(const bool takeCopy)
   {
     using namespace nissa::Robbery;
     using namespace quda;
     
-    DiracCoarse* dc=static_cast<DiracCoarse*>(rob<diracCoarseSmoother>(cur));
-    cudaGaugeField* yd=rob<Y_d>(dc);
-    cudaGaugeField* yhat_d=rob<Yhat_d>(dc);
+    MG* cur=static_cast<multigrid_solver*>(quda_mg_preconditioner)->mg;
+    int lev=0;
     
-    if(takeCopy)
+    while(lev<multiGrid::nlevels-1)
       {
-	Y[lev]=nissa_malloc("Y",yd->Bytes(),char);
-	Yhat[lev]=nissa_malloc("Yhat",yhat_d->Bytes(),char);
-	allocatedMemory+=yd->Bytes()+yhat_d->Bytes();
+	DiracCoarse* dc=static_cast<DiracCoarse*>(rob<diracCoarseSmoother>(cur));
+	cudaGaugeField* yd=rob<Y_d>(dc);
+	cudaGaugeField* yhat_d=rob<Yhat_d>(dc);
+
+	if(takeCopy)
+	  {
+	    Y[lev]=nissa_malloc("Y",yd->Bytes(),char);
+	    Yhat[lev]=nissa_malloc("Yhat",yhat_d->Bytes(),char);
+	    allocatedMemory+=yd->Bytes()+yhat_d->Bytes();
+	  }
+	
+	restoreOrTakeCopyOfData(Y[lev],yd->Gauge_p(),yd->Bytes(),takeCopy);
+	restoreOrTakeCopyOfData(Yhat[lev],yhat_d->Gauge_p(),yhat_d->Bytes(),takeCopy);
+	
+	master_printf("%s Y and Yhat, lev %d, size %d\n",takeCopy?"stored":"restored",lev,(int)yd->Bytes());
+	for(int i=0;i<10;i++)
+	  master_printf("y[%zu]: %.16lg\n",i,getFromCustomPrecArray(Y[lev],i,yd->Precision()));
+	cur=rob<coarse>(cur);
+	
+	lev++;
       }
-    
-    restoreOrTakeCopyOfData(Y[lev],yd->Gauge_p(),yd->Bytes(),takeCopy);
-    restoreOrTakeCopyOfData(Yhat[lev],yhat_d->Gauge_p(),yhat_d->Bytes(),takeCopy);
-    
-    master_printf("restoring or copying Y and Yhat, lev %d\n",lev);
-    for(int i=0;i<10;i++)
-      master_printf("y[%zu]: %.16lg\n",i,getFromCustomPrecArray(Y[lev],i,yd->Precision()));
   }
   
   void QudaSetup::restoreOrTakeCopy(const bool takeCopy)
@@ -298,9 +305,10 @@ namespace quda_iface
     else
       if(B.empty() or Y.empty() or Yhat.empty()) crash("setup not in use!");
     
+    restoreOrTakeCopyOfAllY(takeCopy);
+    
     master_printf("&mgs->B %p , &mgs->mgParam.B %p\n",&mgs->B,&mgs->mgParam->B);
     restoreOrTakeCopyOfB(takeCopy,mgs->mgParam->B,lev);
-    restoreOrTakeCopyOfY(takeCopy,cur,lev);
     
     lev=1;
     while(lev<multiGrid::nlevels)
@@ -319,7 +327,6 @@ namespace quda_iface
 	  }
 	
 	cur=rob<coarse>(cur);
-	restoreOrTakeCopyOfY(takeCopy,cur,lev);
 	
 	master_printf("Done with lev %d\n",lev);
 	
@@ -816,7 +823,7 @@ namespace quda_iface
 	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
 	inv_param.solve_type=QUDA_DIRECT_PC_SOLVE;
 #ifndef DYNAMIC_CLOVER
-# error Please compile quda with DYNAMIC_CLOVER switched on
+# warning Please compile quda with DYNAMIC_CLOVER switched on
 #endif
 	
 	inv_param.omega=1.0;

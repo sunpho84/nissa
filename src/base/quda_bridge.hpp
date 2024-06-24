@@ -128,9 +128,7 @@ namespace quda_iface
 				quda::Solver* csv);
     
     /// Restore or take copy of the Y and Yhat
-    void restoreOrTakeCopyOfY(const bool takeCopy,
-			      quda::MG* cur,
-			      const size_t lev);
+    void restoreOrTakeCopyOfAllY(const bool takeCopy);
     
     /// Unified method to take copy or restore
     void restoreOrTakeCopy(const bool takeCopy=false);
