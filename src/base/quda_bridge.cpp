@@ -1042,7 +1042,7 @@ namespace quda_iface
 	// quda_mg_param.run_verify=QUDA_BOOLEAN_TRUE;
 	quda_mg_param.run_low_mode_check=QUDA_BOOLEAN_FALSE;//quda_input.mg_run_low_mode_check;
 	quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_FALSE;
-	quda_mg_param.run_verify=QUDA_BOOLEAN_TRUE;
+	quda_mg_param.run_verify=QUDA_BOOLEAN_FALSE;
 	quda_mg_param.preserve_deflation=QUDA_BOOLEAN_FALSE;
       }
   }
@@ -1075,11 +1075,18 @@ namespace quda_iface
 	    destroyMultigridQuda(quda_mg_preconditioner);
 	    
 	    master_printf("mg setup redue:\n");
-	    auto& v=quda_mg_param.compute_null_vector;
-	    const auto p=v;
-	    v=QUDA_COMPUTE_NULL_VECTOR_NO;
+
+	    const int& nlevels=multiGrid::nlevels;
+	    int b[nlevels];
+	    for(int level=0;level<nlevels;level++)
+	      {
+		int& v=quda_mg_param.num_setup_iter[level];
+		b[level]=v;
+		v=0;
+	      }
 	    quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
-	    v=p;
+	    for(int level=0;level<nlevels;level++)
+	      quda_mg_param.num_setup_iter[level]=b[level];
 	    qudaSetups[setupId].restore();
 	  }
 	else
