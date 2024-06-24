@@ -1075,8 +1075,11 @@ namespace quda_iface
 	    destroyMultigridQuda(quda_mg_preconditioner);
 	    
 	    master_printf("mg setup redue:\n");
-	    quda_mg_param.compute_null_vector=QUDA_COMPUTE_NULL_VECTOR_YES;
+	    auto& v=quda_mg_param.compute_null_vector;
+	    const auto p=v;
+	    v=QUDA_COMPUTE_NULL_VECTOR_NO;
 	    quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
+	    v=p;
 	    qudaSetups[setupId].restore();
 	  }
 	else
