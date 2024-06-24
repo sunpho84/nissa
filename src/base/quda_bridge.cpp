@@ -267,8 +267,8 @@ namespace quda_iface
     
     restoreOrTakeCopyOfData(Y[lev],yd->Gauge_p(),yd->Bytes(),takeCopy);
     restoreOrTakeCopyOfData(Yhat[lev],yhat_d->Gauge_p(),yhat_d->Bytes(),takeCopy);
-
-    master_printf("restoring or copying Y and Yhat\n");
+    
+    master_printf("restoring or copying Y and Yhat, lev %d\n",lev);
     for(int i=0;i<10;i++)
       master_printf("y[%zu]: %.16lg\n",i,getFromCustomPrecArray(Y[lev],i,yd->Precision()));
   }
@@ -308,7 +308,6 @@ namespace quda_iface
 	MGParam* mgLevParam=rob<param_coarse>(cur);
 	std::vector<ColorSpinorField*>& Bdev=mgLevParam->B;
 	restoreOrTakeCopyOfB(takeCopy,Bdev,lev);
-	restoreOrTakeCopyOfY(takeCopy,cur,lev);
 	
 	//Dirac* dc=rob<diracCoarseSmoother>(cur);
 	Solver* csv=rob<coarse_solver>(cur);
@@ -320,6 +319,7 @@ namespace quda_iface
 	  }
 	
 	cur=rob<coarse>(cur);
+	restoreOrTakeCopyOfY(takeCopy,cur,lev);
 	
 	master_printf("Done with lev %d\n",lev);
 	
