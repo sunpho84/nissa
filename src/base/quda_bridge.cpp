@@ -1071,7 +1071,14 @@ namespace quda_iface
 	setVerbosity(QUDA_VERBOSE);
 	
 	if(canReuseStoredSetup)
-	  qudaSetups[setupId].restore();
+	  {
+	    destroyMultigridQuda(quda_mg_preconditioner);
+	    
+	    master_printf("mg setup redue:\n");
+	    quda_mg_param.compute_null_vector=QUDA_COMPUTE_NULL_VECTOR_YES;
+	    quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
+	    qudaSetups[setupId].restore();
+	  }
 	else
 	  {
 	    if(quda_mg_preconditioner!=nullptr)
