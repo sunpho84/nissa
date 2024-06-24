@@ -267,7 +267,8 @@ namespace quda_iface
     
     restoreOrTakeCopyOfData(Y[lev],yd->Gauge_p(),yd->Bytes(),takeCopy);
     restoreOrTakeCopyOfData(Yhat[lev],yhat_d->Gauge_p(),yhat_d->Bytes(),takeCopy);
-	
+
+    master_printf("restoring or copying Y and Yhat\n");
     for(int i=0;i<10;i++)
       master_printf("y[%zu]: %.16lg\n",i,getFromCustomPrecArray(Y[lev],i,yd->Precision()));
   }
