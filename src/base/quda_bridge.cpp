@@ -300,16 +300,18 @@ namespace quda_iface
       master_printf("we have used %zu bytes to store the setup\n",allocatedMemory);
     else
       {
-	master_printf("Everything recycled in the mg, fingers crossed while updating mg, bit first let us verify\n");
+	master_printf("Everything recycled in the mg\n");
+	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
 	multigrid_solver* mgs=static_cast<multigrid_solver*>(quda_mg_preconditioner);
 	MG* cur=mgs->mg;
+	master_printf("Let us verify\n");
 	cur->verify();
 	
-	QudaBoolean& p=quda_mg_param.preserve_deflation; //thin_update_only
-	const QudaBoolean oldP=p;
-	p=QUDA_BOOLEAN_TRUE;
-	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
-	p=oldP;
+	// QudaBoolean& p=quda_mg_param.preserve_deflation; //thin_update_only
+	// const QudaBoolean oldP=p;
+	// p=QUDA_BOOLEAN_TRUE;
+	// updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+	// p=oldP;
       }
   }
   
