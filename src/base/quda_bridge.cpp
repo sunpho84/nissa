@@ -254,6 +254,10 @@ namespace quda_iface
     
     multigrid_solver* mgs=static_cast<multigrid_solver*>(quda_mg_preconditioner);
     MG* cur=mgs->mg;
+    master_printf("/////////////////////////////////////////////////////////////////\n");
+    master_printf("/////////////////////////// preverify //////////////////////////////////////\n");
+    cur->verify();
+    master_printf("/////////////////////////////////////////////////////////////////\n");
     int lev=0;
     
     allocatedMemory=0;
