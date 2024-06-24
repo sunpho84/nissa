@@ -1064,6 +1064,8 @@ namespace quda_iface
 	const auto [tag,fs]=setupId;
 	master_printf("CanReuseStoredSetup (%s,%zu,%zu): %s\n",tag.c_str(),fs[0],fs[1],canReuseStoredSetup?"true":"false");
 	
+	setVerbosity(QUDA_VERBOSE);
+	
 	if(canReuseStoredSetup)
 	  qudaSetups[setupId].restore();
 	else
