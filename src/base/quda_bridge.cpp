@@ -451,6 +451,7 @@ namespace quda_iface
 	// initQuda(iCudaDevice);
 	initQuda(-1);
 	
+	setVerbosityQuda(QUDA_VERBOSE,"# QUDA: ",stdout);
 	inited=1;
       }
   }
@@ -1037,7 +1038,7 @@ namespace quda_iface
 	// quda_mg_param.run_verify=QUDA_BOOLEAN_TRUE;
 	quda_mg_param.run_low_mode_check=QUDA_BOOLEAN_FALSE;//quda_input.mg_run_low_mode_check;
 	quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_FALSE;
-	quda_mg_param.run_verify=QUDA_BOOLEAN_FALSE;
+	quda_mg_param.run_verify=QUDA_BOOLEAN_TRUE;
 	quda_mg_param.preserve_deflation=QUDA_BOOLEAN_FALSE;
       }
   }
