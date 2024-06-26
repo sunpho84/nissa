@@ -1078,7 +1078,7 @@ namespace quda_iface
 	
 	setVerbosity(QUDA_VERBOSE);
 	master_printf("VERBOSITY OF QUDA: %d should be %d it might be %d\n",getVerbosity(),QUDA_VERBOSE,QUDA_SUMMARIZE);
-	  
+	
 	if(canReuseStoredSetup)
 	  {
 	    destroyMultigridQuda(quda_mg_preconditioner);
@@ -1103,8 +1103,9 @@ namespace quda_iface
 	    if(quda_mg_preconditioner!=nullptr)
 	      destroyMultigridQuda(quda_mg_preconditioner);
 	    
-	    master_printf("mg setup due:\n");
+	    master_printf("mg setup due, VERBOSITY OF QUDA: %d should be %d it might be %d\n",getVerbosity(),QUDA_VERBOSE,QUDA_SUMMARIZE)
 	    quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
+	    master_printf("mg setup done, VERBOSITY OF QUDA: %d should be %d it might be %d\n",getVerbosity(),QUDA_VERBOSE,QUDA_SUMMARIZE)
 	    
 	    if(doTheStorage)
 	      qudaSetups[setupId].takeCopy();
