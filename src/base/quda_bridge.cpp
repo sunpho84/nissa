@@ -353,7 +353,7 @@ namespace quda_iface
   }
   
   /// Set the verbosity
-  QudaVerbosity get_quda_verbosity()
+  QudaVerbosity get_verbosity_for_quda()
   {
     switch(verbosity_lv)
       {
@@ -655,7 +655,7 @@ namespace quda_iface
   {
     inv_param=newQudaInvertParam();
     
-    inv_param.verbosity=get_quda_verbosity();
+    inv_param.verbosity=get_verbosity_for_quda();
     
     inv_mg_param=newQudaInvertParam();
     quda_mg_param=newQudaMultigridParam();
@@ -698,7 +698,7 @@ namespace quda_iface
     
     inv_param.Ls=1;
     
-    inv_param.verbosity=get_quda_verbosity();
+    inv_param.verbosity=get_verbosity_for_quda();
     
     inv_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
     inv_param.tol_hq=0.1;
@@ -796,7 +796,7 @@ namespace quda_iface
     inv_param.precondition_cycle=1;
     inv_param.tol_precondition=0.1;
     inv_param.maxiter_precondition=10;
-    inv_param.verbosity_precondition=get_quda_verbosity();
+    inv_param.verbosity_precondition=get_verbosity_for_quda();
     
     inv_param.omega=1.0;
     
@@ -805,7 +805,7 @@ namespace quda_iface
     
     if(multiGrid::checkIfMultiGridAvailableAndRequired(mu))
       {
-	inv_param.verbosity=QUDA_SUMMARIZE;//VERBOSE;
+	inv_param.verbosity=get_verbosity_for_quda();
 	
 	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
 	if(inv_param.matpc_type==QUDA_MATPC_EVEN_EVEN_ASYMMETRIC)
@@ -834,7 +834,7 @@ namespace quda_iface
 	inv_mg_param.inv_type_precondition=QUDA_INVALID_INVERTER;
 	inv_mg_param.maxiter=1000;
 	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
-	inv_mg_param.verbosity=QUDA_SUMMARIZE;//VERBOSE;
+	inv_mg_param.verbosity=get_verbosity_for_quda();
 	inv_mg_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
 	inv_mg_param.preserve_source=QUDA_PRESERVE_SOURCE_NO;
 	inv_mg_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;
@@ -923,7 +923,7 @@ namespace quda_iface
 	    
 	    /// Default value from: https://github.com/lattice/quda/wiki/Multigrid-Solver
 	    
-	    quda_mg_param.verbosity[level]=get_quda_verbosity();
+	    quda_mg_param.verbosity[level]=get_verbosity_for_quda();
 	    quda_mg_param.precision_null[level]=QUDA_HALF_PRECISION;
 	    quda_mg_param.setup_inv_type[level]=QUDA_CG_INVERTER;//QUDA_BICGSTAB_INVERTER or QUDA_CG_INVERTER generally preferred
 	    
@@ -1103,9 +1103,7 @@ namespace quda_iface
 	    if(quda_mg_preconditioner!=nullptr)
 	      destroyMultigridQuda(quda_mg_preconditioner);
 	    
-	    master_printf("mg setup due, VERBOSITY OF QUDA: %d should be %d it might be %d\n",getVerbosity(),QUDA_VERBOSE,QUDA_SUMMARIZE);
 	    quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
-	    master_printf("mg setup done, VERBOSITY OF QUDA: %d should be %d it might be %d\n",getVerbosity(),QUDA_VERBOSE,QUDA_SUMMARIZE);
 	    
 	    if(doTheStorage)
 	      qudaSetups[setupId].takeCopy();
@@ -1454,7 +1452,7 @@ namespace quda_iface
     inv_param.maxiter=niter;
     inv_param.Ls=1;
     
-    inv_param.verbosity=get_quda_verbosity();
+    inv_param.verbosity=get_verbosity_for_quda();
     
     remap_nissa_to_quda(color_in,source);
     
