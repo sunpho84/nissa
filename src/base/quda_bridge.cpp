@@ -1077,13 +1077,14 @@ namespace quda_iface
 	master_printf("CanReuseStoredSetup (%s,%zu,%zu): %s\n",tag.c_str(),fs[0],fs[1],canReuseStoredSetup?"true":"false");
 	
 	setVerbosity(QUDA_VERBOSE);
-	
+	master_printf("VERBOSITY OF QUDA: %d should be %d it might be %d\n",getVerbosity(),QUDA_VERBOSE,QUDA_SUMMARIZE);
+	  
 	if(canReuseStoredSetup)
 	  {
 	    destroyMultigridQuda(quda_mg_preconditioner);
 	    
 	    master_printf("mg setup redue:\n");
-
+	    
 	    const int& nlevels=multiGrid::nlevels;
 	    int b[nlevels];
 	    for(int level=0;level<nlevels;level++)

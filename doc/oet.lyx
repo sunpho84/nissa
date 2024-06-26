@@ -613,7 +613,7 @@ This estimator is,
 \begin_layout Standard
 \begin_inset Formula 
 \[
-2\left(\phi,\Gamma S_{u}\left(\mu=0\right)\phi\right)=2\eta^{\dagger}\gamma_{5}S_{d}^{-1}\gamma_{5}\Gamma S_{u}\left(\mu=0\right)S_{u}^{-1}\eta=2\eta^{\dagger}\Gamma S_{d}^{-1}\eta-2\eta^{\dagger}\gamma_{5}S_{d}^{-1}\mu\gamma_{5}\Gamma S_{u}^{-1}\eta=
+2\left(\phi,\Gamma S_{u}\left(\mu=0\right)\phi\right)=2\eta^{\dagger}\gamma_{5}S_{d}^{-1}\gamma_{5}\Gamma S_{u}\left(\mu=0\right)S_{u}^{-1}\eta=2\eta^{\dagger}S_{d}^{-1}\Gamma\eta-2\eta^{\dagger}\gamma_{5}S_{d}^{-1}\mu\gamma_{5}\Gamma S_{u}^{-1}\eta=
 \]
 
 \end_inset
@@ -621,7 +621,7 @@ This estimator is,
 
 \begin_inset Formula 
 \[
-=2\eta^{\dagger}\Gamma S_{d}^{-1}\eta-2\mu\left(\phi,\Gamma\phi\right).
+=2\eta^{\dagger}S_{d}^{-1}\Gamma\eta-2\mu\left(\phi,\Gamma\phi\right).
 \]
 
 \end_inset
