@@ -10,7 +10,7 @@ namespace nissa
   struct ellesettete_meas_pars_t : base_fermionic_meas_t
   {
     int max_order;
-    
+    bool method_flag = false; // true for numerical, false for analytical
     std::string def_path(){return "ellesettete";}
 
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
