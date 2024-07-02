@@ -806,7 +806,7 @@ ellesettete_meas: TK_MEAS_ELLESETTETE {$$=new ellesettete_meas_pars_t();}
                   | ellesettete_meas noise_type {$$->rnd_type=$2;}
                   | ellesettete_meas nhits {$$->nhits=$2;}
                   | ellesettete_meas max_order {$$->max_order=$2;}
-                  | ellesettete_meas method_flag {$$->max_order=$2;}
+                  | ellesettete_meas method_flag {$$->method_flag=$2;}
 ;
 
 ////////////////////////////////////////////////// ANALYSIS //////////////////////////////////////////////////
