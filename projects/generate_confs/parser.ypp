@@ -278,6 +278,8 @@
 //ellesettete
 %type <ellesettete_meas> ellesettete_meas
 %token TK_MEAS_ELLESETTETE
+%type <int_numb> method_flag
+%token TK_METHOD_FLAG
 //gauge measures
 %token TK_USE_SMOOTH
 %token TK_MEAS_PLAQ_POL
@@ -406,6 +408,8 @@ ncopies: TK_NCOPIES '=' int_numb {$$=$3;};
 nhits: TK_NHITS '=' int_numb {$$=$3;};
 
 noise_type: TK_NOISE_TYPE '=' TK_RND_T {$$=$3;};
+
+method:flag TK_METHOD_FLAG '=' int_numb {$$=$3;}:
 
 compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
 
@@ -802,6 +806,7 @@ ellesettete_meas: TK_MEAS_ELLESETTETE {$$=new ellesettete_meas_pars_t();}
                   | ellesettete_meas noise_type {$$->rnd_type=$2;}
                   | ellesettete_meas nhits {$$->nhits=$2;}
                   | ellesettete_meas max_order {$$->max_order=$2;}
+                  | ellesettete_meas method_flag {$$->max_order=$2;}
 ;
 
 ////////////////////////////////////////////////// ANALYSIS //////////////////////////////////////////////////
