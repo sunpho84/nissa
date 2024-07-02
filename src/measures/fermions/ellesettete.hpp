@@ -10,9 +10,9 @@ namespace nissa
   struct ellesettete_meas_pars_t : base_fermionic_meas_t
   {
     int max_order;
-    bool method_flag = false; // true for numerical, false for analytical
+    bool method_flag; // true for numerical, false for analytical
     std::string def_path(){return "ellesettete";}
-
+    bool def_method_flag(){return false;}
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
     
@@ -20,12 +20,15 @@ namespace nissa
     {
       return
 	base_fermionic_meas_t::is_nonstandard() or
-	path!=def_path();
+	path!=def_path() or
+  method_flag!=def_method_flag();
     }
     
     ellesettete_meas_pars_t() :
       base_fermionic_meas_t()
-    {path=def_path();}
+    {path=def_path();
+    method_flag=def_method_flag();
+    }
     virtual ~ellesettete_meas_pars_t(){}
   };
   

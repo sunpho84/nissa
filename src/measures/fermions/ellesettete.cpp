@@ -218,7 +218,7 @@ namespace nissa
     
     os<<"MeasElleSettete\n";
     os<<base_fermionic_meas_t::get_str(full);
-    
+    if(method_flag!=def_method_flag() or full) os<<" MethodFlag\t=\t"<<method_flag<<"\n";
     return os.str();
   }
 }
