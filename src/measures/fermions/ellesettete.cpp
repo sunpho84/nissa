@@ -66,6 +66,7 @@ namespace nissa
   void measure_ellesettete(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,ellesettete_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     int nflavs=theory_pars.nflavs();
+	int method_flag=meas_pars.method_flag;
     const double epsilon=1e-6;
 
     //open the file, allocate point result and source
