@@ -44,7 +44,7 @@ namespace nissa
 #define MINV(out,iflav,in)					\
     mult_Minv(out,conf,&theory_pars,iflav,meas_pars.residue,in)
 #define MASSY_INV(out,iflav,mass,in)      \
-    mult_Minv(out,conf,theory_pars.backfield[iflav].mass,meas_pars.residue,in)  
+    mult_Minv(out,conf,theory_pars.backfield[iflav],mass,meas_pars.residue,in)  
 #define DMDMU(out,iflav,ord,in)				\
     mult_dMdmu(out,&theory_pars,conf,iflav,ord,in)
 #define NEW_TRACE_RES(o)			\
