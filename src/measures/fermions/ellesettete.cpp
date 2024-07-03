@@ -66,7 +66,8 @@ namespace nissa
   void measure_ellesettete(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,ellesettete_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     int nflavs=theory_pars.nflavs();
-    
+    const double epsilon=1e-6;
+
     //open the file, allocate point result and source
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     complex *point_result=nissa_malloc("point_result",locVol,complex);
@@ -132,10 +133,10 @@ namespace nissa
 			{
 				MASSY_INV(SIMPLE_PROP,iflav,theory_pars.quarks[iflav].mass,source);
 				MASSY_INV(PROP_ID_G5,iflav,theory_pars.quarks[iflav].mass,id_g5_source);
-				MASSY_INV(PROP_PLUS,iflav,theory_pars.quarks[iflav].mass + 0.000001,source);
-				MASSY_INV(PROP_MINUS,iflav,theory_pars.quarks[iflav].mass - 0.000001,source);
-				MASSY_INV(PROP_PLUS_ID_G5,iflav,theory_pars.quarks[iflav].mass + 0.000001,id_g5_source);
-				MASSY_INV(PROP_MINUS_ID_G5,iflav,theory_pars.quarks[iflav].mass - 0.000001,id_g5_source);
+				MASSY_INV(PROP_PLUS,iflav,theory_pars.quarks[iflav].mass + epsilon,source);
+				MASSY_INV(PROP_MINUS,iflav,theory_pars.quarks[iflav].mass - epsilon,source);
+				MASSY_INV(PROP_PLUS_ID_G5,iflav,theory_pars.quarks[iflav].mass + epsilon,id_g5_source);
+				MASSY_INV(PROP_MINUS_ID_G5,iflav,theory_pars.quarks[iflav].mass - epsilon,id_g5_source);
 
 				//adjust sink accordingly
 				apply_stag_op(ID_G5_PROP_ID_G5,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,PROP_ID_G5);
