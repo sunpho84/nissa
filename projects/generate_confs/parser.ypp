@@ -409,7 +409,7 @@ nhits: TK_NHITS '=' int_numb {$$=$3;};
 
 noise_type: TK_NOISE_TYPE '=' TK_RND_T {$$=$3;};
 
-method:flag TK_METHOD_FLAG '=' int_numb {$$=$3;}:
+method:flag TK_METHOD_FLAG '=' int_numb {$$=$3;};
 
 compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
 
