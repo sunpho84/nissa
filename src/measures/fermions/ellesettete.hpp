@@ -25,7 +25,7 @@ namespace nissa
     }
     
     ellesettete_meas_pars_t() :
-      base_fermionic_meas_t()
+      base_fermionic_meas_t(),
       method(def_method())
     {
     path=def_path();
