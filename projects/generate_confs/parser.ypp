@@ -409,7 +409,7 @@ nhits: TK_NHITS '=' int_numb {$$=$3;};
 
 noise_type: TK_NOISE_TYPE '=' TK_RND_T {$$=$3;};
 
-method:flag TK_METHOD_FLAG '=' int_numb {$$=$3;};
+method TK_METHOD '=' int_numb {$$=$3;};
 
 compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
 
@@ -806,7 +806,7 @@ ellesettete_meas: TK_MEAS_ELLESETTETE {$$=new ellesettete_meas_pars_t();}
                   | ellesettete_meas noise_type {$$->rnd_type=$2;}
                   | ellesettete_meas nhits {$$->nhits=$2;}
                   | ellesettete_meas max_order {$$->max_order=$2;}
-                  | ellesettete_meas method_flag {$$->method_flag=$2;}
+                  | ellesettete_meas method {$$->method=$2;}
 ;
 
 ////////////////////////////////////////////////// ANALYSIS //////////////////////////////////////////////////

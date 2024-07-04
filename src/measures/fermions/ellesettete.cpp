@@ -66,7 +66,7 @@ namespace nissa
   void measure_ellesettete(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,ellesettete_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     int nflavs=theory_pars.nflavs();
-	int method_flag=meas_pars.method_flag;
+	int method=meas_pars.method;
     const double epsilon=1e-6;
 
     //open the file, allocate point result and source
@@ -129,8 +129,9 @@ namespace nissa
 		    apply_stag_op(g5_id_source,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::IDENTITY,source);
 		    apply_stag_op(id_g5_source,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,source);
 
-			if(method_flag)
+			if(method==1)
 			{
+				master_fprintf(file,"NUMERICO\n");
 				MASSY_INV(SIMPLE_PROP,iflav,theory_pars.quarks[iflav].mass,source);
 				MASSY_INV(PROP_ID_G5,iflav,theory_pars.quarks[iflav].mass,id_g5_source);
 				MASSY_INV(PROP_PLUS,iflav,theory_pars.quarks[iflav].mass + epsilon,source);
@@ -156,6 +157,7 @@ namespace nissa
 				if(ihit==meas_pars.nhits-1) master_fprintf(file,"\n # Tr_bubble_minus source time %d\n", glb_t);
 				SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_bubble_minus,g5_id_source,PROP_MINUS);
 			}else{
+				master_fprintf(file,"ANALITICO\n");
 				//compute std 2pts propagator G(m|n) ~ [D^-1(m|y) source(y)] source(n)* and simple sequential propagator
 				MINV(SIMPLE_PROP,iflav,source);
 				MINV(SEQ_PROP,iflav,SIMPLE_PROP);
@@ -218,7 +220,7 @@ namespace nissa
     
     os<<"MeasElleSettete\n";
     os<<base_fermionic_meas_t::get_str(full);
-    if(method_flag!=def_method_flag() or full) os<<" MethodFlag\t=\t"<<method_flag<<"\n";
+    if(method!=def_method() or full) os<<" Method\t=\t"<<method<<"\n";
     return os.str();
   }
 }
