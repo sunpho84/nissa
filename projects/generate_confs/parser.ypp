@@ -278,8 +278,8 @@
 //ellesettete
 %type <ellesettete_meas> ellesettete_meas
 %token TK_MEAS_ELLESETTETE
-%type <int_numb> method_flag
-%token TK_METHOD_FLAG
+%type <int_numb> method
+%token TK_METHOD
 //gauge measures
 %token TK_USE_SMOOTH
 %token TK_MEAS_PLAQ_POL
