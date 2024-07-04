@@ -21,7 +21,7 @@ namespace nissa
       return
 	base_fermionic_meas_t::is_nonstandard() or
 	path!=def_path() or
-  method_flag!=def_method();
+  method!=def_method();
     }
     
     ellesettete_meas_pars_t() :
