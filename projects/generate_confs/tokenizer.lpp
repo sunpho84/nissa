@@ -277,7 +277,7 @@ MinMax DEBUG_PRINTF("Found MinMax\n"); return TK_MIN_MAX;
 WSpaceSize DEBUG_PRINTF("Found WSpaceSize\n");return TK_WSPACE_SIZE;
 
 /* parameters for ElleSettete*/
-Method DEBUG_PRINTF("Found Method\n");return TK_METHOD;
+method DEBUG_PRINTF("Found Method\n");return TK_METHOD;
 
  /* gauge measures */
 UseSmooth DEBUG_PRINTF("Found UseSmooth\n");return TK_USE_SMOOTH;
