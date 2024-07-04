@@ -29,7 +29,6 @@ namespace nissa
       method(def_method())
     {
     path=def_path();
-    method=def_method();
     }
     virtual ~ellesettete_meas_pars_t(){}
   };
