@@ -131,7 +131,6 @@ namespace nissa
 
 			if(method==1)
 			{
-				master_fprintf(file,"NUMERICO with epsilon = %lg \n", epsilon);
 				MASSY_INV(SIMPLE_PROP,iflav,theory_pars.quarks[iflav].mass,source);
 				MASSY_INV(PROP_ID_G5,iflav,theory_pars.quarks[iflav].mass,id_g5_source);
 				MASSY_INV(PROP_PLUS,iflav,theory_pars.quarks[iflav].mass + epsilon,source);
@@ -159,7 +158,6 @@ namespace nissa
 			}
 			else if(method==0)
 			{
-				master_fprintf(file,"ANALITICO\n");
 				//compute std 2pts propagator G(m|n) ~ [D^-1(m|y) source(y)] source(n)* and simple sequential propagator
 				MINV(SIMPLE_PROP,iflav,source);
 				MINV(SEQ_PROP,iflav,SIMPLE_PROP);
