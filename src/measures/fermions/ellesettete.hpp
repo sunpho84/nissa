@@ -11,8 +11,10 @@ namespace nissa
   {
     int max_order;
     int method; // true for numerical, false for analytical
+    double epsilon; // precision for numerical method
     std::string def_path(){return "ellesettete";}
     int def_method(){return 0;}
+    double def_epsilon(){return 1e-6;}
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
     
@@ -21,12 +23,14 @@ namespace nissa
       return
 	base_fermionic_meas_t::is_nonstandard() or
 	path!=def_path() or
-  method!=def_method();
+  method!=def_method() or
+  epsilon!=def_epsilon();
     }
     
     ellesettete_meas_pars_t() :
       base_fermionic_meas_t(),
-      method(def_method())
+      method(def_method()),
+      epsilon(def_epsilon())
     {
     path=def_path();
     }

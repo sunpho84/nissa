@@ -278,6 +278,7 @@ WSpaceSize DEBUG_PRINTF("Found WSpaceSize\n");return TK_WSPACE_SIZE;
 
  /* parameters for ElleSettete */
 Method DEBUG_PRINTF("Found Method\n");return TK_METHOD;
+Epsilon DEBUG_PRINTF("Found Epsilon\n");return TK_EPSILON;
 
  /* gauge measures */
 UseSmooth DEBUG_PRINTF("Found UseSmooth\n");return TK_USE_SMOOTH;

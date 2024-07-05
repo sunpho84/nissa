@@ -67,7 +67,7 @@ namespace nissa
   {
     int nflavs=theory_pars.nflavs();
 	int method=meas_pars.method;
-    const double epsilon=1e-6;
+    double epsilon=meas_pars.epsilon;
 
     //open the file, allocate point result and source
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
@@ -131,7 +131,7 @@ namespace nissa
 
 			if(method==1)
 			{
-				master_fprintf(file,"NUMERICO\n");
+				master_fprintf(file,"NUMERICO with epsilon = %lg \n", epsilon);
 				MASSY_INV(SIMPLE_PROP,iflav,theory_pars.quarks[iflav].mass,source);
 				MASSY_INV(PROP_ID_G5,iflav,theory_pars.quarks[iflav].mass,id_g5_source);
 				MASSY_INV(PROP_PLUS,iflav,theory_pars.quarks[iflav].mass + epsilon,source);
@@ -220,7 +220,8 @@ namespace nissa
     
     os<<"MeasElleSettete\n";
     os<<base_fermionic_meas_t::get_str(full);
-    if(method!=def_method() or full) os<<" Method\t=\t"<<method<<"\n";
+    if(method!=def_method() or full) os<<" Method\t\t=\t"<<method<<"\n";
+	if(epsilon!=def_epsilon() or full) os<<" Epsilon\t\t=\t"<<epsilon<<"\n";
     return os.str();
   }
 }
