@@ -156,7 +156,9 @@ namespace nissa
 				SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_bubble_plus,g5_id_source,PROP_PLUS);
 				if(ihit==meas_pars.nhits-1) master_fprintf(file,"\n # Tr_bubble_minus source time %d\n", glb_t);
 				SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_bubble_minus,g5_id_source,PROP_MINUS);
-			}else{
+			}
+			else if(method==0)
+			{
 				master_fprintf(file,"ANALITICO\n");
 				//compute std 2pts propagator G(m|n) ~ [D^-1(m|y) source(y)] source(n)* and simple sequential propagator
 				MINV(SIMPLE_PROP,iflav,source);
@@ -183,7 +185,10 @@ namespace nissa
 				SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,g5_id_source,SIMPLE_PROP);
 				if(ihit==meas_pars.nhits-1) master_fprintf(file,"\n # Tr_insertion_bubble source time %d\n", glb_t);
 				SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,g5_id_source,SEQ_PROP);
-		  }
+			}
+			else {
+				crash("Method not implemented. Choose 0 for analytical or 1 for numerical");
+			}
 		    master_fprintf(file,"\n");
 		  }
 		  master_fprintf(file,"\n");
