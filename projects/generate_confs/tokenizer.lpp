@@ -276,6 +276,10 @@ EigPrecision DEBUG_PRINTF("Found EigPrecision\n");return TK_EIG_PRECISION;
 MinMax DEBUG_PRINTF("Found MinMax\n"); return TK_MIN_MAX;
 WSpaceSize DEBUG_PRINTF("Found WSpaceSize\n");return TK_WSPACE_SIZE;
 
+ /* parameters for ElleSettete */
+Method DEBUG_PRINTF("Found Method\n");return TK_METHOD;
+Epsilon DEBUG_PRINTF("Found Epsilon\n");return TK_EPSILON;
+
  /* gauge measures */
 UseSmooth DEBUG_PRINTF("Found UseSmooth\n");return TK_USE_SMOOTH;
 MeasPlaqPol DEBUG_PRINTF("Found MeasPlaqPol\n");return TK_MEAS_PLAQ_POL;
@@ -291,7 +295,7 @@ MeasAllRects DEBUG_PRINTF("Found MeasAllRects\n");return TK_MEAS_ALL_RECTS;
 ForceUnquenched DEBUG_PRINTF("Found ForceUnquenched\n");return TK_FORCE_UNQUENCHED;
 QuenchedEvolution DEBUG_PRINTF("Found QuenchedEvolution\n");return TK_QUENCHED_EVOLUTION;
 Evolution DEBUG_PRINTF("Found Evolution\n");return TK_EVOLUTION;
-IdSeaTheory DEBUG_PRINTF("Found IdSeaTheoryn");return TK_ID_SEA_THEORY;
+IdSeaTheory DEBUG_PRINTF("Found IdSeaTheory\n");return TK_ID_SEA_THEORY;
 NTrajTot DEBUG_PRINTF("Found NTrajTot\n");return TK_NTRAJ_TOT;
 SkipMetro DEBUG_PRINTF("Found SkipMetro\n");return TK_SKIP_METRO;
 TrajLength DEBUG_PRINTF("Found TrajLength\n");return TK_TRAJ_LENGTH;
