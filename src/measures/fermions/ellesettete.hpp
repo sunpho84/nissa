@@ -9,11 +9,14 @@ namespace nissa
 {
   struct ellesettete_meas_pars_t : base_fermionic_meas_t
   {
+    enum MethodType{ANALYTICAL,NUMERICAL};
+    
     int max_order;
-    int method; // true for numerical, false for analytical
+    MethodType method;
     double epsilon; // precision for numerical method
+    
     std::string def_path(){return "ellesettete";}
-    int def_method(){return 0;}
+    MethodType def_method(){return ANALYTICAL;}
     double def_epsilon(){return 1e-6;}
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
@@ -23,8 +26,8 @@ namespace nissa
       return
 	base_fermionic_meas_t::is_nonstandard() or
 	path!=def_path() or
-  method!=def_method() or
-  epsilon!=def_epsilon();
+	method!=def_method() or
+	epsilon!=def_epsilon();
     }
     
     ellesettete_meas_pars_t() :
@@ -32,7 +35,7 @@ namespace nissa
       method(def_method()),
       epsilon(def_epsilon())
     {
-    path=def_path();
+      path=def_path();
     }
     virtual ~ellesettete_meas_pars_t(){}
   };

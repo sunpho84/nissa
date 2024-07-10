@@ -21,6 +21,7 @@
 
   using namespace nissa;
 
+  [[maybe_unused]]
   const int debug_parser=0;
   
   int tokenizer_lex(YYSTYPE *lvalp,YYLTYPE *llocp,void *scanner);
@@ -278,8 +279,9 @@
 //ellesettete
 %type <ellesettete_meas> ellesettete_meas
 %token TK_MEAS_ELLESETTETE
-%type <int_numb> method
 %token TK_METHOD
+%token TK_NUMERICAL
+%token TK_ANALYTICAL
 %type <double_numb> epsilon
 %token TK_EPSILON
 //gauge measures
@@ -410,8 +412,6 @@ ncopies: TK_NCOPIES '=' int_numb {$$=$3;};
 nhits: TK_NHITS '=' int_numb {$$=$3;};
 
 noise_type: TK_NOISE_TYPE '=' TK_RND_T {$$=$3;};
-
-method: TK_METHOD '=' int_numb {$$=$3;};
 
 epsilon: TK_EPSILON '=' double_numb {$$=$3;};
 
@@ -810,7 +810,8 @@ ellesettete_meas: TK_MEAS_ELLESETTETE {$$=new ellesettete_meas_pars_t();}
                   | ellesettete_meas noise_type {$$->rnd_type=$2;}
                   | ellesettete_meas nhits {$$->nhits=$2;}
                   | ellesettete_meas max_order {$$->max_order=$2;}
-                  | ellesettete_meas method {$$->method=$2;}
+                  | ellesettete_meas TK_METHOD TK_ANALYTICAL {$$->method=ellesettete_meas_pars_t::ANALYTICAL;}
+                  | ellesettete_meas TK_METHOD TK_NUMERICAL {$$->method=ellesettete_meas_pars_t::NUMERICAL;}
                   | ellesettete_meas epsilon {$$->epsilon=$2;}
 ;
 
