@@ -16,12 +16,12 @@
 
 	1.b)connected without insertion(isoSym):
 													  
-		      *********				         g5 g5 <0| u̅(m)u(m) u̅(0)u(0) |0> =
+	*********                                                g5 g5 <0| u̅(m)u(m) u̅(0)u(0) |0> =
 		   **           **				 g5 g5 <0| G(m|0) G(0|m)  |0> = 				       		  		
 		  o               o'	       ===>		 Tr[<0| G(m|0) G(m|0)^† |0>] = (TF and proj to 0 momentum)
 		   **           **				~ Σ_m Tr[<0|G(m|0) G(m|0)^† |0>] 
 		      *********
-
+		      
 	2)disconnected:
 		  ******        ******				Σ_n g5 g5 <0| u̅(m)u(m) u̅(n)u(n) u̅(0)u(0) |0> =
 		*        *    *        *			Σ_n g5 g5 <0| G(m|n) G(n|m) G(0|0) |0> =
@@ -131,13 +131,13 @@ namespace nissa
 		    
 		    switch(method)
 		      {
-		      case ellesettete_meas_pars_t::ANALYTICAL:
+		      case ellesettete_meas_pars_t::NUMERICAL:
 			MASSY_INV(SIMPLE_PROP,iflav,theory_pars.quarks[iflav].mass,source);
 			MASSY_INV(PROP_ID_G5,iflav,theory_pars.quarks[iflav].mass,id_g5_source);
-			MASSY_INV(PROP_PLUS,iflav,theory_pars.quarks[iflav].mass + epsilon,source);
-			MASSY_INV(PROP_MINUS,iflav,theory_pars.quarks[iflav].mass - epsilon,source);
-			MASSY_INV(PROP_PLUS_ID_G5,iflav,theory_pars.quarks[iflav].mass + epsilon,id_g5_source);
-			MASSY_INV(PROP_MINUS_ID_G5,iflav,theory_pars.quarks[iflav].mass - epsilon,id_g5_source);
+			MASSY_INV(PROP_PLUS,iflav,theory_pars.quarks[iflav].mass+epsilon,source);
+			MASSY_INV(PROP_MINUS,iflav,theory_pars.quarks[iflav].mass-epsilon,source);
+			MASSY_INV(PROP_PLUS_ID_G5,iflav,theory_pars.quarks[iflav].mass+epsilon,id_g5_source);
+			MASSY_INV(PROP_MINUS_ID_G5,iflav,theory_pars.quarks[iflav].mass-epsilon,id_g5_source);
 			
 			//adjust sink accordingly
 			apply_stag_op(ID_G5_PROP_ID_G5,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,PROP_ID_G5);
@@ -158,7 +158,7 @@ namespace nissa
 			SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_bubble_minus,g5_id_source,PROP_MINUS);
 			break;
 			
-		      case ellesettete_meas_pars_t::NUMERICAL:
+		      case ellesettete_meas_pars_t::ANALYTICAL:
 			//compute std 2pts propagator G(m|n) ~ [D^-1(m|y) source(y)] source(n)* and simple sequential propagator
 			MINV(SIMPLE_PROP,iflav,source);
 			MINV(SEQ_PROP,iflav,SIMPLE_PROP);
@@ -185,7 +185,10 @@ namespace nissa
 			SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,g5_id_source,SEQ_PROP);
 		      
 		      default:
-			crash("Method not implemented. Choose 0 for analytical or 1 for numerical");
+			using el7=ellesettete_meas_pars_t;
+			crash("Method not implemented. Choose %s for analytical or %s for numerical",
+			      el7::getAnalyticalNumericalTag(el7::ANALYTICAL),
+			      el7::getAnalyticalNumericalTag(el7::NUMERICAL));
 		      }
 		    master_fprintf(file,"\n");
 		  }
@@ -220,25 +223,6 @@ namespace nissa
   std::string ellesettete_meas_pars_t::get_str(bool full)
   {
     std::ostringstream os;
-    
-    auto getAnalyticalNumericalTag=
-      [](const MethodType& method)
-    {
-      switch(method)
-	{
-	case ANALYTICAL:
-	  return "Numerical";
-	  break;
-	case NUMERICAL:
-	  return "Analytical";
-	  break;
-	default:
-	  crash("Unknown method %d",method);
-	  break;
-      }
-      
-      return "";
-    };
     
     os<<"MeasElleSettete\n";
     os<<base_fermionic_meas_t::get_str(full);

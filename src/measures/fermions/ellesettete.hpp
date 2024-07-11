@@ -21,6 +21,24 @@ namespace nissa
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
     
+    static const char* getAnalyticalNumericalTag(const MethodType& method)
+    {
+      switch(method)
+	{
+	case ANALYTICAL:
+	  return "Numerical";
+	  break;
+	case NUMERICAL:
+	  return "Analytical";
+	  break;
+	default:
+	  crash("Unknown method %d",method);
+	  break;
+	}
+      
+      return "";
+    }
+    
     int is_nonstandard()
     {
       return
