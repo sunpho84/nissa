@@ -93,7 +93,7 @@ namespace nissa
     void apply_shift_op(eo_ptr<color> out,eo_ptr<color> single_perm,eo_ptr<color> internal_temp,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,int shift,eo_ptr<color> in);
     
     void put_stag_phases(eo_ptr<color> source,int mask);
-    enum GAMMA_INT{IDENTITY,GAMMA_0,GAMMA_1,SIGMA_0_1,GAMMA_2,SIGMA_0_2,SIGMA_1_2,GAMMA_5_SIGMA_3,GAMMA_3,SIGMA_0_3,SIGMA_1_3,GAMMA5_GAMMA_2,SIGMA_2_3,GAMMA_5_GAMMA_1,GAMMA_5_GAMMA_0,GAMMA_5};
+    enum GAMMA_INT{IDENTITY,GAMMA_0,GAMMA_1,SIGMA_0_1,GAMMA_2,SIGMA_0_2,SIGMA_1_2,GAMMA_5_GAMMA_3,GAMMA_3,SIGMA_0_3,SIGMA_1_3,GAMMA_5_GAMMA_2,SIGMA_2_3,GAMMA_5_GAMMA_1,GAMMA_5_GAMMA_0,GAMMA_5};
     inline void apply_stag_op(eo_ptr<color> out,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,GAMMA_INT spin,GAMMA_INT taste,eo_ptr<color> in)
     {
       //Allocate temp

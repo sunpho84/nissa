@@ -281,6 +281,17 @@ Method DEBUG_PRINTF("Found Method\n");return TK_METHOD;
 Numerical DEBUG_PRINTF("Found Numerical\n");return TK_NUMERICAL;
 Analytical DEBUG_PRINTF("Found Analytical\n");return TK_ANALYTICAL;
 Epsilon DEBUG_PRINTF("Found Epsilon\n");return TK_EPSILON;
+TasteChannel DEBUG_PRINTF("Found TasteChannel\n");return TK_TASTE_CHANNEL;
+
+ /* taste channel */
+GammaID DEBUG_PRINTF("Found GammaID\n");return TK_GAMMA_ID;
+Gamma5 DEBUG_PRINTF("Found Gamma5\n");return TK_GAMMA_5;
+Gamma1 DEBUG_PRINTF("Found Gamma1\n");return TK_GAMMA_1;
+Gamma2 DEBUG_PRINTF("Found Gamma2\n");return TK_GAMMA_2;
+Gamma3 DEBUG_PRINTF("Found Gamma3\n");return TK_GAMMA_3;
+Ax1 DEBUG_PRINTF("Found Ax1\n");return TK_AX_1;
+Ax2 DEBUG_PRINTF("Found Ax2\n");return TK_AX_2;
+Ax3 DEBUG_PRINTF("Found Ax3\n");return TK_AX_3;
 
  /* gauge measures */
 UseSmooth DEBUG_PRINTF("Found UseSmooth\n");return TK_USE_SMOOTH;
