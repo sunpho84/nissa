@@ -4,13 +4,13 @@
 #include "hmc/theory_pars.hpp"
 
 #include "fermionic_meas.hpp"
+#include "stag.hpp"
 
 namespace nissa
 {
-  #include "stag.hpp"
+  using namespace stag;
   struct ellesettete_meas_pars_t : base_fermionic_meas_t
   {
-    using namespace stag;
     enum MethodType{ANALYTICAL,NUMERICAL};
     
     int max_order;
