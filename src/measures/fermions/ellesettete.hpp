@@ -30,10 +30,10 @@ namespace nissa
       switch(method)
 	{
 	case ANALYTICAL:
-	  return "Numerical";
+	  return "Analytical";
 	  break;
 	case NUMERICAL:
-	  return "Analytical";
+	  return "Numerical";
 	  break;
 	default:
 	  crash("Unknown method %d",method);
