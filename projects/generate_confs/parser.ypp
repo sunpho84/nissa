@@ -70,6 +70,7 @@
     nissa::ellesettete_meas_pars_t *ellesettete_meas;
     
     nissa::rnd_t rnd_type;
+    nissa::GAMMA_INT gamma_int;
     
     std::vector<int> *int_list;
     std::vector<double> *double_list;
@@ -284,6 +285,11 @@
 %token TK_ANALYTICAL
 %type <double_numb> epsilon
 %token TK_EPSILON
+//taste channel
+%token TK_TASTE_CHANNEL
+%token TK_GAMMA_ID TK_GAMMA_5 TK_GAMMA_1 TK_GAMMA_2 TK_GAMMA_3
+%token TK_AX_1 TK_AX_2 TK_AX_3
+%type <gamma_int> gamma taste_channel
 //gauge measures
 %token TK_USE_SMOOTH
 %token TK_MEAS_PLAQ_POL
@@ -436,6 +442,18 @@ geometry: TK_GEOMETRY
         | geometry TK_LY '=' int_numb {driver->LY=$4;}
         | geometry TK_LZ '=' int_numb {driver->LZ=$4;}
 ;
+
+gamma: TK_GAMMA_ID {$$ = GAMMA_INT::IDENTITY;}
+     | TK_GAMMA_5 {$$ = GAMMA_INT::GAMMA_5;}
+     | TK_GAMMA_1 {$$ = GAMMA_INT::GAMMA_1;}
+     | TK_GAMMA_2 {$$ = GAMMA_INT::GAMMA_2;}
+     | TK_GAMMA_3 {$$ = GAMMA_INT::GAMMA_3;}
+     | TK_AX_1 {$$ = GAMMA_INT::GAMMA_5_GAMMA_1;}
+     | TK_AX_2 {$$ = GAMMA_INT::GAMMA5_GAMMA_2;}
+     | TK_AX_3 {$$ = GAMMA_INT::GAMMA_5_SIGMA_3;}
+;
+
+taste_channel: TK_TASTE_CHANNEL '=' gamma {$$ = $3;}
 
 ///////////////////////////////////////////////// THEORY ///////////////////////////////////////////////////////
 
@@ -813,6 +831,7 @@ ellesettete_meas: TK_MEAS_ELLESETTETE {$$=new ellesettete_meas_pars_t();}
                   | ellesettete_meas TK_METHOD TK_ANALYTICAL {$$->method=ellesettete_meas_pars_t::ANALYTICAL;}
                   | ellesettete_meas TK_METHOD TK_NUMERICAL {$$->method=ellesettete_meas_pars_t::NUMERICAL;}
                   | ellesettete_meas epsilon {$$->epsilon=$2;}
+                  | ellesettete_meas taste_channel {$$->taste_channel=$2;}
 ;
 
 ////////////////////////////////////////////////// ANALYSIS //////////////////////////////////////////////////

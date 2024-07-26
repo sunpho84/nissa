@@ -68,28 +68,30 @@ namespace nissa
     int nflavs=theory_pars.nflavs();
     int method=meas_pars.method;
     double epsilon=meas_pars.epsilon;
+	GAMMA_INT DISC_TASTE_CHANNEL=meas_pars.taste_channel;
+	GAMMA_INT CONN_TASTE_CHANNEL=static_cast<GAMMA_INT>(DISC_TASTE_CHANNEL ^ 15);
     
     //open the file, allocate point result and source
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     complex *point_result=nissa_malloc("point_result",locVol,complex);
     NEW_FIELD_T(source);
-    NEW_FIELD_T(g5_id_source);
-    NEW_FIELD_T(id_g5_source);
+    NEW_FIELD_T(g5_t_source);
+    NEW_FIELD_T(id_g5t_source);
     
     //vectors for analytical calculation of propagators
     NEW_FIELD_T(SIMPLE_PROP);
-    NEW_FIELD_T(PROP_ID_G5);
-    NEW_FIELD_T(ID_G5_PROP_ID_G5);
+    NEW_FIELD_T(PROP_ID_G5T);
+    NEW_FIELD_T(ID_G5T_PROP_ID_G5T);
     NEW_FIELD_T(SEQ_PROP);
-    NEW_FIELD_T(SEQ_PROP_ID_G5);
-    NEW_FIELD_T(ID_G5_SEQ_PROP_ID_G5);
+    NEW_FIELD_T(SEQ_PROP_ID_G5T);
+    NEW_FIELD_T(ID_G5T_SEQ_PROP_ID_G5T);
     //vector for numerical calculation of propagators
     NEW_FIELD_T(PROP_PLUS);
-    NEW_FIELD_T(PROP_PLUS_ID_G5);
-    NEW_FIELD_T(ID_G5_PROP_PLUS_ID_G5);
+    NEW_FIELD_T(PROP_PLUS_ID_G5T);
+    NEW_FIELD_T(ID_G5T_PROP_PLUS_ID_G5T);
     NEW_FIELD_T(PROP_MINUS);
-    NEW_FIELD_T(PROP_MINUS_ID_G5);
-    NEW_FIELD_T(ID_G5_PROP_MINUS_ID_G5);
+    NEW_FIELD_T(PROP_MINUS_ID_G5T);
+    NEW_FIELD_T(ID_G5T_PROP_MINUS_ID_G5T);
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
       {
@@ -126,36 +128,36 @@ namespace nissa
 		  {
 		    //prepare the sources with the right structure spin x taste
 		    fill_source(source,glb_t,meas_pars.rnd_type);
-		    apply_stag_op(g5_id_source,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,GAMMA_INT::IDENTITY,source);
-		    apply_stag_op(id_g5_source,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,source);
+		    apply_stag_op(g5_t_source,conf,theory_pars.backfield[iflav],GAMMA_INT::GAMMA_5,DISC_TASTE_CHANNEL,source);
+		    apply_stag_op(id_g5t_source,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,CONN_TASTE_CHANNEL,source);
 		    
 		    switch(method)
 		      {
 		      case ellesettete_meas_pars_t::NUMERICAL:
 			MASSY_INV(SIMPLE_PROP,iflav,theory_pars.quarks[iflav].mass,source);
-			MASSY_INV(PROP_ID_G5,iflav,theory_pars.quarks[iflav].mass,id_g5_source);
+			MASSY_INV(PROP_ID_G5T,iflav,theory_pars.quarks[iflav].mass,id_g5t_source);
 			MASSY_INV(PROP_PLUS,iflav,theory_pars.quarks[iflav].mass+epsilon,source);
 			MASSY_INV(PROP_MINUS,iflav,theory_pars.quarks[iflav].mass-epsilon,source);
-			MASSY_INV(PROP_PLUS_ID_G5,iflav,theory_pars.quarks[iflav].mass+epsilon,id_g5_source);
-			MASSY_INV(PROP_MINUS_ID_G5,iflav,theory_pars.quarks[iflav].mass-epsilon,id_g5_source);
+			MASSY_INV(PROP_PLUS_ID_G5T,iflav,theory_pars.quarks[iflav].mass+epsilon,id_g5t_source);
+			MASSY_INV(PROP_MINUS_ID_G5T,iflav,theory_pars.quarks[iflav].mass-epsilon,id_g5t_source);
 			
 			//adjust sink accordingly
-			apply_stag_op(ID_G5_PROP_ID_G5,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,PROP_ID_G5);
-			apply_stag_op(ID_G5_PROP_PLUS_ID_G5,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,PROP_PLUS_ID_G5);
-			apply_stag_op(ID_G5_PROP_MINUS_ID_G5,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,PROP_MINUS_ID_G5);
+			apply_stag_op(ID_G5T_PROP_ID_G5T,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,CONN_TASTE_CHANNEL,PROP_ID_G5T);
+			apply_stag_op(ID_G5T_PROP_PLUS_ID_G5T,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,CONN_TASTE_CHANNEL,PROP_PLUS_ID_G5T);
+			apply_stag_op(ID_G5T_PROP_MINUS_ID_G5T,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,CONN_TASTE_CHANNEL,PROP_MINUS_ID_G5T);
 			
 			//trace for connected parts
-			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts,SIMPLE_PROP,ID_G5_PROP_ID_G5);
-			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts_plus_plus,PROP_PLUS,ID_G5_PROP_PLUS_ID_G5);
-			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts_plus_minus,PROP_PLUS,ID_G5_PROP_MINUS_ID_G5);
-			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts_minus_plus,PROP_MINUS,ID_G5_PROP_PLUS_ID_G5);
-			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts_minus_minus,PROP_MINUS,ID_G5_PROP_MINUS_ID_G5);
+			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts,SIMPLE_PROP,ID_G5T_PROP_ID_G5T);
+			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts_plus_plus,PROP_PLUS,ID_G5T_PROP_PLUS_ID_G5T);
+			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts_plus_minus,PROP_PLUS,ID_G5T_PROP_MINUS_ID_G5T);
+			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts_minus_plus,PROP_MINUS,ID_G5T_PROP_PLUS_ID_G5T);
+			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts_minus_minus,PROP_MINUS,ID_G5T_PROP_MINUS_ID_G5T);
 			
 			//trace for disconnected parts, propagators with plain sources
 			if(ihit==meas_pars.nhits-1) master_fprintf(file," # Tr_bubble_plus source time %d\n", glb_t);
-			SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_bubble_plus,g5_id_source,PROP_PLUS);
+			SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_bubble_plus,g5_t_source,PROP_PLUS);
 			if(ihit==meas_pars.nhits-1) master_fprintf(file,"\n # Tr_bubble_minus source time %d\n", glb_t);
-			SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_bubble_minus,g5_id_source,PROP_MINUS);
+			SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_bubble_minus,g5_t_source,PROP_MINUS);
 			break;
 			
 		      case ellesettete_meas_pars_t::ANALYTICAL:
@@ -164,25 +166,25 @@ namespace nissa
 			MINV(SEQ_PROP,iflav,SIMPLE_PROP);
 			
 			//compute  2pts propagator with id x g5 at source and apply id x g5 at sink
-			MINV(PROP_ID_G5,iflav,id_g5_source);
-			apply_stag_op(ID_G5_PROP_ID_G5,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,PROP_ID_G5);
+			MINV(PROP_ID_G5T,iflav,id_g5t_source);
+			apply_stag_op(ID_G5T_PROP_ID_G5T,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,CONN_TASTE_CHANNEL,PROP_ID_G5T);
 			
 			//compute sequential propagator with id x g5 at source and apply id x g5 at sink
-			MINV(SEQ_PROP_ID_G5,iflav,PROP_ID_G5);
-			apply_stag_op(ID_G5_SEQ_PROP_ID_G5,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,GAMMA_INT::GAMMA_5,SEQ_PROP_ID_G5);
+			MINV(SEQ_PROP_ID_G5T,iflav,PROP_ID_G5T);
+			apply_stag_op(ID_G5T_SEQ_PROP_ID_G5T,conf,theory_pars.backfield[iflav],GAMMA_INT::IDENTITY,CONN_TASTE_CHANNEL,SEQ_PROP_ID_G5T);
 			
 			//then glb reduction to compute the trace for the connected 2pts_iso, 2pts, 3pts and 4pts diagrams
 			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts_iso,SIMPLE_PROP,SIMPLE_PROP);
-			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts,SIMPLE_PROP,ID_G5_PROP_ID_G5);
-			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,ID_G5_SEQ_PROP_ID_G5);
-			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_four_pts,SEQ_PROP,ID_G5_SEQ_PROP_ID_G5);
+			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_two_pts,SIMPLE_PROP,ID_G5T_PROP_ID_G5T);
+			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_three_pts,SIMPLE_PROP,ID_G5T_SEQ_PROP_ID_G5T);
+			SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(Tr_four_pts,SEQ_PROP,ID_G5T_SEQ_PROP_ID_G5T);
 			
 			//////// disconnected ////////
 			//here we need just simple seq prop with nothing at source
 			if(ihit==meas_pars.nhits-1) master_fprintf(file," # Tr_no_insertion_bubble source time %d\n", glb_t);
-			SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,g5_id_source,SIMPLE_PROP);
+			SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,g5_t_source,SIMPLE_PROP);
 			if(ihit==meas_pars.nhits-1) master_fprintf(file,"\n # Tr_insertion_bubble source time %d\n", glb_t);
-			SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,g5_id_source,SEQ_PROP);
+			SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,g5_t_source,SEQ_PROP);
 		      
 		      default:
 			using el7=ellesettete_meas_pars_t;
@@ -201,20 +203,20 @@ namespace nissa
     
     //deallocate and close file
     DELETE_FIELD_T(SIMPLE_PROP);
-    DELETE_FIELD_T(PROP_ID_G5);
-    DELETE_FIELD_T(ID_G5_PROP_ID_G5);
+    DELETE_FIELD_T(PROP_ID_G5T);
+    DELETE_FIELD_T(ID_G5T_PROP_ID_G5T);
     DELETE_FIELD_T(SEQ_PROP);
-    DELETE_FIELD_T(SEQ_PROP_ID_G5);
-    DELETE_FIELD_T(ID_G5_SEQ_PROP_ID_G5);
+    DELETE_FIELD_T(SEQ_PROP_ID_G5T);
+    DELETE_FIELD_T(ID_G5T_SEQ_PROP_ID_G5T);
     DELETE_FIELD_T(PROP_PLUS);
-    DELETE_FIELD_T(PROP_PLUS_ID_G5);
-    DELETE_FIELD_T(ID_G5_PROP_PLUS_ID_G5);
+    DELETE_FIELD_T(PROP_PLUS_ID_G5T);
+    DELETE_FIELD_T(ID_G5T_PROP_PLUS_ID_G5T);
     DELETE_FIELD_T(PROP_MINUS);
-    DELETE_FIELD_T(PROP_MINUS_ID_G5);
-    DELETE_FIELD_T(ID_G5_PROP_MINUS_ID_G5);
+    DELETE_FIELD_T(PROP_MINUS_ID_G5T);
+    DELETE_FIELD_T(ID_G5T_PROP_MINUS_ID_G5T);
     DELETE_FIELD_T(source);
-    DELETE_FIELD_T(g5_id_source);
-    DELETE_FIELD_T(id_g5_source);
+    DELETE_FIELD_T(g5_t_source);
+    DELETE_FIELD_T(id_g5t_source);
     nissa_free(point_result);
     close_file(file);
   }
@@ -229,6 +231,7 @@ namespace nissa
     if(method!=def_method() or full)
       os<<" Method\t\t=\t"<<getAnalyticalNumericalTag(method)<<"\n";
     if(epsilon!=def_epsilon() or full) os<<" Epsilon\t\t=\t"<<epsilon<<"\n";
+	if(taste_channel!=def_taste_channel() or full) os<<" Taste channel\t\t=\t"<<gamma_int_to_str(taste_channel)<<"\n"; //maybe a switch/map gamma to string is needed?
     
     return os.str();
   }
