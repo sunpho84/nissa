@@ -283,7 +283,7 @@ Analytical DEBUG_PRINTF("Found Analytical\n");return TK_ANALYTICAL;
 Epsilon DEBUG_PRINTF("Found Epsilon\n");return TK_EPSILON;
 TasteChannel DEBUG_PRINTF("Found TasteChannel\n");return TK_TASTE_CHANNEL;
 
- /* taste channel*/
+ /* taste channel */
 GammaID DEBUG_PRINTF("Found GammaID\n");return TK_GAMMA_ID;
 Gamma5 DEBUG_PRINTF("Found Gamma5\n");return TK_GAMMA_5;
 Gamma1 DEBUG_PRINTF("Found Gamma1\n");return TK_GAMMA_1;
