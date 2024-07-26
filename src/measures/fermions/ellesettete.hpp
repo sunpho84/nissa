@@ -47,7 +47,7 @@ namespace nissa
     {
         switch(gamma)
         {
-            case GAMMA_INT::GAMMA_IDENTITY: return "GammaID";
+            case GAMMA_INT::IDENTITY: return "GammaID";
             case GAMMA_INT::GAMMA_5: return "Gamma5";
             case GAMMA_INT::GAMMA_1: return "Gamma1";
             case GAMMA_INT::GAMMA_2: return "Gamma2";
