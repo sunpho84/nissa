@@ -185,7 +185,8 @@ namespace nissa
 			SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_no_insertion_bubble,g5_t_source,SIMPLE_PROP);
 			if(ihit==meas_pars.nhits-1) master_fprintf(file,"\n # Tr_insertion_bubble source time %d\n", glb_t);
 			SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_insertion_bubble,g5_t_source,SEQ_PROP);
-		      
+		    break;
+			
 		      default:
 			using el7=ellesettete_meas_pars_t;
 			crash("Method not implemented. Choose %s for analytical or %s for numerical",
