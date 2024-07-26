@@ -52,9 +52,9 @@ namespace nissa
             case GAMMA_INT::GAMMA_1: return "Gamma1";
             case GAMMA_INT::GAMMA_2: return "Gamma2";
             case GAMMA_INT::GAMMA_3: return "Gamma3";
-            case GAMMA_INT::GAMMA_5_GAMMA_1: return "Gamma5_Gamma1";
-            case GAMMA_INT::GAMMA5_GAMMA_2: return "Gamma5_Gamma2";
-            case GAMMA_INT::GAMMA_5_SIGMA_3: return "Gamma5_Gamma3";
+            case GAMMA_INT::GAMMA_5_GAMMA_1: return "Ax1";
+            case GAMMA_INT::GAMMA_5_GAMMA_2: return "Ax2";
+            case GAMMA_INT::GAMMA_5_GAMMA_3: return "Ax3";
             default: 
               crash("Unknown type or not implemented");
               return "Unknown";

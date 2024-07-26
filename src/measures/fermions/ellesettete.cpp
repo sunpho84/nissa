@@ -70,7 +70,7 @@ namespace nissa
     double epsilon=meas_pars.epsilon;
 	GAMMA_INT DISC_TASTE_CHANNEL=meas_pars.taste_channel;
 	GAMMA_INT CONN_TASTE_CHANNEL=static_cast<GAMMA_INT>(DISC_TASTE_CHANNEL ^ 15);
-    
+    if(taste_channel==GAMMA_INT::GAMMA_5_GAMMA_1) crash("CORRECT!!");
     //open the file, allocate point result and source
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     complex *point_result=nissa_malloc("point_result",locVol,complex);

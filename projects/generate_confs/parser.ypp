@@ -449,8 +449,8 @@ gamma: TK_GAMMA_ID {$$ = GAMMA_INT::IDENTITY;}
      | TK_GAMMA_2 {$$ = GAMMA_INT::GAMMA_2;}
      | TK_GAMMA_3 {$$ = GAMMA_INT::GAMMA_3;}
      | TK_AX_1 {$$ = GAMMA_INT::GAMMA_5_GAMMA_1;}
-     | TK_AX_2 {$$ = GAMMA_INT::GAMMA5_GAMMA_2;}
-     | TK_AX_3 {$$ = GAMMA_INT::GAMMA_5_SIGMA_3;}
+     | TK_AX_2 {$$ = GAMMA_INT::GAMMA_5_GAMMA_2;}
+     | TK_AX_3 {$$ = GAMMA_INT::GAMMA_5_GAMMA_3;}
 ;
 
 taste_channel: TK_TASTE_CHANNEL '=' gamma {$$ = $3;}
