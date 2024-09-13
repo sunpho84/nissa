@@ -5,12 +5,17 @@
 #define EXTERN_QUDA_BRIDGE
 # include "quda_bridge.hpp"
 
+#include <cuda_fp16.h>
+#include <quda_fp16.cuh>
+
 #include "base/cuda.hpp"
+#include "io/checksum.hpp"
 #include "base/export_conf_to_external_solver.hpp"
 #include "base/multiGridParams.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3_op.hpp"
+#include "new_types/custom_real_numb.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
@@ -63,6 +68,11 @@ namespace nissa
 }
 #endif
 
+namespace nissa
+{
+  PROVIDE_HAS_MEMBER(cl_pad);
+}
+
 namespace quda_iface
 {
   using namespace nissa;
@@ -96,8 +106,254 @@ namespace quda_iface
     return out;
   }
   
+  const char* getPrecTag(const int precision)
+    {
+      switch (precision)
+	{
+	case QUDA_DOUBLE_PRECISION:
+	  return "QUDA_DOUBLE_PRECISION";
+	case QUDA_SINGLE_PRECISION:
+	  return "QUDA_SINGLE_PRECISION";
+	case QUDA_HALF_PRECISION:
+	  return "QUDA_HALF_PRECISION";
+	case QUDA_QUARTER_PRECISION:
+	  return "QUDA_QUARTER_PRECISION";
+	  break;
+	default:
+	  return "";
+	}
+    }
+  
+  namespace internal
+  {
+    template <QudaPrecision>
+    struct _CustomRealOfQudaPrecision;
+
+#define PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION(QUDA_ENUM,TYPE)	\
+    template <>							\
+    struct _CustomRealOfQudaPrecision<QUDA_ENUM>		\
+    {								\
+      using type=TYPE;						\
+    }
+    
+    PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION(QUDA_DOUBLE_PRECISION,CustomDouble);
+    PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION(QUDA_SINGLE_PRECISION,CustomFloat);
+    PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION(QUDA_HALF_PRECISION,CustomHalf);
+    
+#undef PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION
+  }
+  
+  /// Custom type corresponding to quda precision
+  template <QudaPrecision Prec>
+  using CustomRealOfQudaPrecision=
+    typename internal::_CustomRealOfQudaPrecision<Prec>::type;
+  
+  /// Gets the i-th entry of an array v, interpeting entries as Prec type 
+  double getFromCustomPrecArray(const void* v,
+				const size_t& i,
+				const size_t prec)
+  {
+    if(prec==8)
+      return (double)((CustomRealOfQudaPrecision<QUDA_DOUBLE_PRECISION>*)v)[i];
+    else if(prec==4)
+      return (double)((CustomRealOfQudaPrecision<QUDA_SINGLE_PRECISION>*)v)[i];
+    else if(prec==QUDA_HALF_PRECISION)
+      return __half2float(((__half*)v)[i]);
+    else
+      crash("Unknown precision %d",prec);
+    
+    return 0;
+  }
+  
+  void QudaSetup::restoreOrTakeCopyOfB(const bool takeCopy,
+				       std::vector<quda::ColorSpinorField*>& Bdev,
+				       const size_t lev)
+  {
+    using namespace nissa::Robbery;
+    
+    const size_t nB=Bdev.size();
+    const int prec=Bdev[0]->Precision();
+    const size_t byteSize=nB?(Bdev[0]->Bytes()):0;
+    const size_t ghostSize=nB?Bdev[0]->GhostBytes():0;
+    master_printf("B size: %zu bytes, precision %d (%s) for each of the %zu vectors, corresponding to %zu complex, ghost size: %zu\n",byteSize,prec,getPrecTag(prec),nB,byteSize/(2*prec),ghostSize);
+    
+    if(takeCopy)
+      {
+	B[lev].resize(nB);
+	for(size_t iB=0;iB<nB;iB++)
+	  B[lev][iB]=nissa_malloc(("Bi"+std::to_string(iB)).c_str(),byteSize,char);
+	allocatedMemory+=nB*byteSize;
+      }
+    else
+      if(const size_t nBHost=B[lev].size();nBHost!=nB)
+	crash("B size not matching, this is %zu and device setup is %zu",nBHost,nB);
+    
+    for(size_t iB=0;iB<nB;iB++)
+      {
+	restoreOrTakeCopyOfData(B[lev][iB],Bdev[iB]->V(),byteSize,takeCopy);
+	
+	master_printf("B[%zu] vec of lev %zu %s, first entries: ",iB,lev,takeCopy?"stored":"restored");
+	for(int i=0;i<2;i++)
+	  master_printf("%lg ",getFromCustomPrecArray((B[lev])[iB],i,prec));
+	
+	master_printf("\n");
+      }
+  }
+  
+  void QudaSetup::restoreOrTakeCopyOfEig(const bool takeCopy,
+					 quda::Solver* csv)
+  {
+    using namespace nissa::Robbery;
+    
+    quda::Solver* nestedSolver=rob<solver>((quda::PreconditionedSolver*)csv);
+    master_printf("nested solver: %p\n",nestedSolver);
+    
+    auto& eVecsDev=rob<evecs>(nestedSolver);
+    const size_t nEig=eVecsDev.size();
+    master_printf("nEig: %zu\n",nEig);
+    const size_t byteSize=nEig?(eVecsDev[0]->Bytes()):0;
+    
+    if(takeCopy)
+      {
+	eVecs.resize(nEig);
+	for(size_t iEig=0;iEig<nEig;iEig++)
+	  eVecs[iEig]=nissa_malloc(("ei"+std::to_string(iEig)).c_str(),byteSize,char);
+	allocatedMemory+=byteSize*nEig;
+      }
+    else
+      if(nEig!=eVecs.size())
+	crash("eig size not matching, this is %zu and device setup is %zu",eVecs.size(),nEig);
+    
+    for(size_t iEig=0;iEig<nEig;iEig++)
+      restoreOrTakeCopyOfData(eVecs[iEig],
+			      eVecsDev[iEig]->V(),
+			      byteSize,
+			      takeCopy);
+    
+    auto& eValsDev=rob<evals>(nestedSolver);
+    if(takeCopy)
+      eVals=eValsDev;
+    else
+      eValsDev=eVals;
+    
+    master_printf("eigenvecs %s, first entries of evals: (%lg,%lg) (%lg,%lg), of eVecs of prec %d: ",takeCopy?"stored":"restored",
+		  eVals[0].real(),eVals[0].imag(),
+		  eVals[1].real(),eVals[1].imag(),
+		  eVecsDev[0]->Precision());
+    for(int i=0;i<2;i++)
+      master_printf("(%lg,%lg) ",
+		    getFromCustomPrecArray(eVecs[i],0+2*i,eVecsDev[0]->Precision()),
+		    getFromCustomPrecArray(eVecs[i],1+2*i,eVecsDev[0]->Precision()));
+    master_printf("\n");
+  }
+  
+  void QudaSetup::restoreOrTakeCopyOfAllY(const bool takeCopy)
+  {
+    using namespace nissa::Robbery;
+    using namespace quda;
+    
+    MG* cur=static_cast<multigrid_solver*>(quda_mg_preconditioner)->mg;
+    int lev=0;
+    
+    while(lev<multiGrid::nlevels-1)
+      {
+	DiracCoarse* dc=static_cast<DiracCoarse*>(rob<diracCoarseSmoother>(cur));
+	cudaGaugeField* yd=rob<Y_d>(dc);
+	cudaGaugeField* yhat_d=rob<Yhat_d>(dc);
+
+	if(takeCopy)
+	  {
+	    Y[lev]=nissa_malloc("Y",yd->Bytes(),char);
+	    Yhat[lev]=nissa_malloc("Yhat",yhat_d->Bytes(),char);
+	    allocatedMemory+=yd->Bytes()+yhat_d->Bytes();
+	  }
+	
+	restoreOrTakeCopyOfData(Y[lev],yd->Gauge_p(),yd->Bytes(),takeCopy);
+	restoreOrTakeCopyOfData(Yhat[lev],yhat_d->Gauge_p(),yhat_d->Bytes(),takeCopy);
+	
+	master_printf("%s Y and Yhat, lev %d, size %d\n",takeCopy?"stored":"restored",lev,(int)yd->Bytes());
+	for(int i=0;i<10;i++)
+	  master_printf("y[%zu]: %.16lg\n",i,getFromCustomPrecArray(Y[lev],i,yd->Precision()));
+	cur=rob<coarse>(cur);
+	
+	lev++;
+      }
+  }
+  
+  void QudaSetup::restoreOrTakeCopy(const bool takeCopy)
+  {
+    using namespace nissa::Robbery;
+    using namespace quda;
+    
+    multigrid_solver* mgs=static_cast<multigrid_solver*>(quda_mg_preconditioner);
+    MG* cur=mgs->mg;
+    master_printf("/////////////////////////////////////////////////////////////////\n");
+    master_printf("/////////////////////////// preverify //////////////////////////////////////\n");
+    cur->verify();
+    master_printf("/////////////////////////////////////////////////////////////////\n");
+    int lev=0;
+    
+    allocatedMemory=0;
+    
+    if(takeCopy)
+      {
+	if(not (B.empty() and Y.empty() and Yhat.empty())) crash("setup already in use!");
+	B.resize(multiGrid::nlevels);
+	for(auto& p : {&Y,&Yhat})
+	  p->resize(multiGrid::nlevels);
+      }
+    else
+      if(B.empty() or Y.empty() or Yhat.empty()) crash("setup not in use!");
+    
+    restoreOrTakeCopyOfAllY(takeCopy);
+    
+    master_printf("&mgs->B %p , &mgs->mgParam.B %p\n",&mgs->B,&mgs->mgParam->B);
+    restoreOrTakeCopyOfB(takeCopy,mgs->mgParam->B,lev);
+    
+    lev=1;
+    while(lev<multiGrid::nlevels)
+      {
+	MGParam* mgLevParam=rob<param_coarse>(cur);
+	std::vector<ColorSpinorField*>& Bdev=mgLevParam->B;
+	restoreOrTakeCopyOfB(takeCopy,Bdev,lev);
+	
+	//Dirac* dc=rob<diracCoarseSmoother>(cur);
+	Solver* csv=rob<coarse_solver>(cur);
+	master_printf("csv: %p\n",csv);
+	if(csv and quda_mg_param.use_eig_solver[lev]==QUDA_BOOLEAN_YES)
+	  {
+	    master_printf("Going to to the eig part\n");
+	    restoreOrTakeCopyOfEig(takeCopy,csv);
+	  }
+	
+	cur=rob<coarse>(cur);
+	
+	master_printf("Done with lev %d\n",lev);
+	
+	lev++;
+      }
+    
+    if(takeCopy)
+      master_printf("we have used %zu bytes to store the setup\n",allocatedMemory);
+    else
+      {
+	master_printf("Everything recycled in the mg\n");
+	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+	multigrid_solver* mgs=static_cast<multigrid_solver*>(quda_mg_preconditioner);
+	MG* cur=mgs->mg;
+	master_printf("Let us verify\n");
+	cur->verify();
+	
+	// QudaBoolean& p=quda_mg_param.preserve_deflation; //thin_update_only
+	// const QudaBoolean oldP=p;
+	// p=QUDA_BOOLEAN_TRUE;
+	// updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+	// p=oldP;
+      }
+  }
+  
   /// Set the verbosity
-  QudaVerbosity get_quda_verbosity()
+  QudaVerbosity get_verbosity_for_quda()
   {
     switch(verbosity_lv)
       {
@@ -160,7 +416,7 @@ namespace quda_iface
 	color_in=nissa_malloc("color_in",locVol,color);
 	color_out=nissa_malloc("color_out",locVol,color);
 	
-	setVerbosityQuda(QUDA_SUMMARIZE,"# QUDA: ",stdout);
+	setVerbosityQuda(QUDA_VERBOSE,"# QUDA: ",stdout);
 	
 	/////////////////////////// gauge params ////////////////////////////////
 	
@@ -204,8 +460,10 @@ namespace quda_iface
 	
 	initCommsGridQuda(NDIM,grid,get_rank_of_quda_coords,NULL);
 	
-	initQuda(iCudaDevice);
+	// initQuda(iCudaDevice);
+	initQuda(-1);
 	
+	setVerbosityQuda(QUDA_VERBOSE,"# QUDA: ",stdout);
 	inited=1;
       }
   }
@@ -235,6 +493,8 @@ namespace quda_iface
 	
 	nissa_free(color_in);
 	nissa_free(color_out);
+	
+	quda_iface::qudaSetups.clear();
 	
 	//free the clover and gauge conf
 	freeGaugeQuda();
@@ -395,7 +655,7 @@ namespace quda_iface
   {
     inv_param=newQudaInvertParam();
     
-    inv_param.verbosity=get_quda_verbosity();
+    inv_param.verbosity=get_verbosity_for_quda();
     
     inv_mg_param=newQudaInvertParam();
     quda_mg_param=newQudaMultigridParam();
@@ -430,17 +690,21 @@ namespace quda_iface
     
     //inv_param.tune=QUDA_TUNE_YES;
     
-    inv_param.sp_pad=0;
-    inv_param.cl_pad=0;
+    if constexpr(hasMember_cl_pad<decltype(inv_param)>)
+      {
+	inv_param.sp_pad=0;
+	inv_param.cl_pad=0;
+      }
     
     inv_param.Ls=1;
     
-    inv_param.verbosity=get_quda_verbosity();
+    inv_param.verbosity=get_verbosity_for_quda();
     
     inv_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
     inv_param.tol_hq=0.1;
-    inv_param.reliable_delta=1e-4;
+    inv_param.reliable_delta=nissa::multiGrid::reliable_delta;
     inv_param.use_sloppy_partial_accumulator=0;
+    inv_param.chrono_precision=QUDA_SINGLE_PRECISION;
   }
   
   /// Apply the dirac operator
@@ -462,7 +726,9 @@ namespace quda_iface
 	inv_param.clover_coeff=csw*kappa;
 	// inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
 	// inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
-	// inv_param.cl_pad=0;
+	
+	if constexpr(hasMember_cl_pad<decltype(inv_param)>)
+	  inv_param.cl_pad=0;
 	// inv_param.dirac_order=QUDA_DIRAC_ORDER;
 	
 	loadCloverQuda(NULL,NULL,&inv_param);
@@ -522,7 +788,7 @@ namespace quda_iface
     inv_param.tol=sqrt(residue);
     inv_param.maxiter=niter;
     inv_param.pipeline=0;
-    inv_param.gcrNkrylov=24;
+    inv_param.gcrNkrylov=nissa::multiGrid::gcrNkrylov;
     
     // domain decomposition preconditioner parameters
     inv_param.inv_type_precondition=QUDA_CG_INVERTER;
@@ -530,7 +796,7 @@ namespace quda_iface
     inv_param.precondition_cycle=1;
     inv_param.tol_precondition=0.1;
     inv_param.maxiter_precondition=10;
-    inv_param.verbosity_precondition=get_quda_verbosity();
+    inv_param.verbosity_precondition=get_verbosity_for_quda();
     
     inv_param.omega=1.0;
     
@@ -539,23 +805,26 @@ namespace quda_iface
     
     if(multiGrid::checkIfMultiGridAvailableAndRequired(mu))
       {
-	inv_param.verbosity=QUDA_SUMMARIZE;//VERBOSE;
+	inv_param.verbosity=get_verbosity_for_quda();
 	
 	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
 	if(inv_param.matpc_type==QUDA_MATPC_EVEN_EVEN_ASYMMETRIC)
 	  inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
 	
 	inv_param.inv_type=QUDA_GCR_INVERTER;
-	inv_param.gcrNkrylov=10; //from default in read_input.l
+	inv_param.gcrNkrylov=nissa::multiGrid::gcrNkrylov;
 	inv_param.inv_type_precondition=QUDA_MG_INVERTER;
 	inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
-	inv_param.reliable_delta=1e-10;
-	inv_param.reliable_delta_refinement=1e-10;
+	inv_param.reliable_delta=nissa::multiGrid::reliable_delta;
+	inv_param.reliable_delta_refinement=nissa::multiGrid::reliable_delta_refinement;
 	inv_param.precondition_cycle=1;
 	inv_param.tol_precondition=1e-1;
 	inv_param.maxiter_precondition=1;
 	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
-	inv_param.solve_type=QUDA_DIRECT_SOLVE;
+	inv_param.solve_type=QUDA_DIRECT_PC_SOLVE;
+#ifndef DYNAMIC_CLOVER
+# warning Please compile quda with DYNAMIC_CLOVER switched on
+#endif
 	
 	inv_param.omega=1.0;
 	
@@ -565,7 +834,7 @@ namespace quda_iface
 	inv_mg_param.inv_type_precondition=QUDA_INVALID_INVERTER;
 	inv_mg_param.maxiter=1000;
 	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
-	inv_mg_param.verbosity=QUDA_SUMMARIZE;//VERBOSE;
+	inv_mg_param.verbosity=get_verbosity_for_quda();
 	inv_mg_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
 	inv_mg_param.preserve_source=QUDA_PRESERVE_SOURCE_NO;
 	inv_mg_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;
@@ -654,7 +923,7 @@ namespace quda_iface
 	    
 	    /// Default value from: https://github.com/lattice/quda/wiki/Multigrid-Solver
 	    
-	    quda_mg_param.verbosity[level]=get_quda_verbosity();
+	    quda_mg_param.verbosity[level]=get_verbosity_for_quda();
 	    quda_mg_param.precision_null[level]=QUDA_HALF_PRECISION;
 	    quda_mg_param.setup_inv_type[level]=QUDA_CG_INVERTER;//QUDA_BICGSTAB_INVERTER or QUDA_CG_INVERTER generally preferred
 	    
@@ -674,11 +943,10 @@ namespace quda_iface
 	    
 	    //Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
 	    quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
-	    constexpr double t[3]={0.25,0.22,0.46};
-	    quda_mg_param.coarse_solver_tol[level]=t[level];          //Suggest setting each level to 0.25
-	    quda_mg_param.coarse_solver_maxiter[level]=100;//(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
+	    quda_mg_param.coarse_solver_tol[level]=nissa::multiGrid::coarse_solver_tol[level];          //Suggest setting each level to 0.25
+	    quda_mg_param.coarse_solver_maxiter[level]=nissa::multiGrid::coarse_solver_maxiter[level];//(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
 	    quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
-	    quda_mg_param.n_vec[level]=(level==1)?32:24;          //24 or 32 is supported presently
+	    quda_mg_param.n_vec[level]=(level>=1)?32:24;          //24 or 32 is supported presently
 	    quda_mg_param.nu_pre[level]=nissa::multiGrid::nu_pre[level];            //Suggest setting to 0
 	    quda_mg_param.nu_post[level]=nissa::multiGrid::nu_post[level];          //Suggest setting to 8
 	    
@@ -690,13 +958,13 @@ namespace quda_iface
 	    
 	    quda_mg_param.preserve_deflation=QUDA_BOOLEAN_FALSE;
 	    quda_mg_param.smoother[level]=(level+1==nlevels)?QUDA_MR_INVERTER:QUDA_CA_GCR_INVERTER;
-	    quda_mg_param.smoother_tol[level]=(level+1==nlevels)?0.25:0.22;                 //Suggest setting each level to 0.25
+	    quda_mg_param.smoother_tol[level]=nissa::multiGrid::smoother_tol[level];                 //Suggest setting each level to 0.25
 	    quda_mg_param.smoother_schwarz_cycle[level]=1;          //Experimental, set to 1 for each level
 	    //Suggest setting to QUDA_DIRECT_PC_SOLVE for all levels
 	    quda_mg_param.smoother_solve_type[level]=QUDA_DIRECT_PC_SOLVE;
 	    //Experimental, set to QUDA_INVALID_SCHWARZ for each level unless you know what you're doing
 	    quda_mg_param.smoother_schwarz_type[level]=QUDA_INVALID_SCHWARZ;
-	    //quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
+	    quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
 	    
 	    // when the Schwarz-alternating smoother is used, this can be set to NO, otherwise it must be YES
 	    quda_mg_param.global_reduction[level]=QUDA_BOOLEAN_YES;
@@ -708,7 +976,7 @@ namespace quda_iface
 	    quda_mg_param.coarse_grid_solution_type[level]=
 	      QUDA_MATPC_SOLUTION;
 	    //(inv_param.solve_type==QUDA_DIRECT_PC_SOLVE?QUDA_MATPC_SOLUTION:QUDA_MAT_SOLUTION);
-	    quda_mg_param.omega[level]=0.85;  //Set to 0.8-1.0
+	    quda_mg_param.omega[level]=nissa::multiGrid::omega[level];  //Set to 0.8-1.0
 	    
 	    quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    
@@ -793,16 +1061,54 @@ namespace quda_iface
     static double storedKappa=0;
     static double storedCloverCoeff=0;
     
+    const char QUDA_DEBUG_EV[]="QUDA_DEBUG_EV";
+    const bool doTheStorage=getenv(QUDA_DEBUG_EV)!=nullptr;
+    
+    SetupID setupId=
+      std::make_tuple(export_conf::confTag,export_conf::check_old);
+    
     bool& setup_valid=multiGrid::setup_valid;
     if(not setup_valid)
       {
 	master_printf("QUDA multigrid setup not valid\n");
 	
-	if(quda_mg_preconditioner!=nullptr)
-	  destroyMultigridQuda(quda_mg_preconditioner);
+	const bool canReuseStoredSetup=(qudaSetups.find(setupId)!=qudaSetups.end());
+	const auto [tag,fs]=setupId;
+	master_printf("CanReuseStoredSetup (%s,%zu,%zu): %s\n",tag.c_str(),fs[0],fs[1],canReuseStoredSetup?"true":"false");
 	
-	master_printf("mg setup due:\n");
-	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
+	setVerbosity(QUDA_VERBOSE);
+	master_printf("VERBOSITY OF QUDA: %d should be %d it might be %d\n",getVerbosity(),QUDA_VERBOSE,QUDA_SUMMARIZE);
+	
+	if(canReuseStoredSetup)
+	  {
+	    destroyMultigridQuda(quda_mg_preconditioner);
+	    
+	    master_printf("mg setup redue:\n");
+	    
+	    const int& nlevels=multiGrid::nlevels;
+	    int b[nlevels];
+	    for(int level=0;level<nlevels;level++)
+	      {
+		int& v=quda_mg_param.num_setup_iter[level];
+		b[level]=v;
+		v=0;
+	      }
+	    quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
+	    for(int level=0;level<nlevels;level++)
+	      quda_mg_param.num_setup_iter[level]=b[level];
+	    qudaSetups[setupId].restore();
+	  }
+	else
+	  {
+	    if(quda_mg_preconditioner!=nullptr)
+	      destroyMultigridQuda(quda_mg_preconditioner);
+	    
+	    quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
+	    
+	    if(doTheStorage)
+	      qudaSetups[setupId].takeCopy();
+	  }
+	
 	master_printf("mg setup done!\n");
 	
 	setup_valid=true;
@@ -929,7 +1235,7 @@ namespace quda_iface
       printf("mu_factor: %lg\n",i.mu_factor[ilev]);
     for(int ilev=0;ilev<nlev;ilev++)
       printf("transfer_type: %d\n",i.transfer_type[ilev]);
-    printf("use_mma: %d\n",i.use_mma);
+    // printf("use_mma: %d\n",i.use_mma);
     printf("thin_update_only: %d\n",i.thin_update_only);
   }
 
@@ -1009,8 +1315,11 @@ namespace quda_iface
     printf("return_clover: %d\n",i.return_clover);
     printf("return_clover_inverse: %d\n",i.return_clover_inverse);
     printf("verbosity: %d\n",i.verbosity);
-    printf("sp_pad: %d\n",i.sp_pad);
-    printf("cl_pad: %d\n",i.cl_pad);
+    if constexpr(hasMember_cl_pad<decltype(i)>)
+      {
+	printf("sp_pad: %d\n",i.sp_pad);
+	printf("cl_pad: %d\n",i.cl_pad);
+      }
     printf("iter: %d\n",i.iter);
     printf("gflops: %lg\n",i.gflops);
     printf("secs: %lg\n",i.secs);
@@ -1143,7 +1452,7 @@ namespace quda_iface
     inv_param.maxiter=niter;
     inv_param.Ls=1;
     
-    inv_param.verbosity=get_quda_verbosity();
+    inv_param.verbosity=get_verbosity_for_quda();
     
     remap_nissa_to_quda(color_in,source);
     

@@ -194,7 +194,7 @@ namespace nissa
       }
     
     //check that we have the appropriate number of quarks
-    THREAD_ATOMIC_EXEC(if(IS_MASTER_THREAD) rat_appr->resize(nappr_per_quark*nflavs));
+    rat_appr->resize(nappr_per_quark*nflavs);
     
     const int max_iter=1000;
     for(int iflav=0;iflav<nflavs;iflav++)

@@ -44,7 +44,7 @@ namespace nissa
     
     if(!check_edges_valid(data))
       {
-	
+	verbosity_lv3_master_printf("Needs to communicate edges\n");
 	if(IS_MASTER_THREAD)
 	  {
 	    int nrequest=0;
@@ -97,6 +97,8 @@ namespace nissa
 	  } //end IS_MASTER_THREAD
 	set_edges_valid(data);
       }
+    else
+      verbosity_lv3_master_printf("No need to communicate edges\n");
   }
   
   //Send the edges u su3: usefuls for hyp

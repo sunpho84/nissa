@@ -269,12 +269,23 @@ namespace nissa
   void insert_tm_conserved_current(TYPE *out,quad_su3 *conf,TYPE *in,int r,const which_dir_t& dirs,int t){DEF_TM_GAMMA(r);insert_conserved_current(out,conf,in,GAMMA,dirs,t);} \
 									\
   /*multiply with gamma*/						\
-  void prop_multiply_with_gamma(TYPE* out,int ig,TYPE* in,int twall) \
+  void prop_multiply_with_gamma(TYPE* out,int ig,TYPE* in,int twall)	\
   {									\
     NISSA_PARALLEL_LOOP(ivol,0,locVol)					\
       {									\
 	NAME2(safe_dirac_prod,TYPE)(out[ivol],base_gamma[ig],in[ivol]); \
 	NAME2(TYPE,prodassign_double)(out[ivol],(twall==-1 or glbCoordOfLoclx[ivol][0]==twall)); \
+      }									\
+    NISSA_PARALLEL_LOOP_END;						\
+    set_borders_invalid(out);						\
+  }									\
+  									\
+  /*multiply with color delta*/						\
+  void prop_multiply_with_color_delta(TYPE* out,int ic,TYPE* in,int twall) \
+  {									\
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)					\
+      {									\
+	NAME2(TYPE,prod_color_delta)(out[ivol],in[ivol],ic);		\
       }									\
     NISSA_PARALLEL_LOOP_END;						\
     set_borders_invalid(out);						\

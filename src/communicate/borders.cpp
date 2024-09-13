@@ -163,7 +163,7 @@ namespace nissa
     if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
       crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
     
-    master_printf("filling filling filling\n");
+    verbosity_lv3_master_printf("filling filling filling\n");
     
     //copy one by one the surface of vec inside the sending buffer
     NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
@@ -211,8 +211,7 @@ namespace nissa
 	
 	//take time and write some debug output
 	START_TIMING(tot_comm_time,ntot_comm);
-	//verbosity_lv3_
-	  master_printf("Start communication of lx borders of %s\n",get_vect_name((void*)vec));
+	verbosity_lv3_master_printf("Start communication of lx borders of %s\n",get_vect_name((void*)vec));
 	
 	//fill the communicator buffer, start the communication and take time
 	fill_sending_buf_with_lx_vec(comm,vec);
@@ -229,8 +228,7 @@ namespace nissa
 	
 	//take note of passed time and write some debug info
 	START_TIMING(tot_comm_time,ntot_comm);
-	//verbosity_lv3_
-	  master_printf("Finish communication of lx borders of %s\n",get_vect_name((void*)vec));
+	verbosity_lv3_master_printf("Finish communication of lx borders of %s\n",get_vect_name((void*)vec));
 	
 	//wait communication to finish, fill back the vector and take time
 	comm_wait(comm);
@@ -247,8 +245,7 @@ namespace nissa
   {
     if(!check_borders_valid(vec))
       {
-	//verbosity_lv3_
-	  master_printf("Sync communication of lx borders of %s\n",get_vect_name((void*)vec));
+	verbosity_lv3_master_printf("Sync communication of lx borders of %s\n",get_vect_name((void*)vec));
 	
 	start_communicating_lx_borders(comm,vec);
 	finish_communicating_lx_borders(vec,comm);

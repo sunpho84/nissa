@@ -547,7 +547,9 @@ namespace nissa
     ILDG_File_set_position(file,new_pos,SEEK_SET);
     
     //read
+    const double beg=take_time();
     ILDG_Offset nbytes_read=fread(buf,1,nbytes_per_rank_exp,file);
+    master_printf("Bare reading took %lg s\n",take_time()-beg);
     if(nbytes_read!=nbytes_per_rank_exp) crash("read %ld bytes instead of %ld",nbytes_read,nbytes_per_rank_exp);
     
     //place at the end of the record, including padding
