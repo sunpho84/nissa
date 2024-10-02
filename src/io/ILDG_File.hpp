@@ -35,7 +35,7 @@ namespace nissa
   typedef MPI_Offset ILDG_Offset;
   typedef MPI_File ILDG_File;
 #else
-  typedef off_t ILDG_Offset;
+  typedef off64_t ILDG_Offset;
   typedef FILE* ILDG_File;
 #endif
 #endif

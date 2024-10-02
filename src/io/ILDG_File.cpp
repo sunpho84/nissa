@@ -172,7 +172,7 @@ namespace nissa
 #ifdef USE_MPI_IO
 	decript_MPI_error(MPI_File_seek(file,ILDG_File_get_position(file)+nbytes,MPI_SEEK_SET),"while seeking ahead %d bytes from current position",nbytes);
 #else
-	crash_printing_error(fseek(file,nbytes,SEEK_CUR),"while seeking ahead %d bytes from current position",nbytes);
+	crash_printing_error(fseeko64(file,nbytes,SEEK_CUR),"while seeking ahead %d bytes from current position",nbytes);
 #endif
       }
     MPI_Barrier(MPI_COMM_WORLD);
@@ -186,7 +186,7 @@ namespace nissa
 #ifdef USE_MPI_IO
     decript_MPI_error(MPI_File_get_position(file,&pos),"while getting position");
 #else
-    pos=ftell(file);
+    pos=ftello64(file);
 #endif
     return pos;
   }
@@ -197,7 +197,7 @@ namespace nissa
 #ifdef USE_MPI_IO
     decript_MPI_error(MPI_File_seek(file,pos,amode),"while seeking");
 #else
-    crash_printing_error(fseek(file,pos,amode),"while seeking");
+    crash_printing_error(fseeko64(file,pos,amode),"while seeking");
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
   }
@@ -549,8 +549,8 @@ namespace nissa
     //read
     const double beg=take_time();
     ILDG_Offset nbytes_read=fread(buf,1,nbytes_per_rank_exp,file);
-    master_printf("Bare reading took %lg s\n",take_time()-beg);
-    if(nbytes_read!=nbytes_per_rank_exp) crash("read %ld bytes instead of %ld",nbytes_read,nbytes_per_rank_exp);
+    master_printf("Bare reading %zu bytes took %lg s\n",nbytes_per_rank_exp,take_time()-beg);
+    if(nbytes_read!=nbytes_per_rank_exp) crash("read %zu bytes instead of %ld",nbytes_read,nbytes_per_rank_exp);
     
     //place at the end of the record, including padding
     ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
