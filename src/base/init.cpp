@@ -102,6 +102,7 @@ namespace nissa
     //get the number of rank and the id of the local one
     get_MPI_nranks();
     get_MPI_rank();
+    get_MPI_max_count();
     
     //associate signals
     const char DO_NOT_TRAP_SIGNALS_STRING[]="NISSA_DO_NOT_TRAP_SIGNALS";

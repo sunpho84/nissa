@@ -81,6 +81,22 @@ namespace nissa
 #endif
   }
   
+  //get max count
+  void get_MPI_max_count()
+  {
+    int flag;
+    int *tag_ub;
+    MPI_Comm_get_attr(MPI_COMM_WORLD,MPI_TAG_UB,&tag_ub,&flag);
+    
+    if(flag)
+      verbosity_lv2_master_printf("Max allowed tag for MPI is %d\n",*tag_ub);
+    else
+      crash("Unable to get the max allowed tag value\n");
+    
+    MPI_max_count=*tag_ub;
+  }
+  
+  
   //define the cartesian grid
   void create_MPI_cartesian_grid()
   {

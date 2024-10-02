@@ -49,6 +49,8 @@ namespace nissa
   
   EXTERN_MPI int master_rank INIT_MPI_TO(=0);
   
+  EXTERN_MPI int MPI_max_count INIT_MPI_TO(=0);
+  
 #define DEFINE_MPI_DATATYPE_OF(T,MPI_T)		\
   /*! MPI Datatype corresponding to T */	\
   inline MPI_Datatype _MPI_Datatype_of(T*)	\
@@ -107,6 +109,7 @@ namespace nissa
   void coords_broadcast(coords_t& c);
   void get_MPI_nranks();
   void get_MPI_rank();
+  void get_MPI_max_count();
   void init_MPI_thread(int narg,char **arg);
   void define_MPI_types();
   void create_MPI_cartesian_grid();
