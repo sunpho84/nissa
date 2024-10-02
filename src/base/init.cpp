@@ -300,9 +300,9 @@ namespace nissa
   }
   
   //compute the variance of the border
-  int compute_border_variance(const coords_t& L,const coords_t& P,int factorize_processor)
+  int64_t compute_border_variance(const coords_t& L,const coords_t& P,int factorize_processor)
   {
-    int S2B=0,SB=0;
+    int64_t S2B=0,SB=0;
     for(int ib=0;ib<NDIM;ib++)
       {
 	int B=1;
@@ -382,7 +382,7 @@ namespace nissa
     else
       {
 	//minimal variance border
-	int mBV=-1;
+	int64_t mBV=-1;
 	
 	//factorize the local volume
 	int list_fact_LV[log2N(LV)];
@@ -470,7 +470,7 @@ namespace nissa
 		//if it is equal to previous found surface, consider borders variance
 		if(surf_LV==min_surf_LV)
 		  {
-		    int BV=compute_border_variance(L,R,factorize_rank);
+		    int64_t BV=compute_border_variance(L,R,factorize_rank);
 		    //if borders are more homogeneus consider this grid
 		    if(BV<mBV)
 		      {
