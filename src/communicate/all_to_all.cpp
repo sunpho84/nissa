@@ -273,17 +273,33 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
+    /// Returns the argument after checking that does not exceed the max count
+    auto check_not_above_max_count=
+      [](const size_t n)
+      {
+	if(n>MPI_max_count)
+	  crash("trying to send or recieve %zu elements, max value is %d",n,MPI_max_count);
+	
+	return n;
+      };
+    
     if(IS_MASTER_THREAD)
       {
 	MPI_Request req_list[nranks_to+nranks_fr];
 	int ireq=0;
 	for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
-	  MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,nper_rank_fr[irank_fr]*bps,MPI_CHAR,
-		    list_ranks_fr[irank_fr],909,cart_comm,&req_list[ireq++]);
+	  if(irank_fr!=rank)
+	    MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,check_not_above_max_count(nper_rank_fr[irank_fr]*bps),MPI_CHAR,
+		      list_ranks_fr[irank_fr],909,cart_comm,&req_list[ireq++]);
 	for(int irank_to=0;irank_to<nranks_to;irank_to++)
-	  MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,nper_rank_to[irank_to]*bps,MPI_CHAR,
-		    list_ranks_to[irank_to],909,cart_comm,&req_list[ireq++]);
-      	if(ireq!=nranks_to+nranks_fr) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
+	  if(irank_to!=rank)
+	    MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,check_not_above_max_count(nper_rank_to[irank_to]*bps),MPI_CHAR,
+		      list_ranks_to[irank_to],909,cart_comm,&req_list[ireq++]);
+      	if(ireq!=nranks_to+nranks_fr-2) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
+
+	// local copy
+	parallel_memcpy(in_buf+in_buf_off_per_rank[rank]*bps,out_buf+out_buf_off_per_rank[rank]*bps,nper_rank_to[rank]*bps);
+	
 	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
       }
     THREAD_BARRIER();

@@ -30,7 +30,7 @@ namespace nissa
   void read_real_vector(double *out,ILDG_File file,ILDG_header &header,uint64_t nreals_per_site)
   {
     //check the size of the data block
-    int loc_nreals_tot=nreals_per_site*locVol;
+    uint64_t loc_nreals_tot=nreals_per_site*locVol;
     uint64_t nbytes=header.data_length;
     uint64_t nbytes_per_site_read=nbytes/glbVol;
     if(nbytes_per_site_read>nreals_per_site*sizeof(double))
