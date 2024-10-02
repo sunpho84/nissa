@@ -8,6 +8,7 @@
 #include "base/vectors.hpp"
 #include "communicate.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "linalgs/linalgs.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
