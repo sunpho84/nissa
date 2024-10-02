@@ -316,12 +316,12 @@ namespace nissa
 	int64_t size_per_el_b=nissa_b->size_per_el;
 	
 	//check size agreement
-	if(nel_a!=nel_b) crash("while copying, vector %s allocated at line %d of file %s contains %d and vector %s allocated at line %d of file %s contains %d",
+	if(nel_a!=nel_b) crash("while copying, vector %s allocated at line %d of file %s contains %ld and vector %s allocated at line %d of file %s contains %ld",
 			       nissa_a->tag,nissa_a->line,nissa_a->file,nel_a,nissa_b->tag,nissa_b->line,nissa_b->file,nel_b);
 	
 	//check type agreement
 	if(size_per_el_a!=size_per_el_b)
-	  crash("while copying, vector %s contains %d bytes per el and vector %s contains %d",
+	  crash("while copying, vector %s contains %ld bytes per el and vector %s contains %ld",
 		nissa_a->tag,size_per_el_a,nissa_b->tag,size_per_el_b);
 	
 	//perform the copy
