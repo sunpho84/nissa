@@ -22,7 +22,7 @@ namespace nissa
 {
   EXTERN_CONTR double contr_print_time INIT_TO(0);
   
-  /////////////////////////////////////////////////////////////////
+  void clearCorrelations();
   
   void compute_prop_scalprod(double *res,std::string pr_dag,std::string pr);
   

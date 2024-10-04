@@ -189,12 +189,7 @@ namespace nissa
   {
     setup_conf(glb_conf,conf_path,rnd_gauge_transform,free_theory);
     
-    //reset contractions
-    if(mes2pts_contr_size) vector_reset(mes2pts_contr);
-    if(handcuffs_contr_size) vector_reset(handcuffs_contr);
-    if(bar2pts_contr_size) vector_reset(bar2pts_contr);
-    if(bar2pts_alt_contr_size) vector_reset(bar2pts_alt_contr);
-    if(nmeslep_corr) vector_reset(meslep_contr);
+    clearCorrelations();
   }
   
   //handle to discard the source

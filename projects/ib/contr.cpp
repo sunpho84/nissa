@@ -9,6 +9,16 @@
 
 namespace nissa
 {
+  /// Clear all correlation
+  void clearCorrelations()
+  {
+    if(mes2pts_contr_size) vector_reset(mes2pts_contr);
+    if(handcuffs_contr_size) vector_reset(handcuffs_contr);
+    if(bar2pts_contr_size) vector_reset(bar2pts_contr);
+    if(bar2pts_alt_contr_size) vector_reset(bar2pts_alt_contr);
+    if(nmeslep_corr) vector_reset(meslep_contr);
+  }
+  
   //class to open or append a path, depending if it was already used
   class open_or_append_t
   {
@@ -156,15 +166,32 @@ namespace nissa
     }
   }
   
+  std::string source_coords_if_not_averaging_hits()
+  {
+    std::string res;
+    
+    if(doNotAverageHits)
+      {
+	res+=", origin located at txyz = ("+std::to_string(source_coord[0]);
+	for(int mu=1;mu<NDIM;mu++)
+	  res+=","+std::to_string(source_coord[mu]);
+	res+=")";
+      }
+    
+    return res;
+  }
+  
   //print all mesonic 2pts contractions
   void print_mes2pts_contr(int n,int force_append,int skip_inner_header,const std::string &alternative_header_template)
   {
     //set the header template
     std::string header_template;
-    if(alternative_header_template=="") header_template="\n # Contraction of %s ^ \\dag and %s\n\n";
+    if(alternative_header_template=="") header_template="\n # Contraction of %s ^ \\dag and %s"+source_coords_if_not_averaging_hits()+"\n\n";
     else header_template=alternative_header_template;
     
     contr_print_time-=take_time();
+    
+    const double norm=doNotAverageHits?1:(1.0/n);
     
     //reduce and normalise
     // glb_nodes_reduce_complex_vect(mes2pts_contr,mes2pts_contr_size);
@@ -182,7 +209,7 @@ namespace nissa
 	
 	master_fprintf(fout,header_template.c_str(),combo.a.c_str(),combo.b.c_str());
 	
-	print_contractions_to_file(fout,mes_gamma_list,mes2pts_contr+ind_mes2pts_contr(icombo,0,0),0,"",1.0/n,skip_inner_header);
+	print_contractions_to_file(fout,mes_gamma_list,mes2pts_contr+ind_mes2pts_contr(icombo,0,0),0,"",norm,skip_inner_header);
 	master_fprintf(fout,"\n");
 	
 	//close the file
@@ -532,6 +559,8 @@ namespace nissa
     crash("#warning reimplement");
     //glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
     
+    const double norm=doNotAverageHits?0.5:(1.0/(2*nhits));
+    
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
 	for(int dir_exc=0;dir_exc<2;dir_exc++)
 	{
@@ -541,7 +570,7 @@ namespace nissa
 	    {
 	      //normalize for nsources and 1+g0
 	      complex c;
-	      complex_prod_double(c,bar2pts_contr[ind_bar2pts_contr(icombo,dir_exc,t)],1.0/(2*nhits));
+	      complex_prod_double(c,bar2pts_contr[ind_bar2pts_contr(icombo,dir_exc,t)],norm);
 	      master_fprintf(fout,"%+16.16lg %+16.16lg\n",c[RE],c[IM]);
 	    }
 	  
@@ -555,6 +584,8 @@ namespace nissa
     //list to open or append
     open_or_append_t list;
     
+    const double norm=doNotAverageHits?0.5:(1.0/(2*nhits));
+    
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
       for(int iProj=0;iProj<NBAR_ALT_PROJ;iProj++)
 	for(int iWick=0;iWick<2;iWick++)
@@ -562,12 +593,12 @@ namespace nissa
 	    //open output
 	    FILE *fout=list.open(combine("%s/bar_alt_contr_%s_proj_%d_Wick_%d",outfolder,bar2pts_contr_map[icombo].name.c_str(),iProj,iWick));
 	    
-	    master_fprintf(fout,"# proj %d\n",iProj);
+	    master_fprintf(fout,"# proj %d %s \n",iProj,source_coords_if_not_averaging_hits().c_str());
 	    for(int t=0;t<glbSize[0];t++)
 	      {
 		//normalize for nsources and 1+g0
 		complex c;
-		complex_prod_double(c,bar2pts_alt_contr[ind_bar2pts_alt_contr(icombo,iWick,iProj,t)],1.0/(2*nhits));
+		complex_prod_double(c,bar2pts_alt_contr[ind_bar2pts_alt_contr(icombo,iWick,iProj,t)],norm);
 		master_fprintf(fout,"%+16.16lg %+16.16lg\n",c[RE],c[IM]);
 	      }
 	    
@@ -815,15 +846,19 @@ namespace nissa
     
     contr_print_time-=take_time();
     
+    const double norm=doNotAverageHits?1:(1.0/nhits);
+    
     //Open if size different from zero
     FILE *fout=nullptr;
     if(handcuffs_map.size()) fout=list.open(combine("%s/handcuffs",outfolder));
     
     for(size_t icombo=0;icombo<handcuffs_map.size();icombo++)
       {
+	master_fprintf(fout,"\n # Contraction %d \n\n",icombo,source_coords_if_not_averaging_hits().c_str());
+	
 	//normalize for nsources
 	complex c;
-	complex_prod_double(c,handcuffs_contr[ind_handcuffs_contr(icombo)],1.0/nhits);
+	complex_prod_double(c,handcuffs_contr[ind_handcuffs_contr(icombo)],norm);
 	master_fprintf(fout,"%s %+16.16lg %+16.16lg\n",handcuffs_map[icombo].name.c_str(),c[RE],c[IM]);
       }
     //close the file

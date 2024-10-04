@@ -519,6 +519,13 @@ void in_main(int narg,char **arg)
       master_printf("Optionally specify the maximal number of propagators to be allocated by exporting %s\n",NMAX_PROPS_ALLOCATED_STR);
     }
   
+  constexpr char DO_NOT_AVERAGE_HITS_STR[]="DO_NOT_AVERAGE_HITS";
+  doNotAverageHits=getenv(DO_NOT_AVERAGE_HITS_STR)!=nullptr;
+  if(doNotAverageHits)
+    master_printf("%s exported, not averaging hits\n",DO_NOT_AVERAGE_HITS_STR);
+  else
+    master_printf("Averaging hits, export %s if needed otherwise\n",DO_NOT_AVERAGE_HITS_STR);
+  
   //loop over the configs
   int iconf=0;
   while(read_conf_parameters(iconf,finish_file_present))
@@ -532,13 +539,18 @@ void in_main(int narg,char **arg)
 	  
 	  compute_contractions(); //not working, here only to emit errors
 	  propagators_fft(iHit); // same
+	  
+	  if(doNotAverageHits)
+	    print_contractions();
 	}
       
       master_printf("NOffloaded: %d\n",hitLooper.nOffloaded);
       master_printf("NRecalled: %d\n",hitLooper.nRecalled);
       
       free_confs();
-      print_contractions();
+      
+      if(not doNotAverageHits)
+	print_contractions();
       
       mark_finished();
     }

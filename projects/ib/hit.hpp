@@ -14,10 +14,10 @@ struct HitLooper
   std::vector<std::string> oldDepInserted;
   
   /// List of computed propagators
-  std::set<std::string> computedProps;
+  std::set<std::string> computedPropsList;
   
   /// List of computed 2pts
-  std::set<int> computed2pts;
+  std::set<int> computed2ptsList;
   
   /// Ordered dependecies
   std::vector<std::string> orderedDep;
@@ -35,7 +35,7 @@ struct HitLooper
   enum Status{NOT_COMPUTED,IN_MEMORY,OFFLOADED};
   
   /// Status of all propagators
-  std::map<std::string,Status> status;
+  std::map<std::string,Status> propagatorsStatus;
   
   /// List of props which have been offloaded
   std::set<std::string> offloadedList;
@@ -49,12 +49,12 @@ struct HitLooper
     
     if(ord==RECALL)
       {
-	if(status[name]!=OFFLOADED)
+	if(propagatorsStatus[name]!=OFFLOADED)
 	  crash("Asking to recall something not offloaded");
 	
 	offloadIfNeededToAccommodate(1);
 	q.alloc_storage();
-	status[name]=IN_MEMORY;
+	propagatorsStatus[name]=IN_MEMORY;
 	nRecalled++;
       }
     
@@ -87,14 +87,14 @@ struct HitLooper
     
     if(ord==OFFLOAD)
       {
-	if(status[name]!=IN_MEMORY)
+	if(propagatorsStatus[name]!=IN_MEMORY)
 	  crash("Asking to offload something not in memory");
 	
         const int64_t pre=required_memory;
         q.free_storage();
         const int64_t aft=required_memory;
 	master_printf("Freed after offloading, memory before: %ld bytes, after: %ld bytes\n",pre,aft);
-	status[name]=OFFLOADED;
+	propagatorsStatus[name]=OFFLOADED;
 	nOffloaded++;
       }
   }
@@ -106,7 +106,7 @@ struct HitLooper
     
     /// List of propagators to be erased
     std::set<std::string> toErase;
-    for(const auto& [n,s] : status)
+    for(const auto& [n,s] : propagatorsStatus)
       {
 	if(propDep[n].empty())
 	  {
@@ -119,7 +119,7 @@ struct HitLooper
     
     for(const auto& e : toErase)
       {
-	status.erase(e);
+	propagatorsStatus.erase(e);
 	Q[e].free_storage();
 	master_printf("%s freed\n",e.c_str());
 	
@@ -132,7 +132,7 @@ struct HitLooper
 	  }
       }
     
-    master_printf("n Live props: %zu\n",status.size());
+    master_printf("n Live props: %zu\n",propagatorsStatus.size());
     master_printf("n offloaded props: %zu\n",offloadedList.size());
   }
   
@@ -144,7 +144,7 @@ struct HitLooper
     
     /// Build the list of future dependencies
     std::vector<std::pair<int,std::string>> futureDeps;
-    for(const auto& [s,n] : status)
+    for(const auto& [s,n] : propagatorsStatus)
       if(n==1)
 	{
 	  size_t firstUsage=nPassedDep;
@@ -164,7 +164,7 @@ struct HitLooper
     // \todo simplify
     
     int nLoaded=0;
-    for(const auto& s : status)
+    for(const auto& s : propagatorsStatus)
       nLoaded+=(s.second==1);
     verbosity_lv2_master_printf("n Loaded props: %zu\n",nLoaded);
     
@@ -189,7 +189,7 @@ struct HitLooper
   /// Ensure that a prop is in memory
   void ensureInMemory(const std::string& name)
   {
-    if(status[name]==OFFLOADED)
+    if(propagatorsStatus[name]==OFFLOADED)
       {
 	master_printf("Recalling %s\n",name.c_str());
 	offloadRecallDelete(name,RECALL);
@@ -391,6 +391,9 @@ struct HitLooper
   {
     master_printf("\n=== Hit %d/%d ====\n",ihit+1,nhits);
     
+    if(doNotAverageHits)
+      clearCorrelations();
+    
     if(use_new_generator)
       {
 	for(int mu=0;mu<NDIM;mu++)
@@ -414,15 +417,16 @@ struct HitLooper
 	  generate_photon_stochastic_propagator(ihit);
       }
     generate_original_sources(ihit,skip);
+    
   }
   
   /// Perform one of step: dryRun, or eval
   void internalRun(const int runStep,const size_t iHit)
   {
-    computedProps.clear();
-    computed2pts.clear();
+    computedPropsList.clear();
+    computed2ptsList.clear();
     offloadedList.clear();
-    status.clear();
+    propagatorsStatus.clear();
     
     /// Keep backup of the propagators dependencies
     const std::map<std::string,std::set<std::string>> propDepBack=propDep;
@@ -431,8 +435,8 @@ struct HitLooper
     if(runStep==2)
       for(const auto& s : ori_source_name_list)
 	{
-	  status[s]=IN_MEMORY;
-	  computedProps.insert(s);
+	  propagatorsStatus[s]=IN_MEMORY;
+	  computedPropsList.insert(s);
 	}
     
     for(size_t i=0;i<qprop_name_list.size();i++)
@@ -457,10 +461,10 @@ struct HitLooper
 	    {
 	      offloadIfNeededToAccommodate(1);
 	      generate_quark_propagator(name,q,iHit);
-	      status[name]=IN_MEMORY;
+	      propagatorsStatus[name]=IN_MEMORY;
 	    }
 	  
-	  computedProps.insert(name);
+	  computedPropsList.insert(name);
 	  
 	  // Remove the dependencies from all sources
 	  for(const auto& [s,w] : q.source_terms)
@@ -478,16 +482,16 @@ struct HitLooper
 	  for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
 	    if(const std::string& a=mes2pts_contr_map[icombo].a,
 	       b=mes2pts_contr_map[icombo].b;
-	       computedProps.count(a) and
-	       computedProps.count(b) and
-	       computed2pts.count(icombo)==0)
+	       computedPropsList.count(a) and
+	       computedPropsList.count(b) and
+	       computed2ptsList.count(icombo)==0)
 	      {
 		if(runStep==2)
 		  master_printf("Can compute contraction: %s %s -> %s, %zu/%zu\n",
-			      a.c_str(),b.c_str(),mes2pts_contr_map[icombo].name.c_str(),computed2pts.size(),mes2pts_contr_map.size());
+			      a.c_str(),b.c_str(),mes2pts_contr_map[icombo].name.c_str(),computed2ptsList.size(),mes2pts_contr_map.size());
 		
 		// Insert the correlation in the computed list
-		computed2pts.insert(icombo);
+		computed2ptsList.insert(icombo);
 		
 		for(const std::string& p : {a,b})
 		  if(runStep==1)
@@ -528,7 +532,7 @@ struct HitLooper
     
     std::ostringstream os;
     for(size_t iContr=0;iContr<mes2pts_contr_map.size();iContr++)
-      if(const auto& m=mes2pts_contr_map[iContr];computed2pts.find(iContr)==computed2pts.end())
+      if(const auto& m=mes2pts_contr_map[iContr];computed2ptsList.find(iContr)==computed2ptsList.end())
 	os<<" not computed corr "<<m.name<<" between "<<m.a<<" and "<<m.b<<std::endl;
     
     if(os.str().size())

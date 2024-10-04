@@ -54,7 +54,10 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline int rel_time_of_loclx(int loclx)
   {return rel_coord_of_loclx(loclx,0);}
   
+  /// Use disk beyond this number of props
   EXTERN_PARS int nMaxPropsAllocated INIT_TO(0);
+  
+  EXTERN_PARS int doNotAverageHits INIT_TO(0);
   
   //convention on gospel
   const int follow_chris=0,follow_nazario=1;
