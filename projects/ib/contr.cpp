@@ -165,7 +165,8 @@ namespace nissa
       mes2pts_contr_time+=take_time();
     }
   }
-  
+
+  /// Prepares a string containing the origin, if not averaging hits
   std::string source_coords_if_not_averaging_hits()
   {
     std::string res;
@@ -184,6 +185,9 @@ namespace nissa
   //print all mesonic 2pts contractions
   void print_mes2pts_contr(int n,int force_append,int skip_inner_header,const std::string &alternative_header_template)
   {
+    if(doNotAverageHits)
+      force_append=true;
+    
     //set the header template
     std::string header_template;
     if(alternative_header_template=="") header_template="\n # Contraction of %s ^ \\dag and %s"+source_coords_if_not_averaging_hits()+"\n\n";
