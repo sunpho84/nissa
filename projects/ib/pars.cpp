@@ -109,15 +109,6 @@ namespace nissa
   static std::vector<int> getList(const char& g,
 				  const char& letter)
     {
-      static const std::vector<int> numeric[7]={
-	{0},
-	{4,1,2,3},
-	{5},
-	{9,6,7,8},
-	{10,11,12},
-	{13,14,15},
-	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
-      
       static const std::vector<int> literal[7]={
 	{0},
 	{1,2,3},
@@ -137,11 +128,24 @@ namespace nissa
 	return
 	  literal[c];
       
+      static const int minNumeric[7]={0,0,0,0,1,1,0};
+      
+      const int m=minNumeric[c];
+      
       const int i=
-	letter-'0';
-    
-      if(i<0 or i>=4)
-	crash("Error, letter %c converts to int %d not in range [0:3]",letter,i);
+	letter-'0'-m;
+      
+      static const std::vector<int> numeric[7]={
+	{0},
+	{4,1,2,3},
+	{5},
+	{9,6,7,8},
+	{10,11,12},
+	{13,14,15},
+	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
+      
+      if(i<0 or i>=(int)numeric[c].size())
+	crash("Error, letter %c converts to int %d not in range [%d:%d]",letter,i,m,numeric[c].size()+m);
       
       return
 	{numeric[c][i]};
@@ -173,7 +177,7 @@ namespace nissa
 	if(source.letter!=sink.letter)
 	  for(const int& iSink : sink.list)
 	    for(const int& iSource : source.list)
-	    mes_gamma_list.push_back({iSink,iSource});
+	      mes_gamma_list.push_back({iSink,iSource});
 	else
 	  {
 	    if(source.list.size()!=sink.list.size())
