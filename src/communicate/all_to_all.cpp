@@ -304,8 +304,23 @@ namespace nissa
 	    }
       	if(ireq!=nranks_to+nranks_fr-2) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
 	
-	// local copy
-	parallel_memcpy(in_buf+in_buf_off_per_rank[rank]*bps,out_buf+out_buf_off_per_rank[rank]*bps,nper_rank_to[rank]*bps);
+	// identify this rank in the from
+	int irank_fr_this=nranks_fr;
+	for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
+	  if(list_ranks_fr[irank_fr]==rank and irank_fr_this==nranks_fr)
+	    irank_fr_this=irank_fr;
+	if(irank_fr_this==nranks_fr)
+	  crash("unable to find this rankin the from");
+	
+	// identify this rank in the to
+	int irank_to_this=nranks_to;
+	for(int irank_to=0;irank_to<nranks_to;irank_to++)
+	  if(list_ranks_fr[irank_to]==rank and irank_to_this==nranks_to)
+	    irank_to_this=irank_to;
+	if(irank_to_this==nranks_to)
+	  crash("unable to find this rankin the to");
+	
+	parallel_memcpy(in_buf+in_buf_off_per_rank[irank_fr_this]*bps,out_buf+out_buf_off_per_rank[irank_to_this]*bps,nper_rank_to[rank]*bps);
 	
 	master_printf("waiting for %d reqs\n",ireq);
 	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
