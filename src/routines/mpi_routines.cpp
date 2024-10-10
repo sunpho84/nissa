@@ -81,22 +81,6 @@ namespace nissa
 #endif
   }
   
-  //get max count
-  void get_MPI_max_count()
-  {
-    int flag;
-    int *tag_ub;
-    MPI_Comm_get_attr(MPI_COMM_WORLD,MPI_TAG_UB,&tag_ub,&flag);
-    
-    if(flag)
-      verbosity_lv2_master_printf("Max allowed tag for MPI is %d\n",*tag_ub);
-    else
-      crash("Unable to get the max allowed tag value\n");
-    
-    MPI_max_count=*tag_ub;
-  }
-  
-  
   //define the cartesian grid
   void create_MPI_cartesian_grid()
   {
@@ -268,7 +252,7 @@ namespace nissa
 	MPI_Bcast(&degree,1,MPI_INT,rank_from,MPI_COMM_WORLD);
 	
 	//allocate if not generated here
-	if(rank_from!=rank)	rat->resize(degree);
+	if(rank_from!=rank) rat->resize(degree);
 	
 	//and now broadcast the remaining part
 	MPI_Bcast(rat->name,20,MPI_CHAR,rank_from,MPI_COMM_WORLD);

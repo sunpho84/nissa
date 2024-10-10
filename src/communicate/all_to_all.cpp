@@ -278,8 +278,8 @@ namespace nissa
     auto check_not_above_max_count=
       [](const size_t n)
       {
-	if(n>(size_t)MPI_max_count)
-	  crash("trying to send or recieve %zu elements, max value is %d",n,MPI_max_count);
+	if(n>std::numeric_limits<int>::max())
+	  crash("trying to send or recieve %zu elements, max value is %d",n,std::numeric_limits<int>::max());
 	
 	return n;
       };

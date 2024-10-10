@@ -49,8 +49,6 @@ namespace nissa
   
   EXTERN_MPI int master_rank INIT_MPI_TO(=0);
   
-  EXTERN_MPI int MPI_max_count INIT_MPI_TO(=0);
-  
 #define DEFINE_MPI_DATATYPE_OF(T,MPI_T)		\
   /*! MPI Datatype corresponding to T */	\
   inline MPI_Datatype _MPI_Datatype_of(T*)	\
