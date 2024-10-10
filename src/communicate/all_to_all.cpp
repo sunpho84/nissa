@@ -279,7 +279,7 @@ namespace nissa
       [](const size_t n)
       {
 	if(n>std::numeric_limits<int>::max())
-	  crash("trying to send or recieve %zu elements, max value is %d",n,std::numeric_limits<int>::max());
+	  crash("trying to send or receive %zu elements, max value is %d",n,std::numeric_limits<int>::max());
 	
 	return n;
       };
@@ -290,17 +290,24 @@ namespace nissa
 	int ireq=0;
 	for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
 	  if(irank_fr!=rank)
-	    MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,check_not_above_max_count(nper_rank_fr[irank_fr]*bps),MPI_CHAR,
-		      list_ranks_fr[irank_fr],909,cart_comm,&req_list[ireq++]);
+	    {
+	      MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,check_not_above_max_count(nper_rank_fr[irank_fr]*bps),MPI_CHAR,
+			list_ranks_fr[irank_fr],909,cart_comm,&req_list[ireq++]);
+	      master_printf("Going to receive from rank %d\n",irank_fr);
+	    }
 	for(int irank_to=0;irank_to<nranks_to;irank_to++)
 	  if(irank_to!=rank)
-	    MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,check_not_above_max_count(nper_rank_to[irank_to]*bps),MPI_CHAR,
-		      list_ranks_to[irank_to],909,cart_comm,&req_list[ireq++]);
+	    {
+	      MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,check_not_above_max_count(nper_rank_to[irank_to]*bps),MPI_CHAR,
+			list_ranks_to[irank_to],909,cart_comm,&req_list[ireq++]);
+	      master_printf("Going to send to rank %d\n",irank_to);
+	    }
       	if(ireq!=nranks_to+nranks_fr-2) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
 	
 	// local copy
 	parallel_memcpy(in_buf+in_buf_off_per_rank[rank]*bps,out_buf+out_buf_off_per_rank[rank]*bps,nper_rank_to[rank]*bps);
 	
+	master_printf("waiting for %d reqs\n",ireq);
 	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
       }
     THREAD_BARRIER();
