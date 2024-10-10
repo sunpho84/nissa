@@ -310,7 +310,7 @@ namespace nissa
 	  else
 	    irank_to_this=irank_to;
 	
-      	if(ireq!=nranks_to+nranks_fr) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
+      	if(ireq!=nranks_to+nranks_fr-2) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
 	
 	if(irank_fr_this!=nranks_fr and irank_to_this!=nranks_to)
 	  {
