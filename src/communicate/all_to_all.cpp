@@ -289,14 +289,14 @@ namespace nissa
 	MPI_Request req_list[nranks_to+nranks_fr];
 	int ireq=0;
 	for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
-	  if(irank_fr!=rank)
+	  if(list_ranks_fr[irank_fr]!=rank)
 	    {
 	      MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,check_not_above_max_count(nper_rank_fr[irank_fr]*bps),MPI_CHAR,
 			list_ranks_fr[irank_fr],909,cart_comm,&req_list[ireq++]);
 	      master_printf("Going to receive from rank %d\n",irank_fr);
 	    }
 	for(int irank_to=0;irank_to<nranks_to;irank_to++)
-	  if(irank_to!=rank)
+	  if(list_ranks_to[irank_to]!=rank)
 	    {
 	      MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,check_not_above_max_count(nper_rank_to[irank_to]*bps),MPI_CHAR,
 			list_ranks_to[irank_to],909,cart_comm,&req_list[ireq++]);
