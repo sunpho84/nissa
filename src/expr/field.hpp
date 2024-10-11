@@ -116,12 +116,12 @@ namespace nissa
     static void _onEachSiteCPU(F&& f,
 			       O&& o)
     {
-      HOST_PARALLEL_LOOP(0,lat->getLocVol(),
-			 CAPTURE(f,o),
-			 site,
-			 {
-			   o(f,site);
-			 });
+      PAR_ON_HOST(0,lat->getLocVol(),
+		  CAPTURE(f,o),
+		  site,
+		  {
+		    o(f,site);
+		  });
     }
     
     /// Assign from another expression
@@ -131,12 +131,12 @@ namespace nissa
     static void _onEachSiteGPU(F&& f,
 			       O&& o)
     {
-      DEVICE_PARALLEL_LOOP(0,lat->getLocVol(),
-			 CAPTURE(f,o),
-			 site,
-			 {
-			   o(f,site);
-			 });
+      PAR_ON_DEVICE(0,lat->getLocVol(),
+		    CAPTURE(f,o),
+		    site,
+		    {
+		      o(f,site);
+		    });
     }
     
     /// Assign from another expression
@@ -161,22 +161,23 @@ namespace nissa
     INLINE_FUNCTION
     void assign(O&& oth)
     {
+      auto& self=*this;
+      
       PAR_ON_EXEC_SPACE(execSpace,
 			0,lat->getLocVol(),
-			CAPTURE(self=this->getWritable(),
+			CAPTURE(TO_WRITE(self),
 				TO_READ(oth)),
 			site,
 			{
-			  using RhsComps=
-			    typename std::decay_t<O>::Comps;
-			  
-			  // we need to take care that the rhs might not have the site (such in the case of a scalar)
-			  
-			  if constexpr(tupleHasType<RhsComps,Site>)
-			    OP::dispatch(self(site),oth(site));
-			  else
-			    OP::dispatch(self(site),oth);
-		});
+			    using RhsComps=
+			      typename std::decay_t<decltype(oth)>::Comps;
+			    
+			    // we need to take care that the rhs might not have the site (such in the case of a scalar)
+			    if constexpr(tupleHasType<RhsComps,Site>)
+			      OP::dispatch(self(site),oth(site));
+			    else
+			      OP::dispatch(self(site),oth);
+			});
     }
     
     /// Remap the possible Dir components from/to the nissa to/from Ildg order

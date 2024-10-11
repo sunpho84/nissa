@@ -115,17 +115,20 @@ namespace nissa
       f(i);
   }
   
+  constexpr size_t defaultBlockSize=128;
+  
   template <typename IMin,
 	    typename IMax,
 	    typename F>
   void cudaParallelFor(const int line,
 		       const char* file,
+		       const size_t& blockSize,
 		       const IMin min,
 		       const IMax max,
 		       F&& f)
   {
     const auto length=compDecay(max)-compDecay(min);
-    const dim3 blockDimension(128); // to be improved
+    const dim3 blockDimension(defaultBlockSize);
     const dim3 gridDimension((length+blockDimension.x-1)/blockDimension.x);
     
     double initTime=0;
@@ -161,54 +164,54 @@ namespace nissa
   // backend from the configuration command
   
 #ifdef USE_OPENMP
-# define HOST_PARALLEL_LOOP_ROUTINE openmpParallelFor
+# define PAR_ON_HOST_ROUTINE openmpParallelFor
 #else
-# define HOST_PARALLEL_LOOP_ROUTINE serialFor
+# define PAR_ON_HOST_ROUTINE serialFor
 #endif
   
   /////////////////////////////////////////////////////////////////
   
 #ifdef ENABLE_DEVICE_CODE
-# define DEVICE_PARALLEL_LOOP_ROUTINE cudaParallelFor
+# define PAR_ON_DEVICE_ROUTINE cudaParallelFor
 #else
-# define DEVICE_PARALLEL_LOOP_ROUTINE HOST_PARALLEL_LOOP_ROUTINE
+# define PAR_ON_DEVICE_ROUTINE PAR_ON_HOST_ROUTINE
 #endif
 
-#define HOST_PARALLEL_LOOP(MIN,MAX,CAPTURES,INDEX,BODY...)		\
-  HOST_PARALLEL_LOOP_ROUTINE(__LINE__,__FILE__,MIN,MAX,[CAPTURES] (const auto& INDEX) MUTABLE_INLINE_ATTRIBUTE BODY)
+#define PAR_ON_HOST(MIN,MAX,CAPTURES,INDEX,BODY...)		\
+  PAR_ON_HOST_ROUTINE(__LINE__,__FILE__,MIN,MAX,[CAPTURES] (const auto& INDEX) MUTABLE_INLINE_ATTRIBUTE BODY)
 
-#define DEVICE_PARALLEL_LOOP(MIN,MAX,CAPTURES,INDEX,BODY...)		\
-  DEVICE_PARALLEL_LOOP_ROUTINE(__LINE__,__FILE__,MIN,MAX,[CAPTURES] DEVICE_ATTRIB (const auto& INDEX) mutable BODY)
+#define PAR_ON_DEVICE(MIN,MAX,CAPTURES,INDEX,BODY...)	\
+  PAR_ON_DEVICE_ROUTINE(__LINE__,__FILE__,MIN,MAX,[CAPTURES] DEVICE_ATTRIB (const auto& INDEX) mutable BODY)
   
   ///////////////////////////////////////////////////////////////// this part must go
   
 #ifdef ENABLE_DEVICE_CODE
-# define DEFAULT_PARALLEL_LOOP DEVICE_PARALLEL_LOOP
+# define DEFAULT_PARALLEL_LOOP PAR_ON_DEVICE
 #else
-# define DEFAULT_PARALLEL_LOOP HOST_PARALLEL_LOOP
+# define DEFAULT_PARALLEL_LOOP PAR_ON_HOST
 #endif
  
 #define PAR(MIN,MAX,CAPTURES,INDEX,BODY...)		\
   DEFAULT_PARALLEL_LOOP(MIN,MAX,CAPTURE(CAPTURES),INDEX,BODY)
 
 #ifdef ENABLE_DEVICE_CODE
-# define PAR_ON_EXEC_SPACE(EXEC_SPACE,MIN,MAX,CAPTURES,INDEX,BODY...)	\
+# define PAR_ON_EXEC_SPACE(EXEC_SPACE,MIN,MAX,CAPTURES,INDEX,BODY...) \
   do									\
     {									\
       static_assert(EXEC_SPACE.hasUniqueExecSpace(),"Not unique exec space!"); \
       if constexpr(EXEC_SPACE==execOnCPU)				\
-	HOST_PARALLEL_LOOP(MIN,MAX,CAPTURE(CAPTURES),INDEX,BODY);	\
+	PAR_ON_HOST(MIN,MAX,CAPTURE(CAPTURES),INDEX,BODY);		\
       else								\
-	DEVICE_PARALLEL_LOOP(MIN,MAX,CAPTURE(CAPTURES),INDEX,BODY);	\
+	PAR_ON_DEVICE(MIN,MAX,CAPTURE(CAPTURES),INDEX,BODY);		\
     }									\
   while(0)
   
 #else
-# define PAR_ON_EXEC_SPACE(EXEC_SPACE,MIN,MAX,CAPTURES,INDEX,BODY...)	\
+# define PAR_ON_EXEC_SPACE(EXEC_SPACE,MIN,MAX,CAPTURES,INDEX,BODY...) \
   do									\
     {									\
       static_assert(EXEC_SPACE.hasUniqueExecSpace(),"Not unique exec space!"); \
-      HOST_PARALLEL_LOOP(MIN,MAX,CAPTURE(CAPTURES),INDEX,BODY);		\
+      PAR_ON_HOST(MIN,MAX,CAPTURE(CAPTURES),INDEX,BODY);		\
     }									\
   while(0)
 #endif

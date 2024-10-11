@@ -57,6 +57,67 @@ namespace nissa
     return res;
   }
   
+  /////////////////////////////////////////////////////////////////
+  
+#ifdef USE_MPI
+  
+  //// MPI Datatype corresponding to n contiguous bytes
+  inline MPI_Datatype mpiDatatypeOfNContiguousBytes(const size_t& n)
+  {
+    /// Lookup table for contiguous data of custom length
+    static std::map<size_t,MPI_Datatype> table;
+    
+    if(auto probe=table.find(n);probe!=table.end())
+      return probe->second;
+    else
+      {
+	auto& res=table[n];
+	MPI_Type_contiguous(n,MPI_CHAR,&res);
+	MPI_Type_commit(&res);
+	
+	return res;
+      }
+  }
+  
+  namespace internal
+  {
+    //// MPI Datatype corresponding to T, if trivially copiable
+    template <TriviallyCopyable T>
+    inline MPI_Datatype _mpiDatatypeOf(T*)
+    {
+      return mpiDatatypeOfNContiguousBytes(sizeof(T));
+    }
+    
+#define PROVIDE_MPI_DATATYPE_OF(T,MPI_T)	\
+    /*! MPI Datatype corresponding to T */	\
+    inline MPI_Datatype _mpiDatatypeOf(T*)	\
+    {						\
+      return MPI_T;				\
+    }
+    
+    PROVIDE_MPI_DATATYPE_OF(char,MPI_CHAR)
+    PROVIDE_MPI_DATATYPE_OF(int32_t,MPI_INT)
+    PROVIDE_MPI_DATATYPE_OF(uint32_t,MPI_UINT32_T)
+    PROVIDE_MPI_DATATYPE_OF(int64_t,MPI_LONG)
+    PROVIDE_MPI_DATATYPE_OF(uint64_t,MPI_UINT64_T)
+    PROVIDE_MPI_DATATYPE_OF(float,MPI_FLOAT)
+    PROVIDE_MPI_DATATYPE_OF(double,MPI_DOUBLE)
+    
+#undef PROVIDE_MPI_DATATYPE_OF
+  }
+  
+    /// Instantiates the correct datatype, given the type
+    template <typename T>
+    INLINE_FUNCTION
+    MPI_Datatype mpiDatatypeOf()
+    {
+      return internal::_mpiDatatypeOf((T*)nullptr);
+    }
+  
+#endif
+  
+  /////////////////////////////////////////////////////////////////
+  
   /// Send and receive a trivial type
   template <TriviallyCopyable T>
   INLINE_FUNCTION
@@ -67,8 +128,8 @@ namespace nissa
     T toRecv;
     
 #ifdef USE_MPI
-    MPI_Sendrecv(&toSend,sizeof(T),MPI_CHAR,rankTo(),0,
-		 &toRecv,sizeof(T),MPI_CHAR,rankFr(),0,
+    MPI_Sendrecv(&toSend,1,mpiDatatypeOf<T>(),rankTo(),0,
+		 &toRecv,1,mpiDatatypeOf<T>(),rankFr(),0,
 		 MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 #else
     toRecv=toSend;
@@ -93,8 +154,8 @@ namespace nissa
     std::vector<T> toRecv(nToRecv);
     
 #ifdef USE_MPI
-    MPI_Sendrecv(&toSend[0],nToSend*sizeof(T),MPI_CHAR,rankTo(),0,
-		 &toRecv[0],nToRecv*sizeof(T),MPI_CHAR,rankFr(),0,
+    MPI_Sendrecv(&toSend[0],nToSend,mpiDatatypeOfNContiguousBytes(sizeof(T)),rankTo(),0,
+		 &toRecv[0],nToRecv,mpiDatatypeOfNContiguousBytes(sizeof(T)),rankFr(),0,
 		 MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 #else
     toRecv=toSend;
@@ -126,12 +187,9 @@ namespace nissa
 			    const size_t& lengthInUnitsOfT,
 			    const int& tag)
   {
-    /// Full length
-    const size_t length=lengthInUnitsOfT*sizeof(T);
-    
 #ifdef USE_MPI
     
-# define ARGS p,length*sizeof(T),MPI_CHAR,othRank(),tag,MPI_COMM_WORLD,&request
+# define ARGS p,lengthInUnitsOfT,mpiDatatypeOfNContiguousBytes(sizeof(T)),othRank(),tag,MPI_COMM_WORLD,&request
     
     MpiRequest request;
     
@@ -211,26 +269,6 @@ namespace nissa
 #ifdef USE_MPI
     MPI_Finalize();
 #endif
-  }
-  
-#define PROVIDE_MPI_DATATYPE_OF(T,MPI_T)	\
-  /*! MPI Datatype corresponding to T */	\
-  inline MPI_Datatype _mpiDatatypeOf(T*)	\
-  {						\
-    return MPI_T;				\
-  }
-  
-  PROVIDE_MPI_DATATYPE_OF(int64_t,MPI_LONG)
-  PROVIDE_MPI_DATATYPE_OF(double,MPI_DOUBLE)
-  
-#undef PROVIDE_MPI_DATATYPE_OF
-  
-  /// Instantiates the correct datatype, given the type
-  template <typename T>
-  INLINE_FUNCTION
-  MPI_Datatype mpiDatatypeOf()
-  {
-    return _mpiDatatypeOf((T*)nullptr);
   }
   
   /// Decrypt the MPI error

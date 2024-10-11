@@ -232,6 +232,28 @@ namespace nissa
     return
       Tracer<TracedComps,decltype(e),Comps,Fund>(std::forward<_E>(e));
   }
+  
+  /// Trace an expression
+  template <DerivedFromTransposableComp TracedComp,
+	    DerivedFromNode _E>
+  HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
+  decltype(auto) traceOver(_E&& e)
+  {
+    /// Base passed type
+    using E=
+      std::decay_t<_E>;
+    
+    using TracedComps=
+      std::tuple<TracedComp>;
+    
+    using Comps=
+      TupleFilterAllTypes<typename E::Comps,std::tuple<TracedComp,typename TracedComp::Transp>>;
+    
+    using Fund=typename E::Fund;
+    
+    return
+      Tracer<TracedComps,decltype(e),Comps,Fund>(std::forward<_E>(e));
+  }
 }
 
 #endif

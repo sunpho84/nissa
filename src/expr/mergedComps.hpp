@@ -87,6 +87,10 @@ namespace nissa
       MergedComp(std::tuple<>{},e...)
     {
     }
+    
+    /// Default copy constructor
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
+    MergedComp(const MergedComp&)=default;
   };
   
   template <typename Tp,

@@ -23,7 +23,7 @@ namespace nissa
   /// A component
   template <typename _C,
 	    typename _Index,
-	    _Index SizeATCompileTime>
+	    _Index SizeAtCompileTime>
   struct BaseComp :
     CompFeat,
     ArithmeticOperators<_Index,_C>
@@ -45,9 +45,13 @@ namespace nissa
       return sizeAtCompileTime;
     }
     
+    /// Gets the size asserting internally
+    static constexpr Index size=
+      sizeAtCompileTimeAssertingNotDynamic();
+    
     /// Size known at compile time
     static constexpr Index sizeAtCompileTime=
-      SizeATCompileTime;
+      SizeAtCompileTime;
     
     /// Determine whether the size is known at compile time
     static constexpr bool sizeIsKnownAtCompileTime=

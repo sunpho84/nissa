@@ -7,14 +7,13 @@
 
 /// \file expr/allToAll.hpp
 
-#include <algorithm>
-#include <map>
 #include <vector>
 
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
 #include <expr/dynamicTens.hpp>
 #include <expr/mirroredNode.hpp>
+#include <routines/mpiRoutines.hpp>
 #include <threads/threads.hpp>
 #include <tuples/invokeWithTypesOfTuple.hpp>
 #include <tuples/tupleCat.hpp>
@@ -339,31 +338,29 @@ namespace nissa
       const int nReqs=
 	nSendToRank.size()+nRecvFrRank.size();
       
-      /// Requests to be spawned
-      MPI_Request reqs[nReqs];
-      
       /// Number of degrees of freedom for extra components
       const auto nDof=
 	mergedHostOutBuf.template getCompSize<MergedComp<DstRedComps>>()();
       
+      /// Requests to be spawned
+      std::vector<MpiRequest> reqs(nReqs);
+      
       /// Request under process
-      MPI_Request* req=reqs;
+      int iReq=0;
       
       // Spawn the send requests
       for(BufComp sendOffset=0;
 	  const auto& [dstRank,nEl] : nSendToRank)
 	{
 	  /// Pointer to location where the chunk for dstRank starts
-	  const Fund& ptr=
+	  Fund& ptr=
 	    invokeWithTypesOfTuple<MergedHostOutBufExtraComps>([&mergedHostOutBuf, // Glitch in clang 17 forbids direct capture of sendOffset
-								off=sendOffset]<DerivedFromComp...C>()->const Fund&
+								off=sendOffset]<DerivedFromComp...C>()->Fund&
 							       {
 								 return mergedHostOutBuf(off,C(0)...);
 							       });
 	  //master_printf("Sending nel %d ndof %d %d bytes to rank %d\n",nEl,nDof,nEl*nDof*sizeof(Fund),dstRank());
-	  MPI_Isend(&ptr,
-		    nEl*nDof*sizeof(Fund),
-		    MPI_CHAR,dstRank(),0,MPI_COMM_WORLD,req++);
+	  reqs[iReq++]=mpiISend(dstRank(),&ptr,nEl*nDof,0);
 	  
 	  sendOffset+=nEl;
 	}
@@ -380,15 +377,13 @@ namespace nissa
 							      });
 	  //master_printf("Receiving %d bytes from rank %d ptr %p\n",nEl*nDof*sizeof(Fund),rcvRank(),&ptr);
 	  
-	  MPI_Irecv(&ptr,
-		    nEl*nDof*sizeof(Fund),
-		    MPI_CHAR,rcvRank(),0,MPI_COMM_WORLD,req++);
+	  reqs[iReq++]=mpiIRecv(rcvRank(),&ptr,nEl*nDof,0);
 	  
 	  recvOffset+=nEl;
 	}
       
       // Waits all communications
-      MPI_Waitall(nReqs,reqs,MPI_STATUS_IGNORE);
+      mpiWaitAll(reqs);
       
       /// Ensure that the incoming buffer can be accessed in the device
       decltype(auto) inBuf=

@@ -464,60 +464,60 @@ namespace nissa
       if constexpr(setupDebug)
 	_locLxNeigh.getFillable()=-1;
       
-      HOST_PARALLEL_LOOP(0,
-			 getLocVol(),
-			 CAPTURE(lat=getRef(),
-				 ls=getLocSizes(),
-				 lln=_locLxNeigh.getFillable(),
-				 ssohs=_surfSiteOfHaloSite.getFillable()),
-			 site,
-			 {
-			   const LocCoords c=
-			     lat.getLocCoordsOfLocLx(site);
-			   
-			   for(Ori ori=0;ori<2;ori++)
-			     for(Dir dir=0;dir<nDim;dir++)
-			       {
-				 const bool isOnSurf=
-				   (((ori==bw and c(dir)==0) or
-				     (ori==fw and c(dir)==ls(dir)-1))
-				    and isDirParallel(dir));
-				 
-				 const LocCoords sc=
-				   (c+(2*ori()-1)*versors[dir]+ls)%ls;
-				 
-				 const auto dirMask=
-				   isOnSurf?
-				   perpDirs[dir]:
-				   allDirs;
-				 
-				 const LocLxSite asLoc=
-				   lxOfCoords<LocLxSite,LocCoord>(sc*dirMask,ls*dirMask);
-				 
-				 const LocLxSite neigh=
-				   isOnSurf*(lat.getLocVol()+
-					     ori()*lat.getSurfSize()+
-					     lat.getSurfOffsetOfDir(dir))+
-				   asLoc;
-				 
-				 lln(site,ori,dir)=neigh;
-				 
-				 if constexpr(setupDebug)
-				   masterPrintf("site %ld ori %d dir %d sc %ld isOnSurf %d asLoc %ld neigh %ld\n",site(),ori(),dir(),sc(dir)(),isOnSurf,asLoc(),lln(site,ori,dir)());
-				 
-				 if(neigh>=lat.getLocVol())
-				   {
-				     if(decltype(auto) f=
-					lln(neigh,1-ori,dir);
-					(not setupDebug) or f==-1)
-				       f=site;
-				     else
-				       CRASH("Site %ld is already pointing at halo site %ld in orientation %d dir %d\n",f(),site(),ori(),dir());
-				     
-				     ssohs(neigh-lat.getLocVol())=site;
-				   }
-			       }
-			 });
+      PAR_ON_HOST(0,
+		  getLocVol(),
+		  CAPTURE(lat=getRef(),
+			  ls=getLocSizes(),
+			  lln=_locLxNeigh.getFillable(),
+			  ssohs=_surfSiteOfHaloSite.getFillable()),
+		  site,
+		  {
+		    const LocCoords c=
+		      lat.getLocCoordsOfLocLx(site);
+		    
+		    for(Ori ori=0;ori<2;ori++)
+		      for(Dir dir=0;dir<nDim;dir++)
+			{
+			  const bool isOnSurf=
+			    (((ori==bw and c(dir)==0) or
+			      (ori==fw and c(dir)==ls(dir)-1))
+			     and isDirParallel(dir));
+			  
+			  const LocCoords sc=
+			    (c+(2*ori()-1)*versors[dir]+ls)%ls;
+			  
+			  const auto dirMask=
+			    isOnSurf?
+			    perpDirs[dir]:
+			    allDirs;
+			  
+			  const LocLxSite asLoc=
+			    lxOfCoords<LocLxSite,LocCoord>(sc*dirMask,ls*dirMask);
+			  
+			  const LocLxSite neigh=
+			    isOnSurf*(lat.getLocVol()+
+				      ori()*lat.getSurfSize()+
+				      lat.getSurfOffsetOfDir(dir))+
+			    asLoc;
+			  
+			  lln(site,ori,dir)=neigh;
+			  
+			  if constexpr(setupDebug)
+			    masterPrintf("site %ld ori %d dir %d sc %ld isOnSurf %d asLoc %ld neigh %ld\n",site(),ori(),dir(),sc(dir)(),isOnSurf,asLoc(),lln(site,ori,dir)());
+			  
+			  if(neigh>=lat.getLocVol())
+			    {
+			      if(decltype(auto) f=
+				 lln(neigh,1-ori,dir);
+				 (not setupDebug) or f==-1)
+				f=site;
+			      else
+				CRASH("Site %ld is already pointing at halo site %ld in orientation %d dir %d\n",f(),site(),ori(),dir());
+			      
+			      ssohs(neigh-lat.getLocVol())=site;
+			    }
+			}
+		  });
     }
     
     /// Initializes

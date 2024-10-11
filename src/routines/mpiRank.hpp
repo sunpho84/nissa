@@ -61,7 +61,7 @@ namespace nissa
   /// Returns the passed variable after broadcast
   template <TriviallyCopyable T>
   T mpiGetBcast(const T& t,
-	     const MpiRank& rank=masterRank)
+		const MpiRank& rank=masterRank)
     requires(not std::is_pointer_v<T>)
   {
     T temp;
@@ -83,7 +83,6 @@ namespace nissa
     return "proc";
 #endif
   }
-  
 }
 
 #endif
