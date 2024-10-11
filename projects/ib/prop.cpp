@@ -335,6 +335,51 @@ namespace nissa
       safe_dirac_prod_spincolor(out,(tau3[r]==+1)?Pminus:Pplus,out);
   }
   
+  /// Choose a single position
+  void select_position(spincolor* out,spincolor* ori,int pos)
+  {
+    const coords_t g=glb_coord_of_glblx(pos);
+    
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      {
+	bool mask=true;
+	for(int mu=0;mu<NDIM;mu++)
+	  mask&=rel_coord_of_loclx(ivol,mu)==g[mu];
+	
+	spincolor_prod_double(out[ivol],ori[ivol],mask);
+      }
+    NISSA_PARALLEL_LOOP_END;
+    
+    set_borders_invalid(out);
+  }
+  
+  /// Choose a single spin index s
+  void select_spin(spincolor* out,spincolor* ori,int s)
+  {
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      {
+	for(int id=0;id<NDIRAC;id++)
+	  color_prod_double(out[ivol][id],ori[ivol][id],id==s);
+      }
+    NISSA_PARALLEL_LOOP_END;
+    
+    set_borders_invalid(out);
+  }
+  
+  /// Choose a single color index c
+  void select_color(spincolor* out,spincolor* ori,int c)
+  {
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      {
+	for(int id=0;id<NDIRAC;id++)
+	  for(int ic=0;ic<NCOL;ic++)
+	    complex_prod_double(out[ivol][id][ic],ori[ivol][id][ic],ic==c);
+      }
+    NISSA_PARALLEL_LOOP_END;
+    
+    set_borders_invalid(out);
+  }
+  
   enum class BwFw {BW,FW};
   
   CUDA_HOST_AND_DEVICE
@@ -454,8 +499,11 @@ namespace nissa
       case BACK_WFLOW:back_flow_prop(loop_source,conf,ori,rel_t,kappa,r);break;
       case PHASING:phase_prop(loop_source,ori,rel_t,theta);break;
       case DIROP:mult_by_Dop(loop_source,ori,kappa,mass,r,charge,theta);break;
+      case DEL_POS:select_position(loop_source,ori,r);break;
+      case DEL_SPIN:select_spin(loop_source,ori,r);break;
+      case DEL_COL:select_color(loop_source,ori,r);break;
       }
-    
+
     nissa_free(ori);
     if(ext_field)
       nissa_free(ext_field);

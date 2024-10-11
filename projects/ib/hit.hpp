@@ -417,7 +417,6 @@ struct HitLooper
 	  generate_photon_stochastic_propagator(ihit);
       }
     generate_original_sources(ihit,skip);
-    
   }
   
   /// Perform one of step: dryRun, or eval

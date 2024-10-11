@@ -205,9 +205,12 @@ void init_simulation(int narg,char **arg)
 	}
       
       //insertion time
-      int tins;
-      read_int(&tins);
-      master_printf("Read variable 'Tins' with value: %d\n",tins);
+      int tins=-1;
+      if(strcasecmp(ins,ins_tag[DEL_POS])!=0)
+	{
+	  read_int(&tins);
+	  master_printf("Read variable 'Tins' with value: %d\n",tins);
+	}
       
       double kappa=0.125,mass=0.0,charge=0,residue=1e-16;
       momentum_t theta;
@@ -310,6 +313,38 @@ void init_simulation(int narg,char **arg)
 	  read_theta(theta);
 	}
       double kappa_asymm[4]={0.0,kappa1,kappa2,kappa3};
+      
+      if(strcasecmp(ins,ins_tag[DEL_POS])==0)
+	{
+	  coords_t c;
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      read_int(&c[mu]);
+	      if(c[mu]<0)
+		crash("dir %d has been chosen negative value %d",mu,c[mu]);
+	      if(c[mu]>=glbSize[mu])
+		crash("dir %d has been chosen larger than glb size %d",mu,glbSize[mu]);
+	    }
+	  
+	  r=glblx_of_coord(c);
+	  master_printf("Choosing coords {%d,%d,%d,%d} corresponding to site %d\n",c[0],c[1],c[2],c[3],r);
+	  
+	  decripted=true;
+	}
+      
+      if(strcasecmp(ins,ins_tag[DEL_SPIN])==0)
+	{
+	  read_int(&r);
+	  master_printf("Choosing spin %d\n",r);
+	  decripted=true;
+	}
+      
+      if(strcasecmp(ins,ins_tag[DEL_COL])==0)
+	{
+	  read_int(&r);
+	  master_printf("Choosing color %d\n",r);
+	  decripted=true;
+	}
       
       //everything else
       if(not decripted)
