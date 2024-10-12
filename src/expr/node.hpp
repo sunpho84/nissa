@@ -326,7 +326,7 @@ namespace nissa
     /// Closes to Fund
     INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
     auto closeToFund() const
-    //requires(_canCloseToFund())
+      requires(T::_canCloseToFund())
     {
       return (typename T::Fund)*this;
     }
@@ -334,30 +334,30 @@ namespace nissa
     /// Closes to a StackTens
     INLINE_FUNCTION constexpr
       auto closeToStackTens() const
-      // requires(_canCloseToStackTens());
+      requires(T::_canCloseToStackTens())
     {
       return closeExprToStackTens(*this);
     }
     
     /// Closes to a Field
     INLINE_FUNCTION constexpr
-    auto closeToField() const
-      requires(_canCloseToField());
+      auto closeToField() const
+      requires(T::_canCloseToField());
     
     /// Closes to a DynamicTens
     INLINE_FUNCTION constexpr
     auto closeToDynamicTens() const
-      requires(_canCloseToDynamicTens());
+      requires(T::_canCloseToDynamicTens());
     
 #define PROVIDE_CLOSE_TO(TYPE)						\
     /* Dispatch the correct close, needed as passing as templated would
        not be specializable */						\
       INLINE_FUNCTION constexpr						\
-    auto _closeTo(std::integral_constant<ClosingType,			\
-		  ClosingType::TYPE>) const				\
-    {									\
-      return closeTo ## TYPE();						\
-    }
+	auto _closeTo(std::integral_constant<ClosingType,		\
+		      ClosingType::TYPE>) const				\
+      {									\
+	return closeTo ## TYPE();					\
+      }
     
     PROVIDE_CLOSE_TO(Fund);
     PROVIDE_CLOSE_TO(StackTens);

@@ -973,11 +973,12 @@ namespace nissa
     };
   }
   
+  /// Creates a field from the present node
   template <typename T,
 	    DerivedFromComp...Ci>
   INLINE_FUNCTION constexpr
   auto Node<T,CompsList<Ci...>>::closeToField() const
-    requires(_canCloseToField())
+    requires(T::_canCloseToField())
   {
     return (Field<TupleFilterAllTypes<typename T::Comps,CompsList<LocLxSite>>,
 	    std::remove_cv_t<typename T::Fund>>)*this;

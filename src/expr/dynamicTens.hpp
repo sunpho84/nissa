@@ -537,7 +537,7 @@ namespace nissa
 	    DerivedFromComp...Ci>
   INLINE_FUNCTION constexpr
   auto Node<T,CompsList<Ci...>>::closeToDynamicTens() const
-    requires(_canCloseToDynamicTens())
+    requires(T::_canCloseToDynamicTens())
   {
     return
       (DynamicTens<typename T::Comps,
