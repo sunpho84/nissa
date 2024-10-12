@@ -122,7 +122,6 @@ namespace nissa
 	    typename F>
   void cudaParallelFor(const int line,
 		       const char* file,
-		       const size_t& blockSize,
 		       const IMin min,
 		       const IMax max,
 		       F&& f)

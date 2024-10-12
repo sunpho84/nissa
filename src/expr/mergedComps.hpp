@@ -89,7 +89,7 @@ namespace nissa
     }
     
     /// Default copy constructor
-    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
+    INLINE_FUNCTION constexpr
     MergedComp(const MergedComp&)=default;
   };
   
