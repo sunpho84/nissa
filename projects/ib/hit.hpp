@@ -205,8 +205,6 @@ struct HitLooper
     if(stoch_source and use_new_generator)
       {
 	drawer=std::make_unique<FieldRngOf<spincolor>>(field_rng_stream.getDrawer<spincolor>());
-	if(noise_type!=RND_Z4 and noise_type!=RND_Z2)
-	  crash("Noise type different from Z4 or Z2 not implemented yet");
 	
 	if(skipOnly)
 	  return;
@@ -255,12 +253,26 @@ struct HitLooper
 		      drawer->fillLocSite(c,ivol);
 		      for(int id=0;id<NDIRAC;id++)
 			for(int ic=0;ic<NCOL;ic++)
-			  {
-			    if(noise_type==RND_Z4)
-			      z4Transform(c[id][ic]);
-			    else
+			  switch (noise_type)
+			    {
+			    case RND_ALL_PLUS_ONE:
+			      complex_put_to_real(c[id][ic],1);
+			      break;
+			    case RND_ALL_MINUS_ONE:
+			      complex_put_to_real(c[id][ic],-1);
+			      break;
+			    case RND_Z2:
 			      z2Transform(c[id][ic]);
-			  }
+			      break;
+			    case RND_Z4:
+			      z4Transform(c[id][ic]);
+			      break;
+			    case RND_UNIF:
+			    case RND_Z3:
+			    case RND_GAUSS:
+			      crash("not implemented yet");
+			      break;
+			    }
 		    }
 		  else
 		    comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),noise_type);
