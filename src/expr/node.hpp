@@ -445,6 +445,7 @@ namespace nissa
       return (~*this).getRef();
     }
     
+    /// Forbids to take a readable accessor if not l-value
     auto getReadable() && = delete;
     
     /// Returns the size of the component
