@@ -95,18 +95,20 @@ namespace nissa
     //create communicator along plan
     for(int mu=0;mu<NDIM;mu++)
       {
+	coords_t nrank_dir_plan;
 	coords_t split_plan;
 	coords_t proj_rank_coord;
 	for(int nu=0;nu<NDIM;nu++)
 	  {
 	    split_plan[nu]=(nu==mu) ? 0 : 1;
 	    proj_rank_coord[nu]=(nu==mu) ? 0 : rank_coord[nu];
+	    nrank_dir_plan[nu]=(nu==mu) ? 1 : nrank_dir[nu];
 	  }
 	MPI_Cart_sub(cart_comm,&split_plan[0],&(plan_comm[mu]));
 	MPI_Comm_rank(plan_comm[mu],&(plan_rank[mu]));
-	if(plan_rank[mu]!=rank_of_coord(proj_rank_coord))
-	  crash("Plan communicator has messed up coord: %d and rank %d (implement reorder!)",
-		rank_of_coord(proj_rank_coord),plan_rank[mu]);
+	if(plan_rank[mu]!=lx_of_coord(proj_rank_coord,nrank_dir_plan))
+	  crash("Plan communicator on rank %d{%d,%d,%d,%d} has messed up dir %d coord: %d and rank %d (implement reorder!)",
+		rank,rank_coord[0],rank_coord[1],rank_coord[2],rank_coord[3],mu,rank_of_coord(proj_rank_coord),plan_rank[mu]);
       }
     
     //create communicator along line
