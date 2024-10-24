@@ -170,11 +170,20 @@ void in_main(int narg,char **arg)
   ape_spatial_smear_conf(conf,conf,ape_smearing_alpha,ape_smearing_niters);
   
   //read Gaussian smearing pars
-  int nlevels,meas_each;
+  int ncoeffs;
   double kappa;
   read_str_double("Kappa",&kappa);
-  read_str_int("NLevels",&nlevels);
-  read_str_int("MeasEach",&meas_each);
+  read_str_int("NCoeffs",&ncoeffs);
+  std::map<size_t,double> coeffs;
+  for(size_t iCoeff=0;iCoeff<ncoeffs;iCoeff++)
+    {
+      double w;
+      read_double(&w);
+      int n;
+      read_int(&n);
+      
+      coeffs[n]+=w;
+    }
   
   //output file
   char out_path[1024];
@@ -182,8 +191,9 @@ void in_main(int narg,char **arg)
   FILE *fout=open_file(out_path,"w");
   master_fprintf(fout,"T %d\n",glbSize[0]);
   master_fprintf(fout,"Kappa %lg\n",kappa);
-  master_fprintf(fout,"NLevels %d\n",nlevels);
-  master_fprintf(fout,"MeasEach %d\n",meas_each);
+  for(const auto [n,w] : coeffs)
+    master_fprintf(fout,"%lg*H^%zu",w,n);
+  master_fprintf(fout,"\n");
   
   //print spatial plaquette
   double plaqs[2];
@@ -210,30 +220,35 @@ void in_main(int narg,char **arg)
       if(rank==r) source[l][0][0]=1;
     }
     
-  for(int ilev=0;ilev<=nlevels;ilev+=meas_each)
+  color *tot=nissa_malloc("tot",locVol+bord_vol,color);
+  vector_reset(tot);
+  size_t p=0;
+  for(const auto [n,w] : coeffs)
     {
-      //compute gaussianity
-      int maxpow=2;
-      double x[maxpow*glbSize[0]];
-      compute_gaussianity_pars(x,source,maxpow,source_pos);
-      
-      //take averages
-      double a[maxpow],e[maxpow];
-      process_gaussianity(a,e,x,maxpow);
-      
-      //write
-      master_printf("Smearing level %d\n",ilev);
-      master_printf(" - average norm:   %lg +- %lg\n",a[0],e[0]);
-      master_printf(" - average radius: %lg +- %lg\n",a[1],e[1]);
-      master_printf("   expected:       %lg\n",expected_radius(kappa,ilev,plaqs[1]));
-      master_printf("\n");
-      
-      master_fprintf(fout," Smearlevel %d\n",ilev);
-      compute_density(fout,source,source_pos);
-      
-      //smear
-      if(ilev<nlevels) gaussian_smearing(source,source,conf,kappa,meas_each);
+      gaussian_smearing(source,source,conf,kappa,n-p);
+      p=n;
+      double_vector_summassign_double_vector_prod_double(tot[0][0],source[0][0],w,locVol*sizeof(color)/sizeof(double));
     }
+  
+  // //compute gaussianity
+  // int maxpow=2;
+  // double x[maxpow*glbSize[0]];
+  // compute_gaussianity_pars(x,source,maxpow,source_pos);
+  
+  // //take averages
+  // double a[maxpow],e[maxpow];
+  // process_gaussianity(a,e,x,maxpow);
+  
+  // //write
+  // master_printf(" - average norm:   %lg +- %lg\n",a[0],e[0]);
+  // master_printf(" - average radius: %lg +- %lg\n",a[1],e[1]);
+  // master_printf("   expected:       %lg\n",expected_radius(kappa,ilev,plaqs[1]));
+  // master_printf("\n");
+      
+  //     master_fprintf(fout," Smearlevel %d\n",ilev);
+  compute_density(fout,tot,source_pos);
+  
+  //smear
   
   close_file(fout);
   
