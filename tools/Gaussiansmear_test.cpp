@@ -4,84 +4,6 @@
 
 using namespace nissa;
 
-void compute_gaussianity_pars(double* x,color* source,int maxpow,coords_t* source_pos)
-{
-  //reset local pows
-  double locx[glbSize[0]][maxpow];
-  for(int t=0;t<glbSize[0];t++)
-    for(int ipow=0;ipow<maxpow;ipow++)
-      locx[t][ipow]=0.0;
-  
-  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    {
-      int t=glbCoordOfLoclx[ivol][0];
-      
-      //get site norm
-      double n=0.0;
-      for(int ic=0;ic<NCOL;ic++)
-	for(int ri=0;ri<2;ri++)
-	  n+=sqr(source[ivol][ic][ri]);
-      
-      //loop over all powers to be computed
-      for(int ipow=0;ipow<maxpow;ipow++)
-	{
-	  //compute distance
-	  double xpow=0.0;
-	  for(int mu=1;mu<NDIM;mu++)
-	    {
-	      int xmu=(glbCoordOfLoclx[ivol][mu]-source_pos[t][mu]+glbSize[mu])%glbSize[mu];
-	      if(xmu>=glbSize[mu]/2) xmu-=glbSize[mu];
-	      xpow+=pow(xmu,ipow*2);
-	    }
-	  
-	  locx[t][ipow]+=n*xpow;
-	}
-    }
-  NISSA_PARALLEL_LOOP_END;
-  THREAD_BARRIER();
-  
-  //reduce
-  for(int t=0;t<glbSize[0];t++)
-    for(int ipow=0;ipow<maxpow;ipow++)
-      non_loc_reduce(&x[t*maxpow+ipow],&locx[t][ipow]);
-}
-
-//get average and error of gaussianity pars
-void process_gaussianity(double *a,double *e,double *x,int maxpow)
-{
-  //reset summ and errors
-  for(int ipow=0;ipow<maxpow;ipow++)
-    a[ipow]=e[ipow]=0.0;
-  
-  for(int t=0;t<glbSize[0];t++)
-    for(int ipow=0;ipow<maxpow;ipow++)
-      {
-	double s=0;
-	if(ipow==0) s=x[t*maxpow+0];
-	if(ipow==1) s=sqrt(x[t*maxpow+1]/x[t*maxpow+0]);
-	
-	//increment
-	a[ipow]+=s;
-	e[ipow]+=s*s;
-      }
-  
-  //build averages and errors
-  for(int ipow=0;ipow<maxpow;ipow++)
-    {
-      a[ipow]/=glbSize[0];
-      e[ipow]/=glbSize[0];
-      e[ipow]-=sqr(a[ipow]);
-      e[ipow]=sqrt(fabs(e[ipow])/glbSize[0]);
-    }
-}
-
-//according to Bali
-double expected_radius(double kappa,int nlevels,double plaq)
-{
-  kappa*=pow(plaq,0.25);
-  return sqrt(nlevels*kappa/(1+2*(NDIM-1)*kappa));
-}
-
 //hold a tern to keep density
 struct dens_t
 {
@@ -93,14 +15,12 @@ struct dens_t
 typedef std::map<int,dens_t> mapdens_t;
 
 //compute the density distribution
-void compute_density(FILE *fout,color *source,coords_t *source_pos)
+void compute_density(FILE *fout,color* source)
 {
   mapdens_t density;
   
-  NISSA_LOC_VOL_LOOP(ivol)
+  for(int64_t ivol=0;ivol<locVol;ivol++)
     {
-      int t=glbCoordOfLoclx[ivol][0];
-      
       //get site norm
       double s2=0.0;
       for(int ic=0;ic<NCOL;ic++)
@@ -111,7 +31,7 @@ void compute_density(FILE *fout,color *source,coords_t *source_pos)
       int rho=0.0;
       for(int mu=1;mu<NDIM;mu++)
 	{
-	  int xmu=(glbCoordOfLoclx[ivol][mu]-source_pos[t][mu]+glbSize[mu])%glbSize[mu];
+	  int xmu=glbCoordOfLoclx[ivol][mu];
 	  if(xmu>=glbSize[mu]/2) xmu-=glbSize[mu];
 	  rho+=sqr(xmu);
 	}
@@ -219,21 +139,20 @@ void in_main(int narg,char **arg)
   //set the source
   color *source=nissa_malloc("source",locVol+bord_vol,color);
   vector_reset(source);
-  coords_t source_pos[glbSize[0]];
   for(int t=0;t<glbSize[0];t++)
     {
+      coords_t source_pos{};
       //generate coords and fix t
-      source_pos[t]=generate_random_coord();
-      source_pos[t][0]=t;
+      source_pos[0]=t;
       
       //get loclx and rank
       int l,r;
-      get_loclx_and_rank_of_coord(l,r,source_pos[t]);
+      get_loclx_and_rank_of_coord(l,r,source_pos);
       
       //put the source only if on correct rank
       if(rank==r) source[l][0][0]=1;
     }
-    
+  
   size_t p=0;
   for(const auto n : nList)
     {
@@ -283,7 +202,7 @@ void in_main(int narg,char **arg)
       
       master_fprintf(f,"\n");
       
-      compute_density(f,tot[iPoly],source_pos);
+      compute_density(f,tot[iPoly]);
       
       close_file(f);
     }
