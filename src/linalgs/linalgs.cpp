@@ -312,7 +312,7 @@ namespace nissa
   //(a,b)
   void quadruple_vector_glb_scalar_prod(float_128* glb_res,float_128* a,float_128* b,int64_t n)
   {
-    crash("");
+    crash(" ");
     glb_res[0][0]=0; //to remove warning
     // //perform thread summ
     // float_128 loc_thread_res={0,0};
@@ -336,7 +336,7 @@ namespace nissa
   //(a,b)
   void quadruple_accumulate_double_vector_glb_scalar_prod(float_128* a,double* b,double* c,int64_t n)
   {
-    crash("");
+    crash(" ");
     a[0][0]=a[0][1]=0; //to remove warning
     // //perform thread summ
     // float_128 loc_thread_res={0,0};

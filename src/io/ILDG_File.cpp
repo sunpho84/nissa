@@ -172,7 +172,7 @@ namespace nissa
 #ifdef USE_MPI_IO
 	decript_MPI_error(MPI_File_seek(file,ILDG_File_get_position(file)+nbytes,MPI_SEEK_SET),"while seeking ahead %d bytes from current position",nbytes);
 #else
-	crash_printing_error(fseeko64(file,nbytes,SEEK_CUR),"while seeking ahead %d bytes from current position",nbytes);
+	crash_printing_error(fseeko64(file,nbytes,SEEK_CUR),"while seeking ahead %ld bytes from current position",nbytes);
 #endif
       }
     MPI_Barrier(MPI_COMM_WORLD);
@@ -353,12 +353,12 @@ namespace nissa
 #endif
     
     if(nbytes_read!=nbytes_req)
-      crash("read %u bytes instead of %u required",nbytes_read,nbytes_req);
+      crash("read %zu bytes instead of %zu required",nbytes_read,nbytes_req);
     
     //padding
     ILDG_File_seek_to_next_eight_multiple(file);
     
-    verbosity_lv3_master_printf("record read: %u bytes\n",nbytes_req);
+    verbosity_lv3_master_printf("record read: %zu bytes\n",nbytes_req);
   }
   
   //search next record
@@ -373,7 +373,7 @@ namespace nissa
     if(little_endian)
       {
 	change_endianness(&header.data_length,&header.data_length,1);
-	verbosity_lv3_master_printf("record %s contains: %lld bytes\n",header.type,header.data_length);
+	verbosity_lv3_master_printf("record %s contains: %lu bytes\n",header.type,header.data_length);
 	change_endianness(header.magic_no);
 	change_endianness(header.version);
       }
@@ -384,7 +384,7 @@ namespace nissa
 	char buf[1024];
 	snprintf(buf,1024,"wrong magic number, expected %x and obtained %x",ILDG_MAGIC_NO,header.magic_no);
 	if(ignore_ILDG_magic_number) master_printf("Warning, %s\n",buf);
-	else crash(buf);
+	else crash("%s",buf);
       }
     
     return header;
@@ -414,7 +414,7 @@ namespace nissa
 #else
 	size_t nbytes_written=fwrite(data,1,nbytes_req,file);
 #endif
-	if(nbytes_written!=nbytes_req) crash("wrote %u bytes instead of %u required",nbytes_written,nbytes_req);
+	if(nbytes_written!=nbytes_req) crash("wrote %zu bytes instead of %zu required",nbytes_written,nbytes_req);
 	
 	//this is a blocking routine
 	ILDG_File_skip_nbytes(file,0);
@@ -563,7 +563,7 @@ namespace nissa
     nissa_free(buf);
 #endif
     
-    verbosity_lv3_master_printf("ildg data record read: %lld bytes\n",header.data_length);
+    verbosity_lv3_master_printf("ildg data record read: %lu bytes\n",header.data_length);
   }
   
   //read the checksum
@@ -666,7 +666,7 @@ namespace nissa
     
     //write
     ILDG_Offset nbytes_wrote=fwrite(buf,1,nbytes_per_rank,file);
-    if(nbytes_wrote!=nbytes_per_rank) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_per_rank);
+    if(nbytes_wrote!=nbytes_per_rank) crash("wrote %ld bytes instead of %ld",nbytes_wrote,nbytes_per_rank);
     
     //place at the end of the record, including padding
     ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(data_length),SEEK_SET);

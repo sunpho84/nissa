@@ -96,8 +96,9 @@ namespace nissa
 	fprintf(stderr,"\x1b[31m" "ERROR on line %d of file \"%s\", message error: \"%s\".\n\x1b[0m",line,file,mess);
 	fprintf(stderr,"Memory used: %ld bytes per rank (%ld bytes total)\n",required_memory,required_memory*nranks);
 	print_backtrace_list();
-	ranks_abort(0);
-      }
+    }
+    
+    ranks_abort(0);
   }
   
   void internal_crash_printing_error(int line,const char *file,int err_code,const char *templ,...)

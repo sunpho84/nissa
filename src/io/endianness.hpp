@@ -54,7 +54,7 @@ namespace nissa
   inline void change_endianness(double *dest,double *sour,int64_t ndoubles,int verbose=1)
   {
 #ifndef COMPILING_FOR_DEVICE
-    if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d doubles\n",ndoubles);
+    if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %zu doubles\n",ndoubles);
 #endif
     
     for(int64_t idouble=0;idouble<ndoubles;idouble++)
@@ -74,7 +74,7 @@ namespace nissa
   inline void change_endianness(float *dest,float *sour,int64_t nfloats,int verbose=1)
   {
 #ifndef COMPILING_FOR_DEVICE
-    if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d floats\n",nfloats);
+    if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %ld floats\n",nfloats);
 #endif
     
     for(int64_t ifloat=0;ifloat<nfloats;ifloat++)
@@ -97,7 +97,7 @@ namespace nissa
   inline void change_endianness(uint16_t *dest,uint16_t *sour,int64_t nshorts,int verbose=1)
   {
 #ifndef COMPILING_FOR_DEVICE
-    if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d uint16_t\n",nshorts);
+    if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %ld uint16_t\n",nshorts);
 #endif
     
     for(int64_t ishort=0;ishort<nshorts;ishort++)
@@ -114,14 +114,14 @@ namespace nissa
   //Do not change endianness
   inline void floats_to_doubles_same_endianness(double *dest,float *sour,int64_t n,int verbose=1)
   {
-    if(verbose) verbosity_lv3_master_printf("Converting %d floats to doubles\n",n);
+    if(verbose) verbosity_lv3_master_printf("Converting %ld floats to doubles\n",n);
     for(int i=n-1;i>=0;i--) dest[i]=(double)(sour[i]);
   }
   
   //Change endianness
   inline void floats_to_doubles_changing_endianness(double *dest,float *sour,int64_t n,int verbose=1)
   {
-    if(verbose) verbosity_lv3_master_printf("Converting %d floats to doubles changing endianness (two steps\n",n);
+    if(verbose) verbosity_lv3_master_printf("Converting %ld floats to doubles changing endianness (two steps\n",n);
     floats_to_doubles_same_endianness(dest,sour,n,verbose);
     change_endianness(dest,dest,n,verbose);
   }
@@ -131,14 +131,14 @@ namespace nissa
   //Do not change the endianness
   inline void doubles_to_floats_same_endianness(float *dest,double *sour,int64_t n,int verbose=1)
   {
-    if(verbose) verbosity_lv3_master_printf("Converting %d doubles to floats\n",n);
+    if(verbose) verbosity_lv3_master_printf("Converting %ld doubles to floats\n",n);
     for(int i=0;i<n;i++) dest[i]=(float)(sour[i]);
   }
   
   //Change endianness
   inline void doubles_to_floats_changing_endianness(float *dest,double *sour,int64_t n,int verbose=1)
   {
-    if(verbose) verbosity_lv3_master_printf("Converting %d doubles to floats changing endianness (two steps)\n",n);
+    if(verbose) verbosity_lv3_master_printf("Converting %ld doubles to floats changing endianness (two steps)\n",n);
     doubles_to_floats_same_endianness(dest,sour,n,verbose);
     change_endianness(dest,dest,n,verbose);
   }

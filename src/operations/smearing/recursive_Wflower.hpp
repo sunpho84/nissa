@@ -42,7 +42,7 @@ namespace nissa
       int m=Wflower.nflows;
       master_printf("m: %d\n",m);
       //check
-      if(ns<0 or ns>m) crash("ns=%d must be in the range [%d,%d]",0,m);
+      if(ns<0 or ns>m) crash("ns=%d must be in the range [%d,%d]",ns,0,m);
       
       //set the optimal number of blocks
       double nb=pow(m,1.0/ns);

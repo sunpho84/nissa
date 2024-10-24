@@ -46,7 +46,7 @@ namespace nissa
 	x[mu]=st;
 	
 	//make a buffer in the case in which this dir is not parallelized
-	su3 buf;
+	su3 buf{};
 	int isite=loclx_of_coord(x);
 	if(nrank_dir[mu]==1)
 	  su3_copy(buf,u[isite]);

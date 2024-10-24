@@ -34,7 +34,7 @@ namespace nissa
     uint64_t nbytes=header.data_length;
     uint64_t nbytes_per_site_read=nbytes/glbVol;
     if(nbytes_per_site_read>nreals_per_site*sizeof(double))
-      crash("Opsss! The file contain %d bytes per site and it is supposed to contain not more than %d!",
+      crash("Opsss! The file contain %lu bytes per site and it is supposed to contain not more than %lu!",
 	    nbytes_per_site_read,nreals_per_site*sizeof(double));
     
     //read
@@ -53,7 +53,7 @@ namespace nissa
     if(nbytes_per_site_read==nbytes_per_site_float) single_double_flag=0;
     if(nbytes_per_site_read==nbytes_per_site_double) single_double_flag=1;
     if(single_double_flag==-1)
-      crash("Opsss! The file contain %d bytes per site and it is supposed to contain: %d (single) or %d (double)",
+      crash("Opsss! The file contain %lu bytes per site and it is supposed to contain: %lu (single) or %lu (double)",
 	    nbytes_per_site_read,nbytes_per_site_float,nbytes_per_site_double);
     verbosity_lv3_master_printf("Vector is stored in %s precision\n",single_double_str[single_double_flag]);
     

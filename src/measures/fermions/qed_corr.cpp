@@ -113,7 +113,7 @@ namespace nissa
     // photon.c1=C1_WILSON;
     // photon.zms=UNNO_ALEMANNA;
     
-    crash("");
+    crash(" ");
     
     //compute tadpole
     momentum_t tadpole=compute_tadpole(photon);

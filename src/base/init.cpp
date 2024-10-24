@@ -523,7 +523,7 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++) verbosity_lv3_master_printf("%d ",box_coord[ibox][mu]);
       
 	//size
-	verbosity_lv3_master_printf("] size [ ",ibox);
+	verbosity_lv3_master_printf("] size [ ");
 	nsite_per_box[ibox]=1;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
@@ -570,7 +570,7 @@ namespace nissa
     
     master_printf("Global lattice:\t%d",glbSize[0]);
     for(int mu=1;mu<NDIM;mu++) master_printf("x%d",glbSize[mu]);
-    master_printf(" = %d\n",glbVol);
+    master_printf(" = %ld\n",glbVol);
     master_printf("Number of running ranks: %d\n",nranks);
     
     //find the grid minimizing the surface
@@ -586,7 +586,7 @@ namespace nissa
 	ok&=(nrank_dir[mu]>0);
 	if(!ok) crash("nrank_dir[%d]: %d",mu,nrank_dir[mu]);
 	ok&=(glbSize[mu]%nrank_dir[mu]==0);
-	if(!ok) crash("glb_size[%d]%nrank_dir[%d]=%d",mu,mu,glbSize[mu]%nrank_dir[mu]);
+	if(!ok) crash("glb_size[%d]" "%c" "nrank_dir[%d]=%d",mu,'%',mu,glbSize[mu]%nrank_dir[mu]);
 	paral_dir[mu]=(nrank_dir[mu]>1);
 	nparal_dir+=paral_dir[mu];
       }
@@ -680,7 +680,7 @@ namespace nissa
     //print information
     master_printf("Local volume\t%d",locSize[0]);
     for(int mu=1;mu<NDIM;mu++) master_printf("x%d",locSize[mu]);
-    master_printf(" = %d\n",locVol);
+    master_printf(" = %ld\n",locVol);
     master_printf("List of parallelized dirs:\t");
     for(int mu=0;mu<NDIM;mu++) if(paral_dir[mu]) master_printf("%d ",mu);
     if(nparal_dir==0) master_printf("(none)");

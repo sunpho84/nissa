@@ -39,7 +39,7 @@ namespace nissa
     rc+=nissa::master_fprintf(fout,"%.16lg",cons);
     for(int i=0;i<degree();i++)
       rc+=nissa::master_fprintf(fout,"+%.16lg/(x+%.16lg)",weights[i],poles[i]);
-    rc+=nissa::master_fprintf(fout,"\n",cons);
+    rc+=nissa::master_fprintf(fout,"%lg\n",cons);
     
     return rc;
   }

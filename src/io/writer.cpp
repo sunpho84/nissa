@@ -23,7 +23,7 @@ namespace nissa
   //Write a vector of double, in 32 or 64 bits according to the argument
   void write_real_vector(ILDG_File &file,double *data,size_t nreals_per_site,size_t nbits,const char *header_message,ILDG_message *mess=NULL)
   {
-    if(nbits!=32 and nbits!=64) crash("Error, asking %u precision, use instead 32 or 64\n",nbits);
+    if(nbits!=32 and nbits!=64) crash("Error, asking %zu precision, use instead 32 or 64\n",nbits);
     
     //take initial time
     double time=-take_time();

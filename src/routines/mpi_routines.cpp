@@ -148,10 +148,10 @@ namespace nissa
 #ifdef USE_MPI
     printf("thread %d on rank %d aborting\n",THREAD_ID,rank);
     MPI_Abort(MPI_COMM_WORLD,0);
-#else
-    exit(0);
 #endif
+    exit(0);
   }
+  
   //define all types
   void define_MPI_types()
   {

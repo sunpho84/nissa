@@ -411,7 +411,7 @@ namespace nissa
     for(int i=degree-1;i>=0;i--)
       {
 	roots[i]=root_find_Newton(poly,i+1,lower,upper,tol);
-	if(roots[i]==0.0) crash("Failure to converge on root %ld/%d",i+1,degree);
+	if(roots[i]==0.0) crash("Failure to converge on root %d/%d",i+1,degree);
 	poly[0]/=-roots[i];
 	for(int j=1;j<=i;j++) poly[j]=(poly[j-1]-poly[j])/roots[i];
       }
@@ -423,7 +423,7 @@ namespace nissa
     for(int i=degree-1;i>=0;i--)
       {
 	poles[i]=root_find_Newton(poly,i+1,lower,upper,tol);
-	if(poles[i]==0.0) crash("Failure to converge on pole %ld/%d",i+1,degree);
+	if(poles[i]==0.0) crash("Failure to converge on pole %d/%d",i+1,degree);
 	poly[0]/=-poles[i];
 	for(int j=1;j<=i;j++) poly[j]=(poly[j-1]-poly[j])/poles[i];
       }
