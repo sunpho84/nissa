@@ -152,7 +152,8 @@ void in_main(int narg,char **arg)
   //     //put the source only if on correct rank
   //     if(rank==r) source[l][0][0]=1;
   //   }
-  source[0][0][0]=1;
+  if(is_master_rank())
+    source[0][0][0]=1;
   
   size_t p=0;
   for(const auto n : nList)
