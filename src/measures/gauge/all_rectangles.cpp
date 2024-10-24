@@ -154,7 +154,7 @@ namespace nissa
 	  {
 	    crash("Pensaci giacomino, lo spazio smeara col tempo?");
 	    finished=smooth_lx_conf_until_next_meas(sme_conf,pars->spat_smear_pars,nsmooth,all_other_dirs[mu0]);
-	    verbosity_lv1_master_printf("Plaquette after %d perp to dir nsmooth %d: %16.16lg\n",
+	    verbosity_lv1_master_printf("Plaquette after %d perp to dir %d nsmooth %d: %16.16lg\n",
 					imeas,mu0,nsmooth,global_plaquette_lx_conf(sme_conf));
 	    
 	    //store "spatial" links and send them
