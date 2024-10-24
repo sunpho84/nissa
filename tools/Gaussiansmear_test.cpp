@@ -15,7 +15,8 @@ struct dens_t
 typedef std::map<int,dens_t> mapdens_t;
 
 //compute the density distribution
-void compute_density(FILE *fout,color* source)
+void compute_density(FILE *fout,
+		     color* vec)
 {
   mapdens_t density;
   
@@ -25,7 +26,7 @@ void compute_density(FILE *fout,color* source)
       double s2=0.0;
       for(int ic=0;ic<NCOL;ic++)
 	for(int ri=0;ri<2;ri++)
-	  s2+=sqr(source[ivol][ic][ri]);
+	  s2+=sqr(vec[ivol][ic][ri]);
       
       //compute distance
       int rho=0.0;
@@ -46,19 +47,19 @@ void compute_density(FILE *fout,color* source)
   //reduce and print
   // master_fprintf(fout," NDists %d\n",(int)density.size());
   
-  for(mapdens_t::iterator it=density.begin();it!=density.end();it++)
+  for(auto& [r2,d] : density)
     {
-      int r2=it->first;
-      dens_t d=it->second;
       non_loc_reduce(&d.n);
       non_loc_reduce(&d.s);
       non_loc_reduce(&d.s2);
-      int64_t n=d.n;
-      double s=d.s/n;
-      double s2=d.s2/n-s*s;
+      
+      const int64_t n=d.n;
+      const double s=d.s/n;
+      const double s2=d.s2/n-s*s;
       
       master_fprintf(fout,"%d %lg %lg\n",r2,s,sqrt(s2/n));
     }
+  
   master_fprintf(fout,"\n");
 }
 
@@ -139,21 +140,10 @@ void in_main(int narg,char **arg)
   //set the source
   color *source=nissa_malloc("source",locVol+bord_vol,color);
   vector_reset(source);
-  // for(int t=0;t<glbSize[0];t++)
-  //   {
-  //     coords_t source_pos{};
-  //     //generate coords and fix t
-  //     source_pos[0]=t;
-      
-  //     //get loclx and rank
-  //     int l,r;
-  //     get_loclx_and_rank_of_coord(l,r,source_pos);
-      
-  //     //put the source only if on correct rank
-  //     if(rank==r) source[l][0][0]=1;
-  //   }
-  if(is_master_rank())
-    source[0][0][0]=1;
+  if(rank_coord[0]==0)
+    for(int t=0;t<locSize[0];t++)
+      source[0][0][0]=1;
+  set_borders_invalid(source);
   
   size_t p=0;
   for(const auto n : nList)
@@ -161,16 +151,13 @@ void in_main(int narg,char **arg)
       gaussian_smearing(source,source,conf,kappa,n-p);
       
       for(size_t iPoly=0;iPoly<nPoly;iPoly++)
-	{
-	  const auto nw=coeffs[iPoly].find(n);
-	  if(nw!=coeffs[iPoly].end())
-	    {
-	      const auto& [n,w]=*nw;
-	      master_printf("Adding %lg*H^%zu (computed with %zu new steps) to poly %zu\n",w,n,n-p,iPoly);
-	      
-	      double_vector_summassign_double_vector_prod_double(tot[iPoly][0][0],source[0][0],w,locVol*sizeof(color)/sizeof(double));
-	    }
-	}
+	if(const auto nw=coeffs[iPoly].find(n);nw!=coeffs[iPoly].end())
+	  {
+	    const auto& [n,w]=*nw;
+	    master_printf("Adding %lg*H^%zu (computed with %zu new steps) to poly %zu\n",w,n,n-p,iPoly);
+	    
+	    double_vector_summassign_double_vector_prod_double(&tot[iPoly][0][0][0],&source[0][0][0],w,locVol*sizeof(color)/sizeof(double));
+	  }
       
       p=n;
     }
