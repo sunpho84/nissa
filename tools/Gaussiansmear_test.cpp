@@ -139,19 +139,20 @@ void in_main(int narg,char **arg)
   //set the source
   color *source=nissa_malloc("source",locVol+bord_vol,color);
   vector_reset(source);
-  for(int t=0;t<glbSize[0];t++)
-    {
-      coords_t source_pos{};
-      //generate coords and fix t
-      source_pos[0]=t;
+  // for(int t=0;t<glbSize[0];t++)
+  //   {
+  //     coords_t source_pos{};
+  //     //generate coords and fix t
+  //     source_pos[0]=t;
       
-      //get loclx and rank
-      int l,r;
-      get_loclx_and_rank_of_coord(l,r,source_pos);
+  //     //get loclx and rank
+  //     int l,r;
+  //     get_loclx_and_rank_of_coord(l,r,source_pos);
       
-      //put the source only if on correct rank
-      if(rank==r) source[l][0][0]=1;
-    }
+  //     //put the source only if on correct rank
+  //     if(rank==r) source[l][0][0]=1;
+  //   }
+  source[0][0][0]=1;
   
   size_t p=0;
   for(const auto n : nList)
