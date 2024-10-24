@@ -4,47 +4,44 @@ using namespace nissa;
 
 void compute_gaussianity_pars(double* x,color* source,int maxpow,coords_t* source_pos)
 {
-  #warning
-
-  crash("reimplement");
-  // //reset local pows
-  // double locx[glb_size[0]][maxpow];
-  // for(int t=0;t<glb_size[0];t++)
-  //   for(int ipow=0;ipow<maxpow;ipow++)
-  //     locx[t][ipow]=0.0;
+  //reset local pows
+  double locx[glbSize[0]][maxpow];
+  for(int t=0;t<glbSize[0];t++)
+    for(int ipow=0;ipow<maxpow;ipow++)
+      locx[t][ipow]=0.0;
   
-  // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-  //   {
-  //     int t=glb_coord_of_loclx[ivol][0];
+  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    {
+      int t=glbCoordOfLoclx[ivol][0];
       
-  //     //get site norm
-  //     double n=0.0;
-  //     for(int ic=0;ic<NCOL;ic++)
-  // 	for(int ri=0;ri<2;ri++)
-  // 	  n+=sqr(source[ivol][ic][ri]);
+      //get site norm
+      double n=0.0;
+      for(int ic=0;ic<NCOL;ic++)
+	for(int ri=0;ri<2;ri++)
+	  n+=sqr(source[ivol][ic][ri]);
       
-  //     //loop over all powers to be computed
-  //     for(int ipow=0;ipow<maxpow;ipow++)
-  // 	{
-  // 	  //compute distance
-  // 	  double xpow=0.0;
-  // 	  for(int mu=1;mu<NDIM;mu++)
-  // 	    {
-  // 	      int xmu=(glb_coord_of_loclx[ivol][mu]-source_pos[t][mu]+glb_size[mu])%glb_size[mu];
-  // 	      if(xmu>=glb_size[mu]/2) xmu-=glb_size[mu];
-  // 	      xpow+=pow(xmu,ipow*2);
-  // 	    }
+      //loop over all powers to be computed
+      for(int ipow=0;ipow<maxpow;ipow++)
+	{
+	  //compute distance
+	  double xpow=0.0;
+	  for(int mu=1;mu<NDIM;mu++)
+	    {
+	      int xmu=(glbCoordOfLoclx[ivol][mu]-source_pos[t][mu]+glbSize[mu])%glbSize[mu];
+	      if(xmu>=glbSize[mu]/2) xmu-=glbSize[mu];
+	      xpow+=pow(xmu,ipow*2);
+	    }
 	  
-  // 	  locx[t][ipow]+=n*xpow;
-  // 	}
-  //   }
-  // NISSA_PARALLEL_LOOP_END;
-  // THREAD_BARRIER();
+	  locx[t][ipow]+=n*xpow;
+	}
+    }
+  NISSA_PARALLEL_LOOP_END;
+  THREAD_BARRIER();
   
   //reduce
-  // for(int t=0;t<glb_size[0];t++)
-  //   for(int ipow=0;ipow<maxpow;ipow++)
-  //     x[t*maxpow+ipow]=glb_reduce_double(locx[t][ipow]);
+  for(int t=0;t<glbSize[0];t++)
+    for(int ipow=0;ipow<maxpow;ipow++)
+      non_loc_reduce(&x[t*maxpow+ipow],&locx[t][ipow]);
 }
 
 //get average and error of gaussianity pars
@@ -126,22 +123,23 @@ void compute_density(FILE *fout,color *source,coords_t *source_pos)
   //reduce and print
   master_fprintf(fout," NDists %d\n",(int)density[0].size());
 
-  #warning
-  // for(int t=0;t<glb_size[0];t++)
-  //   {
-  //     master_fprintf(fout," t %d\n",t);
+  for(int t=0;t<glbSize[0];t++)
+    {
+      master_fprintf(fout," t %d\n",t);
       
-  //     for(mapdens_t::iterator it=density[t].begin();it!=density[t].end();it++)
-  // 	{
-  // 	  int r2=it->first;
-  // 	  dens_t d=it->second;
-  // 	  double n=glb_reduce_double(d.n);
-  // 	  double s=glb_reduce_double(d.s)/n;
+      for(mapdens_t::iterator it=density[t].begin();it!=density[t].end();it++)
+	{
+	  int r2=it->first;
+	  dens_t d=it->second;
+	  non_loc_reduce(&d.n);
+	  non_loc_reduce(&d.s);
+	  double n=d.n;
+	  double s=d.s/n;
 	  
-  // 	  master_fprintf(fout,"%d %lg\n",r2,s);
-  // 	}
-  //     master_fprintf(fout,"\n");
-  //   }
+	  master_fprintf(fout,"%d %lg\n",r2,s);
+	}
+      master_fprintf(fout,"\n");
+    }
 }
 
 void in_main(int narg,char **arg)
