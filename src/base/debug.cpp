@@ -94,7 +94,7 @@ namespace nissa
 	vsprintf(mess,templ,ap);
 	va_end(ap);
 	
-	fprintf(stderr,"\x1b[31m" "ERROR on line %d of file \"%s\", message error: \"%s\".\n\x1b[0m",line,file,mess);
+	fprintf(stderr,"\x1b[31m" "on rank %d ERROR on line %d of file \"%s\", message error: \"%s\".\n\x1b[0m",rank,line,file,mess);
 	fprintf(stderr,"Memory used: %ld bytes per rank (%ld bytes total)\n",required_memory,required_memory*nranks);
 	print_backtrace_list();
     }
