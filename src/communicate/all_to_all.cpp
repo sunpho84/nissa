@@ -294,9 +294,7 @@ namespace nissa
 	    {
 	      MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,check_not_above_max_count(nper_rank_fr[irank_fr]*bps),MPI_CHAR,
 			list_ranks_fr[irank_fr],909,cart_comm,&req_list[ireq++]);
-	      	      if(rank==35)
-			// master_
-			  printf("Going to receive from rank %d, nreq: %d\n",list_ranks_fr[irank_fr],ireq);
+	      // master_printf("Going to receive from rank %d, nreq: %d\n",list_ranks_fr[irank_fr],ireq);
 	    }
 	  else
 	    irank_fr_this=irank_fr;
@@ -307,14 +305,10 @@ namespace nissa
 	    {
 	      MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,check_not_above_max_count(nper_rank_to[irank_to]*bps),MPI_CHAR,
 			list_ranks_to[irank_to],909,cart_comm,&req_list[ireq++]);
-	      //master_
-	      if(rank==35)
-		printf("Going to send to rank %d, nreq: %d\n",list_ranks_to[irank_to],ireq);
+	      // master_printf("Going to send to rank %d, nreq: %d\n",list_ranks_to[irank_to],ireq);
 	    }
 	  else
 	    irank_to_this=irank_to;
-	
-      	if(ireq!=nranks_to+nranks_fr-2) crash("expected %d request, obtained %d",nranks_to+nranks_fr-2,ireq);
 	
 	if(irank_fr_this!=nranks_fr and irank_to_this!=nranks_to)
 	  {
