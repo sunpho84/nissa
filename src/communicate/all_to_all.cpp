@@ -318,7 +318,7 @@ namespace nissa
 	      parallel_memcpy(in_buf+in_buf_off_per_rank[irank_fr_this]*bps,out_buf+out_buf_off_per_rank[irank_to_this]*bps,nper_rank_to[irank_fr_this]*bps);
 	  }
 	
-	master_printf("waiting for %d reqs\n",ireq);
+	// master_printf("waiting for %d reqs\n",ireq);
 	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
       }
     THREAD_BARRIER();
