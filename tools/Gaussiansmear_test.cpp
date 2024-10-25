@@ -14,11 +14,27 @@ struct dens_t
 
 typedef std::map<int,dens_t> mapdens_t;
 
-//compute the density distribution
+
+//Compute the density distribution
 void compute_density(FILE *fout,
 		     color* vec)
 {
   mapdens_t density;
+  
+  static std::set<int> dists;
+  if(dists.size()==0)
+    for(int64_t gvol=0;gvol<glbVol/glbSize[0];gvol++)
+      {
+	coords_t g=glb_coord_of_glblx(gvol);
+	int rho=0;
+	for(int mu=1;mu<NDIM;mu++)
+	  {
+	    if(g[mu]>=glbSize[mu]/2)
+	      g[mu]=glbSize[mu]-g[mu];
+	    rho+=sqr(g[mu]);
+	  }
+	dists.insert(rho);
+      }
   
   for(int64_t ivol=0;ivol<locVol;ivol++)
     {
@@ -47,8 +63,10 @@ void compute_density(FILE *fout,
   //reduce and print
   // master_fprintf(fout," NDists %d\n",(int)density.size());
   
-  for(auto& [r2,d] : density)
+  for(auto& dist : dists)
     {
+      dens_t& d=density[dist];
+      
       non_loc_reduce(&d.n);
       non_loc_reduce(&d.s);
       non_loc_reduce(&d.s2);
@@ -57,7 +75,7 @@ void compute_density(FILE *fout,
       const double s=d.s/n;
       const double s2=d.s2/n-s*s;
       
-      master_fprintf(fout,"%d %lg %lg\n",r2,s,sqrt(s2/n));
+      master_fprintf(fout,"%d %lg %lg\n",dist,s,sqrt(s2/n));
     }
   
   master_fprintf(fout,"\n");
@@ -140,9 +158,16 @@ void in_main(int narg,char **arg)
   //set the source
   color *source=nissa_malloc("source",locVol+bord_vol,color);
   vector_reset(source);
-  if(rank_coord[0]==0)
-    for(int t=0;t<locSize[0];t++)
-      source[0][0][0]=1;
+  
+  for(coords_t c{};c[0]<glbSize[0];c[0]++)
+    {
+      int ivol;
+      int r;
+      get_loclx_and_rank_of_coord(ivol,r,c);
+      
+      if(r==rank)
+	source[ivol][0][0]=1;
+    }
   set_borders_invalid(source);
   
   size_t p=0;
