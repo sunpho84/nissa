@@ -53,6 +53,17 @@ namespace nissa
       return filterDynamicComps(std::make_tuple(td...));
     }
   };
+  
+  /// Provide no dynamics comp
+  struct ProvideNoDynamicsComp
+  {
+    /// Returns the dynamic sizes
+    INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
+    CompsList<> getDynamicSizes() const
+    {
+      return {};
+    }
+  };
 }
 
 #endif
