@@ -180,8 +180,8 @@ namespace nissa
     template <DerivedFromNode...T>
     HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
     CWiseCombiner(const DynamicComps& dynamicSizes,
-		  T&&...addends) :
-      subExprs{{std::forward<T>(addends)}...},
+		  const T&...addends) :
+      subExprs{{addends}...},
       dynamicSizes(dynamicSizes)
     {
     }
@@ -198,7 +198,7 @@ namespace nissa
   template <typename Comb,
 	    DerivedFromNode..._E>
   INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
-  auto cWiseCombine(_E&&...e)
+  auto cWiseCombine(const _E&...e)
   {
     /// Computes the result components
     using Comps=
@@ -210,7 +210,7 @@ namespace nissa
     
     /// Resulting type
     using Res=
-      CWiseCombiner<std::tuple<_E...>,
+      CWiseCombiner<std::tuple<const _E&...>,
 		    Comps,
 		    Fund,
 		    Comb>;
@@ -220,7 +220,7 @@ namespace nissa
       dynamicCompsCombiner<typename Res::DynamicComps>(e.getDynamicSizes()...);
     
     return
-      Res(dc,std::forward<_E>(e)...);
+      Res(dc,e...);
   }
   
 #define CATCH_BINARY_OPERATOR(OP,NAMED_OP)				\
@@ -230,9 +230,9 @@ namespace nissa
     {									\
       template <typename...Args>					\
       constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB			\
-      static auto compute(Args&&...s)					\
+      static auto compute(const Args&...s)				\
       {									\
-	return ((std::forward<Args>(s)) OP ...);			\
+	return (s OP ...);						\
       }									\
     };									\
   }									\
@@ -240,14 +240,13 @@ namespace nissa
   /*! Catch the OP operator */						\
   template <DerivedFromNode E1,						\
 	    DerivedFromNode E2>						\
-  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
-  auto operator OP(E1&& e1,						\
-		   E2&& e2)						\
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB				\
+  auto operator OP(const E1& e1,					\
+		   const E2& e2)					\
   {									\
 									\
     return								\
-      cWiseCombine<impl::_ ## NAMED_OP ## Functor>(std::forward<E1>(e1), \
-						   std::forward<E2>(e2)); \
+      cWiseCombine<impl::_ ## NAMED_OP ## Functor>(e1,e2);		\
   }
   
   CATCH_BINARY_OPERATOR(+,Plus);
@@ -288,11 +287,11 @@ namespace nissa
   									\
   /*! Catch the OP operator */						\
   template <DerivedFromNode E>						\
-  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB			\
-  auto operator OP(E&& e)						\
+  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB				\
+  auto operator OP(const E& e)						\
   {									\
     return								\
-      cWiseCombine<impl::_ ## NAMED_OP ## Functor>(std::forward<E>(e));	\
+      cWiseCombine<impl::_ ## NAMED_OP ## Functor>(e);			\
   }
   
   CATCH_UNARY_OPERATOR(+,uPlus);

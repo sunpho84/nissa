@@ -404,19 +404,19 @@ namespace nissa
   template <DerivedFromNode E1,
 	    DerivedFromNode E2>
   INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB
-  auto operator*(E1&& e1,
-		 E2&& e2)
+  auto operator*(const E1& e1,
+		 const E2& e2)
   {
     return
-      prod(std::forward<E1>(e1),std::forward<E2>(e2));
+      prod(e1,e2);
   }
   
   /// Catch the self-product operator
   template <DerivedFromNode E1,
 	    DerivedFromNode E2>
   INLINE_FUNCTION constexpr // HOST_DEVICE_ATTRIB
-  auto operator*=(E1&& e1,
-		  E2&& e2)
+  auto operator*=(const E1& e1,
+		  const E2& e2)
   {
     using PCD=
       ProdCompsDeducer<typename std::decay_t<E1>::Comps,

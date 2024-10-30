@@ -61,6 +61,14 @@ namespace nissa
   template <typename T>
   static constexpr bool isCln=
     impl::_transposableCompIsOfRwCl<T,RwCl::CLN>();
+  
+  /// Gets the Row of a transposable comp
+  template <DerivedFromTransposableComp C>
+  using RowOf=std::conditional_t<isRow<C>,C,typename C::Transp>;
+  
+  /// Gets the Cln of a transposable comp
+  template <DerivedFromTransposableComp C>
+  using ClnOf=std::conditional_t<isCln<C>,C,typename C::Transp>;
 }
 
 #endif

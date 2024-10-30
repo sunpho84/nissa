@@ -151,6 +151,8 @@ namespace nissa
     using Base=						\
       BaseComp<NAME,int64_t,0>;				\
     							\
+    using Transp=NAME;					\
+    							\
     using Base::Base;					\
   }
   

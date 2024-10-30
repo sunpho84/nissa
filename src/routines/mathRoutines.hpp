@@ -56,7 +56,7 @@ namespace nissa
     return out;
   }
   
-  /// Returns max! / min!
+  /// Returns max! / (min-1)!
   template <typename T>
   constexpr auto partialFact(const T& min,
 			     const T& max)
