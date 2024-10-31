@@ -9,7 +9,7 @@
 
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
-#include <expr/exprRefOrVal.hpp>
+#include <expr/refOrVal.hpp>
 #include <expr/mergedComps.hpp>
 #include <expr/nodeDeclaration.hpp>
 #include <expr/scalar.hpp>

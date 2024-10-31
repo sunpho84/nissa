@@ -1,11 +1,11 @@
-#ifndef _NODE_REF_OR_VAL_HPP
-#define _NODE_REF_OR_VAL_HPP
+#ifndef _REF_OR_VAL_HPP
+#define _REF_OR_VAL_HPP
 
 #ifdef HAVE_CONFIG_H
 # include <config.hpp>
 #endif
 
-/// \file expr/exprReforVal.hpp
+/// \file expr/reforVal.hpp
 
 #include <metaprogramming/constnessChanger.hpp>
 

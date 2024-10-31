@@ -8,8 +8,8 @@
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
 #include <expr/execSpace.hpp>
-#include <expr/exprRefOrVal.hpp>
 #include <expr/nodeDeclaration.hpp>
+#include <expr/refOrVal.hpp>
 #include <expr/scalar.hpp>
 #include <expr/subExprs.hpp>
 #include <routines/ios.hpp>
