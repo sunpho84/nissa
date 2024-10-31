@@ -7,8 +7,6 @@
 
 /// \file expr/stackTens.hpp
 
-#include <algorithm>
-
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
 #include <expr/execSpace.hpp>

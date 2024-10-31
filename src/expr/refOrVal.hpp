@@ -7,7 +7,9 @@
 
 /// \file expr/reforVal.hpp
 
+#include <expr/nodeDeclaration.hpp>
 #include <metaprogramming/constnessChanger.hpp>
+#include <metaprogramming/crtp.hpp>
 
 namespace nissa
 {
@@ -55,6 +57,34 @@ namespace nissa
   template <typename _E>
   using NodeRefOrVal=
     typename impl::_NodeRefOrVal<_E>::type;
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Provides \c storeByRef member with the passed value
+  template <bool B>
+  struct ProvideValueOfStoreByRef
+  {
+    static constexpr bool storeByRef=B;
+  };
+  
+  /// Provides \c storeByRef with value true
+  using RequireStoreByRef=
+    ProvideValueOfStoreByRef<true>;
+  
+  /// Provides \c storeByRef with value false
+  using RequireStoreByValue=
+    ProvideValueOfStoreByRef<false>;
+  
+  /// Provide a trivial getRef taking a simple copy
+  template <DerivedFromNode N>
+  struct GetRefAsCopy
+  {
+    /// Takes a reference, actually a copy
+    INLINE_FUNCTION N getRef() const
+    {
+      return DE_CRTPFY(const N,this);
+    };
+  };
 }
 
 #endif
