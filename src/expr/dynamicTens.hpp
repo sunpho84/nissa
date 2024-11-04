@@ -288,7 +288,7 @@ namespace nissa
     }
     
     /// Create from another node
-    template < DerivedFromNode Oth>
+    template <DerivedFromNode Oth>
     constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
     explicit DynamicTens(const Oth& oth)
       requires(not DerivedFromDynamicTens<Oth>):
@@ -539,12 +539,15 @@ namespace nissa
   auto Node<T,CompsList<Ci...>>::closeToDynamicTens() const
     requires(T::_canCloseToDynamicTens())
   {
+    constexpr ExecSpace targExecSpace=
+      T::execSpace.hasUniqueExecSpace()?
+      T::execSpace:
+      defaultExecSpace;
+    
     return
       (DynamicTens<typename T::Comps,
        typename T::Fund,
-       T::execSpace.hasUniqueExecSpace()?
-       T::execSpace.getMemoryType():
-       defaultExecSpace>)*this;
+       getMemoryType<targExecSpace>()>)DE_CRTPFY(const T,this);
   }
 }
 
