@@ -15,7 +15,7 @@ namespace nissa
   ///
   /// Forward declaration
   template <typename C,
-	    typename Fund,
+	    typename Fund=double,
 	    MemoryType MT=defaultMemoryType,
 	    bool IsRef=false>
   struct DynamicTens;
