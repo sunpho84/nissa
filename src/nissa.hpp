@@ -35,6 +35,7 @@
 #include <expr/conj.hpp>
 #include <expr/cWiseCombine.hpp>
 #include <expr/dagger.hpp>
+#include <expr/dirac.hpp>
 #include <expr/dynamicTens.hpp>
 #include <expr/exponentiator.hpp>
 #include <expr/field.hpp>
