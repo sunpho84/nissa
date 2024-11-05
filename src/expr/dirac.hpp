@@ -146,11 +146,11 @@ namespace nissa
     
     constexpr inline DiracGammaData GZ{{2,3,0,1},{-I,+I,+I,-I}};
     
-    constexpr inline DiracGammaData GT{{2,3,0,1},{-One,-One,-One,-One}};
+    constexpr inline DiracGammaData G0{{2,3,0,1},{-One,-One,-One,-One}};
     
-    constexpr inline DiracGammaData G5=GT*GX*GY*GZ;
+    constexpr inline DiracGammaData G5=G0*GX*GY*GZ;
     
-    constexpr inline DiracGammaData ID=GT*GT;
+    constexpr inline DiracGammaData ID=G0*G0;
     
     static constexpr DiracGammaData AX=GX*G5;
     
@@ -158,13 +158,13 @@ namespace nissa
     
     static constexpr DiracGammaData AZ=GZ*G5;
     
-    static constexpr DiracGammaData AT=GT*G5;
+    static constexpr DiracGammaData A0=G0*G5;
     
-    static constexpr DiracGammaData TX=GT*GX;
+    static constexpr DiracGammaData TX=G0*GX;
     
-    static constexpr DiracGammaData TY=GT*GY;
+    static constexpr DiracGammaData TY=G0*GY;
     
-    static constexpr DiracGammaData TZ=GT*GZ;
+    static constexpr DiracGammaData TZ=G0*GZ;
     
     static constexpr DiracGammaData BX=GY*GZ;
     
@@ -173,7 +173,7 @@ namespace nissa
     static constexpr DiracGammaData BZ=GX*GY;
     
     [[maybe_unused]]
-    static constexpr std::array<DiracGammaData,16> basis{ID,GX,GY,GZ,GT,G5,AX,AY,AZ,AT,TX,TY,TZ,BX,BY,BZ};
+    static constexpr std::array<DiracGammaData,16> basis{ID,GX,GY,GZ,G0,G5,AX,AY,AZ,A0,TX,TY,TZ,BX,BY,BZ};
   }
   
   /////////////////////////////////////////////////////////////////
