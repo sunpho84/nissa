@@ -147,7 +147,9 @@ namespace nissa
       Fund res;
       Combiner::setToInitialValue(res);
       
-      compsLoop<CompsList<ReduceComp>>([this,&res,&nTCs...](const ReduceComp& rc) INLINE_ATTRIBUTE
+      compsLoop<CompsList<ReduceComp>>([this,
+					&res,
+					&nTCs...](const ReduceComp& rc) INLINE_ATTRIBUTE
       {
 	/// First argument
 	Combiner::reduce(res,this->subExpr(nTCs...,rc));
@@ -201,6 +203,7 @@ namespace nissa
     /* Implements the reduction of a comp over operator NAME */	\
     struct _CompReduce## NAME ## Functor			\
     {								\
+      /* Initialize to value */					\
       template <typename Fund>					\
       INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB		\
       static void setToInitialValue(Fund& f)			\
@@ -208,6 +211,7 @@ namespace nissa
 	f=INIT;							\
       }								\
       								\
+      /* Reduce */						\
       template <typename Fund>					\
       INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB		\
       static void reduce(Fund& out,				\
@@ -232,6 +236,15 @@ namespace nissa
   PROVIDE_COMP_REDUCE_FUNCTOR(Prod,*,1);
   
 #undef PROVIDE_COMP_REDUCE_FUNCTOR
+  
+  /// Averaging over a component
+  template <DerivedFromComp C,
+	    DerivedFromNode E>
+  constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB
+  decltype(auto) compAverage(E&& e)
+  {
+    return compSum<C>(std::forward<E>(e))/e.template getCompSize<C>()();
+  }
 }
 
 #endif

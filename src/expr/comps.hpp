@@ -161,7 +161,8 @@ namespace nissa
 	    f(pc...,val);
 	};
       
-      constexpr auto s=Head::sizeAtCompileTime;
+      constexpr auto s=
+		  Head::sizeAtCompileTime;
       
       if constexpr(s)
 	for(Head head=0;head<s;head++)
