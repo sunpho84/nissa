@@ -218,10 +218,10 @@ namespace nissa
     };								\
   }								\
 								\
-  /* Reduces the component C of expression E over operato NAME */\
+  /* Reduces the component C of expression E over operator NAME */\
   template <DerivedFromComp C,					\
 	    DerivedFromNode E>					\
-  constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB		\
+  constexpr INLINE_FUNCTION HOST_DEVICE_ATTRIB			\
   decltype(auto) comp ## NAME (E&& e)				\
   {								\
     return compReduce<C,impl::_CompReduce ## NAME ##		\
