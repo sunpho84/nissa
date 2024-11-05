@@ -33,11 +33,11 @@ namespace nissa
 	   const int& sign,
 	   const In& in)
   {
-    if constexpr(tupleHasType<typename In::Comps,ComplId>)
+    if constexpr(tupleHasType<typename In::Comps,ReIm>)
       {
 	/// Components different from those related to fft
 	using OthComps=
-	  TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite,ComplId>>;
+	  TupleFilterAllTypes<typename In::Comps,CompsList<LocLxSite,ReIm>>;
 	
 	/// Function to exec at each loop iteration
 	auto f=
@@ -63,7 +63,7 @@ namespace nissa
 	    masterPrintf("FFTing on Dir %d nFft=%ld\n",D(),nFft);
 	  };
 	
-	cycleOnAllLocalDirections<OthComps,CompsList<ComplId>>(std::forward<Out>(out),in,f,in.getDynamicSizes());
+	cycleOnAllLocalDirections<OthComps,CompsList<ReIm>>(std::forward<Out>(out),in,f,in.getDynamicSizes());
       }
     else
       fft(std::forward<Out>(out),sign,in*complOne<>);

@@ -47,7 +47,7 @@ namespace nissa
   {
     /// Detect complex
     constexpr bool hasComplComp=
-      tupleHasType<typename std::decay_t<E>::Comps,ComplId>;
+      tupleHasType<typename std::decay_t<E>::Comps,ReIm>;
     
     if constexpr(hasComplComp)
       return

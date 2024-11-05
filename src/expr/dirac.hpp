@@ -193,7 +193,7 @@ namespace nissa
   DiracGammaOver<_CSo,_CSi,_Fund>
   
 #define COMPS					\
-  CompsList<RowOf<_CSo>,ClnOf<_CSi>,ComplId>
+  CompsList<RowOf<_CSo>,ClnOf<_CSi>,ReIm>
   
 #define BASE					\
   Node<THIS,COMPS>
@@ -253,8 +253,8 @@ namespace nissa
       const int cSi=
 	std::get<CSi>(c)();
       
-      const ComplId ri=
-	std::get<ComplId>(c);
+      const ReIm ri=
+	std::get<ReIm>(c);
       
       const int nonNullCSi=data.nnc[cSo];
       

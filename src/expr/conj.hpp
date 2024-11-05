@@ -8,39 +8,12 @@
 /// \file expr/conj.hpp
 
 #include <expr/node.hpp>
+#include <expr/reIm.hpp>
 #include <expr/stackTens.hpp>
 #include <metaprogramming/universalReference.hpp>
 
 namespace nissa
 {
-  DECLARE_UNTRANSPOSABLE_COMP(ComplId,int,2,reIm);
-  
-#define PROVIDE_REAL_OR_IMAG(NAME,VAL)			\
-  template <typename T>					\
-  INLINE_FUNCTION constexpr HOST_DEVICE_ATTRIB	\
-  auto NAME(T&& t)					\
-  {							\
-    return						\
-      std::forward<T>(t)(reIm(VAL));			\
-  }
-  
-  PROVIDE_REAL_OR_IMAG(real,0);
-  
-  PROVIDE_REAL_OR_IMAG(imag,1);
-  
-#define FOR_REIM_PARTS(NAME)		\
-  FOR_ALL_COMPONENT_VALUES(ComplId,NAME)
-  
-  /// Real component index - we cannot rely on a constexpr inline as the compiler does not propagate it correctly
-#define Re ComplId(0)
-  
-  /// Imaginary component index
-#define Im ComplId(1)
-  
-#undef PROVIDE_REAL_OR_IMAG
-  
-  /////////////////////////////////////////////////////////////////
-  
   PROVIDE_FEATURE(Conjugator);
   
   /// Conjugator
@@ -159,8 +132,8 @@ namespace nissa
     Fund eval(const TD&...td) const
     {
       /// Compute the real or imaginary component
-      const ComplId reIm= //don't take as ref, it messes up
-	std::get<ComplId>(std::make_tuple(td...));
+      const ReIm reIm= //don't take as ref, it messes up
+	std::get<ReIm>(std::make_tuple(td...));
       
       /// Nested result
       const Fund nestedRes=
@@ -199,7 +172,7 @@ namespace nissa
 	using Comps=
 	  typename E::Comps;
 	
-	if constexpr(not tupleHasType<Comps,ComplId>)
+	if constexpr(not tupleHasType<Comps,ReIm>)
 	  return RemoveRValueReference<_E>(e);
 	else
 	  {
@@ -216,7 +189,7 @@ namespace nissa
   /// Defining a complex number
   template <typename Fund=double>
   using ComplNum=
-    StackTens<CompsList<ComplId>,Fund>;
+    StackTens<CompsList<ReIm>,Fund>;
   
   /// One as a complex
   template <typename Fund=double>

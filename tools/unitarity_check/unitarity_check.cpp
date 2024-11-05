@@ -93,13 +93,13 @@ void test_unitarity(FILE *fout,
 		    LxField<quad_su3>& conf,
 		    char *filename)
 {
-  StackTens<CompsList<SpinRow,SpinCln,ComplId>,double> e;
-  DynamicTens<CompsList<SpinRow,SpinCln,ComplId>,double,MemoryType::CPU> d;
+  StackTens<CompsList<SpinRow,SpinCln,ReIm>,double> e;
+  DynamicTens<CompsList<SpinRow,SpinCln,ReIm>,double,MemoryType::CPU> d;
   
   e=e*e;
   //decltype(E)::Comps r=1;
   e(reIm(0))=e(reIm(1));
-  compsLoop<CompsList<SpaceTime,ComplId>>([](const SpaceTime&,const ComplId&){},{});
+  compsLoop<CompsList<SpaceTime,ReIm>>([](const SpaceTime&,const ReIm&){},{});
   auto sd=d.getWritable();
   // Foo<false>::foo(1);
   //b();  

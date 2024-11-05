@@ -13,6 +13,7 @@
 
 #include <base/debug.hpp>
 #include <expr/bindComps.hpp>
+#include <expr/reIm.hpp>
 #include <expr/compsMerger.hpp>
 #include <expr/fieldDeclaration.hpp>
 #include <expr/assignDispatcher.hpp>
@@ -88,7 +89,8 @@ namespace nissa
     NodeFeat,
     Crtp<THIS,T>,
     MemberCompSubscribeProvider<T,Ci>...,
-    DynamicCompsProvider<CompsList<Ci...>>
+    DynamicCompsProvider<CompsList<Ci...>>,
+    MaybeRealImagPart<tupleHasType<CompsList<Ci...>,ReIm>,T>
   {
     using This=THIS;
 #undef THIS

@@ -131,7 +131,7 @@ namespace nissa
     
     /// Detect complex product
     static constexpr bool isComplProd=
-      (tupleHasType<typename std::decay_t<_E>::Comps,ComplId> and...);
+      (tupleHasType<typename std::decay_t<_E>::Comps,ReIm> and...);
     
     /// Detects matrix product
     static constexpr bool isMatrProd=
@@ -251,7 +251,7 @@ namespace nissa
 	       E0&& e0,
 	       E1&& e1) const
     {
-      const auto& reIm=std::get<ComplId>(allNccs);
+      const auto& reIm=std::get<ReIm>(allNccs);
       
       if(reIm==Re)
 	{
@@ -288,8 +288,8 @@ namespace nissa
       const auto allNccs=
 	std::make_tuple(_nccs...);
       
-      using MaybeComplId=
-	std::conditional_t<isComplProd,CompsList<ComplId>,CompsList<>>;
+      using MaybeReIm=
+	std::conditional_t<isComplProd,CompsList<ReIm>,CompsList<>>;
       
       ///Init the results to zero
       Fund res{};
@@ -311,7 +311,7 @@ namespace nissa
 	      {
 		/// Put together the comonents to be removed
 		using CompsToRemove=
-		  TupleCat<ContractedCompsForFact<I>,MaybeComplId>;
+		  TupleCat<ContractedCompsForFact<I>,MaybeReIm>;
 		
 		/// Non contracted components
 		auto nccs=
@@ -423,7 +423,7 @@ namespace nissa
 		       typename std::decay_t<E1>::Comps>;
     
     constexpr bool needsBuf=
-		(tupleHasType<typename PCD::VisibleComps,ComplId> or
+		(tupleHasType<typename PCD::VisibleComps,ReIm> or
 		 std::tuple_size_v<typename PCD::ContractedComps>);
     
     if(needsBuf)
