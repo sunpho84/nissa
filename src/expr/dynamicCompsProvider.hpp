@@ -14,20 +14,30 @@
 
 namespace nissa
 {
+  /// Discriminate the dynamic and static components
+  template <typename Tp>
+  struct DynamicStaticComps
+  {
+    /// Holds internally the result
+    using _D=
+      TupleDiscriminate<SizeIsKnownAtCompileTime,Tp>;
+    
+    /// List of all statically allocated components
+    using StaticComps=
+      typename _D::Valid;
+    
+    /// List of all dynamically allocated components
+    using DynamicComps=
+      typename _D::Invalid;
+  };
+  
   /// Provides the dynamic or static components
   template <typename C>
   struct DynamicCompsProvider
   {
-    using DynamicStaticComps=
-      TupleDiscriminate<SizeIsKnownAtCompileTime,C>;
-    
-    /// List of all statically allocated components
-    using StaticComps=
-      typename DynamicStaticComps::Valid;
-    
-    /// List of all dynamically allocated components
+    /// Holds the dynamic components
     using DynamicComps=
-      typename DynamicStaticComps::Invalid;
+      DynamicStaticComps<C>::DynamicComps;
     
     /// Number of dynamic components
     static constexpr int nDynamicComps=
