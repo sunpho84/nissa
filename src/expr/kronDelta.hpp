@@ -22,10 +22,15 @@ namespace nissa
 		execOnCPUAndGPU;
     
     /// Evaluate
+    template <DerivedFromComp F,
+	      DerivedFromComp S>
     constexpr HOST_DEVICE_ATTRIB INLINE_FUNCTION
-    bool operator()(const A& a,
-		    const B& b) const
+    bool operator()(const F& a,
+		    const S& b) const
     {
+      static_assert((std::is_same_v<A,F> or std::is_same_v<A,S>) and
+		    (std::is_same_v<B,F> or std::is_same_v<B,S>),"Unable to match the components");
+      
       return a()==b();
     }
   };
