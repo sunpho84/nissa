@@ -36,7 +36,6 @@ namespace nissa
   Node<THIS,CompsList<C...>>
   
   /// CompReducer
-  ///
   template <DerivedFromComp Rc,
 	    DerivedFromNode _E,
 	    DerivedFromComp...C,
