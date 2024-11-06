@@ -22,6 +22,7 @@
 #include <expr/stackTensDeclaration.hpp>
 #include <metaprogramming/crtp.hpp>
 #include <tuples/tupleHasType.hpp>
+#include <tuples/tupleApply.hpp>
 #include <tuples/tupleFilter.hpp>
 
 namespace nissa
@@ -266,13 +267,13 @@ namespace nissa
 // #endif
 // 	    directAssign(lhs,rhs);
       
-      compsLoop<typename T::Comps>([this,&u](const auto&...lhsComps)
+      compsLoop<typename T::Comps>([this,&u](const auto&...lhsComps) INLINE_ATTRIBUTE
       {
 	const auto lhsCompsTup=std::make_tuple(lhsComps...);
 	
 	const auto rhsCompsTup=tupleGetSubset<typename Rhs::Comps>(lhsCompsTup);
 	
-	OP::dispatch((~*this)(lhsComps...),(typename T::Fund)std::apply(~u,rhsCompsTup));
+	OP::dispatch((~*this)(lhsComps...),(typename T::Fund)tupleApply(~u,rhsCompsTup));
       },(~*this).getDynamicSizes());
       
       return ~*this;

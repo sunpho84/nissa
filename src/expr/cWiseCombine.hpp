@@ -14,6 +14,7 @@
 #include <expr/node.hpp>
 #include <metaprogramming/arithmeticTraits.hpp>
 #include <tuples/tuple.hpp>
+#include <tuples/tupleApply.hpp>
 #include <tuples/tupleCat.hpp>
 #include <tuples/uniqueTupleFromTuple.hpp>
 
@@ -173,7 +174,7 @@ namespace nissa
     Fund eval(const Cs&...cs) const
     {
       return
-	Comb::compute(std::apply(subExprs.template get<Is>(),getCompsForSubexpr<Is>(cs...))...);
+	Comb::compute(tupleApply(subExprs.template get<Is>(),getCompsForSubexpr<Is>(cs...))...);
     }
     
     /// Construct

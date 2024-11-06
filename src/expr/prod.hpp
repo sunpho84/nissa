@@ -19,6 +19,7 @@
 #include <metaprogramming/asConstexpr.hpp>
 #include <routines/ios.hpp>
 #include <tuples/tuple.hpp>
+#include <tuples/tupleApply.hpp>
 #include <tuples/tupleCat.hpp>
 #include <tuples/uniqueTupleFromTuple.hpp>
 
@@ -330,7 +331,7 @@ namespace nissa
 		
 		/// Result
 		const auto res=
-		  std::apply(subExprs.template get<I>(),std::tuple_cat(ccs,nccs,std::make_tuple(maybeReIm...)));
+		  tupleApply(subExprs.template get<I>(),std::tuple_cat(ccs,nccs,std::make_tuple(maybeReIm...)));
 		
 		return res;
 	      };
