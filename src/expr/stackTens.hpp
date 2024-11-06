@@ -7,7 +7,7 @@
 
 /// \file expr/stackTens.hpp
 
-#include <expr/comps.hpp>
+#include <expr/compsLoop.hpp>
 #include <expr/dynamicCompsProvider.hpp>
 #include <expr/execSpace.hpp>
 #include <expr/indexComputer.hpp>
