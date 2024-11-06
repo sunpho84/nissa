@@ -234,7 +234,7 @@ namespace nissa
   }
   
   /// Trace an expression
-  template <DerivedFromTransposableComp TracedComp,
+  template <DerivedFromTransposableComp...TracedComp,
 	    DerivedFromNode _E>
   HOST_DEVICE_ATTRIB INLINE_FUNCTION constexpr
   decltype(auto) traceOver(_E&& e)
@@ -244,10 +244,10 @@ namespace nissa
       std::decay_t<_E>;
     
     using TracedComps=
-      std::tuple<TracedComp>;
+      std::tuple<TracedComp...>;
     
     using Comps=
-      TupleFilterAllTypes<typename E::Comps,std::tuple<TracedComp,typename TracedComp::Transp>>;
+      TupleFilterAllTypes<typename E::Comps,std::tuple<TracedComp...,typename TracedComp::Transp...>>;
     
     using Fund=typename E::Fund;
     
