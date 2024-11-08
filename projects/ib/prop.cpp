@@ -71,8 +71,10 @@ namespace nissa
 	export_conf::relyOnTag=true;
 #endif
 	
-	if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
-	else inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
+	if(clover_run)
+	  inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
+	else
+	  inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
       }
     
     verbosity_lv1_master_printf("Solving time: %lg s\n",take_time()-tin);
@@ -466,7 +468,7 @@ namespace nissa
     master_printf("Inserting r: %d\n",r);
     switch(inser)
       {
-      case PROP:prop_multiply_with_gamma(loop_source,0,ori,rel_t);break;
+      case PROP:
       case SCALAR:prop_multiply_with_gamma(loop_source,0,ori,rel_t);break;
       case PSEUDO:prop_multiply_with_gamma(loop_source,5,ori,rel_t);break;
       case GAMMA:prop_multiply_with_gamma(loop_source,r,ori,rel_t);break;
@@ -528,8 +530,10 @@ namespace nissa
       }
     
     //write info on mass and r
-    if(twisted_run) master_printf(" mass=%lg, r=%d, theta={%lg,%lg,%lg}\n",q.mass,q.r,q.theta[1],q.theta[2],q.theta[3]);
-    else            master_printf(" kappa=%lg, theta={%lg,%lg,%lg}\n",q.kappa,q.theta[1],q.theta[2],q.theta[3]);
+    if(twisted_run)
+      master_printf(" mass=%lg, r=%d, theta={%lg,%lg,%lg}\n",q.mass,q.r,q.theta[1],q.theta[2],q.theta[3]);
+    else
+      master_printf(" kappa=%lg, theta={%lg,%lg,%lg}\n",q.kappa,q.theta[1],q.theta[2],q.theta[3]);
     
     //compute the inverse clover term, if needed
     if(clover_run and q.insertion==PROP)

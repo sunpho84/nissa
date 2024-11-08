@@ -231,6 +231,7 @@ void init_simulation(int narg,char **arg)
 	    {
 	      read_double(&mass);
 	      master_printf("Read variable 'Mass' with value: %lg\n",mass);
+	      
 	      read_int(&r);
 	      master_printf("Read variable 'R' with value: %d\n",r);
 	      

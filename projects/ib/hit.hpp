@@ -159,14 +159,14 @@ struct HitLooper
     
     verbosity_lv2_master_printf("futureDeps:\n");
     for(const auto& [delay,name] : futureDeps)
-      verbosity_lv2_master_printf(" %zu %s\n",delay,name.c_str());
+      verbosity_lv2_master_printf(" %d %s\n",delay,name.c_str());
     
     // \todo simplify
     
     int nLoaded=0;
     for(const auto& s : propagatorsStatus)
       nLoaded+=(s.second==1);
-    verbosity_lv2_master_printf("n Loaded props: %zu\n",nLoaded);
+    verbosity_lv2_master_printf("n Loaded props: %d\n",nLoaded);
     
     if((int)futureDeps.size()!=nLoaded)
       crash("unmatched loaded and future deps, %d %zu",nLoaded,futureDeps.size());

@@ -858,7 +858,7 @@ namespace nissa
     
     for(size_t icombo=0;icombo<handcuffs_map.size();icombo++)
       {
-	master_fprintf(fout,"\n # Contraction %d \n\n",icombo,source_coords_if_not_averaging_hits().c_str());
+	master_fprintf(fout,"\n # Contraction %zu %s\n\n",icombo,source_coords_if_not_averaging_hits().c_str());
 	
 	//normalize for nsources
 	complex c;
