@@ -1250,7 +1250,7 @@ namespace nissa
     INLINE_FUNCTION
     bool operator!=(const EoField& oth) const
     {
-      return not (*this)==oth;
+      return not ((*this)==oth);
     }
     
     /// Assign

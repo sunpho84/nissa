@@ -60,7 +60,7 @@ namespace nissa
     
     /// Fills the output
     ByteSwapper out;
-    for(int i=0;i<sizeof(T);i++)
+    for(size_t i=0;i<sizeof(T);i++)
       out.c[i]=in.c[sizeof(T)-1-i];
     
     return out.t;

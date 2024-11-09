@@ -70,7 +70,7 @@ namespace nissa
     double zps[nShift],zas[nShift],alphas[nShift];
     double zfs[nShift],betas[nShift];
     int run_flag[nShift],nrun_shift=nShift;
-    for(int ishift=0;ishift<nShift;ishift++)
+    for(size_t ishift=0;ishift<nShift;ishift++)
       {
 	zps[ishift]=zas[ishift]=1;
 	alphas[ishift]=0;

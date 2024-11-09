@@ -807,8 +807,8 @@ namespace nissa
 			   const C& c,
 			   const size_t nr_max=NCOL)
   {
-    for(int ir_out=0;ir_out<nr_max;ir_out++)
-      for(int ic_out=0;ic_out<NCOL;ic_out++)
+    for(size_t ir_out=0;ir_out<nr_max;ir_out++)
+      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
 	{
 	  unsafe_complex_prod(a[ir_out][ic_out],b[ir_out][0],c[0][ic_out]);
 	  for(int itemp=1;itemp<NCOL;itemp++)
@@ -1300,21 +1300,6 @@ namespace nissa
     su3_overrelax(out,in,w,coeff,5);
   }
   
-  template <typename A,
-	    typename B>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  void su3_unitarize_explicitly_inverting(A&& _new_link,
-					  const B& _prop_link,
-					  const double tol=1e-15)
-  {
-    su3 prop_link;
-    su3_copy(prop_link,_prop_link);
-    
-    su3 new_link;
-    su3_unitarize_explicitly_inverting(new_link,prop_link,tol);
-    su3_copy(_new_link,new_link);
-  }
-  
   /// Unitarize an su3 matrix by taking explicitely the inverse and averaging with it
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void su3_unitarize_explicitly_inverting(su3& new_link,
@@ -1356,6 +1341,21 @@ namespace nissa
     su3_det(det,new_link);
     complex_pow(fact,det,-1.0/NCOL);
     safe_su3_prod_complex(new_link,new_link,fact);
+  }
+  
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_unitarize_explicitly_inverting(A&& _new_link,
+					  const B& _prop_link,
+					  const double tol=1e-15)
+  {
+    su3 prop_link;
+    su3_copy(prop_link,_prop_link);
+    
+    su3 new_link;
+    su3_unitarize_explicitly_inverting(new_link,prop_link,tol);
+    su3_copy(_new_link,new_link);
   }
   
   //perform an iteration of maximal projection trace
