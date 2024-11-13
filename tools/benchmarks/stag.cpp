@@ -26,8 +26,7 @@ void print_stat(const char *what,double time,int n,int flops)
 
 void bench_stag()
 {
-#warning
-  
+  crash(""); 
   // //conf
   // quad_su3 *conf[2];
   // for(int eo=0;eo<2;eo++) conf[eo]=nissa_malloc("conf",loc_volh+bord_volh,quad_su3);
@@ -110,7 +109,8 @@ void bench_Wils()
   
   //in
   spincolor *in=nissa_malloc("in",locVol+bord_vol,spincolor);
-  generate_fully_undiluted_eo_source(in, RND_GAUSS,-1,EVN);
+  crash("reimplement");
+  //generate_fully_undiluted_eo_source(in, RND_GAUSS,-1,EVN);
   
   //temp and out
   spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
@@ -147,8 +147,6 @@ void bench_Wils()
 void in_main(int narg,char **arg)
 {
   if(narg<3) crash("Use %s L T",arg[0]);
-  
-  use_Leb_geom=1;
   
   //grid
   int L=atoi(arg[1]),T=atoi(arg[2]);

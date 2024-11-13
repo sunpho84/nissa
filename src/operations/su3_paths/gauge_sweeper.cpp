@@ -687,8 +687,6 @@ namespace nissa
   //call the appropriate sweeper intializator
   void init_sweeper(gauge_action_name_t gauge_action_name)
   {
-    MANDATORY_NOT_PARALLEL;
-    
     switch(gauge_action_name)
       {
       case WILSON_GAUGE_ACTION:if(!Wilson_sweeper->staples_inited) init_Wilson_sweeper();break;

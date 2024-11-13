@@ -19,7 +19,10 @@ namespace nissa
   }
   
   //lx wrapper
-  void Symanzik_action(double *action,quad_su3 *conf,double beta,double C1)
+  void Symanzik_action(double *action,
+		       const LxField<quad_su3>& conf,
+		       const double& beta,
+		       const double& C1)
   {
     //compute shapes
     complex glb_shapes;

@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #define EXTERN_QUDA_BRIDGE
@@ -710,46 +710,46 @@ namespace quda_iface
   /// Apply the dirac operator
   void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double csw,double mu,spincolor *in)
   {
-    export_gauge_conf_to_external_solver(conf);
+    crash("reimplement");
+    //     export_gauge_conf_to_external_solver(conf);
     
-#ifdef DEBUG_QUDA
-    master_printf("setting pars\n");
-#endif
+// #ifdef DEBUG_QUDA
+//     master_printf("setting pars\n");
+// #endif
     
-    set_base_inverter_pars();
-    inv_param.kappa=kappa;
-    inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
-    if(csw)
-      {
-	inv_param.dslash_type=QUDA_TWISTED_CLOVER_DSLASH;
-	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
-	inv_param.clover_coeff=csw*kappa;
-	// inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
-	// inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
+    // set_base_inverter_pars();
+    // inv_param.kappa=kappa;
+    // inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
+    // if(csw)
+    //   {
+    // 	inv_param.dslash_type=QUDA_TWISTED_CLOVER_DSLASH;
+    // 	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
+    // 	inv_param.clover_coeff=csw*kappa;
+    // 	// inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
+    // 	// inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
 	
-	if constexpr(hasMember_cl_pad<decltype(inv_param)>)
-	  inv_param.cl_pad=0;
-	// inv_param.dirac_order=QUDA_DIRAC_ORDER;
+    // 	if constexpr(hasMember_cl_pad<decltype(inv_param)>)
+    // 	  inv_param.cl_pad=0;
 	
-	loadCloverQuda(NULL,NULL,&inv_param);
-      }
-    else
-      {
-	inv_param.dslash_type=QUDA_TWISTED_MASS_DSLASH;
-      }
+// 	loadCloverQuda(NULL,NULL,&inv_param);
+//       }
+//     else
+//       {
+// 	inv_param.dslash_type=QUDA_TWISTED_MASS_DSLASH;
+//       }
     
-    inv_param.solution_type=QUDA_MAT_SOLUTION;
+//     inv_param.solution_type=QUDA_MAT_SOLUTION;
     
-    //minus due to different gamma5 definition
-    inv_param.mu=-mu;
-    inv_param.epsilon=0.0;
+//     //minus due to different gamma5 definition
+//     inv_param.mu=-mu;
+//     inv_param.epsilon=0.0;
     
-    inv_param.twist_flavor=QUDA_TWIST_SINGLET;
-    inv_param.Ls=1;
+//     inv_param.twist_flavor=QUDA_TWIST_SINGLET;
+//     inv_param.Ls=1;
     
-    remap_nissa_to_quda(spincolor_in,in);
-    MatQuda(spincolor_out,spincolor_in,&inv_param);
-    remap_quda_to_nissa(out,spincolor_out);
+//     remap_nissa_to_quda(spincolor_in,in);
+//     MatQuda(spincolor_out,spincolor_in,&inv_param);
+//     remap_quda_to_nissa(out,spincolor_out);
   }
   
   void set_inverter_pars(const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,const bool& exported)
@@ -1363,8 +1363,9 @@ namespace quda_iface
   bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,spincolor *source)
   {
     const double export_time=take_time();
-    const bool exported=
-      export_gauge_conf_to_external_solver(conf);
+    const bool exported=false;
+    //export_gauge_conf_to_external_solver(conf);
+    crash("reimplement");
     master_printf("time to export to the conf to quda: %lg s\n",take_time()-export_time);
     
     set_base_inverter_pars();
@@ -1422,46 +1423,49 @@ namespace quda_iface
   
   bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source)
   {
-    gauge_param.reconstruct=
-      gauge_param.reconstruct_sloppy=
-      gauge_param.reconstruct_precondition=
-      gauge_param.reconstruct_refinement_sloppy=
-      QUDA_RECONSTRUCT_NO;
-    const double export_time=take_time();
+    crash("reimplement");
     
-    add_or_rem_stagphases_to_conf(conf);
-    const bool exported=export_gauge_conf_to_external_solver(conf);
-    add_or_rem_stagphases_to_conf(conf);
-    master_printf("time to export (%d) to external library: %lg s\n",exported,take_time()-export_time);
+    // gauge_param.reconstruct=
+    //   gauge_param.reconstruct_sloppy=
+    //   gauge_param.reconstruct_precondition=
+    //   gauge_param.reconstruct_refinement_sloppy=
+    //   QUDA_RECONSTRUCT_NO;
+    // const double export_time=take_time();
     
-    set_base_inverter_pars();
+    // add_or_rem_stagphases_to_conf(conf);
+    // const bool exported=export_gauge_conf_to_external_solver(conf);
+    // add_or_rem_stagphases_to_conf(conf);
+    // master_printf("time to export (%d) to external library: %lg s\n",exported,take_time()-export_time);
     
-    inv_param.dslash_type=QUDA_STAGGERED_DSLASH;
-    inv_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;
-    inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
-    inv_param.solution_type=QUDA_MAT_SOLUTION;
+    // set_base_inverter_pars();
     
-    inv_param.inv_type=QUDA_CG_INVERTER;
-    inv_param.solve_type=QUDA_DIRECT_PC_SOLVE;
-    inv_param.dagger=QUDA_DAG_NO;
+    // inv_param.dslash_type=QUDA_STAGGERED_DSLASH;
+    // inv_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;
+    // inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
+    // inv_param.solution_type=QUDA_MAT_SOLUTION;
     
-    //minus due to different gamma5 definition
-    inv_param.mass=mass;
+    // inv_param.inv_type=QUDA_CG_INVERTER;
+    // inv_param.solve_type=QUDA_DIRECT_PC_SOLVE;
+    // inv_param.dagger=QUDA_DAG_NO;
     
-    inv_param.tol=sqrt(residue);
-    inv_param.maxiter=niter;
-    inv_param.Ls=1;
+    // //minus due to different gamma5 definition
+    // inv_param.mass=mass;
     
-    inv_param.verbosity=get_verbosity_for_quda();
+    // inv_param.verbosity=get_verbosity_for_quda();
+    // inv_param.tol=sqrt(residue);
+    // inv_param.maxiter=niter;
+    // inv_param.Ls=1;
     
-    remap_nissa_to_quda(color_in,source);
+    // inv_param.verbosity=get_quda_verbosity();
     
-    //invertQuda(color_out,color_in,&inv_param);
-    MatQuda(color_out,color_in,&inv_param);
+    // remap_nissa_to_quda(color_in,source);
     
-    master_printf("# QUDA solved in: %i iter / %g secs=%g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
+    // //invertQuda(color_out,color_in,&inv_param);
+    // MatQuda(color_out,color_in,&inv_param);
     
-    remap_quda_to_nissa(sol,color_out);
+    // master_printf("# QUDA solved in: %i iter / %g secs=%g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
+    
+    // remap_quda_to_nissa(sol,color_out);
     
     return true;
   }

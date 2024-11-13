@@ -1,8 +1,13 @@
 #ifndef _SQUARED_STAPLE_HPP
 #define _SQUARED_STAPLE_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <mpi.h>
 
+#include "base/field.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/su3.hpp"
 
@@ -10,7 +15,12 @@ namespace nissa
 {
   typedef su3 squared_staples_t[NDIM][NDIM*(NDIM+1)/2];
   
-  void compute_squared_staples_lx_conf(squared_staples_t *out,quad_su3 *conf);
+  void compute_summed_squared_staples_lx_conf(LxField<quad_su3>& out,
+					      const LxField<quad_su3>& conf);
+  
+  void compute_squared_staples_lx_conf(LxField<squared_staples_t>& out,
+				       const LxField<quad_su3>& conf);
+  
   void compute_summed_squared_staples_eo_conf(eo_ptr<quad_su3> F,eo_ptr<quad_su3> eo_conf);
   void compute_summed_squared_staples_lx_conf(quad_su3 *out,quad_su3 *conf);
   CUDA_HOST_AND_DEVICE void compute_point_summed_squared_staples_eo_conf(quad_su3 staple,eo_ptr<quad_su3> eo_conf,int A);

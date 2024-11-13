@@ -1,21 +1,20 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include "base/debug.hpp"
+#include "base/field.hpp"
 #include "base/random.hpp"
-#include "base/vectors.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/spin.hpp"
 #include "operations/fourier_transform.hpp"
-#include "routines/mpi_routines.hpp"
 #include "routines/ios.hpp"
 
 #include "free_theory_types.hpp"
 
 #ifdef USE_EIGEN
- #include <Eigen/Dense>
- #include <Eigen/Eigenvalues>
+# include <Eigen/Dense>
+# include <Eigen/Eigenvalues>
 #endif
 
 namespace nissa
@@ -40,24 +39,45 @@ namespace nissa
     return res;
   }
   
-  //cancel the mode if it is zero according to the prescription
-  CUDA_HOST_AND_DEVICE bool cancel_if_zero_mode(spin1prop prop,gauge_info gl,int imom)
+  /// Cancel the mode if it is zero according to the prescription
+  template <typename A>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  bool cancel_if_zero_mode_spin1prop(A&& prop,
+				     const gauge_info& gl,
+				     const int& imom)
   {
     bool m=zero_mode_subtraction_mask(gl,imom);
-    for(int mu=0;mu<4;mu++) for(int nu=0;nu<4;nu++) for(int reim=0;reim<2;reim++) prop[mu][nu][reim]*=m;
-    return !m;
+    
+    for(int mu=0;mu<NDIM;mu++)
+      for(int nu=0;nu<NDIM;nu++)
+	for(int reim=0;reim<2;reim++)
+	  prop[mu][nu][reim]*=m;
+    
+    return not m;
   }
-  CUDA_HOST_AND_DEVICE bool cancel_if_zero_mode(spin1field prop,gauge_info gl,int imom)
+  
+  template <typename A>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  bool cancel_if_zero_mode_spin1field(A&& prop,
+				      const gauge_info& gl,
+				      const int& imom)
   {
-    bool m=zero_mode_subtraction_mask(gl,imom);
+    const bool m=zero_mode_subtraction_mask(gl,imom);
+    
     //if(gl.zms!=ONLY_100 &&m==0) printf("cancelling zero mode %d\n",glblx_of_loclx[imom]);
     //if(gl.zms==ONLY_100 &&m==1) printf("leaving mode %d=(%d,%d,%d,%d)\n",glblx_of_loclx[imom],glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3]);
-    for(int mu=0;mu<NDIM;mu++) for(int reim=0;reim<2;reim++) prop[mu][reim]*=m;
-    return !m;
+    
+    for(int mu=0;mu<NDIM;mu++)
+      for(int reim=0;reim<2;reim++)
+	prop[mu][reim]*=m;
+    
+    return not m;
   }
   
   //compute the tree level Symanzik gauge propagator in the momentum space according to P.Weisz
-  CUDA_HOST_AND_DEVICE void mom_space_tlSym_gauge_propagator_of_imom(spin1prop prop,gauge_info gl,int imom)
+  CUDA_HOST_AND_DEVICE void mom_space_tlSym_gauge_propagator_of_imom(spin1prop& prop,
+								     const gauge_info& gl,
+								     const int& imom)
   {
     int kron_delta[4][4]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
     
@@ -152,38 +172,51 @@ namespace nissa
       }
     
     //cancel when appropriate
-    cancel_if_zero_mode(prop,gl,imom);
+    cancel_if_zero_mode_spin1prop(prop,gl,imom);
   }
   
-  void compute_mom_space_tlSym_gauge_propagator(spin1prop* prop,gauge_info gl)
+  void compute_mom_space_tlSym_gauge_propagator(LxField<spin1prop>& prop,
+						const gauge_info& gl)
   {
+    PAR(0,locVol,
+	CAPTURE(gl,TO_WRITE(prop)),imom,
+	{//hack
+	  spin1prop temp;
+	  mom_space_tlSym_gauge_propagator_of_imom(temp,gl,imom);
+	  spin1prop_copy(prop[imom],temp);
+	});
     
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
-      mom_space_tlSym_gauge_propagator_of_imom(prop[imom],gl,imom);
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(prop);
+    prop.invalidateHalo();
   }
   
-  void multiply_mom_space_tlSym_gauge_propagator(spin1field* out,spin1field* in,gauge_info gl)
+  void multiply_mom_space_tlSym_gauge_propagator(LxField<spin1field>& out,
+						 const LxField<spin1field>& in,
+						 const gauge_info& gl)
   {
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
-      {
-	spin1prop prop;
-	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
-	safe_spinspin_prod_spin(out[imom],prop,in[imom]);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(out);
+    PAR(0,locVol,
+	CAPTURE(gl,
+		TO_WRITE(out),
+		TO_READ(in)),imom,
+	{//hack
+	  spin1prop prop;
+	  mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
+	  safe_spinspin_prod_spin(out[imom],prop,in[imom]);
+	});
   }
   
-  void multiply_mom_space_sqrt_tlSym_gauge_propagator(spin1field* out,spin1field* in,gauge_info gl)
+  void multiply_mom_space_sqrt_tlSym_gauge_propagator(LxField<spin1field>& out,
+						      const LxField<spin1field>& in,
+						      const gauge_info& gl)
   {
 #ifndef USE_EIGEN
     if(gl.which_gauge!=gauge_info::FEYNMAN or gl.c1!=0)
       crash("Eigen required when out of Wilson regularisation or in the Feynaman gauge");
 #endif
     
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
+    PAR(0,locVol,
+	CAPTURE(gl,TO_READ(in),
+		TO_WRITE(out)),
+	imom,
       {
 	//take the propagator
 	spin1prop prop;
@@ -232,7 +265,7 @@ namespace nissa
 	const double prop_norm=eprop.norm();
 	const double rel_err=err_norm/prop_norm;
 	// std::cout<<"Testing sqrt:          "<<rel_err<<std::endl;
-	if(prop_norm>tol and err_norm>tol) crash("Error! Relative error on sqrt for mode %ld (prop norm %lg) is %lg, greater than tolerance %lg",imom,prop_norm,rel_err,tol);
+	if(prop_norm>tol and err_norm>tol) crash("Error! Relative error on sqrt for mode %d (prop norm %lg) is %lg, greater than tolerance %lg",imom,prop_norm,rel_err,tol);
 	
 	//product with in, store
 	Vector4cd eout=sqrt_eprop*ein;
@@ -256,51 +289,69 @@ namespace nissa
 	//     nre+=sqr(out[imom][mu][RE]);
 	//     nim+=sqr(out[imom][mu][IM]);
 	//   }
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    
-    set_borders_invalid(out);
+      });
   }
   
   void multiply_x_space_tlSym_gauge_propagator_by_fft(spin1prop* out,spin1prop* in,gauge_info gl)
   {
+    crash("reimplement");
     
-    pass_spin1prop_from_x_to_mom_space(out,in,gl.bc,true,true);
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
-      {
-	spin1prop prop;
-	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
-	safe_spinspin_prod_spinspin(out[imom],prop,out[imom]);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(out);
-    pass_spin1prop_from_mom_to_x_space(out,in,gl.bc,true,true);
+    // pass_spin1prop_from_x_to_mom_space(out,in,gl.bc,true,true);
+    // NISSA_PARALLEL_LOOP(imom,0,locVol)
+    //   {
+    // 	spin1prop prop;
+    // 	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
+    // 	safe_spinspin_prod_spinspin(out[imom],prop,out[imom]);
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
+    // set_borders_invalid(out);
+    // pass_spin1prop_from_mom_to_x_space(out,in,gl.bc,true,true);
+  }
+  
+  void multiply_x_space_tlSym_gauge_propagator_by_fft(LxField<spin1prop>& out,
+						      const LxField<spin1prop>& in,
+						      const gauge_info& gl)
+  {
+    crash("reimplement");
+    
+    // pass_spin1prop_from_x_to_mom_space(out,in,gl.bc,true,true);
+    // NISSA_PARALLEL_LOOP(imom,0,locVol)
+    //   {
+    // 	spin1prop prop;
+    // 	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
+    // 	safe_spinspin_prod_spinspin(out[imom],prop,out[imom]);
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
+    // set_borders_invalid(out);
+    // pass_spin1prop_from_mom_to_x_space(out,in,gl.bc,true,true);
   }
   
   //compute the tree level Symanzik gauge propagator in the x space by taking the fft of that in momentum space
-  void compute_x_space_tlSym_gauge_propagator_by_fft(spin1prop *prop,gauge_info gl)
+  void compute_x_space_tlSym_gauge_propagator_by_fft(LxField<spin1prop>& prop,
+						     const gauge_info& gl)
   {
     compute_mom_space_tlSym_gauge_propagator(prop,gl);
     pass_spin1prop_from_mom_to_x_space(prop,prop,gl.bc,true,true);
   }
   
   //generate a stochastic gauge propagator source
-  void generate_stochastic_tlSym_gauge_propagator_source(spin1field* eta)
+  void generate_stochastic_tlSym_gauge_propagator_source(LxField<spin1field>& eta)
   {
     //fill with Z2
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
-	comp_get_rnd(eta[ivol][mu],&(loc_rnd_gen[ivol]),RND_Z2);
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(eta);
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(eta)),ivol,
+	{
+	  for(int mu=0;mu<NDIM;mu++)
+	    comp_get_rnd(eta[ivol][mu],&(loc_rnd_gen[ivol]),RND_Z2);
+	});
   }
   
   //generate a stochastic gauge propagator
-  void multiply_by_sqrt_tlSym_gauge_propagator(spin1field* photon,spin1field* eta,gauge_info gl)
+  void multiply_by_sqrt_tlSym_gauge_propagator(LxField<spin1field>& photon,
+					       const LxField<spin1field>& eta,
+					       const gauge_info& gl)
   {
-    
-    if(photon!=eta) vector_copy(photon,eta);
+    if(photon!=eta) photon=eta;
     
     pass_spin1field_from_x_to_mom_space(photon,photon,gl.bc,true,true);
     
@@ -308,59 +359,63 @@ namespace nissa
     //put volume normalization due to convolution
     //cancel zero modes
     multiply_mom_space_sqrt_tlSym_gauge_propagator(photon,photon,gl);
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
-      {
-	spin_prodassign_double(photon[imom],sqrtf(glbVol));
-	cancel_if_zero_mode(photon[imom],gl,imom);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(photon);
+    PAR(0,locVol,
+	CAPTURE(gl,TO_WRITE(photon)),imom,
+	{
+	  spin_prodassign_double(photon[imom],sqrtf(glbVol));
+	  cancel_if_zero_mode_spin1field(photon[imom],gl,imom);
+	});
     
     //go back to x space
     pass_spin1field_from_mom_to_x_space(photon,photon,gl.bc,true,true);
-    
   }
   
   //multiply by gauge prop passing to mom space
-  void multiply_by_tlSym_gauge_propagator(spin1field* out,spin1field* in,gauge_info gl)
+  void multiply_by_tlSym_gauge_propagator(LxField<spin1field>& out,
+					  const LxField<spin1field>& in,
+					  const gauge_info& gl)
   {
-    
     pass_spin1field_from_x_to_mom_space(out,in,gl.bc,true,true);
     
     //multiply by prop
     //put volume normalization due to convolution
     //cancel zero modes
     multiply_mom_space_tlSym_gauge_propagator(out,out,gl);
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
+    PAR(0,locVol,
+	CAPTURE(gl,TO_WRITE(out)),imom,
       {
 	spin_prodassign_double(out[imom],glbVol);
-	cancel_if_zero_mode(out[imom],gl,imom);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(out);
+	cancel_if_zero_mode_spin1field(out[imom],gl,imom);
+      });
     
     //go back to x space
     pass_spin1field_from_mom_to_x_space(out,out,gl.bc,true,true);
-    
   }
   
   //generate a stochastic gauge propagator
-  void generate_stochastic_tlSym_gauge_propagator(spin1field *phi,spin1field *eta, gauge_info gl)
+  void generate_stochastic_tlSym_gauge_propagator(LxField<spin1field>& phi,
+						  LxField<spin1field>& eta,
+						  const gauge_info& gl)
   {
     generate_stochastic_tlSym_gauge_propagator_source(eta);
     multiply_by_tlSym_gauge_propagator(phi,eta,gl);
   }
   
   //compute the tadpole by taking the zero momentum ft of momentum prop
-  momentum_t compute_tadpole(gauge_info photon)
+  momentum_t compute_tadpole(const gauge_info& photon)
   {
-    momentum_t tadpole;
-    
     double tad_time=-take_time();
-    spin1prop *gprop=nissa_malloc("gprop",locVol,spin1prop);
-    compute_x_space_tlSym_gauge_propagator_by_fft(gprop,photon);
-    for(int mu=0;mu<NDIM;mu++) tadpole[mu]=broadcast(gprop[0][mu][mu][RE]);
-    nissa_free(gprop);
+    
+    LxField<spin1prop> gprop("gprop");
+    compute_mom_space_tlSym_gauge_propagator(gprop,photon);
+    
+    spin1prop tmp;
+    gprop.reduce(tmp);
+    
+    momentum_t tadpole;
+    for(int mu=0;mu<NDIM;mu++)
+      tadpole[mu]=tmp[mu][mu][RE];
+    
     tad_time+=take_time();
     master_printf("Tadpole: (%lg,%lg,%lg,%lg), time to compute: %lg s\n",tadpole[0],tadpole[1],tadpole[2],tadpole[3],tad_time);
     
@@ -368,20 +423,22 @@ namespace nissa
   }
   
   //compute the energy of an off-shell gluon
-  double gluon_energy(gauge_info gl,const double virt,const int imom)
+  double gluon_energy(const gauge_info& gl,
+		      const double& virt,
+		      const int& imom)
   {
     if(gl.c1!=WILSON_C1)
       crash("Implemented only for Wilson gluons");
     
     double p2=0;
-    coords_t c=glb_coord_of_glblx(imom);
+    const coords_t c=glb_coord_of_glblx(imom);
     for(int mu=1;mu<NDIM;mu++)
       {
 	double p=M_PI*(2*c[mu]+gl.bc[mu])/glbSize[mu];
 	p2+=sqr(2*sin(p/2));
       }
-
-    double four_sinh2_Eh= sqr(2.0*asinh( sqrt(p2)/2 )) +sqr(virt);
+    
+    const double four_sinh2_Eh=sqr(2.0*asinh(sqrt(p2)/2))+sqr(virt);
     if(four_sinh2_Eh<0) master_printf("WARNING, negative squared energy %lg\n",four_sinh2_Eh);
     
     return sqrt(four_sinh2_Eh);

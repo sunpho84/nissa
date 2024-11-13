@@ -1,39 +1,39 @@
-#include <math.h>
-#include <cmath>
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
 
-#include "base/bench.hpp"
-#include "base/debug.hpp"
-#include "base/vectors.hpp"
-#include "communicate/communicate.hpp"
-#include "dirac_operators/stD/dirac_operator_stD.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "linalgs/linalgs.hpp"
+#include <optional>
 
-#define BASETYPE color
-#define NDOUBLES_PER_SITE 6
-#define BULK_VOL locVolh
-#define BORD_VOL bord_volh
+#include <base/field.hpp>
+#include <inverters/templates/cg_invert_template_threaded.hpp>
+#include <dirac_operators/stD/dirac_operator_stD.hpp>
 
-#define APPLY_OPERATOR apply_stD2ee_m2
-#define CG_OPERATOR_PARAMETERS conf,t,m2,
-
-#define CG_INVERT inv_stD2ee_m2_cg_portable
-#define CG_NPOSSIBLE_REQUESTS 16
-
-//maybe one day async comm
-//#define cg_start_communicating_borders start_communicating_ev_color_borders
-//#define cg_finish_communicating_borders finish_communicating_ev_color_borders
-
-#define CG_ADDITIONAL_VECTORS_ALLOCATION()				\
-  BASETYPE *t=nissa_malloc("DD_temp",BULK_VOL+BORD_VOL,BASETYPE);
-#define CG_ADDITIONAL_VECTORS_FREE()		\
-  nissa_free(t);
-
-//additional parameters
-#define CG_NARG 2
-#define AT1 eo_ptr<quad_su3>
-#define A1 conf
-#define AT2 double
-#define A2 m2
-
-#include "inverters/templates/cg_invert_template_threaded.cpp"
+namespace nissa
+{
+  void inv_stD2ee_m2_cg_portable(EvnField<color>& sol,
+				 const std::optional<EvnField<color>>& guess,
+				 const EoField<quad_su3> conf,
+				 const double m2,
+				 const int& niter,
+				 const double& residue,
+				 const EvnField<color>& source)
+  {
+    std::function<void(EvnField<color>&,
+      const EvnField<color>&)> f=
+      [temp=OddField<color>("temp",WITH_HALO),
+       &conf,
+       &m2]
+      (EvnField<color>& out,
+		const EvnField<color>& in) mutable
+      {
+	apply_stD2ee_m2(out,conf,temp,m2,in);
+      };
+    
+    cg_invert(sol,
+	       guess,
+	      f,
+	       niter,
+	       residue,
+	       source);
+  }
+}

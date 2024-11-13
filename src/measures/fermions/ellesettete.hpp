@@ -11,7 +11,10 @@ namespace nissa
   {
     int max_order;
     
-    std::string def_path(){return "ellesettete";}
+    std::string def_path() const
+    {
+      return "ellesettete";
+    }
 
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);

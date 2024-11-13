@@ -35,7 +35,8 @@ void in_main(int narg,char **arg)
   if(arg[9])
     {
       start_loc_rnd_gen(atoi(arg[9]));
-      perform_random_gauge_transform(conf,conf);
+      crash("reimplement");
+      //perform_random_gauge_transform(conf,conf);
     }
   
   //////////////////////////// stout the conf //////////////////////////
@@ -48,7 +49,10 @@ void in_main(int narg,char **arg)
       //compute topocharge
       double charge;
       topo_time-=take_time();
-      total_topological_charge_lx_conf(&charge,conf);
+      
+      crash("reimplement");charge=0.0;
+      
+      // total_topological_charge_lx_conf(&charge,conf);
       topo_time+=take_time();
       
       master_printf("Smearing level: %d plaq: %16.16lg charge: %16.16lg\n",ilev,global_plaquette_lx_conf(conf),charge);

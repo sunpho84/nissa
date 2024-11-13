@@ -28,92 +28,99 @@ namespace nissa
   //evolve the momenta with topological force
   void evolve_lx_momenta_with_topological_force(quad_su3* H,quad_su3* conf,topotential_pars_t* topars,double dt,quad_su3* ext_F)
   {
-    verbosity_lv2_master_printf("Evolving lx momenta with topological force, dt=%lg\n",dt);
+    crash("reimplement");
     
-    //allocate force and compute it
-    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol,quad_su3):ext_F;
-    compute_topological_force_lx_conf(F,conf,topars);
+    // verbosity_lv2_master_printf("Evolving lx momenta with topological force, dt=%lg\n",dt);
     
-    //evolve
-    evolve_lx_momenta_with_force(H,F,dt);
-    if(ext_F==NULL) nissa_free(F);
+    // //allocate force and compute it
+    // quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol,quad_su3):ext_F;
+    // compute_topological_force_lx_conf(F,conf,topars);
+    
+    // //evolve
+    // evolve_lx_momenta_with_force(H,F,dt);
+    // if(ext_F==NULL) nissa_free(F);
   }
   
   //eo wrapper
   void evolve_eo_momenta_with_topological_force(eo_ptr<quad_su3> eo_H,eo_ptr<quad_su3> eo_conf,topotential_pars_t* topars,double dt)
   {
-    verbosity_lv2_master_printf("Evolving e/o momenta with topological force, dt=%lg\n",dt);
+    crash("reimplement");
     
-    //reorder
-    quad_su3 *lx_conf=nissa_malloc("lx_conf",locVol+bord_vol+edge_vol,quad_su3);
-    quad_su3 *lx_H=nissa_malloc("lx_H",locVol,quad_su3);
-    paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
-    paste_eo_parts_into_lx_vector(lx_H,eo_H);
+    // verbosity_lv2_master_printf("Evolving e/o momenta with topological force, dt=%lg\n",dt);
     
-    evolve_lx_momenta_with_topological_force(lx_H,lx_conf,topars,dt,NULL);
+    // //reorder
+    // quad_su3 *lx_conf=nissa_malloc("lx_conf",locVol+bord_vol+edge_vol,quad_su3);
+    // quad_su3 *lx_H=nissa_malloc("lx_H",locVol,quad_su3);
+    // paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
+    // paste_eo_parts_into_lx_vector(lx_H,eo_H);
     
-    split_lx_vector_into_eo_parts(eo_H,lx_H);
-    nissa_free(lx_H);
-    nissa_free(lx_conf);
+    // evolve_lx_momenta_with_topological_force(lx_H,lx_conf,topars,dt,NULL);
+    
+    // split_lx_vector_into_eo_parts(eo_H,lx_H);
+    // nissa_free(lx_H);
+    // nissa_free(lx_conf);
   }
   
   //evolve the configuration according to pure gauge - note that there is a similar routine in "pure_gage"
   void Omelyan_pure_gauge_evolver_lx_conf(quad_su3* H,quad_su3* lx_conf,theory_pars_t* theory_pars,hmc_evol_pars_t* simul)
   {
-    //macro step or micro step
-    double dt=simul->traj_length/simul->nmd_steps/simul->ngauge_substeps/2,
-      dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
-    int nsteps=simul->ngauge_substeps;
-    quad_su3 *aux_F=nissa_malloc("aux_F",locVol,quad_su3);
+    crash("reimplement");
+    // //macro step or micro step
+    // double dt=simul->traj_length/simul->nmd_steps/simul->ngauge_substeps/2,
+    //   dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
+    // int nsteps=simul->ngauge_substeps;
+    // quad_su3 *aux_F=nissa_malloc("aux_F",locVol,quad_su3);
     
-    topotential_pars_t *topars=&(theory_pars->topotential_pars);
+    // topotential_pars_t *topars=&(theory_pars->topotential_pars);
     
-    //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
-    evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,ldt,aux_F);
-    if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,ldt,aux_F);
+    // //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
+    // evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,ldt,aux_F);
+    // if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,ldt,aux_F);
     
-    //         Main loop
-    for(int istep=0;istep<nsteps;istep++)
-      {
-	verbosity_lv1_master_printf(" Omelyan gauge micro-step %d/%d\n",istep+1,nsteps);
+    // //         Main loop
+    // for(int istep=0;istep<nsteps;istep++)
+    //   {
+    // 	verbosity_lv1_master_printf(" Omelyan gauge micro-step %d/%d\n",istep+1,nsteps);
 	
-	//decide if last step is final or not
-	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
+    // 	//decide if last step is final or not
+    // 	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
 	
-	//     Compute U(t+dt/2) i.e. r1=r(t)+v1*dt/2
-	evolve_lx_conf_with_momenta(lx_conf,H,dth);
-	//     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
-	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,uml2dt,aux_F);
-	if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F);
-	//     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
-	evolve_lx_conf_with_momenta(lx_conf,H,dth);
-	//     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
-	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt,aux_F);
-	if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F);
+    // 	//     Compute U(t+dt/2) i.e. r1=r(t)+v1*dt/2
+    // 	evolve_lx_conf_with_momenta(lx_conf,H,dth);
+    // 	//     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
+    // 	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,uml2dt,aux_F);
+    // 	if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F);
+    // 	//     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
+    // 	evolve_lx_conf_with_momenta(lx_conf,H,dth);
+    // 	//     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
+    // 	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt,aux_F);
+    // 	if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F);
 	
-	//normalize the configuration
-	//unitarize_lx_conf_maximal_trace_projecting(lx_conf);
-      }
+    // 	//normalize the configuration
+    // 	//unitarize_lx_conf_maximal_trace_projecting(lx_conf);
+    //   }
     
-    nissa_free(aux_F);
+    // nissa_free(aux_F);
   }
   
   //wrapper
   void Omelyan_pure_gauge_evolver_eo_conf(eo_ptr<quad_su3> H_eo,eo_ptr<quad_su3> conf_eo,theory_pars_t *theory_pars,hmc_evol_pars_t *simul)
   {
-    quad_su3 *H_lx=nissa_malloc("H_lx",locVol,quad_su3);
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol+edge_vol,quad_su3);
+    crash("");
     
-    paste_eo_parts_into_lx_vector(H_lx,H_eo);
-    paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
+    // quad_su3 *H_lx=nissa_malloc("H_lx",locVol,quad_su3);
+    // quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol+edge_vol,quad_su3);
     
-    Omelyan_pure_gauge_evolver_lx_conf(H_lx,conf_lx,theory_pars,simul);
+    // paste_eo_parts_into_lx_vector(H_lx,H_eo);
+    // paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
-    split_lx_vector_into_eo_parts(H_eo,H_lx);
-    split_lx_vector_into_eo_parts(conf_eo,conf_lx);
+    // Omelyan_pure_gauge_evolver_lx_conf(H_lx,conf_lx,theory_pars,simul);
     
-    nissa_free(conf_lx);
-    nissa_free(H_lx);
+    // split_lx_vector_into_eo_parts(H_eo,H_lx);
+    // split_lx_vector_into_eo_parts(conf_eo,conf_lx);
+    
+    // nissa_free(conf_lx);
+    // nissa_free(H_lx);
   }
   
   /////////////////////////////////////// QUARK E/O PART ////////////////////////////////////////////////

@@ -76,15 +76,39 @@ namespace nissa
     
     void fill_source(eo_ptr<color> src,int twall,rnd_t noise_type);
     void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> right,complex *point_result);
-    void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double residue,eo_ptr<color> source);
-    void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,theory_pars_t *pars,int iflav,double residue,eo_ptr<color> source);
-    void mult_dMdmu(eo_ptr<color> out,theory_pars_t *theory_pars,eo_ptr<quad_su3> conf,int iflav,int ord,eo_ptr<color> in);
+    
+    void mult_Minv(EoField<color>& prop,
+		   EoField<quad_su3> conf,
+		   const EoField<quad_u1>& u1b,
+		   const double& m,
+		   const double& residue,
+		   const EoField<color>& source);
+    
+    void mult_Minv(EoField<color>& prop,
+		   const EoField<quad_su3>& conf,
+		   const theory_pars_t& pars,
+		   const int& iflav,
+		   const double& residue,
+		   const EoField<color>& source);
+    
+    void mult_dMdmu(EoField<color>& out,
+		    const theory_pars_t& theory_pars,
+		    EoField<quad_su3> conf,
+		    const int& iflav,
+		    const int& ord,
+		    const EoField<color>& in);
+    
     void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars);
     void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,int ieo,int mu,void *pars),int t,void *pars=NULL);
-    void local_trace(complex* point_result, eo_ptr<color> A, eo_ptr<color> B);
-    void summ_the_trace(double *out,complex *point_result,eo_ptr<color> A,eo_ptr<color> B);
+    void summ_the_trace(complex& out,
+			LxField<complex>& point_result,
+			const EoField<color>& A,
+			const EoField<color>& B);
+    void summ_the_time_trace(double* out,
+			     LxField<complex>& point_result,
+			     const EoField<color>& A,
+			     const EoField<color>& B);
     void summ_the_time_trace(double* out,complex* point_result,eo_ptr<color>  A,eo_ptr<color> B);
-
     enum shift_orie_t{UP,DW,BOTH};
     void apply_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side=BOTH);
     void summ_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side);

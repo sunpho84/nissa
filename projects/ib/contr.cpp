@@ -1,7 +1,7 @@
 #include <nissa.hpp>
 
 #define EXTERN_CONTR
- #include "contr.hpp"
+# include "contr.hpp"
 
 #include <set>
 
@@ -26,8 +26,10 @@ namespace nissa
     std::set<std::string> opened;
     
   public:
+    
     //open for write or append, depending
-    FILE *open(const std::string &path,int force_append=false)
+    FILE *open(const std::string &path,
+	       const bool& force_append=false)
     {
       //detect the mode
       std::string mode;
@@ -40,7 +42,8 @@ namespace nissa
 	mode="a";
       
       //open
-      FILE *fout=open_file(path.c_str(),mode.c_str());
+      FILE *fout=
+	open_file(path.c_str(),mode.c_str());
       
       return fout;
     }
@@ -55,37 +58,41 @@ namespace nissa
   
   //free mesonic contractions
   void free_mes2pts_contr()
-  {nissa_free(mes2pts_contr);}
+  {
+    nissa_free(mes2pts_contr);
+  }
   
   //compute a single scalar product
-  void compute_prop_scalprod(double* res,std::string pr_dag,std::string pr)
+  void compute_prop_scalprod(complex& res,
+			     const std::string& pr_dag,
+			     const std::string& pr)
   {
     master_printf("Computing the scalar product between %s and %s\n",pr_dag.c_str(),pr.c_str());
     
-    complex *loc=nissa_malloc("loc",locVol,complex);
-    vector_reset(loc);
+    LxField<complex> loc("loc");
+    loc.reset();
     
     for(int idc_so=0;idc_so<nso_spi*nso_col;idc_so++)
       {
-	spincolor *q_dag=Q[pr_dag][idc_so];
-	spincolor *q=Q[pr][idc_so];
+	LxField<spincolor>& q_dag=Q[pr_dag][idc_so];
+	LxField<spincolor>& q=Q[pr][idc_so];
 	
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  {
-	    complex t;
-	    spincolor_scalar_prod(t,q_dag[ivol],q[ivol]);
-	    complex_summassign(loc[ivol],t);
-	  }
-	NISSA_PARALLEL_LOOP_END;
+	PAR(0,locVol,
+	    CAPTURE(TO_WRITE(loc),
+		    TO_READ(q_dag),
+		    TO_READ(q)),
+	    ivol,
+	    {
+	      complex t;
+	      spincolor_scalar_prod(t,q_dag[ivol],q[ivol]);
+	      complex_summassign(loc[ivol],t);
+	    });
       }
-    THREAD_BARRIER();
     
-    glb_reduce((complex*)res,loc,locVol);
-    
-    nissa_free(loc);
+    glb_reduce(&res,loc,locVol);
   }
   
-  //compute one meson contraction
+  //compute meson contractions
   void compute_mes2pt_contr(int icombo)
   //void compute_mes2pts_contr(int normalize)
   {
@@ -99,8 +106,6 @@ namespace nissa
     //
     // A(i) (S1*)^{ab}_{kj(i)} B(k) (S2)^{ab}_{l(k)i}
     
-    if(IS_MASTER_THREAD) mes2pts_contr_time-=take_time();
-    
     qprop_t &Q1=Q[a];
     qprop_t &Q2=Q[b];
     double norm=12/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2); //12 in case of a point source
@@ -108,9 +113,10 @@ namespace nissa
       {
 	int ig_so=mes_gamma_list[ihadr_contr].so;
 	int ig_si=mes_gamma_list[ihadr_contr].si;
-	if(nso_spi==1 and ig_so!=5) crash("implemented only g5 contraction on the source for non-diluted source");
+	if(nso_spi==1 and ig_so!=5)
+	  crash("implemented only g5 contraction on the source for non-diluted source");
 	
-	vector_reset(loc_contr);
+	loc_contr->reset();
 	
 	for(int i=0;i<nso_spi;i++)
 	  {
@@ -129,43 +135,44 @@ namespace nissa
 		complex_prodassign_double(AB[k],norm);
 	      }
 	    
+	    auto& loc_contr=*nissa::loc_contr;
+	    
 	    for(int b=0;b<nso_col;b++)
 	      {
-		spincolor *q1=Q1[so_sp_col_ind(j,b)];
-		spincolor *q2=Q2[so_sp_col_ind(i,b)];
+		const LxField<spincolor>& q1=Q1[so_sp_col_ind(j,b)];
+		const LxField<spincolor>& q2=Q2[so_sp_col_ind(i,b)];
 		
-		NISSA_PARALLEL_LOOP(ivol,0,locVol)
-		  {
-		    for(int k=0;k<NDIRAC;k++)
-		      {
-			int l=(base_gamma+ig_si)->pos[k];
-			
-			complex c={0,0};
-			for(int a=0;a<NCOL;a++)
-			  complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
-			complex_summ_the_prod(loc_contr[ivol],c,AB[k]);
-		      }
-		  }
-		NISSA_PARALLEL_LOOP_END;
+		PAR(0,locVol,
+			CAPTURE(ig_si,AB,
+				TO_WRITE(loc_contr),
+				TO_READ(q1),
+				TO_READ(q2)),
+			ivol,
+		    {
+		      for(int k=0;k<NDIRAC;k++)
+			{
+			  int l=(base_gamma+ig_si)->pos[k];
+			  
+			  complex c={0,0};
+			  for(int a=0;a<NCOL;a++)
+			    complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
+			  complex_summ_the_prod(loc_contr[ivol],c,AB[k]);
+			}
+		    });
 	      }
 	  }
 	
-	THREAD_BARRIER();
 	complex temp_contr[glbSize[0]];
-	glb_reduce(temp_contr,loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+	glb_reduce(temp_contr,*loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
 	
 	for(int t=0;t<glbSize[0];t++)
 	  complex_summassign(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glbSize[0]-source_coord[0])%glbSize[0])],temp_contr[t]);
       }
     
-  //stats
-  if(IS_MASTER_THREAD)
-    {
-      nmes2pts_contr_made+=mes_gamma_list.size();
-      mes2pts_contr_time+=take_time();
-    }
+    nmes2pts_contr_made+=mes_gamma_list.size();
+    mes2pts_contr_time+=take_time();
   }
-
+  
   /// Prepares a string containing the origin, if not averaging hits
   std::string source_coords_if_not_averaging_hits()
   {
@@ -282,55 +289,57 @@ namespace nissa
   // O^\dagger_ga = eps_{a,b,c}} q3^*_{ga,c}q2^*_{be,b}(CG)^\dag_{al,be}q3_{ga,c}
   void compute_bar2pts_alt_contr()
   {
-    master_printf("Computing barion 2pts contractions alternative\n");
+    crash("reimplement");
     
-    const int nWicks=2;
+    //     master_printf("Computing barion 2pts contractions alternative\n");
     
-    UNPAUSE_TIMING(bar2pts_alt_contr_time);
-    for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
-      {
-	qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
-	qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
-	qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
-	const double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
+//     const int nWicks=2;
+    
+//     UNPAUSE_TIMING(bar2pts_alt_contr_time);
+//     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
+//       {
+// 	qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
+// 	qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
+// 	qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
+// 	const double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
 	
-	for(auto &iProjGroup : std::array<std::array<int,3>,NBAR_ALT_SINGLE_PROJ>
-#ifdef BAR_ALT_LIMITED_PROJ
-	       {{{5,5, 0},
-		 {1,1, 1},{2,2, 1},{3,3, 1},
-		 {1,2, 2},{1,3, 2},{2,1, 2},{2,3, 2},{3,1, 2},{3,2, 2}}})
-#else
-	      {{{5,5, 0},
-		{1,1, 1},{2,2, 1},{3,3, 1},
-		{1,2, 2},{1,3, 2},{2,1, 2},{2,3, 2},{3,1, 2},{3,2, 2},
-		{4,4, 3},
-		{4,1, 4},{4,2, 4},{4,3, 4},
-		{1,4, 5},{2,4, 5},{3,4, 5}}})
-#endif
-	  {
-	    const int igSo=iProjGroup[0];
-	    const int igSi=iProjGroup[1];
+// 	for(auto &iProjGroup : std::array<std::array<int,3>,NBAR_ALT_SINGLE_PROJ>
+// #ifdef BAR_ALT_LIMITED_PROJ
+// 	       {{{5,5, 0},
+// 		 {1,1, 1},{2,2, 1},{3,3, 1},
+// 		 {1,2, 2},{1,3, 2},{2,1, 2},{2,3, 2},{3,1, 2},{3,2, 2}}})
+// #else
+// 	      {{{5,5, 0},
+// 		{1,1, 1},{2,2, 1},{3,3, 1},
+// 		{1,2, 2},{1,3, 2},{2,1, 2},{2,3, 2},{3,1, 2},{3,2, 2},
+// 		{4,4, 3},
+// 		{4,1, 4},{4,2, 4},{4,3, 4},
+// 		{1,4, 5},{2,4, 5},{3,4, 5}}})
+// #endif
+// 	  {
+// 	    const int igSo=iProjGroup[0];
+// 	    const int igSi=iProjGroup[1];
 	    
-	    complex contr[glbSize[0]*nWicks];
-	    tm_corr_op::compute_baryon_2pts_proj_contr(contr,igSo,igSi,Q1.sp,Q2.sp,Q3.sp,source_coord[0],temporal_bc);
+// 	    complex contr[glbSize[0]*nWicks];
+// 	    tm_corr_op::compute_baryon_2pts_proj_contr(contr,igSo,igSi,Q1.sp,Q2.sp,Q3.sp,source_coord[0],temporal_bc);
 	    
-	    for(int dt=0;dt<glbSize[0];dt++)
-	      for(int iWick=0;iWick<nWicks;iWick++)
-		{
-		  /// Input index
-		  const int iin=iWick+nWicks*dt;
+// 	    for(int dt=0;dt<glbSize[0];dt++)
+// 	      for(int iWick=0;iWick<nWicks;iWick++)
+// 		{
+// 		  /// Input index
+// 		  const int iin=iWick+nWicks*dt;
 		  
-		  /// Out index
-		  const int iout=ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],dt);
+// 		  /// Out index
+// 		  const int iout=ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],dt);
 		  
-		  complex_summ_the_prod_double(bar2pts_alt_contr[iout],contr[iin],norm);
-		}
-	  }
-  }
-  STOP_TIMING(bar2pts_alt_contr_time);
+// 		  complex_summ_the_prod_double(bar2pts_alt_contr[iout],contr[iin],norm);
+// 		}
+// 	  }
+//   }
+//   STOP_TIMING(bar2pts_alt_contr_time);
   
-  //stats
-  if(IS_MASTER_THREAD) nbar2pts_alt_contr_made+=bar2pts_contr_map.size();
+//   //stats
+//   if(IS_MASTER_THREAD) nbar2pts_alt_contr_made+=bar2pts_contr_map.size();
   }
   
   // //compute all contractions
@@ -466,91 +475,92 @@ namespace nissa
   //compute all contractions
   void compute_bar2pts_contr()
   {
-    master_printf("Computing barion 2pts contractions\n");
+    crash("reimplement");
+    // master_printf("Computing barion 2pts contractions\n");
     
-    crash("#warning reimplement");
-    //allocate loc storage
-    complex *loc_contr=new complex[bar2pts_contr_size];
-    memset(loc_contr,0,sizeof(complex)*bar2pts_contr_size);
+    // crash("#warning reimplement");
+    // //allocate loc storage
+    // complex *loc_contr=new complex[bar2pts_contr_size];
+    // memset(loc_contr,0,sizeof(complex)*bar2pts_contr_size);
     
-    //void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
-    UNPAUSE_TIMING(bar2pts_contr_time);
-    for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
-      {
-	// qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
-	// qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
-	// qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
-	//double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
-	
-	for(int al=0;al<NDIRAC;al++)
-	  for(int ga=0;ga<NDIRAC;ga++)
-	    for(int b=0;b<NCOL;b++)
-	      for(int iperm=0;iperm<2;iperm++)
-		{
-		  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-		    {
-		      // const int eps[3][2]={{1,2},{2,0},{0,1}};
-		      // int sign[2]={1,-1};
-    
-		      // int t=rel_time_of_loclx(ivol);
-		      
-		      // int c=eps[b][iperm],a=eps[b][!iperm];
-		      // int be=Cg5.pos[al];
-		  
-		      // int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
-		      // int sign_idg0[2]={1,(t<(glb_size[0]/2))?-1:+1}; //gamma0 is -1 always
-    			  for(int al1=0;al1<NDIRAC;al1++)
-    			    for(int b1=0;b1<NCOL;b1++)
-    			      {
-    				// complex diquark_dir={0,0},diquark_exc={0,0};
-				
-    				//build the diquark
-    				for(int iperm1=0;iperm1<2;iperm1++)
-    				  {
-    				    // int c1=eps[b1][iperm1],a1=eps[b1][!iperm1];
-				    
-    				    for(int idg0=0;idg0<2;idg0++)
-    				      {
-    					// int isign=((sign[iperm]*sign[iperm1]*sign_idg0[idg0])==1);
-    					// int ga1=ga1_l[idg0][ga];
-					
-    					// list_fun[isign](diquark_dir,Q1[so_sp_col_ind(al,a)][ivol][al1][a1],Q3[so_sp_col_ind(ga,c)][ivol][ga1][c1]); //direct
-    					// list_fun[isign](diquark_exc,Q1[so_sp_col_ind(ga,c)][ivol][al1][a1],Q3[so_sp_col_ind(al,a)][ivol][ga1][c1]); //exchange
-    				      }
-    				  }
-				
-    				//close it
-    				// complex w;
-    				// unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
-				// int be1=Cg5.pos[al1];
-    				// complex_prodassign_double(diquark_dir,w[RE]*norm);
-    				// complex_prodassign_double(diquark_exc,w[RE]*norm);
-				// complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,0,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_dir);
- 				// complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,1,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_exc);
-    			      }
-		    }
-		  NISSA_PARALLEL_LOOP_END;
-		}
-      }
-    STOP_TIMING(bar2pts_contr_time);
-    
-    //reduce
-    crash("#warning");
-    // complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_contr_size);
-    // NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size)
+    // //void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
+    // UNPAUSE_TIMING(bar2pts_contr_time);
+    // for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
     //   {
-    // 	//remove border phase
-    // 	int t=i%glb_size[0];
-    // 	double arg=3*temporal_bc*M_PI*t/glb_size[0];
-    // 	complex phase={cos(arg),sin(arg)};
-    // 	complex_summ_the_prod(bar2pts_contr[i],master_reduced_contr[i],phase);
-    //   }
-    // NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
-    delete[] loc_contr;
+    // 	// qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
+    // 	// qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
+    // 	// qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
+    // 	//double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
+	
+    // 	for(int al=0;al<NDIRAC;al++)
+    // 	  for(int ga=0;ga<NDIRAC;ga++)
+    // 	    for(int b=0;b<NCOL;b++)
+    // 	      for(int iperm=0;iperm<2;iperm++)
+    // 		{
+    // 		  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 		    {
+    // 		      // const int eps[3][2]={{1,2},{2,0},{0,1}};
+    // 		      // int sign[2]={1,-1};
     
-    //stats
-    if(IS_MASTER_THREAD) nbar2pts_contr_made+=bar2pts_contr_map.size();
+    // 		      // int t=rel_time_of_loclx(ivol);
+		      
+    // 		      // int c=eps[b][iperm],a=eps[b][!iperm];
+    // 		      // int be=Cg5.pos[al];
+		  
+    // 		      // int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
+    // 		      // int sign_idg0[2]={1,(t<(glb_size[0]/2))?-1:+1}; //gamma0 is -1 always
+    // 			  for(int al1=0;al1<NDIRAC;al1++)
+    // 			    for(int b1=0;b1<NCOL;b1++)
+    // 			      {
+    // 				// complex diquark_dir={0,0},diquark_exc={0,0};
+				
+    // 				//build the diquark
+    // 				for(int iperm1=0;iperm1<2;iperm1++)
+    // 				  {
+    // 				    // int c1=eps[b1][iperm1],a1=eps[b1][!iperm1];
+				    
+    // 				    for(int idg0=0;idg0<2;idg0++)
+    // 				      {
+    // 					// int isign=((sign[iperm]*sign[iperm1]*sign_idg0[idg0])==1);
+    // 					// int ga1=ga1_l[idg0][ga];
+					
+    // 					// list_fun[isign](diquark_dir,Q1[so_sp_col_ind(al,a)][ivol][al1][a1],Q3[so_sp_col_ind(ga,c)][ivol][ga1][c1]); //direct
+    // 					// list_fun[isign](diquark_exc,Q1[so_sp_col_ind(ga,c)][ivol][al1][a1],Q3[so_sp_col_ind(al,a)][ivol][ga1][c1]); //exchange
+    // 				      }
+    // 				  }
+				
+    // 				//close it
+    // 				// complex w;
+    // 				// unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
+    // 				// int be1=Cg5.pos[al1];
+    // 				// complex_prodassign_double(diquark_dir,w[RE]*norm);
+    // 				// complex_prodassign_double(diquark_exc,w[RE]*norm);
+    // 				// complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,0,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_dir);
+    // 				// complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,1,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_exc);
+    // 			      }
+    // 		    }
+    // 		  NISSA_PARALLEL_LOOP_END;
+    // 		}
+    //   }
+    // STOP_TIMING(bar2pts_contr_time);
+    
+    // //reduce
+    // crash("#warning");
+    // // complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_contr_size);
+    // // NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size)
+    // //   {
+    // // 	//remove border phase
+    // // 	int t=i%glb_size[0];
+    // // 	double arg=3*temporal_bc*M_PI*t/glb_size[0];
+    // // 	complex phase={cos(arg),sin(arg)};
+    // // 	complex_summ_the_prod(bar2pts_contr[i],master_reduced_contr[i],phase);
+    // //   }
+    // // NISSA_PARALLEL_LOOP_END;
+    // THREAD_BARRIER();
+    // delete[] loc_contr;
+    
+    // //stats
+    // if(IS_MASTER_THREAD) nbar2pts_contr_made+=bar2pts_contr_map.size();
   }
   
   //print all contractions
@@ -613,13 +623,18 @@ namespace nissa
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //compute the matrix element of the conserved current between two propagators. If asking to revert, g5 is inserted between the two propagators
-  void conserved_vector_current_mel(quad_su3* conf,spin1field* si,const dirac_matr& ext_g,int r,const char* name_bw,const char* name_fw,bool revert)
+  void conserved_vector_current_mel(const LxField<quad_su3>& conf,
+				    LxField<spin1field>& si,
+				    const dirac_matr& ext_g,
+				    const int& r,
+				    const char* name_bw,
+				    const char* name_fw,
+				    const bool& revert)
   {
-    
-    vector_reset(si);
+    si.reset();
     
     //compute the gammas
-    dirac_matr* GAMMA=nissa_malloc("GAMMA",5,dirac_matr);
+    dirac_matr GAMMA[5];
     dirac_matr temp_gamma;
     if(twisted_run>0)	temp_gamma=dirac_prod_idouble(base_gamma[5],-tau3[r]);
     else                temp_gamma=base_gamma[0];
@@ -649,49 +664,58 @@ namespace nissa
 	  int idc_bw=so_sp_col_ind(iso_spi_bw,iso_col);
 	  
 	  //get componentes
-	  spincolor *Qfw=Q[name_fw][idc_fw];
-	  spincolor *Qbw=Q[name_bw][idc_bw];
+	  LxField<spincolor>& Qfw=Q[name_fw][idc_fw];
+	  LxField<spincolor>& Qbw=Q[name_bw][idc_bw];
 	  
-	  communicate_lx_spincolor_borders(Qfw);
-	  communicate_lx_spincolor_borders(Qbw);
-	  communicate_lx_quad_su3_borders(conf);
+	  Qfw.updateHalo();
+	  Qbw.updateHalo();
+	  conf->updateHalo();
 	  
-	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	    for(int mu=0;mu<NDIM;mu++)
+	  PAR(0,locVol,
+	      CAPTURE(g,iso_spi_bw,GAMMA,
+		      TO_WRITE(si),
+		      TO_READ(Qfw),
+		      TO_READ(Qbw),
+		      TO_READ(conf)),
+	      ivol,
 	      {
-		int ivol_fw=loclxNeighup[ivol][mu];
-		spincolor f,Gf;
-		complex c;
-		
-		//piece psi_ivol U_ivol psi_fw
-		unsafe_su3_prod_spincolor(f,conf[ivol][mu],Qfw[ivol_fw]);
-		unsafe_dirac_prod_spincolor(Gf,GAMMA[4],f);
-		dirac_subt_the_prod_spincolor(Gf,GAMMA[mu],f);
-		spincolor_scalar_prod(c,Qbw[ivol],Gf);
-		complex_prodassign(c,g.entr[iso_spi_bw]);
-		complex_summ_the_prod_idouble(si[ivol][mu],c,-0.5);
-		
-		//piece psi_fw U_ivol^dag psi_ivol
-		unsafe_su3_dag_prod_spincolor(f,conf[ivol][mu],Qfw[ivol]);
-		unsafe_dirac_prod_spincolor(Gf,GAMMA[4],f);
-		dirac_summ_the_prod_spincolor(Gf,GAMMA[mu],f);
-		spincolor_scalar_prod(c,Qbw[ivol_fw],Gf);
-		complex_prodassign(c,g.entr[iso_spi_bw]);
-		complex_summ_the_prod_idouble(si[ivol][mu],c,+0.5);
-	      }
-	  NISSA_PARALLEL_LOOP_END;
+		for(int mu=0;mu<NDIM;mu++)
+		  {
+		    const int ivol_fw=loclxNeighup[ivol][mu];
+		    spincolor f,Gf;
+		    complex c;
+		    
+		    //piece psi_ivol U_ivol psi_fw
+		    unsafe_su3_prod_spincolor(f,conf[ivol][mu],Qfw[ivol_fw]);
+		    unsafe_dirac_prod_spincolor(Gf,GAMMA[4],f);
+		    dirac_subt_the_prod_spincolor(Gf,GAMMA[mu],f);
+		    spincolor_scalar_prod(c,Qbw[ivol],Gf);
+		    complex_prodassign(c,g.entr[iso_spi_bw]);
+		    complex_summ_the_prod_idouble(si[ivol][mu],c,-0.5);
+		    
+		    //piece psi_fw U_ivol^dag psi_ivol
+		    unsafe_su3_dag_prod_spincolor(f,conf[ivol][mu],Qfw[ivol]);
+		    unsafe_dirac_prod_spincolor(Gf,GAMMA[4],f);
+		    dirac_summ_the_prod_spincolor(Gf,GAMMA[mu],f);
+		    spincolor_scalar_prod(c,Qbw[ivol_fw],Gf);
+		    complex_prodassign(c,g.entr[iso_spi_bw]);
+		    complex_summ_the_prod_idouble(si[ivol][mu],c,+0.5);
+		  }
+	      });
 	}
-    
-    nissa_free(GAMMA);
   }
   
-  //compute the matrix element of the current between two propagators
-  void vector_current_mel(spin1field* si,const dirac_matr& ext_g,int r,const char* id_Qbw,const char* id_Qfw,bool revert)
+  /// Compute the matrix element of the current between two propagators
+  void vector_current_mel(LxField<spin1field>& si,
+			  const dirac_matr& ext_g,
+			  const int& r,
+			  const char* id_Qbw,
+			  const char* id_Qfw,
+			  const bool& revert)
   {
+    si.reset();
     
-    vector_reset(si);
-    
-    dirac_matr *GAMMA=nissa_malloc("GAMMA",NDIM,dirac_matr);
+    dirac_matr GAMMA[NDIM];
     for(int mu=0;mu<NDIM;mu++)
       if(revert) GAMMA[mu]=base_gamma[5]*base_gamma[igamma_of_mu[mu]];
       else       GAMMA[mu]=base_gamma[igamma_of_mu[mu]];
@@ -706,37 +730,48 @@ namespace nissa
 	  int iso_spi_bw=g.pos[iso_spi_fw];
 	  
 	  //get componentes
-	  spincolor *Qbw=Q[id_Qbw][so_sp_col_ind(iso_spi_bw,iso_col)];
-	  spincolor *Qfw=Q[id_Qfw][so_sp_col_ind(iso_spi_fw,iso_col)];
+	  LxField<spincolor>& Qbw=Q[id_Qbw][so_sp_col_ind(iso_spi_bw,iso_col)];
+	  LxField<spincolor>& Qfw=Q[id_Qfw][so_sp_col_ind(iso_spi_fw,iso_col)];
 	  
-	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	    for(int mu=0;mu<NDIM;mu++)
+	  PAR(0,locVol,
+	      CAPTURE(g,GAMMA,iso_spi_fw,
+		      TO_WRITE(si),
+		      TO_READ(Qfw),
+		      TO_READ(Qbw)),
+	      ivol,
 	      {
-		spincolor temp;
-		complex c;
-		
-		unsafe_dirac_prod_spincolor(temp,GAMMA[mu],Qfw[ivol]);
-		spincolor_scalar_prod(c,Qbw[ivol],temp);
-		complex_summ_the_prod(si[ivol][mu],c,g.entr[iso_spi_fw]);
-	      }
-	  NISSA_PARALLEL_LOOP_END;
+		for(int mu=0;mu<NDIM;mu++)
+		  {
+		    spincolor temp;
+		    complex c;
+		    
+		    unsafe_dirac_prod_spincolor(temp,GAMMA[mu],Qfw[ivol]);
+		    spincolor_scalar_prod(c,Qbw[ivol],temp);
+		    complex_summ_the_prod(si[ivol][mu],c,g.entr[iso_spi_fw]);
+		  }
+	      });
 	}
-    
-    nissa_free(GAMMA);
   }
   
   //compute local or conserved vector current matrix element
-  void local_or_conserved_vector_current_mel(spin1field *si,const dirac_matr &g,const std::string &prop_name_bw,const std::string &prop_name_fw,bool revert)
+  void local_or_conserved_vector_current_mel(LxField<spin1field>& si,
+					     const dirac_matr &g,
+					     const std::string &prop_name_bw,
+					     const std::string &prop_name_fw,
+					     const bool& revert)
   {
-    if(loc_hadr_curr) vector_current_mel(si,g,Q[prop_name_fw].r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
+    if(loc_hadr_curr)
+      vector_current_mel(si,g,Q[prop_name_fw].r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
     else
       {
 	momentum_t plain_bc;
 	plain_bc[0]=temporal_bc;
-	for(int mu=1;mu<NDIM;mu++) plain_bc[mu]=0.0;
-	quad_su3 *conf=get_updated_conf(Q[prop_name_fw].charge,plain_bc,glb_conf);
-	int r=Q[prop_name_fw].r;
-	conserved_vector_current_mel(conf,si,g,r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
+	for(int mu=1;mu<NDIM;mu++)
+	  plain_bc[mu]=0.0;
+	
+	const LxField<quad_su3>* conf=get_updated_conf(Q[prop_name_fw].charge,plain_bc,*glb_conf);
+	const int r=Q[prop_name_fw].r;
+	conserved_vector_current_mel(*conf,si,g,r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
       }
   }
   
@@ -747,10 +782,11 @@ namespace nissa
     master_printf("Computing handcuffs contractions\n");
     
     //allocate all sides
-    std::map<std::string,spin1field*> sides;
-     //store source norm for all sides
+    std::map<std::string,LxField<spin1field>*> sides;
+    
+    //store source norm for all sides
     std::map<std::string,double> normSides;
-   
+    
     //loop over sides
     for(size_t iside=0;iside<handcuffs_side_map.size();iside++)
       {
@@ -758,9 +794,12 @@ namespace nissa
 	//allocate
 	handcuffs_side_map_t &h=handcuffs_side_map[iside];
 	std::string side_name=h.name;
+	
         normSides.insert({side_name,Q[h.fw].ori_source_norm2*Q[h.bw].ori_source_norm2});
-	spin1field *si=sides[side_name]=nissa_malloc(side_name.c_str(),locVol,spin1field);
-	vector_reset(sides[side_name]);
+	
+	sides[side_name]=new LxField<spin1field>(side_name.c_str());
+	LxField<spin1field>& si=*sides[side_name];
+	si.reset();
 	
 	//check r are the same (that is, opposite!)
 	if(twisted_run and (not loc_hadr_curr)) {
@@ -770,9 +809,10 @@ namespace nissa
 	
 	//compute dirac combo
 	dirac_matr g;
-	int ig=::abs(handcuffs_side_map[iside].igamma);
-	int revert=(handcuffs_side_map[iside].igamma>=0); //reverting only if positive ig asked
-	if(ig!=5 and not diluted_spi_source) crash("ig %d not available if not diluting in spin",ig);
+	const int ig=::abs(handcuffs_side_map[iside].igamma);
+	const int revert=(handcuffs_side_map[iside].igamma>=0); //reverting only if positive ig asked
+	if(ig!=5 and not diluted_spi_source)
+	  crash("ig %d not available if not diluting in spin",ig);
 	//dirac_prod(&g,base_gamma+5,base_gamma+ig);
 	g=base_gamma[ig];
 	
@@ -789,12 +829,10 @@ namespace nissa
 	std::string right_with_photon=h.right+"_photon";
 	master_printf("Inserting photon to compute %s\n",right_with_photon.c_str());
 	
-	spin1field *rp;
-	if(sides.find(right_with_photon)!=sides.end()) rp=sides[right_with_photon];
-	else
+	if(sides.find(right_with_photon)==sides.end())
 	  {
-	    sides[right_with_photon]=rp=nissa_malloc(right_with_photon.c_str(),locVol,spin1field);
-	    multiply_by_tlSym_gauge_propagator(rp,sides[h.right],photon);
+	    auto rp=sides[right_with_photon]=new LxField<spin1field>(right_with_photon.c_str());
+	    multiply_by_tlSym_gauge_propagator(*rp,*sides[h.right],photon);
 	  }
       }
     
@@ -805,28 +843,33 @@ namespace nissa
 	crash("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
       else
 	{
-	  const auto& left=sides[handcuffs_map[ihand].left];
-	  const auto& right=sides[handcuffs_map[ihand].right+"_photon"];
+	  const auto& left=*sides[handcuffs_map[ihand].left];
+	  const auto& right=*sides[handcuffs_map[ihand].right+"_photon"];
 	  
-	  vector_reset(loc_contr);
-	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	    for(int mu=0;mu<NDIM;mu++)
-	      complex_subt_the_prod(loc_contr[ivol],
-				    left[ivol][mu],
-				    right[ivol][mu]);
-	  NISSA_PARALLEL_LOOP_END;
+	  loc_contr->reset();
+	  PAR(0,locVol,
+	      CAPTURE(loc_contr=nissa::loc_contr->getWritable(),
+		      TO_READ(left),
+		      TO_READ(right)),
+	      ivol,
+	      {
+		for(int mu=0;mu<NDIM;mu++)
+		  complex_subt_the_prod(loc_contr[ivol],
+					left[ivol][mu],
+					right[ivol][mu]);
+	      });
 	  
           double normalization=glbSpatVol*144.0;
           normalization/=sqrt((double)normSides[handcuffs_map[ihand].left]*normSides[handcuffs_map[ihand].right]);
 	  
 	  complex temp[1];
-	  glb_reduce(temp,loc_contr,locVol);
+	  glb_reduce(temp,*loc_contr,locVol);
 	  complex_summ_the_prod_double(handcuffs_contr[ind_handcuffs_contr(ihand)],temp[0],normalization);
 	}
     
     //free
-    for(std::map<std::string,spin1field*>::iterator it=sides.begin();it!=sides.end();it++)
-      nissa_free(it->second);
+    for(std::map<std::string,LxField<spin1field>*>::iterator it=sides.begin();it!=sides.end();it++)
+      delete it->second;
   }
   
   //allocate handcuff contractions

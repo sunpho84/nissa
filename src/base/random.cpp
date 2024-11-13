@@ -7,9 +7,11 @@
 #include <stdlib.h>
 
 #define EXTERN_RANDOM
- #include "base/random.hpp"
+# include "base/random.hpp"
 
 #include "base/debug.hpp"
+#include "base/field.hpp"
+#include "base/random.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -187,8 +189,6 @@ namespace nissa
   //generate a random postion
   coords_t generate_random_coord()
   {
-    MANDATORY_NOT_PARALLEL;
-    
     coords_t c;
     for(int mu=0;mu<NDIM;mu++)
       c[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSize[mu]));
@@ -248,9 +248,12 @@ namespace nissa
   }
   
   //return a complex number of appropriate type
-  CUDA_HOST_AND_DEVICE void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_t rtype)
+  CUDA_HOST_AND_DEVICE void comp_get_rnd(complex& out,
+					 rnd_gen* gen,
+					 const enum rnd_t& rtype)
   {
     complex z={0,0};
+    
     switch(rtype)
       {
       case RND_ALL_PLUS_ONE: complex_put_to_real(out,+1);                   break;
@@ -273,139 +276,161 @@ namespace nissa
     return (rnd_t)RND_ALL_MINUS_ONE;
   }
   
-  //fill a grid of vectors with numbers between 0 and 1
-  void rnd_fill_unif_loc_vector(double* v,int dps,double min,double max)
-  {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int i=0;i<dps;i++)
-	v[ivol*dps+i]=rnd_get_unif(&(loc_rnd_gen[ivol]),min,max);
-    NISSA_PARALLEL_LOOP_END;
+  // //fill a grid of vectors with numbers between 0 and 1
+  // void rnd_fill_unif_loc_vector(double* v,int dps,double min,double max)
+  // {
+  //   NISSA_PARALLEL_LOOP(ivol,0,locVol)
+  //     for(int i=0;i<dps;i++)
+  // 	v[ivol*dps+i]=rnd_get_unif(&(loc_rnd_gen[ivol]),min,max);
+  //   NISSA_PARALLEL_LOOP_END;
     
-    set_borders_invalid(v);
-  }
+  //   set_borders_invalid(v);
+  // }
   
   //return a grid of +-x numbers
-  void rnd_fill_pm_one_loc_vector(double* v,int nps)
-  {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int i=0;i<nps;i++)
-	v[ivol*nps+i]=rnd_get_pm_one(&(loc_rnd_gen[ivol]));
-    NISSA_PARALLEL_LOOP_END;
+  // void rnd_fill_pm_one_loc_vector(double* v,int nps)
+  // {
+  //   NISSA_PARALLEL_LOOP(ivol,0,locVol)
+  //     for(int i=0;i<nps;i++)
+  // 	v[ivol*nps+i]=rnd_get_pm_one(&(loc_rnd_gen[ivol]));
+  //   NISSA_PARALLEL_LOOP_END;
     
-    set_borders_invalid(v);
-  }
+  //   set_borders_invalid(v);
+  // }
   
   //generate a spindiluted vector according to the passed type
-  void generate_colorspindiluted_source(su3spinspin* source,enum rnd_t rtype,int twall)
+  void generate_colorspindiluted_source(LxField<su3spinspin>& source,
+					const rnd_t& rtype,
+					const int& twall)
   {
     //reset
-    vector_reset(source);
+    source.reset();
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
+    PAR(0,locVol,CAPTURE(twall,rtype,TO_WRITE(source)),ivol,
 	{
-	  comp_get_rnd(source[ivol][0][0][0][0],&(loc_rnd_gen[ivol]),rtype);
-	  for(int c=0;c<NCOL;c++)
-	    for(int d=0;d<NDIRAC;d++)
-	      if(c or d)
-		memcpy(source[ivol][c][c][d][d],source[ivol][0][0][0][0],sizeof(complex));
-	  }
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(source);
+	  if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
+	    {
+	      comp_get_rnd(source[ivol][0][0][0][0],&(loc_rnd_gen[ivol]),rtype);
+	      for(int c=0;c<NCOL;c++)
+		for(int d=0;d<NDIRAC;d++)
+		  if(c or d)
+		    complex_copy(source[ivol][c][c][d][d],source[ivol][0][0][0][0]);
+	    }
+	});
   }
   
   //generate a spindiluted vector according to the passed type
-  void generate_spindiluted_source(colorspinspin* source,enum rnd_t rtype,int twall)
+  void generate_spindiluted_source(LxField<colorspinspin>& source,
+				   const rnd_t& rtype,
+				   const int& twall)
   {
-    //reset
-    vector_reset(source);
+    source.reset();
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
-	for(int ic=0;ic<NCOL;ic++)
-	  {
-	    comp_get_rnd(source[ivol][ic][0][0],&(loc_rnd_gen[ivol]),rtype);
-	    for(int d=1;d<NDIRAC;d++)
-	      memcpy(source[ivol][ic][d][d],source[ivol][ic][0][0],sizeof(complex));
-	  }
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(source);
+    PAR(0,locVol,CAPTURE(twall,rtype,TO_WRITE(source)),ivol,
+	{
+	  if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
+	    for(int ic=0;ic<NCOL;ic++)
+	      {
+		comp_get_rnd(source[ivol][ic][0][0],&(loc_rnd_gen[ivol]),rtype);
+		for(int d=1;d<NDIRAC;d++)
+		  complex_copy(source[ivol][ic][d][d],source[ivol][ic][0][0]);
+	      }
+	});
   }
   
   //generate an undiluted vector according to the passed type
-  void generate_undiluted_source(spincolor* source,enum rnd_t rtype,int twall)
+  void generate_undiluted_source(LxField<spincolor>& source,
+				 const rnd_t& rtype,
+				 const int& twall)
   {
-    vector_reset(source);
+    source.reset();
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
-	for(int id=0;id<NDIRAC;id++)
-	  for(int ic=0;ic<NCOL;ic++)
-	    comp_get_rnd(source[ivol][id][ic],&(loc_rnd_gen[ivol]),rtype);
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(source);
+    PAR(0,locVol,CAPTURE(twall,rtype,TO_WRITE(source)),ivol,
+	{
+	  if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
+	    for(int id=0;id<NDIRAC;id++)
+	      for(int ic=0;ic<NCOL;ic++)
+		comp_get_rnd(source[ivol][id][ic],&(loc_rnd_gen[ivol]),rtype);
+	});
   }
   
   //generate a fully undiluted source
-  void generate_fully_undiluted_lx_source(color* source,enum rnd_t rtype,int twall,int dir)
+  void generate_fully_undiluted_lx_source(LxField<color>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& dir)
   {
-    vector_reset(source);
+    source.reset();
     
-    NISSA_PARALLEL_LOOP(ilx,0,locVol)
-      if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
-	for(int ic=0;ic<NCOL;ic++)
-	  comp_get_rnd(source[ilx][ic],&(loc_rnd_gen[ilx]),rtype);
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(source);
+    PAR(0,locVol,CAPTURE(dir,twall,rtype,TO_WRITE(source)),ilx,
+	{
+	  if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
+	    for(int ic=0;ic<NCOL;ic++)
+	      comp_get_rnd(source[ilx][ic],&(loc_rnd_gen[ilx]),rtype);
+	});
   }
+  
   //eo version
-  void generate_fully_undiluted_eo_source(color* source,enum rnd_t rtype,int twall,int par,int dir)
+  void generate_fully_undiluted_eo_source(EvenOrOddField<color>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& par,
+					  const int& dir)
   {
-    vector_reset(source);
+    source.reset();
     
-    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-      {
-	int ilx=loclx_of_loceo[par][ieo];
-	if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
-	  for(int ic=0;ic<NCOL;ic++)
-	    comp_get_rnd(source[ieo][ic],&(loc_rnd_gen[ilx]),rtype);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(source);
+    PAR(0,locVolh,CAPTURE(par,dir,twall,rtype,TO_WRITE(source)),ieo,
+	{
+	  int ilx=loclx_of_loceo[par][ieo];
+	  if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
+	    for(int ic=0;ic<NCOL;ic++)
+	      comp_get_rnd(source[ieo][ic],&(loc_rnd_gen[ilx]),rtype);
+	});
   }
-  void generate_fully_undiluted_eo_source(eo_ptr<color> source,enum rnd_t rtype,int twall,int dir)
-  {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);}
+  
+  void generate_fully_undiluted_eo_source(EoField<color>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& dir)
+  {
+    for(int par=0;par<2;par++)
+      generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);
+  }
   
   //same for spincolor
-  void generate_fully_undiluted_eo_source(spincolor* source,enum rnd_t rtype,int twall,int par,int dir)
+  void generate_fully_undiluted_eo_source(EvenOrOddField<spincolor>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& par,
+					  const int& dir)
   {
-    vector_reset(source);
+    source.reset();
     
-    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-      {
-	int ilx=loclx_of_loceo[par][ieo];
-	if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
-	  for(int id=0;id<NDIRAC;id++)
-	    for(int ic=0;ic<NCOL;ic++)
-	    comp_get_rnd(source[ieo][id][ic],&(loc_rnd_gen[ilx]),rtype);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(source);
+    PAR(0,locVolh,CAPTURE(par,dir,twall,rtype,TO_WRITE(source)),ieo,
+	{
+	  int ilx=loclx_of_loceo[par][ieo];
+	  if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
+	    for(int id=0;id<NDIRAC;id++)
+	      for(int ic=0;ic<NCOL;ic++)
+		comp_get_rnd(source[ieo][id][ic],&(loc_rnd_gen[ilx]),rtype);
+	});
   }
-  void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,int twall,int dir)
-  {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);}
+  
+  void generate_fully_undiluted_eo_source(EoField<spincolor>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& dir)
+  {
+    for(int par=0;par<2;par++)
+      generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);
+  }
   
   //generate a delta source
-  void generate_delta_source(su3spinspin* source,int* x)
+  void generate_delta_source(LxField<su3spinspin>& source,
+			     const coords_t& x)
   {
     //reset
-    vector_reset(source);
+    source.reset();
     
     int islocal=1;
     coords_t lx;
@@ -417,18 +442,21 @@ namespace nissa
       }
     
     if(islocal)
-      for(int id=0;id<4;id++)
-	for(int ic=0;ic<NCOL;ic++)
-	  source[loclx_of_coord(lx)][ic][ic][id][id][0]=1;
-    
-    set_borders_invalid(source);
+      {
+	auto s=source.getWritable();
+	
+	for(int id=0;id<4;id++)
+	  for(int ic=0;ic<NCOL;ic++)
+	  s[loclx_of_coord(lx)][ic][ic][id][id][0]=1;
+      }
   }
   
   //generate a delta source
-  void generate_delta_eo_source(eo_ptr<su3> source,int* x)
+  void generate_delta_eo_source(EoField<su3>& source,
+				const coords_t& x)
   {
     //reset
-    for(int par=0;par<2;par++) vector_reset(source[par]);
+    source.reset();
     
     int islocal=1;
     coords_t lx;
@@ -441,16 +469,16 @@ namespace nissa
     
     if(islocal)
       {
-	int ivol=loclx_of_coord(lx);
-	su3_put_to_id(source[loclx_parity[ivol]][loceo_of_loclx[ivol]]);
+	auto s=source.getWritable();
+	
+	const int ivol=loclx_of_coord(lx);
+	su3_put_to_id(s[loclx_parity[ivol]][loceo_of_loclx[ivol]]);
       }
-    
-    for(int par=0;par<2;par++) set_borders_invalid(source[par]);
   }
   
-    //Taken from M.D'Elia
+  //Taken from M.D'Elia
 #if NCOL == 3
-  CUDA_HOST_AND_DEVICE void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma)
+  CUDA_HOST_AND_DEVICE void herm_put_to_gauss(su3& H,rnd_gen *gen,double sigma)
   {
     const double one_by_sqrt3=0.577350269189626;
     const double two_by_sqrt3=1.15470053837925;
@@ -486,46 +514,10 @@ namespace nissa
   
   // A gauss vector has complex components z which are gaussian distributed
   // with <z~ z> = sigma
-  void color_put_to_gauss(color H,rnd_gen *gen,double sigma)
+  void color_put_to_gauss(color& H,rnd_gen *gen,double sigma)
   {
     complex ave={0,0};
     for(size_t ic=0;ic<NCOL;ic++) rnd_get_gauss_complex(H[ic],gen,ave,sigma);
-  }
-  
-  //put a matrix to random used passed random generator
-  CUDA_HOST_AND_DEVICE void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd)
-  {
-    su3_put_to_id(u_ran);
-    
-    for(size_t i1=0;i1<NCOL;i1++)
-      for(size_t i2=i1+1;i2<NCOL;i2++)
-	{
-	  //generate u0,u1,u2,u3 random on the four dim. sphere
-	  double u0=rnd_get_unif(&rnd,-1,1);
-	  double alpha=sqrt(1-u0*u0);
-	  double phi=rnd_get_unif(&rnd,0,2*M_PI);
-	  double costheta=rnd_get_unif(&rnd,-1,1);
-	  double sintheta=sqrt(1-costheta*costheta);
-	  double u3=alpha*costheta;
-	  double u1=alpha*sintheta*cos(phi);
-	  double u2=alpha*sintheta*sin(phi);
-	  
-	  //define u_l as unit matrix ...
-	  su3 u_l;
-	  su3_put_to_id(u_l);
-	  
-	  //... and then modify the elements in the chosen su(2) subgroup
-	  u_l[i1][i1][RE]=u0;
-	  u_l[i1][i1][IM]=u3;
-	  u_l[i1][i2][RE]=u2;
-	  u_l[i1][i2][IM]=u1;
-	  u_l[i2][i1][RE]=-u2;
-	  u_l[i2][i1][IM]=u1;
-	  u_l[i2][i2][RE]=u0;
-	  u_l[i2][i2][IM]=-u3;
-	  
-	  safe_su3_prod_su3(u_ran,u_l,u_ran);
-	}
   }
   
   //return a single link after the heatbath procedure

@@ -74,19 +74,20 @@ void read_top_meas_pars(top_meas_pars_t &pars,int flag=false)
     }
 }
 
-void unitarize_conf_max(quad_su3* conf)
+void unitarize_conf_max(LxField<quad_su3>& conf)
 {
-  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    for(int idir=0;idir<4;idir++)
+  PAR(0,locVol,
+      CAPTURE(TO_WRITE(conf)),
+      ivol,
       {
-	su3 t;
-	su3_unitarize_orthonormalizing(t,conf[ivol][idir]);
-	su3_copy(conf[ivol][idir],t);
-      }
-  NISSA_PARALLEL_LOOP_END;
-  set_borders_invalid(conf);
+	for(int idir=0;idir<4;idir++)
+	  {
+	    su3 t;
+	    su3_unitarize_orthonormalizing(t,conf[ivol][idir]);
+	    su3_copy(conf[ivol][idir],t);
+	  }
+      });
 }
-
 
 void in_main(int narg,char **arg)
 {
@@ -111,7 +112,7 @@ void in_main(int narg,char **arg)
   
   //////////////////////////// read the conf /////////////////////////////
   
-  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
+  LxField<quad_su3> conf("conf",WITH_HALO_EDGES);
   
   //read the conf and write plaquette
   ILDG_message mess;
@@ -119,15 +120,16 @@ void in_main(int narg,char **arg)
   read_ildg_gauge_conf(conf,conf_path,&mess);
   unitarize_conf_max(conf);
   
-  measure_topology_lx_conf(top_meas_pars,conf,0,0,false);
+  crash("reimplement");
+  //measure_topology_lx_conf(top_meas_pars,conf,0,0,false);
   
-  nissa_free(conf);
   ILDG_message_free_all(&mess);
 }
 
 int main(int narg,char **arg)
 {
-  init_nissa_threaded(narg,arg,in_main);
+  init_nissa(narg,arg);
+  in_main(narg,arg);
   close_nissa();
   
   return 0;

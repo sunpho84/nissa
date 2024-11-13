@@ -89,7 +89,8 @@ namespace DD
 	master_printf("DD: Not initialized, initializing\n");
 	
 	//communicator and transposers
-	init_params.comm_cart=nissa::cart_comm;
+	crash("reimplement");
+	// init_params.comm_cart=nissa::cart_comm;
 	init_params.Cart_coords=cart_coords;
 	init_params.Cart_rank=cart_rank;
 	init_params.number_of_levels=nissa::multiGrid::nlevels;

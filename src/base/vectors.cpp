@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <mpi.h>
@@ -8,17 +8,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "communicate/communicate.hpp"
+#define EXTERN_VECTORS
+# include "vectors.hpp"
+
 #include "geometry/geometry_lx.hpp"
 #include "routines/ios.hpp"
-#include "routines/math_routines.hpp"
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
 
 #include "debug.hpp"
-
-#define EXTERN_VECTORS
- #include "vectors.hpp"
 
 //#define DEBUG
 
@@ -71,11 +69,7 @@ namespace nissa
 #endif
     //update atomically
     if((get_vect(v)->flag & flag)!=flag)
-      {
-	//THREAD_BARRIER();
 	get_vect(v)->flag|=flag;
-      }
-    //THREAD_BARRIER();
   }
   
   //unset a flag (idem)
@@ -89,62 +83,12 @@ namespace nissa
 #endif
     //update atomically
     if(((~get_vect(v)->flag)&flag)!=flag)
-      {
-	//THREAD_BARRIER();
-	get_vect(v)->flag&=~flag;
-      }
-    //THREAD_BARRIER();
+      get_vect(v)->flag&=~flag;
   }
   
   //get a flag
   int get_vect_flag(void *v,unsigned int flag)
   {return get_vect(v)->flag & flag;}
-  
-  //check if edges are valid
-  int check_edges_valid(void *data)
-  {return get_vect_flag(data,EDGES_VALID);}
-  
-  //check if edges have been allocated
-  int check_edges_allocated(void *data,int min_size)
-  {
-    return ((get_vect(data)->nel*get_vect(data)->size_per_el)>=min_size) or
-      get_vect_flag(data,EDGES_ALLOCATED);
-  }
-  
-  //check if borders are valid
-  int check_borders_valid(void *data)
-  {return get_vect_flag(data,BORDERS_VALID);}
-  
-  //check if borders have been allocated
-  int check_borders_allocated(void *data,int min_size)
-  {
-    return ((get_vect(data)->nel*get_vect(data)->size_per_el)>=min_size) or
-      get_vect_flag(data,BORDERS_ALLOCATED);
-  }
-  
-  //check if borders have been communicated at least once
-  int check_borders_communicated_at_least_once(void *data)
-  {return get_vect_flag(data,BORDERS_COMMUNICATED_AT_LEAST_ONCE);}
-  
-  //ignore the warning on borders allocated but never used
-  void ignore_borders_communications_warning(void *data)
-  {set_vect_flag(data,BORDERS_COMMUNICATED_AT_LEAST_ONCE);}
-  
-  //set borders ad valid
-  void set_borders_valid(void *data)
-  {set_vect_flag(data,BORDERS_VALID|BORDERS_COMMUNICATED_AT_LEAST_ONCE);}
-  
-  //set edges ad valid
-  void set_edges_valid(void *data)
-  {set_vect_flag(data,EDGES_VALID);}
-  
-  //set borders as invalid
-  void set_borders_invalid(void *data)
-  {unset_vect_flag(data,BORDERS_VALID|EDGES_VALID);}
-  
-  //set edges as invalid
-  void set_edges_invalid(void *data)
-  {unset_vect_flag(data,EDGES_VALID);}
   
   //print all nissa vect
   void print_all_vect_content()
@@ -156,30 +100,6 @@ namespace nissa
 	curr=curr->next;
       }
     while(curr!=NULL);
-  }
-  
-  //check if the borders are allocated
-  void crash_if_borders_not_allocated(void *v,int min_size)
-  {
-    if(!check_borders_allocated(v,min_size))
-      if(is_master_rank())
-	{
-	  fprintf(stderr,"borders not allocated in ");
-	  vect_content_fprintf(stderr,v);
-	  crash("see error");
-	}
-  }
-  
-  //check if the edges are allocated
-  void crash_if_edges_not_allocated(void *v,int min_size)
-  {
-    if(!check_edges_allocated(v,min_size))
-      if(is_master_rank())
-	{
-	  fprintf(stderr,"edges not allocated in ");
-	  vect_content_fprintf(stderr,v);
-	  crash("see error");
-	}
   }
   
   //print all nissa vect
@@ -222,7 +142,9 @@ namespace nissa
   //allocate an nissa vector
   void *internal_nissa_malloc(const char *tag,int64_t nel,int64_t size_per_el,const char *type,const char *file,int line)
   {
-    if(IS_MASTER_THREAD)
+    IF_MAIN_VECT_NOT_INITIALIZED() initialize_main_vect();
+    
+    if(VERBOSITY_LV3)
       {
 	IF_MAIN_VECT_NOT_INITIALIZED() initialize_main_vect();
 	
@@ -270,12 +192,6 @@ namespace nissa
 	if(offset!=0)
 	  crash("memory alignment problem, vector %s has %ld offset",tag,offset);
 	
-	//if borders or edges are allocated, set appropriate flag
-	if(nel==(locVol+bord_vol) || nel==(locVolh+bord_volh))
-	  set_vect_flag_non_blocking(return_malloc_ptr,BORDERS_ALLOCATED);
-	if(nel==(locVol+bord_vol+edge_vol) || nel==(locVolh+bord_volh+edge_volh))
-	  set_vect_flag_non_blocking(return_malloc_ptr,BORDERS_ALLOCATED|EDGES_ALLOCATED);
-	
 	//Update the amount of required memory
 	required_memory+=size;
 	max_required_memory=std::max(max_required_memory,required_memory);
@@ -283,23 +199,54 @@ namespace nissa
 	//cache_flush();
       }
     
-    //sync so we are sure that master thread allocated
-    //THREAD_BARRIER();
-    void *res=return_malloc_ptr;
+    int64_t size=nel*size_per_el;
+    //try to allocate the new vector
+    nissa_vect *nv;
+    int64_t tot_size=size+sizeof(nissa_vect);
+#define ALLOCATING_ERROR						\
+    "could not allocate vector named \"%s\" of %ld elements of type %s (total size: %ld bytes) " \
+      "request on line %d of file %s",tag,nel,type,size,line,file
+#if THREADS_TYPE==CUDA_THREADS
+    decript_cuda_error(cudaMallocManaged(&nv,tot_size),ALLOCATING_ERROR);
+#else
+    nv=(nissa_vect*)malloc(tot_size);
+    if(nv==NULL)
+      crash(ALLOCATING_ERROR);
+#endif
+#undef ALLOCATING_ERROR
     
-    //resync so all threads return the same pointer
-    //THREAD_BARRIER();
+    //fill the vector with information supplied
+    nv->line=line;
+    nv->nel=nel;
+    nv->size_per_el=size_per_el;
+    nv->flag=0;
+    take_last_characters(nv->file,file,NISSA_VECT_STRING_LENGTH);
+    take_last_characters(nv->tag,tag,NISSA_VECT_STRING_LENGTH);
+    take_last_characters(nv->type,type,NISSA_VECT_STRING_LENGTH);
     
-    return res;
+    //append the new vector to the list
+    nv->next=NULL;
+    nv->prev=last_vect;
+    
+    last_vect->next=nv;
+    last_vect=nv;
+    
+    //define returned pointer and check for its alignement
+    return_malloc_ptr=(void*)(last_vect+1);
+    int64_t offset=((int64_t)(return_malloc_ptr))%NISSA_VECT_ALIGNMENT;
+    if(offset!=0)
+      crash("memory alignment problem, vector %s has %ld offset",tag,offset);
+    
+    //Update the amount of required memory
+    required_memory+=size;
+    max_required_memory=std::max(max_required_memory,required_memory);
+    
+    return return_malloc_ptr;
   }
   
   //copy one vector into another
   void vector_copy(void *a,const void *b)
   {
-    
-    //sync so we are sure that all threads are here
-    //THREAD_BARRIER();
-    
     //control that a!=b
     if(a!=b)
       {
@@ -325,106 +272,63 @@ namespace nissa
 		nissa_a->tag,size_per_el_a,nissa_b->tag,size_per_el_b);
 	
 	//perform the copy
-	NISSA_PARALLEL_LOOP(i,0,nel_a)
-	  memcpy((char*)a+i*size_per_el_a,(char*)b+i*size_per_el_a,size_per_el_a);
-	NISSA_PARALLEL_LOOP_END;
+	PAR(0,nel_a,
+	    CAPTURE(a,size_per_el_a,b),
+	    i,
+	    {
+	      memcpy((char*)a+i*size_per_el_a,(char*)b+i*size_per_el_a,size_per_el_a);
+	    });
 	
 	//copy the flag
 	nissa_a->flag=nissa_b->flag;
-	
-	//sync so we are sure that all threads are here
-	//THREAD_BARRIER();
       }
   }
   
   //reset a vector
   void vector_reset(void *a)
   {
-    //sync so all thread are not using the vector
-    //THREAD_BARRIER();
+    const nissa_vect* nissa_a=(nissa_vect*)((char*)a-sizeof(nissa_vect));
+    nissa_a->assert_is_nissa_vect();
     
-    if(IS_MASTER_THREAD)
-      {
-	nissa_vect *nissa_a=(nissa_vect*)((char*)a-sizeof(nissa_vect));
-	int64_t nel_a=nissa_a->nel;
-	int64_t size_per_el_a=nissa_a->size_per_el;
-	memset(a,0,size_per_el_a*nel_a);
-      }
-    
-    //sync so all thread see that have been reset
-    //THREAD_BARRIER();
+    const int64_t nel_a=nissa_a->nel;
+    const int64_t size_per_el_a=nissa_a->size_per_el;
+    memset(a,0,size_per_el_a*nel_a);
   }
   
   //release a vector
   void internal_nissa_free(char **arr,const char *file,int line)
   {
-    //sync so all thread are not using the vector
-    //THREAD_BARRIER();
-    
-    if(IS_MASTER_THREAD)
+    if(arr!=NULL)
       {
-	if(arr!=NULL)
-	  {
-	    nissa_vect *vect=get_vect(*arr);
-	    nissa_vect *prev=vect->prev;
-	    nissa_vect *next=vect->next;
-	    
-	    if(VERBOSITY_LV3)
-	      {
-		master_printf("At line %d of file %s freeing vector ",line,file);
-		vect_content_printf(vect);
-	      }
-	    
-	    if(warn_if_not_communicated)
-	      if(nranks>1 && check_borders_allocated(*arr,0) && !check_borders_communicated_at_least_once(*arr))
-		master_printf("Warning, you allocated borders for vector: %s on line %d of file %s, but never communicated them!\n",vect->tag,vect->line,vect->file);
-	    
-	    //detach from previous
-	    prev->next=next;
-	    
-	    //if not last element
-	    if(next!=NULL) next->prev=prev;
-	    else last_vect=prev;
-	    
-	    //update the required memory
-	    required_memory-=(vect->size_per_el*vect->nel);
-	    
-	    //really free
-#if THREADS_TYPE == CUDA_THREADS
-	    decript_cuda_error(cudaFree(vect),"freeing the memory for vector");
-#else
-	    free(vect);
-#endif
-	  }
-	else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
+	nissa_vect *vect=get_vect(*arr);
+	nissa_vect *prev=vect->prev;
+	nissa_vect *next=vect->next;
 	
-	*arr=NULL;
-	cache_flush();
+	if(VERBOSITY_LV3)
+	  {
+	    master_printf("At line %d of file %s freeing vector ",line,file);
+	    vect_content_printf(vect);
+	  }
+	
+	//detach from previous
+	prev->next=next;
+	
+	//if not last element
+	if(next!=NULL) next->prev=prev;
+	else last_vect=prev;
+	
+	//update the required memory
+	required_memory-=(vect->size_per_el*vect->nel);
+	
+	//really free
+#if THREADS_TYPE == CUDA_THREADS
+	decript_cuda_error(cudaFree(vect),"freeing the memory for vector");
+#else
+	free(vect);
+#endif
       }
+    else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
     
-    //sync so all thread see that have deallocated
-    //THREAD_BARRIER();
+    *arr=NULL;
   }
-  
-  //reorder a vector according to the specified order
-  void reorder_vector(char* vect,int* order,int nel,int sel)
-  {
-    char *buf=nissa_malloc("buf",(int64_t)sel*nel,char);
-    
-    //copy in the buffer
-    NISSA_PARALLEL_LOOP(sour,0,nel)
-      memcpy(buf+order[sour]*sel,vect+sour*sel,sel);
-    NISSA_PARALLEL_LOOP_END;
-    
-    //THREAD_BARRIER();
-    
-    NISSA_PARALLEL_LOOP(sour,0,nel)
-      memcpy(vect+sour*sel,buf+sour*sel,sel);
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(vect);
-    
-    nissa_free(buf);
-  }
-  
 }

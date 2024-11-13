@@ -145,7 +145,7 @@ namespace nissa
 	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
       
       if(i<0 or i>=(int)numeric[c].size())
-	crash("Error, letter %c converts to int %d not in range [%d:%d]",letter,i,m,numeric[c].size()+m);
+	crash("Error, letter %c converts to int %d not in range [%d:%zu]",letter,i,m,numeric[c].size()+m);
       
       return
 	{numeric[c][i]};

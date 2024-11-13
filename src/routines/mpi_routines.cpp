@@ -1,22 +1,22 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #ifdef USE_MPI
- #include <mpi.h>
+# include <mpi.h>
 #endif
 
 #define EXTERN_MPI
- #include "mpi_routines.hpp"
+# include <routines/mpi_routines.hpp>
 
-#include "geometry/geometry_lx.hpp"
-#include "linalgs/linalgs.hpp"
-#include "linalgs/reduce.hpp"
-#include "new_types/complex.hpp"
-#include "new_types/float_128.hpp"
-#include "new_types/rat_approx.hpp"
-#include "routines/ios.hpp"
-#include "threads/threads.hpp"
+#include <geometry/geometry_lx.hpp>
+#include <linalgs/linalgs.hpp>
+#include <linalgs/reduce.hpp>
+#include <new_types/complex.hpp>
+#include <new_types/float_128.hpp>
+#include <new_types/rat_approx.hpp>
+#include <routines/ios.hpp>
+#include <threads/threads.hpp>
 
 namespace nissa
 {
@@ -85,54 +85,9 @@ namespace nissa
   void create_MPI_cartesian_grid()
   {
 #ifdef USE_MPI
-    coords_t periods;
-    for(int mu=0;mu<NDIM;mu++) periods[mu]=1;
-    MPI_Cart_create(MPI_COMM_WORLD,NDIM,&nrank_dir[0],&periods[0],1,&cart_comm);
-    //takes rank and ccord of local rank
-    MPI_Comm_rank(cart_comm,&cart_rank);
-    MPI_Cart_coords(cart_comm,cart_rank,NDIM,&rank_coord[0]);
-    
-    //create communicator along plan
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	coords_t nrank_dir_plan;
-	coords_t split_plan;
-	coords_t proj_rank_coord;
-	for(int nu=0;nu<NDIM;nu++)
-	  {
-	    split_plan[nu]=(nu==mu) ? 0 : 1;
-	    proj_rank_coord[nu]=(nu==mu) ? 0 : rank_coord[nu];
-	    nrank_dir_plan[nu]=(nu==mu) ? 1 : nrank_dir[nu];
-	  }
-	MPI_Cart_sub(cart_comm,&split_plan[0],&(plan_comm[mu]));
-	MPI_Comm_rank(plan_comm[mu],&(plan_rank[mu]));
-	if(plan_rank[mu]!=lx_of_coord(proj_rank_coord,nrank_dir_plan))
-	  crash("Plan communicator on rank %d{%d,%d,%d,%d} has messed up dir %d coord: %d and rank %d (implement reorder!)",
-		rank,rank_coord[0],rank_coord[1],rank_coord[2],rank_coord[3],mu,rank_of_coord(proj_rank_coord),plan_rank[mu]);
-      }
-    
-    //create communicator along line
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	//split the communicator
-	coords_t split_line;
-	memset(&split_line,0,sizeof(coords_t));
-	split_line[mu]=1;
-	MPI_Cart_sub(cart_comm,&split_line[0],&(line_comm[mu]));
-	
-	//get rank id
-	MPI_Comm_rank(line_comm[mu],&(line_rank[mu]));
-	
-	//get rank coord along line comm
-	MPI_Cart_coords(line_comm[mu],line_rank[mu],1,&(line_coord_rank[mu]));
-	
-	//check communicator
-	if(line_rank[mu]!=rank_coord[mu] || line_rank[mu]!=line_coord_rank[mu])
-	  crash("Line communicator has messed up coord and rank (implement reorder!)");
-      }
+    rank_coord=coord_of_rank(rank);
 #else
-    cart_rank=plan_rank=line_rank=0;
-    for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=planline_coord[mu]=0;
+    for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=0;
 #endif
   }
   
@@ -148,7 +103,7 @@ namespace nissa
   void ranks_abort(int err)
   {
 #ifdef USE_MPI
-    printf("thread %d on rank %d aborting\n",THREAD_ID,rank);
+    printf("on rank %d aborting\n",rank);
     MPI_Abort(MPI_COMM_WORLD,0);
 #endif
     exit(0);
@@ -241,33 +196,24 @@ namespace nissa
   //broadcast a whole rational approximation
   void broadcast(rat_approx_t *rat,int rank_from)
   {
+    int degree=0;
     
-    //first destroy on non-sending
-    THREAD_BARRIER(); //need to barrier to avoid race condition when later "rat-degree" is update through mpi_bcast
+    if(rank_from==rank) degree=rat->degree();
+    MPI_Bcast(&degree,1,MPI_INT,rank_from,MPI_COMM_WORLD);
     
-    //get degree
-    if(IS_MASTER_THREAD)
-      {
-	int degree=0;
-	
-	if(rank_from==rank) degree=rat->degree();
-	MPI_Bcast(&degree,1,MPI_INT,rank_from,MPI_COMM_WORLD);
-	
-	//allocate if not generated here
-	if(rank_from!=rank) rat->resize(degree);
-	
-	//and now broadcast the remaining part
-	MPI_Bcast(rat->name,20,MPI_CHAR,rank_from,MPI_COMM_WORLD);
-	MPI_Bcast(&rat->minimum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-	MPI_Bcast(&rat->maximum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    	MPI_Bcast(&rat->maxerr,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    	MPI_Bcast(&rat->num,1,MPI_INT,rank_from,MPI_COMM_WORLD);
-    	MPI_Bcast(&rat->den,1,MPI_INT,rank_from,MPI_COMM_WORLD);
-    	MPI_Bcast(&rat->cons,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-	MPI_Bcast(rat->poles.data(),rat->degree(),MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-	MPI_Bcast(rat->weights.data(),rat->degree(),MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-      }
-    THREAD_BARRIER();
+    //allocate if not generated here
+    if(rank_from!=rank)	rat->resize(degree);
+    
+    //and now broadcast the remaining part
+    MPI_Bcast(rat->name,20,MPI_CHAR,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->minimum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->maximum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->maxerr,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->num,1,MPI_INT,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->den,1,MPI_INT,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->cons,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(rat->poles.data(),rat->degree(),MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(rat->weights.data(),rat->degree(),MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
   }
   
   //Return the name of the processor

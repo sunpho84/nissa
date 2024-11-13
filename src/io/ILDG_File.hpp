@@ -7,7 +7,6 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <mpi.h>
 
 #include <string>
 #include <sstream>
@@ -31,15 +30,14 @@
 namespace nissa
 {
 #ifdef USE_MPI
-#ifdef USE_MPI_IO
+# ifdef USE_MPI_IO
   typedef MPI_Offset ILDG_Offset;
   typedef MPI_File ILDG_File;
-#else
+# else
   typedef off64_t ILDG_Offset;
   typedef FILE* ILDG_File;
+# endif
 #endif
-#endif
-  
   EXTERN_ILDG int ignore_ILDG_magic_number INIT_TO(false);
   EXTERN_ILDG int fast_read_write_vectors INIT_TO(false);
   
@@ -66,22 +64,10 @@ namespace nissa
   //ILDG file view
   struct ILDG_File_view
   {
-#ifdef USE_MPI
-#ifdef USE_MPI_IO
-    MPI_Datatype etype;
-    MPI_Datatype ftype;
-    MPI_Offset view_pos;
-    MPI_Offset pos;
-#endif
-#endif
     char format[100];
   };
   
-#ifdef USE_MPI_IO
-  ILDG_File ILDG_File_open(const std::string &path,int amode);
-#else
   ILDG_File ILDG_File_open(const std::string &path,const char *mode);
-#endif
   ILDG_File ILDG_File_open_for_read(const std::string &path);
   ILDG_File ILDG_File_open_for_write(const std::string &path);
   ILDG_File_view ILDG_File_create_scidac_mapped_view(ILDG_File &file,ILDG_Offset nbytes_per_site);
@@ -103,21 +89,57 @@ namespace nissa
   void ILDG_File_close(ILDG_File &file);
   void ILDG_File_master_write(ILDG_File &file,void *data,int nbytes_req);
   void ILDG_File_read_all(void *data,ILDG_File &file,size_t nbytes_req);
-  checksum ILDG_File_read_checksum(ILDG_File &file);
+  Checksum ILDG_File_read_checksum(ILDG_File &file);
   void ILDG_File_read_ildg_data_all(void *data,ILDG_File &file,ILDG_header &header);
   void ILDG_File_seek_to_next_eight_multiple(ILDG_File &file);
   void ILDG_File_set_position(ILDG_File &file,ILDG_Offset pos,int amode);
   void ILDG_File_set_view(ILDG_File &file,ILDG_File_view &view);
   void ILDG_File_skip_nbytes(ILDG_File &file,ILDG_Offset nbytes);
   void ILDG_File_skip_record(ILDG_File &file,ILDG_header header);
-  void ILDG_File_write_checksum(ILDG_File &file,const checksum& check);
+  void ILDG_File_write_checksum(ILDG_File &file,const Checksum& check);
   void ILDG_File_write_ildg_data_all_raw(ILDG_File &file,void *data,uint64_t data_length);
   void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,ILDG_Offset nbytes_per_site,const char *type);
   void ILDG_File_write_record_header(ILDG_File &file,ILDG_header &header_to_write);
   void ILDG_File_write_record(ILDG_File &file,const char *type,const char *buf,uint64_t len);
   void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text);
-  void index_to_ILDG_remapping(int &irank_ILDG,int &iloc_ILDG,int iloc_lx,void *pars);
-  void index_from_ILDG_remapping(int &irank_lx,int &iloc_lx,int iloc_ILDG,void *pars);
+  
+  /// Define the remapping from the layout having in each rank a
+  /// consecutive block of data holding a consecutive piece of ildg
+  /// data to canonical lx
+  inline std::pair<int,int> index_from_ILDG_remapping(const int& iloc_ILDG)
+  {
+    int iglb_ILDG=rank*locVol+iloc_ILDG;
+    
+    //find global coords in ildg ordering
+    coords_t xto;
+    for(int mu=NDIM-1;mu>=0;mu--)
+      {
+	int nu=scidac_mapping[mu];
+	xto[nu]=iglb_ILDG%glbSize[nu];
+	iglb_ILDG/=glbSize[nu];
+      }
+    
+    return get_loclx_and_rank_of_coord(xto);
+  }
+  
+  /// Defines the reampping from lx in order to have in each rank a
+  /// consecutive block of data holding a consecutive piece of ildg
+  /// data
+  inline std::pair<int,int> index_to_ILDG_remapping(const int& iloc_lx)
+  {
+    //find global index in ildg transposed ordering
+    int iglb_ILDG=0;
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	const int nu=scidac_mapping[mu];
+	iglb_ILDG=iglb_ILDG*glbSize[nu]+glbCoordOfLoclx[iloc_lx][nu];
+      }
+    
+    const int irank_ILDG=iglb_ILDG/locVol;
+    const int iloc_ILDG=iglb_ILDG%locVol;
+    
+    return {irank_ILDG,iloc_ILDG};
+  }
   
   //Writes a field to a file (data is a vector of loc_vol) with no frill
   template <typename T>

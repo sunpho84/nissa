@@ -21,4 +21,9 @@ AC_DEFUN([AX_OPENMP], [
 		      CPPFLAGS="$SAVE_CPPFLAGS"
 		      CXXFLAGS="$SAVE_CXXFLAGS"
 		      
+		      if test "$have_openmp" == yes
+		      then
+		      	 AC_DEFINE([HAVE_OPENMP],1,"Define to 1 if you have OpenMP support")
+		      fi		      
+		      
 		      AC_MSG_RESULT([checking for OpenMP... ${have_openmp}])])

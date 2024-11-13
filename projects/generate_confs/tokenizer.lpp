@@ -66,6 +66,8 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
     yylloc->first_column=yycolumn;yylloc->last_column=yycolumn+yyleng-1; \
     yycolumn+=yyleng;
 
+#define YY_NO_INPUT
+
 #include "parser.hpp"
    
    const int debug_lexer=0;
@@ -300,12 +302,10 @@ MdResidue DEBUG_PRINTF("Found MdResidue\n");return TK_MD_RESIDUE;
 NSteps DEBUG_PRINTF("Found NSteps\n");return TK_NSTEPS;
 NSubsteps DEBUG_PRINTF("Found NSubsteps\n");return TK_NSUBSTEPS;
 NPseudoFerms DEBUG_PRINTF("Found NPseudoFerms\n");return TK_NPSEUDO_FERMS;
-NAuxFields DEBUG_PRINTF("Found NAuxFields\n");return TK_NAUX_FIELDS;
 NHBHits DEBUG_PRINTF("Found NHBHits\n");return TK_NHB_HITS;
 NHBSweeps DEBUG_PRINTF("Found NHBSweeps\n");return TK_NHB_SWEEPS;
 NOVHits DEBUG_PRINTF("Found NOVHits\n");return TK_NOV_HITS;
 NOVSweeps DEBUG_PRINTF("Found NOVSweeps\n");return TK_NOV_SWEEPS;
-UseFacc DEBUG_PRINTF("Found UseFacc\n");return TK_USE_FACC;
 UseHMC DEBUG_PRINTF("Found UseHMC\n");return TK_USE_HMC;
 
  /* analysis pars */

@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "base/debug.hpp"
-#include "base/random.hpp"
+#include "base/randomDevice.hpp"
 #include "new_types/complex.hpp"
 #include "routines/mpi_routines.hpp"
 
@@ -21,23 +21,23 @@
  #define EXTERN_IOS extern
 #endif
 
-#define master_printf(...) nissa::master_fprintf(stdout,__VA_ARGS__)
+#define master_printf(...) ::nissa::master_fprintf(stdout,__VA_ARGS__)
 
 //add verbosity macro
 #if MAX_VERBOSITY_LV>=1
- #define VERBOSITY_LV1 (nissa::verbosity_lv>=1)
+# define VERBOSITY_LV1 (::nissa::verbosity_lv>=1)
 #else
- #define VERBOSITY_LV1 0
+# define VERBOSITY_LV1 0
 #endif
 #if MAX_VERBOSITY_LV>=2
- #define VERBOSITY_LV2 (nissa::verbosity_lv>=2)
+# define VERBOSITY_LV2 (::nissa::verbosity_lv>=2)
 #else
- #define VERBOSITY_LV2 0
+# define VERBOSITY_LV2 0
 #endif
 #if MAX_VERBOSITY_LV>=3
- #define VERBOSITY_LV3 (nissa::verbosity_lv>=3)
+# define VERBOSITY_LV3 (::nissa::verbosity_lv>=3)
 #else
- #define VERBOSITY_LV3 0
+# define VERBOSITY_LV3 0
 #endif
 
 #define NISSA_DEFAULT_VERBOSITY_LV 1

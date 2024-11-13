@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <random>
 
-#include <base/vectors.hpp>
+#include <base/field.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <threads/threads.hpp>
 
@@ -332,7 +332,8 @@ namespace nissa
     
     /// Returns a view on a specific site and real number
     CUDA_HOST_AND_DEVICE
-    RngView getRngViewOnGlbSiteIRndReal(const int& glblx,const int& irnd_real_per_site)
+    RngView getRngViewOnGlbSiteIRndReal(const int& glblx,
+					const int& irnd_real_per_site)
     {
       //Computes the number in the stream of reals
       const uint64_t irnd_double=offsetReal*nissa::glbVol+glblx+nissa::glbVol*irnd_real_per_site;
@@ -345,7 +346,8 @@ namespace nissa
     
     /// Fill a specific site
     //CUDA_HOST_AND_DEVICE
-    void fillGlbSite(T& out,const uint64_t glblx)
+    void fillGlbSite(T& out,
+		     const uint64_t& glblx)
     {
       for(int irnd_real=0;irnd_real<nRealsPerSite;irnd_real++)
 	{
@@ -357,7 +359,8 @@ namespace nissa
     
     /// Fill a specific site given its local index
     //CUDA_HOST_AND_DEVICE
-    void fillLocSite(T& out,const uint64_t loclx)
+    void fillLocSite(T& out,
+		     const uint64_t& loclx)
     {
       //Finds the global site of local one
       const int& glblx=glblxOfLoclx[loclx];
@@ -380,19 +383,20 @@ namespace nissa
     }
     
     /// Fill all sites
-    void fillField(T* out)
+    void fillField(LxField<T>& out)
     {
       enforce_single_usage();
       
-      //NISSA_PARALLEL_LOOP(loclx,0,locVol)
-      NISSA_LOC_VOL_LOOP(loclx)
-	{
-	  const int& glblx=glblxOfLoclx[loclx];
-	  fillGlbSite(out[loclx],glblx);
-	}
-      //NISSA_PARALLEL_LOOP_END;
-      
-      set_borders_invalid(out);
+      crash("reimplement");
+      // FOR_EACH_SITE_DEG_OF_FIELD(out,
+    // 				 CAPTURE(*this,
+    // 					 TO_WRITE(out)),site,iDeg,
+    // 				 {
+    // 				   auto view=getRngViewOnGlbSiteIRndReal(site,iDeg);
+				   
+    // 				   out(site,iDeg)=distr(view);
+    // 				 });
+    //
     }
   };
   
@@ -447,7 +451,10 @@ namespace nissa
   static constexpr complex zero_complex={0.0,0.0};
   static constexpr complex sqrt_2_half_complex{M_SQRT1_2,M_SQRT1_2};
   
-  inline void BoxMullerTransform(complex out,const complex ave=zero_complex,const complex sig=sqrt_2_half_complex)
+  template <typename C>
+  inline void BoxMullerTransform(C&& out,
+				 const complex& ave=zero_complex,
+				 const complex& sig=sqrt_2_half_complex)
   {
     const double r=sqrt(-2*log(1-out[RE]));
     const double q=2*M_PI*out[IM];
@@ -462,15 +469,17 @@ namespace nissa
     out=(out>0.5)?M_SQRT1_2:-M_SQRT1_2;
   }
   
+  template <typename C>
   CUDA_HOST_AND_DEVICE
-  inline void z2Transform(complex out)
+  inline void z2Transform(C&& out)
   {
     out[RE]=(out[RE]>0.5)?+1:-1;
     out[IM]=0.0;
   }
   
+  template <typename C>
   CUDA_HOST_AND_DEVICE
-  inline void z4Transform(complex out)
+  inline void z4Transform(C&& out)
   {
     for(int ri=0;ri<2;ri++)
       z2Transform(out[ri]);

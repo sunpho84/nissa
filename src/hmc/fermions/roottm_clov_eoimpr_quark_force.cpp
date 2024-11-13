@@ -97,7 +97,7 @@ namespace nissa
 	    
 	    su3 u;
 	    
-	    su3_put_to_diag(u,sign);
+	    su3_put_to_diag_double(u,sign);
 	    if(i==0) safe_su3_prod_su3(u,u,cl_insertion[!eo][xpmu][ipair]);
 	    safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
 	    if(i==1) safe_su3_prod_su3(u,u,cl_insertion[eo][xpmupnu][ipair]);
@@ -109,7 +109,7 @@ namespace nissa
 	    
 	    su3 v;
 	    
-	    su3_put_to_diag(v,sign);
+	    su3_put_to_diag_double(v,sign);
 	    if(i==0) safe_su3_prod_su3(v,v,cl_insertion[!eo][xpmu][ipair]);
 	    safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
 	    if(i==1) safe_su3_prod_su3(v,v,cl_insertion[eo][xpmumnu][ipair]);
@@ -125,145 +125,145 @@ namespace nissa
   // implement appendix B of https://arxiv.org/pdf/0905.3331.pdf
   void summ_the_roottm_clov_eoimpr_quark_force(eo_ptr<quad_su3> F,eo_ptr<quad_su3> eo_conf,double kappa,double cSW,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,spincolor *phi_o,eo_ptr<quad_u1> u1b,rat_approx_t *appr,double residue)
   {
+    crash("reimplement");
+    // START_TIMING(quark_force_over_time,nquark_force_over);
     
-    START_TIMING(quark_force_over_time,nquark_force_over);
+    // //allocate each terms of the expansion
+    // eo_ptr<spincolor*>Y,X;
+    // spincolor *temp=nissa_malloc("temp",locVolh+bord_volh,spincolor);
+    // for(int eo=0;eo<2;eo++)
+    //   {
+    // 	X[eo]=nissa_malloc("X[eo]",appr->degree(),spincolor*);
+    // 	Y[eo]=nissa_malloc("Y[eo]",appr->degree(),spincolor*);
+    // 	for(int iterm=0;iterm<appr->degree();iterm++)
+    // 	  {
+    // 	    Y[eo][iterm]=nissa_malloc("Y",locVolh+bord_volh,spincolor);
+    // 	    X[eo][iterm]=nissa_malloc("X",locVolh+bord_volh,spincolor);
+    // 	  }
+    //   }
     
-    //allocate each terms of the expansion
-    eo_ptr<spincolor*>Y,X;
-    spincolor *temp=nissa_malloc("temp",locVolh+bord_volh,spincolor);
-    for(int eo=0;eo<2;eo++)
-      {
-	X[eo]=nissa_malloc("X[eo]",appr->degree(),spincolor*);
-	Y[eo]=nissa_malloc("Y[eo]",appr->degree(),spincolor*);
-	for(int iterm=0;iterm<appr->degree();iterm++)
-	  {
-	    Y[eo][iterm]=nissa_malloc("Y",locVolh+bord_volh,spincolor);
-	    X[eo][iterm]=nissa_malloc("X",locVolh+bord_volh,spincolor);
-	  }
-      }
+    // //add the background fields
+    // add_backfield_without_stagphases_to_conf(eo_conf,u1b);
     
-    //add the background fields
-    add_backfield_without_stagphases_to_conf(eo_conf,u1b);
+    // //invert the various terms
+    // STOP_TIMING(quark_force_over_time);
+    // // eq. B.8a
+    // if(appr->degree()==1 and appr->poles[0]==0)
+    //   {
+    // 	master_printf("please cleanup, put this into the template\n");
+    // 	inv_tmclovDkern_eoprec_square_eos_cg_64(X[ODD][0],nullptr,eo_conf,kappa,cSW,Cl_odd,invCl_evn,mu,10000000,residue,phi_o);
+    //   }
+    // else
+    //   inv_tmclovDkern_eoprec_square_portable_run_hm_up_to_comm_prec(X[ODD],eo_conf,kappa,Cl_odd,invCl_evn,mu,appr->poles.data(),appr->degree(),10000000,residue,phi_o);
+    // UNPAUSE_TIMING(quark_force_over_time);
     
-    //invert the various terms
-    STOP_TIMING(quark_force_over_time);
-    // eq. B.8a
-    if(appr->degree()==1 and appr->poles[0]==0)
-      {
-	master_printf("please cleanup, put this into the template\n");
-	inv_tmclovDkern_eoprec_square_eos_cg_64(X[ODD][0],nullptr,eo_conf,kappa,cSW,Cl_odd,invCl_evn,mu,10000000,residue,phi_o);
-      }
-    else
-      inv_tmclovDkern_eoprec_square_portable_run_hm_up_to_comm_prec(X[ODD],eo_conf,kappa,Cl_odd,invCl_evn,mu,appr->poles.data(),appr->degree(),10000000,residue,phi_o);
-    UNPAUSE_TIMING(quark_force_over_time);
+    // ////////////////////
     
-    ////////////////////
-    
-    for(int iterm=0;iterm<appr->degree();iterm++)
-      {
-	//eq. B.8b: Y_o = Qhat^- X_o
-	tmclovDkern_eoprec_eos(Y[ODD][iterm],temp,eo_conf,kappa,Cl_odd,invCl_evn,true,mu,X[ODD][iterm]);
+    // for(int iterm=0;iterm<appr->degree();iterm++)
+    //   {
+    // 	//eq. B.8b: Y_o = Qhat^- X_o
+    // 	tmclovDkern_eoprec_eos(Y[ODD][iterm],temp,eo_conf,kappa,Cl_odd,invCl_evn,true,mu,X[ODD][iterm]);
 	
-	tmn2Deo_eos(temp,eo_conf,X[ODD][iterm]); // temp = - 2 * D_eo * X_o
-	inv_tmclovDee_or_oo_eos(X[EVN][iterm],invCl_evn,true,temp); // X_e = M_ee+^-1 * temp = - 2 * M_ee+^-1 * D_eo * X_o
-	double_vector_prodassign_double((double*)(X[EVN][iterm]),0.5,locVolh*sizeof(spincolor)/sizeof(double)); // X_e = 0.5 * X_e = - M_ee+^-1 * D_eo * X_o
+    // 	tmn2Deo_eos(temp,eo_conf,X[ODD][iterm]); // temp = - 2 * D_eo * X_o
+    // 	inv_tmclovDee_or_oo_eos(X[EVN][iterm],invCl_evn,true,temp); // X_e = M_ee+^-1 * temp = - 2 * M_ee+^-1 * D_eo * X_o
+    // 	double_vector_prodassign_double((double*)(X[EVN][iterm]),0.5,locVolh*sizeof(spincolor)/sizeof(double)); // X_e = 0.5 * X_e = - M_ee+^-1 * D_eo * X_o
 	
-	tmn2Deo_eos(temp,eo_conf,Y[ODD][iterm]); // temp = - 2 * D_eo * Y_o
-	inv_tmclovDee_or_oo_eos(Y[EVN][iterm],invCl_evn,false,temp); // Y_e = M_ee-^-1 * temp = - 2 * M_ee-^-1 * D_eo * Y_o
-	double_vector_prodassign_double((double*)(Y[EVN][iterm]),0.5,locVolh*sizeof(spincolor)/sizeof(double)); // Y_e = 0.5 * Y_e = - M_ee-^-1 * D_eo * Y_o
-      }
+    // 	tmn2Deo_eos(temp,eo_conf,Y[ODD][iterm]); // temp = - 2 * D_eo * Y_o
+    // 	inv_tmclovDee_or_oo_eos(Y[EVN][iterm],invCl_evn,false,temp); // Y_e = M_ee-^-1 * temp = - 2 * M_ee-^-1 * D_eo * Y_o
+    // 	double_vector_prodassign_double((double*)(Y[EVN][iterm]),0.5,locVolh*sizeof(spincolor)/sizeof(double)); // Y_e = 0.5 * Y_e = - M_ee-^-1 * D_eo * Y_o
+    //   }
     
-    //communicate borders (could be improved...)
-    for(int eo=0;eo<2;eo++)
-      for(int iterm=0;iterm<appr->degree();iterm++)
-	for(auto v : {X[eo][iterm],Y[eo][iterm]})
-	  communicate_ev_or_od_spincolor_borders(v,eo);
+    // //communicate borders (could be improved...)
+    // for(int eo=0;eo<2;eo++)
+    //   for(int iterm=0;iterm<appr->degree();iterm++)
+    // 	for(auto v : {X[eo][iterm],Y[eo][iterm]})
+    // 	  communicate_ev_or_od_spincolor_borders(v,eo);
     
-    //conclude the calculation of the fermionic force
-    for(int iterm=0;iterm<appr->degree();iterm++)
-      {
-	const double weight=appr->weights[iterm];
+    // //conclude the calculation of the fermionic force
+    // for(int iterm=0;iterm<appr->degree();iterm++)
+    //   {
+    // 	const double weight=appr->weights[iterm];
 	
-	for(int eo=0;eo<2;eo++)
-	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	    for(int mu=0;mu<NDIM;mu++)
-	      {
-		int ineoup=loceo_neighup[eo][ieo][mu];
+    // 	for(int eo=0;eo<2;eo++)
+    // 	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
+    // 	    for(int mu=0;mu<NDIM;mu++)
+    // 	      {
+    // 		int ineoup=loceo_neighup[eo][ieo][mu];
 		
-		su3 contr;
-		su3_put_to_zero(contr);
+    // 		su3 contr;
+    // 		su3_put_to_zero(contr);
 		
-		for(int i=0;i<2;i++)
-		  {
-		    spincolor& a=((i==0)?X[!eo]:Y[!eo])[iterm][ineoup];
-		    spincolor& b=((i==0)?Y[eo]:X[eo])[iterm][ieo];
+    // 		for(int i=0;i<2;i++)
+    // 		  {
+    // 		    spincolor& a=((i==0)?X[!eo]:Y[!eo])[iterm][ineoup];
+    // 		    spincolor& b=((i==0)?Y[eo]:X[eo])[iterm][ieo];
 		    
-		    spincolor temp;
-		    spincolor_copy(temp,a);
-		    dirac_subt_the_prod_spincolor(temp,base_gamma[igamma_of_mu[mu]],a);
-		    safe_dirac_prod_spincolor(temp,base_gamma[5],temp);
+    // 		    spincolor temp;
+    // 		    spincolor_copy(temp,a);
+    // 		    dirac_subt_the_prod_spincolor(temp,base_gamma[igamma_of_mu[mu]],a);
+    // 		    safe_dirac_prod_spincolor(temp,base_gamma[5],temp);
 		    
-		    for(int ic1=0;ic1<NCOL;ic1++)
-		      for(int ic2=0;ic2<NCOL;ic2++)
-			for(int id=0;id<NDIRAC;id++)
-			  complex_summ_the_conj2_prod(contr[ic1][ic2],temp[id][ic1],b[id][ic2]);
-		  }
+    // 		    for(int ic1=0;ic1<NCOL;ic1++)
+    // 		      for(int ic2=0;ic2<NCOL;ic2++)
+    // 			for(int id=0;id<NDIRAC;id++)
+    // 			  complex_summ_the_conj2_prod(contr[ic1][ic2],temp[id][ic1],b[id][ic2]);
+    // 		  }
 		
-		complex w;
-		complex_prod_double(w,u1b[eo][ieo][mu],weight);
-		su3_summ_the_prod_complex(F[eo][ieo][mu],contr,w);
-	      }
-	NISSA_PARALLEL_LOOP_END;
-      }
+    // 		complex w;
+    // 		complex_prod_double(w,u1b[eo][ieo][mu],weight);
+    // 		su3_summ_the_prod_complex(F[eo][ieo][mu],contr,w);
+    // 	      }
+    // 	NISSA_PARALLEL_LOOP_END;
+    //   }
     
-    //remove the background fields
-    rem_backfield_without_stagphases_from_conf(eo_conf,u1b);
+    // //remove the background fields
+    // rem_backfield_without_stagphases_from_conf(eo_conf,u1b);
     
-    if(cSW!=0)
-      {
-	communicate_eo_quad_su3_edges(eo_conf);
+    // if(cSW!=0)
+    //   {
+    // 	communicate_eo_quad_su3_edges(eo_conf);
 	
-	eo_ptr<as2t_su3> cl_insertion;
-	for(int eo=0;eo<2;eo++)
-	  cl_insertion[eo]=nissa_malloc("insertion",locVolh+bord_volh+edge_volh,as2t_su3);
+    // 	eo_ptr<as2t_su3> cl_insertion;
+    // 	for(int eo=0;eo<2;eo++)
+    // 	  cl_insertion[eo]=nissa_malloc("insertion",locVolh+bord_volh+edge_volh,as2t_su3);
 	
-	for(int iterm=0;iterm<appr->degree();iterm++)
-	  {
-	    const double weight=appr->weights[iterm];
+    // 	for(int iterm=0;iterm<appr->degree();iterm++)
+    // 	  {
+    // 	    const double weight=appr->weights[iterm];
 	    
-	    eo_ptr<spincolor> tempX={X[EVN][iterm],X[ODD][iterm]},tempY={Y[EVN][iterm],Y[ODD][iterm]};
-	    compute_clover_staples_insertions(cl_insertion,tempX,tempY);
-	    communicate_eo_as2t_su3_edges(cl_insertion);
+    // 	    eo_ptr<spincolor> tempX={X[EVN][iterm],X[ODD][iterm]},tempY={Y[EVN][iterm],Y[ODD][iterm]};
+    // 	    compute_clover_staples_insertions(cl_insertion,tempX,tempY);
+    // 	    communicate_eo_as2t_su3_edges(cl_insertion);
 	    
-	    for(int eo=0;eo<2;eo++)
-	      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-		for(int dir=0;dir<NDIM;dir++)
-		  {
-		    su3 stap;
+    // 	    for(int eo=0;eo<2;eo++)
+    // 	      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
+    // 		for(int dir=0;dir<NDIM;dir++)
+    // 		  {
+    // 		    su3 stap;
 		    
-		    get_clover_staples(stap,eo_conf,eo,ieo,dir,cl_insertion,cSW);
-		    su3_summ_the_prod_double(F[eo][ieo][dir],stap,cSW/8*weight);
-		  }
-	    NISSA_PARALLEL_LOOP_END;
-	  }
+    // 		    get_clover_staples(stap,eo_conf,eo,ieo,dir,cl_insertion,cSW);
+    // 		    su3_summ_the_prod_double(F[eo][ieo][dir],stap,cSW/8*weight);
+    // 		  }
+    // 	    NISSA_PARALLEL_LOOP_END;
+    // 	  }
 	
-	for(int eo=0;eo<2;eo++)
-	  nissa_free(cl_insertion[eo]);
-      }
+    // 	for(int eo=0;eo<2;eo++)
+    // 	  nissa_free(cl_insertion[eo]);
+    //   }
     
-    //free
-    for(int eo=0;eo<2;eo++)
-      {
-	for(int iterm=0;iterm<appr->degree();iterm++)
-	  {
-	    nissa_free(X[eo][iterm]);
-	    nissa_free(Y[eo][iterm]);
-	  }
-	nissa_free(X[eo]);
-	nissa_free(Y[eo]);
-      }
-    nissa_free(temp);
+    // //free
+    // for(int eo=0;eo<2;eo++)
+    //   {
+    // 	for(int iterm=0;iterm<appr->degree();iterm++)
+    // 	  {
+    // 	    nissa_free(X[eo][iterm]);
+    // 	    nissa_free(Y[eo][iterm]);
+    // 	  }
+    // 	nissa_free(X[eo]);
+    // 	nissa_free(Y[eo]);
+    //   }
+    // nissa_free(temp);
     
-    STOP_TIMING(quark_force_over_time);
+    // STOP_TIMING(quark_force_over_time);
   }
 }

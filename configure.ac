@@ -28,8 +28,12 @@ AC_PROG_CXX
 AC_PROG_RANLIB
 AC_LANG([C++])
 
+AX_CXX_COMPILE_STDCXX(17,noext,mandatory)
+
 LIBRARY_RESULT="---"
 SUMMARY_RESULT="---"
+
+AX_ASSEMBLY_REPORT
 
 #check if we enable fortran
 AC_ARG_ENABLE(fortran,
@@ -170,15 +174,41 @@ AC_DEFINE_UNQUOTED([CUDA_HOST_AND_DEVICE],${CUDA_HOST_AND_DEVICE},[Whether to du
 AC_DEFINE_UNQUOTED([CUDA_DEVICE],${CUDA_DEVICE},[Whether to instantiate pure device function])
 AH_VERBATIM([COMPILING_FOR_DEVICE],
 #ifdef __CUDA_ARCH__
- 
+
  /// A convenient macro to detect that we are compiling on device
 # define COMPILING_FOR_DEVICE
- 
+
+# define _ASM_BOOKMARK_SYMBOL "//"
+
+#else
+
+# define _ASM_BOOKMARK_SYMBOL "#"
+
 #endif
 )
 AC_MSG_RESULT([with threads type... ${with_threads_type}])
 SUMMARY_RESULT="$SUMMARY_RESULT
 threads type            : $with_threads_type"
+
+####################################
+
+#endianness specification
+AC_ARG_WITH(endianness,
+	AS_HELP_STRING([--with-endianness],[Specify endianness (auto (default, relies on compiler to specify __BYE_ORDER__), little, big)]),
+	with_endianness="${withval}",
+	with_endianness=auto)
+case "$with_endianness" in
+     little) is_little_endian=true ;;
+     big) is_little_endian=false ;;
+     auto) is_little_endian='(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)';;
+     *) AC_MSG_ERROR(["Unkwnown endianness ${with_endianness}"]);;
+esac
+AC_DEFINE_UNQUOTED([IS_LITTLE_ENDIAN],${is_little_endian},[Whether the machine is little endian])
+AC_MSG_RESULT([with endianness... ${with_endianness}])
+SUMMARY_RESULT="$SUMMARY_RESULT
+endianness            : $with_endianness"
+
+####################################
 
 #AX_CXXFLAGS_WARN_ALL
 AC_MSG_CHECKING(whether compiler understands -Wall)
@@ -191,18 +221,6 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
 
 #check ntl library
 #LB_CHECK_NTL(,,AC_MSG_ERROR(["Unable to find NTL library"]))
-
-#spi
-AC_ARG_ENABLE(spi,
-	AS_HELP_STRING([--enable-spi],[Enable spi stuff (ony for BG/Q)]),
-	enable_spi="${enableval}",
-	enable_spi="no")
-if test "$enable_spi" == "yes"
-then
-	AC_DEFINE([SPI],1,[Enable spi])
-fi
-AM_CONDITIONAL([SPI],[test "$enable_spi" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling spi... $enable_spi])
 
 ##############################################
 
@@ -241,24 +259,6 @@ FFT type            : $with_fft_type"
 #################### eigen ####################
 
 AX_SUBPACKAGE(eigen,Eigen/Dense,,,EIGEN,".",".")
-
-#enable eigen for linear algebra
-AC_ARG_ENABLE(eigen_everywhere,
-	AS_HELP_STRING([--enable-eigen-everywhere],[Enable Eigen Everywhere (default: no)]),
-	enable_eigen_everywhere="${enableval}",
-	enable_eigen_everywhere="no")
-AC_MSG_RESULT(enabling Eigen everywhere ... ${enable_eigen_everywhere})
-
-#check activability
-if test "$enable_eigen_everywhere" == "yes"
-then
-	if test "$eigen_found" == "no"
-	then
-		AC_MSG_ERROR(["Unable to find Eigen"])
-	else
-		AC_DEFINE_UNQUOTED([USE_EIGEN_EVERYWHERE],[1],[Enable Eigen everywhere])
-	fi
-fi
 
 #################### parpack ####################
 
@@ -370,18 +370,6 @@ AC_ARG_ENABLE(parser-generation,
 AM_CONDITIONAL([PARSER_GENERATION],[test "$enable_parser_generation" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling parser generation... $enable_parser_generation])
 
-#MPI I/O
-AC_ARG_ENABLE(mpi-io,
-	AS_HELP_STRING([--disable-mpi-io],[Enable MPI I/O]),
-	enable_mpi_io="${enableval}",
-	enable_mpi_io="yes")
-if test "$enable_mpi_io" == "yes"
-then
-	AC_DEFINE([USE_MPI_IO],1,[Enable MPI I/O])
-fi
-AM_CONDITIONAL([USE_MPI_IO],[test "$enable_mpi_io" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling MPI I/O... $enable_mpi_io])
-
 #repropducible run
 AC_ARG_ENABLE(reproducible-run,
 	AS_HELP_STRING([--enable-reproducible-run],[Enable reproducibilty of runs (default: no)]),
@@ -466,6 +454,14 @@ AC_DEFINE([NAME3(s1,s2,s3)],[NAME2(CONCAT3(s1,_,s2),s3)],[Name with two _])
 AC_DEFINE([NAME4(s1,s2,s3,s4)],[NAME3(CONCAT3(s1,_,s2),s3,s4)],[Name with four _])
 AC_DEFINE([REORDER_BARRIER()],[__asm volatile ("")],[Avoid spilling])
 AC_DEFINE([MACRO_GUARD(...)],[do{__VA_ARGS__}while(0)],[Guard semicolon])
+AC_DEFINE([TO_STRING_INTERNAL(x)],[#x],[Internally stringify])
+AC_DEFINE([TO_STRING(x)],[TO_STRING_INTERNAL(x)],[Stringify])
+AC_DEFINE([LINE_AS_STRING],[TO_STRING(__LINE__)],[Instantiate the line number in a string])
+AC_DEFINE([ASM_BOOKMARK(COMMENT)],
+        [asm(_ASM_BOOKMARK_SYMBOL "Bookmark file: \"" __FILE__ "\", line: " LINE_AS_STRING  ", " COMMENT)],
+        [Include a comment in the assembler, recognizable in the compilation])
+AC_DEFINE([ASM_BOOKMARK_BEGIN(COMMENT)],[ASM_BOOKMARK("BEGIN " COMMENT)],[Put a BEGIN for asm bookmark section])
+AC_DEFINE([ASM_BOOKMARK_END(COMMENT)],[ASM_BOOKMARK("END " COMMENT)],[Put a END for asm bookmark section])
 
 #result of conf to screen
 AC_MSG_RESULT([

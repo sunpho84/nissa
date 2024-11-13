@@ -14,7 +14,7 @@ int snum(int x,int y,int z,int t)
 void read_complex(complex out,FILE *in)
 {
   char temp[100];
-  fscanf(in,"%s",temp);
+  int rc=fscanf(in,"%s",temp);
   if(sscanf(temp,"(%lg,%lg)",out+0,out+1)!=2) crash("reading complex");
 }
 

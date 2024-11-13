@@ -54,18 +54,14 @@ namespace nissa
     
     //set the parity
     loclx_parity=nissa_malloc("loclx_parity",locVol+bord_vol+edge_vol,int);
-    ignore_borders_communications_warning(loclx_parity);
     
     loceo_of_loclx=nissa_malloc("loceo_of_loclx",locVol+bord_vol+edge_vol,int);
-    ignore_borders_communications_warning(loceo_of_loclx);
     
     for(int par=0;par<2;par++) loclx_of_loceo[par]=nissa_malloc("loclx_of_loceo",locVolh+bord_volh+edge_volh,int);
     for(int par=0;par<2;par++) loceo_neighup[par]=nissa_malloc("loceo_neighup",locVolh+bord_volh+edge_volh,coords_t);
     for(int par=0;par<2;par++) loceo_neighdw[par]=nissa_malloc("loceo_neighdw",locVolh+bord_volh+edge_volh,coords_t);
     for(int par=0;par<2;par++) surfeo_of_bordeo[par]=nissa_malloc("surfeo_of_bordeo",bord_volh,int);
-    for(int par=0;par<2;par++) ignore_borders_communications_warning(loclx_of_loceo[par]);
-    for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighup[par]);
-    for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighdw[par]);
+    for(int par=0;par<2;par++) surfeo_of_edgeo[par]=nissa_malloc("surfeo_of_edgeo",edge_volh,int);
     
     //Label the sites
     int iloc_eo[2]={0,0};
@@ -102,10 +98,16 @@ namespace nissa
     //finds how to fill the borders with surface
     for(int bordlx=0;bordlx<bord_vol;bordlx++)
       {
-	int surflx=surflxOfBordlx[bordlx];
+	const int surflx=surflxOfBordlx[bordlx];
 	surfeo_of_bordeo[loclx_parity[surflx]][loceo_of_loclx[bordlx+locVol]-locVolh]=loceo_of_loclx[surflx];
       }
     
+    //finds how to fill the edges with surface
+    for(int edgelx=0;edgelx<edge_vol;edgelx++)
+      {
+	const int surflx=surflxOfEdgelx[edgelx];
+	surfeo_of_edgeo[loclx_parity[surflx]][loceo_of_loclx[edgelx+locVol+bord_vol]-locVolh-bord_volh]=loceo_of_loclx[surflx];
+      }
     master_printf("E/O Geometry intialized\n");
     
     eo_geom_inited=1;
@@ -119,7 +121,7 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  for(int vnu=0;vnu<2;vnu++)
 	    for(int nu=mu+1;nu<NDIM;nu++)
-	      if(paral_dir[mu] and paral_dir[nu])
+	      if(is_dir_parallel[mu] and is_dir_parallel[nu])
 		{
 		  int iedge=edge_numb[mu][nu];
 		  int icomm=((par*2+vmu)*2+vnu)*NDIM*(NDIM-1)/2+iedge;
@@ -179,6 +181,7 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
 	nissa_free(loclx_of_loceo[par]);
+	nissa_free(surfeo_of_edgeo[par]);
 	nissa_free(surfeo_of_bordeo[par]);
 	nissa_free(loceo_neighup[par]);
 	nissa_free(loceo_neighdw[par]);

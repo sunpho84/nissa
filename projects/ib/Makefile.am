@@ -1,7 +1,10 @@
 bin_PROGRAMS+= \
 	$(top_builddir)/bin/ib \
-	$(top_builddir)/bin/disco \
+	$(top_builddir)/bin/test_wip \
 	$(top_builddir)/bin/checks
+
+assembly_reports+=\
+        %D%/test_wip.s
 
 # $(top_builddir)/bin/checks_ib
 # $(top_builddir)/bin/EU3_source
@@ -38,6 +41,10 @@ __top_builddir__bin_checks_SOURCES=%D%/checks.cpp
 __top_builddir__bin_checks_LDADD=$(LDADD)
 __top_builddir__bin_checks_LDFLAGS=$(LDFLAGS)
 
+__top_builddir__bin_test_wip_SOURCES=%D%/test_wip.cpp
+__top_builddir__bin_test_wip_LDADD=$(LDADD)
+__top_builddir__bin_test_wip_LDFLAGS=$(LDFLAGS)
+
 __top_builddir__bin_ib_SOURCES=%D%/ib.cpp $(common_sources)
 __top_builddir__bin_ib_LDADD=$(LDADD)
 __top_builddir__bin_ib_LDFLAGS=$(LDFLAGS)
@@ -55,9 +62,9 @@ __top_builddir__bin_ib_LDFLAGS=$(LDFLAGS)
 # __top_builddir__bin_mel_point_source_CXXFLAGS="-DPOINT_SOURCE_VERSION"
 # __top_builddir__bin_mel_point_source_LDFLAGS=$(LDFLAGS)
 
-__top_builddir__bin_disco_SOURCES=%D%/disco.cpp $(common_sources)
-__top_builddir__bin_disco_LDADD=$(LDADD)
-__top_builddir__bin_disco_LDFLAGS=$(LDFLAGS)
+# __top_builddir__bin_disco_SOURCES=%D%/disco.cpp $(common_sources)
+# __top_builddir__bin_disco_LDADD=$(LDADD)
+# __top_builddir__bin_disco_LDFLAGS=$(LDFLAGS)
 
 # __top_builddir__bin_disco2_SOURCES=%D%/disco2.cpp
 # __top_builddir__bin_disco2_LDADD=$(LDADD)

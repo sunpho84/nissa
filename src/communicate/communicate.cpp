@@ -1,9 +1,9 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #define EXTERN_COMMUNICATE
-#include "communicate.hpp"
+# include <communicate/communicate.hpp>
 
 namespace nissa
 {

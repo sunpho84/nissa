@@ -1,31 +1,103 @@
 #ifndef _TOPOLOGICAL_ACTION_HPP
 #define _TOPOLOGICAL_ACTION_HPP
 
-#include "new_types/metadynamics.hpp"
-#include "operations/smearing/stout.hpp"
-#include "routines/ios.hpp"
+#include <geometry/geometry_mix.hpp>
+#include <io/input.hpp>
+#include <new_types/metadynamics.hpp>
+#include <operations/smearing/stout.hpp>
+#include <routines/ios.hpp>
 
 namespace nissa
 {
+  constexpr char topo_file_name[]="topo_potential"; //improve
+  
   //parameters to add topological potential
-  struct topotential_pars_t : meta_pars_t
+  struct topotential_pars_t :
+    meta_pars_t
   {
     int flag;
+    
+    int def_flag() const
+    {
+      return 0;
+    }
+    
     double theta;
+    
+    double def_theta() const
+    {
+      return 0.0;
+    }
+    
     stout_pars_t stout_pars;
-    int def_flag(){return 0;}
-    double def_theta(){return 0.0;}
     
-    //methods inside measures/gauge/topological_charge.cpp
-    void store_if_needed(eo_ptr<quad_su3> conf,int iconf);
+    void store_if_needed(const EoField<quad_su3>& ext_conf,
+			 const int& iconf) const
+      {
+	crash("reimplement");
+	
+	// if(flag==2 and iconf%each==0 and iconf>=after)
+	//   {
+	// 	double charge;
+	// 	eo_ptr<quad_su3> conf;
+	// 	if(stout_pars.nlevels==0)
+	// 	  {
+	// 	    conf[0]=ext_conf[0];
+	// 	    conf[1]=ext_conf[1];
+	// 	  }
+	// 	else
+	// 	  {
+	// 	    conf[0]=nissa_malloc("stout_conf_e",locVolh+bord_volh+edge_volh,quad_su3);
+	// 	    conf[1]=nissa_malloc("stout_conf_o",locVolh+bord_volh+edge_volh,quad_su3);
+	// 	    stout_smear(conf,ext_conf,&stout_pars);
+	// 	  }
+	
+	// 	//compute topocharge
+	// 	total_topological_charge_eo_conf(&charge,conf);
+	// 	master_printf("Topological charge to be stored: %lg\n",charge);
+	// 	update(iconf,charge);
+	
+	// 	//free if needed
+	// 	if(stout_pars.nlevels!=0)
+	// 	  {
+	// 	    nissa_free(conf[0]);
+	// 	    nissa_free(conf[1]);
+	// 	  }
+	//   }
+      }
     
-    //methods inside operations/su3_paths/spectral_projectors.cpp
-    void store_if_needed_sp(eo_ptr<quad_su3> conf,int iconf);
+    int master_fprintf(FILE *fout,
+		       const bool& full=false) const
+    {
+      return nissa::master_fprintf(fout,"%s",get_str().c_str());
+    }
     
-    int master_fprintf(FILE *fout,bool full=false);
-    std::string get_str(bool full=false);
+    std::string get_str(const bool& full=false) const
+    {
+      std::ostringstream os;
+      
+      const char name_known[3][10]={"NONE","ORDINARY","META"};
+      
+      if(full or flag!=def_flag())
+	os<<"TopoPotential\t=\t"<<name_known[flag]<<"\n";
+      
+      switch(flag)
+	{
+	case 0:
+	  break;
+	case 1:
+	  os<<" Theta\t\t=\t"<<theta<<"\n";
+	  break;
+	case 2:
+	  os<<meta_pars_t::get_str(full);
+	  os<<stout_pars.get_str(full);
+	  break;
+	}
+      
+      return os.str();
+    }
     
-    int is_nonstandard()
+    bool is_nonstandard() const
     {
       return
 	meta_pars_t::is_nonstandard() or
@@ -40,11 +112,72 @@ namespace nissa
       theta(def_theta()){}
   };
   
-  double topodynamical_potential(double Q,topotential_pars_t &pars);
-  void save_topodynamical_potential(topotential_pars_t &pars);
-  void load_topodynamical_potential(topotential_pars_t &pars,bool mandatory);
-  double topotential_action(eo_ptr<quad_su3> ext_conf,topotential_pars_t &pars);
-  double topotential_action(quad_su3 *lx_conf,topotential_pars_t &pars);
+  //compute the topodynamical potential using past history
+  inline double topodynamical_potential(const double& Q,
+					const topotential_pars_t& pars)
+  {
+    return pars.compute_pot(Q);
+  }
+  
+  //draw the topodynamical potential
+  inline void save_topodynamical_potential(const topotential_pars_t& pars)
+  {
+    pars.save(topo_file_name);
+  }
+  
+  inline void load_topodynamical_potential(topotential_pars_t& pars,
+					   const bool& mandatory)
+  {
+    if(file_exists(topo_file_name)) pars.load(topo_file_name);
+    else
+      if(mandatory) crash("%s file not found when mandatory present",topo_file_name);
+      else verbosity_lv2_master_printf("%s not found, skipping reading",topo_file_name);
+  }
+  
+  //Compute the topological action
+  inline double topotential_action(const EoField<quad_su3>& conf,
+				   const topotential_pars_t &pars)
+  {
+    crash("reimplent");
+    
+    // //compute topocharge
+    // double Q;
+    // if(pars.stout_pars.nlevels)
+    //   {
+    // 	EoField<quad_su3> smeConf("smeConf",WITH_HALO);
+    //     stout_smear(smeConf,conf,pars.stout_pars);
+    // 	total_topological_charge_eo_conf(&Q,smeConf);
+    //   }
+    // else
+    //   total_topological_charge_eo_conf(&Q,conf);
+    
+    //compute according to flag
+    double topo_action=0;
+    // switch(pars.flag)
+    //   {
+    //   case 1: topo_action=Q*pars.theta;break;
+    //   case 2: topo_action=topodynamical_potential(Q,pars);break;
+    //   default: crash("unknown flag %d",pars.flag);
+    //   }
+    
+    // //free if it was allocated
+    // if(pars.stout_pars.nlevels!=0) for(int eo=0;eo<2;eo++) nissa_free(conf[eo]);
+    
+    return topo_action;
+  }
+  
+  //lx version
+  inline double topotential_action(const LxField<quad_su3>& lx_conf,
+			    const topotential_pars_t &pars)
+  {
+    //allocate
+    EoField<quad_su3> eo_conf("stout_conf",WITH_HALO_EDGES);
+    
+    //split and compute
+    split_lx_vector_into_eo_parts(eo_conf,lx_conf);
+    
+    return topotential_action(eo_conf,pars);
+  }
 }
 
 

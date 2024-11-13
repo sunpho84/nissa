@@ -25,7 +25,7 @@ void new_cool_eo_conf(eo_ptr<quad_su3> eo_conf,int over_flag,double over_exp)
       }
 }
 
-void unitarize_conf_max(eo_ptr<quad_su3> conf)
+void unitarize_conf_max(EoField<quad_su3>& conf)
 {
     for(int par=0;par<2;par++)
       {
@@ -60,8 +60,7 @@ void in_main(int narg,char **arg)
   
   //////////////////////////// read the conf /////////////////////////////
   
-  eo_ptr<quad_su3> conf={nissa_malloc("conf_e",locVolh+bord_volh+edge_volh,quad_su3),
-			 nissa_malloc("conf_o",locVolh+bord_volh+edge_volh,quad_su3)};
+  EoField<quad_su3> conf("conf",WITH_HALO_EDGES);
   
   //read the conf and write plaquette
   ILDG_message mess;
@@ -76,21 +75,22 @@ void in_main(int narg,char **arg)
   
   for(int ilev=0;ilev<=stout_pars.nlevels;ilev++)
     {
-      //compute topocharge
-      double charge;
-      topo_time-=take_time();
-      total_topological_charge_eo_conf(&charge,conf);
-      topo_time+=take_time();
+      crash("reimplement");
+      // //compute topocharge
+      // double charge;
+      // topo_time-=take_time();
+      // total_topological_charge_eo_conf(&charge,conf);
+      // topo_time+=take_time();
       
-      master_printf("Smearing level: %d plaq: %16.16lg charge: %16.16lg\n",ilev,global_plaquette_eo_conf(conf),charge);
+      // master_printf("Smearing level: %d plaq: %16.16lg charge: %16.16lg\n",ilev,global_plaquette_eo_conf(conf),charge);
       
-      if(ilev!=stout_pars.nlevels)
-	{
-	  cool_time-=take_time();
-	  stout_smear_single_level(conf,conf,stout_pars.rho);
-	  //new_cool_eo_conf(conf,0,0);
-	  cool_time+=take_time();
-	}
+      // if(ilev!=stout_pars.nlevels)
+      // 	{
+      // 	  cool_time-=take_time();
+      // 	  stout_smear_single_level(conf,conf,stout_pars.rho);
+      // 	  //new_cool_eo_conf(conf,0,0);
+      // 	  cool_time+=take_time();
+      // 	}
     }
   
   master_printf("Topological computation time: %lg\n",topo_time);
@@ -99,7 +99,6 @@ void in_main(int narg,char **arg)
   //write the conf
   paste_eo_parts_and_write_ildg_gauge_conf(pathout,conf,64);
   
-  for(int eo=0;eo<2;eo++) nissa_free(conf[eo]);
   ILDG_message_free_all(&mess);
 }
 

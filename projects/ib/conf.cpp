@@ -10,7 +10,7 @@
 
 namespace nissa
 {
-  //init the MPI grid
+  /// Init the MPI grid
   void read_init_grid()
   {
     int L,T;
@@ -20,7 +20,7 @@ namespace nissa
     init_grid(T,L);
   }
   
-  //needed to avoid any check
+  /// Check that "finished" file present
   bool finish_file_present()
   {
     return not file_exists(combine("%s/%s",outfolder,finished_filename.c_str()).c_str());
@@ -33,9 +33,9 @@ namespace nissa
       {
 	master_printf("Allocating confs\n");
 	
-	glb_conf=nissa_malloc("glb_conf",locVol+bord_vol+edge_vol,quad_su3);
-	inner_conf=nissa_malloc("inner_conf",locVol+bord_vol+edge_vol,quad_su3);
-	ape_smeared_conf=nissa_malloc("ape_smeared_conf",locVol+bord_vol+edge_vol,quad_su3);
+	glb_conf=new LxField<quad_su3>("glb_conf",WITH_HALO_EDGES);
+	inner_conf=new LxField<quad_su3>("inner_conf",WITH_HALO_EDGES);
+	ape_smeared_conf=new LxField<quad_su3>("ape_smeared_conf",WITH_HALO_EDGES);
       }
     else
       master_printf("Skipping allocating confs\n");
@@ -50,9 +50,9 @@ namespace nissa
       {
 	master_printf("Freeing confs\n");
 	
-	nissa_free(glb_conf);
-	nissa_free(inner_conf);
-	nissa_free(ape_smeared_conf);
+	delete glb_conf;
+	delete inner_conf;
+	delete ape_smeared_conf;
       }
     else
       master_printf("Skipping freeing confs\n");
@@ -61,7 +61,10 @@ namespace nissa
   }
   
   //read the conf and setup it
-  void setup_conf(quad_su3 *conf,const char *conf_path,int rnd_gauge_transform,int free_theory)
+  void setup_conf(LxField<quad_su3>& conf,
+		  const char *conf_path,
+		  const int& rnd_gauge_transform,
+		  const int& free_theory)
   {
 #ifdef USE_QUDA
     if(const size_t n=quda_iface::qudaSetups.size();n)
@@ -78,23 +81,28 @@ namespace nissa
 	read_ildg_gauge_conf(conf,conf_path);
 	master_printf("Full loading took %lg s\n",take_time()-beg);
 	STOP_TIMING(conf_load_time);
+	
 	master_printf("plaq: %+16.16g\n",global_plaquette_lx_conf(conf));
       }
     else generate_cold_lx_conf(conf);
     
-    //if asked, randomly transform the configurations
-    if(rnd_gauge_transform) perform_random_gauge_transform(conf,conf);
-    if(Landau_gauge_fix_flag) Landau_or_Coulomb_gauge_fix(conf,&gauge_fixing_pars,conf);
-    if(store_conf) write_ildg_gauge_conf(combine("%s/conf",outfolder),conf,64);
+    if(rnd_gauge_transform)
+      perform_random_gauge_transform(conf,conf);
     
-    //if clover term is included, compute it
-    if(clover_run) clover_term(Cl,glb_cSW,conf);
+    if(Landau_gauge_fix_flag)
+      Landau_or_Coulomb_gauge_fix(conf,gauge_fixing_pars,conf);
+    
+    if(store_conf)
+      write_ildg_gauge_conf(combine("%s/conf",outfolder),conf,64);
+    
+    if(clover_run)
+      clover_term(Cl,glb_cSW,conf);
     
     //if the copied conf exists, ape smear
     if(ape_smeared_conf)
       {
-	ape_spatial_smear_conf(ape_smeared_conf,conf,ape_smearing_alpha,ape_smearing_niters);
-	master_printf("Smeared plaquette: %+16.16lg\n",global_plaquette_lx_conf(ape_smeared_conf));
+	ape_spatial_smear_conf(*ape_smeared_conf,*conf,ape_smearing_alpha,ape_smearing_niters);
+	master_printf("Smeared plaquette: %+16.16lg\n",global_plaquette_lx_conf(*ape_smeared_conf));
       }
     
     //invalidate internal conf
@@ -102,19 +110,23 @@ namespace nissa
   }
   
   //take a set of theta, charge and photon field, and update the conf
-  quad_su3* get_updated_conf(double charge,const momentum_t& theta,quad_su3 *in_conf)
+  LxField<quad_su3>* get_updated_conf(const double& charge,
+				      const momentum_t& theta,
+				      const LxField<quad_su3>& in_conf)
   {
     master_printf("Checking if conf needs to be updated\n");
     
     //check if the inner conf is valid or not
-    static quad_su3 *stored_conf=NULL;
+    static const LxField<quad_su3>* stored_conf=nullptr;
     static double stored_charge=0,stored_theta[NDIM];
-    if(not inner_conf_valid) master_printf("Inner conf is invalid (loaded new conf, or new photon generated)\n");
+    
+    if(not inner_conf_valid)
+      master_printf("Inner conf is invalid (loaded new conf, or new photon generated)\n");
     
     //check ref conf
-    if(stored_conf!=in_conf)
+    if(stored_conf!=&in_conf)
       {
-	master_printf("Inner conf is invalid (ref conf from %p to %p)\n",stored_conf,in_conf);
+	master_printf("Inner conf is invalid (ref conf from %p to %p)\n",stored_conf,&in_conf);
 	inner_conf_valid=false;
       }
     
@@ -124,9 +136,12 @@ namespace nissa
 	master_printf("Inner conf is invalid (charge changed from %lg to %lg)\n",stored_charge,charge);
 	inner_conf_valid=false;
       }
+    
     //check theta
     bool same_theta=true;
-    for(int mu=0;mu<NDIM;mu++) same_theta&=(theta[mu]==stored_theta[mu]);
+    for(int mu=0;mu<NDIM;mu++)
+      same_theta&=(theta[mu]==stored_theta[mu]);
+    
     if(not same_theta)
       {
 	master_printf("Inner conf is invalid (theta changed from {%lg,%lg,%lg,%lg} to {%lg,%lg,%lg,%lg}\n",
@@ -139,21 +154,22 @@ namespace nissa
 	master_printf("Inner conf not valid: updating it\n");
 	
 	//copy
-	vector_copy(inner_conf,in_conf);
+	*inner_conf=in_conf;
 	
 	//put momentum
 	momentum_t old_theta;
 	old_theta[0]=0;old_theta[1]=old_theta[2]=old_theta[3]=0;
-	adapt_theta(inner_conf,old_theta,theta,0,0);
+	adapt_theta(*inner_conf,old_theta,theta,0,0);
 	
 	//include the photon field, with correct charge
-	if(charge) add_photon_field_to_conf(inner_conf,charge);
+	if(charge)
+	  add_photon_field_to_conf(*inner_conf,charge);
       }
     else
       master_printf("Inner conf valid, no need to update\n");
     
     //update value and set valid
-    stored_conf=in_conf;
+    stored_conf=&in_conf;
     stored_charge=charge;
     for(int mu=0;mu<NDIM;mu++) stored_theta[mu]=theta[mu];
     inner_conf_valid=true;
@@ -187,7 +203,7 @@ namespace nissa
   //init a new conf
   void start_new_conf()
   {
-    setup_conf(glb_conf,conf_path,rnd_gauge_transform,free_theory);
+    setup_conf(*glb_conf,conf_path,rnd_gauge_transform,free_theory);
     
     clearCorrelations();
   }
@@ -204,13 +220,16 @@ namespace nissa
   int read_conf_parameters(int &iconf,bool(*external_condition)())
   {
     //Check if asked to stop or restart
-    int asked_stop=file_exists(stop_path);
+    const int asked_stop=file_exists(stop_path);
     verbosity_lv2_master_printf("Asked to stop: %d\n",asked_stop);
-    int asked_restart=file_exists("restart");
+    
+    const int asked_restart=file_exists("restart");
     verbosity_lv2_master_printf("Asked to restart: %d\n",asked_restart);
+    
     //check if enough time
-    int enough_time=check_remaining_time();
+    const int enough_time=check_remaining_time();
     verbosity_lv2_master_printf("Enough time: %d\n",enough_time);
+    
     //check that there are still conf to go
     int still_conf=iconf<ngauge_conf;
     verbosity_lv2_master_printf("Still conf: %d\n",still_conf);
@@ -218,7 +237,7 @@ namespace nissa
     allocate_confs();
     
     int ok_conf=false;
-    if(!asked_stop and !asked_restart and enough_time and still_conf)
+    if((not asked_stop) and (not asked_restart) and enough_time and still_conf)
       do
 	{
 	  //Gauge path
@@ -232,13 +251,13 @@ namespace nissa
 	  char run_file[1024];
 	  if(snprintf(run_file,1024,"%s/%s",outfolder,running_filename.c_str())<0)
 	    crash("witing %s",run_file);
-	  ok_conf=!(file_exists(run_file)) and external_condition();
+	  ok_conf=not (file_exists(run_file)) and external_condition();
 	  
 	  //if not finished
 	  if(ok_conf)
 	    {
 	      master_printf(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
-	      if(!dir_exists(outfolder))
+	      if(not dir_exists(outfolder))
 		{
 		  int ris=create_dir(outfolder);
 		  if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
@@ -276,16 +295,19 @@ namespace nissa
 	  
 	  still_conf=(iconf<ngauge_conf);
 	}
-      while(!ok_conf and still_conf);
+      while((not ok_conf) and still_conf);
     
     master_printf("\n");
     
     //write if it was asked to stop or restart
-    if(asked_stop) master_printf("Asked to stop\n");
-    if(asked_restart) master_printf("Asked to restart\n");
+    if(asked_stop)
+      master_printf("Asked to stop\n");
+    
+    if(asked_restart)
+      master_printf("Asked to restart\n");
     
     //writing that all confs have been measured and write it
-    if(!ok_conf and iconf>=ngauge_conf)
+    if((not ok_conf) and iconf>=ngauge_conf)
       {
 	master_printf("Analyzed all confs, exiting\n\n");
 	file_touch(stop_path);
@@ -304,8 +326,13 @@ namespace nissa
     nanalyzed_conf++;
   }
   
-  inline void print_single_statistic(double frac_time,double tot_time,int niter,const char *tag)
-  {if(niter) master_printf(" - %02.2f%% for %d %s (%2.2gs avg)\n",frac_time/tot_time*100,niter,tag,frac_time/niter);}
+  inline void print_single_statistic(const double& frac_time,
+				     const double& tot_time,
+				     const int& niter,
+				     const char *tag)
+  {
+    if(niter) master_printf(" - %02.2f%% for %d %s (%2.2gs avg)\n",frac_time/tot_time*100,niter,tag,frac_time/niter);
+  }
   
   //print all statisticd
   void print_statistics()

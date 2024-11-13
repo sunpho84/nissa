@@ -14,14 +14,13 @@
 #endif
 
 #include "io/checksum.hpp"
-#include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 
 #ifndef EXTERN_EXPORT_CONF
- #define EXTERN_EXPORT_CONF extern
- #define INIT_EXPORT_CONF_TO(cond...)
+# define EXTERN_EXPORT_CONF extern
+# define INIT_EXPORT_CONF_TO(cond...)
 #else
- #define INIT_EXPORT_CONF_TO(cond...) cond
+# define INIT_EXPORT_CONF_TO(cond...) cond
 #endif
 
 namespace nissa
@@ -31,7 +30,7 @@ namespace nissa
     enum ExportRule{DO_THE_CHECK,FORCE_EXPORT,AVOID_EXPORT};
     EXTERN_EXPORT_CONF ExportRule export_rule INIT_EXPORT_CONF_TO(=DO_THE_CHECK);
     EXTERN_EXPORT_CONF bool relyOnTag INIT_EXPORT_CONF_TO(=false);
-    EXTERN_EXPORT_CONF checksum check_old INIT_EXPORT_CONF_TO(={0,0});
+    EXTERN_EXPORT_CONF Checksum check_old INIT_EXPORT_CONF_TO(={0,0});
     EXTERN_EXPORT_CONF std::string confTagOld INIT_EXPORT_CONF_TO(="");
     EXTERN_EXPORT_CONF std::string confTag INIT_EXPORT_CONF_TO(="");
   }
@@ -71,10 +70,11 @@ namespace nissa
 	{
 	  master_printf("Relying on checksum to check\n");
 	  
-	  checksum check_cur{};
+	  Checksum check_cur{};
 	  
 	  //compute checksum
-	  checksum_compute_nissa_data(check_cur,conf,sizeof(double)*8,sizeof(quad_su3));
+	  crash("reimplement");
+	  // checksum_compute_nissa_data(check_cur,conf,sizeof(double)*8,sizeof(quad_su3));
 	  
 	  for(int i=0;i<2;i++)
 	    {

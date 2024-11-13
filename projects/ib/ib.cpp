@@ -475,14 +475,14 @@ void init_simulation(int narg,char **arg)
   
   if(clover_run)
     {
-      Cl=nissa_malloc("Cl",locVol,clover_term_t);
-      invCl=nissa_malloc("invCl",locVol,inv_clover_term_t);
+      Cl=new LxField<clover_term_t>("Cl");
+      invCl=new LxField<inv_clover_term_t>("invCl");
     }
   
   allocate_loop_source();
   allocate_photon_fields();
   
-  loc_contr=nissa_malloc("loc_contr",locVol,complex);
+  loc_contr=new LxField<complex>("loc_contr");
   
   allocate_mes2pts_contr();
   allocate_handcuffs_contr();
@@ -512,7 +512,7 @@ void close()
   free_mes2pts_contr();
   free_handcuffs_contr();
   
-  nissa_free(loc_contr);
+  delete loc_contr;
   
   nissa_free(meslep_hadr_part);
   nissa_free(meslep_contr);
@@ -527,8 +527,8 @@ void close()
   
   if(clover_run)
     {
-      nissa_free(Cl);
-      nissa_free(invCl);
+      delete Cl;
+      delete invCl;
     }
   free_bar2pts_contr();
   
@@ -598,7 +598,8 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa_threaded(narg,arg,in_main);
+  init_nissa(narg,arg);
+  in_main(narg,arg);
   close_nissa();
   
   return 0;

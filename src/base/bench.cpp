@@ -1,18 +1,15 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
-#include "base/vectors.hpp"
-#include "new_types/float_128.hpp"
-#include "routines/ios.hpp"
-
-#include "threads/threads.hpp"
+#include <base/vectors.hpp>
+#include <routines/ios.hpp>
 
 #define EXTERN_BENCH
- #include "bench.hpp"
+# include <base/bench.hpp>
 
-#include "communicate/communicate.hpp"
-#include "geometry/geometry_lx.hpp"
+#include <communicate/communicate.hpp>
+#include <geometry/geometry_lx.hpp>
 
 namespace nissa
 {

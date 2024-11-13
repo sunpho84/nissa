@@ -4,6 +4,85 @@
 
 using namespace nissa;
 
+void compute_gaussianity_pars(double* x,color* source,int maxpow,coords_t* source_pos)
+{
+  crash("reimplement");
+  // //reset local pows
+  // double locx[glb_size[0]][maxpow];
+  // for(int t=0;t<glb_size[0];t++)
+  //   for(int ipow=0;ipow<maxpow;ipow++)
+  //     locx[t][ipow]=0.0;
+  
+  // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  //   {
+  //     int t=glb_coord_of_loclx[ivol][0];
+      
+  //     //get site norm
+  //     double n=0.0;
+  //     for(int ic=0;ic<NCOL;ic++)
+  // 	for(int ri=0;ri<2;ri++)
+  // 	  n+=sqr(source[ivol][ic][ri]);
+      
+  //     //loop over all powers to be computed
+  //     for(int ipow=0;ipow<maxpow;ipow++)
+  // 	{
+  // 	  //compute distance
+  // 	  double xpow=0.0;
+  // 	  for(int mu=1;mu<NDIM;mu++)
+  // 	    {
+  // 	      int xmu=(glb_coord_of_loclx[ivol][mu]-source_pos[t][mu]+glb_size[mu])%glb_size[mu];
+  // 	      if(xmu>=glb_size[mu]/2) xmu-=glb_size[mu];
+  // 	      xpow+=pow(xmu,ipow*2);
+  // 	    }
+	  
+  // 	  locx[t][ipow]+=n*xpow;
+  // 	}
+  //   }
+  // NISSA_PARALLEL_LOOP_END;
+  // THREAD_BARRIER();
+  
+  //reduce
+  // for(int t=0;t<glb_size[0];t++)
+  //   for(int ipow=0;ipow<maxpow;ipow++)
+  //     x[t*maxpow+ipow]=glb_reduce_double(locx[t][ipow]);
+}
+
+//get average and error of gaussianity pars
+void process_gaussianity(double *a,double *e,double *x,int maxpow)
+{
+  //reset summ and errors
+  for(int ipow=0;ipow<maxpow;ipow++)
+    a[ipow]=e[ipow]=0.0;
+  
+  for(int t=0;t<glbSize[0];t++)
+    for(int ipow=0;ipow<maxpow;ipow++)
+      {
+	double s=0;
+	if(ipow==0) s=x[t*maxpow+0];
+	if(ipow==1) s=sqrt(x[t*maxpow+1]/x[t*maxpow+0]);
+	
+	//increment
+	a[ipow]+=s;
+	e[ipow]+=s*s;
+      }
+  
+  //build averages and errors
+  for(int ipow=0;ipow<maxpow;ipow++)
+    {
+      a[ipow]/=glbSize[0];
+      e[ipow]/=glbSize[0];
+      e[ipow]-=sqr(a[ipow]);
+      e[ipow]=sqrt(fabs(e[ipow])/glbSize[0]);
+    }
+}
+
+//according to Bali
+double expected_radius(double kappa,int nlevels,double plaq)
+{
+  kappa*=pow(plaq,0.25);
+  return sqrt(nlevels*kappa/(1+2*(NDIM-1)*kappa));
+}
+
 //hold a tern to keep density
 struct dens_t
 {
@@ -66,6 +145,12 @@ void compute_density(FILE *fout,
   for(auto& dist : dists)
     {
       dens_t& d=density[dist];
+      master_fprintf(fout," NDists %d\n",(int)density[0].size());
+      
+      crash("");
+      // for(int t=0;t<glb_size[0];t++)
+      //   {
+      //     master_fprintf(fout," t %d\n",t);
       
       non_loc_reduce(&d.n);
       non_loc_reduce(&d.s);
@@ -99,14 +184,16 @@ void in_main(int narg,char **arg)
   char conf_path[1024];
   read_str_str("Conf",conf_path,1024);
   quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
-  read_ildg_gauge_conf(conf,conf_path);
+  crash("");
+  // read_ildg_gauge_conf(conf,conf_path);
   
   //read APE smearing pars
   int ape_smearing_niters;
   double ape_smearing_alpha;
   read_str_double("ApeSmearingAlpha",&ape_smearing_alpha);
   read_str_int("ApeSmearingNiters",&ape_smearing_niters);
-  ape_spatial_smear_conf(conf,conf,ape_smearing_alpha,ape_smearing_niters);
+  crash("reimplement");
+  //ape_spatial_smear_conf(conf,conf,ape_smearing_alpha,ape_smearing_niters);
   
   //read Gaussian smearing pars
   double kappa;
@@ -150,42 +237,59 @@ void in_main(int narg,char **arg)
     }
   
   //print spatial plaquette
-  double plaqs[2];
-  global_plaquette_lx_conf(plaqs,conf);
-  master_printf("TimePlaquette %16.16lg\n",plaqs[0]);
-  master_printf("SpatPlaquette %16.16lg\n",plaqs[1]);
+  // double plaqs[2];
+  // global_plaquette_lx_conf(plaqs,conf);
+  // master_printf("TimePlaquette %16.16lg\n",plaqs[0]);
+  // master_printf("SpatPlaquette %16.16lg\n",plaqs[1]);
   
   //set the source
   color *source=nissa_malloc("source",locVol+bord_vol,color);
   vector_reset(source);
   
-  for(coords_t c{};c[0]<glbSize[0];c[0]++)
-    {
-      int ivol;
-      int r;
-      get_loclx_and_rank_of_coord(ivol,r,c);
+  // for(coords_t c{};c[0]<glbSize[0];c[0]++)
+  //   {
+  //     int ivol;
+  //     int r;
+  //     get_loclx_and_rank_of_coord(ivol,r,c);
       
-      if(r==rank)
-	source[ivol][0][0]=1;
-    }
-  set_borders_invalid(source);
+      // //get loclx and rank
+      // const auto [r,l]=
+      // 	get_loclx_and_rank_of_coord(source_pos[t]);
+      
+  //     //put the source only if on correct rank
+  //     if(rank==r) source[l][0][0]=1;
+  //   }
+  // set_borders_invalid(source);
   
-  size_t p=0;
-  for(const auto n : nList)
-    {
-      gaussian_smearing(source,source,conf,kappa,n-p);
+  // size_t p=0;
+  // for(const auto n : nList)
+  //   {
+  //     gaussian_smearing(source,source,conf,kappa,n-p);
       
-      for(size_t iPoly=0;iPoly<nPoly;iPoly++)
-	if(const auto nw=coeffs[iPoly].find(n);nw!=coeffs[iPoly].end())
-	  {
-	    const auto& [n,w]=*nw;
-	    master_printf("Adding %lg*H^%zu (computed with %zu new steps) to poly %zu\n",w,n,n-p,iPoly);
+  //     for(size_t iPoly=0;iPoly<nPoly;iPoly++)
+  // 	if(const auto nw=coeffs[iPoly].find(n);nw!=coeffs[iPoly].end())
+  // 	  {
+  // 	    const auto& [n,w]=*nw;
+  // 	    master_printf("Adding %lg*H^%zu (computed with %zu new steps) to poly %zu\n",w,n,n-p,iPoly);
 	    
-	    double_vector_summassign_double_vector_prod_double(&tot[iPoly][0][0][0],&source[0][0][0],w,locVol*sizeof(color)/sizeof(double));
-	  }
+  // 	    double_vector_summassign_double_vector_prod_double(&tot[iPoly][0][0][0],&source[0][0][0],w,locVol*sizeof(color)/sizeof(double));
+  // 	  }
       
-      p=n;
-    }
+      // p=n;
+      // //write
+      // master_printf("Smearing level %d\n",ilev);
+      // master_printf(" - average norm:   %lg +- %lg\n",a[0],e[0]);
+      // master_printf(" - average radius: %lg +- %lg\n",a[1],e[1]);
+      // master_printf("   expected:       %lg\n",expected_radius(kappa,ilev,plaqs[1]));
+      // master_printf("\n");
+      
+      // master_fprintf(fout," Smearlevel %d\n",ilev);
+      // compute_density(fout,source,source_pos);
+      
+      // //smear
+      // crash("reimplement");
+      // // if(ilev<nlevels) gaussian_smearing(source,source,conf,kappa,meas_each);
+  // }
   
   // //compute gaussianity
   // int maxpow=2;
@@ -229,7 +333,7 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa_threaded(narg,arg,in_main);
+  // init_nissa_threaded(narg,arg,in_main);
   close_nissa();
   
   return 0;

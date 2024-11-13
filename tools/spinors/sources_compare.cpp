@@ -40,11 +40,11 @@ void in_main(int narg,char **arg)
   
   spincolor *source=nissa_malloc("source",locVol,spincolor);
   spincolor *smeared_source=nissa_malloc("smeared_source",locVol,spincolor);
-  read_real_vector(source,source_path,tag);
-  read_real_vector(smeared_source,smeared_source_path,tag);
+  // read_real_vector(source,source_path,tag);
+  // read_real_vector(smeared_source,smeared_source_path,tag);
   
-#warning
   crash(" ");
+  crash("reimplement");
   // int iglb_max=0;
   // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
   //   if(spincolor_norm2(source[ivol])>1e-10)
@@ -56,9 +56,9 @@ void in_main(int narg,char **arg)
   // master_printf("Source location: %d %d %d %d\n",g[0],g[1],g[2],g[3]);
   
   //check the norm
-  double source_norm=double_vector_glb_norm2(source,locVol);
-  if(fabs(source_norm-1.0)>1e-10)
-    crash("Norm %lg, needs to be 1, excess of %lg",source_norm,source_norm-1.0);
+  // double source_norm=double_vector_glb_norm2(source,locVol);
+  // if(fabs(source_norm-1.0)>1e-10)
+  //   crash("Norm %lg, needs to be 1, excess of %lg",source_norm,source_norm-1.0);
   
   std::map<int,std::pair<double,int>> rho;
   
@@ -147,7 +147,7 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa_threaded(narg,arg,in_main);
+  // init_nissa_threaded(narg,arg,in_main);
   
   close_nissa();
   

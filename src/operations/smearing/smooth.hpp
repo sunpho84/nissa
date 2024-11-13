@@ -16,17 +16,31 @@ namespace nissa
     
     //basic
     method_t method;
+    
     int meas_each_nsmooth;
-    method_t def_method(){return COOLING;}
-    int def_meas_each_nsmooth(){return 1;}
+    
+    method_t def_method() const
+    {
+      return COOLING;
+    }
+    
+    int def_meas_each_nsmooth() const
+    {
+      return 1;
+    }
     
     //space, time or full spacetime
     enum space_or_time_t{SPACE,TIME,SPACETIME};
+    
     space_or_time_t space_or_time;
-    space_or_time_t def_space_or_time(){return SPACETIME;}
+    
+    space_or_time_t def_space_or_time() const
+    {
+      return SPACETIME;
+    }
     
     //returns the directions to smooth according to parameter
-    static which_dir_t get_dirs(space_or_time_t space_or_time)
+    static which_dir_t get_dirs(const space_or_time_t& space_or_time)
     {
       which_dir_t res={};
       
@@ -49,7 +63,7 @@ namespace nissa
     }
     
     //returns the minimal staple direction according to parameter
-    static int get_staple_min_dir(space_or_time_t space_or_time)
+    static int get_staple_min_dir(const space_or_time_t& space_or_time)
     {
       int res=0;
       
@@ -73,7 +87,7 @@ namespace nissa
     }
     
     //convert a space_or_time_t into a str
-    inline std::string space_or_time_str_from_name(space_or_time_t space_or_time)
+    inline std::string space_or_time_str_from_name(const space_or_time_t& space_or_time) const
     {
       std::string res;
       
@@ -98,12 +112,16 @@ namespace nissa
     
     //pars
     cool_pars_t cool;
+    
     stout_pars_t stout;
+    
     Wflow_pars_t Wflow;
+    
     ape_pars_t ape;
+    
     hyp_pars_t hyp;
     
-    std::string get_method_name()
+    std::string get_method_name() const
     {
       std::string res;
       
@@ -120,14 +138,14 @@ namespace nissa
       return res;
     }
     
-    //return the next measure strictly after nsmooth
-    int next_nsmooth_meas(int nsmooth)
+    /// return the next measure strictly after nsmooth
+    int next_nsmooth_meas(int nsmooth) const
     {
       return (nsmooth+meas_each_nsmooth)/meas_each_nsmooth*meas_each_nsmooth;
     }
     
     //returns the number of smooth
-    int nsmooth()
+    int nsmooth() const
     {
       int res=0;
       
@@ -145,13 +163,49 @@ namespace nissa
     }
     
     //returns the number of measurement, without 0
-    int nmeas_nonzero()
-    {return nsmooth()/meas_each_nsmooth;}
+    int nmeas_nonzero() const
+    {
+      return nsmooth()/meas_each_nsmooth;
+    }
     
-    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(bool full=false);
+    int master_fprintf(FILE *fout,
+		       const bool& full) const
+    {
+      return nissa::master_fprintf(fout,"%s",get_str().c_str());
+    }
     
-    int is_nonstandard()
+    std::string get_str(const bool& full=false) const
+    {
+      std::ostringstream os;
+      
+      if(full or is_nonstandard())
+	{
+	  if(full or method!=def_method() or
+	     (method==COOLING and cool.is_nonstandard()) or
+	     (method==STOUT and stout.is_nonstandard()) or
+	     (method==WFLOW and Wflow.is_nonstandard()) or
+	     (method==APE and ape.is_nonstandard()) or
+	     (method==HYP and hyp.is_nonstandard()))
+	    {
+	      os<<" SmoothMethod\t=\t";
+	      switch(method)
+		{
+		case COOLING: os<<cool.get_str(full);break;
+		case STOUT: os<<stout.get_str(full);break;
+		case WFLOW: os<<Wflow.get_str(full);break;
+		case APE: os<<ape.get_str(full);break;
+		case HYP: os<<hyp.get_str(full);break;
+		}
+	      //os<<" /* alternatives: Cooling, Stout, WFlow, Ape, Hyp */\n";
+	    }
+	  if(full or space_or_time!=def_space_or_time()) os<<" SpaceOrTime\t=\t"<<space_or_time_str_from_name(space_or_time)<<"\n";
+	  if(full or meas_each_nsmooth!=def_meas_each_nsmooth()) os<<" MeasEachNSmooth\t=\t"<<meas_each_nsmooth<<"\n";
+	}
+      
+      return os.str();
+    }
+    
+    int is_nonstandard() const
     {
       return
 	method!=def_method() or
@@ -163,11 +217,21 @@ namespace nissa
       method(def_method()),
       meas_each_nsmooth(def_meas_each_nsmooth()),
       space_or_time(def_space_or_time())
-    {}
+    {
+    }
   };
   
-  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,const which_dir_t& dirs=all_dirs,int staple_min_dir=0);
-  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,const which_dir_t& dirs=all_dirs,int staple_min_dir=0);
+  void smooth_lx_conf_one_step(LxField<quad_su3>& smoothed_conf,
+			       const smooth_pars_t &sp,
+			       const which_dir_t& dirs=all_dirs,
+			       const int& staple_min_dir=0);
+  
+  bool smooth_lx_conf_until_next_meas(LxField<quad_su3>& smoothed_conf,
+				      const smooth_pars_t &sp,
+				      int &nsmooth,
+				      const which_dir_t& dirs,
+				      const int& staple_min_dir=0);
+  
   void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,const which_dir_t& dirs=all_dirs,int staple_min_dir=0);
 }
 

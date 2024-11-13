@@ -1,8 +1,8 @@
 #ifndef _HIT_HPP
 #define _HIT_HPP
 
-#include <ib/prop.hpp>
-#include <ib/contr.hpp>
+#include "prop.hpp"
+#include "contr.hpp"
 
 using namespace nissa;
 
@@ -63,11 +63,8 @@ struct HitLooper
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
 	  int isou=so_sp_col_ind(id_so,ic_so);
-	  spincolor *sol=nullptr;
-	  if(ord!=DELETE)
-	    sol=q[isou];
 	  const std::string path=combine("%s/prop%s_idso%d_icso%d",outfolder,name.c_str(),id_so,ic_so);
-	  ReadWriteRealVector<spincolor> rwTest(sol,path,true);
+	  ReadWriteRealVector<spincolor> rwTest(q[isou],path);
 	  
 	  switch(ord)
 	    {
@@ -197,7 +194,8 @@ struct HitLooper
   }
   
   //generate a source, wither a wall or a point in the origin
-  void generate_original_source(qprop_t* sou,bool skipOnly)
+  void generate_original_source(qprop_t* sou,
+				const bool& skipOnly)
   {
     const rnd_t noise_type=sou->noise_type;
     
@@ -216,10 +214,7 @@ struct HitLooper
     //reset all to begin
     for(int i=0;i<nso_spi*nso_col;i++) vector_reset(sou->sp[i]);
     
-    spincolor **sou_proxy=nissa_malloc("sou_proxy",nso_spi*nso_col,spincolor*);
-    for(int id_so=0;id_so<nso_spi;id_so++)
-      for(int ic_so=0;ic_so<nso_col;ic_so++)
-	sou_proxy[so_sp_col_ind(id_so,ic_so)]=sou->sp[so_sp_col_ind(id_so,ic_so)];
+    std::vector<LxField<spincolor>> sou_proxy(nso_spi*nso_col,"sou_proxy");
     
     const int tins=sou->tins;
     
@@ -295,11 +290,11 @@ struct HitLooper
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
-	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
-	  set_borders_invalid(s);
-	  ori_source_norm2+=double_vector_glb_norm2(s,locVol);
+	  LxField<spincolor>* s=sou->sp[so_sp_col_ind(id_so,ic_so)];
+	  s->invalidateHalo();
+	  ori_source_norm2+=s->norm2();
 	}
-    if(IS_MASTER_THREAD) sou->ori_source_norm2=ori_source_norm2;
+    sou->ori_source_norm2=ori_source_norm2;
     
     // complex *n=nissa_malloc("n",locVol,complex);
     // spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
@@ -347,8 +342,6 @@ struct HitLooper
     
     // nissa_free(temp);
     // nissa_free(n);
-    
-    nissa_free(sou_proxy);
   }
   
   //Generate all the original sources
@@ -370,7 +363,7 @@ struct HitLooper
 		const std::string path=combine("%s/hit%d_source%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
 		
 		int isou=so_sp_col_ind(id_so,ic_so);
-		spincolor *sou=(*q)[isou];
+		LxField<spincolor>& sou=(*q)[isou];
 		
 		ReadWriteRealVector<spincolor> rw(sou,path);
 		
@@ -424,7 +417,7 @@ struct HitLooper
     if(need_photon)
       {
 	if(skip)
-	  generate_photon_source(photon_eta);
+	  generate_photon_source(*photon_eta);
 	else
 	  generate_photon_stochastic_propagator(ihit);
       }

@@ -35,117 +35,119 @@ namespace
   //compute correlation functions for staggered mesons, arbitary taste and spin
   void compute_meson_corr(complex* corr,eo_ptr<quad_su3> conf,theory_pars_t* tp,meson_corr_meas_pars_t* meas_pars)
   {
-    //allocate
-    eo_ptr<color> ori_source,source,sol,temp[2];
-    eo_ptr<color> *quark=new eo_ptr<color>[nop],*quark0s=new eo_ptr<color>[nop];
+    crash("reimplement");
     
-    for(int eo=0;eo<2;eo++) ori_source[eo]=nissa_malloc("ori_source",locVolh+bord_volh,color);
-    for(int eo=0;eo<2;eo++) source[eo]=nissa_malloc("source",locVolh+bord_volh,color);
-    for(int eo=0;eo<2;eo++) sol[eo]=nissa_malloc("sol",locVolh+bord_volh,color);
-    for(int iop=0;iop<nop;iop++)
-      {
-	for(int eo=0;eo<2;eo++)
-	  quark[iop][eo]=nissa_malloc("quark",locVolh+bord_volh,color);
-	for(int eo=0;eo<2;eo++)
-	  quark0s[iop][eo]=nissa_malloc("quark0",locVolh+bord_volh,color);
-      }
-    for(int itemp=0;itemp<2;itemp++)
-      for(int eo=0;eo<2;eo++)
-	temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);
+    // //allocate
+    // eo_ptr<color> ori_source,source,sol,temp[2];
+    // eo_ptr<color> *quark=new eo_ptr<color>[nop],*quark0s=new eo_ptr<color>[nop];
     
-    //form the masks
-    int mask[nop],shift[nop];
-    for(int iop=0;iop<nop;iop++)
-      {
-	int spin=meas_pars->mesons[iop].first;
-	int taste=meas_pars->mesons[iop].second;
-	shift[iop]=(spin^taste);
-	mask[iop]=form_stag_meson_pattern_with_g5g5(spin,taste);
-	//if((shift[iop])&1) crash("operator %d (%d %d) has unmatched number of g0",iop,spin,taste);
-	verbosity_lv3_master_printf(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift[iop]);
-      }
+    // for(int eo=0;eo<2;eo++) ori_source[eo]=nissa_malloc("ori_source",locVolh+bord_volh,color);
+    // for(int eo=0;eo<2;eo++) source[eo]=nissa_malloc("source",locVolh+bord_volh,color);
+    // for(int eo=0;eo<2;eo++) sol[eo]=nissa_malloc("sol",locVolh+bord_volh,color);
+    // for(int iop=0;iop<nop;iop++)
+    //   {
+    // 	for(int eo=0;eo<2;eo++)
+    // 	  quark[iop][eo]=nissa_malloc("quark",locVolh+bord_volh,color);
+    // 	for(int eo=0;eo<2;eo++)
+    // 	  quark0s[iop][eo]=nissa_malloc("quark0",locVolh+bord_volh,color);
+    //   }
+    // for(int itemp=0;itemp<2;itemp++)
+    //   for(int eo=0;eo<2;eo++)
+    // 	temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);
     
-    vector_reset(corr);
+    // //form the masks
+    // int mask[nop],shift[nop];
+    // for(int iop=0;iop<nop;iop++)
+    //   {
+    // 	int spin=meas_pars->mesons[iop].first;
+    // 	int taste=meas_pars->mesons[iop].second;
+    // 	shift[iop]=(spin^taste);
+    // 	mask[iop]=form_stag_meson_pattern_with_g5g5(spin,taste);
+    // 	//if((shift[iop])&1) crash("operator %d (%d %d) has unmatched number of g0",iop,spin,taste);
+    // 	verbosity_lv3_master_printf(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift[iop]);
+    //   }
     
-    //measure the putpourri for each quark
-    for(int ihit=0;ihit<meas_pars->nhits;ihit++)
-      {
-	verbosity_lv2_master_printf("Computing hit %d/%d\n",ihit,meas_pars->nhits);
+    // vector_reset(corr);
+    
+    // //measure the putpourri for each quark
+    // for(int ihit=0;ihit<meas_pars->nhits;ihit++)
+    //   {
+    // 	verbosity_lv2_master_printf("Computing hit %d/%d\n",ihit,meas_pars->nhits);
 	
-	//generate tso
-	int source_coord;
-	source_coord=rnd_get_unif(&glb_rnd_gen,0,glbSize[0]);
-	verbosity_lv2_master_printf("tsource: %d\n",source_coord);
+    // 	//generate tso
+    // 	int source_coord;
+    // 	source_coord=rnd_get_unif(&glb_rnd_gen,0,glbSize[0]);
+    // 	verbosity_lv2_master_printf("tsource: %d\n",source_coord);
 	
-	//generate source
-	generate_fully_undiluted_eo_source(ori_source,meas_pars->rnd_type,source_coord);
+    // 	//generate source
+    // 	generate_fully_undiluted_eo_source(ori_source,meas_pars->rnd_type,source_coord);
 	
-	for(int iflav=0;iflav<nflavs;iflav++)
-	  {
-	    for(int iop=0;iop<nop;iop++)
-	      {
-		apply_shift_op(source,temp[0],temp[1],conf,tp->backfield[iflav],shift[iop],ori_source);
-		put_stag_phases(source,mask[iop]);
-		mult_Minv(quark[iop],conf,tp,iflav,meas_pars->residue,source);
-	      }
+    // 	for(int iflav=0;iflav<nflavs;iflav++)
+    // 	  {
+    // 	    for(int iop=0;iop<nop;iop++)
+    // 	      {
+    // 		apply_shift_op(source,temp[0],temp[1],conf,tp->backfield[iflav],shift[iop],ori_source);
+    // 		put_stag_phases(source,mask[iop]);
+    // 		mult_Minv(quark[iop],conf,tp,iflav,meas_pars->residue,source);
+    // 	      }
 	    
-	    /// Sink
-	    for(int iop=0;iop<nop;iop++)
-	      {
-		apply_shift_op(quark0s[iop],temp[0],temp[1],conf,tp->backfield[iflav],shift[iop],quark[0]);
-		put_stag_phases(quark0s[iop],mask[iop]);
-	      }
+    // 	    /// Sink
+    // 	    for(int iop=0;iop<nop;iop++)
+    // 	      {
+    // 		apply_shift_op(quark0s[iop],temp[0],temp[1],conf,tp->backfield[iflav],shift[iop],quark[0]);
+    // 		put_stag_phases(quark0s[iop],mask[iop]);
+    // 	      }
 	    
-	    for(int iop_so=0;iop_so<nop;iop_so++)
-	      for(int iop_si=0;iop_si<nop;iop_si++)
-		{
-		  complex *loc_contr=get_reducing_buffer<complex>(locVol);
+    // 	    for(int iop_so=0;iop_so<nop;iop_so++)
+    // 	      for(int iop_si=0;iop_si<nop;iop_si++)
+    // 		{
+    // 		  complex *loc_contr=get_reducing_buffer<complex>(locVol);
 		  
-		  for(int eo=0;eo<2;eo++)
-		    {
-		      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-			{
-			  int ivol=loclx_of_loceo[eo][ieo];
-			  color_scalar_prod(loc_contr[ivol],quark0s[iop_si][eo][ieo],quark[iop_so][eo][ieo]);
-			}
-		      NISSA_PARALLEL_LOOP_END;
-		      THREAD_BARRIER();
-		    }
+    // 		  for(int eo=0;eo<2;eo++)
+    // 		    {
+    // 		      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
+    // 			{
+    // 			  int ivol=loclx_of_loceo[eo][ieo];
+    // 			  color_scalar_prod(loc_contr[ivol],quark0s[iop_si][eo][ieo],quark[iop_so][eo][ieo]);
+    // 			}
+    // 		      NISSA_PARALLEL_LOOP_END;
+    // 		      THREAD_BARRIER();
+    // 		    }
 		  
-		  complex unshiftedGlbContr[glbSize[0]];
-		  glb_reduce(unshiftedGlbContr,loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+    // 		  complex unshiftedGlbContr[glbSize[0]];
+    // 		  glb_reduce(unshiftedGlbContr,loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
 		  
-		  for(int glb_t=0;glb_t<glbSize[0];glb_t++)
-		    {
-		      /// Distance from source
-		      const int dt=
-			(glb_t-source_coord+glbSize[0])%glbSize[0];
+    // 		  for(int glb_t=0;glb_t<glbSize[0];glb_t++)
+    // 		    {
+    // 		      /// Distance from source
+    // 		      const int dt=
+    // 			(glb_t-source_coord+glbSize[0])%glbSize[0];
 		      
-		      complex_summassign(corr[icombo(iflav,iop_so,iop_si,dt)],unshiftedGlbContr[glb_t]);
-		    }
-		}
-	  }
-      }
+    // 		      complex_summassign(corr[icombo(iflav,iop_so,iop_si,dt)],unshiftedGlbContr[glb_t]);
+    // 		    }
+    // 		}
+    // 	  }
+    //   }
     
-    for(int eo=0;eo<2;eo++)
-      {
-	nissa_free(ori_source[eo]);
-	nissa_free(source[eo]);
-	nissa_free(sol[eo]);
-      }
-    for(int iop=0;iop<nop;iop++)
-      {
-	for(int eo=0;eo<2;eo++)
-	  nissa_free(quark[iop][eo]);
-	for(int eo=0;eo<2;eo++)
-	  nissa_free(quark0s[iop][eo]);
-      }
-    for(int itemp=0;itemp<2;itemp++)
-      for(int eo=0;eo<2;eo++)
-	nissa_free(temp[itemp][eo]);
+    // for(int eo=0;eo<2;eo++)
+    //   {
+    // 	nissa_free(ori_source[eo]);
+    // 	nissa_free(source[eo]);
+    // 	nissa_free(sol[eo]);
+    //   }
+    // for(int iop=0;iop<nop;iop++)
+    //   {
+    // 	for(int eo=0;eo<2;eo++)
+    // 	  nissa_free(quark[iop][eo]);
+    // 	for(int eo=0;eo<2;eo++)
+    // 	  nissa_free(quark0s[iop][eo]);
+    //   }
+    // for(int itemp=0;itemp<2;itemp++)
+    //   for(int eo=0;eo<2;eo++)
+    // 	nissa_free(temp[itemp][eo]);
     
-    delete[] quark;
-    delete[] quark0s;
+    // delete[] quark;
+    // delete[] quark0s;
   }
   
   //compute and print
@@ -194,25 +196,4 @@ namespace
     
     nissa_free(corr);
   }
-  
-  //nucleon correlators
-  std::string meson_corr_meas_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
-    
-    os<<"MeasMesonCorrs\n";
-    os<<base_fermionic_meas_t::get_str(full);
-    if(mesons.size() or full)
-      {
-	os<<" Operators\t=\t{";
-	for(size_t i=0;i<mesons.size();i++)
-	  {
-	    os<<"("<<mesons[i].first<<","<<mesons[i].second<<")";
-	    if(i!=mesons.size()-1) os<<",";
-	  }
-	os<<"}\n";
-      }
-    
-    return os.str();
-  }
-  } // namespace nissa
+}

@@ -93,14 +93,38 @@ namespace nissa
     int store_running;
     start_conf_cond_t start_cond;
     
-    std::string def_path(){return "conf";}
-    std::string def_store_path(){return "stored_conf.%08d";}
-    int def_store_each(){return 10;}
-    int def_store_running(){return 1;}
-    start_conf_cond_t def_start_cond(){return COLD_START_COND;}
+    std::string def_path() const
+    {
+      return "conf";
+    }
     
-    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(int full=false)
+    std::string def_store_path() const
+    {
+      return "stored_conf.%08d";
+    }
+    
+    int def_store_each() const
+    {
+      return 10;
+    }
+    
+    int def_store_running() const
+    {
+      return 1;
+    }
+    
+    start_conf_cond_t def_start_cond() const
+    {
+      return COLD_START_COND;
+    }
+        
+    int master_fprintf(FILE *fout,
+		       const bool& full) const
+    {
+      return nissa::master_fprintf(fout,"%s",get_str().c_str());
+    }
+    
+    std::string get_str(const bool full=false) const
     {
       std::ostringstream os;
       
@@ -124,7 +148,7 @@ namespace nissa
       return os.str();
     }
     
-    int is_nonstandard()
+    int is_nonstandard() const
     {
       return
 	path!=def_path()||
@@ -148,72 +172,102 @@ namespace nissa
   struct pseudofermion_t
   {
     int is_stag;
-    int ndoubles;
-    double *double_ptr;
+    // double *double_ptr;
     
-    color *stag;
-    spincolor *Wils;
+    EvnField<color> *stag;
+    EvnField<spincolor> *Wils;
     
     //fill to random
-    void fill(enum rnd_t rtype=RND_GAUSS,int twall=-1,int par=EVN,int dir=0)
+    void fill(const rnd_t& rtype=RND_GAUSS,
+	      const int& twall=-1,
+	      const int& par=EVN,
+	      const int& dir=0)
     {
-      if(is_stag) generate_fully_undiluted_eo_source(stag,rtype,twall,par,dir);
-      else generate_fully_undiluted_eo_source(Wils,rtype,twall,par,dir);
+      if(is_stag) generate_fully_undiluted_eo_source(stag->castFieldCoverage<EVEN_OR_ODD_SITES,true>(),rtype,twall,par,dir);
+      else generate_fully_undiluted_eo_source(Wils->castFieldCoverage<EVEN_OR_ODD_SITES,true>(),rtype,twall,par,dir);
     }
     
-    //normalize and return the size
-    double normalize(pseudofermion_t &other_vector,double norm=1)
-    {
-      double other_norm;
-      double_vector_normalize(&other_norm,double_ptr,other_vector.double_ptr,norm,ndoubles);
+    // //normalize and return the size
+    // double normalize(const pseudofermion_t& other_vector,
+    // 		     const double& norm=1)
+    // {
+    //   double other_norm;
+    //   double_vector_normalize(&other_norm,double_ptr,other_vector.double_ptr,norm,ndoubles);
       
-      return other_norm;
-    }
+    //   return other_norm;
+    // }
     
-    double normalize(double norm=1)
-    {return normalize(*this,norm);}
+    // double normalize(const double& norm=1)
+    // {
+    //   const double f=1/sqrt(this->norm2());
+      
+    //   if(is_stag) (*stag)=f;
+    //   else (*Wils)*=f;
+      
+    //   return 
+    // }
     
     //scalar product with another vector
-    double scal_prod_with(pseudofermion_t &oth)
+    double scal_prod_with(const pseudofermion_t& oth) const
     {
       double res;
-      if(is_stag) double_vector_glb_scalar_prod(&res,(double*)stag,(double*)oth.stag,locVolh*sizeof(color)/sizeof(double));
-      else double_vector_glb_scalar_prod(&res,(double*)Wils,(double*)oth.Wils,locVolh*sizeof(spincolor)/sizeof(double));
+      
+      if(is_stag)
+	res=stag->realPartOfScalarProdWith(*oth.stag);
+      else
+	res=Wils->realPartOfScalarProdWith(*oth.Wils);
+      
       return res;
     }
+    
     //return the squared norm
-    double norm2(){return scal_prod_with(*this);}
+    double norm2() const
+    {
+      return scal_prod_with(*this);
+    }
     
     //allocate and mark size
-    void create(ferm_discretiz::name_t discretiz,const char *name="pf")
+    void create(const ferm_discretiz::name_t& discretiz,
+		const char *name="pf")
     {
       is_stag=ferm_discretiz::is_stag(discretiz);
       
       if(is_stag)
-	{
-	  stag=nissa_malloc(name,locVolh+bord_volh,color);
-	  double_ptr=(double*)stag;
-	  ndoubles=locVolh*NCOL*2;
-	}
+	stag=new EvnField<color>("stag",WITH_HALO);
       else
-	{
-	  Wils=nissa_malloc(name,locVolh+bord_volh,spincolor);
-	  double_ptr=(double*)Wils;
-	  ndoubles=locVolh*4*NCOL*2;
-	}
+	Wils=new EvnField<spincolor>("Wils",WITH_HALO);
     }
-    pseudofermion_t(ferm_discretiz::name_t regul,const char *name="pf"){create(regul,name);}
+
+    pseudofermion_t(const ferm_discretiz::name_t regul,
+		    const char *name="pf")
+    {
+      create(regul,name);
+    }
     
-    pseudofermion_t()
-    {double_ptr=NULL;}
-    ~pseudofermion_t() {destroy();}
-  private:
+    pseudofermion_t() :
+      stag(nullptr),
+      Wils{nullptr}
+    {
+    }
+    
+    ~pseudofermion_t()
+    {
+      destroy();
+    }
+    
     void destroy()
-    {if(double_ptr) nissa_free(double_ptr);}
+    {
+      if(stag) delete stag;
+      if(Wils) delete Wils;
+    }
   };
   
-  double multipseudo_rhmc_step(eo_ptr<quad_su3> out_conf,eo_ptr<quad_su3> in_conf,theory_pars_t &theory_pars,
-			       hmc_evol_pars_t &simul_pars,std::vector<rat_approx_t> &rat_appr,int itraj);
+  double multipseudo_rhmc_step(EoField<quad_su3>& out_conf,
+			       const EoField<quad_su3>& in_conf,
+			       theory_pars_t &theory_pars,
+			       hmc_evol_pars_t &simul_pars,
+			       std::vector<rat_approx_t> &rat_appr,
+			       const int itraj);
 }
 
 #endif

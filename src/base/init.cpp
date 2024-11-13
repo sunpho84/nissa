@@ -2,8 +2,10 @@
  #include "config.hpp"
 #endif
 
+#include <base/init.hpp>
+
 #ifdef USE_MPI
- #include <mpi.h>
+# include <mpi.h>
 #endif
 #include <signal.h>
 #include <stdlib.h>
@@ -35,7 +37,6 @@
 
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "geometry/geometry_Leb.hpp"
 #include "linalgs/reduce.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/high_prec.hpp"
@@ -68,7 +69,7 @@ namespace nissa
     //check terminal output
     int width=w.ws_col;
     int is_terminal=isatty(STDOUT_FILENO);
-    if(!is_terminal) width=message_width+10;
+    if(not is_terminal) width=message_width+10;
     
     //set the bordr
     if(width>=message_width)
@@ -136,9 +137,9 @@ namespace nissa
     initialize_main_vect();
     
     //initialize the memory manager
-    cpu_memory_manager=new CPUMemoryManager;
+    cpuMemoryManager=new CPUMemoryManager;
 #ifdef USE_CUDA
-    gpu_memory_manager=new GPUMemoryManager;
+    gpuMemoryManager=new GPUMemoryManager;
 #endif
     
     //initialize global variables
@@ -150,9 +151,15 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=nrank_dir[mu]=0;
     
     //check endianness
-    check_endianness();
-    if(little_endian) master_printf("System endianness: little (ordinary machine)\n");
-    else master_printf("System endianness: big (BG, etc)\n");
+    switch(nativeEndianness)
+      {
+    case LittleEndian:
+      master_printf("System endianness: little (ordinary machine)\n");
+      break;
+    case BigEndian:
+      master_printf("System endianness: big (BG, etc)\n");
+      break;
+    };
     
     //set scidac mapping
     scidac_mapping[0]=0;
@@ -214,9 +221,7 @@ namespace nissa
     verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
     use_128_bit_precision=NISSA_DEFAULT_USE_128_BIT_PRECISION;
     use_eo_geom=NISSA_DEFAULT_USE_EO_GEOM;
-    use_Leb_geom=NISSA_DEFAULT_USE_LEB_GEOM;
     warn_if_not_disallocated=NISSA_DEFAULT_WARN_IF_NOT_DISALLOCATED;
-    warn_if_not_communicated=NISSA_DEFAULT_WARN_IF_NOT_COMMUNICATED;
     use_async_communications=NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS;
     for(int mu=0;mu<NDIM;mu++) fix_nranks[mu]=0;
     
@@ -234,10 +239,6 @@ namespace nissa
     
 #ifdef USE_PARPACK
     master_printf("Linked with Parpack\n");
-#endif
-    
-#ifdef USE_EIGEN_EVERYWHERE
-    master_printf("Using Eigen everywhere\n");
 #endif
     
 #ifdef USE_PARPACK
@@ -584,11 +585,12 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	ok&=(nrank_dir[mu]>0);
-	if(!ok) crash("nrank_dir[%d]: %d",mu,nrank_dir[mu]);
+	if(not ok) crash("nrank_dir[%d]: %d",mu,nrank_dir[mu]);
 	ok&=(glbSize[mu]%nrank_dir[mu]==0);
-	if(!ok) crash("glb_size[%d]" "%c" "nrank_dir[%d]=%d",mu,'%',mu,glbSize[mu]%nrank_dir[mu]);
-	paral_dir[mu]=(nrank_dir[mu]>1);
-	nparal_dir+=paral_dir[mu];
+	if(not ok)
+	  crash("glb_size[%d]" "%c" "nrank_dir[%d]=%d",mu,'%',mu,glbSize[mu]%nrank_dir[mu]);
+	is_dir_parallel[mu]=(nrank_dir[mu]>1);
+	nparal_dir+=is_dir_parallel[mu];
       }
     
     master_printf("Creating grid:\t%d",nrank_dir[0]);
@@ -607,7 +609,7 @@ namespace nissa
     //calculate bulk size
     bulkVol=nonBwSurfVol=1;
     for(int mu=0;mu<NDIM;mu++)
-      if(paral_dir[mu])
+      if(is_dir_parallel[mu])
 	{
 	  bulkVol*=locSize[mu]-2;
 	  nonBwSurfVol*=locSize[mu]-1;
@@ -627,7 +629,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	//bord size along the mu dir
-	if(paral_dir[mu]) bord_dir_vol[mu]=locVol/locSize[mu];
+	if(is_dir_parallel[mu]) bord_dir_vol[mu]=locVol/locSize[mu];
 	else bord_dir_vol[mu]=0;
 	
 	//total bord
@@ -643,12 +645,11 @@ namespace nissa
     //calculate the egdes size
     edge_vol=0;
     edge_offset[0]=0;
-    int iedge=0;
-    for(int mu=0;mu<NDIM;mu++)
+    for(int iedge=0,mu=0;mu<NDIM;mu++)
       for(int nu=mu+1;nu<NDIM;nu++)
 	{
 	  //edge among the i and j dir
-	  if(paral_dir[mu] && paral_dir[nu]) edge_dir_vol[iedge]=bord_dir_vol[mu]/locSize[nu];
+	  if(is_dir_parallel[mu] && is_dir_parallel[nu]) edge_dir_vol[iedge]=bord_dir_vol[mu]/locSize[nu];
 	  else edge_dir_vol[iedge]=0;
 	  
 	  //total edge
@@ -657,32 +658,47 @@ namespace nissa
 	  //summ of the border extent up to dir i
 	  if(iedge>0)
 	    edge_offset[iedge]=edge_offset[iedge-1]+edge_dir_vol[iedge-1];
+	  
+	  edge_dirs[iedge][0]=mu;
+	  edge_dirs[iedge][1]=nu;
+	  
 	  iedge++;
 	}
     edge_vol*=4;
     edge_volh=edge_vol/2;
     master_printf("Edge vol: %d\n",edge_vol);
-      
+    
     //set edge numb
-    {
-      int iedge=0;
-      for(int mu=0;mu<NDIM;mu++)
-	{
-	  edge_numb[mu][mu]=-1;
-	  for(int nu=mu+1;nu<NDIM;nu++)
+    for(int iedge=0,mu=0;mu<NDIM;mu++)
+      {
+	edge_numb[mu][mu]=-1;
+	for(int nu=mu+1;nu<NDIM;nu++)
+	  {
+	    edge_numb[mu][nu]=edge_numb[nu][mu]=iedge;
+	    isEdgeParallel[iedge]=(is_dir_parallel[mu] and is_dir_parallel[nu]);
+	    iedge++;
+	  }
+      }
+    
+    for(int iEdge=0;iEdge<nEdges;iEdge++)
+      {
+	const auto [mu,nu]=edge_dirs[iEdge];
+	for(int bf1=0;bf1<2;bf1++)
+	  for(int bf2=0;bf2<2;bf2++)
 	    {
-	      edge_numb[mu][nu]=edge_numb[nu][mu]=iedge;
-	      iedge++;
+	      coords_t c=rank_coord;
+	      c[mu]=(c[mu]+nrank_dir[mu]+2*bf1-1)%nrank_dir[mu];
+	      c[nu]=(c[nu]+nrank_dir[nu]+2*bf2-1)%nrank_dir[nu];
+	      rank_edge_neigh[bf1][bf2][iEdge]=rank_of_coord(c);
 	    }
-	}
-    }
+      }
     
     //print information
     master_printf("Local volume\t%d",locSize[0]);
     for(int mu=1;mu<NDIM;mu++) master_printf("x%d",locSize[mu]);
-    master_printf(" = %ld\n",locVol);
+    master_printf(" = %d\n",locVol);
     master_printf("List of parallelized dirs:\t");
-    for(int mu=0;mu<NDIM;mu++) if(paral_dir[mu]) master_printf("%d ",mu);
+    for(int mu=0;mu<NDIM;mu++) if(is_dir_parallel[mu]) master_printf("%d ",mu);
     if(nparal_dir==0) master_printf("(none)");
     master_printf("\n");
     master_printf("Border size: %d\n",bord_vol);
@@ -716,63 +732,14 @@ namespace nissa
     set_lx_geometry();
     
     if(use_eo_geom) set_eo_geometry();
-    if(use_Leb_geom) set_Leb_geometry();
     
     ///////////////////////////////////// start communicators /////////////////////////////////
-    
-    reducing_buffer=nullptr;
-    reducing_buffer_size=0;
     
     ncomm_allocated=0;
     
     //allocate only now buffers, so we should have finalized its size
     recv_buf=nissa_malloc("recv_buf",recv_buf_size,char);
     send_buf=nissa_malloc("send_buf",send_buf_size,char);
-    
-    //setup all lx borders communicators
-    set_lx_comm(lx_su3_comm,sizeof(su3));
-    set_lx_comm(lx_quad_su3_comm,sizeof(quad_su3));
-    set_lx_comm(lx_single_quad_su3_comm,sizeof(single_quad_su3));
-    set_lx_comm(lx_as2t_su3_comm,sizeof(as2t_su3));
-    set_lx_comm(lx_spin_comm,sizeof(spin));
-    set_lx_comm(lx_color_comm,sizeof(color));
-    set_lx_comm(lx_single_color_comm,sizeof(single_color));
-    set_lx_comm(lx_spinspin_comm,sizeof(spinspin));
-    set_lx_comm(lx_spin1field_comm,sizeof(spin1field));
-    set_lx_comm(lx_spincolor_comm,sizeof(spincolor));
-    set_lx_comm(lx_single_halfspincolor_comm,sizeof(single_halfspincolor));
-    set_lx_comm(lx_spincolor_128_comm,sizeof(spincolor_128));
-    set_lx_comm(lx_halfspincolor_comm,sizeof(halfspincolor));
-    set_lx_comm(lx_colorspinspin_comm,sizeof(colorspinspin));
-    set_lx_comm(lx_su3spinspin_comm,sizeof(su3spinspin));
-    set_lx_comm(lx_oct_su3_comm,sizeof(oct_su3));
-    
-    //setup all lx edges communicators
-#ifdef USE_MPI
-    set_lx_edge_senders_and_receivers(MPI_LX_SU3_EDGES_SEND,MPI_LX_SU3_EDGES_RECE,&MPI_SU3);
-    set_lx_edge_senders_and_receivers(MPI_LX_QUAD_SU3_EDGES_SEND,MPI_LX_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
-    set_lx_edge_senders_and_receivers(MPI_LX_AS2T_SU3_EDGES_SEND,MPI_LX_AS2T_SU3_EDGES_RECE,&MPI_AS2T_SU3);
-#endif
-    
-    if(use_eo_geom)
-      {
-	set_eo_comm(eo_spin_comm,sizeof(spin));
-	set_eo_comm(eo_spincolor_comm,sizeof(spincolor));
-	set_eo_comm(eo_spincolor_128_comm,sizeof(spincolor_128));
-	set_eo_comm(eo_color_comm,sizeof(color));
-	set_eo_comm(eo_single_color_comm,sizeof(single_color));
-	set_eo_comm(eo_halfspincolor_comm,sizeof(halfspincolor));
-	set_eo_comm(eo_single_halfspincolor_comm,sizeof(single_halfspincolor));
-	set_eo_comm(eo_quad_su3_comm,sizeof(quad_su3));
-	set_eo_comm(eo_su3_comm,sizeof(su3));
-	
-	set_eo_comm(eo_oct_su3_comm,sizeof(oct_su3));
-	
-#ifdef USE_MPI
-	set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
-	set_eo_edge_senders_and_receivers(MPI_EO_AS2T_SU3_EDGES_SEND,MPI_EO_AS2T_SU3_EDGES_RECE,&MPI_AS2T_SU3);
-#endif
-      }
     
 #ifdef USE_QUDA
     if(use_quda) quda_iface::initialize();

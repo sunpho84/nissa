@@ -1,22 +1,22 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <math.h>
 #include <string.h>
 
 #define EXTERN_GEOMETRY_LX
- #include "geometry_lx.hpp"
+# include "geometry_lx.hpp"
 
-#include "base/debug.hpp"
-#include "base/vectors.hpp"
-#include "communicate/communicate.hpp"
-#include "new_types/su3.hpp"
-#include "operations/remap_vector.hpp"
-#include "operations/su3_paths/gauge_sweeper.hpp"
-#include "routines/ios.hpp"
-#include "routines/mpi_routines.hpp"
-#include "threads/threads.hpp"
+#include <base/debug.hpp>
+#include <base/vectors.hpp>
+#include <communicate/communicate.hpp>
+#include <new_types/su3.hpp>
+#include <operations/remap_vector.hpp>
+#include <operations/su3_paths/gauge_sweeper.hpp>
+#include <routines/ios.hpp>
+#include <routines/mpi_routines.hpp>
+#include <threads/threads.hpp>
 
 namespace nissa
 {
@@ -178,20 +178,6 @@ namespace nissa
     return rank_hosting_site_of_coord(c);
   }
   
-  //Return the local site and rank containing the global coordinates
-  void get_loclx_and_rank_of_coord(int& ivol,int& rank,const coords_t& g)
-  {
-    coords_t l,p;
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	p[mu]=g[mu]/locSize[mu];
-	l[mu]=g[mu]-p[mu]*locSize[mu];
-      }
-    
-    rank=rank_of_coord(p);
-    ivol=loclx_of_coord(l);
-  }
-  
   //return the index of the site of passed "pseudolocal" coordinate
   //if the coordinates are local, return the index according to the function loclx_of_coord
   //if exactly one of the coordinate is just out return its index according to bordlx_of_coord, incremented of previous border and loc_vol
@@ -222,7 +208,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	is_bord[mu]=0;
-	if(paral_dir[mu])
+	if(is_dir_parallel[mu])
 	  {
 	    if(x[mu]==glbSize[mu]-1) is_bord[mu]=-1;
 	    if(x[mu]==locSize[mu]) is_bord[mu]=+1;
@@ -273,15 +259,66 @@ namespace nissa
   }
   
   //return the border site adiacent at surface
-  int bordlx_of_surflx(const int& loclx,const int& mu)
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  int bordlx_of_surflx(const int& loclx,
+		       const int& mu)
   {
-    if(!paral_dir[mu]) return -1;
-    if(locSize[mu]<2) crash("not working if one dir is smaller than 2");
+    if(not is_dir_parallel[mu])
+      return -1;
     
-    if(locCoordOfLoclx[loclx][mu]==0) return loclxNeighdw[loclx][mu]-locVol;
-    if(locCoordOfLoclx[loclx][mu]==locSize[mu]-1) return loclxNeighup[loclx][mu]-locVol;
+#ifndef COMPILING_FOR_DEVICE
+    if(locSize[mu]<2)
+      crash("not working if one dir is smaller than 2");
+#endif
+    
+    if(locCoordOfLoclx[loclx][mu]==0)
+      return loclxNeighdw[loclx][mu]-locVol;
+    
+    if(locCoordOfLoclx[loclx][mu]==locSize[mu]-1)
+      return loclxNeighup[loclx][mu]-locVol;
     
     return -1;
+  }
+  
+  /// Return the edge site adiacent at a border
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  int edgelx_of_surflx(const int& loclx,
+		       const int& iEdge)
+  {
+    const auto [mu,nu]=edge_dirs[iEdge];
+    
+    if(not (is_dir_parallel[mu] and is_dir_parallel[nu]))
+	return -1;
+    
+#ifndef COMPILING_FOR_DEVICE
+    if(locSize[mu]<2 or locSize[nu]<2)
+      crash("not working if one dir is smaller than 2");
+#endif
+    
+    auto iter=
+      [&loclx](auto& iter,
+	       const int& s,
+	       const int& dir,
+	       const auto&...tail)
+      {
+	const int c=
+	  locCoordOfLoclx[loclx][dir];
+	
+	if(c%(locSize[dir]-1)==0)
+	  {
+	    const int& m=
+	      loclx_neigh[c!=0][s][dir];
+	    
+	    if constexpr(sizeof...(tail)==0)
+	      return m-locVol-bord_vol;
+	    else
+	      return iter(iter,m,tail...);
+	  }
+	else
+	  return -1;
+      };
+    
+    return iter(iter,loclx,mu,nu);
   }
   
   //label all the sites: bulk, border and edge
@@ -292,7 +329,7 @@ namespace nissa
     coords_t extended_box_size;
     for(int mu=0;mu<NDIM;mu++)
       {
-	extended_box_size[mu]=paral_dir[mu]*2+locSize[mu];
+	extended_box_size[mu]=is_dir_parallel[mu]*2+locSize[mu];
 	extended_box_vol*=extended_box_size[mu];
       }
     
@@ -300,7 +337,7 @@ namespace nissa
       {
 	//subtract by one if dir is parallelized
 	coords_t x=coord_of_lx(ivol,extended_box_size);
-	for(int mu=0;mu<NDIM;mu++) if(paral_dir[mu]) x[mu]--;
+	for(int mu=0;mu<NDIM;mu++) if(is_dir_parallel[mu]) x[mu]--;
 	
 	//check if it is defined
 	int iloc=full_lx_of_coords(x);
@@ -364,14 +401,33 @@ namespace nissa
   }
   
   //finds how to fill the borders with opposite surface (up b->dw s)
-  void find_surf_of_bord()
+  void findSurfOfBord()
   {
-    NISSA_LOC_VOL_LOOP(loclx)
-      for(int mu=0;mu<NDIM;mu++)
+    PAR(0,locVol,
+	CAPTURE(),loclx,
 	{
-	  int bordlx=bordlx_of_surflx(loclx,mu);
-	  if(bordlx!=-1) surflxOfBordlx[bordlx]=loclx;
-	}
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      const int bordlx=bordlx_of_surflx(loclx,mu);
+	      if(bordlx!=-1) surflxOfBordlx[bordlx]=loclx;
+	    }
+	});
+  }
+  
+  //finds how to fill the borders with opposite surface (up b->dw s)
+  void findSurfOfEdges()
+  {
+    PAR(0,locVol,
+	CAPTURE(),loclx,
+	{
+	  for(int iEdge=0;iEdge<nEdges;iEdge++)
+	    {
+	      const int edgeLx=edgelx_of_surflx(loclx,iEdge);
+	      
+	      if(edgeLx!=-1)
+		surflxOfEdgelx[edgeLx]=loclx;
+	    }
+	});
   }
   
   //index all the sites on bulk
@@ -385,7 +441,7 @@ namespace nissa
       //find if it is on bulk or non_fw or non_bw surf
       int is_bulk=true,is_non_fw_surf=true,is_non_bw_surf=true;
       for(int mu=0;mu<NDIM;mu++)
-	if(paral_dir[mu])
+	if(is_dir_parallel[mu])
 	  {
 	    if(locCoordOfLoclx[ivol][mu]==locSize[mu]-1) is_bulk=is_non_fw_surf=false;
 	    if(locCoordOfLoclx[ivol][mu]==0)              is_bulk=is_non_bw_surf=false;
@@ -418,18 +474,30 @@ namespace nissa
     
     //find the rank of the neighbour in the various dir
     for(int mu=0;mu<NDIM;mu++)
-      MPI_Cart_shift(cart_comm,mu,1,&(rank_neighdw[mu]),&(rank_neighup[mu]));
+      {
+	do
+	  {
+	    coords_t temp=rank_coord;
+	    temp[mu]=(temp[mu]+nrank_dir[mu]-1)%nrank_dir[mu];
+	    rank_neighdw[mu]=rank_of_coord(temp);
+	  }
+	while(0);
+	
+	do
+	  {
+	    coords_t temp=rank_coord;
+	    temp[mu]=(temp[mu]+1)%nrank_dir[mu];
+	    rank_neighup[mu]=rank_of_coord(temp);
+	  }
+	while(0);
+      }
     rank_neigh[0]=rank_neighdw;
     rank_neigh[1]=rank_neighup;
     
     locCoordOfLoclx=nissa_malloc("loc_coord_of_loclx",locVol,coords_t);
     glbCoordOfLoclx=nissa_malloc("glb_coord_of_loclx",locVol+bord_vol+edge_vol,coords_t);
     loclx_neigh[0]=loclxNeighdw=nissa_malloc("loclx_neighdw",locVol+bord_vol+edge_vol,coords_t);
-    loclx_neigh[1]=loclxNeighup=nissa_malloc("loclx_neighup",locVol+bord_vol+edge_vol,coords_t);  
-    ignore_borders_communications_warning(locCoordOfLoclx);
-    ignore_borders_communications_warning(glbCoordOfLoclx);
-    ignore_borders_communications_warning(loclxNeighup);
-    ignore_borders_communications_warning(loclxNeighdw);
+    loclx_neigh[1]=loclxNeighup=nissa_malloc("loclx_neighup",locVol+bord_vol+edge_vol,coords_t);
     
     //local to global
     glblxOfLoclx=nissa_malloc("glblx_of_loclx",locVol,int);
@@ -449,13 +517,15 @@ namespace nissa
     
     //edges
     glblxOfEdgelx=nissa_malloc("glblx_of_edgelx",edge_vol,int);
+    surflxOfEdgelx=nissa_malloc("bordlx_of_edgelx",edge_vol,int);
     
     //label the sites and neighbours
     label_all_sites();
     find_neighbouring_sites();
     
-    //matches surface and opposite border
-    find_surf_of_bord();
+    //matches surface and opposite border and edges
+    findSurfOfBord();
+    findSurfOfEdges();
     
     //find bulk sites
     find_bulk_sites();
@@ -500,13 +570,6 @@ namespace nissa
     return glblx_of_coord(c);
   }
   
-  //wrapper for a previous defined function
-  void get_loclx_and_rank_of_glblx(int& lx,int& rx,const int& gx)
-  {
-    coords_t c=glb_coord_of_glblx(gx);
-    get_loclx_and_rank_of_coord(lx,rx,c);
-  }
-  
   //unset cartesian geometry
   void unset_lx_geometry()
   {
@@ -528,6 +591,7 @@ namespace nissa
     nissa_free(loclxOfBordlx);
     nissa_free(surflxOfBordlx);
     nissa_free(glblxOfEdgelx);
+    nissa_free(surflxOfEdgelx);
     
     nissa_free(loclxOfBulklx);
     nissa_free(loclxOfSurflx);

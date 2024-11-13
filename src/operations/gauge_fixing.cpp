@@ -1,26 +1,26 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <math.h>
 #include <string.h>
 
-#include "base/debug.hpp"
-#include "base/random.hpp"
-#include "base/vectors.hpp"
-#include "communicate/borders.hpp"
-#include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "linalgs/linalgs.hpp"
-#include "linalgs/reduce.hpp"
-#include "new_types/complex.hpp"
-#include "new_types/su3_op.hpp"
-#include "operations/fft.hpp"
-#include "routines/ios.hpp"
-#include "routines/mpi_routines.hpp"
-#include "threads/threads.hpp"
-
-#include "gauge_fixing.hpp"
+#include <base/debug.hpp>
+#include <base/field.hpp>
+#include <base/random.hpp>
+#include <base/vectors.hpp>
+#include <communicate/borders.hpp>
+#include <geometry/geometry_eo.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <linalgs/linalgs.hpp>
+#include <linalgs/reduce.hpp>
+#include <new_types/complex.hpp>
+#include <new_types/su3_op.hpp>
+#include <operations/fft.hpp>
+#include <operations/gauge_fixing.hpp>
+#include <routines/ios.hpp>
+#include <routines/mpi_routines.hpp>
+#include <threads/threads.hpp>
 
 #define VERBOSITY_MASTER_PRINTF verbosity_lv1_master_printf
 //#define VERBOSITY_MASTER_PRINTF verbosity_lv3_master_printf
@@ -41,124 +41,132 @@ namespace nissa
       }
   }
   
-  //apply a gauge transformation to the conf
-  void gauge_transform_conf(quad_su3* uout,su3* g,const quad_su3* uin)
+  void gauge_transform_conf(LxField<quad_su3>& uout,
+			    const LxField<su3>& g,
+			    const LxField<quad_su3>& uin)
   {
-    
-    //communicate borders
-    communicate_lx_su3_borders(g);
+    g.updateHalo();
     
     //transform
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(uout),
+		TO_READ(uin),
+		TO_READ(g)),
+	ivol,
 	{
-	  su3 temp;
-	  unsafe_su3_prod_su3_dag(temp,uin[ivol][mu],g[loclxNeighup[ivol][mu]]);
-	  unsafe_su3_prod_su3(uout[ivol][mu],g[ivol],temp);
-	}
-    NISSA_PARALLEL_LOOP_END;
-    
-    //invalidate borders
-    set_borders_invalid(uout);
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      su3 temp;
+	      unsafe_su3_prod_su3_dag(temp,uin[ivol][mu],g[loclxNeighup[ivol][mu]]);
+	      unsafe_su3_prod_su3(uout[ivol][mu],g[ivol],temp);
+	    }
+	});
   }
+  
   //e/o version
-  void gauge_transform_conf(eo_ptr<quad_su3> uout,eo_ptr<su3> g,eo_ptr<quad_su3> uin)
+  void gauge_transform_conf(EoField<quad_su3>& uout,
+			    const EoField<su3>& g,
+			    const EoField<quad_su3>& uin)
   {
-    
     //communicate borders
-    communicate_ev_and_od_su3_borders(g);
+    g.updateHalo();
     
     //transform
     for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-	for(int mu=0;mu<NDIM;mu++)
+      PAR(0,locVolh,
+	  CAPTURE(par,
+		  TO_WRITE(uout),
+		  TO_READ(g),
+		  TO_READ(uin)),
+	  ivol,
 	  {
-	    su3 temp;
-	    unsafe_su3_prod_su3_dag(temp,uin[par][ivol][mu],g[!par][loceo_neighup[par][ivol][mu]]);
-	    unsafe_su3_prod_su3(uout[par][ivol][mu],g[par][ivol],temp);
-	  }
-    NISSA_PARALLEL_LOOP_END;
-    
-    //invalidate borders
-    set_borders_invalid(uout[0]);
-    set_borders_invalid(uout[1]);
+	    for(int mu=0;mu<NDIM;mu++)
+	      {
+		su3 temp;
+		unsafe_su3_prod_su3_dag(temp,uin[par][ivol][mu],g[!par][loceo_neighup[par][ivol][mu]]);
+		unsafe_su3_prod_su3(uout[par][ivol][mu],g[par][ivol],temp);
+	      }
+	  });
   }
   
   //transform a color field
   void gauge_transform_color(eo_ptr<color> out,eo_ptr<su3> g,eo_ptr<color> in)
   {
+    crash("reimplement");
+    // //communicate borders
+    // communicate_ev_and_od_su3_borders(g);
     
-    //communicate borders
-    communicate_ev_and_od_su3_borders(g);
+    // //transform
+    // for(int par=0;par<2;par++)
+    //   NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+    // 	safe_su3_prod_color(out[par][ivol],g[par][ivol],in[par][ivol]);
+    // NISSA_PARALLEL_LOOP_END;
     
-    //transform
-    for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-	safe_su3_prod_color(out[par][ivol],g[par][ivol],in[par][ivol]);
-    NISSA_PARALLEL_LOOP_END;
-    
-    //invalidate borders
-    set_borders_invalid(out[0]);
-    set_borders_invalid(out[1]);
+    // //invalidate borders
+    // set_borders_invalid(out[0]);
+    // set_borders_invalid(out[1]);
   }
   
   //determine the gauge transformation bringing to temporal gauge with T-1 timeslice diferent from id
   void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
   {
-    int loc_slice_area=locSize[1]*locSize[2]*locSize[3];
-    su3 *buf=NULL;
+    crash("reimplement");
+    // int loc_slice_area=locSize[1]*locSize[2]*locSize[3];
+    // su3 *buf=NULL;
     
-    //if the number of ranks in the 0 dir is greater than 1 allocate room for border
-    if(nrank_dir[0]>1) buf=nissa_malloc("buf",loc_slice_area,su3);
+    // //if the number of ranks in the 0 dir is greater than 1 allocate room for border
+    // if(nrank_dir[0]>1) buf=nissa_malloc("buf",loc_slice_area,su3);
     
-    //if we are on first rank slice put to identity the t=0 slice, otherwise receive it from previous rank slice
-    if(rank_coord[0]==0)
-      {
-	NISSA_LOC_VOL_LOOP(ivol)
-	  if(glbCoordOfLoclx[ivol][0]==0)
-	    su3_put_to_id(fixm[ivol]);
-      }
-    else
-      if(nrank_dir[0]>1)
-	MPI_Recv((void*)fixm,loc_slice_area,MPI_SU3,rank_neighdw[0],252,cart_comm,MPI_STATUS_IGNORE);
+    // //if we are on first rank slice put to identity the t=0 slice, otherwise receive it from previous rank slice
+    // if(rank_coord[0]==0)
+    //   {
+    // 	NISSA_LOC_VOL_LOOP(ivol)
+    // 	  if(glbCoordOfLoclx[ivol][0]==0)
+    // 	    su3_put_to_id(fixm[ivol]);
+    //   }
+    // else
+    //   if(nrank_dir[0]>1)
+    // 	MPI_Recv((void*)fixm,loc_slice_area,MPI_SU3,rank_neighdw[0],252,cart_comm,MPI_STATUS_IGNORE);
     
-    //now go ahead along t
-    coords_t c;
-    //loop over spatial slice
-    for(c[1]=0;c[1]<locSize[1];c[1]++)
-      for(c[2]=0;c[2]<locSize[2];c[2]++)
-	for(c[3]=0;c[3]<locSize[3];c[3]++)
-	  {
-	    //bulk
-	    for(c[0]=1;c[0]<locSize[0];c[0]++)
-	      {
-		int icurr=loclx_of_coord(c);
-		c[0]--;int iback=loclx_of_coord(c);c[0]++;
+    // //now go ahead along t
+    // coords_t c;
+    // //loop over spatial slice
+    // for(c[1]=0;c[1]<locSize[1];c[1]++)
+    //   for(c[2]=0;c[2]<locSize[2];c[2]++)
+    // 	for(c[3]=0;c[3]<locSize[3];c[3]++)
+    // 	  {
+    // 	    //bulk
+    // 	    for(c[0]=1;c[0]<locSize[0];c[0]++)
+    // 	      {
+    // 		int icurr=loclx_of_coord(c);
+    // 		c[0]--;int iback=loclx_of_coord(c);c[0]++;
 		
-		unsafe_su3_prod_su3(fixm[icurr],fixm[iback],u[iback][0]);
-	      }
-	    //border
-	    if(nrank_dir[0]>1)
-	      {
-		c[0]=locSize[0]-1;int iback=loclx_of_coord(c);
-		c[0]=0;int icurr=loclx_of_coord(c);
+    // 		unsafe_su3_prod_su3(fixm[icurr],fixm[iback],u[iback][0]);
+    // 	      }
+    // 	    //border
+    // 	    if(nrank_dir[0]>1)
+    // 	      {
+    // 		c[0]=locSize[0]-1;int iback=loclx_of_coord(c);
+    // 		c[0]=0;int icurr=loclx_of_coord(c);
 		
-		unsafe_su3_prod_su3(buf[icurr],fixm[iback],u[iback][0]);
-	      }
+    // 		unsafe_su3_prod_su3(buf[icurr],fixm[iback],u[iback][0]);
+    // 	      }
 	    
-	  }
+    // 	  }
     
-    //if we are not on last slice of rank send g to next slice
-    if(rank_coord[0]!=(nrank_dir[0]-1) && nrank_dir[0]>1)
-      MPI_Send((void*)buf,loc_slice_area,MPI_SU3,rank_neighup[0],252,cart_comm);
+    // //if we are not on last slice of rank send g to next slice
+    // if(rank_coord[0]!=(nrank_dir[0]-1) && nrank_dir[0]>1)
+    //   MPI_Send((void*)buf,loc_slice_area,MPI_SU3,rank_neighup[0],252,cart_comm);
     
-    if(nrank_dir[0]>1) nissa_free(buf);
+    // if(nrank_dir[0]>1) nissa_free(buf);
   }
   
   ////////////////////////////////////// Landau or Coulomb gauges ///////////////////////////////////////////////////////
   
   //compute the functional on a single point
-  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,int ivol,int start_mu)
+  double compute_Landau_or_Coulomb_functional(const LxField<quad_su3>& conf,
+					      const int& ivol,
+					      const int& start_mu)
   {
     double F=0;
     
@@ -172,7 +180,12 @@ namespace nissa
   }
   
   //derivative of the functional
-  CUDA_HOST_AND_DEVICE void compute_Landau_or_Coulomb_functional_der(su3 out,quad_su3 *conf,int ivol,int start_mu)
+  template <typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void compute_Landau_or_Coulomb_functional_der(su3& out,
+						const C& conf,
+						const int& ivol,
+						const int& start_mu)
   {
     su3_put_to_zero(out);
     
@@ -184,211 +197,244 @@ namespace nissa
   }
   
   //compute the functional that gets minimised
-  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,int start_mu,const double *F_offset=NULL,double *ext_loc_F=NULL)
+  double compute_Landau_or_Coulomb_functional(const LxField<quad_su3>& conf,
+					      const int& start_mu,
+					      const LxField<double> *F_offset=nullptr,
+					      LxField<double> *ext_loc_F=nullptr)
   {
     
-    double *loc_F=ext_loc_F;
-    if(ext_loc_F==NULL) loc_F=nissa_malloc("loc_F",locVol,double);
+    LxField<double> *_loc_F=ext_loc_F;
+    if(ext_loc_F==nullptr)
+      _loc_F=new LxField<double>("loc_F");
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	if(F_offset) loc_F[ivol]=-F_offset[ivol];
-	else         loc_F[ivol]=0;
-	
-	for(int mu=start_mu;mu<NDIM;mu++)
-	  loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
+    LxField<double>& loc_F=*_loc_F;
+    
+    PAR(0,locVol,
+	CAPTURE(F_offset,start_mu,
+		TO_WRITE(loc_F),
+		TO_READ(conf)),
+	ivol,
+	{
+	  if(F_offset) loc_F[ivol]=-(*F_offset)[ivol];
+	  else         loc_F[ivol]=0;
+	  
+	  for(int mu=start_mu;mu<NDIM;mu++)
+	    loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
+	});
     
     //collapse
     double F;
     glb_reduce(&F,loc_F,locVol);
-    if(ext_loc_F==NULL) nissa_free(loc_F);
+    
+    if(ext_loc_F==nullptr)
+      delete _loc_F;
     
     return F;
   }
   
   //compute the quality of the Landau or Coulomb gauge fixing
-  double compute_Landau_or_Coulomb_gauge_fixing_quality(quad_su3 *conf,int start_mu)
+  double compute_Landau_or_Coulomb_gauge_fixing_quality(const LxField<quad_su3>& conf,
+							const int& start_mu)
   {
+    conf.updateHalo();
     
-    communicate_lx_quad_su3_borders(conf);
+    LxField<double> loc_omega("loc_omega");
     
-    double *loc_omega=nissa_malloc("loc_omega",locVol,double);
-    
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	su3 delta;
-	su3_put_to_zero(delta);
-	
-	for(int mu=start_mu;mu<NDIM;mu++)
-	  {
-	    su3_subtassign(delta,conf[ivol][mu]);
-	    su3_summassign(delta,conf[loclxNeighdw[ivol][mu]][mu]);
-	  }
-	
-	//take 2 the traceless anti-hermitian part
-	su3 delta_TA;
-	unsafe_su3_traceless_anti_hermitian_part(delta_TA,delta);
-	loc_omega[ivol]=4*su3_norm2(delta_TA);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
+    PAR(0,locVol,
+	CAPTURE(start_mu,
+		TO_WRITE(loc_omega),
+		TO_READ(conf)),
+	ivol,
+	{
+	  su3 delta;
+	  su3_put_to_zero(delta);
+	  
+	  for(int mu=start_mu;mu<NDIM;mu++)
+	    {
+	      su3_subtassign(delta,conf[ivol][mu]);
+	      su3_summassign(delta,conf[loclxNeighdw[ivol][mu]][mu]);
+	    }
+	  
+	  //take 2 the traceless anti-hermitian part
+	  su3 delta_TA;
+	  unsafe_su3_traceless_anti_hermitian_part(delta_TA,delta);
+	  loc_omega[ivol]=4*su3_norm2(delta_TA);
+	});
     
     //global reduction
     double omega;
     glb_reduce(&omega,loc_omega,locVol);
-    nissa_free(loc_omega);
     
     return omega/glbVol/NCOL;
   }
   
   //do all the fixing
-  void Landau_or_Coulomb_gauge_fixing_overrelax(quad_su3 *fixed_conf,LC_gauge_fixing_pars_t::gauge_t gauge,double overrelax_prob,su3 *fixer,quad_su3 *ori_conf)
+  void Landau_or_Coulomb_gauge_fixing_overrelax(LxField<quad_su3>& fixed_conf,
+						const LC_gauge_fixing_pars_t::gauge_t& gauge,
+						const double& overrelax_prob,
+						const LxField<su3>& fixer,
+						const LxField<quad_su3>& ori_conf)
   {
+    crash("reimplement");
     
-    for(int eo=0;eo<2;eo++)
-      {
-	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  {
-	    int ivol=loclx_of_loceo[eo][ieo];
+    // for(int eo=0;eo<2;eo++)
+    //   {
+    // 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
+    // 	  {
+    // 	    int ivol=loclx_of_loceo[eo][ieo];
 	    
-	    //compute the derivative
-	    su3 temp;
-	    compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,gauge);
+    // 	    //compute the derivative
+    // 	    su3 temp;
+    // 	    compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,gauge);
 	    
-	    //dagger
-	    su3 ref;
-	    unsafe_su3_hermitian(ref,temp);
+    // 	    //dagger
+    // 	    su3 ref;
+    // 	    unsafe_su3_hermitian(ref,temp);
 	    
-	    //find the link that maximizes the trace
-	    su3 g;
-	    su3_unitarize_maximal_trace_projecting(g,ref);
+    // 	    //find the link that maximizes the trace
+    // 	    su3 g;
+    // 	    su3_unitarize_maximal_trace_projecting(g,ref);
 	    
-	    //square probabilistically
-	    double p=rnd_get_unif(loc_rnd_gen+ivol,0,1);
-	    if(p<overrelax_prob) safe_su3_prod_su3(g,g,g);
+    // 	    //square probabilistically
+    // 	    double p=rnd_get_unif(loc_rnd_gen+ivol,0,1);
+    // 	    if(p<overrelax_prob) safe_su3_prod_su3(g,g,g);
 	    
-	    //transform
-	    local_gauge_transform(fixed_conf,g,ivol);
+    // 	    //transform
+    // 	    local_gauge_transform(fixed_conf,g,ivol);
 	    
-	    //store the change
-	    safe_su3_prod_su3(fixer[ivol],g,fixer[ivol]);
+    // 	    //store the change
+    // 	    safe_su3_prod_su3(fixer[ivol],g,fixer[ivol]);
 	    
-	    //lower external border must be sync.ed with upper internal border of lower node
-	    //  upper internal border with same parity must be sent using buf_up[mu][par]
-	    //    ""     ""      ""   ""   opp.    "     "  "  recv using buf_up[mu][!par]
-	    //  lower external   ""   ""   same    "     "  "  recv using buf_dw[mu][!par]
-	    //    ""     ""      ""   ""   opp.    "     "  "  sent using buf_dw[mu][par]
-	    for(int mu=0;mu<NDIM;mu++)
-	      {
-		int f=loclxNeighup[ivol][mu];
-		int b=loclxNeighdw[ivol][mu];
-		if(f>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[f]-locVolh],fixed_conf[ivol][mu]);
-		if(b>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[b]-locVolh],fixed_conf[b][mu]);
-	      }
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	THREAD_BARRIER();
+    // 	    //lower external border must be sync.ed with upper internal border of lower node
+    // 	    //  upper internal border with same parity must be sent using buf_up[mu][par]
+    // 	    //    ""     ""      ""   ""   opp.    "     "  "  recv using buf_up[mu][!par]
+    // 	    //  lower external   ""   ""   same    "     "  "  recv using buf_dw[mu][!par]
+    // 	    //    ""     ""      ""   ""   opp.    "     "  "  sent using buf_dw[mu][par]
+    // 	    for(int mu=0;mu<NDIM;mu++)
+    // 	      {
+    // 		int f=loclxNeighup[ivol][mu];
+    // 		int b=loclxNeighdw[ivol][mu];
+    // 		if(f>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[f]-locVolh],fixed_conf[ivol][mu]);
+    // 		if(b>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[b]-locVolh],fixed_conf[b][mu]);
+    // 	      }
+    // 	  }
+    // 	NISSA_PARALLEL_LOOP_END;
+    // 	THREAD_BARRIER();
 	
-	//communicate
-	comm_start(eo_su3_comm);
-	comm_wait(eo_su3_comm);
+    // 	//communicate
+    // 	comm_start(eo_su3_comm);
+    // 	comm_wait(eo_su3_comm);
 	
-	//read out
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  if(loclx_parity[ivol]!=eo)
-	    for(int mu=0;mu<NDIM;mu++)
-	      {
-		int f=loclxNeighup[ivol][mu];
-		int b=loclxNeighdw[ivol][mu];
-		if(f>=locVol) su3_copy(fixed_conf[ivol][mu],((su3*)recv_buf)[loceo_of_loclx[f]-locVolh]);
-		if(b>=locVol) su3_copy(fixed_conf[b][mu],((su3*)recv_buf)[loceo_of_loclx[b]-locVolh]);
-	      }
-	NISSA_PARALLEL_LOOP_END;
-	THREAD_BARRIER();
-      }
+    // 	//read out
+    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	  if(loclx_parity[ivol]!=eo)
+    // 	    for(int mu=0;mu<NDIM;mu++)
+    // 	      {
+    // 		int f=loclxNeighup[ivol][mu];
+    // 		int b=loclxNeighdw[ivol][mu];
+    // 		if(f>=locVol) su3_copy(fixed_conf[ivol][mu],((su3*)recv_buf)[loceo_of_loclx[f]-locVolh]);
+    // 		if(b>=locVol) su3_copy(fixed_conf[b][mu],((su3*)recv_buf)[loceo_of_loclx[b]-locVolh]);
+    // 	      }
+    // 	NISSA_PARALLEL_LOOP_END;
+    // 	THREAD_BARRIER();
+    //   }
     
-    set_borders_invalid(fixed_conf);
+    // set_borders_invalid(fixed_conf);
   }
   
   //put the Fourier Acceleration kernel of eq.3.6 of C.Davies paper
-  void Fourier_accelerate_derivative(su3 *der)
+  void Fourier_accelerate_derivative(LxField<su3>& der)
   {
+    crash("reimplement");
+    // //Fourier Transform
+    // fft4d(der,FFT_MINUS,FFT_NORMALIZE);
     
-    //Fourier Transform
-    fft4d(der,FFT_MINUS,FFT_NORMALIZE);
+    // //compute 4*\sum_mu sin^2(2*pi*(L_mu-1))
+    // double num=16;
     
-    //compute 4*\sum_mu sin^2(2*pi*(L_mu-1))
-    double num=16;
-    
-    //put the kernel and the prefactor
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
-      {
-	//compute 4*\sum_mu sin^2(2*pi*ip_mu)
-	double den=0;
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    double p=2*M_PI*glbCoordOfLoclx[imom][mu]/glbSize[mu];
-	    den+=sqr(sin(0.5*p));
-	  }
-	den*=4;
+    // //put the kernel and the prefactor
+    // NISSA_PARALLEL_LOOP(imom,0,locVol)
+    //   {
+    // 	//compute 4*\sum_mu sin^2(2*pi*ip_mu)
+    // 	double den=0;
+    // 	for(int mu=0;mu<NDIM;mu++)
+    // 	  {
+    // 	    double p=2*M_PI*glbCoordOfLoclx[imom][mu]/glbSize[mu];
+    // 	    den+=sqr(sin(0.5*p));
+    // 	  }
+    // 	den*=4;
 	
-	//build the factor
-	double fact=num;
-	if(fabs(den)>1e-10) fact/=den;
+    // 	//build the factor
+    // 	double fact=num;
+    // 	if(fabs(den)>1e-10) fact/=den;
 	
-	//put the factor
-	su3_prodassign_double(der[imom],fact);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
+    // 	//put the factor
+    // 	su3_prodassign_double(der[imom],fact);
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
+    // THREAD_BARRIER();
     
-    //Anti-Fourier Transform
-    fft4d(der,FFT_PLUS,FFT_NO_NORMALIZE);
+    // //Anti-Fourier Transform
+    // fft4d(der,FFT_PLUS,FFT_NO_NORMALIZE);
   }
   
   //take exp(-0.5*alpha*der)
-  void exp_der_alpha_half(su3 *g,su3 *der,double alpha)
+  void exp_der_alpha_half(LxField<su3>& g,
+			  const LxField<su3>& der,
+			  const double& alpha)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	su3 temp;
-	su3_prod_double(temp,der[ivol],-0.5*alpha);
-	safe_anti_hermitian_exact_exponentiate(g[ivol],temp);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(g);
+    PAR(0,locVol,
+	CAPTURE(alpha,
+		TO_WRITE(g),
+		TO_READ(der)),
+	ivol,
+	{
+	  su3 temp;
+	  su3_prod_double(temp,der[ivol],-0.5*alpha);
+	  safe_anti_hermitian_exact_exponentiate(g[ivol],temp);
+	});
   }
   
-  //add the current fixer to previous one
-  void add_current_transformation(su3 *fixer_out,const su3 *g,const su3 *fixer_in)
+  /// Add the current fixer to previous one
+  void add_current_transformation(LxField<su3>& fixer_out,
+				  const LxField<su3>& g,
+				  const LxField<su3>& fixer_in)
   {
-    
-    //add current transformation
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      safe_su3_prod_su3(fixer_out[ivol],g[ivol],fixer_in[ivol]);
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(fixer_out);
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(fixer_out),
+		TO_READ(fixer_in),
+		TO_READ(g)),
+	ivol,
+	{
+	  safe_su3_prod_su3(fixer_out[ivol],g[ivol],fixer_in[ivol]);
+	});
   }
   
   //adapt the value of alpha to minimize the functional
-  double adapt_alpha(quad_su3 *fixed_conf,su3 *fixer,int start_mu,su3 *der,const double alpha_def,quad_su3 *ori_conf,const double *F_offset,const double func,bool &use_adapt,int &nskipped_adapt)
+  double adapt_alpha(LxField<quad_su3>& fixed_conf,
+		     LxField<su3>& fixer,
+		     const int& start_mu,
+		     const LxField<su3>& der,
+		     const double& alpha_def,
+		     const LxField<quad_su3>& ori_conf,
+		     const LxField<double> *F_offset,
+		     const double& func,
+		     const bool& use_adapt,
+		     int& nskipped_adapt)
   {
 #ifndef REPRODUCIBLE_RUN
     crash("need reproducible run to enable adaptative search");
 #endif
     
-    //girst guess
+    //first guess
     double alpha=alpha_def;
     
     //store original fixer
-    su3 *ori_fixer=nissa_malloc("ori_fixer",locVol+bord_vol,su3);
-    vector_copy(ori_fixer,fixer);
+    LxField<su3> ori_fixer("ori_fixer",WITH_HALO);
+    ori_fixer=fixer;
     
     //current transform
-    su3 *g=nissa_malloc("g",locVol,su3);
+    LxField<su3> g("g");
     
     //int nneg_pos_vert=0;
     int iter=0;
@@ -403,7 +449,7 @@ namespace nissa
 	//compute three points at 0,alpha and 2alpha
 	double F[3];
 	F[0]=0;
-	vector_copy(fixer,ori_fixer);
+	fixer=ori_fixer;
 	// master_printf("Check: %lg %lg\n",func_0,compute_Landau_or_Coulomb_functional(fixed_conf,start_mu));
 	
 	for(int i=1;i<=2;i++)
@@ -467,9 +513,7 @@ namespace nissa
       }
     
     //put back the fixer
-    vector_copy(fixer,ori_fixer);
-    nissa_free(ori_fixer);
-    nissa_free(g);
+    *fixer=*ori_fixer;
     
     return alpha;
   }
@@ -477,9 +521,9 @@ namespace nissa
   //GCG stuff - taken from 1405.5812
   namespace GCG
   {
-    CUDA_MANAGED su3 *prev_der;
-    CUDA_MANAGED su3 *s;
-    CUDA_MANAGED double *accum;
+    CUDA_MANAGED LxField<su3> *_prev_der;
+    CUDA_MANAGED LxField<su3> *_s;
+    CUDA_MANAGED LxField<double> *_accum;
   }
   
   //allocate the stuff for GCG
@@ -487,12 +531,12 @@ namespace nissa
   {
     using namespace GCG;
     
-    prev_der=nissa_malloc("prev_der",locVol,su3);
-    s=nissa_malloc("s",locVol,su3);
-    accum=nissa_malloc("accum",locVol,double);
+    _prev_der=new LxField<su3>("prev_der");
+    _s=new LxField<su3>("s");
+    _accum=new LxField<double>("accum");
     
-    vector_reset(prev_der);
-    vector_reset(s);
+    _prev_der->reset();
+    _s->reset();
   }
   
   //free the stuff for GCG
@@ -500,40 +544,53 @@ namespace nissa
   {
     using namespace GCG;
     
-    nissa_free(prev_der);
-    nissa_free(s);
-    nissa_free(accum);
+    delete _prev_der;
+    delete _s;
+    delete _accum;
   }
   
   //apply GCG acceleration
-  void GCG_improve_gauge_fixer(su3 *der,bool &use_GCG,int iter)
+  void GCG_improve_gauge_fixer(LxField<su3>& der,
+			       bool &use_GCG,
+			       const int& iter)
   {
-    using namespace GCG;
-    
+    auto& prev_der=*GCG::_prev_der;
+    auto& accum=*GCG::_accum;
+    auto& s=*GCG::_s;
     
     double beta;
     if(iter>1)
       {
 	//denominator
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  accum[ivol]=real_part_of_trace_su3_prod_su3_dag(prev_der[ivol],prev_der[ivol]);
-	NISSA_PARALLEL_LOOP_END;
-	THREAD_BARRIER();
+	PAR(0,locVol,
+	    CAPTURE(TO_WRITE(accum),
+		    TO_READ(prev_der)),
+	    ivol,
+	    {
+	      accum[ivol]=real_part_of_trace_su3_prod_su3_dag(prev_der[ivol],prev_der[ivol]);
+	    });
+	
 	double den;
 	glb_reduce(&den,accum,locVol);
 	VERBOSITY_MASTER_PRINTF("den: %lg\n",den);
 	
 	//numerator
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  if(den>1e-6) //means that |DA|<1e-12
+	PAR(0,locVol,
+	    CAPTURE(den,
+		    TO_WRITE(accum),
+		    TO_READ(prev_der),
+		    TO_READ(der)),
+	    ivol,
 	    {
-	      su3 temp;
-	      su3_subt(temp,der[ivol],prev_der[ivol]);
-	      accum[ivol]=real_part_of_trace_su3_prod_su3_dag(der[ivol],temp);
-	    }
-	  else accum[ivol]=real_part_of_trace_su3_prod_su3_dag(der[ivol],der[ivol]);
-	NISSA_PARALLEL_LOOP_END;
-	THREAD_BARRIER();
+	      if(den>1e-6) //means that |DA|<1e-12
+		{
+		  su3 temp;
+		  su3_subt(temp,der[ivol],prev_der[ivol]);
+		  accum[ivol]=real_part_of_trace_su3_prod_su3_dag(der[ivol],temp);
+		}
+	      else accum[ivol]=real_part_of_trace_su3_prod_su3_dag(der[ivol],der[ivol]);
+	    });
+	
 	double num;
 	glb_reduce(&num,accum,locVol);
 	VERBOSITY_MASTER_PRINTF("num: %lg\n",num);
@@ -555,30 +612,50 @@ namespace nissa
     VERBOSITY_MASTER_PRINTF("beta: %lg\n",beta);
     
     //store prev_der, increase s (der) and store prev_s
-    vector_copy(prev_der,der);
-    if(iter%10==0) vector_copy(s,der);
-    else           double_vector_summ_double_vector_prod_double((double*)s,(double*)der,(double*)s,beta,locVol*sizeof(su3)/sizeof(double));
+    prev_der=der;
+    if(iter%10==0) s=der;
+    else
+      FOR_EACH_SITE_DEG_OF_FIELD(s,
+				 CAPTURE(beta,
+					 TO_READ(der),
+					 TO_WRITE(s)),
+				 ivol,iDeg,
+      {
+	auto& si=s(ivol,iDeg);
+	si=der(ivol,iDeg)+si*beta;
+      });
   }
   
   //do all the fixing exponentiating
-  void Landau_or_Coulomb_gauge_fixing_exponentiate(quad_su3 *fixed_conf,su3 *fixer,LC_gauge_fixing_pars_t::gauge_t gauge,
-						   const double alpha_def,quad_su3 *ori_conf,const double *F_offset,const double func,
-						   const bool &use_FACC,bool &use_adapt,int &nskipped_adapt,bool &use_GCG,int iter)
+  void Landau_or_Coulomb_gauge_fixing_exponentiate(LxField<quad_su3>& fixed_conf,
+						   LxField<su3>& fixer,
+						   const LC_gauge_fixing_pars_t::gauge_t& gauge,
+						   const double alpha_def,
+						   const LxField<quad_su3>& ori_conf,
+						   const LxField<double>& F_offset,
+						   const double& func,
+						   const bool &use_FACC,
+						   const bool &use_adapt,
+						   int &nskipped_adapt,
+						   bool &use_GCG,
+						   const int& iter)
   {
-    using namespace GCG;
+    auto& s=*GCG::_s;
     
+    fixed_conf.updateHalo();
     
     //take the derivative
-    su3 *der=nissa_malloc("der",locVol,su3);
-    communicate_lx_quad_su3_borders(fixed_conf);
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    LxField<su3> der("der");
+    
+    PAR(0,locVol,
+	CAPTURE(gauge,TO_WRITE(der),
+		TO_READ(fixed_conf)),
+	ivol,
       {
 	su3 temp;
 	compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,gauge);
 	unsafe_su3_traceless_anti_hermitian_part(der[ivol],temp);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
+      });
     
     //put the kernel
     if(use_FACC) Fourier_accelerate_derivative(der);
@@ -587,14 +664,14 @@ namespace nissa
     if(use_GCG) GCG_improve_gauge_fixer(der,use_GCG,iter);
     
     //decides what to use
-    su3 *v=(use_GCG?s:der);
+    LxField<su3>& v=(use_GCG?s:der);
     
     //take the exponent with alpha
-    su3 *g=nissa_malloc("g",locVol,su3);
+    LxField<su3> g("g");
     
     //set alpha
     double alpha;
-    if(use_adapt) alpha=adapt_alpha(fixed_conf,fixer,gauge,v,alpha_def,ori_conf,F_offset,func,use_adapt,nskipped_adapt);
+    if(use_adapt) alpha=adapt_alpha(fixed_conf,fixer,gauge,v,alpha_def,ori_conf,&F_offset,func,use_adapt,nskipped_adapt);
     else          alpha=alpha_def;
     
     exp_der_alpha_half(g,v,alpha);
@@ -602,155 +679,163 @@ namespace nissa
     //put the transformation
     add_current_transformation(fixer,g,fixer);
     gauge_transform_conf(fixed_conf,fixer,ori_conf);
-    
-    nissa_free(der);
-    nissa_free(g);
   }
   
   //check if gauge fixed or not
-  bool check_Landau_or_Coulomb_gauge_fixed(double &prec,double &func,quad_su3 *fixed_conf,LC_gauge_fixing_pars_t::gauge_t gauge,double target_prec,double *loc_F)
+  bool check_Landau_or_Coulomb_gauge_fixed(double &prec,
+					   double &func,
+					   const LxField<quad_su3>& fixed_conf,
+					   const LC_gauge_fixing_pars_t::gauge_t& gauge,
+					   const double& target_prec,
+					   LxField<double>* loc_F)
   {
     prec=compute_Landau_or_Coulomb_gauge_fixing_quality(fixed_conf,gauge);
-    func=compute_Landau_or_Coulomb_functional(fixed_conf,gauge,NULL,loc_F);
-    bool get_out=(prec<=target_prec);
+    func=compute_Landau_or_Coulomb_functional(fixed_conf,gauge,nullptr,loc_F);
+    
+    const bool get_out=
+      (prec<=target_prec);
+    
     return get_out;
   }
   
-  void Landau_or_Coulomb_gauge_fix(quad_su3* fixed_conf,LC_gauge_fixing_pars_t* pars,quad_su3* ext_conf)
+  void Landau_or_Coulomb_gauge_fix(LxField<quad_su3>& fixed_conf,
+				   const LC_gauge_fixing_pars_t& pars,
+				   const LxField<quad_su3>& ext_conf)
   {
-    double time=-take_time();
-    
-    const bool use_fft_acc=pars->use_fft_acc;
-    bool use_adapt=pars->use_adaptative_search;
-    bool use_GCG=pars->use_generalized_cg;
-    if(pars->use_generalized_cg) allocate_GCG_stuff();
-    
-    //store input conf if equal
-    quad_su3 *ori_conf=ext_conf;
-    if(fixed_conf==ori_conf)
+    if(fixed_conf==ext_conf)
       {
-	ori_conf=nissa_malloc("ori_conf",locVol+bord_vol+edge_vol,quad_su3);
-	vector_copy(ori_conf,ext_conf);
+	LxField<quad_su3> tmp("tmp");
+	tmp=ext_conf;
+	Landau_or_Coulomb_gauge_fix(fixed_conf,pars,tmp);
       }
-    vector_copy(fixed_conf,ext_conf);
-    
-    //fixing transformation
-    su3 *fixer=nissa_malloc("fixer",locVol+bord_vol,su3);
-    NISSA_LOC_VOL_LOOP(ivol)
-      su3_put_to_id(fixer[ivol]);
-    set_borders_invalid(fixer);
-    
-    double *F_offset=nissa_malloc("F_offset",locVol,double);
-    double prec,func;
-    bool really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision,F_offset);
-    int iter=0,nskipped_adapt=0;
-    do
+    else
       {
-	//go on fixing until reaching precision, or exceeding the iteration count
-	bool get_out=false;
+	double time=-take_time();
+	
+	const bool use_fft_acc=pars.use_fft_acc;
+	bool use_adapt=pars.use_adaptative_search;
+	bool use_GCG=pars.use_generalized_cg;
+	if(pars.use_generalized_cg) allocate_GCG_stuff();
+	
+	fixed_conf=ext_conf;
+	
+	//fixing transformation
+	LxField<su3> fixer("fixer",WITH_HALO);
+	PAR(0,locVol,
+	    CAPTURE(TO_WRITE(fixer)),
+	    ivol,
+	    {
+	      su3_put_to_id(fixer[ivol]);
+	    });
+	
+	LxField<double> F_offset("F_offset");
+	double prec,func;
+	bool really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars.gauge,pars.target_precision,&F_offset);
+	int iter=0,nskipped_adapt=0;
 	do
 	  {
-	    master_printf("iter: %d quality: %16.16lg functional: %16.16lg\n",iter,prec,func);
-	    
-	    switch(pars->method)
+	    //go on fixing until reaching precision, or exceeding the iteration count
+	    bool get_out=false;
+	    do
 	      {
-	      case LC_gauge_fixing_pars_t::exponentiate:
-		Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars->gauge,pars->alpha_exp,ori_conf,F_offset,func,use_fft_acc,use_adapt,nskipped_adapt,use_GCG,iter);break;
-	      case LC_gauge_fixing_pars_t::overrelax:
-		Landau_or_Coulomb_gauge_fixing_overrelax(fixed_conf,pars->gauge,pars->overrelax_prob,fixer,ori_conf);break;
-	      default:
-		crash("unknown method %d",pars->method);
+		master_printf("iter: %d quality: %16.16lg functional: %16.16lg\n",iter,prec,func);
+		
+		switch(pars.method)
+		  {
+		  case LC_gauge_fixing_pars_t::exponentiate:
+		    Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars.gauge,pars.alpha_exp,ext_conf,F_offset,func,use_fft_acc,use_adapt,nskipped_adapt,use_GCG,iter);break;
+		  case LC_gauge_fixing_pars_t::overrelax:
+		    Landau_or_Coulomb_gauge_fixing_overrelax(fixed_conf,pars.gauge,pars.overrelax_prob,fixer,ext_conf);break;
+		  default:
+		    crash("unknown method %d",pars.method);
+		  }
+		iter++;
+		
+		//print out the precision reached and the functional
+		get_out=false;
+		get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars.gauge,pars.target_precision,&F_offset);
+		get_out|=(not (iter<pars.nmax_iterations));
+		get_out|=(not (iter%pars.unitarize_each==0));
+		
+		//switch off adaptative search if skipped too many times
+		int nskipped_adapt_tol=5;
+		if(use_adapt and nskipped_adapt>=nskipped_adapt_tol)
+		  {
+		    master_printf("Reached tolerance of skipping %d, switching off adaptative search\n",nskipped_adapt);
+		    use_adapt=false;
+		  }
+		
+		//switch off adaptative search if reached use_adapt_prec_tol
+		double use_adapt_prec_tol=1e-14;
+		if(use_adapt and prec<=use_adapt_prec_tol)
+		  {
+		    master_printf("Reached precision %lg, smaller than tolerance (%lg), switching off adaptative search\n",prec,use_adapt_prec_tol);
+		    use_adapt=false;
+		  }
 	      }
-	    iter++;
+	    while(not get_out);
 	    
-	    //print out the precision reached and the functional
-	    get_out=false;
-	    get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision,F_offset);
-	    get_out|=(not (iter<pars->nmax_iterations));
-	    get_out|=(not (iter%pars->unitarize_each==0));
+	    //now we put the fixer on su3, and make a real transformation
+	    //on the basis of what we managed to fix
+	    PAR(0,locVol,
+		CAPTURE(TO_WRITE(fixer)),
+		ivol,
+		{
+		  su3_unitarize_explicitly_inverting(fixer[ivol],fixer[ivol]);
+		});
 	    
-	    //switch off adaptative search if skipped too many times
-	    int nskipped_adapt_tol=5;
-	    if(use_adapt and nskipped_adapt>=nskipped_adapt_tol)
-	      {
-	    	master_printf("Reached tolerance of skipping %d, switching off adaptative search\n",nskipped_adapt);
-	    	use_adapt=false;
-	      }
+	    gauge_transform_conf(fixed_conf,fixer,ext_conf);
 	    
-	    //switch off adaptative search if reached use_adapt_prec_tol
-	    double use_adapt_prec_tol=1e-14;
-	    if(use_adapt and prec<=use_adapt_prec_tol)
-	      {
-	    	master_printf("Reached precision %lg, smaller than tolerance (%lg), switching off adaptative search\n",prec,use_adapt_prec_tol);
-	    	use_adapt=false;
-	      }
+	    //check if really get out
+	    really_get_out=false;
+	    really_get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars.gauge,pars.target_precision,&F_offset);
+	    really_get_out|=(not (iter<pars.nmax_iterations));
 	  }
-	while(not get_out);
+	while(not really_get_out);
 	
-	//now we put the fixer on su3, and make a real transformation
-	//on the basis of what we managed to fix
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  su3_unitarize_explicitly_inverting(fixer[ivol],fixer[ivol]);
-	NISSA_PARALLEL_LOOP_END;
-	set_borders_invalid(fixer);
-	gauge_transform_conf(fixed_conf,fixer,ori_conf);
+	//crash if this did not work
+	if(not really_get_out) crash("unable to fix to precision %16.16lg in %d iterations",pars.target_precision,pars.nmax_iterations);
 	
-	//check if really get out
-	really_get_out=false;
-	really_get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision,F_offset);
-	really_get_out|=(not (iter<pars->nmax_iterations));
+	//free
+	if(pars.use_generalized_cg) free_GCG_stuff();
+	
+	master_printf("Gauge fix time: %lg\n",time+take_time());
       }
-    while(not really_get_out);
-    
-    //crash if this did not work
-    if(not really_get_out) crash("unable to fix to precision %16.16lg in %d iterations",pars->target_precision,pars->nmax_iterations);
-    
-    //free
-    nissa_free(F_offset);
-    if(ori_conf!=ext_conf) nissa_free(ori_conf);
-    nissa_free(fixer);
-    if(pars->use_generalized_cg) free_GCG_stuff();
-    
-    master_printf("Gauge fix time: %lg\n",time+take_time());
   }
   
-  //perform a random gauge transformation
-  void perform_random_gauge_transform(quad_su3* conf_out,quad_su3* conf_in)
+  void perform_random_gauge_transform(LxField<quad_su3>& conf_out,
+				      const LxField<quad_su3>& conf_in)
   {
-    
-    //allocate fixing matrix
-    su3 *fixm=nissa_malloc("fixm",locVol+bord_vol,su3);
+    LxField<su3> fixm("fixm",WITH_HALO);
     
     //extract random SU(3) matrix
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      su3_put_to_rnd(fixm[ivol],loc_rnd_gen[ivol]);
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(fixm);
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(fixm)),
+	ivol,
+	{
+	  su3_put_to_rnd(fixm[ivol],loc_rnd_gen[ivol]);
+	});
     
     //apply the transformation
     gauge_transform_conf(conf_out,fixm,conf_in);
-    
-    //free fixing matrix
-    nissa_free(fixm);
   }
   
-  void perform_random_gauge_transform(eo_ptr<quad_su3> conf_out,eo_ptr<quad_su3> conf_in)
+  void perform_random_gauge_transform(EoField<quad_su3>& conf_out,
+				      const EoField<quad_su3>& conf_in)
   {
     
     //allocate fixing matrix
-    eo_ptr<su3> fixm={nissa_malloc("fixm_e",locVolh+bord_volh,su3),nissa_malloc("fixm_o",locVolh+bord_volh,su3)};
+    EoField<su3> fixm("fixm",WITH_HALO);
     
     //extract random SU(3) matrix
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      su3_put_to_rnd(fixm[loclx_parity[ivol]][loceo_of_loclx[ivol]],loc_rnd_gen[ivol]);
-    NISSA_PARALLEL_LOOP_END;
-    for(int eo=0;eo<2;eo++)
-      set_borders_invalid(fixm[eo]);
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(fixm)),
+	ivol,
+	{
+	  su3_put_to_rnd(fixm[loclx_parity[ivol]][loceo_of_loclx[ivol]],loc_rnd_gen[ivol]);
+	});
     
     //apply the transformation
     gauge_transform_conf(conf_out,fixm,conf_in);
-    
-    //free fixing matrix
-    for(int eo=0;eo<2;eo++) nissa_free(fixm[eo]);
   }
 }

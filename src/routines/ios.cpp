@@ -55,18 +55,20 @@ namespace nissa
   }
   
   //only master rank and thread print
-  int master_fprintf(FILE *stream,const char *format,...)
+  int master_fprintf(FILE *stream,
+		     const char *format,
+		     ...)
   {
     int ret=0;
     
     static bool print_time=true;
     
-    if(prepend_time and print_time and is_master_rank() and IS_MASTER_THREAD)
+    if(prepend_time and print_time and is_master_rank())
       ret+=fprintf(stream,"%lg s:\t",take_time());
     
     va_list ap;
     va_start(ap,format);
-    if(is_master_rank() and IS_MASTER_THREAD)
+    if(is_master_rank())
       ret=vfprintf(stream,format,ap);
     va_end(ap);
     
