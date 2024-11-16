@@ -672,8 +672,7 @@ namespace nissa
 	    k=q.kappa;
 	    const double init_time=take_time();
 	    master_printf("Inverting clover\n");
-	    crash("reimplement");
-	    //invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
+	    invert_twisted_clover_term(*invCl,q.mass,q.kappa,*Cl);
 	    master_printf("Clover inverted in %lg s\n",take_time()-init_time);
 	  }
       }

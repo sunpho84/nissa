@@ -1,12 +1,12 @@
 #include <nissa.hpp>
 
 #define EXTERN_CONF
- #include "conf.hpp"
+# include "conf.hpp"
 
-#include "ib/contr.hpp"
-#include "ib/hit.hpp"
-#include "ib/pars.hpp"
-#include "ib/prop.hpp"
+#include "contr.hpp"
+#include "hit.hpp"
+#include "pars.hpp"
+#include "prop.hpp"
 
 namespace nissa
 {
@@ -96,7 +96,7 @@ namespace nissa
       write_ildg_gauge_conf(combine("%s/conf",outfolder),conf,64);
     
     if(clover_run)
-      clover_term(Cl,glb_cSW,conf);
+      clover_term(*Cl,glb_cSW,conf);
     
     //if the copied conf exists, ape smear
     if(ape_smeared_conf)

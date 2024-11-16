@@ -676,7 +676,7 @@ namespace nissa
 	std::min(send_buf_size,recv_buf_size);
       
       if(neededBufSize>maxBufSize)
-	crash("asking to create a communicator that needs %zu large buffer (%d allocated)",
+	crash("asking to create a communicator that needs %zu large buffer (%zu allocated)",
 		  neededBufSize,maxBufSize);
     }
     

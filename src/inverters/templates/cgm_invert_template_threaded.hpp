@@ -4,10 +4,7 @@
 
 #include "base/bench.hpp"
 #include "base/field.hpp"
-#include "linalgs/linalgs.hpp"
 #include "routines/ios.hpp"
-#include "routines/mpi_routines.hpp"
-#include "threads/threads.hpp"
 
 namespace nissa
 {
@@ -107,7 +104,7 @@ namespace nissa
 	  p.realPartOfScalarProdWith(s);
 	
 #ifdef CGM_DEBUG
-	verbosity_lv3_master_printf("pap: %16.16lg (ap[0]: %16.16lg)\n",pap,((double*)s)[0]);
+	verbosity_lv3_master_printf("pap: %16.16lg (ap[0]: %16.16lg)\n",pap,s._data[0]);
 #endif
 	//     calculate betaa=rr/pap=(r,r)/(p,Ap)
 	betap=betaa;
@@ -134,9 +131,9 @@ namespace nissa
 		betas[ishift]=betaa*ratio;
 		
 #ifdef CGM_DEBUG
-		verbosity_lv3_master_printf("ishift %d [%lg] zas: %16.16lg, zps: %16.16lg, "
+		verbosity_lv3_master_printf("ishift %ld [%lg] zas: %16.16lg, zps: %16.16lg, "
 					    "zfs: %16.16lg, betas: %16.16lg\n",
-					    ishift,shift[ishift],zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
+					    ishift,shifts[ishift],zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
 #endif
 		t=ps[ishift]; //improvable
 		t*=-betas[ishift];
@@ -175,7 +172,7 @@ namespace nissa
 	      {
 		alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
 #ifdef CGM_DEBUG
-		verbosity_lv3_master_printf("ishift %d alpha: %16.16lg\n",ishift,alphas[ishift]);
+		verbosity_lv3_master_printf("ishift %ld alpha: %16.16lg\n",ishift,alphas[ishift]);
 #endif
 		ps[ishift]*=alphas[ishift];
 		ps[ishift]+=r;

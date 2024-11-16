@@ -89,9 +89,8 @@ namespace nissa
 		   const double& cSW,
 		   const T2& conf)
   {
-    crash("reimplement");
-    // chromo_operator(Cl,conf);
-    // chromo_operator_include_cSW(Cl,cSW);
+    chromo_operator(Cl,conf);
+    chromo_operator_include_cSW(Cl,cSW);
   }
   
   CUDA_HOST_AND_DEVICE void fill_point_twisted_clover_term(halfspincolor_halfspincolor out,int x_high_low,clover_term_t C,double mass,double kappa);
@@ -112,8 +111,8 @@ namespace nissa
   {
     const complex z={1/(2*kappa),mass};
     
-    auto o0=out[offset+0],o1=out[offset+1];
-    auto i0=in[offset+0],i1=in[offset+1];
+    auto o0=out[0],o1=out[1];
+    auto i0=in[0],i1=in[1];
     auto c0=Cl[offset+0],c1=Cl[offset+1];
     
     unsafe_color_prod_complex(o0,i0,z);

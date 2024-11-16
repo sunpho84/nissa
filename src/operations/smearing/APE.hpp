@@ -78,9 +78,13 @@ namespace nissa
 	}
     verbosity_lv1_master_printf("APE { %s} smearing with alpha=%g, %d iterations\n",listed_dirs,alpha,nSteps);
     
+    if(nSteps==0)
+      smearConf=conf;
+    
     for(int istep=1;istep<=nSteps;istep++)
       {
-	verbosity_lv3_master_printf("APE spatial smearing with alpha=%g iteration %d of %d\n",alpha,istep,nSteps);
+	//verbosity_lv3_
+	  master_printf("APE spatial smearing with alpha=%g iteration %d of %d\n",alpha,istep,nSteps);
 	
 	conf.updateEdges();
 	
@@ -130,8 +134,6 @@ namespace nissa
 	
 	if(istep!=nSteps)
 	  conf=smearConf;
-	else
-	  smearConf.invalidateHalo();
       }
   }
   

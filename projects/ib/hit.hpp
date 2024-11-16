@@ -212,7 +212,8 @@ struct HitLooper
     if(not stoch_source and (not diluted_spi_source or not diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
     
     //reset all to begin
-    for(int i=0;i<nso_spi*nso_col;i++) vector_reset(sou->sp[i]);
+    for(int i=0;i<nso_spi*nso_col;i++)
+      sou->sp[i]->reset();
     
     std::vector<LxField<spincolor>> sou_proxy(nso_spi*nso_col,"sou_proxy");
     
