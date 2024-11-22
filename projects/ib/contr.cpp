@@ -96,6 +96,7 @@ namespace nissa
   void compute_mes2pt_contr(int icombo)
   //void compute_mes2pts_contr(int normalize)
   {
+    mes2pts_contr_time-=take_time();
     const auto [name,a,b]=mes2pts_contr_map[icombo];
     
     // Tr [ GSO G5 S1^+ G5 GSI S2 ]      GSI is on the sink
