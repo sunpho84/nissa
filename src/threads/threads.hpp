@@ -30,8 +30,8 @@ namespace nissa
 			 F&& f)
   {
     double initTime=0;
-    extern int rank,verbosity_lv;
-    const bool print=(verbosity_lv>=1// 2
+    extern int rank;
+    const bool print=(VERBOSITY_LV3
 		      and rank==0);
     if(print)
       {
@@ -90,8 +90,8 @@ namespace nissa
     const dim3 gridDimension((length+blockDimension.x-1)/blockDimension.x);
     
     double initTime=0;
-    extern int rank,verbosity_lv;
-    const bool print=(verbosity_lv>=1// 2
+    extern int rank;
+    const bool print=(VERBOSITY_LV3
 		      and rank==0);
     if(print)
       {

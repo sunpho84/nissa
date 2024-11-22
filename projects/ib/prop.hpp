@@ -72,7 +72,7 @@ namespace nissa
 	{
 	  sp=new LxField<spincolor>*[nso_spi*nso_col];
 	  for(int i=0;i<nso_spi*nso_col;i++)
-	    sp[i]=new LxField<spincolor>("sp");
+	    sp[i]=new LxField<spincolor>("sp",WITH_HALO);
 	}
     }
     
@@ -149,6 +149,8 @@ namespace nissa
 	  for(int i=0;i<nso_spi*nso_col;i++)
 	    delete sp[i];
 	  delete[] sp;
+	  
+	  sp=nullptr;
 	}
     }
     

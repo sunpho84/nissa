@@ -107,12 +107,13 @@ namespace nissa
 							const double kappa,
 							const C& Cl,
 							const I& in,
-							const int& offset)
+							const int& offset,
+							const bool isSpincolor=false) //hack
   {
     const complex z={1/(2*kappa),mass};
     
-    auto o0=out[0],o1=out[1];
-    auto i0=in[0],i1=in[1];
+    auto o0=out[offset*isSpincolor+0],o1=out[offset*isSpincolor+1];
+    auto i0=in[offset*isSpincolor+0],i1=in[offset*isSpincolor+1];
     auto c0=Cl[offset+0],c1=Cl[offset+1];
     
     unsafe_color_prod_complex(o0,i0,z);

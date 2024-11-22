@@ -54,21 +54,6 @@ namespace nissa
   CUDA_HOST_AND_DEVICE double rnd_get_unif(rnd_gen *gen,double min,double max);
   CUDA_HOST_AND_DEVICE int rnd_get_pm_one(rnd_gen *gen);
   
-  CUDA_HOST_AND_DEVICE void comp_get_rnd(complex& out,
-					 rnd_gen* gen,
-					 const enum rnd_t& rtype);
-  
-  template <typename C>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  void comp_get_rnd(C&& _out,
-		    rnd_gen *gen,
-		    const enum rnd_t& rtype)
-  {
-    complex out;
-    comp_get_rnd(out,gen,rtype);
-    complex_copy(_out,out);
-  }
-  
   //generate a spindiluted vector according to the passed type
   void generate_colorspindiluted_source(LxField<su3spinspin>& source,
 					const rnd_t& rtype,
@@ -154,13 +139,78 @@ namespace nissa
   void rnd_fill_pm_one_loc_vector(double *v,int nps);
   void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max);
   coords_t generate_random_coord();
-  CUDA_HOST_AND_DEVICE void rnd_get_Z2(complex out,rnd_gen *gen);
-  CUDA_HOST_AND_DEVICE void rnd_get_Z4(complex out,rnd_gen *gen);
-  CUDA_HOST_AND_DEVICE void rnd_get_ZN(complex out,rnd_gen *gen,int N);
-  CUDA_HOST_AND_DEVICE inline void rnd_get_Z3(complex out,rnd_gen *gen)
-  {rnd_get_ZN(out,gen,3);}
   double rnd_get_gauss_double(rnd_gen *gen,double ave=0,double sig=1);
-  CUDA_HOST_AND_DEVICE void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig);
+  
+  //return a Z2 complex
+  template <typename C>
+  CUDA_HOST_AND_DEVICE void rnd_get_Z2(C&& out,
+				       rnd_gen *gen)
+  {
+    out[0]=rnd_get_pm_one(gen);
+    out[1]=0;
+  }
+  
+  template <typename C>
+  CUDA_HOST_AND_DEVICE inline void rnd_get_Z3(C&& out,
+					      rnd_gen *gen)
+  {
+    rnd_get_ZN(out,gen,3);
+  }
+  
+  //return a Z4 complex
+  template <typename C>
+  CUDA_HOST_AND_DEVICE void rnd_get_Z4(C&& out,
+				       rnd_gen *gen)
+  {
+    out[0]=rnd_get_pm_one(gen)/(double)RAD2;
+    out[1]=rnd_get_pm_one(gen)/(double)RAD2;
+  }
+  
+  //return a ZN complex
+  template <typename C>
+  CUDA_HOST_AND_DEVICE void rnd_get_ZN(C&& out,
+				       rnd_gen *gen,
+				       const int& N)
+  {
+    complex_iexp(out,2*M_PI*(int)rnd_get_unif(gen,0,N)/N);
+  }
+  
+  //return a gaussian complex with sigma=sig/sqrt(2)
+  template <typename C>
+  CUDA_HOST_AND_DEVICE void rnd_get_gauss_complex(C&& out,
+						  rnd_gen *gen,
+						  const complex& ave,
+						  const double& sig)
+  {
+    const double one_by_sqrt2=0.707106781186547;
+    double norm=sig*one_by_sqrt2;
+    double q,r;
+    
+    r=sqrt(-2*log(1-rnd_get_unif(gen,0,1)));
+    q=2*M_PI*rnd_get_unif(gen,0,1);
+    
+    out[0]=r*cos(q)*norm+ave[0];
+    out[1]=r*sin(q)*norm+ave[1];
+  }
+  
+  template <typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void comp_get_rnd(C&& out,
+		    rnd_gen *gen,
+		    const enum rnd_t& rtype)
+  {
+    switch(rtype)
+      {
+      case RND_ALL_PLUS_ONE: complex_put_to_real(out,+1);                   break;
+      case RND_ALL_MINUS_ONE:complex_put_to_real(out,-1);                   break;
+      case RND_UNIF:         complex_put_to_real(out,rnd_get_unif(gen,0,1));break;
+      case RND_Z2:           rnd_get_Z2(out,gen);                           break;
+      case RND_Z3:           rnd_get_Z3(out,gen);                           break;
+      case RND_Z4:           rnd_get_Z4(out,gen);                           break;
+      case RND_GAUSS:        rnd_get_gauss_complex(out,gen,{0.0,0.0},1);    break;
+      }
+  }
+  
   void start_glb_rnd_gen(const char *text);
   void start_glb_rnd_gen(int seed);
   void start_loc_rnd_gen(int seed);

@@ -5,7 +5,7 @@
 #include <math.h>
 #include <string.h>
 #if FFT_TYPE == FFTW_FFT
- #include <fftw3.h>
+# include <fftw3.h>
 #endif
 
 #include "base/debug.hpp"
@@ -229,75 +229,74 @@ namespace nissa
       {
 	int delta=delta_rank*locSize[mu];    //block extent
 	int idelta=rank_coord[mu]/delta_rank; //identify the delta of the current rank
-	crash("reimplement");
-	// //find if the current rank holding the first or second block
-	// complex *first,*second;
-	// MPI_Request request2[2];
-	// MPI_Status status2[2];
+	//find if the current rank holding the first or second block
+	complex *first,*second;
+	MPI_Request request2[2];
+	MPI_Status status2[2];
 	
-	// if(idelta%2==0) //first: so it has to receive second block and send first
-	//   {
-	//     first=out;
-	//     second=buf;
-	//     coords_t rank_send_coords=rank_coord;
-	//     rank_send_coords[mu]
+	if(idelta%2==0) //first: so it has to receive second block and send first
+	  {
+	    first=out;
+	    second=buf;
+	    coords_t rank_send_coords=rank_coord;
+	    rank_send_coords[mu]
 	    
-	//     MPI_Irecv((void*)buf,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]+delta_rank,113+line_rank[mu],
-	// 	      line_comm[mu],&(request2[0]));
-	//     MPI_Isend((void*)out,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]+delta_rank,113+line_rank[mu]+delta_rank,
-	// 	      line_comm[mu],&(request2[1]));
-	//   }
-	// else           //second: so it has to receive first block and send second
-	//   {
-	//     first=buf;
-	//     second=out;
+	    MPI_Irecv((void*)buf,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]+delta_rank,113+line_rank[mu],
+		      line_comm[mu],&(request2[0]));
+	    MPI_Isend((void*)out,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]+delta_rank,113+line_rank[mu]+delta_rank,
+		      line_comm[mu],&(request2[1]));
+	  }
+	else           //second: so it has to receive first block and send second
+	  {
+	    first=buf;
+	    second=out;
 	    
-	//     MPI_Irecv((void*)buf,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]-delta_rank,113+line_rank[mu],
-	// 	      line_comm[mu],&(request2[0]));
-	//     MPI_Isend((void*)out,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]-delta_rank,113+line_rank[mu]-delta_rank,
-	// 	      line_comm[mu],&(request2[1]));
-	//   }
+	    MPI_Irecv((void*)buf,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]-delta_rank,113+line_rank[mu],
+		      line_comm[mu],&(request2[0]));
+	    MPI_Isend((void*)out,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]-delta_rank,113+line_rank[mu]-delta_rank,
+		      line_comm[mu],&(request2[1]));
+	  }
 	
-	//incrementing factor
-	// double theta=sign*2*M_PI/(2*delta);
-	// double wtemp=sin(0.5*theta);
-	// double wpr=-2*wtemp*wtemp;
-	// double wpi=sin(theta);
+	incrementing factor
+	double theta=sign*2*M_PI/(2*delta);
+	double wtemp=sin(0.5*theta);
+	double wpr=-2*wtemp*wtemp;
+	double wpi=sin(theta);
 	
-	// int rank_pos_delta=rank_coord[mu]%delta_rank;  //position of the rank inside the delta
-	// int pos_delta=rank_pos_delta*locSize[mu];     //starting coord of local delta inside the delta
+	int rank_pos_delta=rank_coord[mu]%delta_rank;  //position of the rank inside the delta
+	int pos_delta=rank_pos_delta*locSize[mu];     //starting coord of local delta inside the delta
 	
-	// //fourier coefficient
-	// double wr=cos(pos_delta*theta);
-	// double wi=sin(pos_delta*theta);
+	//fourier coefficient
+	double wr=cos(pos_delta*theta);
+	double wi=sin(pos_delta*theta);
 	
-	// //wait for communications to finish
-	// MPI_Waitall(2,request2,status2);
+	//wait for communications to finish
+	MPI_Waitall(2,request2,status2);
 	
-	// //loop over the delta length (each m will correspond to increasing twiddle)
-	// for(int loc_m=0;loc_m<locSize[mu];loc_m++)
-	//   {
-	//     //site data multiplication
-	//     for(int ic=0;ic<ncpp;ic++)
-	//       {
-	// 	double tempr=wr*second[loc_m*ncpp+ic][0]-wi*second[loc_m*ncpp+ic][1];
-	// 	double tempi=wr*second[loc_m*ncpp+ic][1]+wi*second[loc_m*ncpp+ic][0];
+	//loop over the delta length (each m will correspond to increasing twiddle)
+	for(int loc_m=0;loc_m<locSize[mu];loc_m++)
+	  {
+	    //site data multiplication
+	    for(int ic=0;ic<ncpp;ic++)
+	      {
+		double tempr=wr*second[loc_m*ncpp+ic][0]-wi*second[loc_m*ncpp+ic][1];
+		double tempi=wr*second[loc_m*ncpp+ic][1]+wi*second[loc_m*ncpp+ic][0];
 		
-	// 	if(idelta%2==0)
-	// 	  {
-	// 	    first[loc_m*ncpp+ic][0]+=tempr;
-	// 	    first[loc_m*ncpp+ic][1]+=tempi;
-	// 	  }
-	// 	else
-	// 	  {
-	// 	    second[loc_m*ncpp+ic][0]=first[loc_m*ncpp+ic][0]-tempr;
-	// 	    second[loc_m*ncpp+ic][1]=first[loc_m*ncpp+ic][1]-tempi;
-	// 	  }
-	//       }
-	//     wtemp=wr;
-	//     wr+=wr*wpr-   wi*wpi;
-	//     wi+=wi*wpr+wtemp*wpi;
-	//   }
+		if(idelta%2==0)
+		  {
+		    first[loc_m*ncpp+ic][0]+=tempr;
+		    first[loc_m*ncpp+ic][1]+=tempi;
+		  }
+		else
+		  {
+		    second[loc_m*ncpp+ic][0]=first[loc_m*ncpp+ic][0]-tempr;
+		    second[loc_m*ncpp+ic][1]=first[loc_m*ncpp+ic][1]-tempi;
+		  }
+	      }
+	    wtemp=wr;
+	    wr+=wr*wpr-   wi*wpi;
+	    wi+=wi*wpr+wtemp*wpi;
+	  }
       }
     
     if(normalize==1)

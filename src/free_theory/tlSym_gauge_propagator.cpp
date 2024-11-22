@@ -120,7 +120,14 @@ namespace nissa
     
     if(gl.which_gauge==gauge_info::COULOMB)
       {
-	if(gl.c1!=0) crash("Coulomb gauge implmented only for Wilson action");
+	if(gl.c1!=0)
+	  {
+#ifndef COMPILING_FOR_DEVICE
+	  crash("Coulomb gauge implmented only for Wilson action");
+#else
+	__trap();
+#endif
+	  }
 	
 	double kt_spat_2=0;
 	for(int mu=1;mu<4;mu++)

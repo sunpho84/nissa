@@ -81,7 +81,9 @@ namespace nissa
 	cg_inv_over_time-=take_time();
 	
 	double_vector_glb_scalar_prod(&alpha,(double*)s,(double*)p,BULK_VOL*NDOUBLES_PER_SITE);
+	verbosity_lv3_master_printf("alpha: %lg\n",alpha);
 	omega=delta/alpha;
+	verbosity_lv3_master_printf("omega: %lg\n",omega);
 	
 	//sol_(k+1)=x_k+omega*p_k
 	double_vector_summ_double_vector_prod_double((double*)sol,(double*)sol,(double*)p,omega,BULK_VOL*NDOUBLES_PER_SITE);

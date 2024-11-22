@@ -43,6 +43,7 @@ namespace nissa
     r-=s;
     p=r;
     double delta=r.norm2();
+    verbosity_lv3_master_printf("delta: %lg\n",delta);
     
     verbosity_lv2_master_printf("Source norm2: %lg\n",sourceNorm2);
     if(sourceNorm2==0 or std::isnan(sourceNorm2)) crash("invalid norm: %lg",sourceNorm2);
@@ -65,9 +66,11 @@ namespace nissa
 	
 	const double alpha=
 	  s.realPartOfScalarProdWith(p);
+	verbosity_lv3_master_printf("alpha: %lg\n",alpha);
 	
 	const double omega=
 	  delta/alpha;
+	verbosity_lv3_master_printf("omega: %lg\n",omega);
 	
 	//sol_(k+1)=x_k+omega*p_k
 	FOR_EACH_SITE_DEG_OF_FIELD(sol,
@@ -91,11 +94,14 @@ namespace nissa
 	
 	//(r_(k+1),r_(k+1))
 	lambda=r.norm2();
+	verbosity_lv3_master_printf("lambda: %lg\n",lambda);
 	
 	//(r_(k+1),r_(k+1))/(r_k,r_k)
 	const double gammag=
 	  lambda/delta;
+	verbosity_lv3_master_printf("gammag: %lg\n",gammag);
 	delta=lambda;
+	verbosity_lv3_master_printf("delta: %lg\n",delta);
 	
 	//checks
 	if(std::isnan(gammag)) crash("nanned");

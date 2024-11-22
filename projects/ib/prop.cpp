@@ -3,7 +3,6 @@
 #define EXTERN_PROP
 # include "prop.hpp"
 
-#include <memory>
 #include <set>
 #include <tuple>
 
@@ -70,8 +69,8 @@ namespace nissa
       {
 	master_printf("   working in FT\n");
 	
-	tm_quark_info qu(kappa,fabs(mass),r,theta);
-	tm_basis_t basis=WILSON_BASE;
+	const tm_quark_info qu(kappa,fabs(mass),r,theta);
+	const tm_basis_t basis=WILSON_BASE;
 	multiply_from_left_by_x_space_twisted_propagator_by_fft(out,in,qu,basis,false);
       }
     else
@@ -88,7 +87,7 @@ namespace nissa
 	export_conf::confTag=os.str();
 	export_conf::relyOnTag=true;
 #endif
-
+	
 	const LxField<quad_su3>* conf=get_updated_conf(charge,theta,*glb_conf);
 	
 	if(clover_run)
@@ -270,7 +269,8 @@ namespace nissa
 	{
 	  //compute x*p
 	  double arg=0.0;
-	  for(int mu=1;mu<NDIM;mu++) arg+=M_PI*th[mu]*rel_coord_of_loclx(ivol,mu)/glbSize[mu]; //N.B: valid only if source is on origin...
+	  for(int mu=1;mu<NDIM;mu++)
+	    arg+=M_PI*th[mu]*rel_coord_of_loclx(ivol,mu)/glbSize[mu]; //N.B: valid only if source is on origin...
 	
 	  //compute exp(ip)
 	  complex factor;
@@ -370,6 +370,7 @@ namespace nissa
       {
 	complex coef={c.second.first,c.second.second};
 	const LxField<spincolor>& p=Q[c.first][isou];
+	
 	PAR(0,locVol,
 	    CAPTURE(coef,
 		    TO_WRITE(out),

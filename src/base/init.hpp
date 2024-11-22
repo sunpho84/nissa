@@ -2,7 +2,7 @@
 #define _INIT_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 namespace nissa
@@ -15,8 +15,11 @@ namespace nissa
   void find_minimal_surface_grid(int *mP,int *L,int NP);
   void init_grid(int T,int L);
   void init_nissa(int narg,char **arg,const char compile_info[5][1024]);
+  
   inline void init_nissa(int narg,char **arg)
-  {init_nissa(narg,arg,compile_info);}
+  {
+    init_nissa(narg,arg,compile_info);
+  }
 }
 
 #endif

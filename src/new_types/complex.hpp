@@ -37,7 +37,8 @@ namespace nissa
   };
   
   //print
-  inline void complex_print(const complex a)
+  template <typename C>
+  inline void complex_print(C&& a)
   {
     printf("(%16.16lg,%16.16lg)\n",a[0],a[1]);
   }
@@ -225,8 +226,13 @@ namespace nissa
   }
   
   //put to exp
-  CUDA_HOST_AND_DEVICE inline void complex_iexp(complex out,const double arg)
-  {sincos(arg,out+IM,out+RE);}
+  template <typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_iexp(C&& out,
+		    const double& arg)
+  {
+    sincos(arg,&out[IM],&out[RE]);
+  }
   
   /// Prod with real
   template <typename A,
@@ -313,7 +319,15 @@ namespace nissa
   }
   
   //take a linear combination
-  inline void complex_linear_comb(complex a,const complex b,const double cb,const complex c,const double cc)
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_linear_comb(A&& a,
+			   const B& b,
+			   const double& cb,
+			   const C& c,
+			   const double& cc)
   {
     a[RE]=b[RE]*cb+c[RE]*cc;
     a[IM]=b[IM]*cb+c[IM]*cc;

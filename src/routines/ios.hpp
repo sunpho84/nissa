@@ -23,25 +23,6 @@
 
 #define master_printf(...) ::nissa::master_fprintf(stdout,__VA_ARGS__)
 
-//add verbosity macro
-#if MAX_VERBOSITY_LV>=1
-# define VERBOSITY_LV1 (::nissa::verbosity_lv>=1)
-#else
-# define VERBOSITY_LV1 0
-#endif
-#if MAX_VERBOSITY_LV>=2
-# define VERBOSITY_LV2 (::nissa::verbosity_lv>=2)
-#else
-# define VERBOSITY_LV2 0
-#endif
-#if MAX_VERBOSITY_LV>=3
-# define VERBOSITY_LV3 (::nissa::verbosity_lv>=3)
-#else
-# define VERBOSITY_LV3 0
-#endif
-
-#define NISSA_DEFAULT_VERBOSITY_LV 1
-
 //wrappers for verbosity_lv?
 #define verbosity_lv1_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV1) master_printf(__VA_ARGS__);)
 #define verbosity_lv2_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV2) master_printf(__VA_ARGS__);)
@@ -53,7 +34,6 @@ namespace nissa
   
   EXTERN_IOS int prepend_time;
   EXTERN_IOS int verb_call;
-  EXTERN_IOS int verbosity_lv;
   
   int count_substrings(const char *str,const char *sub);
   FILE* open_file(std::string path,const char *mode,int ext_rank=master_rank);

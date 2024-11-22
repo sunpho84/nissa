@@ -144,7 +144,7 @@ namespace nissa
     /// Computes the size to allocate
     static int nSitesToAllocate(const HaloEdgesPresence& haloEdgesPresence)
     {
-      int res=locVol;
+      int res=nSites();
       
       if(haloEdgesPresence>=WITH_HALO)
 	res+=nHaloSites();
@@ -227,11 +227,14 @@ namespace nissa
   template <typename F>
   struct FieldRef
   {
-    using Comps=typename F::Comps;
+    using Comps=
+      typename F::Comps;
     
-    using Fund=typename F::Fund;
+    using Fund=
+      typename F::Fund;
     
-    static constexpr int nInternalDegs=F::nInternalDegs;
+    static constexpr int nInternalDegs=
+      F::nInternalDegs;
     
     F& f;
     
@@ -382,6 +385,14 @@ namespace nissa
 	return internalDeg+nInternalDegs*site;
       else
 	return site+externalSize*internalDeg;
+    }
+    
+    /// Nonstatic index
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    int index(const int& site,
+	      const int& internalDeg) const
+    {
+      return Field::index(site,internalDeg,externalSize);
     }
     
     // /// Exec the operation f on each site and degree of freedom
@@ -617,7 +628,7 @@ namespace nissa
       haloIsValid(false),
       edgesAreValid(false)
     {
-      master_printf("Allocating field %s\n",name);
+      verbosity_lv3_master_printf("Allocating field %s\n",name);
       _data=nissa_malloc(name,externalSize*nInternalDegs,Fund);
     }
     
@@ -647,7 +658,7 @@ namespace nissa
     ~Field()
     {
 #ifndef COMPILING_FOR_DEVICE
-      master_printf("Deallocating field %s\n",name);
+      verbosity_lv3_master_printf("Deallocating field %s\n",name);
       if(_data)
 	{
 	  if(nRef==0)
@@ -907,7 +918,7 @@ namespace nissa
     void assertHasHalo() const
     {
       if(not (haloEdgesPresence>=WITH_HALO))
-	crash("needs halo allocated!");
+	crash("needs halo allocated for %s!",name);
     }
     
     /////////////////////////////////////////////////////////////////
@@ -1096,12 +1107,13 @@ namespace nissa
   template <typename T,
 	    FieldLayout FL=defaultFieldLayout,
 	    typename Fevn=Field<T,EVEN_SITES,FL>,
-	    typename Fodd=Field<T,ODD_SITES,FL>>
+	    typename Fodd=Field<T,ODD_SITES,FL>,
+	    typename FevnOrOdd=Field<T,EVEN_OR_ODD_SITES,FL>>
   struct EoField
   {
     /// Type representing a pointer to type T
     template <FieldCoverage EO>
-    using F=Field<T,EO,FL>;
+    using F=std::conditional_t<EO==EVN,Fevn,Fodd>;
     
     Fevn evenPart;
     
@@ -1135,7 +1147,7 @@ namespace nissa
     CONST auto& operator[](const int eo) CONST				\
     {									\
       using EOOF=							\
-	CONST Field<T,EVEN_OR_ODD_SITES,FL>;		\
+	CONST FevnOrOdd;						\
       									\
       EOOF* t[2]={(EOOF*)&evenPart,(EOOF*)&oddPart};			\
       									\
@@ -1153,7 +1165,8 @@ namespace nissa
     constexpr INLINE_FUNCTION
     EoField<T,FL,
 	    FieldRef<Field<T,EVEN_SITES,FL>>,
-	    FieldRef<Field<T,ODD_SITES,FL>>>
+	    FieldRef<Field<T,ODD_SITES,FL>>,
+	    FieldRef<Field<T,EVEN_OR_ODD_SITES,FL>>>
     getWritable()
     {
       return {evenPart,oddPart};
@@ -1162,7 +1175,8 @@ namespace nissa
     constexpr INLINE_FUNCTION
     EoField<T,FL,
 	    FieldRef<const Field<T,EVEN_SITES,FL>>,
-	    FieldRef<const Field<T,ODD_SITES,FL>>>
+	    FieldRef<const Field<T,ODD_SITES,FL>>,
+	    FieldRef<const Field<T,EVEN_OR_ODD_SITES,FL>>>
     getReadable() const
     {
       return {evenPart,oddPart};

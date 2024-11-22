@@ -215,7 +215,12 @@ struct HitLooper
     for(int i=0;i<nso_spi*nso_col;i++)
       sou->sp[i]->reset();
     
-    std::vector<LxField<spincolor>> sou_proxy(nso_spi*nso_col,"sou_proxy");
+    auto sou_proxy=
+      [&sou](const int& id_so,
+	     const int& ic_so) -> LxField<spincolor>&
+    {
+      return *sou->sp[so_sp_col_ind(id_so,ic_so)];
+    };
     
     const int tins=sou->tins;
     
@@ -249,7 +254,7 @@ struct HitLooper
 		      drawer->fillLocSite(c,ivol);
 		      for(int id=0;id<NDIRAC;id++)
 			for(int ic=0;ic<NCOL;ic++)
-			  switch (noise_type)
+			  switch(noise_type)
 			    {
 			    case RND_ALL_PLUS_ONE:
 			      complex_put_to_real(c[id][ic],1);
@@ -281,8 +286,8 @@ struct HitLooper
 	  for(int ic_so=0;ic_so<nso_col;ic_so++)
 	    for(int id_si=0;id_si<NDIRAC;id_si++)
 	      for(int ic_si=0;ic_si<NCOL;ic_si++)
-		  if((!diluted_spi_source or (id_so==id_si)) and (!diluted_col_source or (ic_so==ic_si)))
-		    complex_copy(sou_proxy[so_sp_col_ind(id_so,ic_so)][ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
+		if((not diluted_spi_source or (id_so==id_si)) and (not diluted_col_source or (ic_so==ic_si)))
+		      complex_copy(sou_proxy(id_so,ic_so)[ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
       }
     //NISSA_PARALLEL_LOOP_END;
     
@@ -291,9 +296,9 @@ struct HitLooper
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
-	  LxField<spincolor>* s=sou->sp[so_sp_col_ind(id_so,ic_so)];
-	  s->invalidateHalo();
-	  ori_source_norm2+=s->norm2();
+	  LxField<spincolor>& s=sou_proxy(id_so,ic_so);
+	  s.invalidateHalo();
+	  ori_source_norm2+=s.norm2();
 	}
     sou->ori_source_norm2=ori_source_norm2;
     

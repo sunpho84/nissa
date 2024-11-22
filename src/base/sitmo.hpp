@@ -387,16 +387,18 @@ namespace nissa
     {
       enforce_single_usage();
       
-      crash("reimplement");
       // FOR_EACH_SITE_DEG_OF_FIELD(out,
     // 				 CAPTURE(*this,
-    // 					 TO_WRITE(out)),site,iDeg,
-    // 				 {
-    // 				   auto view=getRngViewOnGlbSiteIRndReal(site,iDeg);
-				   
-    // 				   out(site,iDeg)=distr(view);
-    // 				 });
-    //
+      NISSA_LOC_VOL_LOOP(site)
+	{
+	  for(int iDeg=0;
+              iDeg<std::remove_reference_t<decltype(out)>::nInternalDegs;
+	      iDeg++)
+	    {
+              auto view=getRngViewOnGlbSiteIRndReal(site,iDeg);
+              out(site,iDeg)=distr(view);
+            }
+	}
     }
   };
   

@@ -148,7 +148,8 @@ namespace nissa
     loc_rnd_gen_inited=0;
     glb_rnd_gen_inited=0;
     grid_inited=0;
-    for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=nrank_dir[mu]=0;
+    for(int mu=0;mu<NDIM;mu++)
+      rank_coord[mu]=nrank_dir[mu]=0;
     
     //check endianness
     switch(nativeEndianness)

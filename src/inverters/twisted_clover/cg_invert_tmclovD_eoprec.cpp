@@ -77,15 +77,17 @@ namespace nissa
   {
     // set_borders_invalid(conf_lx);
     // communicate_lx_quad_su3_borders(conf_lx);
-    if(not use_eo_geom) crash("eo geometry needed to use cg_eoprec");
+    if(not use_eo_geom)
+      crash("eo geometry needed to use cg_eoprec");
     
     const LxField<inv_clover_term_t> *_invCl_lx;
-    if(ext_invCl_lx) _invCl_lx=ext_invCl_lx;
+    if(ext_invCl_lx)
+      _invCl_lx=ext_invCl_lx;
     else
       {
 	LxField<inv_clover_term_t>* tmp=new LxField<inv_clover_term_t>("invCl");
 	_invCl_lx=tmp;
-	invert_twisted_clover_term(*tmp, mass, kappa, Cl_lx);
+	invert_twisted_clover_term(*tmp,mass,kappa,Cl_lx);
       }
     const LxField<inv_clover_term_t> invCl_lx=*_invCl_lx;
     

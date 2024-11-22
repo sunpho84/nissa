@@ -1663,7 +1663,9 @@ namespace nissa
     return out;
   }
   CUDA_HOST_AND_DEVICE inline double halfspincolor_norm2(halfspincolor a)
-  {return halfspincolor_scal_prod(a,a);}
+  {
+    return halfspincolor_scal_prod(a,a);
+  }
   
   CUDA_HOST_AND_DEVICE inline void halfspincolor_summ_the_prod_double(halfspincolor a,const halfspincolor b,const halfspincolor c,const double d)
   {
@@ -1693,7 +1695,7 @@ namespace nissa
     for(int id_out=0;id_out<NDIRAC/2;id_out++)
       for(int ic_out=0;ic_out<NCOL;ic_out++)
 	{
-	  complex_put_to_zero(a[id_out][ic_out]);
+	  complex_put_to_zero(a[id_out+offset][ic_out]);
 	  for(int id_in=0;id_in<NDIRAC/2;id_in++)
 	    for(int ic_in=0;ic_in<NCOL;ic_in++)
 	      complex_summ_the_prod(a[id_out+offset][ic_out],b[id_out][ic_out][id_in][ic_in],c[id_in+offset][ic_in]);
@@ -1712,7 +1714,7 @@ namespace nissa
     for(int id_out=0;id_out<NDIRAC/2;id_out++)
       for(int ic_out=0;ic_out<NCOL;ic_out++)
 	{
-	  complex_put_to_zero(a[id_out][ic_out]);
+	  complex_put_to_zero(a[id_out+offset][ic_out]);
 	  for(int id_in=0;id_in<NDIRAC/2;id_in++)
 	    for(int ic_in=0;ic_in<NCOL;ic_in++)
 	      complex_summ_the_conj1_prod(a[id_out+offset][ic_out],b[id_in][ic_in][id_out][ic_out],c[id_in+offset][ic_in]);

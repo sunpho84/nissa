@@ -204,24 +204,6 @@ namespace nissa
     else return -1;
   }
   
-  //return a Z2 complex
-  CUDA_HOST_AND_DEVICE void rnd_get_Z2(complex out,rnd_gen *gen)
-  {
-    out[0]=rnd_get_pm_one(gen);
-    out[1]=0;
-  }
-  
-  //return a Z4 complex
-  CUDA_HOST_AND_DEVICE void rnd_get_Z4(complex out,rnd_gen *gen)
-  {
-    out[0]=rnd_get_pm_one(gen)/(double)RAD2;
-    out[1]=rnd_get_pm_one(gen)/(double)RAD2;
-  }
-  
-  //return a ZN complex
-  CUDA_HOST_AND_DEVICE void rnd_get_ZN(complex out,rnd_gen *gen,int N)
-  {complex_iexp(out,2*M_PI*(int)rnd_get_unif(gen,0,N)/N);}
-  
   //return a gaussian double
   double rnd_get_gauss_double(rnd_gen *gen,double ave,double sig)
   {
@@ -233,46 +215,18 @@ namespace nissa
     return r*cos(q)*sig+ave;
   }
   
-  //return a gaussian complex with sigma=sig/sqrt(2)
-  CUDA_HOST_AND_DEVICE void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig)
-  {
-    const double one_by_sqrt2=0.707106781186547;
-    double norm=sig*one_by_sqrt2;
-    double q,r;
-    
-    r=sqrt(-2*log(1-rnd_get_unif(gen,0,1)));
-    q=2*M_PI*rnd_get_unif(gen,0,1);
-    
-    out[0]=r*cos(q)*norm+ave[0];
-    out[1]=r*sin(q)*norm+ave[1];
-  }
-  
-  //return a complex number of appropriate type
-  CUDA_HOST_AND_DEVICE void comp_get_rnd(complex& out,
-					 rnd_gen* gen,
-					 const enum rnd_t& rtype)
-  {
-    complex z={0,0};
-    
-    switch(rtype)
-      {
-      case RND_ALL_PLUS_ONE: complex_put_to_real(out,+1);                   break;
-      case RND_ALL_MINUS_ONE:complex_put_to_real(out,-1);                   break;
-      case RND_UNIF:         complex_put_to_real(out,rnd_get_unif(gen,0,1));break;
-      case RND_Z2:           rnd_get_Z2(out,gen);                           break;
-      case RND_Z3:           rnd_get_Z3(out,gen);                           break;
-      case RND_Z4:           rnd_get_Z4(out,gen);                           break;
-      case RND_GAUSS:        rnd_get_gauss_complex(out,gen,z,1);            break;
-      }
-  }
-  
   //get the type of random from a string
   rnd_t convert_str_to_rnd_t(const char *str)
   {
-    for(int i=0;i<nrnd_type;i++) if(strcasecmp(str,rnd_t_str[i])==0) return (rnd_t)i;
+    for(int i=0;i<nrnd_type;i++)
+      if(strcasecmp(str,rnd_t_str[i])==0)
+	return (rnd_t)i;
+    
     master_fprintf(stderr,"Error, unknown random string %s, known ones:\n",str);
-    for(int i=0;i<nrnd_type;i++) master_fprintf(stderr," %s\n",rnd_t_str[i]);
+    for(int i=0;i<nrnd_type;i++)
+      master_fprintf(stderr," %s\n",rnd_t_str[i]);
     crash("Choose one of them");
+    
     return (rnd_t)RND_ALL_MINUS_ONE;
   }
   

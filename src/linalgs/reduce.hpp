@@ -110,7 +110,7 @@ namespace nissa
     
     const int64_t nori_per_slice=n/nslices;
     int64_t nper_slice=n/nslices;
-    verbosity_lv2_master_printf("n: %ld, nslices: %d, nori_per_slice: %ld nper_slice: %ld\n",n,nslices,nori_per_slice,nper_slice);
+    verbosity_lv3_master_printf("n: %ld, nslices: %d, nori_per_slice: %ld nper_slice: %ld\n",n,nslices,nori_per_slice,nper_slice);
     
     // const double init_time=take_time();
     while(nper_slice>1)
