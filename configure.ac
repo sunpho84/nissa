@@ -441,7 +441,12 @@ Number of colors    : $ncol"
 
 if test "$with_threads_type" = "cuda"
 then
-	CPPFLAGS="-dc -dlto --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS"
+	if ! (echo $CPPFLAGS $CXXFLAGS|grep -q -- -G)
+	then
+		LTO="-dlto"
+	fi
+	
+	CPPFLAGS="-dc $LTO --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS"
 fi
 
 #macros to concatenate
