@@ -191,7 +191,7 @@ namespace nissa
     double maxerr_to_recreate[nappr_per_quark*nflavs];
     
     //allocate or not clover term and inverse evn clover term
-    EoField<clover_term_t>* Cl;
+    EoField<clover_term_t>* Cl=nullptr;
     if(theory_pars.clover_to_be_computed())
       {
 	Cl=new EoField<clover_term_t>("Cl");
@@ -245,16 +245,13 @@ namespace nissa
 	    double expo=(double)num/den;
 	    
 	    //print the name
-	    if(IS_MASTER_THREAD) snprintf(appr[i].name,20,"x^(%d/%d)",num,den);
-	    THREAD_BARRIER();
+	    snprintf(appr[i].name,20,"x^(%d/%d)",num,den);
 	    
 	    //check if the approx is valid or not and in any case fit exponents
 	    verbosity_lv2_master_printf("Checking validity of approx %d/3 for flav %d/%d (%s)\n",i+1,iflav+1,nflavs,appr[i].name);
 	    bool valid=check_approx_validity(appr[i],eig_min,eig_max,expo,maxerr[i]);
-	    THREAD_BARRIER();
 	    appr[i].num=num;
 	    appr[i].den=den;
-	    THREAD_BARRIER();
 	    
 	    //if the approximation is valid scale it
 	    if(valid)
@@ -264,23 +261,19 @@ namespace nissa
 		  {
 		    verbosity_lv2_master_printf("Stored rational approximation valid, adapting it quickly\n");
 		    
-		    if(IS_MASTER_THREAD)
+		    //center the arithmetic average
+		    double scale=sqrt(eig_max*eig_min)/sqrt(appr[i].minimum*appr[i].maximum);
+		    double scale_extra=pow(scale,expo);
+		    
+		    //scale the rational approximation
+		    appr[i].minimum*=scale;
+		    appr[i].maximum*=scale;
+		    appr[i].cons*=scale_extra;
+		    for(int iterm=0;iterm<appr[i].degree();iterm++)
 		      {
-			//center the arithmetic average
-			double scale=sqrt(eig_max*eig_min)/sqrt(appr[i].minimum*appr[i].maximum);
-			double scale_extra=pow(scale,expo);
-			
-			//scale the rational approximation
-			appr[i].minimum*=scale;
-			appr[i].maximum*=scale;
-			appr[i].cons*=scale_extra;
-			for(int iterm=0;iterm<appr[i].degree();iterm++)
-			  {
-			    appr[i].poles[iterm]*=scale;
-			    appr[i].weights[iterm]*=scale*scale_extra;
-			  }
+			appr[i].poles[iterm]*=scale;
+			appr[i].weights[iterm]*=scale*scale_extra;
 		      }
-		    THREAD_BARRIER();
 		  }
 	      }
 	    else
@@ -309,12 +302,11 @@ namespace nissa
     for(int ito=0;ito<nto_recreate;ito++)
       if(rank_recreating[ito]==rank)
 	{
-	  if(IS_MASTER_THREAD and VERBOSITY_LV2) printf("Rank %d recreating approx %d\n",rank,ito);
+	  verbosity_lv2_master_printf("Rank %d recreating approx %d\n",rank,ito);
 	  rat_approx_t *rat=&(rat_appr[iappr_to_recreate[ito]]);
 	  generate_approx_of_maxerr(*rat,min_to_recreate[ito],max_to_recreate[ito],maxerr_to_recreate[ito],rat->num,rat->den);
 	}
-    if(IS_MASTER_THREAD) MPI_Barrier(MPI_COMM_WORLD);
-    THREAD_BARRIER();
+    MPI_Barrier(MPI_COMM_WORLD);
     
     //now collect from other nodes
     for(int ito=0;ito<nto_recreate;ito++)
@@ -325,8 +317,7 @@ namespace nissa
       }
     
     //wait
-    if(IS_MASTER_THREAD) MPI_Barrier(MPI_COMM_WORLD);
-    THREAD_BARRIER();
+    MPI_Barrier(MPI_COMM_WORLD);
     
     if(theory_pars.clover_to_be_computed())
       delete Cl;

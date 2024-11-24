@@ -3,6 +3,7 @@
 
 #include <dirac_operators/stD/dirac_operator_stD.hpp>
 #include <inverters/templates/cgm_invert_template_threaded.hpp>
+#include <new_types/rat_approx.hpp>
 
 namespace nissa
 {

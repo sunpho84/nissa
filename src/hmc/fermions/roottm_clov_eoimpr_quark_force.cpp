@@ -40,36 +40,36 @@ namespace nissa
   // Compute the insertion to be plugged inside the clover staples
   void compute_clover_staples_insertions(eo_ptr<as2t_su3> cl_insertion,eo_ptr<spincolor> X,eo_ptr<spincolor> Y)
   {
-    
-    for(int eo=0;eo<2;eo++)
-      {
-	NISSA_PARALLEL_LOOP(jeo,0,locVolh)
-	  {
-	    for(int mu=0;mu<NDIM;mu++)
-	      for(int nu=mu+1;nu<NDIM;nu++)
-		{
-		  int ipair=edge_numb[mu][nu];
-		  const dirac_matr m=dirac_prod(base_gamma[5],dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]));
+    crash("reimplement");
+    // for(int eo=0;eo<2;eo++)
+    //   {
+    // 	NISSA_PARALLEL_LOOP(jeo,0,locVolh)
+    // 	  {
+    // 	    for(int mu=0;mu<NDIM;mu++)
+    // 	      for(int nu=mu+1;nu<NDIM;nu++)
+    // 		{
+    // 		  int ipair=edge_numb[mu][nu];
+    // 		  const dirac_matr m=dirac_prod(base_gamma[5],dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]));
 		  
-		  su3& ins=cl_insertion[eo][jeo][ipair];
-		  spincolor tempX,tempY;
-		  unsafe_dirac_prod_spincolor(tempX,m,X[eo][jeo]);
-		  unsafe_dirac_prod_spincolor(tempY,m,Y[eo][jeo]);
+    // 		  su3& ins=cl_insertion[eo][jeo][ipair];
+    // 		  spincolor tempX,tempY;
+    // 		  unsafe_dirac_prod_spincolor(tempX,m,X[eo][jeo]);
+    // 		  unsafe_dirac_prod_spincolor(tempY,m,Y[eo][jeo]);
 		  
-		  su3_put_to_zero(ins);
+    // 		  su3_put_to_zero(ins);
 		  
-		  for(int ic1=0;ic1<NCOL;ic1++)
-		    for(int ic2=0;ic2<NCOL;ic2++)
-		      for(int id=0;id<NDIRAC;id++)
-			{
-			  complex_summ_the_conj2_prod(ins[ic1][ic2],tempY[id][ic1],X[eo][jeo][id][ic2]);
-			  complex_summ_the_conj2_prod(ins[ic1][ic2],tempX[id][ic1],Y[eo][jeo][id][ic2]);
-			}
-		}
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	set_borders_invalid(cl_insertion[eo]);
-      }
+    // 		  for(int ic1=0;ic1<NCOL;ic1++)
+    // 		    for(int ic2=0;ic2<NCOL;ic2++)
+    // 		      for(int id=0;id<NDIRAC;id++)
+    // 			{
+    // 			  complex_summ_the_conj2_prod(ins[ic1][ic2],tempY[id][ic1],X[eo][jeo][id][ic2]);
+    // 			  complex_summ_the_conj2_prod(ins[ic1][ic2],tempX[id][ic1],Y[eo][jeo][id][ic2]);
+    // 			}
+    // 		}
+    // 	  }
+    // 	NISSA_PARALLEL_LOOP_END;
+    // 	set_borders_invalid(cl_insertion[eo]);
+    //   }
   }
   
   // Compute the clover staples

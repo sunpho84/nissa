@@ -62,7 +62,11 @@ namespace nissa
   }
   
   //generate pseudo-fermion using color vector generator
-  void generate_pseudo_fermion(double& action,pseudofermion_t* pf,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,rat_approx_t* rat,double residue,quark_content_t q)
+  double generate_pseudofermions(std::vector<std::vector<pseudofermion_t>>& pf,
+				 const EoField<quad_su3>& conf,
+				 theory_pars_t& theory_pars,
+				 hmc_evol_pars_t& simul_pars,
+				 std::vector<rat_approx_t>& rat_appr)
   {
     crash("reimplement");
     // //generate the random field

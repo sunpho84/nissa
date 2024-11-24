@@ -135,7 +135,6 @@ namespace nissa
   
   // void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,int twall,int dir=0);
   
-  CUDA_HOST_AND_DEVICE void herm_put_to_gauss(su3& H,rnd_gen *gen,double sigma);
   void rnd_fill_pm_one_loc_vector(double *v,int nps);
   void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max);
   coords_t generate_random_coord();
@@ -257,6 +256,42 @@ namespace nissa
 	  safe_su3_prod_su3(u_ran,u_l,u_ran);
 	}
   }
+  
+#if NCOL == 3
+  template <typename T>
+  CUDA_HOST_AND_DEVICE void herm_put_to_gauss(T&& H,
+					      rnd_gen *gen,
+					      double sigma)
+  {
+    const double one_by_sqrt3=0.577350269189626;
+    const double two_by_sqrt3=1.15470053837925;
+    
+    double r[8];
+    for(size_t ir=0;ir<4;ir++)
+      {
+	complex rc,ave={0,0};
+	rnd_get_gauss_complex(rc,gen,ave,sigma);
+	r[ir*2+0]=rc[0];
+	r[ir*2+1]=rc[1];
+      }
+    
+    //real part of diagonal elements
+    H[0][0][0]= r[2]+one_by_sqrt3*r[7];
+    H[1][1][0]=-r[2]+one_by_sqrt3*r[7];
+    H[2][2][0]=     -two_by_sqrt3*r[7];
+    
+    //put immaginary part of diagonal elements to 0
+    H[0][0][1]=H[1][1][1]=H[2][2][1]=0;
+    
+    //remaining
+    H[0][1][0]=H[1][0][0]=r[0];
+    H[0][1][1]=-(H[1][0][1]=r[1]);
+    H[0][2][0]=H[2][0][0]=r[3];
+    H[0][2][1]=-(H[2][0][1]=r[4]);
+    H[1][2][0]=H[2][1][0]=r[5];
+    H[1][2][1]=-(H[2][1][1]=r[6]);
+  }
+#endif
 }
 
 #undef EXTERN_RANDOM

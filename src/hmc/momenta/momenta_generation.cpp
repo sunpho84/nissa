@@ -15,27 +15,31 @@
 namespace nissa
 {
   //generate momenta using guassian hermitean matrix generator
-  void generate_hmc_momenta(eo_ptr<quad_su3> H)
+  void generate_hmc_momenta(EoField<quad_su3>& H)
   {
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  for(int mu=0;mu<NDIM;mu++)
-	    herm_put_to_gauss(H[par][ieo][mu],&(loc_rnd_gen[loclx_of_loceo[par][ieo]]),1);
-	NISSA_PARALLEL_LOOP_END;
-	
-	set_borders_invalid(H[par]);
+	PAR(0,locVolh,
+	    CAPTURE(par,
+		    TO_WRITE(H)),
+	    ieo,
+	    {
+	      for(int mu=0;mu<NDIM;mu++)
+		herm_put_to_gauss(H[par][ieo][mu],&(loc_rnd_gen[loclx_of_loceo[par][ieo]]),1);
+	    });
       }
   }
+  
   //similar for lx
   void generate_hmc_momenta(quad_su3* H)
   {
+    crash("Reimplement");
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
-	herm_put_to_gauss(H[ivol][mu],&(loc_rnd_gen[ivol]),1);
-    NISSA_PARALLEL_LOOP_END;
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   for(int mu=0;mu<NDIM;mu++)
+    // 	herm_put_to_gauss(H[ivol][mu],&(loc_rnd_gen[ivol]),1);
+    // NISSA_PARALLEL_LOOP_END;
     
-    set_borders_invalid(H);
+    // set_borders_invalid(H);
   }
 }

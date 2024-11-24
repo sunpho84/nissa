@@ -17,24 +17,35 @@
 namespace nissa
 {
   //Finish the computation multiplying for the conf and taking TA
-  void compute_quark_force_finish_computation(eo_ptr<quad_su3> F,eo_ptr<quad_su3> conf)
+  void compute_quark_force_finish_computation(EoField<quad_su3>& F,
+					      const EoField<quad_su3>& conf)
   {
     for(int eo=0;eo<2;eo++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-	  for(int mu=0;mu<NDIM;mu++)
+	PAR(0,
+	    locVolh,
+	    CAPTURE(eo,
+		    TO_WRITE(F),
+		    TO_READ(conf)),
+	    ivol,
 	    {
-	      su3 temp;
-	      unsafe_su3_prod_su3(temp,conf[eo][ivol][mu],F[eo][ivol][mu]);
-	      unsafe_su3_traceless_anti_hermitian_part(F[eo][ivol][mu],temp);
-	    }
-	NISSA_PARALLEL_LOOP_END;
-	
+	      for(int mu=0;mu<NDIM;mu++)
+		{
+		  su3 temp;
+		  unsafe_su3_prod_su3(temp,conf[eo][ivol][mu],F[eo][ivol][mu]);
+		  unsafe_su3_traceless_anti_hermitian_part(F[eo][ivol][mu],temp);
+		}
+	    });
       }
   }
   
   //compute the quark force, without stouting reampping
-  void compute_quark_force_no_stout_remapping(eo_ptr<quad_su3> F,eo_ptr<quad_su3> conf,std::vector<std::vector<pseudofermion_t> >* pf,theory_pars_t* tp,std::vector<rat_approx_t>* appr,double residue)
+  void compute_quark_force_no_stout_remapping(EoField<quad_su3>& F,
+					      EoField<quad_su3>& conf,
+					      const std::vector<std::vector<pseudofermion_t>>& pf,
+					      const theory_pars_t& tp,
+					      const std::vector<rat_approx_t>& appr,
+					      const double& residue)
   {
     crash("reimplement");
     
@@ -95,29 +106,34 @@ namespace nissa
   }
   
   //take into account the stout remapping procedure
-  void compute_quark_force(eo_ptr<quad_su3> F,eo_ptr<quad_su3> conf,std::vector<std::vector<pseudofermion_t> >* pf,theory_pars_t* physics,std::vector<rat_approx_t>* appr,double residue)
+  void compute_quark_force(EoField<quad_su3>& F,
+			   EoField<quad_su3>& conf,
+			   std::vector<std::vector<pseudofermion_t>>& pf,
+			   const theory_pars_t& physics,
+			   const std::vector<rat_approx_t>& appr,
+			   const double& residue)
   {
-    int nlevls=physics->stout_pars.nlevels;
+    int nlevls=physics.stout_pars.nlevels;
     
     //first of all we take care of the trivial case
     if(nlevls==0) compute_quark_force_no_stout_remapping(F,conf,pf,physics,appr,residue);
     else
       {
 	//allocate the stack of confs: conf is binded to sme_conf[0]
-	eo_ptr<quad_su3> *sme_conf;
-	stout_smear_conf_stack_allocate(&sme_conf,conf,nlevls);
+	std::vector<EoField<quad_su3>*> sme_conf;
+	stout_smear_conf_stack_allocate(sme_conf,conf,nlevls);
 	
 	//smear iteratively retaining all the stack
-	stout_smear_whole_stack(sme_conf,conf,&(physics->stout_pars));
+	stout_smear_whole_stack(sme_conf,conf,physics.stout_pars);
 	
 	//compute the force in terms of the most smeared conf
-	compute_quark_force_no_stout_remapping(F,sme_conf[nlevls],pf,physics,appr,residue);
+	compute_quark_force_no_stout_remapping(F,*(sme_conf[nlevls]),pf,physics,appr,residue);
 	
 	//remap the force backward
-	stouted_force_remap(F,sme_conf,&(physics->stout_pars));
+	stouted_force_remap(F,sme_conf,physics.stout_pars);
 	
 	//now free the stack of confs
-	stout_smear_conf_stack_free(&sme_conf,nlevls);
+	stout_smear_conf_stack_free(sme_conf,nlevls);
       }
     
     compute_quark_force_finish_computation(F,conf);

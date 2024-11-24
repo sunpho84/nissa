@@ -37,11 +37,13 @@ namespace nissa
   {
     conf.updateEdges();
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      four_leaves_point(leavesSumm[ivol],conf,ivol);
-    NISSA_PARALLEL_LOOP_END;
-    
-    leavesSumm.invalidateHalo();
+    PAR(0,locVol,
+	CAPTURE(TO_READ(conf),
+		TO_WRITE(leavesSumm)),
+	ivol,
+	{
+	  four_leaves_point(leavesSumm[ivol],conf,ivol);
+	});
   }
   
   /// Measure the topological charge site by site
@@ -67,24 +69,30 @@ namespace nissa
 	const int ip0=plan_id[iperm][0];
 	const int ip1=plan_id[iperm][1];
 	
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  {
-	    constexpr int sign[3]={1,-1,1};
-	    
-	    //products
-	    su3 clock,aclock;
-	    unsafe_su3_prod_su3_dag(clock,leaves[ivol][ip0],leaves[ivol][ip1]);
-	    unsafe_su3_prod_su3(aclock,leaves[ivol][ip0],leaves[ivol][ip1]);
-	    
-	    //take the trace
-	    complex tclock,taclock;
-	    su3_trace(tclock,clock);
-	    su3_trace(taclock,aclock);
-	    
-	    //takes the combination with appropriate sign
-	    charge[ivol]+=sign[iperm]*(tclock[RE]-taclock[RE])*norm_fact;
-	  }
-	NISSA_PARALLEL_LOOP_END;
+	PAR(0,locVol,
+	    CAPTURE(iperm,
+		    norm_fact,
+		    ip0,ip1,
+		    TO_READ(conf),
+		    TO_READ(leaves),
+		    TO_WRITE(charge)),
+	    ivol,
+	    {
+	      constexpr int sign[3]={1,-1,1};
+	     
+	     //products
+	     su3 clock,aclock;
+	     unsafe_su3_prod_su3_dag(clock,leaves[ivol][ip0],leaves[ivol][ip1]);
+	     unsafe_su3_prod_su3(aclock,leaves[ivol][ip0],leaves[ivol][ip1]);
+	     
+	     //take the trace
+	     complex tclock,taclock;
+	     su3_trace(tclock,clock);
+	     su3_trace(taclock,aclock);
+	     
+	     //takes the combination with appropriate sign
+	     charge[ivol]+=sign[iperm]*(tclock[RE]-taclock[RE])*norm_fact;
+	    });
       }
     
     charge.invalidateHalo();
@@ -192,17 +200,16 @@ namespace nissa
   //store only 1/16 of the file
   void store_topo_corr(FILE *file,double *corr,int itraj,double top,vector_remap_t *topo_corr_rem)
   {
-    if(IS_PARALLEL) crash("cannot work threaded!");
-    
     //remap
     topo_corr_rem->remap(corr,corr,sizeof(double));
     
     //change endianness to little
-    if(!little_endian)
+    if(not LittleEndian)
       {
-	change_endianness((int*)&itraj,(int*)&itraj,1);
-	change_endianness(corr,corr,locVol);
-	change_endianness(&top,&top,1);
+	crash("reimplement");
+	// change_endianness((int*)&itraj,(int*)&itraj,1);
+	// change_endianness(corr,corr,locVol);
+	// change_endianness(&top,&top,1);
       }
     
     //offset to mantain 16 byte alignement
@@ -333,82 +340,88 @@ namespace nissa
     four_leaves(leaves,conf);
     
     //takes the anti-symmetric part (apart from a factor 2), in an horrendous way
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int imunu=0;imunu<6;imunu++)
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(leaves)),
+	ivol,
 	{
-	  auto u=leaves[ivol][imunu];
-	  for(int ic1=0;ic1<NCOL;ic1++)
-	    for(int ic2=ic1;ic2<NCOL;ic2++)
-	      { //do not look here please, it is better to put a carpet on this uglyness
-		u[ic2][ic1][0]=-(u[ic1][ic2][0]=u[ic1][ic2][0]-u[ic2][ic1][0]);
-		u[ic2][ic1][1]=+(u[ic1][ic2][1]=u[ic1][ic2][1]+u[ic2][ic1][1]);
-	      }
-	}
-    NISSA_PARALLEL_LOOP_END;
+	  for(int imunu=0;imunu<6;imunu++)
+	    {
+	      auto u=leaves[ivol][imunu];
+	      for(int ic1=0;ic1<NCOL;ic1++)
+		for(int ic2=ic1;ic2<NCOL;ic2++)
+		  { //do not look here please, it is better to put a carpet on this uglyness
+		    u[ic2][ic1][0]=-(u[ic1][ic2][0]=u[ic1][ic2][0]-u[ic2][ic1][0]);
+		    u[ic2][ic1][1]=+(u[ic1][ic2][1]=u[ic1][ic2][1]+u[ic2][ic1][1]);
+		  }
+	    }
+	});
     
     leaves.invalidateHalo();
     leaves.updateEdges();
     
     //loop on the three different combinations of plans
     staples.reset();
-    NISSA_PARALLEL_LOOP(A,0,locVol)
-      {
-	//list the plan and coefficients for each staples
-	const int plan_perp[4][3]={{ 5, 4, 3},{ 5, 2, 1},{ 4, 2, 0},{ 3, 1, 0}};
-	const int plan_sign[4][3]={{+1,-1,+1},{-1,+1,-1},{+1,-1,+1},{-1,+1,-1}};
-	
-	for(int mu=0;mu<NDIM;mu++) //link direction
-	  for(int inu=0;inu<NDIM-1;inu++)              //  E---F---C
-	    {                                          //  |   |   | mu
-	      int nu=perp_dir[mu][inu];                //  D---A---B
-	      //this gives the other pair element      //        nu
-	      int iplan=plan_perp[mu][inu];
+    PAR(0,locVol,
+	CAPTURE(TO_READ(conf),
+		TO_READ(staples),
+		TO_WRITE(leaves)),
+	A,
+	{
+	  //list the plan and coefficients for each staples
+	  const int plan_perp[4][3]={{ 5, 4, 3},{ 5, 2, 1},{ 4, 2, 0},{ 3, 1, 0}};
+	  const int plan_sign[4][3]={{+1,-1,+1},{-1,+1,-1},{+1,-1,+1},{-1,+1,-1}};
+	  
+	  for(int mu=0;mu<NDIM;mu++) //link direction
+	    for(int inu=0;inu<NDIM-1;inu++)              //  E---F---C
+	      {                                          //  |   |   | mu
+		int nu=perp_dir[mu][inu];                //  D---A---B
+		//this gives the other pair element      //        nu
+		int iplan=plan_perp[mu][inu];
+		
+		//takes neighbours
+		int B=loclxNeighup[A][nu];
+		int C=loclxNeighup[B][mu];
+		int D=loclxNeighdw[A][nu];
+		int E=loclxNeighup[D][mu];
+		int F=loclxNeighup[A][mu];
+		
+		//compute ABC, BCF and the full SU(3) staple, ABCF
+		su3 ABC,BCF,ABCF;
+		unsafe_su3_prod_su3(ABC,conf[A][nu],conf[B][mu]);
+		unsafe_su3_prod_su3_dag(BCF,conf[B][mu],conf[F][nu]);
+		unsafe_su3_prod_su3_dag(ABCF,ABC,conf[F][nu]);
+		
+		//compute ADE, DEF and the full SU(3) staple, ADEF
+		su3 ADE,DEF,ADEF;
+		unsafe_su3_dag_prod_su3(ADE,conf[D][nu],conf[D][mu]);
+		unsafe_su3_prod_su3(DEF,conf[D][mu],conf[E][nu]);
+		unsafe_su3_prod_su3(ADEF,ADE,conf[E][nu]);
+		
+		//local summ and temp
+		su3 loc_staples,temp;
+		su3_put_to_zero(loc_staples);
+		//insert the leave in the four possible forward positions
+		
+		unsafe_su3_prod_su3(loc_staples,leaves[A][iplan],ABCF);     //insertion on A
+		unsafe_su3_prod_su3(temp,conf[A][nu],leaves[B][iplan]);
+		su3_summ_the_prod_su3(loc_staples,temp,BCF);                //insertion on B
+		unsafe_su3_prod_su3(temp,ABC,leaves[C][iplan]);
+		su3_summ_the_prod_su3_dag(loc_staples,temp,conf[F][nu]);    //insertion on C
+		su3_summ_the_prod_su3(loc_staples,ABCF,leaves[F][iplan]);   //insertion on F
 	      
-	      //takes neighbours
-	      int B=loclxNeighup[A][nu];
-	      int C=loclxNeighup[B][mu];
-	      int D=loclxNeighdw[A][nu];
-	      int E=loclxNeighup[D][mu];
-	      int F=loclxNeighup[A][mu];
-	      
-	      //compute ABC, BCF and the full SU(3) staple, ABCF
-	      su3 ABC,BCF,ABCF;
-	      unsafe_su3_prod_su3(ABC,conf[A][nu],conf[B][mu]);
-	      unsafe_su3_prod_su3_dag(BCF,conf[B][mu],conf[F][nu]);
-	      unsafe_su3_prod_su3_dag(ABCF,ABC,conf[F][nu]);
-	      
-	      //compute ADE, DEF and the full SU(3) staple, ADEF
-	      su3 ADE,DEF,ADEF;
-	      unsafe_su3_dag_prod_su3(ADE,conf[D][nu],conf[D][mu]);
-	      unsafe_su3_prod_su3(DEF,conf[D][mu],conf[E][nu]);
-	      unsafe_su3_prod_su3(ADEF,ADE,conf[E][nu]);
-	      
-	      //local summ and temp
-	      su3 loc_staples,temp;
-	      su3_put_to_zero(loc_staples);
-	      //insert the leave in the four possible forward positions
-	      
-	      unsafe_su3_prod_su3(loc_staples,leaves[A][iplan],ABCF);     //insertion on A
-	      unsafe_su3_prod_su3(temp,conf[A][nu],leaves[B][iplan]);
-	      su3_summ_the_prod_su3(loc_staples,temp,BCF);                //insertion on B
-	      unsafe_su3_prod_su3(temp,ABC,leaves[C][iplan]);
-	      su3_summ_the_prod_su3_dag(loc_staples,temp,conf[F][nu]);    //insertion on C
-	      su3_summ_the_prod_su3(loc_staples,ABCF,leaves[F][iplan]);   //insertion on F
-	      
-	      //insert the leave in the four possible backward positions
-	      su3_summ_the_dag_prod_su3(loc_staples,leaves[A][iplan],ADEF);    //insertion on A
-	      unsafe_su3_dag_prod_su3_dag(temp,conf[D][nu],leaves[D][iplan]);
-	      su3_summ_the_prod_su3(loc_staples,temp,DEF);                     //insertion on D
-	      unsafe_su3_prod_su3_dag(temp,ADE,leaves[E][iplan]);
-	      su3_summ_the_prod_su3(loc_staples,temp,conf[E][nu]);             //insertion on E
-	      su3_summ_the_prod_su3_dag(loc_staples,ADEF,leaves[F][iplan]);    //insertion on F
-	      
-	      //summ or subtract, according to the coefficient
-	      if(plan_sign[mu][inu]==+1) su3_summassign(staples[A][mu],loc_staples);
-	      else                       su3_subtassign(staples[A][mu],loc_staples);
-	    }
-      }
-    NISSA_PARALLEL_LOOP_END;
+		//insert the leave in the four possible backward positions
+		su3_summ_the_dag_prod_su3(loc_staples,leaves[A][iplan],ADEF);    //insertion on A
+		unsafe_su3_dag_prod_su3_dag(temp,conf[D][nu],leaves[D][iplan]);
+		su3_summ_the_prod_su3(loc_staples,temp,DEF);                     //insertion on D
+		unsafe_su3_prod_su3_dag(temp,ADE,leaves[E][iplan]);
+		su3_summ_the_prod_su3(loc_staples,temp,conf[E][nu]);             //insertion on E
+		su3_summ_the_prod_su3_dag(loc_staples,ADEF,leaves[F][iplan]);    //insertion on F
+		
+		//summ or subtract, according to the coefficient
+		if(plan_sign[mu][inu]==+1) su3_summassign(staples[A][mu],loc_staples);
+		else                       su3_subtassign(staples[A][mu],loc_staples);
+	      }
+	});
     
     staples.invalidateHalo();
   }

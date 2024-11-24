@@ -27,24 +27,25 @@ namespace nissa
 					    const LxField<quad_su3>& conf,
 					    const int& mu)
   {
-    conf.updateHalo();
+    crash("Reimplement");
+    // conf.updateHalo();
     
-    //reset the link product
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      su3_put_to_id(u[ivol]);
-    NISSA_PARALLEL_LOOP_END;
+    // //reset the link product
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   su3_put_to_id(u[ivol]);
+    // NISSA_PARALLEL_LOOP_END;
     
-    //move along +mu
-    for(int i=0;i<glbSize[mu];i++)
-      {
-	//take the product
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  safe_su3_prod_su3(u[ivol],u[ivol],conf[ivol][mu]);
-	NISSA_PARALLEL_LOOP_END;
-	set_borders_invalid(u);
+    // //move along +mu
+    // for(int i=0;i<glbSize[mu];i++)
+    //   {
+    // 	//take the product
+    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	  safe_su3_prod_su3(u[ivol],u[ivol],conf[ivol][mu]);
+    // 	NISSA_PARALLEL_LOOP_END;
+    // 	set_borders_invalid(u);
 	
-	su3_vec_single_shift(u,mu,+1);
-      }
+    // 	su3_vec_single_shift(u,mu,+1);
+    //   }
   }
   
   //compute the trace of the polyakov loop, but do not reduce over space
@@ -52,15 +53,16 @@ namespace nissa
 					  const LxField<quad_su3>& conf,
 					  const int& mu)
   {
-    //compute untraced loops
-    LxField<su3> u("u",WITH_HALO);
-    field_untraced_polyakov_loop_lx_conf(u,conf,mu);
+    crash("Reimplement");
+    // //compute untraced loops
+    // LxField<su3> u("u",WITH_HALO);
+    // field_untraced_polyakov_loop_lx_conf(u,conf,mu);
     
-    //trace
-    out.reset();
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      su3_trace(out[ivol],u[ivol]);
-    NISSA_PARALLEL_LOOP_END;
+    // //trace
+    // out.reset();
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   su3_trace(out[ivol],u[ivol]);
+    // NISSA_PARALLEL_LOOP_END;
   }
   
   //compute the polyakov loop - if ext_ll_dag is non null uses it and store correlator with the dag inside it, if ext_ll is non null compute also the correlator with itself
@@ -137,111 +139,112 @@ namespace nissa
   //remap and save - "loop" is destroyed!
   void save_poly_loop_correlator(FILE *file,complex *loop,int mu,double *tra,int itraj)
   {
-    if(IS_PARALLEL) crash("cannot work threaded!");
+    crash("Reimplement");
+    // if(IS_PARALLEL) crash("cannot work threaded!");
     
-    const auto index_to_poly_corr_remapping=
-      [mu](const int& iloc_lx)
-      {
-	const int perp_vol=glbVol/glbSize[mu];
+    // const auto index_to_poly_corr_remapping=
+    //   [mu](const int& iloc_lx)
+    //   {
+    // 	const int perp_vol=glbVol/glbSize[mu];
 	
-	int subcube=0,subcube_el=0;
-	int subcube_size[3][2],subcube_coord[3],subcube_el_coord[3];
-	for(int inu=0;inu<3;inu++)
-	  {
-	    //take dir and subcube size
-	    int nu=perp_dir[mu][inu];
-	    subcube_size[inu][0]=glbSize[nu]/2+1;
-	    subcube_size[inu][1]=glbSize[nu]/2-1;
+    // 	int subcube=0,subcube_el=0;
+    // 	int subcube_size[3][2],subcube_coord[3],subcube_el_coord[3];
+    // 	for(int inu=0;inu<3;inu++)
+    // 	  {
+    // 	    //take dir and subcube size
+    // 	    int nu=perp_dir[mu][inu];
+    // 	    subcube_size[inu][0]=glbSize[nu]/2+1;
+    // 	    subcube_size[inu][1]=glbSize[nu]/2-1;
 	    
-	    //take global coord and identify subcube
-	    int glx_nu=glbCoordOfLoclx[iloc_lx][nu];
-	    subcube_coord[inu]=(glx_nu>=subcube_size[inu][0]);
-	    subcube=subcube*2+subcube_coord[inu];
+    // 	    //take global coord and identify subcube
+    // 	    int glx_nu=glbCoordOfLoclx[iloc_lx][nu];
+    // 	    subcube_coord[inu]=(glx_nu>=subcube_size[inu][0]);
+    // 	    subcube=subcube*2+subcube_coord[inu];
 	    
-	    //identify also the local coord
-	    subcube_el_coord[inu]=glx_nu-subcube_coord[inu]*subcube_size[inu][0];
-	    subcube_el=subcube_el*subcube_size[inu][subcube_coord[inu]]+subcube_el_coord[inu];
-	  }
+    // 	    //identify also the local coord
+    // 	    subcube_el_coord[inu]=glx_nu-subcube_coord[inu]*subcube_size[inu][0];
+    // 	    subcube_el=subcube_el*subcube_size[inu][subcube_coord[inu]]+subcube_el_coord[inu];
+    // 	  }
 	
-	//compute the volume of the 8 subcubes
-	int subcube_vol[8];
-	for(int a=0;a<2;a++)
-	  for(int b=0;b<2;b++)
-	    for(int c=0;c<2;c++)
-	      subcube_vol[c+2*(b+2*a)]=subcube_size[0][a]*subcube_size[1][b]*subcube_size[2][c];
+    // 	//compute the volume of the 8 subcubes
+    // 	int subcube_vol[8];
+    // 	for(int a=0;a<2;a++)
+    // 	  for(int b=0;b<2;b++)
+    // 	    for(int c=0;c<2;c++)
+    // 	      subcube_vol[c+2*(b+2*a)]=subcube_size[0][a]*subcube_size[1][b]*subcube_size[2][c];
 	
-	//set the most internal and external
-	int poly_ind=subcube_el+perp_vol*glbCoordOfLoclx[iloc_lx][mu];
+    // 	//set the most internal and external
+    // 	int poly_ind=subcube_el+perp_vol*glbCoordOfLoclx[iloc_lx][mu];
 	
-	//summ the smaller cubes
-	for(int isubcube=0;isubcube<subcube;isubcube++)
-	  poly_ind+=subcube_vol[isubcube];
+    // 	//summ the smaller cubes
+    // 	for(int isubcube=0;isubcube<subcube;isubcube++)
+    // 	  poly_ind+=subcube_vol[isubcube];
 	
-	const int irank_poly=poly_ind/locVol;
-	const int iloc_poly=poly_ind%locVol;
-	return std::make_pair(irank_poly,iloc_poly);
-      };
+    // 	const int irank_poly=poly_ind/locVol;
+    // 	const int iloc_poly=poly_ind%locVol;
+    // 	return std::make_pair(irank_poly,iloc_poly);
+    //   };
     
-    //remap
-    vector_remap_t *poly_rem=new vector_remap_t(locVol,index_to_poly_corr_remapping);
-    poly_rem->remap(loop,loop,sizeof(complex));
-    delete poly_rem;
+    // //remap
+    // vector_remap_t *poly_rem=new vector_remap_t(locVol,index_to_poly_corr_remapping);
+    // poly_rem->remap(loop,loop,sizeof(complex));
+    // delete poly_rem;
     
-    //change endianness to little
-    if(!little_endian)
-      {
-	change_endianness((float*)&itraj,(float*)&itraj,1);
-	change_endianness((double*)loop,(double*)loop,locVol*2);
-	change_endianness(tra,tra,2);
-      }
+    // //change endianness to little
+    // if(!little_endian)
+    //   {
+    // 	change_endianness((float*)&itraj,(float*)&itraj,1);
+    // 	change_endianness((double*)loop,(double*)loop,locVol*2);
+    // 	change_endianness(tra,tra,2);
+    //   }
     
-    //offset to mantain 16 byte alignement
-    if(fseek(file,3*sizeof(int),SEEK_CUR)) crash("seeking to align");
-    MPI_Barrier(MPI_COMM_WORLD);
+    // //offset to mantain 16 byte alignement
+    // if(fseek(file,3*sizeof(int),SEEK_CUR)) crash("seeking to align");
+    // MPI_Barrier(MPI_COMM_WORLD);
     
-    //write conf id and polyakov
-    if(rank==0)
-      {
-	off_t nwr=fwrite(&itraj,sizeof(int),1,file);
-	if(nwr!=1) crash("wrote %ld int instead of 1",nwr);
-	nwr=fwrite(tra,sizeof(double),2,file);
-	if(nwr!=2) crash("wrote %ld doubles instead of 2",nwr);
-      }
-    else
-      if(fseek(file,sizeof(int)+sizeof(complex),SEEK_CUR)) crash("seeking");
-    MPI_Barrier(MPI_COMM_WORLD);
+    // //write conf id and polyakov
+    // if(rank==0)
+    //   {
+    // 	off_t nwr=fwrite(&itraj,sizeof(int),1,file);
+    // 	if(nwr!=1) crash("wrote %ld int instead of 1",nwr);
+    // 	nwr=fwrite(tra,sizeof(double),2,file);
+    // 	if(nwr!=2) crash("wrote %ld doubles instead of 2",nwr);
+    //   }
+    // else
+    //   if(fseek(file,sizeof(int)+sizeof(complex),SEEK_CUR)) crash("seeking");
+    // MPI_Barrier(MPI_COMM_WORLD);
     
-    //find which piece has to write data
-    int tot_data=
-      (glbSize[perp_dir[mu][0]]/2+1)*
-      (glbSize[perp_dir[mu][1]]/2+1)*
-      (glbSize[perp_dir[mu][2]]/2+1);
+    // //find which piece has to write data
+    // int tot_data=
+    //   (glbSize[perp_dir[mu][0]]/2+1)*
+    //   (glbSize[perp_dir[mu][1]]/2+1)*
+    //   (glbSize[perp_dir[mu][2]]/2+1);
     
-    int istart=locVol*rank;
-    int iend=istart+locVol;
+    // int istart=locVol*rank;
+    // int iend=istart+locVol;
     
-    //fix possible exceding boundary
-    if(istart>tot_data) istart=tot_data;
-    if(iend>tot_data) iend=tot_data;
-    int loc_data=iend-istart;
+    // //fix possible exceding boundary
+    // if(istart>tot_data) istart=tot_data;
+    // if(iend>tot_data) iend=tot_data;
+    // int loc_data=iend-istart;
     
-    //take original position of the file
-    off_t ori=ftell(file);
+    // //take original position of the file
+    // off_t ori=ftell(file);
     
-    //jump to the correct point in the file
-    if(fseek(file,ori+istart*sizeof(complex),SEEK_SET)) crash("seeking");
-    MPI_Barrier(MPI_COMM_WORLD);
+    // //jump to the correct point in the file
+    // if(fseek(file,ori+istart*sizeof(complex),SEEK_SET)) crash("seeking");
+    // MPI_Barrier(MPI_COMM_WORLD);
     
-    //write if something has to be written
-    if(loc_data!=0)
-      {
-	int nbytes_to_write=loc_data*sizeof(complex);
-	off_t nbytes_wrote=fwrite(loop,1,nbytes_to_write,file);
-	if(nbytes_wrote!=nbytes_to_write) crash("wrote %ld bytes instead of %d",nbytes_wrote,nbytes_to_write);
-      }
+    // //write if something has to be written
+    // if(loc_data!=0)
+    //   {
+    // 	int nbytes_to_write=loc_data*sizeof(complex);
+    // 	off_t nbytes_wrote=fwrite(loop,1,nbytes_to_write,file);
+    // 	if(nbytes_wrote!=nbytes_to_write) crash("wrote %ld bytes instead of %d",nbytes_wrote,nbytes_to_write);
+    //   }
     
-    //point to after the data
-    fseek(file,ori+tot_data*sizeof(complex),SEEK_SET);
+    // //point to after the data
+    // fseek(file,ori+tot_data*sizeof(complex),SEEK_SET);
   }
   
   //compute and possible save
@@ -300,26 +303,27 @@ namespace nissa
   //Actually since what is needed for Wprop is the revert, it is dag
   void compute_Pline_dag_internal(su3 *pline,quad_su3 *conf,int mu,int xmu_start)
   {
-    communicate_lx_quad_su3_borders(conf);
+    crash("Reimplement");
+    // communicate_lx_quad_su3_borders(conf);
     
-    //Loop simultaneously forward and backward
-    for(int xmu_shift=1;xmu_shift<=glbSize[mu]/2;xmu_shift++)
-      {
-	communicate_lx_su3_borders(pline);
+    // //Loop simultaneously forward and backward
+    // for(int xmu_shift=1;xmu_shift<=glbSize[mu]/2;xmu_shift++)
+    //   {
+    // 	communicate_lx_su3_borders(pline);
 	
-	NISSA_LOC_VOL_LOOP(x)
-	{
-	  int x_back=loclxNeighdw[x][mu];
-	  int x_forw=loclxNeighup[x][mu];
+    // 	NISSA_LOC_VOL_LOOP(x)
+    // 	{
+    // 	  int x_back=loclxNeighdw[x][mu];
+    // 	  int x_forw=loclxNeighup[x][mu];
           
-	  //consider +xmu_shift point
-	  if(glbCoordOfLoclx[x][mu]==(xmu_start+xmu_shift)%glbSize[mu]) unsafe_su3_dag_prod_su3(pline[x],conf[x_back][mu],pline[x_back]);
-	  //consider -xmu_shift point
-	  if((glbCoordOfLoclx[x][mu]+xmu_shift)%glbSize[mu]==xmu_start) unsafe_su3_prod_su3(pline[x],conf[x][mu],pline[x_forw]);
-	}
+    // 	  //consider +xmu_shift point
+    // 	  if(glbCoordOfLoclx[x][mu]==(xmu_start+xmu_shift)%glbSize[mu]) unsafe_su3_dag_prod_su3(pline[x],conf[x_back][mu],pline[x_back]);
+    // 	  //consider -xmu_shift point
+    // 	  if((glbCoordOfLoclx[x][mu]+xmu_shift)%glbSize[mu]==xmu_start) unsafe_su3_prod_su3(pline[x],conf[x][mu],pline[x_forw]);
+    // 	}
 	
-	set_borders_invalid(pline);
-      }
+    // 	set_borders_invalid(pline);
+    //   }
   }
   
   ///compute the pline daggered stemming from the all the points at xmu=xmu_start along dir mu
@@ -349,32 +353,33 @@ namespace nissa
   //Compute the stochastic Pline, using a color as source
   void compute_stoch_Pline_dag(color *pline,quad_su3 *conf,int mu,int xmu_start,color *source)
   {
-    communicate_lx_quad_su3_borders(conf);
+    crash("Reimplement");
+    // communicate_lx_quad_su3_borders(conf);
     
-    //Reset the link product, putting id at xmu_start
-    vector_reset(pline);
-    NISSA_LOC_VOL_LOOP(ivol)
-      if(glbCoordOfLoclx[ivol][mu]==xmu_start)
-	color_copy(pline[ivol],source[ivol]);
+    // //Reset the link product, putting id at xmu_start
+    // vector_reset(pline);
+    // NISSA_LOC_VOL_LOOP(ivol)
+    //   if(glbCoordOfLoclx[ivol][mu]==xmu_start)
+    // 	color_copy(pline[ivol],source[ivol]);
     
-    //Loop simultaneously forward and backward
-    for(int xmu_shift=1;xmu_shift<=glbSize[mu]/2;xmu_shift++)
-      {
-	communicate_lx_color_borders(pline);
+    // //Loop simultaneously forward and backward
+    // for(int xmu_shift=1;xmu_shift<=glbSize[mu]/2;xmu_shift++)
+    //   {
+    // 	communicate_lx_color_borders(pline);
 	
-	NISSA_LOC_VOL_LOOP(x)
-	{
-	  int x_back=loclxNeighdw[x][mu];
-	  int x_forw=loclxNeighup[x][mu];
+    // 	NISSA_LOC_VOL_LOOP(x)
+    // 	{
+    // 	  int x_back=loclxNeighdw[x][mu];
+    // 	  int x_forw=loclxNeighup[x][mu];
           
-	  //consider +xmu_shift point
-	  if(glbCoordOfLoclx[x][mu]==(xmu_start+xmu_shift)%glbSize[mu]) unsafe_su3_dag_prod_color(pline[x],conf[x_back][mu],pline[x_back]);
-	  //consider -xmu_shift point
-	  if((glbCoordOfLoclx[x][mu]+xmu_shift)%glbSize[mu]==xmu_start) unsafe_su3_prod_color(pline[x],conf[x][mu],pline[x_forw]);
-	}
+    // 	  //consider +xmu_shift point
+    // 	  if(glbCoordOfLoclx[x][mu]==(xmu_start+xmu_shift)%glbSize[mu]) unsafe_su3_dag_prod_color(pline[x],conf[x_back][mu],pline[x_back]);
+    // 	  //consider -xmu_shift point
+    // 	  if((glbCoordOfLoclx[x][mu]+xmu_shift)%glbSize[mu]==xmu_start) unsafe_su3_prod_color(pline[x],conf[x][mu],pline[x_forw]);
+    // 	}
 	
-	set_borders_invalid(pline);
-      }
+    // 	set_borders_invalid(pline);
+    //   }
   }
   
   //compute the static propagator, putting the 1+gamma_mu in place

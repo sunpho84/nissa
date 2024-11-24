@@ -34,10 +34,11 @@ namespace nissa
   //make the complex-double product
   void compute_tens_dens_topo_correlation(complex *spinpol_dens,complex *tens_dens,double *topo_dens)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      complex_prod_double(spinpol_dens[ivol],tens_dens[ivol],topo_dens[ivol]);
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
+    crash("Reimplement");
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   complex_prod_double(spinpol_dens[ivol],tens_dens[ivol],topo_dens[ivol]);
+    // NISSA_PARALLEL_LOOP_END;
+    // THREAD_BARRIER();
   }
   
   //compute the spin-polarization for all flavors

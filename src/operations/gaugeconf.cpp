@@ -253,7 +253,7 @@ namespace nissa
   }
   
   //eo version
-  void unitarize_eo_conf_maximal_trace_projecting(eo_ptr<quad_su3> conf)
+  void unitarize_eo_conf_maximal_trace_projecting(EoField<quad_su3>& conf)
   {
     crash("reimplement");
     

@@ -225,7 +225,12 @@ struct HitLooper
     const int tins=sou->tins;
     
     //NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    NISSA_LOC_VOL_LOOP(ivol)
+    HOST_PARALLEL_LOOP(0,locVol,
+		       CAPTURE(tins,
+			       &drawer,
+			       noise_type,
+			       sou_proxy),
+		       ivol,
       {
 	spincolor c;
 	spincolor_put_to_zero(c);
@@ -288,8 +293,7 @@ struct HitLooper
 	      for(int ic_si=0;ic_si<NCOL;ic_si++)
 		if((not diluted_spi_source or (id_so==id_si)) and (not diluted_col_source or (ic_so==ic_si)))
 		      complex_copy(sou_proxy(id_so,ic_so)[ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
-      }
-    //NISSA_PARALLEL_LOOP_END;
+      });
     
     //compute the norm2, set borders invalid
     double ori_source_norm2=0;

@@ -24,41 +24,43 @@ namespace nissa
   {
     void matrix_element_with_gamma(double* out,complex* buffer,spincolor* x,int igamma)
     {
+    crash("Reimplement");
       
-      NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	{
-	  spincolor t;
-	  unsafe_dirac_prod_spincolor(t,base_gamma[igamma],x[ivol]);
-	  spincolor_scalar_prod(buffer[ivol],x[ivol],t);
-	}
-      NISSA_PARALLEL_LOOP_END;
-      THREAD_BARRIER();
+    //   NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	{
+    // 	  spincolor t;
+    // 	  unsafe_dirac_prod_spincolor(t,base_gamma[igamma],x[ivol]);
+    // 	  spincolor_scalar_prod(buffer[ivol],x[ivol],t);
+    // 	}
+    //   NISSA_PARALLEL_LOOP_END;
+    //   THREAD_BARRIER();
       
-      glb_reduce((complex*)out,buffer,locVol);
+    //   glb_reduce((complex*)out,buffer,locVol);
     }
   }
   
   //Computes the participation ratio
   double participation_ratio(spincolor *v)
   {
+    crash("Reimplement");
     
-    double *l=nissa_malloc("l",locVol,double);
+    // double *l=nissa_malloc("l",locVol,double);
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	complex t;
-	spincolor_scalar_prod(t,v[ivol],v[ivol]);
-	l[ivol]=t[RE];
-      }
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   {
+    // 	complex t;
+    // 	spincolor_scalar_prod(t,v[ivol],v[ivol]);
+    // 	l[ivol]=t[RE];
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
+    // THREAD_BARRIER();
     
-    double s=double_vector_glb_norm2(l,locVol);
-    double n2=double_vector_glb_norm2(v,locVol);
+    // double s=double_vector_glb_norm2(l,locVol);
+    // double n2=double_vector_glb_norm2(v,locVol);
     
-    nissa_free(l);
+    // nissa_free(l);
     
-    return sqr(n2)/(glbVol*s);
+    // return sqr(n2)/(glbVol*s);
   }
   
   //measure minmax_eigenvalues

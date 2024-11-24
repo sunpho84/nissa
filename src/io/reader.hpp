@@ -149,7 +149,7 @@ namespace nissa
 							   ILDG_message* mess=nullptr)
   {
     //read the conf in lx and reorder it
-    LxField<quad_su3> lx_conf("temp_conf");
+    LxField<quad_su3> lx_conf("temp_conf",WITH_HALO);
     read_ildg_gauge_conf(lx_conf,path,mess);
     split_lx_vector_into_eo_parts(eo_conf,lx_conf);
     

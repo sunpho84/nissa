@@ -237,7 +237,7 @@ namespace nissa
   
   void unitarize_lx_conf_orthonormalizing(quad_su3 *conf);
   void unitarize_lx_conf_maximal_trace_projecting(quad_su3 *conf);
-  void unitarize_eo_conf_maximal_trace_projecting(eo_ptr<quad_su3> conf);
+  void unitarize_eo_conf_maximal_trace_projecting(EoField<quad_su3>& conf);
 }
 
 #endif

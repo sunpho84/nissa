@@ -1,6 +1,26 @@
 ####################################### measures ##################################
 
-__top_builddir__lib_libnissa_a_SOURCES+=
+__top_builddir__lib_libnissa_a_SOURCES+= \
+	%D%/contract/optimized_mesons_2pts.cpp \
+	%D%/fermions/ellesettete.cpp \
+	%D%/fermions/mesons.cpp \
+	%D%/fermions/magnetization.cpp \
+	%D%/fermions/minmax_eigenvalues.cpp \
+	%D%/fermions/nucleon.cpp \
+	%D%/fermions/putpourri.cpp \
+	%D%/fermions/qed_corr.cpp \
+	%D%/fermions/rendens.cpp \
+	%D%/fermions/spectral_projectors.cpp \
+	%D%/fermions/spinpol.cpp \
+	%D%/fermions/stag.cpp \
+	%D%/fermions/tm_corr_op.cpp \
+	%D%/fermions/tm_tuning.cpp \
+	%D%/fermions/zumba.cpp \
+	%D%/gauge/all_rectangles.cpp \
+	%D%/gauge/pline.cpp \
+	%D%/gauge/topological_charge.cpp \
+	%D%/gauge/watusso.cpp
+
 
 include_HEADERS+= \
 	%D%/contract/optimized_mesons_2pts.hpp \

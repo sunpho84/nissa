@@ -79,29 +79,91 @@ namespace nissa
 		   const stout_pars_t& stout_pars,
 		   const which_dir_t& dirs=all_dirs);
   
-  void stout_smear_single_level(eo_ptr<quad_su3> out,eo_ptr<quad_su3> ext_in,double rho,const which_dir_t& dirs=all_dirs);
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,eo_ptr<quad_su3> conf,int p,int A,int mu,double rho);
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,eo_ptr<quad_su3> conf,int p,int A,int mu,double rho);
-  void stout_smear_conf_stack_allocate(eo_ptr<quad_su3> **out,eo_ptr<quad_su3> in,int nlev);
-  void stout_smear_conf_stack_free(eo_ptr<quad_su3> **out,int nlev);
+  void stout_smear_single_level(EoField<quad_su3>& out,
+				const EoField<quad_su3>& ext_in,
+				const double& rho,
+				const which_dir_t& dirs=all_dirs);
+  
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples& out,
+							const EoField<quad_su3>& conf,
+							const int& p,
+							const int& A,
+							const int& mu,
+							const double& rho);
+  
+  //compute the staples for the link U_A_mu weighting them with rho
+  template <typename S,
+	    typename C>
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(S&& staples,
+								 const C& conf,
+								 const int& p,
+								 const int& A,
+								 const int& mu,
+								 const double& rho)
+  {
+    //put staples to zero
+    su3_put_to_zero(staples);
+    
+    //summ the 6 staples, each weighted with rho (eq. 1)
+    su3 temp1,temp2;
+    for(int nu=0;nu<4;nu++)                   //  E---F---C
+      if(nu!=mu)                              //  |   |   | mu
+	{                                     //  D---A---B
+	  int B=loceo_neighup[p][A][nu];      //        nu
+	  int F=loceo_neighup[p][A][mu];
+	  unsafe_su3_prod_su3(    temp1,conf[p][A][nu],conf[!p][B][mu]);
+	  unsafe_su3_prod_su3_dag(temp2,temp1,         conf[!p][F][nu]);
+	  su3_summ_the_prod_double(staples,temp2,rho);
+	  
+	  int D=loceo_neighdw[p][A][nu];
+	  int E=loceo_neighup[!p][D][mu];
+	  unsafe_su3_dag_prod_su3(temp1,conf[!p][D][nu],conf[!p][D][mu]);
+	  unsafe_su3_prod_su3(    temp2,temp1,          conf[ p][E][nu]);
+	  su3_summ_the_prod_double(staples,temp2,rho);
+	}
+  }
+  
+  void stout_smear_conf_stack_allocate(std::vector<EoField<quad_su3>*>& out,
+				       EoField<quad_su3>& in,
+				       const int& nlev);
+  
+  void stout_smear_conf_stack_free(std::vector<EoField<quad_su3>*>& out,
+				   const int& nlev);
+  
   void stouted_force_remap(eo_ptr<quad_su3> F,eo_ptr<quad_su3> *sme_conf,stout_pars_t *stout_pars);
-  void stouted_force_remap_step(eo_ptr<quad_su3> *F,eo_ptr<quad_su3> *conf,double rho);
+  void stouted_force_remap_step(EoField<quad_su3>& F,
+				const EoField<quad_su3>& conf,
+				const double& rho);
   //lx
   
-  void stout_smear_whole_stack(std::vector<LxField<quad_su3>*>& out,
-			       const LxField<quad_su3>& in,
-			       const stout_pars_t* stout_pars,
+  void stout_smear_whole_stack(std::vector<EoField<quad_su3>*>& out,
+			       const EoField<quad_su3>& in,
+			       const stout_pars_t& stout_pars,
 			       const which_dir_t& dirs=all_dirs);
   
   void stout_smear(quad_su3 *ext_out,quad_su3 *ext_in,stout_pars_t *stout_pars,const which_dir_t& dirs=all_dirs);
   void stout_smear_single_level(quad_su3 *out,quad_su3 *ext_in,double rho,const which_dir_t& dirs=all_dirs);
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 *conf,int p,int A,int mu,double rho);
 
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,
-							const LxField<quad_su3>& conf,
+  //partial derivative of the force
+  template <typename C>
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples& out,
+							const C& conf,
+							const int& p,
 							const int& A,
 							const int& mu,
-							const double& rho);
+							const double& rho)
+  {
+    //compute the staples
+    stout_smear_compute_weighted_staples(out.C,conf,p,A,mu,rho);
+    
+    //build Omega (eq. 2.b)
+    unsafe_su3_prod_su3_dag(out.Omega,out.C,conf[p][A][mu]);
+    
+    //compute Q (eq. 2.a)
+    su3 iQ;
+    unsafe_su3_traceless_anti_hermitian_part(iQ,out.Omega);
+    su3_prod_idouble(out.Q,iQ,-1);
+  }
   
   void stout_smear_conf_stack_allocate(std::vector<LxField<quad_su3>*>& out,
 				       LxField<quad_su3>& in,
@@ -111,9 +173,9 @@ namespace nissa
   
   void stouted_force_remap(quad_su3 *F,quad_su3 **sme_conf,stout_pars_t *stout_pars);
   
-  void stouted_force_remap(LxField<quad_su3>& F,
-			   const std::vector<LxField<quad_su3>*>& sme_conf,
-			   const stout_pars_t* stout_pars);
+  void stouted_force_remap(EoField<quad_su3>& F,
+			   const std::vector<EoField<quad_su3>*>& sme_conf,
+			   const stout_pars_t& stout_pars);
   
   /////////////////////////////////////////////////////////////////
   

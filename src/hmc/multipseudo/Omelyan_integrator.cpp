@@ -1,22 +1,15 @@
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
-#include <stdint.h>
-
-#include "geometry/geometry_mix.hpp"
 #include "operations/gaugeconf.hpp"
 
 #include "hmc/hmc.hpp"
 #include "hmc/theory_pars.hpp"
 #include "hmc/gauge/gluonic_force.hpp"
-#include "hmc/gauge/pure_gauge_Omelyan_integrator.hpp"
-#include "hmc/gauge/topological_force.hpp"
-#include "hmc/momenta/momenta_evolve.hpp"
 
 #include "quark_force.hpp"
-#include "theory_action.hpp"
 
 #define TOPO_MICRO 0
 #define TOPO_MACRO 1
@@ -42,7 +35,10 @@ namespace nissa
   }
   
   //eo wrapper
-  void evolve_eo_momenta_with_topological_force(eo_ptr<quad_su3> eo_H,eo_ptr<quad_su3> eo_conf,topotential_pars_t* topars,double dt)
+  void evolve_eo_momenta_with_topological_force(EoField<quad_su3>& eo_H,
+						EoField<quad_su3>& eo_conf,
+						topotential_pars_t& topars,
+						const double& dt)
   {
     crash("reimplement");
     
@@ -104,9 +100,12 @@ namespace nissa
   }
   
   //wrapper
-  void Omelyan_pure_gauge_evolver_eo_conf(eo_ptr<quad_su3> H_eo,eo_ptr<quad_su3> conf_eo,theory_pars_t *theory_pars,hmc_evol_pars_t *simul)
+  void Omelyan_pure_gauge_evolver_eo_conf(EoField<quad_su3>& H_eo,
+					  EoField<quad_su3>& conf_eo,
+					  theory_pars_t& theory_pars,
+					  hmc_evol_pars_t& simul)
   {
-    crash("");
+    crash("reimplement");
     
     // quad_su3 *H_lx=nissa_malloc("H_lx",locVol,quad_su3);
     // quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol+edge_vol,quad_su3);
@@ -126,16 +125,21 @@ namespace nissa
   /////////////////////////////////////// QUARK E/O PART ////////////////////////////////////////////////
   
   // Evolve momenta according to the rooted staggered force
-  void evolve_momenta_with_quark_force(eo_ptr<quad_su3> H,eo_ptr<quad_su3> conf,std::vector<std::vector<pseudofermion_t> >* pf,theory_pars_t* theory_pars,hmc_evol_pars_t* simul_pars,std::vector<rat_approx_t>* rat_appr,double dt)
+  void evolve_momenta_with_quark_force(EoField<quad_su3>& H,
+				       EoField<quad_su3>& conf,
+				       std::vector<std::vector<pseudofermion_t>>& pf,
+				       theory_pars_t& theory_pars,
+				       hmc_evol_pars_t& simul_pars,
+				       std::vector<rat_approx_t>& rat_appr,
+				       const double& dt)
   {
-    
     verbosity_lv2_master_printf("Evolving momenta with quark force, dt=%lg\n",dt);
     
     //allocate forces
-    eo_ptr<quad_su3> F={nissa_malloc("F0",locVolh,quad_su3),nissa_malloc("F1",locVolh,quad_su3)};
+    EoField<quad_su3> F("F");
     
     //compute the force
-    compute_quark_force(F,conf,pf,theory_pars,rat_appr,simul_pars->md_residue);
+    compute_quark_force(F,conf,pf,theory_pars,rat_appr,simul_pars.md_residue);
     
     //#define DEBUG_FORCE
     
@@ -148,8 +152,7 @@ namespace nissa
     su3_copy(sto,conf[par][ieo][mu]);
     
     //allocate smeared conf
-    std::array<quad_su3*,2> sme_conf;
-    for(int eo=0;eo<2;eo++) sme_conf[eo]=nissa_malloc("sme_conf",loc_volh+bord_volh+edge_volh,quad_su3);
+    EoField<quad_su3> sme_conf("sme_conf",WITH_HALO_EDGE);
     
     //compute action before
     double act_ori;
@@ -212,32 +215,42 @@ namespace nissa
     //evolve
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-	  for(int mu=0;mu<NDIM;mu++)
-	    for(int ic1=0;ic1<NCOL;ic1++)
-	      for(int ic2=0;ic2<NCOL;ic2++)
-		complex_subt_the_prod_idouble(H[par][ivol][mu][ic1][ic2],F[par][ivol][mu][ic1][ic2],dt);
-	NISSA_PARALLEL_LOOP_END;
-	
-        nissa_free(F[par]);
+	PAR(0,
+	    locVolh,
+	    CAPTURE(dt,
+		    par,
+		    TO_WRITE(H),
+		    TO_READ(F)),
+	    ivol,
+	    {
+	      for(int mu=0;mu<NDIM;mu++)
+		for(int ic1=0;ic1<NCOL;ic1++)
+		  for(int ic2=0;ic2<NCOL;ic2++)
+		    complex_subt_the_prod_idouble(H[par][ivol][mu][ic1][ic2],F[par][ivol][mu][ic1][ic2],dt);
+	    });
       }
   }
   
   ////////////////////////////////////// MACRO OMELYAN ////////////////////////////////////////////////
   
-  void Omelyan_integrator(eo_ptr<quad_su3> H,eo_ptr<quad_su3> conf,std::vector<std::vector<pseudofermion_t> >* pf,theory_pars_t* theory_pars,hmc_evol_pars_t* simul_pars,std::vector<rat_approx_t>* rat_appr)
+  void Omelyan_integrator(EoField<quad_su3>& H,
+			  EoField<quad_su3>& conf,
+			  std::vector<std::vector<pseudofermion_t>>& pf,
+			  theory_pars_t& theory_pars,
+			  hmc_evol_pars_t& simul_pars,
+			  std::vector<rat_approx_t>& rat_appr)
   {
-    int nsteps=simul_pars->nmd_steps;
+    int nsteps=simul_pars.nmd_steps;
     if(nsteps)
       {
 	//macro step or micro step
-	double dt=simul_pars->traj_length/simul_pars->nmd_steps,
+	double dt=simul_pars.traj_length/simul_pars.nmd_steps,
 	  ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
-	topotential_pars_t tp=theory_pars->topotential_pars;
+	topotential_pars_t tp=theory_pars.topotential_pars;
 	
 	//     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
 	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,ldt);
-	if(tp.flag and TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,ldt);
+	if(tp.flag and TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,tp,ldt);
 	
 	//         Main loop
 	for(int istep=0;istep<nsteps;istep++)
@@ -249,11 +262,11 @@ namespace nissa
 	    
 	    Omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
 	    evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,uml2dt);
-	    if(tp.flag and TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,uml2dt);
+	    if(tp.flag and TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,tp,uml2dt);
 	    
 	    Omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
 	    evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,last_dt);
-	    if(tp.flag and TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,last_dt);
+	    if(tp.flag and TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,tp,last_dt);
 	  }
 	
 	//normalize the configuration

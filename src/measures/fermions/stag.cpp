@@ -245,7 +245,7 @@ namespace nissa
 		      TO_WRITE(point_result)),
 	      ieo,
 	      {
-		EoField<color>* right_fw_bw[2]={&right,&left};
+		decltype(&right) right_fw_bw[2]={&right,&left};
 		
 		color v;
 		unsafe_su3_prod_color(v,conf[par][ieo][mu],(*(right_fw_bw[fw_bw]))[!par][loceo_neighup[par][ieo][mu]]);
