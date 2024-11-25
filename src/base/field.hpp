@@ -505,6 +505,41 @@ namespace nissa
       return res;
     }
     
+    /// Put the field to the new norm, returning the reciprocal of normalizing factor
+    double normalize(const double& newNorm=1.0)
+    {
+      const double f=
+	newNorm/sqrt(this->norm2());
+      
+      (*this)*=f;
+      
+      return 1/f;
+    }
+    
+    double normalize(const Field& oth,
+		     const double& newNorm=1.0)
+    {
+      //compute current norm
+      const double oldNorm2=
+	sqrt(oth.norm2());
+      
+      //compute normalizing factor
+      const double fact=
+	newNorm/sqrt(oldNorm2);
+      
+      PAR(0,this->nSites(),
+	  CAPTURE(t=this->getWritable(),
+		  TO_READ(oth),
+		  fact),
+	  site,
+	  {
+	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	      t(site,internalDeg)=oth(site,internalDeg)*fact;
+	  });
+      
+      return 1/fact;
+    }
+    
     void reduce(T& out) const
     { //hack
       Field tmp("tmp");
@@ -962,7 +997,7 @@ namespace nissa
     void assertHasEdges() const
     {
       if(not (haloEdgesPresence>=WITH_HALO_EDGES))
-	crash("needs edges allocated!");
+	crash("needs edges allocated on field %s!",name);
     }
     
     /////////////////////////////////////////////////////////////////

@@ -46,8 +46,13 @@ namespace nissa
     return res;
   }
   
-  template <class T> void gluonic_action(double *gluon_action,T conf,gauge_action_name_t gauge_action_name,double beta)
+  template <class T>
+  double gluonic_action(T&& conf,
+			const gauge_action_name_t& gauge_action_name,
+			const double& beta)
   {
+    double gluon_action;
+    
     crash("reimplement");
     
     // switch(gauge_action_name)
@@ -57,6 +62,8 @@ namespace nissa
     //   case IWASAKI_GAUGE_ACTION:Iwasaki_action(gluon_action,conf,beta);break;
     //   default:crash("Unknown action");
     //   }
+    
+    return gluon_action;
   }
 }
 

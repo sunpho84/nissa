@@ -1,6 +1,7 @@
 ######################################## dirac operators#####################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
+	%D%/stD/dirac_operator_stD.cpp \
 	%D%/tmD_eoprec/dirac_operator_tmD_eoprec.cpp \
 	%D%/tmQ/dirac_operator_tmQ.cpp \
 	%D%/tmQ2/dirac_operator_tmQ2.cpp \

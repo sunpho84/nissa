@@ -84,8 +84,8 @@ namespace nissa
   
   //compute quark action for a set of quark
   double compute_quark_action(const EoField<quad_su3>& eo_conf,
-			      const std::vector<EoField<quad_u1>*>& u1b,
-			      const std::vector<EvnField<pseudofermion_t>*>& pf,
+			      const std::vector<EoField<quad_u1>>& u1b,
+			      const std::vector<std::vector<pseudofermion_t>>& pf,
 			      const std::vector<quark_content_t>& quark_content,
 			      const hmc_evol_pars_t& simul_pars,
 			      const std::vector<rat_approx_t>& rat_appr)
@@ -144,43 +144,44 @@ namespace nissa
 			    const std::vector<rat_approx_t>& rat_appr,
 			    const double external_quark_action)
   {
-    double tot_action=0.0;
+    verbosity_lv1_master_printf("Computing action\n");
     
-    crash("reimplement");
+    /// Quark action
+    double quark_action;
+    if(external_quark_action>=0)
+      {
+	verbosity_lv1_master_printf("No need to compute pseudofermion action\n");
+	quark_action=external_quark_action;
+      }
+    else
+      quark_action=compute_quark_action(sme_conf,theory_pars.backfield,pf,theory_pars.quarks,simul_pars,rat_appr);
+    verbosity_lv1_master_printf("Quark_action: %16.16lg\n",quark_action);
     
-    // verbosity_lv1_master_printf("Computing action\n");
+    /// Gauge action
+    const double gluon_action=
+      gluonic_action(eo_conf,theory_pars.gauge_action_name,theory_pars.beta);
+    verbosity_lv1_master_printf("Gluon_action: %16.16lg\n",gluon_action);
     
-    // //compute the three parts of the action
-    // double quark_action;
-    // if(external_quark_action>=0)
-    //   {
-    // 	verbosity_lv1_master_printf("No need to compute pseudofermion action\n");
-    // 	quark_action=external_quark_action;
-    //   }
-    // else compute_quark_action(&quark_action,sme_conf,theory_pars->backfield,pf,theory_pars->quarks,simul_pars,rat_appr);
-    // verbosity_lv1_master_printf("Quark_action: %16.16lg\n",quark_action);
+    /// Momenta action
+    const double mom_action=
+      momenta_action(H);
+    verbosity_lv1_master_printf("Mom_action: %16.16lg\n",mom_action);
     
-    // //gauge action
-    // double gluon_action;
-    // gluonic_action(&gluon_action,eo_conf,theory_pars->gauge_action_name,theory_pars->beta);
-    // verbosity_lv1_master_printf("Gluon_action: %16.16lg\n",gluon_action);
+    /// Topological action
+    const double topo_action=
+      (theory_pars.topotential_pars.flag?topotential_action(eo_conf,theory_pars.topotential_pars):0);
+    if(theory_pars.topotential_pars.flag)
+      verbosity_lv1_master_printf("Topological_action: %16.16lg\n",topo_action);
     
-    // //momenta action
-    // double mom_action=momenta_action(H);
-    // verbosity_lv1_master_printf("Mom_action: %16.16lg\n",mom_action);
+    /// Clover determinant action
+    const double cl_det_action=
+      clover_det_action(theory_pars.quarks,sme_conf);
+    if(cl_det_action)
+      verbosity_lv1_master_printf("Clover determinant action: %16.16lg\n",cl_det_action);
     
-    // //topological action
-    // double topo_action=(theory_pars->topotential_pars.flag?topotential_action(eo_conf,theory_pars->topotential_pars):0);
-    // if(theory_pars->topotential_pars.flag) verbosity_lv1_master_printf("Topological_action: %16.16lg\n",topo_action);
-    
-    // //Clover determinant action
-    // double cl_det_action;
-    // clover_det_action(&cl_det_action,theory_pars->quarks,sme_conf);
-    // if(cl_det_action)
-    //   verbosity_lv1_master_printf("Clover determinant action: %16.16lg\n",cl_det_action);
-    
-    // //total action
-    // (*tot_action)=quark_action+gluon_action+mom_action+topo_action+cl_det_action;
+    /// Total action
+    const double tot_action=
+      quark_action+gluon_action+mom_action+topo_action+cl_det_action;
     
     return tot_action;
   }

@@ -69,7 +69,7 @@ namespace nissa
 	if(stout_pars.nlevels>1)
 	  {
 	    //allocate temp
-	    EoField<quad_su3> tmp("tmp",WITH_HALO);
+	    EoField<quad_su3> tmp("tmp",WITH_HALO_EDGES);
 	    
 	    for(int i=1;i<stout_pars.nlevels;i++)
 	      {

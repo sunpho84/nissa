@@ -14,8 +14,9 @@
 
 namespace nissa
 {
-  //Computes the clover determinant action
-  void clover_det_action(double* act,std::vector<quark_content_t> quark_content,eo_ptr<quad_su3> eo_conf)
+  /// Computes the clover determinant action
+  double clover_det_action(const std::vector<quark_content_t>& quark_content,
+			   const EoField<quad_su3>& conf)
   {
     crash("reimplement");
     // double res=0.0;

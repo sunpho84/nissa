@@ -98,11 +98,8 @@ namespace nissa
 		       const double& mass2,
 		       const EvnField<color>& in)
   {
-    if(IS_MASTER_THREAD)
-      {
-	//check arguments
-	if(out==in)   crash("out==in!");
-      }
+    //check arguments
+    if(out==in)   crash("out==in!");
     START_TIMING(portable_stD_app_time,nportable_stD_app);
     
     conf.updateHalo();

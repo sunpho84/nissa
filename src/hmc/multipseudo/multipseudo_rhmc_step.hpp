@@ -172,10 +172,9 @@ namespace nissa
   struct pseudofermion_t
   {
     int is_stag;
-    // double *double_ptr;
     
-    EvnField<color> *stag;
-    EvnField<spincolor> *Wils;
+    EvnField<color>* stag{};
+    EvnField<spincolor>* Wils{};
     
     //fill to random
     void fill(const rnd_t& rtype=RND_GAUSS,
@@ -183,29 +182,28 @@ namespace nissa
 	      const int& par=EVN,
 	      const int& dir=0)
     {
-      if(is_stag) generate_fully_undiluted_eo_source(stag->castFieldCoverage<EVEN_OR_ODD_SITES,true>(),rtype,twall,par,dir);
-      else generate_fully_undiluted_eo_source(Wils->castFieldCoverage<EVEN_OR_ODD_SITES,true>(),rtype,twall,par,dir);
+      if(is_stag)
+	generate_fully_undiluted_eo_source(stag->castFieldCoverage<EVEN_OR_ODD_SITES,true>(),rtype,twall,par,dir);
+      else
+	generate_fully_undiluted_eo_source(Wils->castFieldCoverage<EVEN_OR_ODD_SITES,true>(),rtype,twall,par,dir);
     }
     
-    // //normalize and return the size
-    // double normalize(const pseudofermion_t& other_vector,
-    // 		     const double& norm=1)
-    // {
-    //   double other_norm;
-    //   double_vector_normalize(&other_norm,double_ptr,other_vector.double_ptr,norm,ndoubles);
-      
-    //   return other_norm;
-    // }
+    double normalize(const pseudofermion_t& other_vector,
+		     const double& norm=1.0)
+    {
+      if(is_stag)
+	return stag->normalize(*other_vector.stag,norm);
+      else
+	return Wils->normalize(*other_vector.Wils,norm);
+    }
     
-    // double normalize(const double& norm=1)
-    // {
-    //   const double f=1/sqrt(this->norm2());
-      
-    //   if(is_stag) (*stag)=f;
-    //   else (*Wils)*=f;
-      
-    //   return 
-    // }
+    double normalize(const double& norm=1.0)
+    {
+      if(is_stag)
+	return stag->normalize(norm);
+      else
+	return Wils->normalize(norm);
+    }
     
     //scalar product with another vector
     double scal_prod_with(const pseudofermion_t& oth) const
@@ -237,7 +235,7 @@ namespace nissa
       else
 	Wils=new EvnField<spincolor>("Wils",WITH_HALO);
     }
-
+    
     pseudofermion_t(const ferm_discretiz::name_t regul,
 		    const char *name="pf")
     {

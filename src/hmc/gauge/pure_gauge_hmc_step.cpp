@@ -17,12 +17,12 @@ namespace nissa
   double pure_gauge_action(quad_su3 *conf,theory_pars_t &theory_pars,pure_gauge_evol_pars_t &evol_pars,quad_su3 *H)
   {
     //compute action for momenta
-    double action_H=momenta_action(H);
+    const double action_H=momenta_action(H);
     verbosity_lv1_master_printf("Momenta action: %lg\n",action_H);
     
     //compute action for G
-    double action_G=0;
-    gluonic_action(&action_G,conf,theory_pars.gauge_action_name,theory_pars.beta);
+    const double action_G=
+      gluonic_action(conf,theory_pars.gauge_action_name,theory_pars.beta);
     verbosity_lv1_master_printf("Gauge action: %lg\n",action_G);
     
     return action_G+action_H;

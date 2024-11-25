@@ -23,94 +23,103 @@
 
 namespace nissa
 {
-  //fourth root of 2, used to extend the range of eigenvalues
-  const double enl_gen=pow(2,0.25);
+  /// Fourth root of 2, used to extend the range of eigenvalues
+  const double enl_gen=
+    pow(2,0.25);
   
   //Return the maximal eigenvalue of the Dirac operator for the passed quark
-  void max_eigenval(double* eig_max,quark_content_t* quark,eo_ptr<quad_su3> eo_conf,eo_ptr<clover_term_t> Cl,eo_ptr<quad_u1> backfield,int niters)
+  double max_eigenval(const quark_content_t& quark,
+		      EoField<quad_su3>& eo_conf,
+		      EoField<clover_term_t>* Cl,
+		      const EoField<quad_u1>& backfield,
+		      const int& niters)
   {
-    crash("reimplement");
+    pseudofermion_t in(quark.discretiz);
+    pseudofermion_t temp1(quark.discretiz);
+    pseudofermion_t temp2(quark.discretiz); //not used for stag...
+    pseudofermion_t out(quark.discretiz);
     
-    //     pseudofermion_t in(quark->discretiz);
-//     pseudofermion_t temp1(quark->discretiz);
-//     pseudofermion_t temp2(quark->discretiz); //not used for stag...
-//     pseudofermion_t out(quark->discretiz);
+    //generate the random field
+    in.fill();
     
-//     //generate the random field
-//     in.fill();
+    //perform initial normalization
+    const double init_norm=
+      in.normalize();
+    verbosity_lv3_master_printf("Init norm: %lg\n",init_norm);
     
-//     //perform initial normalization
-//     double init_norm=in.normalize();
-//     verbosity_lv3_master_printf("Init norm: %lg\n",init_norm);
+    //prepare the ingredients
+    if(ferm_discretiz::is_stag(quark.discretiz))
+      add_backfield_with_stagphases_to_conf(eo_conf,backfield);
+    else
+      add_backfield_without_stagphases_to_conf(eo_conf,backfield);
     
-//     //prepare the ingredients
-//     if(ferm_discretiz::is_stag(quark->discretiz))
-//       add_backfield_with_stagphases_to_conf(eo_conf,backfield);
-//     else
-//       add_backfield_without_stagphases_to_conf(eo_conf,backfield);
+    EvnField<inv_clover_term_t>* invCl_evn=nullptr;
+    if(ferm_discretiz::include_clover(quark.discretiz))
+      {
+	crash("reimplement");
+	// invCl_evn=new EvnField<inv_clover_term_t>("invCl_evn");
+	// chromo_operator_include_cSW(Cl,quark.cSW);
+	// invert_twisted_clover_term(invCl_evn,quark->mass,quark->kappa,Cl[EVN]);
+      }
     
-//     inv_clover_term_t *invCl_evn=NULL;
-//     if(ferm_discretiz::include_clover(quark->discretiz))
-//       {
-// 	invCl_evn=nissa_malloc("invCl_evn",locVolh,inv_clover_term_t);
-// 	chromo_operator_include_cSW(Cl,quark->cSW);
-// 	invert_twisted_clover_term(invCl_evn,quark->mass,quark->kappa,Cl[EVN]);
-//       }
+    //apply the vector niter times normalizing at each iter
+    int iter=0;
+    int is_increasing=1;
+    double old_eig_max;
     
-//     //apply the vector niter times normalizing at each iter
-//     int iter=0;
-//     int is_increasing=1;
-//     double old_eig_max;
+#if THREADS_TYPE == CUDA_THREADS
+    const char DOE_TEST[]="DOE_TEST";
+    if(getenv(DOE_TEST)!=NULL)
+      {
+	gpu::cuda_test<double>(out.stag,eo_conf,in.stag);
+	gpu::cuda_test<float>(out.stag,eo_conf,in.stag);
+      }
+    else
+      master_printf("to run the test export %s\n",DOE_TEST);
+#endif
     
-// #if THREADS_TYPE == CUDA_THREADS
-//     const char DOE_TEST[]="DOE_TEST";
-//     if(getenv(DOE_TEST)!=NULL)
-//       {
-// 	gpu::cuda_test<double>(out.stag,eo_conf,in.stag);
-// 	gpu::cuda_test<float>(out.stag,eo_conf,in.stag);
-//       }
-//     else
-//       master_printf("to run the test export %s\n",DOE_TEST);
-// #endif
-    
-//     do
-//       {
-// 	switch(quark->discretiz)
-// 	  {
-// 	  case ferm_discretiz::ROOT_STAG:
-// 	    apply_stD2ee_m2(out.stag,eo_conf,temp1.stag,sqr(quark->mass),in.stag);
-// 	    break;
-// 	  case ferm_discretiz::ROOT_TM_CLOV:
-// 	    tmclovDkern_eoprec_square_eos(out.Wils,temp1.Wils,temp2.Wils,eo_conf,quark->kappa,Cl[ODD],invCl_evn,quark->mass,in.Wils);
-// 	    break;
-// 	  default:
-// 	    crash("not supported yet");
-// 	  }
+    double eig_max=0;
+    do
+      {
+	switch(quark.discretiz)
+	  {
+	  case ferm_discretiz::ROOT_STAG:
+	    apply_stD2ee_m2(*out.stag,eo_conf,temp1.stag->castFieldCoverage<ODD_SITES>(),sqr(quark.mass),*in.stag);
+	    break;
+	  case ferm_discretiz::ROOT_TM_CLOV:
+	    tmclovDkern_eoprec_square_eos(out.Wils->castFieldCoverage<ODD_SITES>(),temp1.Wils->castFieldCoverage<ODD_SITES>(),*temp2.Wils,eo_conf,quark.kappa,Cl->oddPart,*invCl_evn,quark.mass,in.Wils->castFieldCoverage<ODD_SITES>());
+	    break;
+	  default:
+	    crash("not supported yet");
+	  }
 	
-// 	//compute the norm
-// 	old_eig_max=*eig_max;
-// 	(*eig_max)=in.normalize(out);
+	//compute the norm
+	old_eig_max=eig_max;
+	eig_max=in.normalize(out);
 	
-// 	if((iter++)>0) is_increasing=(*eig_max/old_eig_max-1>1e-14);
-// 	verbosity_lv2_master_printf("max_eigen search mass %lg, iter %d, eig %16.16lg\n",quark->mass,iter,*eig_max);
-//       }
-//     while(iter<niters and is_increasing);
+	if((iter++)>0)
+	  is_increasing=(eig_max/old_eig_max-1>1e-14);
+	verbosity_lv2_master_printf("max_eigen search mass %lg, iter %d, eig %16.16lg\n",quark.mass,iter,eig_max);
+      }
+    while(iter<niters and is_increasing);
     
-//     //remove the background field
-//     if(ferm_discretiz::is_stag(quark->discretiz))
-//       rem_backfield_with_stagphases_from_conf(eo_conf,backfield);
-//     else
-//       rem_backfield_without_stagphases_from_conf(eo_conf,backfield);
+    //remove the background field
+    if(ferm_discretiz::is_stag(quark.discretiz))
+      rem_backfield_with_stagphases_from_conf(eo_conf,backfield);
+    else
+      rem_backfield_without_stagphases_from_conf(eo_conf,backfield);
     
-//     //assume a 10% excess
-//     (*eig_max)*=1.1;
-//     verbosity_lv2_master_printf("max_eigen mass %lg: %16.16lg\n",quark->mass,*eig_max);
+    //assume a 10% excess
+    eig_max*=1.1;
+    verbosity_lv2_master_printf("max_eigen mass %lg: %16.16lg\n",quark.mass,eig_max);
     
-//     if(ferm_discretiz::include_clover(quark->discretiz))
-//       {
-// 	chromo_operator_remove_cSW(Cl,quark->cSW);
-// 	nissa_free(invCl_evn);
-//       }
+    if(ferm_discretiz::include_clover(quark.discretiz))
+      {
+	chromo_operator_remove_cSW(*Cl,quark.cSW);
+	nissa_free(invCl_evn);
+      }
+    
+    return eig_max;
   }
   
   //check that an approximation is valid in the interval passed
@@ -175,13 +184,13 @@ namespace nissa
   
   //scale the rational expansion
   void set_expansions(std::vector<rat_approx_t>& rat_appr,
-		      const EoField<quad_su3>& eo_conf,
+		      EoField<quad_su3>& eo_conf,
 		      const theory_pars_t& theory_pars,
 		      const hmc_evol_pars_t& evol_pars)
   {
-    
     //loop over each flav
-    const int nflavs=theory_pars.nflavs();
+    const int nflavs=
+      theory_pars.nflavs();
     
     //list of rat_approx to recreate
     int nto_recreate=0;
@@ -201,7 +210,7 @@ namespace nissa
     //check that we have the appropriate number of quarks
     rat_appr.resize(nappr_per_quark*nflavs);
     
-    // const int max_iter=1000;
+    const int max_iter=1000;
     for(int iflav=0;iflav<nflavs;iflav++)
       {
 	const quark_content_t &q=theory_pars.quarks[iflav];
@@ -211,7 +220,7 @@ namespace nissa
 	const int deg=q.deg;
 	const int npf=evol_pars.npseudo_fs[iflav];
 	const int root_val=ferm_discretiz::root_needed(q.discretiz);
-	//const bool is_really_rooted=(deg!=npf*root_val);
+	const bool is_really_rooted=(deg!=npf*root_val);
 	
 	//find min eigenvalue
 	double eig_min;
@@ -227,13 +236,12 @@ namespace nissa
 	    eig_min=0;
 	  }
 	
-	crash("reimplement");
-	// //Find max eigenvalue
-	 double eig_max=0;
-	// if(ferm_discretiz::ROOT_TM_CLOV and not is_really_rooted)
-	//   eig_max=eig_min*1.1;
-	// else
-	//   max_eigenval(&eig_max,&q,eo_conf,Cl,theory_pars.backfield[iflav],max_iter);
+	//Find max eigenvalue
+	double eig_max=0;
+	if(ferm_discretiz::ROOT_TM_CLOV and not is_really_rooted)
+	  eig_max=eig_min*1.1;
+	else
+	  eig_max=max_eigenval(q,eo_conf,Cl,theory_pars.backfield[iflav],max_iter);
 	
 	//generate the three approximations
 	int extra_fact[nappr_per_quark]={2*root_val,-root_val,-root_val};
