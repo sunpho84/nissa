@@ -14,54 +14,70 @@
 namespace nissa
 {
   //compute plaquettes and rectangles
-  void global_plaquette_and_rectangles_eo_conf(double* glb_shapes,eo_ptr<quad_su3> conf)
+  void global_plaquette_and_rectangles_eo_conf(double* glb_shapes,
+					       const EoField<quad_su3>& conf)
   {
-    crash("reimplement");
-    // communicate_eo_quad_su3_edges(conf);
+    conf.updateEdges();
     
-    // //summ squares and rectangles separately
-    // complex *point_shapes=nissa_malloc("point_shapes",locVol,complex);
-    // vector_reset(point_shapes);
+    //summ squares and rectangles separately
+    LxField<complex> point_shapes("point_shapes");
+    point_shapes.reset();
     
-    // for(int par=0;par<2;par++)
-    //   for(int mu=0;mu<NDIM;mu++) //link dir
-    // 	for(int nu=0;nu<NDIM;nu++) //staple dir
-    // 	  if(nu!=mu)
-    // 	    {
-    // 	      NISSA_PARALLEL_LOOP(A,0,locVolh)
-    // 		{
-    // 		  int ivol=loclx_of_loceo[par][A];
-		  
-    // 		  //compute forward staple starting from A
-    // 		  int B=loceo_neighup[par][A][nu],D=loceo_neighdw[par][A][nu];
-    // 		  int E=loceo_neighup[!par][D][mu],F=loceo_neighup[par][A][mu];
-    // 		  su3 ABC,ABCF;
-    // 		  unsafe_su3_prod_su3(ABC,conf[par][A][nu],conf[!par][B][mu]);
-    // 		  unsafe_su3_prod_su3_dag(ABCF,ABC,conf[!par][F][nu]);
-		  
-    // 		  //taking the trace we summ to plaq_summ (only if nu>mu)
-    // 		  if(nu>mu) point_shapes[ivol][RE]+=real_part_of_trace_su3_prod_su3_dag(ABCF,conf[par][A][mu]);
-		  
-    // 		  //compute backward staple starting from A
-    // 		  su3 ADE,ADEF;
-    // 		  unsafe_su3_dag_prod_su3(ADE,conf[!par][D][nu],conf[!par][D][mu]);
-    // 		  unsafe_su3_prod_su3(ADEF,ADE,conf[par][E][nu]);
-		  
-    // 		  //taking the trace we summ to rect_summ
-    // 		  point_shapes[ivol][IM]+=real_part_of_trace_su3_prod_su3_dag(ABCF,ADEF);
-    // 		}
-    // 	      NISSA_PARALLEL_LOOP_END;
-    // 	    }
-    // THREAD_BARRIER();
+    for(int par=0;par<2;par++)
+      for(int mu=0;mu<NDIM;mu++) //link dir
+	for(int nu=0;nu<NDIM;nu++) //staple dir
+	  if(nu!=mu)
+	    {
+	      PAR(0,
+		  locVolh,
+		  CAPTURE(par,
+			  nu,
+			  mu,
+			  TO_WRITE(point_shapes),
+			  TO_READ(conf)),
+		  A,
+		  {
+		    const int ivol=
+		      loclx_of_loceo[par][A];
+		    
+		    //compute forward staple starting from A
+		    const int B=
+		      loceo_neighup[par][A][nu];
+		    
+		    const int D=
+		      loceo_neighdw[par][A][nu];
+		    
+		    const int E=
+		      loceo_neighup[!par][D][mu];
+		    
+		    const int F=
+		      loceo_neighup[par][A][mu];
+		    
+		    su3 ABC,ABCF;
+		    unsafe_su3_prod_su3(ABC,conf[par][A][nu],conf[!par][B][mu]);
+		    unsafe_su3_prod_su3_dag(ABCF,ABC,conf[!par][F][nu]);
+		    
+		    //taking the trace we summ to plaq_summ (only if nu>mu)
+		    if(nu>mu)
+		      point_shapes[ivol][RE]+=real_part_of_trace_su3_prod_su3_dag(ABCF,conf[par][A][mu]);
+		    
+		    //compute backward staple starting from A
+		    su3 ADE,ADEF;
+		    unsafe_su3_dag_prod_su3(ADE,conf[!par][D][nu],conf[!par][D][mu]);
+		    unsafe_su3_prod_su3(ADEF,ADE,conf[par][E][nu]);
+		    
+		    //taking the trace we summ to rect_summ
+		    point_shapes[ivol][IM]+=real_part_of_trace_su3_prod_su3_dag(ABCF,ADEF);
+		  });
+	    }
     
-    // //reduce and free
-    // complex coll_shapes;
-    // glb_reduce(&coll_shapes,point_shapes,locVol);
-    // nissa_free(point_shapes);
+    //reduce and free
+    complex coll_shapes;
+    point_shapes.reduce(coll_shapes);
     
-    // //normalize (passing throug additional var because of external unkwnon env)
-    // glb_shapes[RE]=coll_shapes[RE]/(18*glbVol);
-    // glb_shapes[IM]=coll_shapes[IM]/(36*glbVol);
+    //normalize (passing throug additional var because of external unkwnon env)
+    glb_shapes[RE]=coll_shapes[RE]/(18*glbVol);
+    glb_shapes[IM]=coll_shapes[IM]/(36*glbVol);
   }
   
   //compute plaquettes and rectangles

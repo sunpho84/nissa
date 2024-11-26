@@ -11,11 +11,11 @@ namespace nissa
   template <typename T,
 	    typename F>
   void cgm_invert(std::vector<T>& sol,
-		 const std::vector<double>& shifts,
-		 F&& f,
+		  const std::vector<double>& shifts,
+		  F&& f,
 		  const int& niter_max,
-		 const std::vector<double>& residue,
-		 const T& source)
+		  const std::vector<double>& residue,
+		  const T& source)
   {
     const size_t nShift=
       shifts.size();
@@ -145,7 +145,7 @@ namespace nissa
 	//     -r'=r+betaa*s=r+beta*Ap
 	//     -rfrf=(r',r')
 	t=s;
-	t*=alpha;
+	t*=betaa;
 	r+=t;
 	rfrf=r.norm2();
 #ifdef CGM_DEBUG

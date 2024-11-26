@@ -2,7 +2,7 @@
 #define _WILSON_ACTION_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include "operations/su3_paths/plaquette.hpp"
@@ -27,8 +27,8 @@ namespace nissa
   }
   
   template <typename C>
-  double Wilson_action_eo_conf(const C& eo_conf,
-			       const double& beta)
+  double Wilson_action(const C& eo_conf,
+		       const double& beta)
   {
     return Wilson_action(global_plaquette_eo_conf(eo_conf),beta);
   }

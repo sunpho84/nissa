@@ -7,13 +7,12 @@
 
 namespace nissa
 {
-  inline
-  void inv_stD2ee_m2_cgm_portable_run_hm_up_to_comm_prec(std::vector<EvnField<color>>& chi_e,
-							 const EoField<quad_su3>& eo_conf,
-							 const std::vector<double>& poles,
-							 const int& niter_max,
-							 const double& residue,
-							 const EvnField<color>& pf)
+  inline void inv_stD2ee_m2_cgm_portable_run_hm_up_to_comm_prec(std::vector<EvnField<color>>& chi_e,
+								const EoField<quad_su3>& eo_conf,
+								const std::vector<double>& poles,
+								const int& niter_max,
+								const double& residue,
+								const EvnField<color>& pf)
   {
     cgm_invert(chi_e,
 	       poles,
@@ -30,13 +29,12 @@ namespace nissa
 	       pf);
   }
   
-  inline
-  void summ_src_and_all_inv_stD2ee_m2_cgm_portable(EvnField<color>& chi_e,
-						   const EoField<quad_su3>& eo_conf,
-						   const rat_approx_t& appr,
-						   const int& niter_max,
-						   const double& req_res,
-						   const EvnField<color>& source)
+  inline void summ_src_and_all_inv_stD2ee_m2_cgm_portable(EvnField<color>& chi_e,
+							  const EoField<quad_su3>& eo_conf,
+							  const rat_approx_t& appr,
+							  const int& niter_max,
+							  const double& req_res,
+							  const EvnField<color>& source)
   {
     std::vector<EvnField<color>> temp(appr.degree(),{"temp",WITH_HALO});
     

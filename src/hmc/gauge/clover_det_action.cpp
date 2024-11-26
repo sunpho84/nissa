@@ -18,16 +18,16 @@ namespace nissa
   double clover_det_action(const std::vector<quark_content_t>& quark_content,
 			   const EoField<quad_su3>& conf)
   {
-    crash("reimplement");
-    // double res=0.0;
-    // bool need=false;
-    // for(auto& q : quark_content)
-    //   need|=(q.cSW!=0);
+    double res=0.0;
+    bool need=false;
+    for(auto& q : quark_content)
+      need|=(q.cSW!=0);
     
-    // if(not need)
-    //   res=0.0;
-    // else
-    //   {
+    if(not need)
+      res=0.0;
+    else
+      {
+	crash("reimplement");
     // 	double *loc_act=nissa_malloc("loc_act",locVolh,double);
 	
     // 	eo_ptr<clover_term_t> Cl={NULL,NULL};
@@ -73,12 +73,12 @@ namespace nissa
     // 	      flav_act-=offset;
 	      
     // 	      res+=-flav_act*q.deg;
-    // 	    }
+      // 	    }
 	
-    // 	nissa_free(loc_act);
-    // 	for(int eo=0;eo<2;eo++) nissa_free(Cl[eo]);
-    //   }
+      // 	nissa_free(loc_act);
+      // 	for(int eo=0;eo<2;eo++) nissa_free(Cl[eo]);
+      }
     
-    // *act=res;
+    return res;
   }
 }

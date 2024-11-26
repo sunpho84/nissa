@@ -2,7 +2,6 @@
 #define _GLUONIC_ACTION_HPP
 
 #include "base/debug.hpp"
-#include "routines/ios.hpp"
 
 #include "Symanzik_action.hpp"
 #include "Wilson_action.hpp"
@@ -37,10 +36,17 @@ namespace nissa
     
     switch(name)
       {
-      case WILSON_GAUGE_ACTION:res="Wilson";break;
-      case TLSYM_GAUGE_ACTION:res="tlSym";break;
-      case IWASAKI_GAUGE_ACTION:res="Iwasaki";break;
-      default:res="Unknown";
+      case WILSON_GAUGE_ACTION:
+	res="Wilson";
+	break;
+      case TLSYM_GAUGE_ACTION:
+	res="tlSym";
+	break;
+      case IWASAKI_GAUGE_ACTION:
+	res="Iwasaki";
+	break;
+      default:
+	res="Unknown";
       }
     
     return res;
@@ -53,15 +59,20 @@ namespace nissa
   {
     double gluon_action;
     
-    crash("reimplement");
-    
-    // switch(gauge_action_name)
-    //   {
-    //   case WILSON_GAUGE_ACTION:Wilson_action(gluon_action,conf,beta);break;
-    //   case TLSYM_GAUGE_ACTION:tlSym_action(gluon_action,conf,beta);break;
-    //   case IWASAKI_GAUGE_ACTION:Iwasaki_action(gluon_action,conf,beta);break;
-    //   default:crash("Unknown action");
-    //   }
+    switch(gauge_action_name)
+      {
+      case WILSON_GAUGE_ACTION:
+	gluon_action=Wilson_action(conf,beta);
+	break;
+      case TLSYM_GAUGE_ACTION:
+	gluon_action=tlSym_action(conf,beta);
+	break;
+      case IWASAKI_GAUGE_ACTION:
+	gluon_action=Iwasaki_action(conf,beta);
+	break;
+      default:
+	crash("Unknown action");
+      }
     
     return gluon_action;
   }
