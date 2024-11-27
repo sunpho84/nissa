@@ -525,9 +525,10 @@ namespace nissa
   }
   
   //write all the passed message
-  void ILDG_File_write_all_messages(ILDG_File &file,ILDG_message *mess)
+  void ILDG_File_write_all_messages(ILDG_File& file,
+				    const ILDG_message* mess)
   {
-    for(ILDG_message *last_mess=mess;last_mess->is_last==false;last_mess=last_mess->next)
+    for(const ILDG_message *last_mess=mess;last_mess->is_last==false;last_mess=last_mess->next)
       ILDG_File_write_record(file,last_mess->name,last_mess->data,last_mess->data_length);
   }
 }

@@ -41,9 +41,9 @@ namespace nissa
   
   template <typename T>
   void write_real_vector(ILDG_File &file,
-			 LxField<T,FieldLayout::CPU> in,
+			 const LxField<T,FieldLayout::CPU>& in,
 			 const char *header_message,
-			 ILDG_message* mess=nullptr)
+			 const ILDG_message* mess=nullptr)
   {
     //take initial time
     double time=
@@ -56,7 +56,7 @@ namespace nissa
     //compute the checksum
     const Checksum check=ildgChecksum(in);
     
-    FOR_EACH_SITE_DEG_OF_FIELD(in,CAPTURE(TO_WRITE(in)),site,iDeg,
+    FOR_EACH_SITE_DEG_OF_FIELD(in,CAPTURE(TO_READ(in)),site,iDeg,
 				 {
 				   fixFromNativeEndianness<BigEndian>(in(site,iDeg));
 				 });
@@ -70,6 +70,17 @@ namespace nissa
     //take final time
     time+=take_time();
     verbosity_lv2_master_printf("Time elapsed in writing: %f s\n",time);
+  }
+
+  template <typename T,
+	    FieldLayout FL,
+	    ENABLE_THIS_TEMPLATE_IF(FL!=FieldLayout::CPU)>
+  void write_real_vector(ILDG_File &file,
+			 const LxField<T,FL>& in,
+			 const char* header_message,
+			 const ILDG_message* mess=nullptr)
+  {
+    write_real_vector(file,(LxField<T,FieldLayout::CPU>)in,header_message,mess);
   }
   
   //wrapper opening the file

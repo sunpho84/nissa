@@ -80,7 +80,10 @@ namespace nissa
   ILDG_message *ILDG_message_find_last(ILDG_message *mess);
   ILDG_message* ILDG_bin_message_append_to_last(ILDG_message *mess,const char *name,const char *data,uint64_t length);
   ILDG_message* ILDG_string_message_append_to_last(ILDG_message *mess,const char *name,const char *data);
-  void ILDG_File_write_all_messages(ILDG_File &file,ILDG_message *mess);
+  
+  void ILDG_File_write_all_messages(ILDG_File& file,
+				    const ILDG_message* mess);
+  
   void ILDG_message_free_all(ILDG_message *mess);
   bool ILDG_File_reached_EOF(ILDG_File &file);
   bool get_MB_flag(ILDG_header &header);

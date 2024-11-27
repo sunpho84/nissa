@@ -1,10 +1,7 @@
 #ifndef _CG_INVERT_STD2_M2_H
 #define _CG_INVERT_STD2_M2_H
 
-#include <optional>
-
 #include "base/field.hpp"
-#include "geometry/geometry_eo.hpp"
 
 namespace nissa
 {

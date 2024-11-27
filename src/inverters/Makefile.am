@@ -1,6 +1,10 @@
 ###################################### inverters #################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
+	%D%/staggered/cg_invert_evn_stD.cpp \
+	%D%/staggered/cg_invert_stD.cpp \
+	%D%/staggered/cg_invert_stD2ee_m2.cpp \
+	%D%/staggered/cg_invert_stD2ee_m2_portable.cpp \
 	%D%/twisted_mass/cg_invert_tmD_eoprec.cpp \
 	%D%/twisted_mass/cg_invert_tmQ2.cpp \
 	%D%/twisted_mass/cgm_invert_tmQ2.cpp \
@@ -47,11 +51,6 @@ EXTRA_DIST+= \
 	%D%/templates/bicgstab_invert_template_threaded.cpp \
 	%D%/templates/cgm_invert_template_threaded.cpp
 
-
-#	%D%/staggered/cg_invert_stD2ee_m2_portable.cpp \
-#	%D%/staggered/cg_invert_stD2ee_m2.cpp \
-#	%D%/staggered/cg_invert_stD.cpp \
-#	%D%/staggered/cg_invert_evn_stD.cpp \
 #
 #	%D%/twisted_mass/cg_128_invert_tmQ2.cpp \
 #	%D%/twisted_mass/cg_128_invert_tmD_eoprec.cpp \
