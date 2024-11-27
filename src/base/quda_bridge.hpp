@@ -29,37 +29,37 @@
 
 namespace nissa
 {
-  namespace Robbery
-  {
-    enum ROB_MG{param_coarse,coarse,coarse_solver,solver,evecs,evals,diracCoarseSmoother,Y_d,Yhat_d,gauge};
+  // namespace Robbery
+  // {
+  //   enum ROB_MG{param_coarse,coarse,coarse_solver,solver,evecs,evals,diracCoarseSmoother,Y_d,Yhat_d,gauge};
     
-    /// Allow to rob the param_coarse
-    template struct Rob<param_coarse,quda::MG,&quda::MG::param_coarse>;
+  //   /// Allow to rob the param_coarse
+  //   template struct Rob<param_coarse,quda::MG,&quda::MG::param_coarse>;
     
-    /// Allow to rob the coarse
-    template struct Rob<coarse,quda::MG,&quda::MG::coarse>;
+  //   /// Allow to rob the coarse
+  //   template struct Rob<coarse,quda::MG,&quda::MG::coarse>;
     
-    /// Allow to rob the coarse_solver
-    template struct Rob<coarse_solver,quda::MG,&quda::MG::coarse_solver>;
+  //   /// Allow to rob the coarse_solver
+  //   template struct Rob<coarse_solver,quda::MG,&quda::MG::coarse_solver>;
     
-    /// Allow to rob the solver
-    template struct Rob<solver,quda::PreconditionedSolver,&quda::PreconditionedSolver::solver>;
+  //   /// Allow to rob the solver
+  //   template struct Rob<solver,quda::PreconditionedSolver,&quda::PreconditionedSolver::solver>;
     
-    /// Allow to rob the evecs
-    template struct Rob<evecs,quda::Solver,&quda::Solver::evecs>;
+  //   /// Allow to rob the evecs
+  //   template struct Rob<evecs,quda::Solver,&quda::Solver::evecs>;
     
-    /// Allow to rob the evals
-    template struct Rob<evals,quda::Solver,&quda::Solver::evals>;
+  //   /// Allow to rob the evals
+  //   template struct Rob<evals,quda::Solver,&quda::Solver::evals>;
     
-    /// Allow to rob the diracCoarseSmoother of a MG
-    template struct Rob<diracCoarseSmoother,quda::MG,&quda::MG::diracCoarseSmoother>;
+  //   /// Allow to rob the diracCoarseSmoother of a MG
+  //   template struct Rob<diracCoarseSmoother,quda::MG,&quda::MG::diracCoarseSmoother>;
     
-    /// Allow to rob the Y_d of a DiracCoarse
-    template struct Rob<Y_d,quda::DiracCoarse,&quda::DiracCoarse::Y_d>;
+  //   /// Allow to rob the Y_d of a DiracCoarse
+  //   template struct Rob<Y_d,quda::DiracCoarse,&quda::DiracCoarse::Y_d>;
     
-    /// Allow to rob the Yhat_h of a DiracCoarse
-    template struct Rob<Yhat_d,quda::DiracCoarse,&quda::DiracCoarse::Yhat_d>;
-  }
+  //   /// Allow to rob the Yhat_h of a DiracCoarse
+  //   template struct Rob<Yhat_d,quda::DiracCoarse,&quda::DiracCoarse::Yhat_d>;
+  // }
 }
 
 #endif
@@ -68,7 +68,7 @@ namespace quda_iface
 {
   /// Tags needed to define a setup
   using SetupID=
-    std::tuple<std::string,nissa::checksum>;
+    std::tuple<std::string,nissa::Checksum>;
 
 #ifdef USE_QUDA
   /// Restore or take copy of raw data, taking care of the direction of the request
@@ -83,90 +83,90 @@ namespace quda_iface
   }
 #endif
   
-  /// Store a full setup of the multigrid
-  struct QudaSetup
-  {
-    /// Allocated memory on B and eVecs
-    size_t allocatedMemory;
+//   /// Store a full setup of the multigrid
+//   struct QudaSetup
+//   {
+//     /// Allocated memory on B and eVecs
+//     size_t allocatedMemory;
     
-    /// B vectors needed to restrain/prolongate
-    std::vector<std::vector<char*>> B;
+//     /// B vectors needed to restrain/prolongate
+//     std::vector<std::vector<char*>> B;
     
-    /// Y vectors needed to implement operator
-    std::vector<char*> Y;
+//     /// Y vectors needed to implement operator
+//     std::vector<char*> Y;
     
-    /// Yhat vectors needed to implement operator
-    std::vector<char*> Yhat;
+//     /// Yhat vectors needed to implement operator
+//     std::vector<char*> Yhat;
     
-    /// Eigenvectors
-    std::vector<char*> eVecs;
+//     /// Eigenvectors
+//     std::vector<char*> eVecs;
     
-    /// Eigenvalues
-    std::vector<std::complex<double>> eVals;
+//     /// Eigenvalues
+//     std::vector<std::complex<double>> eVals;
     
-#ifdef USE_QUDA
+// #ifdef USE_QUDA
     
-    /// Implants this setup into Quda
-    void restore()
-    {
-      restoreOrTakeCopy(false);
-    }
+//     /// Implants this setup into Quda
+//     void restore()
+//     {
+//       restoreOrTakeCopy(false);
+//     }
     
-    /// Explant the current Quda setup into this setup
-    void takeCopy()
-    {
-      restoreOrTakeCopy(true);
-    }
+//     /// Explant the current Quda setup into this setup
+//     void takeCopy()
+//     {
+//       restoreOrTakeCopy(true);
+//     }
     
-    /// Restore or take copy of the B vectors for a given level
-    void restoreOrTakeCopyOfB(const bool takeCopy,
-			      std::vector<quda::ColorSpinorField*>& Bdev,
-			      const size_t lev);
+//     /// Restore or take copy of the B vectors for a given level
+//     void restoreOrTakeCopyOfB(const bool takeCopy,
+// 			      std::vector<quda::ColorSpinorField*>& Bdev,
+// 			      const size_t lev);
     
-    /// Restore or take copy of the eigenvectors
-    void restoreOrTakeCopyOfEig(const bool takeCopy,
-				quda::Solver* csv);
+//     /// Restore or take copy of the eigenvectors
+//     void restoreOrTakeCopyOfEig(const bool takeCopy,
+// 				quda::Solver* csv);
     
-    /// Restore or take copy of the Y and Yhat
-    void restoreOrTakeCopyOfAllY(const bool takeCopy);
+//     /// Restore or take copy of the Y and Yhat
+//     void restoreOrTakeCopyOfAllY(const bool takeCopy);
     
-    /// Unified method to take copy or restore
-    void restoreOrTakeCopy(const bool takeCopy=false);
+//     /// Unified method to take copy or restore
+//     void restoreOrTakeCopy(const bool takeCopy=false);
     
-    /// Reset the setup
-    void reset()
-    {
-      master_printf("Resetting stored setup\n");
-      for(auto& Bl : B)
-	for(auto& Bli : Bl)
-	nissa::nissa_free(Bli);
-      B.clear();
+//     /// Reset the setup
+//     void reset()
+//     {
+//       master_printf("Resetting stored setup\n");
+//       for(auto& Bl : B)
+// 	for(auto& Bli : Bl)
+// 	nissa::nissa_free(Bli);
+//       B.clear();
       
-      for(auto& ei : eVecs)
-	nissa::nissa_free(ei);
-      eVecs.clear();
+//       for(auto& ei : eVecs)
+// 	nissa::nissa_free(ei);
+//       eVecs.clear();
       
-      eVals.clear();
+//       eVals.clear();
       
-      allocatedMemory=0;
-    }
+//       allocatedMemory=0;
+//     }
     
-    /// Destructor
-    ~QudaSetup()
-    {
-      reset();
-    }
+//     /// Destructor
+//     ~QudaSetup()
+//     {
+//       reset();
+//     }
     
-#endif
+// #endif
     
-    QudaSetup()=default;
+//     QudaSetup()=default;
     
-    QudaSetup(const QudaSetup&)=default;
+//     QudaSetup(const QudaSetup&)=default;
     
-    QudaSetup(QudaSetup&&)=default;
-  };
+//     QudaSetup(QudaSetup&&)=default;
+//   };
   
-  EXTERN_QUDA_BRIDGE std::map<SetupID,QudaSetup> qudaSetups;
+//   EXTERN_QUDA_BRIDGE std::map<SetupID,QudaSetup> qudaSetups;
 }
 
 namespace quda_iface

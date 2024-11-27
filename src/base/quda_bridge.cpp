@@ -14,6 +14,7 @@
 #include "base/multiGridParams.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "metaprogramming/hasMember.hpp"
 #include "new_types/su3_op.hpp"
 #include "new_types/custom_real_numb.hpp"
 #include "routines/ios.hpp"
@@ -99,7 +100,7 @@ namespace quda_iface
     
     /// Result
     int out;
-    MPI_Cart_rank(cart_comm,c,&out);
+    MPI_Cart_rank(MPI_COMM_WORLD,c,&out);
     
     printf("rank %d, {%d %d %d %d}->%d\n",rank,c[0],c[1],c[2],c[3],out);
     
@@ -165,6 +166,7 @@ namespace quda_iface
     return 0;
   }
   
+#ifdef QUDASETUPSTORE
   void QudaSetup::restoreOrTakeCopyOfB(const bool takeCopy,
 				       std::vector<quda::ColorSpinorField*>& Bdev,
 				       const size_t lev)
@@ -351,6 +353,7 @@ namespace quda_iface
 	// p=oldP;
       }
   }
+#endif
   
   /// Set the verbosity
   QudaVerbosity get_verbosity_for_quda()
@@ -494,7 +497,9 @@ namespace quda_iface
 	nissa_free(color_in);
 	nissa_free(color_out);
 	
+#ifdef QUDASETUPSTORE
 	quda_iface::qudaSetups.clear();
+#endif
 	
 	//free the clover and gauge conf
 	freeGaugeQuda();
@@ -515,88 +520,105 @@ namespace quda_iface
   }
   
   /// Reorder conf into QUDA format
-  void remap_nissa_to_quda(quda_conf_t out,quad_su3 *in)
+  void remap_nissa_to_quda(quda_conf_t out,
+			   LxField<quad_su3>& in)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	const int iquda=quda_of_loclx[ivol];
-	
-	for(int nu=0;nu<NDIM;nu++)
-	  {
-	    const int out_dir=(nu+NDIM-1)%NDIM;
-	    su3_copy(out[out_dir][iquda],in[ivol][nu]);
-	  }
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    THREAD_BARRIER();
+    HOST_PARALLEL_LOOP(0,
+		       locVol,
+		       CAPTURE(TO_READ(in),
+			       out),
+		       ivol,
+		       {
+			 const int iquda=quda_of_loclx[ivol];
+			 
+			 for(int nu=0;nu<NDIM;nu++)
+			   {
+			     const int out_dir=(nu+NDIM-1)%NDIM;
+			     su3_copy(out[out_dir][iquda],in[ivol][nu]);
+			   }
+		       });
   }
   
   /// Reorder conf into QUDA format
-  void remap_nissa_to_quda(quda_conf_t out,eo_ptr<quad_su3> in)
+  void remap_nissa_to_quda(quda_conf_t out,
+			   const EoField<quad_su3>& in)
   {
     for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(ivolh,0,locVolh)
-	{
-	  const int ivol=loclx_of_loceo[par][ivolh];
-	  const int iquda=quda_of_loclx[ivol];
-	
-	for(int nu=0;nu<NDIM;nu++)
-	  {
-	    const int out_dir=(nu+NDIM-1)%NDIM;
-	    su3_copy(out[out_dir][iquda],in[par][ivolh][nu]);
-	  }
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    THREAD_BARRIER();
+      HOST_PARALLEL_LOOP(0,
+			 locVolh,
+			 CAPTURE(TO_READ(in),
+				 out,
+				 par),
+			 ivolh,
+			 {
+			   const int ivol=loclx_of_loceo[par][ivolh];
+			   const int iquda=quda_of_loclx[ivol];
+			   
+			   for(int nu=0;nu<NDIM;nu++)
+			     {
+			       const int out_dir=(nu+NDIM-1)%NDIM;
+			       su3_copy(out[out_dir][iquda],in[par][ivolh][nu]);
+			     }
+			 });
   }
   
   /// Reorder spincolor to QUDA format
-  void remap_nissa_to_quda(spincolor *out,spincolor *in)
+  void remap_nissa_to_quda(spincolor* out,
+			   const LxField<spincolor>& in)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	const int iquda=quda_of_loclx[ivol];
-	spincolor_copy(out[iquda],in[ivol]);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    THREAD_BARRIER();
+    HOST_PARALLEL_LOOP(0,
+		       locVol,
+		       CAPTURE(TO_READ(in),
+			       out),
+		       ivol,
+		       {
+			 const int iquda=quda_of_loclx[ivol];
+			 spincolor_copy(out[iquda],in[ivol]);
+		       });
   }
   
   /// Reorder color to QUDA format
-  void remap_nissa_to_quda(color *out,eo_ptr<color> in)
+  void remap_nissa_to_quda(color *out,
+			   const EoField<color>& in)
   {
     for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(ivolh,0,locVolh)
-	{
-	  const int ivol=loclx_of_loceo[par][ivolh];
-	  const int iquda=quda_of_loclx[ivol];
-	  color_copy(out[iquda],in[par][ivolh]);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    THREAD_BARRIER();
+      HOST_PARALLEL_LOOP(0,
+			 locVolh,
+			 CAPTURE(TO_READ(in),
+				 out,
+				 par),
+			 ivolh,
+			 {
+			   const int ivol=loclx_of_loceo[par][ivolh];
+			   const int iquda=quda_of_loclx[ivol];
+			   color_copy(out[iquda],in[par][ivolh]);
+			 });
   }
   
   /// Reorder spincolor from QUDA format
-  void remap_quda_to_nissa(spincolor *out,spincolor *in)
+  void remap_quda_to_nissa(LxField<spincolor>& out,
+			   spincolor *in)
   {
-    NISSA_PARALLEL_LOOP(iquda,0,locVol)
-      {
-	const int ivol=loclx_of_quda[iquda];
-	spincolor_copy(out[ivol],in[iquda]);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(out);
+      HOST_PARALLEL_LOOP(0,
+			 locVol,
+			 CAPTURE(TO_WRITE(out),
+				 in),
+			 iquda,
+			 {
+			   const int ivol=loclx_of_quda[iquda];
+			   spincolor_copy(out[ivol],in[iquda]);
+			 });
   }
   
   /// Reorder color from QUDA format
-  void remap_quda_to_nissa(eo_ptr<color> out,color *in)
+  void remap_quda_to_nissa(EoField<color>& out,
+			   color* in)
   {
-    NISSA_PARALLEL_LOOP(iquda,0,locVol)
+    HOST_PARALLEL_LOOP(0,
+		       locVol,
+		       CAPTURE(in,
+			       TO_WRITE(out)),
+		       iquda,
       {
 	const int ivol=loclx_of_quda[iquda];
 	const int par=loclx_parity[ivol];
@@ -612,11 +634,7 @@ namespace quda_iface
 		printf("REMA %d %d %d %d %d %lg\n",iquda,par,ivol,ic,ri,f);
 	    }
 #endif
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    for(int par=0;par<2;par++)
-      set_borders_invalid(out[par]);
+      });
   }
   
   // /// Sets the sloppy precision
@@ -1072,6 +1090,7 @@ namespace quda_iface
       {
 	master_printf("QUDA multigrid setup not valid\n");
 	
+#ifdef QUDASETUPSTORE
 	const bool canReuseStoredSetup=(qudaSetups.find(setupId)!=qudaSetups.end());
 	const auto [tag,fs]=setupId;
 	master_printf("CanReuseStoredSetup (%s,%zu,%zu): %s\n",tag.c_str(),fs[0],fs[1],canReuseStoredSetup?"true":"false");
@@ -1099,14 +1118,17 @@ namespace quda_iface
 	    qudaSetups[setupId].restore();
 	  }
 	else
+#endif
 	  {
 	    if(quda_mg_preconditioner!=nullptr)
 	      destroyMultigridQuda(quda_mg_preconditioner);
 	    
 	    quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
 	    
+#ifdef QUDASETUPSTORE
 	    if(doTheStorage)
 	      qudaSetups[setupId].takeCopy();
+#endif
 	  }
 	
 	master_printf("mg setup done!\n");
