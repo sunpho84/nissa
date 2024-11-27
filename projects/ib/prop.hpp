@@ -427,7 +427,7 @@ namespace nissa
 	  fclose(fastFile);
 	}
       else
-	write_real_vector(path,v,64,"scidac-binary-data");
+	write_real_vector(path,v,"scidac-binary-data");
     }
   };
 }

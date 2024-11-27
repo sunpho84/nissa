@@ -42,19 +42,20 @@ namespace nissa
 			    const LxField<quad_su3>& conf,
 			    const double beta)
   {
-    crash("reimplement");
-    // verbosity_lv1_master_printf("Computing Wilson force (lx)\n");
+    verbosity_lv1_master_printf("Computing Wilson force (lx)\n");
     
-    // const double r=-beta/NCOL;
-    // compute_summed_squared_staples_lx_conf(F,conf);
+    const double r=
+      -beta/NCOL;
     
-    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    //   {
-    // 	for(int mu=0;mu<NDIM;mu++)
-    // 	  safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],r);
-    //   }
-    // NISSA_PARALLEL_LOOP_END;
+    compute_summed_squared_staples_lx_conf(F,conf);
     
-    // set_borders_invalid(F);
+    PAR(0,
+	locVol,
+	CAPTURE(TO_WRITE(F),r),
+	ivol,
+	{
+	  for(int mu=0;mu<NDIM;mu++)
+	    safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],r);
+	});
   }
 }

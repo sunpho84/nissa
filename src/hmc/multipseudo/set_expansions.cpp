@@ -67,17 +67,6 @@ namespace nissa
     int is_increasing=1;
     double old_eig_max;
     
-#if THREADS_TYPE == CUDA_THREADS
-    const char DOE_TEST[]="DOE_TEST";
-    if(getenv(DOE_TEST)!=NULL)
-      {
-	gpu::cuda_test<double>(out.stag,eo_conf,in.stag);
-	gpu::cuda_test<float>(out.stag,eo_conf,in.stag);
-      }
-    else
-      master_printf("to run the test export %s\n",DOE_TEST);
-#endif
-    
     double eig_max=0;
     do
       {

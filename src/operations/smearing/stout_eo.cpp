@@ -96,8 +96,7 @@ namespace nissa
 				   const int& nlev)
   {
     for(int i=1;i<=nlev;i++)
-	for(int eo=0;eo<2;eo++)
-	  delete out[i];
+      delete out[i];
   }
   
   //smear iteratively retainig all the stack

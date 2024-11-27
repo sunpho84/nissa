@@ -1458,8 +1458,21 @@ namespace nissa
   
   //perform maximal projection trace up to reaching the machine precision
   CUDA_HOST_AND_DEVICE void su3_unitarize_maximal_trace_projecting(su3 out,const su3 M,const double precision=5e-15,int niter_max=20000);
+
   CUDA_HOST_AND_DEVICE inline void su3_unitarize_maximal_trace_projecting(su3 out,const double precision=5e-15,int niter_max=20000)
-  {su3_unitarize_maximal_trace_projecting(out,out,precision,niter_max);}
+  {
+    su3_unitarize_maximal_trace_projecting(out,out,precision,niter_max);
+  }
+  
+  template <typename T>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_unitarize_maximal_trace_projecting(T&& c)
+  {
+    su3 t;
+    su3_copy(t,c);
+    su3_unitarize_maximal_trace_projecting(t);
+    su3_copy(c,t);
+  }
   
   void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,int par,int ieo,int mu);
   void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,int ivol,int mu);

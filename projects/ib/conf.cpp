@@ -93,7 +93,7 @@ namespace nissa
       Landau_or_Coulomb_gauge_fix(conf,gauge_fixing_pars,conf);
     
     if(store_conf)
-      write_ildg_gauge_conf(combine("%s/conf",outfolder),conf,64);
+      write_ildg_gauge_conf(combine("%s/conf",outfolder),conf);
     
     if(clover_run)
       clover_term(*Cl,glb_cSW,conf);

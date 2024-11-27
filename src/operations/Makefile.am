@@ -20,6 +20,8 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/su3_paths/clover_term.cpp \
 	%D%/su3_paths/gauge_sweeper.cpp \
 	%D%/su3_paths/rectangles.cpp \
+	%D%/su3_paths/rectangular_staples.cpp \
+	%D%/su3_paths/squared_staples.cpp \
 	%D%/vector_gather.cpp
 
 include_HEADERS+= \
@@ -49,6 +51,3 @@ include_HEADERS+= \
 	%D%/su3_paths/rectangular_staples.hpp \
 	%D%/su3_paths/squared_staples.hpp \
 	%D%/vector_gather.hpp
-
-#	%D%/su3_paths/rectangular_staples.cpp \
-#	%D%/su3_paths/squared_staples.cpp 

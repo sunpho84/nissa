@@ -3,8 +3,6 @@
 
 #include "operations/smearing/smooth.hpp"
 
-#include "hmc/gauge/topological_action.hpp"
-
 namespace nissa
 {
   //parameters to measure topology properties
@@ -100,7 +98,8 @@ namespace nissa
 				const bool& preserve_unsmoothed);
   
   void local_topological_charge(double *charge,quad_su3 *conf);
-  // void total_topological_charge_eo_conf(double *tot_charge,eo_ptr<quad_su3> eo_conf);
+  
+  double total_topological_charge_eo_conf(const EoField<quad_su3>& eo_conf);
   
   void topological_staples(LxField<quad_su3>& staples,const LxField<quad_su3>& conf);
   
@@ -126,9 +125,10 @@ namespace nissa
   */
   template <typename L,
 	    typename U>
-  CUDA_HOST_AND_DEVICE void four_leaves_point(L&& leaves_summ,
-					      const U& conf,
-					      const int& X)
+  CUDA_HOST_AND_DEVICE
+  void four_leaves_point(L&& leaves_summ,
+			 const U& conf,
+			 const int& X)
   {
     // if(conf.edgesAreValid) crash("communicate edges externally");
     

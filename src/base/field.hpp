@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <mpi.h>
+#include <optional>
 #include <type_traits>
 
 #include <base/bench.hpp>
@@ -23,13 +24,15 @@ namespace nissa
 {
   /// Start the communications of buffer interpreted as halo
   std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff,
-						     const size_t& bps);
+						     const size_t& bps,
+						     const std::optional<std::vector<std::pair<int,int>>>& dirs=std::nullopt);
   
   /// Start the communications of buffer interpreted as halo
   template <typename T>
-  std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff)
+  std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff,
+						     const std::optional<std::vector<std::pair<int,int>>>& dirs=std::nullopt)
   {
-    return startBufHaloNeighExchange(divCoeff,sizeof(T));
+    return startBufHaloNeighExchange(divCoeff,sizeof(T),dirs);
   }
   
   /// Start the communications of buffer interpreted as edges

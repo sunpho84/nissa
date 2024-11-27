@@ -255,21 +255,22 @@ namespace nissa
   //eo version
   void unitarize_eo_conf_maximal_trace_projecting(EoField<quad_su3>& conf)
   {
-    crash("reimplement");
+    START_TIMING(unitarize_time,nunitarize);
     
-    // START_TIMING(unitarize_time,nunitarize);
+    for(int par=0;par<2;par++)
+      {
+        PAR(0,
+	    locVolh,
+	    CAPTURE(TO_WRITE(conf),
+		    par),
+	    ivol,
+	    {
+	      for(int mu=0;mu<NDIM;mu++)
+		su3_unitarize_maximal_trace_projecting(conf[par][ivol][mu]);
+	    });
+      }
     
-    // for(int par=0;par<2;par++)
-    //   {
-    //     NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-    //       for(int mu=0;mu<NDIM;mu++)
-    //         su3_unitarize_maximal_trace_projecting(conf[par][ivol][mu],conf[par][ivol][mu]);
-    // 	NISSA_PARALLEL_LOOP_END;
-        
-    //     set_borders_invalid(conf[par]);
-    //   }
-    
-    // STOP_TIMING(unitarize_time);
+    STOP_TIMING(unitarize_time);
   }
   
   //overrelax an lx configuration

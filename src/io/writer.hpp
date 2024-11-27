@@ -31,23 +31,27 @@ namespace nissa
 				  const LxField<T,FieldLayout::CPU>& in,
 				  const char* headerMessage)
   {
-    const int nrealsPerSite=LxField<T>::nInternalDegs;
-    const uint64_t nBytesPerSite=nrealsPerSite*sizeof(LxField<T>::Fund);
+    constexpr int nrealsPerSite=
+      LxField<T>::nInternalDegs;
+    constexpr uint64_t nBytesPerSite=
+      nrealsPerSite*sizeof(typename LxField<T>::Fund);
     
     ILDG_File_write_ildg_data_all(file,in._data,nBytesPerSite,headerMessage);
   }
   
   template <typename T>
   void write_real_vector(ILDG_File &file,
-			 LxField<T> in,
+			 LxField<T,FieldLayout::CPU> in,
 			 const char *header_message,
 			 ILDG_message* mess=nullptr)
   {
     //take initial time
-    double time=-take_time();
+    double time=
+      -take_time();
     
     //write all the messages
-    if(mess!=nullptr) ILDG_File_write_all_messages(file,mess);
+    if(mess!=nullptr)
+      ILDG_File_write_all_messages(file,mess);
     
     //compute the checksum
     const Checksum check=ildgChecksum(in);
@@ -68,34 +72,18 @@ namespace nissa
     verbosity_lv2_master_printf("Time elapsed in writing: %f s\n",time);
   }
   
-  template <typename T,
-	    FieldLayout FL>
-  void write_real_vector(ILDG_File &file,
-			 const LxField<T,FL>& in,
-			 const size_t& nbits,
-			 const char *header_message,
-			 ILDG_message *mess=nullptr)
-  {
-    crash("reimplement");
-    LxField<T,FieldLayout::CPU> buf("buf");
-    buf=in;
-    
-    //write_real_vector(file,buf,nbits,header_message,mess);
-  }
-  
   //wrapper opening the file
   template <typename T>
   void write_real_vector(const std::string& path,
 			 const T& data,
-			 const size_t& nbits,
-			 const char *header_message,
-			 ILDG_message *mess=nullptr)
+			 const char* header_message,
+			 ILDG_message* mess=nullptr)
   {
     //Open the file
     ILDG_File file=ILDG_File_open_for_write(path);
     
     //Write the binary data
-    write_real_vector(file,data,nbits,header_message,mess);
+    write_real_vector(file,data,header_message,mess);
     
     //Close the file
     ILDG_File_close(file);
@@ -104,9 +92,11 @@ namespace nissa
   /// Write the local part of the gauge configuration
   inline void write_ildg_gauge_conf(const std::string& path,
 				    LxField<quad_su3>& conf,
-				    const size_t& nBits,
+				    // const size_t& nBits,
 				    ILDG_message *mess=nullptr)
   {
+    const size_t nBits=64;
+    
     double startTime=take_time();
     
     //Open the file
@@ -137,7 +127,7 @@ namespace nissa
 	  quad_su3_nissa_to_ildg_reord(conf[ivol],conf[ivol]);
 	});
     
-    write_real_vector(file,conf,nBits,"ildg-binary-data",mess);
+    write_real_vector(file,conf,"ildg-binary-data",mess);
     
     //reorder back
     PAR(0,locVol,
@@ -153,12 +143,11 @@ namespace nissa
   
   inline void paste_eo_parts_and_write_ildg_gauge_conf(const std::string& path,
 						       const EoField<quad_su3>& eo_conf,
-						       const size_t& prec,
 						       ILDG_message *mess=nullptr)
   {
     LxField<quad_su3> lx_conf("temp_conf");
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
-    write_ildg_gauge_conf(path,lx_conf,prec,mess);
+    write_ildg_gauge_conf(path,lx_conf,mess);
   }
   
   inline   //Write a whole spincolor

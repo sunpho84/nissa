@@ -63,8 +63,9 @@ void in_main(int narg,char **arg)
   }
   verbosity_lv=1;
   
-  crash("");
-  
+  crash("bbbb");
+
+  [[maybe_unused]]
   auto u=mergedComp<CompsList<Spin,ComplId>>(0);
   
   /////////////////////////////////////////////////////////////////

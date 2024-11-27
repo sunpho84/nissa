@@ -346,7 +346,9 @@ namespace nissa
   }
   
   //read the data according to ILDG mapping
-  void ILDG_File_read_ildg_data_all(void *data,ILDG_File &file,ILDG_header &header)
+  void ILDG_File_read_ildg_data_all(void *data,
+				    ILDG_File &file,
+				    const ILDG_header &header)
   {
     //allocate a buffer
     ILDG_Offset nbytes_per_rank_exp=header.data_length/nranks;
@@ -427,10 +429,10 @@ namespace nissa
   }
   
   //bare write data in the ILDG order
-  void ILDG_File_write_ildg_data_all_raw(ILDG_File &file,void *data,uint64_t data_length)
+  void ILDG_File_write_ildg_data_all_raw(ILDG_File& file,
+					 void* data,
+					 const uint64_t data_length)
   {
-    crash("reimplement");
-    
     // //allocate the buffer
     // ILDG_Offset nbytes_per_rank=data_length/nranks;
     // char *buf=nissa_malloc("buf",nbytes_per_rank,char);
@@ -458,8 +460,11 @@ namespace nissa
     // nissa_free(buf);
   }
   
-  //read the data according to ILDG mapping
-  void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,ILDG_Offset nbytes_per_site,const char *type)
+  /// Write the data according to ILDG mapping
+  void ILDG_File_write_ildg_data_all(ILDG_File &file,
+				     void *data,
+				     const ILDG_Offset nbytes_per_site,
+				     const char *type)
   {
     //prepare the header and write it
     const uint64_t data_length=nbytes_per_site*glbVol;

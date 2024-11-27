@@ -3,6 +3,7 @@
 
 #include <geometry/geometry_mix.hpp>
 #include <io/input.hpp>
+#include <measures/gauge/topological_charge.hpp>
 #include <new_types/metadynamics.hpp>
 #include <operations/smearing/stout.hpp>
 #include <routines/ios.hpp>
@@ -33,37 +34,37 @@ namespace nissa
     
     void store_if_needed(const EoField<quad_su3>& ext_conf,
 			 const int& iconf) const
-      {
-	crash("reimplement");
-	
-	// if(flag==2 and iconf%each==0 and iconf>=after)
-	//   {
-	// 	double charge;
-	// 	eo_ptr<quad_su3> conf;
-	// 	if(stout_pars.nlevels==0)
-	// 	  {
-	// 	    conf[0]=ext_conf[0];
-	// 	    conf[1]=ext_conf[1];
-	// 	  }
-	// 	else
-	// 	  {
-	// 	    conf[0]=nissa_malloc("stout_conf_e",locVolh+bord_volh+edge_volh,quad_su3);
-	// 	    conf[1]=nissa_malloc("stout_conf_o",locVolh+bord_volh+edge_volh,quad_su3);
-	// 	    stout_smear(conf,ext_conf,&stout_pars);
-	// 	  }
-	
-	// 	//compute topocharge
-	// 	total_topological_charge_eo_conf(&charge,conf);
-	// 	master_printf("Topological charge to be stored: %lg\n",charge);
-	// 	update(iconf,charge);
-	
-	// 	//free if needed
-	// 	if(stout_pars.nlevels!=0)
-	// 	  {
-	// 	    nissa_free(conf[0]);
-	// 	    nissa_free(conf[1]);
-	// 	  }
-	//   }
+    {
+      if(flag==2 and iconf%each==0 and iconf>=after)
+	{
+	  crash("reimplement");
+	  
+	  // double charge;
+	  // eo_ptr<quad_su3> conf;
+	  // if(stout_pars.nlevels==0)
+	  //   {
+	  //     conf[0]=ext_conf[0];
+	  //     conf[1]=ext_conf[1];
+	  //   }
+	  // else
+	  //   {
+	  //     conf[0]=nissa_malloc("stout_conf_e",locVolh+bord_volh+edge_volh,quad_su3);
+	  //     conf[1]=nissa_malloc("stout_conf_o",locVolh+bord_volh+edge_volh,quad_su3);
+	  //     stout_smear(conf,ext_conf,&stout_pars);
+	  //   }
+	  
+	  // //compute topocharge
+	  // total_topological_charge_eo_conf(&charge,conf);
+	  // master_printf("Topological charge to be stored: %lg\n",charge);
+	  // update(iconf,charge);
+	  
+	  // //free if needed
+	  // if(stout_pars.nlevels!=0)
+	  //   {
+	  //     nissa_free(conf[0]);
+	  //     nissa_free(conf[1]);
+	  //   }
+	}
       }
     
     int master_fprintf(FILE *fout,
@@ -128,40 +129,43 @@ namespace nissa
   inline void load_topodynamical_potential(topotential_pars_t& pars,
 					   const bool& mandatory)
   {
-    if(file_exists(topo_file_name)) pars.load(topo_file_name);
+    if(file_exists(topo_file_name))
+      pars.load(topo_file_name);
     else
-      if(mandatory) crash("%s file not found when mandatory present",topo_file_name);
-      else verbosity_lv2_master_printf("%s not found, skipping reading",topo_file_name);
+      if(mandatory)
+	crash("%s file not found when mandatory present",topo_file_name);
+      else
+	verbosity_lv2_master_printf("%s not found, skipping reading",topo_file_name);
   }
   
   //Compute the topological action
   inline double topotential_action(const EoField<quad_su3>& conf,
 				   const topotential_pars_t &pars)
   {
-    crash("reimplent");
-    
-    // //compute topocharge
-    // double Q;
-    // if(pars.stout_pars.nlevels)
-    //   {
-    // 	EoField<quad_su3> smeConf("smeConf",WITH_HALO);
-    //     stout_smear(smeConf,conf,pars.stout_pars);
-    // 	total_topological_charge_eo_conf(&Q,smeConf);
-    //   }
-    // else
-    //   total_topological_charge_eo_conf(&Q,conf);
+    //compute topocharge
+    double Q;
+    if(pars.stout_pars.nlevels)
+      {
+	EoField<quad_su3> smeConf("smeConf",WITH_HALO);
+        stout_smear(smeConf,conf,pars.stout_pars);
+	Q=total_topological_charge_eo_conf(smeConf);
+      }
+    else
+      Q=total_topological_charge_eo_conf(conf);
     
     //compute according to flag
-    double topo_action=0;
-    // switch(pars.flag)
-    //   {
-    //   case 1: topo_action=Q*pars.theta;break;
-    //   case 2: topo_action=topodynamical_potential(Q,pars);break;
-    //   default: crash("unknown flag %d",pars.flag);
-    //   }
-    
-    // //free if it was allocated
-    // if(pars.stout_pars.nlevels!=0) for(int eo=0;eo<2;eo++) nissa_free(conf[eo]);
+    double topo_action=0.0;
+    switch(pars.flag)
+      {
+      case 1:
+	topo_action=Q*pars.theta;
+	break;
+      case 2:
+	topo_action=topodynamical_potential(Q,pars);
+	break;
+      default:
+	crash("unknown flag %d",pars.flag);
+      }
     
     return topo_action;
   }

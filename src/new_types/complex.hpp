@@ -283,7 +283,12 @@ namespace nissa
     a[0]+=t;
   }
   
-  CUDA_HOST_AND_DEVICE inline void complex_subt_the_prod_double(complex a,const complex b,const double c)
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_subt_the_prod_double(A&& a,
+				    const B& b,
+				    const double& c)
   {
     const double t=b[0]*c;
     a[1]-=b[1]*c;

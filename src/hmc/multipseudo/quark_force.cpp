@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include "hmc/fermions/rootst_eoimpr_quark_force.hpp"
@@ -7,7 +7,6 @@
 #include "hmc/hmc.hpp"
 #include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
 #include "hmc/theory_pars.hpp"
-#include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 #include "operations/smearing/stout.hpp"
 #include "operations/su3_paths/clover_term.hpp"
@@ -47,62 +46,68 @@ namespace nissa
 					      const std::vector<rat_approx_t>& appr,
 					      const double& residue)
   {
-    crash("reimplement");
+    //allocate or not clover term and inverse evn clover term
+    EoField<clover_term_t>* Cl=nullptr;
+    EvnField<inv_clover_term_t>* invCl_evn=nullptr;
     
-    // //allocate or not clover term and inverse evn clover term
-    // eo_ptr<clover_term_t> Cl={NULL,NULL};
-    // inv_clover_term_t *invCl_evn=NULL;
-    // bool clover_to_be_computed=false;
-    // for(int iflav=0;iflav<tp->nflavs();iflav++) clover_to_be_computed|=ferm_discretiz::include_clover(tp->quarks[iflav].discretiz);
-    // if(clover_to_be_computed)
-    //   {
-    // 	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
-    // 	invCl_evn=nissa_malloc("invCl_evn",locVolh,inv_clover_term_t);
-    // 	chromo_operator(Cl,conf);
-    //   }
+    bool clover_to_be_computed=false;
+    for(int iflav=0;iflav<tp.nflavs();iflav++)
+      clover_to_be_computed|=ferm_discretiz::include_clover(tp.quarks[iflav].discretiz);
+    if(clover_to_be_computed)
+      {
+	Cl=new EoField<clover_term_t>("Cl");
+	invCl_evn=new EvnField<inv_clover_term_t>("inv_colver_term");
+	chromo_operator(*Cl,conf);
+      }
     
-    // //reset forces
-    // for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
+    //reset forces
+    F.reset();
     
-    // for(int iflav=0;iflav<tp->nflavs();iflav++)
-    //   {
-    // 	quark_content_t &q=tp->quarks[iflav];
+    for(int iflav=0;iflav<tp.nflavs();iflav++)
+      {
+	const quark_content_t &q=
+	  tp.quarks[iflav];
 	
-    // 	//if clover is included, compute it
-    // 	if(ferm_discretiz::include_clover(q.discretiz))
-    // 	  {
-    // 	    chromo_operator_include_cSW(Cl,q.cSW);
-    // 	    invert_twisted_clover_term(invCl_evn,q.mass,q.kappa,Cl[EVN]);
-    // 	  }
+	//if clover is included, compute it
+	if(ferm_discretiz::include_clover(q.discretiz))
+	  {
+	    chromo_operator_include_cSW(*Cl,q.cSW);
+	    invert_twisted_clover_term(*invCl_evn,q.mass,q.kappa,Cl->evenPart);
+	  }
 	
-    // 	eo_ptr<quad_u1>& bf=tp->backfield[iflav];
-    // 	rat_approx_t *app=&((*appr)[iflav*nappr_per_quark+RAT_APPR_QUARK_FORCE]);
+	const EoField<quad_u1>& bf=
+	  tp.backfield[iflav];
+	const rat_approx_t& app=
+	  appr[iflav*nappr_per_quark+RAT_APPR_QUARK_FORCE];
 	
-	// for(size_t ipf=0;ipf<(*pf)[iflav].size();ipf++)
-	//   {
-	//     verbosity_lv2_master_printf("Computing quark force for flavour %d/%d, pseudofermion %zu/%zu\n",iflav+1,tp->nflavs(),ipf+1,(*pf)[iflav].size());
+	for(size_t ipf=0;ipf<pf[iflav].size();ipf++)
+	  {
+	    verbosity_lv2_master_printf("Computing quark force for flavour %d/%d, pseudofermion %zu/%zu\n",iflav+1,tp.nflavs(),ipf+1,pf[iflav].size());
 	    
-    // 	    switch(q.discretiz)
-    // 	      {
-    // 	      case ferm_discretiz::ROOT_STAG:
-    // 		summ_the_rootst_eoimpr_quark_force(F,conf,(*pf)[iflav][ipf].stag,bf,app,residue);break;
-    // 	      case ferm_discretiz::ROOT_TM_CLOV:
-    // 		summ_the_roottm_clov_eoimpr_quark_force(F,conf,q.kappa,q.cSW,Cl[ODD],invCl_evn,q.mass,(*pf)[iflav][ipf].Wils,bf,app,residue);break;
-    // 	      default:
-    // 		crash("not yet implemented");
-    // 	      }
-    // 	  }
+	    switch(q.discretiz)
+	      {
+	      case ferm_discretiz::ROOT_STAG:
+		summ_the_rootst_eoimpr_quark_force(F,conf,*pf[iflav][ipf].stag,bf,app,residue);
+		break;
+	      case ferm_discretiz::ROOT_TM_CLOV:
+		crash("reimplement");//summ_the_roottm_clov_eoimpr_quark_force(F,conf,q.kappa,q.cSW,Cl[ODD],invCl_evn,q.mass,*pf[iflav][ipf].Wils,bf,app,residue);
+		break;
+	      default:
+		crash("unknown discretization");
+	      }
+	  }
 	
-    // 	//remove cSW from chromo operator
-    // 	if(ferm_discretiz::include_clover(q.discretiz)) chromo_operator_remove_cSW(Cl,q.cSW);
-    //   }
+	//remove cSW from chromo operator
+	if(ferm_discretiz::include_clover(q.discretiz))
+	  chromo_operator_remove_cSW(*Cl,q.cSW);
+      }
     
-    // //free clover term if ever allocated
-    // if(clover_to_be_computed)
-    //   {
-    // 	nissa_free(invCl_evn);
-    // 	for(int eo=0;eo<2;eo++) nissa_free(Cl[eo]);
-    //   }
+    //free clover term if ever allocated
+    if(clover_to_be_computed)
+      {
+	delete invCl_evn;
+	delete Cl;
+      }
   }
   
   //take into account the stout remapping procedure

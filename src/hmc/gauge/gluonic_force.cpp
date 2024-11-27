@@ -40,8 +40,8 @@ namespace nissa
   
   /// Compute the gauge force
   void compute_gluonic_force_lx_conf_do_not_finish(LxField<quad_su3>& F,
-				     const LxField<quad_su3>& conf,
-				     const theory_pars_t& physics)
+						   const LxField<quad_su3>& conf,
+						   const theory_pars_t& physics)
   {
     switch(physics.gauge_action_name)
       {

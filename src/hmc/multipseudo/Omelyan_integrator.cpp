@@ -1,13 +1,13 @@
-
 #ifdef HAVE_CONFIG_H
 # include "config.hpp"
 #endif
 
-#include "operations/gaugeconf.hpp"
-
+#include "hmc/gauge/pure_gauge_Omelyan_integrator.hpp"
 #include "hmc/hmc.hpp"
+#include "hmc/momenta/momenta_evolve.hpp"
 #include "hmc/theory_pars.hpp"
-#include "hmc/gauge/gluonic_force.hpp"
+
+#include "operations/gaugeconf.hpp"
 
 #include "quark_force.hpp"
 
@@ -19,7 +19,11 @@
 namespace nissa
 {
   //evolve the momenta with topological force
-  void evolve_lx_momenta_with_topological_force(quad_su3* H,quad_su3* conf,topotential_pars_t* topars,double dt,quad_su3* ext_F)
+  void evolve_lx_momenta_with_topological_force(LxField<quad_su3>& H,
+						LxField<quad_su3>& conf,
+						const topotential_pars_t& topars,
+						const double& dt,
+						LxField<quad_su3>& ext_F)
   {
     crash("reimplement");
     
@@ -58,45 +62,52 @@ namespace nissa
   }
   
   //evolve the configuration according to pure gauge - note that there is a similar routine in "pure_gage"
-  void Omelyan_pure_gauge_evolver_lx_conf(quad_su3* H,quad_su3* lx_conf,theory_pars_t* theory_pars,hmc_evol_pars_t* simul)
+  void Omelyan_pure_gauge_evolver_lx_conf(LxField<quad_su3>& H,
+					  LxField<quad_su3>& lx_conf,
+					  const theory_pars_t& theory_pars,
+					  const hmc_evol_pars_t& simul)
   {
-    crash("reimplement");
-    // //macro step or micro step
-    // double dt=simul->traj_length/simul->nmd_steps/simul->ngauge_substeps/2,
-    //   dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
-    // int nsteps=simul->ngauge_substeps;
-    // quad_su3 *aux_F=nissa_malloc("aux_F",locVol,quad_su3);
+    //macro step or micro step
+    const double dt=simul.traj_length/simul.nmd_steps/simul.ngauge_substeps/2,
+      dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
+    const int nsteps=simul.ngauge_substeps;
+    LxField<quad_su3> aux_F("aux_F");
     
-    // topotential_pars_t *topars=&(theory_pars->topotential_pars);
+    const topotential_pars_t& topars=
+      theory_pars.topotential_pars;
     
-    // //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
-    // evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,ldt,aux_F);
-    // if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,ldt,aux_F);
+    //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
+    evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,ldt,aux_F);
+    if(topars.flag and TOPO_EVOLUTION==TOPO_MICRO)
+      evolve_lx_momenta_with_topological_force(H,lx_conf,topars,ldt,aux_F);
     
-    // //         Main loop
-    // for(int istep=0;istep<nsteps;istep++)
-    //   {
-    // 	verbosity_lv1_master_printf(" Omelyan gauge micro-step %d/%d\n",istep+1,nsteps);
+    //         Main loop
+    for(int istep=0;istep<nsteps;istep++)
+      {
+	verbosity_lv1_master_printf(" Omelyan gauge micro-step %d/%d\n",istep+1,nsteps);
 	
-    // 	//decide if last step is final or not
-    // 	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
+	//decide if last step is final or not
+	const double last_dt=
+	  (istep==(nsteps-1))?
+	  ldt:
+	  l2dt;
 	
-    // 	//     Compute U(t+dt/2) i.e. r1=r(t)+v1*dt/2
-    // 	evolve_lx_conf_with_momenta(lx_conf,H,dth);
-    // 	//     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
-    // 	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,uml2dt,aux_F);
-    // 	if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F);
-    // 	//     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
-    // 	evolve_lx_conf_with_momenta(lx_conf,H,dth);
-    // 	//     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
-    // 	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt,aux_F);
-    // 	if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F);
+	//     Compute U(t+dt/2) i.e. r1=r(t)+v1*dt/2
+	evolve_lx_conf_with_momenta(lx_conf,H,dth);
+	//     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
+	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,uml2dt,aux_F);
+	if(topars.flag and TOPO_EVOLUTION==TOPO_MICRO)
+	  evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F);
+	//     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
+	evolve_lx_conf_with_momenta(lx_conf,H,dth);
+	//     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
+	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt,aux_F);
+	if(topars.flag and TOPO_EVOLUTION==TOPO_MICRO)
+	  evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F);
 	
-    // 	//normalize the configuration
-    // 	//unitarize_lx_conf_maximal_trace_projecting(lx_conf);
-    //   }
-    
-    // nissa_free(aux_F);
+	//normalize the configuration
+	//unitarize_lx_conf_maximal_trace_projecting(lx_conf);
+      }
   }
   
   //wrapper
@@ -105,21 +116,16 @@ namespace nissa
 					  theory_pars_t& theory_pars,
 					  hmc_evol_pars_t& simul)
   {
-    crash("reimplement");
+    LxField<quad_su3> H_lx("H_lx");
+    LxField<quad_su3> conf_lx("conf_lx",WITH_HALO_EDGES);
     
-    // quad_su3 *H_lx=nissa_malloc("H_lx",locVol,quad_su3);
-    // quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol+edge_vol,quad_su3);
+    paste_eo_parts_into_lx_vector(H_lx,H_eo);
+    paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
-    // paste_eo_parts_into_lx_vector(H_lx,H_eo);
-    // paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
+    Omelyan_pure_gauge_evolver_lx_conf(H_lx,conf_lx,theory_pars,simul);
     
-    // Omelyan_pure_gauge_evolver_lx_conf(H_lx,conf_lx,theory_pars,simul);
-    
-    // split_lx_vector_into_eo_parts(H_eo,H_lx);
-    // split_lx_vector_into_eo_parts(conf_eo,conf_lx);
-    
-    // nissa_free(conf_lx);
-    // nissa_free(H_lx);
+    split_lx_vector_into_eo_parts(H_eo,H_lx);
+    split_lx_vector_into_eo_parts(conf_eo,conf_lx);
   }
   
   /////////////////////////////////////// QUARK E/O PART ////////////////////////////////////////////////

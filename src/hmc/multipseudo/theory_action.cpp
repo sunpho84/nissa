@@ -61,29 +61,26 @@ namespace nissa
   }
   
   // Compute the action in the root staggered case
-  double compute_root_st_action(const EoField<quad_su3>& eo_conf,
+  double compute_root_st_action(EoField<quad_su3>& eo_conf,
 				const EoField<quad_u1>& u1b,
 				const rat_approx_t& rat,
 				const double& residue,
 				const EvnField<color>& pf)
   {
-    crash("reimplement");double action=0;
-    // color *chi=nissa_malloc("chi",locVolh,color);
+    EvnField<color> chi("chi");
     
-    // add_backfield_with_stagphases_to_conf(eo_conf,u1b);
-    // summ_src_and_all_inv_stD2ee_m2_cgm(chi,eo_conf,rat,1000000,residue,pf);
-    // rem_backfield_with_stagphases_from_conf(eo_conf,u1b);
+    add_backfield_with_stagphases_to_conf(eo_conf,u1b);
+    summ_src_and_all_inv_stD2ee_m2_cgm(chi,eo_conf,rat,1000000,residue,pf);
+    rem_backfield_with_stagphases_from_conf(eo_conf,u1b);
     
-    // double action;
-    // double_vector_glb_scalar_prod(&action,(double*)chi,(double*)chi,locVolh*sizeof(color)/sizeof(double));
-    
-    // nissa_free(chi);
+    const double action=
+      chi->norm2();
     
     return action;
   }
   
   //compute quark action for a set of quark
-  double compute_quark_action(const EoField<quad_su3>& eo_conf,
+  double compute_quark_action(EoField<quad_su3>& eo_conf,
 			      const std::vector<EoField<quad_u1>>& u1b,
 			      const std::vector<std::vector<pseudofermion_t>>& pf,
 			      const std::vector<quark_content_t>& quark_content,
@@ -92,51 +89,50 @@ namespace nissa
   {
     double glb_action=0;
     
+    const int nfl=quark_content.size();
+    const double res=simul_pars.pf_action_residue;
+    
+    //quark action
+    
+    for(int ifl=0;ifl<nfl;ifl++)
+      {
+	const rat_approx_t& r=rat_appr[nappr_per_quark*ifl+RAT_APPR_QUARK_ACTION];
+	const quark_content_t& q=quark_content[ifl];
+	pseudofermion_t chi_e(q.discretiz,"chi_e");
+	
+	for(int ipf=0;ipf<simul_pars.npseudo_fs[ifl];ipf++)
+	  {
+	    const pseudofermion_t &p=pf[ifl][ipf];
+	    verbosity_lv1_master_printf("Computing action for flavour %d/%d, pseudofermion %d/%d\n",ifl+1,nfl,ipf+1,simul_pars.npseudo_fs[ifl]);
+	    
+	    //compute chi with background field
+	    double flav_action;
+	    switch(q.discretiz)
+	      {
+	      case ferm_discretiz::ROOT_STAG:
+		flav_action=compute_root_st_action(eo_conf,u1b[ifl],r,res,*p.stag);
+		break;
+	      case ferm_discretiz::ROOT_TM_CLOV:
     crash("reimplement");
-    
-    // const int nfl=quark_content.size();
-    // const double res=simul_pars.pf_action_residue;
-    
-    // //quark action
-    
-    // for(int ifl=0;ifl<nfl;ifl++)
-    //   {
-    // 	const rat_approx_t& r=rat_appr[nappr_per_quark*ifl+RAT_APPR_QUARK_ACTION];
-    // 	const quark_content_t& q=quark_content[ifl];
-    // 	pseudofermion_t chi_e(q.discretiz,"chi_e");
-	
-    // 	for(int ipf=0;ipf<simul_pars.npseudo_fs[ifl];ipf++)
-    // 	  {
-    // 	    pseudofermion_t &p=(*pf)[ifl][ipf];
-    // 	    verbosity_lv1_master_printf("Computing action for flavour %d/%d, pseudofermion %d/%d\n",ifl+1,nfl,ipf+1,simul_pars->npseudo_fs[ifl]);
+    // flav_action=compute_root_tm_clov_action(eo_conf,u1b[ifl],r,q,res,*p.Wils);
+		break;
+	      default:
+		flav_action=0;
+		crash("still not implemented");
+	      }
 	    
-    // 	    //compute chi with background field
-    // 	    double flav_action;
-    // 	    switch(q.discretiz)
-    // 	      {
-    // 	      case ferm_discretiz::ROOT_STAG:
-    // 		flav_action=compute_root_st_action(eo_conf,u1b[ifl],r,res,*p.stag);
-    // 		break;
-    // 	      case ferm_discretiz::ROOT_TM_CLOV:
-    // 		flav_action=compute_root_tm_clov_action(eo_conf,u1b[ifl],r,q,res,*p.Wils);
-    // 		break;
-    // 	      default:
-    // 		flav_action=0;
-    // 		crash("still not implemented");
-    // 	      }
-	    
-    // 	    //compute scalar product
-    // 	    (*glb_action)+=flav_action;
-    // 	  }
+	    //compute scalar product
+	    glb_action+=flav_action;
+	  }
 	
-    //   }
+      }
     
     return glb_action;
   }
   
   //Compute the total action of the rooted staggered e/o improved theory
   double full_theory_action(const EoField<quad_su3>& eo_conf,
-			    const EoField<quad_su3>& sme_conf,
+			    EoField<quad_su3>& sme_conf,
 			    const EoField<quad_su3>& H,
 			    const std::vector<std::vector<pseudofermion_t>>& pf,
 			    const theory_pars_t& theory_pars,

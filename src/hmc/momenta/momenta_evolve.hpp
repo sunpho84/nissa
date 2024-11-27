@@ -10,7 +10,9 @@ namespace nissa
 				    const LxField<quad_su3>& F,
 				    const double& dt);
   
-  void evolve_lx_conf_with_momenta(quad_su3 *lx_conf,quad_su3 *H,double dt);
+  void evolve_lx_conf_with_momenta(LxField<quad_su3>& lx_conf,
+				   const LxField<quad_su3>& H,
+				   const double& dt);
 }
 
 #endif

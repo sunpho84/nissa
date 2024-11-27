@@ -1,32 +1,16 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
 #include <algorithm>
 
-#include "base/vectors.hpp"
-#include "communicate/borders.hpp"
-#include "communicate/edges.hpp"
 #include "geometry/geometry_mix.hpp"
-#include "io/input.hpp"
-#include "linalgs/linalgs.hpp"
+#include "io/endianness.hpp"
 #include "linalgs/reduce.hpp"
 #include "new_types/complex.hpp"
-#include "new_types/float_128.hpp"
-#include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
-#include "operations/fft.hpp"
-#include "operations/gaugeconf.hpp"
 #include "operations/remap_vector.hpp"
-#include "operations/su3_paths/gauge_sweeper.hpp"
-#include "operations/smearing/stout.hpp"
-#include "operations/smearing/Wflow.hpp"
-#include "operations/su3_paths/plaquette.hpp"
 #include "routines/ios.hpp"
-#include "routines/mpi_routines.hpp"
 #include "topological_charge.hpp"
 
 namespace nissa

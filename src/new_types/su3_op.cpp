@@ -303,13 +303,15 @@ namespace nissa
     // //find the link that maximize the plaquette
     // su3_unitarize_maximal_trace_projecting(u,staple);
   }
+  
   inline void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,int ivol,int mu)
   {
-    //compute the staple
-    su3 staple;
-    compute_point_summed_squared_staples_lx_conf_single_dir(staple,lx_conf,ivol,mu);
+    crash("reimplement");
+    // //compute the staple
+    // su3 staple;
+    // compute_point_summed_squared_staples_lx_conf_single_dir(staple,lx_conf,ivol,mu);
     
-    //find the link that maximize the plaquette
-    su3_unitarize_maximal_trace_projecting(u,staple);
+    // //find the link that maximize the plaquette
+    // su3_unitarize_maximal_trace_projecting(u,staple);
   }
 }

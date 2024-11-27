@@ -90,7 +90,11 @@ namespace nissa
   void ILDG_File_master_write(ILDG_File &file,void *data,int nbytes_req);
   void ILDG_File_read_all(void *data,ILDG_File &file,size_t nbytes_req);
   Checksum ILDG_File_read_checksum(ILDG_File &file);
-  void ILDG_File_read_ildg_data_all(void *data,ILDG_File &file,ILDG_header &header);
+  
+  void ILDG_File_read_ildg_data_all(void* data,
+				    ILDG_File& file,
+				    const ILDG_header& header);
+  
   void ILDG_File_seek_to_next_eight_multiple(ILDG_File &file);
   void ILDG_File_set_position(ILDG_File &file,ILDG_Offset pos,int amode);
   void ILDG_File_set_view(ILDG_File &file,ILDG_File_view &view);

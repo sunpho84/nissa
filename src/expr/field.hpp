@@ -18,8 +18,8 @@
 namespace nissa
 {
   /// Start the communications of buffer interpreted as halo
-  std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff,
-						     const size_t& bps);
+  // std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff,
+  // 						     const size_t& bps);
   
   DECLARE_UNTRANSPOSABLE_COMP(Parity,int,2,parity);
   DECLARE_UNTRANSPOSABLE_COMP(Dir,int,NDIM,dir);

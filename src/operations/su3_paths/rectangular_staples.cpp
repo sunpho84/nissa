@@ -1,15 +1,8 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-
-#include "base/bench.hpp"
 #include "base/debug.hpp"
-#include "base/vectors.hpp"
-#include "communicate/borders.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3_op.hpp"
 #include "rectangular_staples.hpp"

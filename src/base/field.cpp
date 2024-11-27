@@ -2,12 +2,15 @@
 # include "config.hpp"
 #endif
 
+#include <optional>
+
 #include <base/field.hpp>
 
 namespace nissa
 {
   std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff,
-						     const size_t& bps)
+						     const size_t& bps,
+						     const std::optional<std::vector<std::pair<int,int>>>& dirs)
   {
     /// Pending requests
     std::vector<MPI_Request> requests;
@@ -15,37 +18,39 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       if(is_dir_parallel[mu])
 	for(int sendOri=0;sendOri<2;sendOri++)
-	  {
-	    const auto sendOrRecv=
-	      [&mu,
-	       &divCoeff,
-	       &bps,
+	  if((not dirs.has_value()) or
+	     std::find(dirs->begin(),dirs->end(),std::make_pair(sendOri,mu))!=dirs->end())
+	    {
+	      const auto sendOrRecv=
+		[&mu,
+		 &divCoeff,
+		 &bps,
 	       &requests,
-	       messageTag=sendOri+2*mu]
-	      (const char* oper,
-	       const auto sendOrRecv,
-	       auto* ptr,
-	       const int& ori)
-	      {
-		const size_t offset=(bord_offset[mu]+bord_volh*ori)*bps/divCoeff;
-		const int neighRank=rank_neigh[ori][mu];
-		const size_t messageLength=bord_dir_vol[mu]*bps/divCoeff;
-		// printf("rank %d %s ori %d dir %d, corresponding rank: %d, tag: %d length: %zu\n"
-		//        ,rank,oper,ori,mu,neighRank,messageTag,messageLength);
-		
-		MPI_Request request;
-		
-		sendOrRecv(ptr+offset,messageLength,MPI_CHAR,neighRank,
-			   messageTag,MPI_COMM_WORLD,&request);
-		
-		requests.push_back(request);
-	      };
-	    
-	    const int recvOri=1-sendOri;
-	    
-	    sendOrRecv("send",MPI_Isend,send_buf,sendOri);
-	    sendOrRecv("recv",MPI_Irecv,recv_buf,recvOri);
-	  }
+		 messageTag=sendOri+2*mu]
+		(const char* oper,
+		 const auto sendOrRecv,
+		 auto* ptr,
+		 const int& ori)
+		{
+		  const size_t offset=(bord_offset[mu]+bord_volh*ori)*bps/divCoeff;
+		  const int neighRank=rank_neigh[ori][mu];
+		  const size_t messageLength=bord_dir_vol[mu]*bps/divCoeff;
+		  // printf("rank %d %s ori %d dir %d, corresponding rank: %d, tag: %d length: %zu\n"
+		  //        ,rank,oper,ori,mu,neighRank,messageTag,messageLength);
+		  
+		  MPI_Request request;
+		  
+		  sendOrRecv(ptr+offset,messageLength,MPI_CHAR,neighRank,
+			     messageTag,MPI_COMM_WORLD,&request);
+		  
+		  requests.push_back(request);
+		};
+	      
+	      const int recvOri=1-sendOri;
+	      
+	      sendOrRecv("send",MPI_Isend,send_buf,sendOri);
+	      sendOrRecv("recv",MPI_Irecv,recv_buf,recvOri);
+	    }
     
     return requests;
   }
