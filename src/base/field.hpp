@@ -673,7 +673,7 @@ namespace nissa
     /// Construct from other layout
     template <FieldLayout OFL,
 	      ENABLE_THIS_TEMPLATE_IF(OFL!=FL)>
-    explicit Field(const Field<T,FC,OFL>& oth) :
+    Field(const Field<T,FC,OFL>& oth) :
       Field(oth.name,oth.haloEdgesPresence)
     {
       *this=oth;
