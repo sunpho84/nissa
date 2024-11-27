@@ -670,6 +670,15 @@ namespace nissa
       _data=nissa_malloc(name,externalSize*nInternalDegs,Fund);
     }
     
+    /// Construct from other layout
+    template <FieldLayout OFL,
+	      ENABLE_THIS_TEMPLATE_IF(OFL!=FL)>
+    explicit Field(const Field<T,FC,OFL>& oth) :
+      Field(oth.name,oth.haloEdgesPresence)
+    {
+      *this=oth;
+    }
+    
     /// Move constructor
     Field(Field&& oth) :
       nRef(oth.nRef),
