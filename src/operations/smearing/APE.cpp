@@ -22,7 +22,7 @@ namespace nissa
 	  strncat(listed_dirs,temp,20);
 	}
     verbosity_lv1_master_printf("APE { %s} smearing with alpha=%g, %d iterations, original plaquette: %.16lg\n",
-				listed_dirs,alpha,nSteps,global_plaquette_lx_conf(smearConf));
+				listed_dirs,alpha,nSteps,global_plaquette_lx_conf(conf));
     
     if(nSteps==0)
       smearConf=conf;
