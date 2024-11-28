@@ -1,9 +1,6 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
-
-#include <string>
-#include <string.h>
 
 #ifdef USE_TMLQCD
 # include "base/tmLQCD_bridge.hpp"
@@ -17,25 +14,17 @@
 # include "base/DDalphaAMG_bridge.hpp"
 #endif
 
-#include "base/vectors.hpp"
 #include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
 #include "dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp"
-#include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "inverters/twisted_mass/cg_invert_tmD_eoprec.hpp"
-#include "linalgs/linalgs.hpp"
 #include "new_types/su3_op.hpp"
 #include "operations/su3_paths/clover_term.hpp"
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
 
 #include "cg_64_invert_tmclovD_eoprec.hpp"
-#include "cg_128_invert_tmclovD_eoprec.hpp"
-
-#include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
-#include "communicate/borders.hpp"
-#include "io/checksum.hpp"
 
 namespace nissa
 {
@@ -219,12 +208,13 @@ namespace nissa
     bool solved=false;
     
 #ifdef USE_QUDA
-    {
-      double call_time=take_time();
-      crash("reimplement");
-      //solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
-      master_printf("calling quda to solve took %lg s\n",take_time()-call_time);
-    }
+    if(multiGrid::checkIfMultiGridAvailableAndRequired(mass) and not solved)
+      {
+	double call_time=take_time();
+	crash("reimplement");
+	//solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
+	master_printf("calling quda to solve took %lg s\n",take_time()-call_time);
+      }
 #endif
     
 #ifdef USE_DDALPHAAMG
