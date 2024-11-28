@@ -29,13 +29,13 @@ include_HEADERS+= \
 	%D%/pars.hpp \
 	%D%/prop.hpp
 
-if USE_QUDA
-bin_PROGRAMS+= \
-	$(top_builddir)/bin/test_quda
- __top_builddir__bin_test_quda_SOURCES=%D%/test_quda.cpp
- __top_builddir__bin_test_quda_LDADD=$(LDADD)
- __top_builddir__bin_test_quda_LDFLAGS=$(LDFLAGS)
-endif
+# if USE_QUDA
+# bin_PROGRAMS+= \
+# 	$(top_builddir)/bin/test_quda
+#  __top_builddir__bin_test_quda_SOURCES=%D%/test_quda.cpp
+#  __top_builddir__bin_test_quda_LDADD=$(LDADD)
+#  __top_builddir__bin_test_quda_LDFLAGS=$(LDFLAGS)
+# endif
 
 __top_builddir__bin_checks_SOURCES=%D%/checks.cpp
 __top_builddir__bin_checks_LDADD=$(LDADD)
