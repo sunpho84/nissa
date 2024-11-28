@@ -73,6 +73,8 @@ namespace nissa
 		    
 		    su3_copy(smearConf[ivol][mu],prop_link);
 		  }
+		else
+		  su3_copy(smearConf[ivol][mu],conf[ivol][mu]);
 	    });
 	
 	//verbosity_lv3_
