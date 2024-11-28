@@ -6,6 +6,7 @@
 #include <base/field.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <new_types/su3_op.hpp>
+#include <operations/su3_paths/plaquette.hpp>
 #include <routines/ios.hpp>
 
 namespace nissa
@@ -83,9 +84,6 @@ namespace nissa
     
     for(int istep=1;istep<=nSteps;istep++)
       {
-	//verbosity_lv3_
-	  master_printf("APE spatial smearing with alpha=%g iteration %d of %d\n",alpha,istep,nSteps);
-	
 	conf.updateEdges();
 	
 	PAR(0,locVol,
@@ -131,6 +129,9 @@ namespace nissa
 		    su3_copy(smearConf[ivol][mu],prop_link);
 		  }
 	    });
+	
+	//verbosity_lv3_
+	master_printf("APE spatial smearing with alpha=%g iteration %d of %d, plaquette: %.16lg\n",alpha,istep,nSteps,global_plaquette_lx_conf(smearConf));
 	
 	if(istep!=nSteps)
 	  conf=smearConf;
