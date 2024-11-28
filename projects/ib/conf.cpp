@@ -67,11 +67,13 @@ namespace nissa
 		  const int& free_theory)
   {
 #ifdef USE_QUDA
+#ifdef QUDASETUPSTORE
     if(const size_t n=quda_iface::qudaSetups.size();n)
       {
 	master_printf("Clearing %zu stored multigrid setups\n",n);
 	quda_iface::qudaSetups.clear();
       }
+#endif
 #endif
     
     if(not free_theory)
