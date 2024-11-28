@@ -208,7 +208,7 @@ namespace nissa
     bool solved=false;
     
 #ifdef USE_QUDA
-    if(multiGrid::checkIfMultiGridAvailableAndRequired(mass) and not solved)
+    if(use_quda and not solved)
       {
 	double call_time=take_time();
 	crash("reimplement");
