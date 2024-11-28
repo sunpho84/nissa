@@ -72,7 +72,7 @@ void write_conf(const std::string& path,
   ILDG_string_message_append_to_last(&mess,"RND_gen_status",text);
   
   //write the conf
-  paste_eo_parts_and_write_ildg_gauge_conf(path,conf,64,&mess);
+  paste_eo_parts_and_write_ildg_gauge_conf(path,conf,&mess);
   
   //free messages
   ILDG_message_free_all(&mess);
@@ -485,40 +485,38 @@ void measurements(EoField<quad_su3>& temp,
   
   temp=conf;
   
-  crash("reimplement");
-  // RANGE_GAUGE_MEAS(plaq_pol_meas,i) measure_gauge_obs(drv->plaq_pol_meas[i],temp,iconf,acc,gauge_action_name);
-  // RANGE_GAUGE_MEAS(luppoli_meas,i) measure_poly_corrs(drv->luppoli_meas[i],temp,conf_created);
-  // RANGE_GAUGE_MEAS(top_meas,i)
-  //   {
-  //     top_meas_time[i]-=take_time();
-  //     measure_topology_eo_conf(drv->top_meas[i],temp,iconf,conf_created);
-  //     top_meas_time[i]+=take_time();
-  //   }
+  RANGE_GAUGE_MEAS(plaq_pol_meas,i) measure_gauge_obs(drv->plaq_pol_meas[i],temp,iconf,acc,gauge_action_name);
+  RANGE_GAUGE_MEAS(luppoli_meas,i) measure_poly_corrs(drv->luppoli_meas[i],temp,conf_created);
+  RANGE_GAUGE_MEAS(top_meas,i)
+    {
+      top_meas_time[i]-=take_time();
+      measure_topology_eo_conf(drv->top_meas[i],temp,iconf,conf_created);
+      top_meas_time[i]+=take_time();
+    }
   
-  crash("reimplement");
-  // RANGE_GAUGE_MEAS(all_rects_meas,i) measure_all_rectangular_paths(&drv->all_rects_meas[i],temp,iconf,conf_created);
-  // RANGE_GAUGE_MEAS(watusso_meas,i) measure_watusso(&drv->watusso_meas[i],temp,iconf,conf_created);
+  RANGE_GAUGE_MEAS(all_rects_meas,i) crash("reimplement");//measure_all_rectangular_paths(&drv->all_rects_meas[i],temp,iconf,conf_created);
+  RANGE_GAUGE_MEAS(watusso_meas,i) crash("reimplement");//measure_watusso(&drv->watusso_meas[i],temp,iconf,conf_created);
   
-  // for(int itheory=0;itheory<drv->ntheories();itheory++)
-  //   if(drv->any_fermionic_measure_is_due(itheory,iconf))
-  //     {
-  // 	//smear
-  // 	stout_smear(temp,conf,&(drv->theories[itheory].stout_pars));
+  for(int itheory=0;itheory<drv->ntheories();itheory++)
+    if(drv->any_fermionic_measure_is_due(itheory,iconf))
+      {
+	//smear
+	crash("reimplement");//stout_smear(temp,conf,&(drv->theories[itheory].stout_pars));
 	
-	// RANGE_FERMIONIC_MEAS(drv,fermionic_putpourri);
-	// RANGE_FERMIONIC_MEAS(drv,quark_rendens);
-	// RANGE_FERMIONIC_MEAS(drv,ellesettete);
-	// RANGE_FERMIONIC_MEAS(drv,chir_zumba);
-	// RANGE_FERMIONIC_MEAS(drv,qed_corr);
-	// RANGE_FERMIONIC_MEAS_EXTENDED(drv,spinpol,drv->theories[itheory].stout_pars,temp);
-	// RANGE_FERMIONIC_MEAS(drv,magnetization);
-	// RANGE_FERMIONIC_MEAS(drv,minmax_eigenvalues);
-	// RANGE_FERMIONIC_MEAS(drv,nucleon_corr);
-	// RANGE_FERMIONIC_MEAS(drv,meson_corr);
-	// RANGE_FERMIONIC_MEAS(drv,spectral_proj);
-	// RANGE_FERMIONIC_MEAS(drv,tm_tuning);
-// }
-
+	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,fermionic_putpourri);
+	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,quark_rendens);
+	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,ellesettete);
+	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,chir_zumba);
+	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,qed_corr);
+	crash("reimplement");//RANGE_FERMIONIC_MEAS_EXTENDED(drv,spinpol,drv->theories[itheory].stout_pars,temp);
+	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,magnetization);
+	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,minmax_eigenvalues);
+	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,nucleon_corr);
+	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,meson_corr);
+	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,spectral_proj);
+	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,tm_tuning);
+      }
+  
   meas_time+=take_time();
   
   verbosity_lv1_master_printf("Time to do all the measurement: %lg sec\n",meas_time);
