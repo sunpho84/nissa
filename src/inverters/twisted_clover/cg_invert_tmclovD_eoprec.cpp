@@ -222,7 +222,7 @@ namespace nissa
 	if(source_lx.fieldLayout!=FieldLayout::CPU)
 	  crash("wrong layout");
 	
-	double call_time=take_time();
+	const double call_time=take_time();
 	solved=DD::solve((spincolor*)solution_lx._data,(quad_su3*)conf_lx._data,kappa,cSW,mass,residue,(spincolor*)source_lx._data);
 	master_printf("calling DDalphaAMG to solve took %lg s\n",take_time()-call_time);
       }

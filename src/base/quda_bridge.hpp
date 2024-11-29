@@ -245,9 +245,12 @@ namespace quda_iface
   
   QUDA_API bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source) QUDA_ESCAPE_IF_NOT_AVAILABLE(return 0;);
   
+  void remap_nissa_to_quda(quda_conf_t out,
+			   const LxField<quad_su3>& in);
+  
   /// Load a gauge conf
-  template<typename T>
-  double load_conf(T nissa_conf)
+  template <typename T>
+  double load_conf(const T& nissa_conf)
   {
     master_printf("freeing the QUDA gauge conf\n");
     freeGaugeQuda();

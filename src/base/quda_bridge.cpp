@@ -527,7 +527,7 @@ namespace quda_iface
   
   /// Reorder conf into QUDA format
   void remap_nissa_to_quda(quda_conf_t out,
-			   LxField<quad_su3>& in)
+			   const LxField<quad_su3>& in)
   {
     HOST_PARALLEL_LOOP(0,
 		       locVol,
@@ -1399,8 +1399,8 @@ namespace quda_iface
   {
     const double export_time=take_time();
     const bool exported=false;
-    //export_gauge_conf_to_external_solver(conf);
-    crash("reimplement");
+    export_gauge_conf_to_external_solver(conf);
+    
     master_printf("time to export to the conf to quda: %lg s\n",take_time()-export_time);
     
     set_base_inverter_pars();
