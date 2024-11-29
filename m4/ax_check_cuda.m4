@@ -46,7 +46,7 @@ then
 		then
 			AC_SUBST([CUDA_LIBDIR],[$cuda_prefix/lib])
 		else
-			cuda_found=no
+			have_cuda=no
 		fi
 	else
 		AC_CHECK_SIZEOF([long])
@@ -62,14 +62,14 @@ then
 				AC_SUBST([CUDA_LIBDIR],[$cuda_prefix/lib])
 				CUDA_CPPFLAGS+=" -m32"
 			else
-				cuda_found=no
+				have_cuda=no
 			fi
 		else
-			cuda_found=no			
+			have_cuda=no			
 		fi
 	fi
 
-	if test "x$cuda_found" != xno
+	if test "x$have_cuda" != xno
 	then
 		CUDA_CPPFLAGS+=" -I$cuda_prefix/include"
 		CUDA_LDFLAGS="-L$CUDA_LIBDIR"
@@ -77,11 +77,11 @@ then
 		# And the header and the lib
 		AC_CHECK_HEADER([cuda.h], [],
 			AC_MSG_WARN([Couldn't find cuda.h])
-			cuda_found=no
+			have_cuda=no
 			,[#include <cuda.h>])
-		if test "x$cuda_found" != "xno"
+		if test "x$have_cuda" != "xno"
 		then
-			AC_CHECK_LIB([cuda], [cuInit], [cuda_found=yes], cuda_found=no)
+			AC_CHECK_LIB([cuda], [cuInit], [have_cuda=yes], have_cuda=no)
 		fi
 	fi
 	
@@ -94,6 +94,6 @@ then
 else
 	AC_MSG_RESULT([not found!])
 	AC_MSG_WARN([nvcc was not found in $cuda_prefix/bin])
-	cuda_found=no
+	have_cuda=no
 fi
 ])
