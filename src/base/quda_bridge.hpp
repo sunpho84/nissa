@@ -182,6 +182,7 @@ namespace quda_iface
   EXTERN_QUDA_BRIDGE QudaInvertParam inv_mg_param;
   EXTERN_QUDA_BRIDGE QudaEigParam mg_eig_param[QUDA_MAX_MG_LEVEL];
   
+  EXTERN_QUDA_BRIDGE MPI_Comm cart_comm;
 #endif
   
   EXTERN_QUDA_BRIDGE void* quda_mg_preconditioner INIT_QUDA_BRIDGE_TO(=nullptr);

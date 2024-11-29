@@ -31,8 +31,10 @@ namespace nissa
   {
     double initTime=0;
     extern int rank;
-    const bool print=(VERBOSITY_LV3
-		      and rank==0);
+    const bool print=
+      (VERBOSITY_LV3
+       and rank==0);
+    
     if(print)
       {
 	printf("at line %d of file %s launching openmp loop [%d,%d)\n",

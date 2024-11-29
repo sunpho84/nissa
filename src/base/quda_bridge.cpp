@@ -100,9 +100,10 @@ namespace quda_iface
     
     /// Result
     int out;
-    MPI_Cart_rank(MPI_COMM_WORLD,c,&out);
+    MPI_Cart_rank(quda_iface::cart_comm,c,&out);
     
-    printf("rank %d, {%d %d %d %d}->%d\n",rank,c[0],c[1],c[2],c[3],out);
+    if(VERBOSITY_LV3)
+      printf("rank %d, {%d %d %d %d}->%d\n",rank,c[0],c[1],c[2],c[3],out);
     
     return out;
   }
@@ -379,6 +380,11 @@ namespace quda_iface
   {
     if(not inited)
       {
+	coords_t periods;
+	for(int mu=0;mu<NDIM;mu++)
+	  periods[mu]=1;
+	MPI_Cart_create(MPI_COMM_WORLD,NDIM,&nrank_dir[0],&periods[0],1,&cart_comm);
+	
 	master_printf("Initializing QUDA\n");
 	
 	if(QUDA_VERSION_MAJOR==0 and QUDA_VERSION_MINOR<7)

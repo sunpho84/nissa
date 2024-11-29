@@ -24,9 +24,23 @@
 #define master_printf(...) ::nissa::master_fprintf(stdout,__VA_ARGS__)
 
 //wrappers for verbosity_lv?
-#define verbosity_lv1_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV1) master_printf(__VA_ARGS__);)
-#define verbosity_lv2_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV2) master_printf(__VA_ARGS__);)
-#define verbosity_lv3_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV3) master_printf(__VA_ARGS__);)
+#if MAX_VERBOSITY_LV>=1
+# define verbosity_lv1_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV1) master_printf(__VA_ARGS__);)
+#else
+# define verbosity_lv1_master_printf(...) MACRO_GUARD()
+#endif
+
+#if MAX_VERBOSITY_LV>=2
+# define verbosity_lv2_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV2) master_printf(__VA_ARGS__);)
+#else
+# define verbosity_lv2_master_printf(...) MACRO_GUARD()
+#endif
+
+#if MAX_VERBOSITY_LV>=3
+# define verbosity_lv3_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV3) master_printf(__VA_ARGS__);)
+#else
+# define verbosity_lv3_master_printf(...) MACRO_GUARD()
+#endif
 
 namespace nissa
 {
