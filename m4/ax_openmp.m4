@@ -6,7 +6,6 @@
 #edit from autoconf header
 
 AC_DEFUN([AX_OPENMP], [
-		      AC_REQUIRE([_AC_OPENMP_SAFE_WD])
 		AC_ARG_ENABLE([openmp],
 		   AS_HELP_STRING([--disable-openmp], [do not use OpenMP]))dnl
 
@@ -35,9 +34,6 @@ AC_DEFUN([AX_OPENMP], [
 		      elif test "$ac_cv_prog_[]_AC_LANG_ABBREV[]_openmp" = ''; then
 		        ac_cv_prog_[]_AC_LANG_ABBREV[]_openmp='none needed'
 		      fi
-		      dnl _AC_OPENMP_SAFE_WD checked that these files did not exist before we
-		      dnl started probing for OpenMP support, so if they exist now, they were
-		      dnl created by the probe loop and it's safe to delete them.
 		      rm -f penmp mp])
 		    if test "$ac_cv_prog_[]_AC_LANG_ABBREV[]_openmp" != 'unsupported' && \
 		       test "$ac_cv_prog_[]_AC_LANG_ABBREV[]_openmp" != 'none needed'; then
