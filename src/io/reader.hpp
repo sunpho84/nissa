@@ -60,6 +60,7 @@ namespace nissa
     
     //check precision
     int single_double_flag=-1;
+    [[maybe_unused]]
     const char single_double_str[2][10]={"single","double"};
     if(nbytes_per_site_read==nbytes_per_site_float) single_double_flag=0;
     if(nbytes_per_site_read==nbytes_per_site_double) single_double_flag=1;

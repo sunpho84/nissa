@@ -162,7 +162,7 @@ namespace quda_iface
     else if(prec==QUDA_HALF_PRECISION)
       return __half2float(((__half*)v)[i]);
     else
-      crash("Unknown precision %d",prec);
+      crash("Unknown precision %zu",prec);
     
     return 0;
   }
@@ -1388,7 +1388,14 @@ namespace quda_iface
     printf("native_blas_lapack: %d\n",i.native_blas_lapack);
   }
   
-  bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,spincolor *source)
+  bool solve_tmD(LxField<spincolor>& sol,
+		 const LxField<quad_su3>& conf,
+		 const double& kappa,
+		 const double& csw,
+		 const double& mu,
+		 const int& niter,
+		 const double& residue,
+		 const LxField<spincolor>& source)
   {
     const double export_time=take_time();
     const bool exported=false;

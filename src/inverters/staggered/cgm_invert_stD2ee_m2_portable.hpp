@@ -19,7 +19,7 @@ namespace nissa
 	       [temp=OddField<color>("temp",WITH_HALO),
 		&eo_conf]
 	       (EvnField<color>& out,
-		const double mass2,
+		const double& mass2,
 		const EvnField<color>& in) mutable
 	       {
 		 apply_stD2ee_m2(out,eo_conf,temp,mass2,in);
