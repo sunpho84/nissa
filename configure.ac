@@ -131,7 +131,7 @@ AC_DEFINE([NO_THREADS],[0],["No thread parallelization used"])
 AC_DEFINE([OPENMP_THREADS],[1],["OpenMP parallelization"])
 AC_DEFINE([CUDA_THREADS],[2],["Cuda parallelization"])
 AC_ARG_WITH(threads-type,
-	AS_HELP_STRING([--with-threads-type],[Select the kind of thread (none, cpu, gpu)]),
+	AS_HELP_STRING([--with-threads-type],[Select the kind of thread to be used by default (none, openmp, cuda)]),
 	with_threads_type="${withval}",
 	if test "$have_openmp" == "yes"
 	then
