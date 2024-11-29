@@ -117,6 +117,14 @@ fi
 
 #check openmp
 AX_OPENMP
+if test "$enable_openmp" != "no"
+then
+	CFLAGS="$CFLAGS $OPENMP_CFLAGS"
+	CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
+	CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
+else
+	AC_MSG_ERROR(["Asked to enable OpenMP when the compiler is not supporting it"])
+fi
 
 #cuda
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cuda_runtime.h>]],
@@ -124,12 +132,21 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cuda_runtime.h>]],
    # error "Not compiling with nvcc"
    #endif
 ]])],[have_cuda="yes"],[have_cuda="no"])
-
 AC_MSG_RESULT([checking if compiling with cuda... $have_cuda])
 AM_CONDITIONAL([USE_CUDA],[test "$have_cuda" == "yes"])
 if test "$have_cuda" == "yes"
 then
 	AC_DEFINE([USE_CUDA],1,"Using CUDA")
+	CUDA_MANAGED=__managed__
+	CUDA_HOST_AND_DEVICE="__host__ __device__"
+	CUDA_DEVICE="__device__"
+	
+	if ! (echo $CPPFLAGS $CXXFLAGS|grep -q -- -G)
+	then
+		LTO="-dlto"
+	fi
+	
+	CPPFLAGS="-dc $LTO --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS"
 fi
 
 #threads
@@ -139,13 +156,13 @@ AC_DEFINE([CUDA_THREADS],[2],["Cuda parallelization"])
 AC_ARG_WITH(threads-type,
 	AS_HELP_STRING([--with-threads-type],[Select the kind of thread to be used by default (none, openmp, cuda)]),
 	with_threads_type="${withval}",
-	if test "$have_openmp" == "yes"
+	if test "$have_cuda" == "yes"
 	then
-		with_threads_type="openmp"
+		with_threads_type="cuda"
 	else
-		if test "$have_cuda" == "yes"
+		if test "$have_openmp" == "yes"
 		then
-			with_threads_type="cuda"
+			with_threads_type="openmp"
 		else
 			with_threads_type="none"
 		fi
@@ -155,18 +172,10 @@ case "$with_threads_type" in
      openmp) if test "$have_openmp" != "no"
     	     then
 		THREADS_TYPE=OPENMP_THREADS
-		CFLAGS="$CFLAGS $OPENMP_CFLAGS"
-		CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
-		CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
-	     else
-		AC_MSG_ERROR(["Asked to enable OpenMP when the compiler is not supporting it"])
      	     fi ;;
      cuda)  if test "$have_cuda" != "no"
     	    then
 		THREADS_TYPE=CUDA_THREADS
-		CUDA_MANAGED=__managed__
-		CUDA_HOST_AND_DEVICE="__host__ __device__"
-		CUDA_DEVICE="__device__"
 	    else
 		AC_MSG_ERROR(["Asked to enable Cuda when the framework has not been found"])
 	     fi;;
@@ -444,16 +453,6 @@ AC_DEFINE_UNQUOTED([NCOL],$ncol,[Number of colors])
 AC_MSG_RESULT([enabling number of colors... $ncol])
 SUMMARY_RESULT="$SUMMARY_RESULT
 Number of colors    : $ncol"
-
-if test "$with_threads_type" = "cuda"
-then
-	if ! (echo $CPPFLAGS $CXXFLAGS|grep -q -- -G)
-	then
-		LTO="-dlto"
-	fi
-	
-	CPPFLAGS="-dc $LTO --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS"
-fi
 
 #macros to concatenate
 AC_DEFINE([_CONCAT(X,Y)],[X##Y],[Internally concatenation])

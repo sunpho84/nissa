@@ -16,7 +16,7 @@
 #endif
 
 #ifdef USE_CUDA
- #include "base/cuda.hpp"
+# include "base/cuda.hpp"
 #endif
 
 #include "base/DDalphaAMG_bridge.hpp"

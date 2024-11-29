@@ -263,7 +263,7 @@ namespace quda_iface
 	DiracCoarse* dc=static_cast<DiracCoarse*>(rob<diracCoarseSmoother>(cur));
 	cudaGaugeField* yd=rob<Y_d>(dc);
 	cudaGaugeField* yhat_d=rob<Yhat_d>(dc);
-
+	
 	if(takeCopy)
 	  {
 	    Y[lev]=nissa_malloc("Y",yd->Bytes(),char);
@@ -416,7 +416,7 @@ namespace quda_iface
 	  }
 	
 	for(int mu=0;mu<NDIM;mu++)
-	  quda_conf[mu]=nissa_malloc("quda_conf",locVol,su3);
+	  quda_conf[mu]=new su3[locVol];
 	master_printf("allocating quda_conf\n");
 	
 	spincolor_in=nissa_malloc("spincolor_in",locVol,spincolor);
@@ -495,7 +495,7 @@ namespace quda_iface
 	  }
 	
 	for(int mu=0;mu<NDIM;mu++)
-	  nissa_free(quda_conf[mu]);
+	  delete [] quda_conf[mu];
 	
 	nissa_free(spincolor_in);
 	nissa_free(spincolor_out);
