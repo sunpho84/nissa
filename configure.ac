@@ -119,9 +119,15 @@ fi
 AX_OPENMP
 
 #cuda
-AX_CHECK_CUDA
-AM_CONDITIONAL([USE_CUDA],[test "$CXX" == "nvcc"])
-if test "$CXX" == "nvcc"
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cuda_runtime.h>]],
+[[ #if !defined __NVCC__
+   # error "Not compiling with nvcc"
+   #endif
+]])],[have_cuda="yes"],[have_cuda="no"])
+
+AC_MSG_RESULT([checking if compiling with cuda... $have_cuda])
+AM_CONDITIONAL([USE_CUDA],[test "$have_cuda" == "yes"])
+if test "$have_cuda" == "yes"
 then
 	AC_DEFINE([USE_CUDA],1,"Using CUDA")
 fi
