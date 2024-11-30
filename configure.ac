@@ -146,7 +146,7 @@ then
 		LTO="-dlto"
 	fi
 	
-	CUDA_CXXFLAGS="-dc $LTO --expt-relaxed-constexpr --expt-extended-lambda -x cu"
+	CUDA_CPPFLAGS="-dc $LTO --expt-relaxed-constexpr --expt-extended-lambda -x cu"
 fi
 
 #threads
@@ -455,7 +455,7 @@ SUMMARY_RESULT="$SUMMARY_RESULT
 Number of colors    : $ncol"
 
 #adding cuda flags before, makes a mess
-CXXFLAGS="$CUDA_CXXFLAGS $CXXFLAGS"
+CPPFLAGS="$CUDA_CPPFLAGS $CPPFLAGS"
 
 #macros to concatenate
 AC_DEFINE([_CONCAT(X,Y)],[X##Y],[Internally concatenation])

@@ -144,61 +144,6 @@ namespace nissa
   {
     IF_MAIN_VECT_NOT_INITIALIZED() initialize_main_vect();
     
-    if(VERBOSITY_LV3)
-      {
-	IF_MAIN_VECT_NOT_INITIALIZED() initialize_main_vect();
-	
-	if(VERBOSITY_LV3)
-	  {
-	    master_printf("Allocating vector ");
-	    vect_content_printf(last_vect);
-	  }
-	
-	int64_t size=nel*size_per_el;
-	//try to allocate the new vector
-	nissa_vect *nv;
-	int64_t tot_size=size+sizeof(nissa_vect);
-#define ALLOCATING_ERROR \
-	"could not allocate vector named \"%s\" of %ld elements of type %s (total size: %ld bytes) "\
-		"request on line %d of file %s",tag,nel,type,size,line,file
-#if THREADS_TYPE==CUDA_THREADS
-	decript_cuda_error(cudaMallocManaged(&nv,tot_size),ALLOCATING_ERROR);
-#else
-	nv=(nissa_vect*)malloc(tot_size);
-	if(nv==NULL)
-	  crash(ALLOCATING_ERROR);
-#endif
-#undef ALLOCATING_ERROR
-	
-	//fill the vector with information supplied
-	nv->line=line;
-	nv->nel=nel;
-	nv->size_per_el=size_per_el;
-	nv->flag=0;
-	take_last_characters(nv->file,file,NISSA_VECT_STRING_LENGTH);
-	take_last_characters(nv->tag,tag,NISSA_VECT_STRING_LENGTH);
-	take_last_characters(nv->type,type,NISSA_VECT_STRING_LENGTH);
-	
-	//append the new vector to the list
-	nv->next=NULL;
-	nv->prev=last_vect;
-	
-	last_vect->next=nv;
-	last_vect=nv;
-	
-	//define returned pointer and check for its alignement
-	return_malloc_ptr=(void*)(last_vect+1);
-	int64_t offset=((int64_t)(return_malloc_ptr))%NISSA_VECT_ALIGNMENT;
-	if(offset!=0)
-	  crash("memory alignment problem, vector %s has %ld offset",tag,offset);
-	
-	//Update the amount of required memory
-	required_memory+=size;
-	max_required_memory=std::max(max_required_memory,required_memory);
-	
-	//cache_flush();
-      }
-    
     int64_t size=nel*size_per_el;
     //try to allocate the new vector
     nissa_vect *nv;

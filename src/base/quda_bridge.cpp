@@ -415,9 +415,9 @@ namespace quda_iface
 	    loclx_of_quda[quda]=ivol;
 	  }
 	
-	for(int mu=0;mu<NDIM;mu++)
-	  quda_conf[mu]=new su3[locVol];
 	master_printf("allocating quda_conf\n");
+	for(int mu=0;mu<NDIM;mu++)
+	  quda_conf[mu]=nissa_malloc("quda_conf",locVol,su3);
 	
 	spincolor_in=nissa_malloc("spincolor_in",locVol,spincolor);
 	spincolor_out=nissa_malloc("spincolor_out",locVol,spincolor);
@@ -495,7 +495,7 @@ namespace quda_iface
 	  }
 	
 	for(int mu=0;mu<NDIM;mu++)
-	  delete [] quda_conf[mu];
+	  nissa_free(quda_conf[mu]);
 	
 	nissa_free(spincolor_in);
 	nissa_free(spincolor_out);
@@ -509,13 +509,16 @@ namespace quda_iface
 	
 	//free the clover and gauge conf
 	freeGaugeQuda();
+#ifndef DYNAMIC_CLOVER
 	freeCloverQuda();
+#endif
 	endQuda();
 	
 	inited=false;
       }
   }
   
+#ifndef DYNAMIC_CLOVER
   /// Loads the clover term
   void load_clover_term(QudaInvertParam* inv_param)
   {
@@ -524,6 +527,7 @@ namespace quda_iface
     loadCloverQuda(nullptr,nullptr,inv_param);
     master_printf("Time for loadCloverQuda: %lg\n",take_time()-load_clover_time);
   }
+#endif
   
   /// Reorder conf into QUDA format
   void remap_nissa_to_quda(quda_conf_t out,
@@ -824,8 +828,11 @@ namespace quda_iface
     
     inv_param.omega=1.0;
     
+#ifndef DYNAMIC_CLOVER
+# warning Please compile quda with DYNAMIC_CLOVER switched on
     if(exported and csw)
       load_clover_term(&inv_param);
+#endif
     
     if(multiGrid::checkIfMultiGridAvailableAndRequired(mu))
       {
@@ -846,9 +853,6 @@ namespace quda_iface
 	inv_param.maxiter_precondition=1;
 	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
 	inv_param.solve_type=QUDA_DIRECT_PC_SOLVE;
-#ifndef DYNAMIC_CLOVER
-# warning Please compile quda with DYNAMIC_CLOVER switched on
-#endif
 	
 	inv_param.omega=1.0;
 	
