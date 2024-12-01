@@ -42,7 +42,8 @@ namespace nissa
     //     -calculate source_norm=(r,r)
     p=source;
     r=source;
-    const double source_norm2=r.norm2();
+    const double source_norm2=
+      r.norm2();
     
     //writes source norm
     verbosity_lv2_master_printf(" Source norm: %lg\n",source_norm2);
@@ -175,7 +176,9 @@ namespace nissa
 		verbosity_lv3_master_printf("ishift %ld alpha: %16.16lg\n",ishift,alphas[ishift]);
 #endif
 		ps[ishift]*=alphas[ishift];
-		ps[ishift]+=r;
+		t=r; //improvable
+		t*=zfs[ishift];
+		ps[ishift]+=t;
 		
 		// shift z
 		zps[ishift]=zas[ishift];
@@ -224,7 +227,8 @@ namespace nissa
 	f(s,shifts[iShift],sol[iShift]);
 	
 	s-=source;
-	const double res=s.norm2();
+	const double res=
+	  s.norm2();
 	
 	verbosity_lv2_master_printf(" ishift %zu, rel residue true=%lg approx=%lg commanded=%lg\n",
 				    iShift,res/source_norm2,final_res[iShift],residue[iShift]);
