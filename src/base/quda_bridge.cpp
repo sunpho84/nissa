@@ -798,13 +798,12 @@ namespace quda_iface
 //     remap_quda_to_nissa(out,spincolor_out);
   }
   
-  template <typename T,
-	    ENABLE_THIS_TEMPLATE_IF(hasMember_n_vec_batch<T>)>
+  template <typename T>
   void set_n_vec_batch(T& quda_mg_param)
   {
-    const int& nlevels=multiGrid::nlevels;
-	for(int level=0;level<nlevels;level++)
-	  quda_mg_param.n_vec_batch[level]=1;
+    if constexpr(hasMember_n_vec_batch<T>)
+      for(int level=0;level<multiGrid::nlevels;level++)
+	quda_mg_param.n_vec_batch[level]=1;
   }
   
   void set_inverter_pars(const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,const bool& exported)
