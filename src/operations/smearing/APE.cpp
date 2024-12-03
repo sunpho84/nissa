@@ -77,11 +77,10 @@ namespace nissa
 		  su3_copy(smearConf[ivol][mu],conf[ivol][mu]);
 	    });
 	
-	//verbosity_lv3_
-	master_printf("APE spatial smearing with alpha=%g iteration %d of %d, plaquette: %.16lg\n",alpha,istep,nSteps,global_plaquette_lx_conf(smearConf));
-	
 	if(istep!=nSteps)
 	  conf=smearConf;
+	else
+	  verbosity_lv2_master_printf("APE spatial smearing with alpha=%g iteration %d of %d, plaquette: %.16lg\n",alpha,istep,nSteps,global_plaquette_lx_conf(smearConf));
       }
   }
 }
