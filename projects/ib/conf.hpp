@@ -22,6 +22,9 @@ namespace nissa
   EXTERN_CONF double conf_load_time;
   EXTERN_CONF int nconf_load;
   
+  EXTERN_CONF double ape_time;
+  EXTERN_CONF int nape_tot;
+  
   EXTERN_CONF char conf_path[1024],outfolder[1024];
   EXTERN_CONF int ngauge_conf;
   EXTERN_CONF int inner_conf_valid;

@@ -103,7 +103,9 @@ namespace nissa
     //if the copied conf exists, ape smear
     if(ape_smeared_conf)
       {
+	START_TIMING(ape_time,nape_tot);
 	ape_spatial_smear_conf(*ape_smeared_conf,*conf,ape_smearing_alpha,ape_smearing_niters);
+	STOP_TIMING(ape_time);
 	master_printf("Smeared plaquette: %+16.16lg\n",global_plaquette_lx_conf(*ape_smeared_conf));
       }
     
@@ -360,6 +362,7 @@ namespace nissa
 	print_single_statistic(meslep_contr_time,tot_prog_time,nmeslep_contr_made,"calculation of hadro-leptonic contractions");
 	print_single_statistic(contr_print_time,tot_prog_time,nmeslep_contr_made,"printing contractions");
       	print_single_statistic(fft_time,tot_prog_time,nfft_tot,"Fourier transforming and writing fft-propagators");
+      	print_single_statistic(ape_time,tot_prog_time,nape_tot,"Ape smearing");
       	print_single_statistic(sme_time,tot_prog_time,nsme_tot,"Gaussian smearing");
       	print_single_statistic(flw_time,tot_prog_time,nflw_tot,"Flowing forward");
       	print_single_statistic(bflw_time,tot_prog_time,nbflw_tot,"Flowing backward");
