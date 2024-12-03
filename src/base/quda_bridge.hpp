@@ -7,6 +7,7 @@
 
 #ifdef USE_QUDA
 # include <quda.h>
+# include <quda_api.h>
 # include <multigrid.h>
 #endif
 
@@ -71,16 +72,16 @@ namespace quda_iface
     std::tuple<std::string,nissa::Checksum>;
 
 #ifdef USE_QUDA
-  /// Restore or take copy of raw data, taking care of the direction of the request
-  inline void restoreOrTakeCopyOfData(void* host,
-				      void* device,
-				      const size_t& size,
-				      const bool takeCopy)
-  {
-    qudaMemcpy(takeCopy?host:device,
-	       takeCopy?device:host,
-	       size,takeCopy?cudaMemcpyDeviceToHost:cudaMemcpyHostToDevice);
-  }
+  // /// Restore or take copy of raw data, taking care of the direction of the request
+  // inline void restoreOrTakeCopyOfData(void* host,
+  // 				      void* device,
+  // 				      const size_t& size,
+  // 				      const bool takeCopy)
+  // {
+  //   qudaMemcpy(takeCopy?host:device,
+  // 	       takeCopy?device:host,
+  // 	       size,takeCopy?qudaMemcpyDeviceToHost:qudaMemcpyHostToDevice);
+  // }
 #endif
   
 //   /// Store a full setup of the multigrid
@@ -245,7 +246,7 @@ namespace quda_iface
   
   QUDA_API bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source) QUDA_ESCAPE_IF_NOT_AVAILABLE(return 0;);
   
-  void remap_nissa_to_quda(quda_conf_t out,
+  void remap_nissa_to_quda(quda_conf_t& out,
 			   const LxField<quad_su3>& in);
   
   /// Load a gauge conf

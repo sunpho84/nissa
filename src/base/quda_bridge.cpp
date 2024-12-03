@@ -72,6 +72,13 @@ namespace nissa
 namespace nissa
 {
   PROVIDE_HAS_MEMBER(cl_pad);
+  PROVIDE_HAS_MEMBER(sp_pad);
+  PROVIDE_HAS_MEMBER(gflops);
+  PROVIDE_HAS_MEMBER(n_vec_batch);
+  PROVIDE_HAS_MEMBER(secs);
+  PROVIDE_HAS_MEMBER(true_res);
+  PROVIDE_HAS_MEMBER(true_res_hq);
+  PROVIDE_HAS_MEMBER(tune);
 }
 
 namespace quda_iface
@@ -518,19 +525,18 @@ namespace quda_iface
       }
   }
   
-#ifndef DYNAMIC_CLOVER
   /// Loads the clover term
   void load_clover_term(QudaInvertParam* inv_param)
   {
-    const double load_clover_time=take_time();
+    const double load_clover_time=
+      take_time();
     freeCloverQuda();
     loadCloverQuda(nullptr,nullptr,inv_param);
     master_printf("Time for loadCloverQuda: %lg\n",take_time()-load_clover_time);
   }
-#endif
   
   /// Reorder conf into QUDA format
-  void remap_nissa_to_quda(quda_conf_t out,
+  void remap_nissa_to_quda(quda_conf_t& out,
 			   const LxField<quad_su3>& in)
   {
     HOST_PARALLEL_LOOP(0,
@@ -550,7 +556,7 @@ namespace quda_iface
   }
   
   /// Reorder conf into QUDA format
-  void remap_nissa_to_quda(quda_conf_t out,
+  void remap_nissa_to_quda(quda_conf_t& out,
 			   const EoField<quad_su3>& in)
   {
     for(int par=0;par<2;par++)
@@ -678,6 +684,21 @@ namespace quda_iface
   //   inv_param.clover_cuda_prec_refinement_sloppy=
   //   sloppy_prec;
   // }
+
+#define PROVIDE_MAYBE_SET(X)					\
+  template <typename T,						\
+	    typename V>						\
+  void maybe_set_ ## X(T& i,					\
+		       V&& v)					\
+  {								\
+    if constexpr(hasMember_ ## X<T>)				\
+      i.X=v;							\
+  }
+  
+  PROVIDE_MAYBE_SET(cl_pad);
+  PROVIDE_MAYBE_SET(sp_pad);
+  
+#undef PROVIDE_MAYBE_SET
   
   void set_base_inverter_pars()
   {
@@ -718,11 +739,8 @@ namespace quda_iface
     
     //inv_param.tune=QUDA_TUNE_YES;
     
-    if constexpr(hasMember_cl_pad<decltype(inv_param)>)
-      {
-	inv_param.sp_pad=0;
-	inv_param.cl_pad=0;
-      }
+    maybe_set_sp_pad(inv_param,0);
+    maybe_set_cl_pad(inv_param,0);
     
     inv_param.Ls=1;
     
@@ -780,6 +798,15 @@ namespace quda_iface
 //     remap_quda_to_nissa(out,spincolor_out);
   }
   
+  template <typename T,
+	    ENABLE_THIS_TEMPLATE_IF(hasMember_n_vec_batch<T>)>
+  void set_n_vec_batch(T& quda_mg_param)
+  {
+    const int& nlevels=multiGrid::nlevels;
+	for(int level=0;level<nlevels;level++)
+	  quda_mg_param.n_vec_batch[level]=1;
+  }
+  
   void set_inverter_pars(const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,const bool& exported)
   {
     inv_param.kappa=kappa;
@@ -830,9 +857,9 @@ namespace quda_iface
     
 #ifndef DYNAMIC_CLOVER
 # warning Please compile quda with DYNAMIC_CLOVER switched on
+#endif
     if(exported and csw)
       load_clover_term(&inv_param);
-#endif
     
     if(multiGrid::checkIfMultiGridAvailableAndRequired(mu))
       {
@@ -881,6 +908,8 @@ namespace quda_iface
 	
 	for(int level=0;level<nlevels;level++)
 	  {
+	    set_n_vec_batch(quda_mg_param);
+	    
 	    // set file i/o parameters
 	    strcpy(quda_mg_param.vec_infile[level],"");
 	    strcpy(quda_mg_param.vec_outfile[level],"");
@@ -1261,16 +1290,28 @@ namespace quda_iface
       printf("vec_outfile: %s\n",i.vec_outfile[ilev]);
     printf("coarse_guess: %d\n",i.coarse_guess);
     printf("preserve_deflation: %d\n",i.preserve_deflation);
-    printf("gflops: %lg\n",i.gflops);
-    printf("secs: %lg\n",i.secs);
-    for(int ilev=0;ilev<nlev;ilev++)
-      printf("mu_factor: %lg\n",i.mu_factor[ilev]);
     for(int ilev=0;ilev<nlev;ilev++)
       printf("transfer_type: %d\n",i.transfer_type[ilev]);
     // printf("use_mma: %d\n",i.use_mma);
     printf("thin_update_only: %d\n",i.thin_update_only);
   }
-
+  
+#define PROVIDE_MAYBE_PRINT(X,F)					\
+  template <typename T>							\
+  void maybe_print_ ## X(const T& i)					\
+  {								\
+    if constexpr(hasMember_ ## X<T>)				\
+      printf(#X": " F "\n",i.X);				\
+  }
+  
+  PROVIDE_MAYBE_PRINT(cl_pad,"%d");
+  PROVIDE_MAYBE_PRINT(sp_pad,"%d");
+  PROVIDE_MAYBE_PRINT(true_res,"%lg");
+  PROVIDE_MAYBE_PRINT(true_res_hq,"%lg");
+  PROVIDE_MAYBE_PRINT(tune,"%lg");
+  
+  #undef PROVIDE_MAYBE_PRINT
+  
   void sanfoPrint(QudaInvertParam& i)
   {
     printf("input_location: %d\n",i.input_location);
@@ -1294,8 +1335,8 @@ namespace quda_iface
     printf("tol_restart: %lg\n",i.tol_restart);
     printf("tol_hq: %lg\n",i.tol_hq);
     printf("compute_true_res: %d\n",i.compute_true_res);
-    printf("true_res: %lg\n",i.true_res);
-    printf("true_res_hq: %lg\n",i.true_res_hq);
+    maybe_print_true_res(i);
+    maybe_print_true_res_hq(i);
     printf("maxiter: %d\n",i.maxiter);
     printf("reliable_delta: %lg\n",i.reliable_delta);
     printf("reliable_delta_refinement: %lg\n",i.reliable_delta_refinement);
@@ -1347,15 +1388,12 @@ namespace quda_iface
     printf("return_clover: %d\n",i.return_clover);
     printf("return_clover_inverse: %d\n",i.return_clover_inverse);
     printf("verbosity: %d\n",i.verbosity);
-    if constexpr(hasMember_cl_pad<decltype(i)>)
-      {
-	printf("sp_pad: %d\n",i.sp_pad);
-	printf("cl_pad: %d\n",i.cl_pad);
-      }
+    maybe_print_cl_pad(i);
+    maybe_print_sp_pad(i);
     printf("iter: %d\n",i.iter);
     printf("gflops: %lg\n",i.gflops);
     printf("secs: %lg\n",i.secs);
-    printf("tune: %d\n",i.tune);
+    maybe_print_tune(i);
     printf("Nsteps: %d\n",i.Nsteps);
     printf("gcrNkrylov: %d\n",i.gcrNkrylov);
     printf("inv_type_precondition: %d\n",i.inv_type_precondition);
@@ -1402,8 +1440,8 @@ namespace quda_iface
 		 const LxField<spincolor>& source)
   {
     const double export_time=take_time();
-    const bool exported=false;
-    export_gauge_conf_to_external_solver(conf);
+    const bool exported=
+      export_gauge_conf_to_external_solver(conf);
     
     master_printf("time to export to the conf to quda: %lg s\n",take_time()-export_time);
     
