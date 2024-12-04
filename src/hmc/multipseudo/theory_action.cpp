@@ -74,7 +74,7 @@ namespace nissa
     rem_backfield_with_stagphases_from_conf(eo_conf,u1b);
     
     const double action=
-      chi->norm2();
+      chi.realPartOfScalarProdWith(pf);
     
     return action;
   }

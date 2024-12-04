@@ -45,8 +45,7 @@ namespace nissa
     
     for(int iterm=0;iterm<appr.degree();iterm++)
       FOR_EACH_SITE_DEG_OF_FIELD(chi_e,
-				 CAPTURE(appr,
-					 TO_WRITE(chi_e),
+				 CAPTURE(TO_WRITE(chi_e),
 					 w=appr.weights[iterm],
 					 t=temp[iterm].getReadable()),
 				 site,iDeg,

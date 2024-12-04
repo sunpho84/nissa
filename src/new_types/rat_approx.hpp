@@ -144,7 +144,7 @@ namespace nissa
   
   //convert from a stored approximation
   inline std::vector<rat_approx_t> convert_rat_approx(const char *data,
-					       const size_t& len)
+						      const size_t& len)
   {
     std::vector<rat_approx_t> out;
     
