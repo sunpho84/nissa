@@ -15,7 +15,7 @@ namespace nissa
     for(int eo=0;eo<2;eo++)
       action+=H[eo].norm2();
     
-    return action;
+    return action/2;
   }
   
   //lx version
