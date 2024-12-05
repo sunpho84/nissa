@@ -5,6 +5,7 @@
 #include "hmc/gauge/pure_gauge_Omelyan_integrator.hpp"
 #include "hmc/hmc.hpp"
 #include "hmc/momenta/momenta_evolve.hpp"
+#include "hmc/multipseudo/theory_action.hpp"
 #include "hmc/theory_pars.hpp"
 
 #include "operations/gaugeconf.hpp"
@@ -151,19 +152,19 @@ namespace nissa
     
 #ifdef DEBUG_FORCE
     int par=0,ieo=1,mu=1;
-    double eps=1e-4;
+    double eps=1e-5;
     
     //store initial link
     su3 sto;
     su3_copy(sto,conf[par][ieo][mu]);
     
     //allocate smeared conf
-    EoField<quad_su3> sme_conf("sme_conf",WITH_HALO_EDGE);
+    EoField<quad_su3> sme_conf("sme_conf",WITH_HALO_EDGES);
     
     //compute action before
-    double act_ori;
-    stout_smear(sme_conf,conf,&(theory_pars->stout_pars));
-    compute_quark_action(&act_ori,sme_conf,theory_pars->backfield,pf,theory_pars->quarks,simul_pars,rat_appr);
+    stout_smear(sme_conf,conf,(theory_pars.stout_pars));
+    const double act_ori=
+      compute_quark_action(sme_conf,theory_pars.backfield,pf,theory_pars.quarks,simul_pars,rat_appr);
     
     //store derivative
     su3 nu_plus,nu_minus;
@@ -181,15 +182,15 @@ namespace nissa
 	
 	//change -, compute action
 	unsafe_su3_dag_prod_su3(conf[par][ieo][mu],exp_mod,sto);
-	double act_minus;
-	stout_smear(sme_conf,conf,&(theory_pars->stout_pars));
-	compute_quark_action(&act_minus,sme_conf,theory_pars->backfield,pf,theory_pars->quarks,simul_pars,rat_appr);
+	stout_smear(sme_conf,conf,theory_pars.stout_pars);
+	const double act_minus=
+	  compute_quark_action(sme_conf,theory_pars.backfield,pf,theory_pars.quarks,simul_pars,rat_appr);
 	
 	//change +, compute action
 	unsafe_su3_prod_su3(conf[par][ieo][mu],exp_mod,sto);
-	double act_plus;
-	stout_smear(sme_conf,conf,&(theory_pars->stout_pars));
-	compute_quark_action(&act_plus,sme_conf,theory_pars->backfield,pf,theory_pars->quarks,simul_pars,rat_appr);
+	stout_smear(sme_conf,conf,theory_pars.stout_pars);
+	const double act_plus=
+	  compute_quark_action(sme_conf,theory_pars.backfield,pf,theory_pars.quarks,simul_pars,rat_appr);
 	
 	//set back everything
 	su3_copy(conf[par][ieo][mu],sto);
