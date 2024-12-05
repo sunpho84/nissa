@@ -433,31 +433,32 @@ namespace nissa
 					 void* data,
 					 const uint64_t data_length)
   {
-    // //allocate the buffer
-    // ILDG_Offset nbytes_per_rank=data_length/nranks;
-    // char *buf=nissa_malloc("buf",nbytes_per_rank,char);
+    //allocate the buffer
+    ILDG_Offset nbytes_per_rank=data_length/nranks;
+    char *buf=nissa_malloc("buf",nbytes_per_rank,char);
     
-    // //take original position
-    // ILDG_Offset ori_pos=ILDG_File_get_position(file);
+    //take original position
+    ILDG_Offset ori_pos=ILDG_File_get_position(file);
     
-    // //find starting point
-    // ILDG_Offset new_pos=ori_pos+rank*nbytes_per_rank;
-    // ILDG_File_set_position(file,new_pos,SEEK_SET);
+    //find starting point
+    ILDG_Offset new_pos=ori_pos+rank*nbytes_per_rank;
+    ILDG_File_set_position(file,new_pos,SEEK_SET);
     
-    // //reorder data to the appropriate place
-    // vector_remap_t *rem=new vector_remap_t(locVol,index_to_ILDG_remapping,NULL);
-    // rem->remap(buf,data,data_length/glbVol);
-    // delete rem;
+    //reorder data to the appropriate place
+    vector_remap_t *rem=new vector_remap_t(locVol,index_to_ILDG_remapping);
+    rem->remap(buf,data,data_length/glbVol);
+    delete rem;
     
-    // //write
-    // ILDG_Offset nbytes_wrote=fwrite(buf,1,nbytes_per_rank,file);
-    // if(nbytes_wrote!=nbytes_per_rank) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_per_rank);
+    //write
+    ILDG_Offset nbytes_wrote=fwrite(buf,1,nbytes_per_rank,file);
+    if(nbytes_wrote!=nbytes_per_rank)
+      crash("wrote %ld bytes instead of %ld",nbytes_wrote,nbytes_per_rank);
     
-    // //place at the end of the record, including padding
-    // ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(data_length),SEEK_SET);
+    //place at the end of the record, including padding
+    ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(data_length),SEEK_SET);
     
-    // //free buf and ord
-    // nissa_free(buf);
+    //free buf and ord
+    nissa_free(buf);
   }
   
   /// Write the data according to ILDG mapping
