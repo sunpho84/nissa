@@ -97,7 +97,7 @@ namespace nissa
     
     //start communication of lower surf to backward nodes
     START_TIMING(tot_comm_time,ntot_comm);
-    const std::vector<std::pair<int,int>> dir_comm={{1,0},{1,1},{1,2},{1,3}};
+    const std::vector<std::pair<int,int>> dir_comm={{0,0},{0,1},{0,2},{0,3}};
     
     return startBufHaloNeighExchange<quad_su3>(1,dir_comm);
   }
@@ -193,7 +193,7 @@ namespace nissa
     
     //start communication of fw surf backward staples to forward nodes
     START_TIMING(tot_comm_time,ntot_comm);
-    const std::vector<std::pair<int,int>> dir_comm={{0,0},{0,1},{0,2},{0,3}};
+    const std::vector<std::pair<int,int>> dir_comm={{1,0},{1,1},{1,2},{1,3}};
     
     return startBufHaloNeighExchange<quad_su3>(1,dir_comm);
   }
