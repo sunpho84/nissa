@@ -110,23 +110,23 @@ namespace nissa
 		TO_READ(conf),
 		TO_WRITE(temp)),io,
 	{
-	//neighbours search
-	const int evup0=loceo_neighup[ODD][io][0];
-	const int evdw0=loceo_neighdw[ODD][io][0];
-	
-	//derivative in the time direction - without self-summ
-	unsafe_su3_prod_color(      temp[io],conf[ODD][io   ][0],in[evup0]);
-	su3_dag_subt_the_prod_color(temp[io],conf[EVN][evdw0][0],in[evdw0]);
-	
-	//derivatives in the spatial direction - with self summ
-	for(int mu=1;mu<NDIM;mu++)
-	  {
-	    const int evup=loceo_neighup[ODD][io][mu];
-	    const int evdw=loceo_neighdw[ODD][io][mu];
-	    
-	    su3_summ_the_prod_color(    temp[io],conf[ODD][io  ][mu],in[evup]);
-	    su3_dag_subt_the_prod_color(temp[io],conf[EVN][evdw][mu],in[evdw]);
-	  }
+	  //neighbours search
+	  const int evup0=loceo_neighup[ODD][io][0];
+	  const int evdw0=loceo_neighdw[ODD][io][0];
+	  
+	  //derivative in the time direction - without self-summ
+	  unsafe_su3_prod_color(      temp[io],conf[ODD][io   ][0],in[evup0]);
+	  su3_dag_subt_the_prod_color(temp[io],conf[EVN][evdw0][0],in[evdw0]);
+	  
+	  //derivatives in the spatial direction - with self summ
+	  for(int mu=1;mu<NDIM;mu++)
+	    {
+	      const int evup=loceo_neighup[ODD][io][mu];
+	      const int evdw=loceo_neighdw[ODD][io][mu];
+	      
+	      su3_summ_the_prod_color(    temp[io],conf[ODD][io  ][mu],in[evup]);
+	      su3_dag_subt_the_prod_color(temp[io],conf[EVN][evdw][mu],in[evdw]);
+	    }
 	});
     
     temp.updateHalo();

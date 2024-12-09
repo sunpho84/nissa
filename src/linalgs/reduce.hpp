@@ -97,7 +97,7 @@ namespace nissa
   template <typename T,
 	    typename B,
 	    typename Op>
-  void locReduce(T *loc_res,
+  void locReduce(T* loc_res,
 		 B& buf,
 		 int64_t n,
 		 const int nslices,

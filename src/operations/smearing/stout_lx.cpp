@@ -187,7 +187,7 @@ namespace nissa
 	  CAPTURE(mu,rho,
 		  TO_WRITE(Lambda),
 		  TO_READ(conf),
-		  TO_READ(F)),
+		  TO_WRITE(F)),
 	  A,
 	  {
 	    //compute the ingredients needed to smear

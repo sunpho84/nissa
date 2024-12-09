@@ -127,7 +127,7 @@ namespace nissa
   }
   
   // 3) finish communication of lower surface
-  void squared_staples_lx_conf_finish_communicating_lower_surface(const LxField<quad_su3>& conf,
+  void squared_staples_lx_conf_finish_communicating_lower_surface(LxField<quad_su3>& conf,
 								  std::vector<MPI_Request>& requests)
   {
     waitAsyncCommsFinish(requests);
@@ -136,7 +136,7 @@ namespace nissa
     //copy the received forward border (stored in the second half of receiving buf) on its destination
     PAR(0,
 	bord_volh,
-	CAPTURE(TO_READ(conf)),
+	CAPTURE(TO_WRITE(conf)),
 	i,
 	{
 	  quad_su3_copy(conf[locVol+bord_volh+i],((quad_su3*)recv_buf)[bord_volh+i]);

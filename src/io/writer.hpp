@@ -56,10 +56,16 @@ namespace nissa
     //compute the checksum
     const Checksum check=ildgChecksum(in);
     
-    FOR_EACH_SITE_DEG_OF_FIELD(in,CAPTURE(TO_READ(in)),site,iDeg,
-				 {
-				   fixFromNativeEndianness<BigEndian>(in(site,iDeg));
-				 });
+    auto& i=const_cast<LxField<T,FieldLayout::CPU>&>(in);
+    if(nativeEndianness!=BigEndian)
+      crash("fix");
+    FOR_EACH_SITE_DEG_OF_FIELD(in,
+			       CAPTURE(TO_WRITE(i)),
+			       site,
+			       iDeg,
+			       {
+				 fixFromNativeEndianness<BigEndian>(i(site,iDeg));
+			       });
     
     //write
     write_real_vector_internal(file,in,header_message);
@@ -71,7 +77,7 @@ namespace nissa
     time+=take_time();
     verbosity_lv2_master_printf("Time elapsed in writing: %f s\n",time);
   }
-
+  
   template <typename T,
 	    FieldLayout FL,
 	    ENABLE_THIS_TEMPLATE_IF(FL!=FieldLayout::CPU)>
@@ -108,7 +114,9 @@ namespace nissa
   {
     const size_t nBits=64;
     
-    double startTime=take_time();
+    [[maybe_unused]]
+    const double startTime=
+      take_time();
     
     //Open the file
     ILDG_File file=ILDG_File_open_for_write(path);

@@ -347,8 +347,8 @@ namespace nissa
     staples.reset();
     PAR(0,locVol,
 	CAPTURE(TO_READ(conf),
-		TO_READ(staples),
-		TO_WRITE(leaves)),
+		TO_READ(leaves),
+		TO_WRITE(staples)),
 	A,
 	{
 	  //list the plan and coefficients for each staples

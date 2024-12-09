@@ -234,7 +234,7 @@ namespace nissa
       typename F::Comps;
     
     using Fund=
-      typename F::Fund;
+      ConstIf<std::is_const_v<F>,typename F::Fund>;
     
     static constexpr int nInternalDegs=
       F::nInternalDegs;
