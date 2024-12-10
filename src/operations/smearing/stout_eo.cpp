@@ -27,12 +27,15 @@ namespace nissa
     
     in.updateEdges();
     
+    master_printf("Stotuing dirs: %d %d %d %d with rho=%lg\n",dirs[0],dirs[1],dirs[2],dirs[3],rho);
+    
     for(int par=0;par<2;par++)
       for(int mu=0;mu<NDIM;mu++)
 	if(dirs[mu])
 	  PAR(0,
 	      locVolh,
-	      CAPTURE(par,mu,
+	      CAPTURE(par,
+		      mu,
 		      rho,
 		      TO_READ(in),
 		      TO_WRITE(out)),
@@ -47,7 +50,18 @@ namespace nissa
 	      safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
 	      unsafe_su3_prod_su3(out[par][A][mu],expiQ,in[par][A][mu]);
 	    });
-	
+	else
+	  PAR(0,
+	      locVolh,
+	      CAPTURE(par,
+		      mu,
+		      TO_READ(in),
+		      TO_WRITE(out)),
+	      A,
+	    {
+	      su3_copy(out[par][A][mu],in[par][A][mu]);
+	    });
+	  
     STOP_TIMING(sto_time);
   }
   
@@ -75,7 +89,7 @@ namespace nissa
 	      {
 		tmp=out;
 		stout_smear_single_level(out,tmp,stout_pars.rho,dirs);
-		verbosity_lv2_master_printf("sme_step %d/%d, plaquette: %16.16lg\n",i,nlevels,global_plaquette_eo_conf(out));
+		verbosity_lv2_master_printf("sme_step %d/%d, plaquette: %16.16lg\n",i+1,nlevels,global_plaquette_eo_conf(out));
 	      }
 	  }
       }
