@@ -297,7 +297,7 @@ int generate_new_conf(int itraj)
       int perform_test=(itraj>=drv->hmc_evol_pars.skip_mtest_ntraj);
       
       //integrare and compute difference of action
-      double diff_act=multipseudo_rhmc_step(*new_conf,*conf,drv->sea_theory(),drv->hmc_evol_pars,rat_appr,itraj);
+      const double diff_act=multipseudo_rhmc_step(*new_conf,*conf,drv->sea_theory(),drv->hmc_evol_pars,rat_appr,itraj);
       
       //perform the test in any case
       master_printf("Diff action: %lg, ",diff_act);

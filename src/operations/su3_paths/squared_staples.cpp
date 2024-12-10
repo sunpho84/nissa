@@ -285,8 +285,8 @@ namespace nissa
     //compute non_fw_surf fw staples
     std::vector<MPI_Request> bwRequests=
       squared_staples_lx_conf_start_communicating_lower_surface(conf);
-    squared_staples_lx_conf_compute_non_fw_surf_fw_staples(out,conf);
-    squared_staples_lx_conf_finish_communicating_lower_surface(conf,bwRequests);
+    squared_staples_lx_conf_compute_non_fw_surf_fw_staples(out,conf);//nasty
+    squared_staples_lx_conf_finish_communicating_lower_surface(const_cast<LxField<quad_su3>&>(conf),bwRequests);
     
     //compute fw_surf bw staples, non_fw_surf bw staples and fw_surf fw staples
     std::vector<MPI_Request> fwRequests=
