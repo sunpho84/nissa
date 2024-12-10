@@ -55,20 +55,18 @@ namespace nissa
     
     //compute the checksum
     const Checksum check=ildgChecksum(in);
-    
-    auto& i=const_cast<LxField<T,FieldLayout::CPU>&>(in);
-    if(nativeEndianness!=BigEndian)
-      crash("fix");
-    FOR_EACH_SITE_DEG_OF_FIELD(in,
-			       CAPTURE(TO_WRITE(i)),
+
+    LxField<T,FieldLayout::CPU> temp=in;
+    FOR_EACH_SITE_DEG_OF_FIELD(temp,
+			       CAPTURE(TO_WRITE(temp)),
 			       site,
 			       iDeg,
 			       {
-				 fixFromNativeEndianness<BigEndian>(i(site,iDeg));
+				 fixFromNativeEndianness<BigEndian>(temp(site,iDeg));
 			       });
     
     //write
-    write_real_vector_internal(file,in,header_message);
+    write_real_vector_internal(file,temp,header_message);
     
     //append the checksum
     ILDG_File_write_checksum(file,check);

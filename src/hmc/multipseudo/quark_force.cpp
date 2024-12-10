@@ -121,7 +121,8 @@ namespace nissa
     int nlevls=physics.stout_pars.nlevels;
     
     //first of all we take care of the trivial case
-    if(nlevls==0) compute_quark_force_no_stout_remapping(F,conf,pf,physics,appr,residue);
+    if(nlevls==0)
+      compute_quark_force_no_stout_remapping(F,conf,pf,physics,appr,residue);
     else
       {
 	//allocate the stack of confs: conf is binded to sme_conf[0]

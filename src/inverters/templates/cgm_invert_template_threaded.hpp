@@ -105,7 +105,7 @@ namespace nissa
 	  p.realPartOfScalarProdWith(s);
 	
 #ifdef CGM_DEBUG
-	verbosity_lv3_master_printf("pap: %16.16lg (ap[0]: %16.16lg)\n",pap,s._data[0]);
+	verbosity_lv3_master_printf("pap: %16.16lg, ap[0]: %16.16lg, p[0]: %16.16lg\n",pap,s._data[0],p._data[0]);
 #endif
 	//     calculate betaa=rr/pap=(r,r)/(p,Ap)
 	betap=betaa;
