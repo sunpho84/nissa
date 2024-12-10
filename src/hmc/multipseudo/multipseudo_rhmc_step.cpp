@@ -130,6 +130,9 @@ namespace nissa
     hmc_time+=take_time();
     verbosity_lv1_master_printf("Total time to perform rhmc step: %lg s\n",hmc_time);
     
+    if(nLevels>0)
+      delete _sme_conf;
+    
     return diff_action;
   }
 }

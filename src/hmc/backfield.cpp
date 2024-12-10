@@ -38,16 +38,18 @@ namespace nissa
   void add_im_pot_to_backfield(EoField<quad_u1>& S,
 			       const quark_content_t& quark_content)
   {
-    const double im_pot=quark_content.im_pot*M_PI/glbSize[0];
+    const double im_pot=
+      quark_content.im_pot*M_PI/glbSize[0];
     
     for(int par=0;par<2;par++)
       {
 	PAR(0,locVolh,
-	    CAPTURE(im_pot,par,
+	    CAPTURE(c=cos(im_pot),
+		    s=sin(im_pot),
+		    par,
 		    TO_WRITE(S)),
 	    ieo,
 	    {
-	      const double c=cos(im_pot),s=sin(im_pot);
 	      const complex ph={c,s};
 	      safe_complex_prod(S[par][ieo][0],S[par][ieo][0],ph);
 	    });
