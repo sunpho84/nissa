@@ -47,7 +47,6 @@
 #define SU3_ECAST(A) (mesu3_t(*(emw_t*)(A)))
 #define CCAST(A) (*(scomplex_t*)(A))
 
-#endif
 
 namespace nissa
 {
