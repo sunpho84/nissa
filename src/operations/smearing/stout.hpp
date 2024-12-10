@@ -83,14 +83,7 @@ namespace nissa
 				const EoField<quad_su3>& ext_in,
 				const double& rho,
 				const which_dir_t& dirs=all_dirs);
-  
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples& out,
-							const EoField<quad_su3>& conf,
-							const int& p,
-							const int& A,
-							const int& mu,
-							const double& rho);
-  
+    
   //compute the staples for the link U_A_mu weighting them with rho
   template <typename S,
 	    typename C>
