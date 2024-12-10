@@ -71,7 +71,7 @@ namespace nissa
 	    su3_print(out[par][1][mu]);
 	}
     
-    master_printf("Test, links in 1:\n");
+    master_printf("Test, in 1:\n");
     for(int par=0;par<2;par++)
       for(int mu=0;mu<NDIM;mu++)
 	{
@@ -80,8 +80,15 @@ namespace nissa
 	  //compute the staples needed to smear
 	  stout_link_staples sto_ste;
 	  stout_smear_compute_staples(sto_ste,in,par,1,mu,rho);
+	  master_printf("C\n");
 	  if(is_master_rank())
 	    su3_print(sto_ste.C);
+	  master_printf("omeg\n");
+	  if(is_master_rank())
+	    su3_print(sto_ste.Omega);
+	  master_printf("Q\n");
+	  if(is_master_rank())
+	    su3_print(sto_ste.Q);
 	}
     STOP_TIMING(sto_time);
   }
