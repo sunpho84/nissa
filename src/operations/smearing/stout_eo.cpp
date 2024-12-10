@@ -61,7 +61,16 @@ namespace nissa
 	    {
 	      su3_copy(out[par][A][mu],in[par][A][mu]);
 	    });
-	  
+    
+    master_printf("Test, links in 1:\n");
+    for(int par=0;par<2;par++)
+      for(int mu=0;mu<NDIM;mu++)
+	{
+	  master_printf("par %d mu %d\n",par,mu);
+	  if(is_master_rank())
+	    su3_print(out[par][1][mu]);
+	}
+    
     STOP_TIMING(sto_time);
   }
   
