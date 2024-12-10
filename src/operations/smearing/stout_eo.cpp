@@ -27,7 +27,41 @@ namespace nissa
     
     in.updateEdges();
     
-    master_printf("Stotuing dirs: %d %d %d %d with rho=%lg\n",dirs[0],dirs[1],dirs[2],dirs[3],rho);
+    master_printf("Stouting dirs: %d %d %d %d with rho=%lg\n",dirs[0],dirs[1],dirs[2],dirs[3],rho);
+    
+    master_printf("Test, in 1:\n");
+    for(int par=0;par<2;par++)
+      for(int mu=0;mu<NDIM;mu++)
+	{
+	  master_printf("par %d mu %d\n",par,mu);
+	  
+	  //compute the staples needed to smear
+	  master_printf("in\n");
+	  if(is_master_rank())
+	    su3_print(in[par][1][mu]);
+	  stout_link_staples sto_ste;
+	  stout_smear_compute_staples(sto_ste,in,par,1,mu,rho);
+	  master_printf("C\n");
+	  if(is_master_rank())
+	    su3_print(sto_ste.C);
+	  master_printf("omeg\n");
+	  if(is_master_rank())
+	    su3_print(sto_ste.Omega);
+	  master_printf("Q\n");
+	  if(is_master_rank())
+	    su3_print(sto_ste.Q);
+	  
+	  su3 expiQ;
+	  safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
+	  master_printf("expiQ\n");
+	  if(is_master_rank())
+	    su3_print(expiQ);
+	  su3 t;
+	  unsafe_su3_prod_su3(t,expiQ,in[par][1][mu]);
+	  master_printf("t\n");
+	  if(is_master_rank())
+	    su3_print(t);
+	}
     
     for(int par=0;par<2;par++)
       for(int mu=0;mu<NDIM;mu++)
@@ -71,25 +105,6 @@ namespace nissa
 	    su3_print(out[par][1][mu]);
 	}
     
-    master_printf("Test, in 1:\n");
-    for(int par=0;par<2;par++)
-      for(int mu=0;mu<NDIM;mu++)
-	{
-	  master_printf("par %d mu %d\n",par,mu);
-	  
-	  //compute the staples needed to smear
-	  stout_link_staples sto_ste;
-	  stout_smear_compute_staples(sto_ste,in,par,1,mu,rho);
-	  master_printf("C\n");
-	  if(is_master_rank())
-	    su3_print(sto_ste.C);
-	  master_printf("omeg\n");
-	  if(is_master_rank())
-	    su3_print(sto_ste.Omega);
-	  master_printf("Q\n");
-	  if(is_master_rank())
-	    su3_print(sto_ste.Q);
-	}
     STOP_TIMING(sto_time);
   }
   
