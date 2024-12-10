@@ -37,15 +37,8 @@
   
 #endif
 
- using namespace Eigen;
 
- typedef std::complex<double> scomplex_t;
- typedef scomplex_t emw_t[NCOL*NCOL];
- typedef Matrix<scomplex_t,NCOL,NCOL,RowMajor> esu3_t;
- typedef Map<esu3_t> mesu3_t;
 
-#define SU3_ECAST(A) (mesu3_t(*(emw_t*)(A)))
-#define CCAST(A) (*(scomplex_t*)(A))
 
 
 namespace nissa
