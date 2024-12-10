@@ -101,6 +101,10 @@ namespace nissa
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  master_printf("par %d mu %d\n",par,mu);
+	  master_printf("in\n");
+	  if(is_master_rank())
+	    su3_print(in[par][1][mu]);
+	  master_printf("out\n");
 	  if(is_master_rank())
 	    su3_print(out[par][1][mu]);
 	}
