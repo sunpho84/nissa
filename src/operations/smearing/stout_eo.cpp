@@ -59,22 +59,23 @@ namespace nissa
   {
     verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(in));
     
-    if(stout_pars.nlevels==0)
+    if(const int nlevels=stout_pars.nlevels;nlevels==0)
       out=in;
     else
       {
 	stout_smear_single_level(out,in,stout_pars.rho,dirs);
-	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_eo_conf(out));
+	verbosity_lv2_master_printf("sme_step 1/%d, plaquette: %16.16lg\n",nlevels,global_plaquette_eo_conf(out));
 	
 	if(stout_pars.nlevels>1)
 	  {
 	    //allocate temp
 	    EoField<quad_su3> tmp("tmp",WITH_HALO_EDGES);
 	    
-	    for(int i=1;i<stout_pars.nlevels;i++)
+	    for(int i=1;i<nlevels;i++)
 	      {
 		tmp=out;
 		stout_smear_single_level(out,tmp,stout_pars.rho,dirs);
+		verbosity_lv2_master_printf("sme_step %d/%d, plaquette: %16.16lg\n",i,nlevels,global_plaquette_eo_conf(out));
 	      }
 	  }
       }
