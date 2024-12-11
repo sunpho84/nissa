@@ -96,7 +96,7 @@ namespace nissa
 	      su3_copy(out[par][A][mu],in[par][A][mu]);
 	    });
     
-    master_printf("Test, links in 1:\n");
+    master_printf("Test, links in 1 (%p %p):\n",&(out[0][0][0][0][0][0]),&(in[0][0][0][0][0][0]));
     for(int par=0;par<2;par++)
       for(int mu=0;mu<NDIM;mu++)
 	{
