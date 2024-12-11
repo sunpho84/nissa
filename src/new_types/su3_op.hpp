@@ -37,9 +37,17 @@
   
 #endif
 
+#define UNROLL_FOR(I,MIN,MAX)			\
+  for(auto I=MIN;I<MAX;I++)
 
+#define UNROLL_FOR_ALL_COLS(IC)			\
+  UNROLL_FOR(IC,0,NCOL)
 
+#define UNROLL_FOR_ALL_DIRS(MU)			\
+  UNROLL_FOR(MU,0,NDIM)
 
+#define UNROLL_FOR_ALL_DIRAC(ID)		\
+  UNROLL_FOR(ID,0,NDIRAC)
 
 namespace nissa
 {
@@ -70,7 +78,7 @@ namespace nissa
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void color_put_to_zero(U&& m)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_put_to_zero(m[ic]);
   }
   
@@ -79,22 +87,35 @@ namespace nissa
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void su3_put_to_zero(U&& m)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       color_put_to_zero(m[ic]);
   }
   
-  CUDA_HOST_AND_DEVICE inline void as2t_su3_put_to_zero(as2t_su3 m) {for(size_t i=0;i<sizeof(as2t_su3)/sizeof(su3);i++) su3_put_to_zero(m[i]);}
+  CUDA_HOST_AND_DEVICE inline void as2t_su3_put_to_zero(as2t_su3 m)
+  {
+    UNROLL_FOR(ic,0,(int)(sizeof(as2t_su3)/sizeof(su3)))
+      su3_put_to_zero(m[ic]);
+  }
   
   template <typename A>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void spincolor_put_to_zero(A&& a)
   {
-    for(int id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_DIRAC(id)
       color_put_to_zero(a[id]);
   }
   
-  inline void colorspinspin_put_to_zero(colorspinspin m) {for(size_t ic=0;ic<NCOL;ic++) spinspin_put_to_zero(m[ic]);}
-  inline void su3spinspin_put_to_zero(su3spinspin m) {for(size_t ic=0;ic<NCOL;ic++) colorspinspin_put_to_zero(m[ic]);}
+  inline void colorspinspin_put_to_zero(colorspinspin m)
+  {
+    UNROLL_FOR_ALL_COLS(ic)
+      spinspin_put_to_zero(m[ic]);
+  }
+  
+  inline void su3spinspin_put_to_zero(su3spinspin m)
+  {
+    UNROLL_FOR_ALL_COLS(ic)
+      colorspinspin_put_to_zero(m[ic]);
+  }
   
   /// m=diag(1)
   template <typename U>
@@ -103,7 +124,7 @@ namespace nissa
   {
     su3_put_to_zero(m);
     
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       m[ic][ic][RE]=1;
   }
   
@@ -114,7 +135,7 @@ namespace nissa
 			     const B& in)
   {
     su3_put_to_zero(m);
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_copy(m[ic][ic],in[ic]);
   }
   
@@ -125,7 +146,7 @@ namespace nissa
 			       const B& in)
   {
     su3_put_to_zero(m);
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_copy(m[ic][ic],in);
   }
   
@@ -135,7 +156,7 @@ namespace nissa
 			      const double& in)
   {
     su3_put_to_zero(m);
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       m[ic][ic][0]=in;
   }
   
@@ -148,7 +169,7 @@ namespace nissa
   void color_copy(A&& a,
 		  const B& b)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_copy(a[ic],b[ic]);
   }
   
@@ -159,7 +180,7 @@ namespace nissa
   void su3_copy(A&& a,
 		const B& b)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       color_copy(a[ic],b[ic]);
   }
   
@@ -170,7 +191,7 @@ namespace nissa
   void quad_su3_copy(A&& a,
 		     const B& b)
   {
-    for(int i=0;i<NDIM;i++)
+    UNROLL_FOR_ALL_DIRS(i)
       su3_copy(a[i],b[i]);
   }
   
@@ -180,8 +201,8 @@ namespace nissa
   void spincolor_copy(A&& a,
 		      const B& b)
   {
-    for(int i=0;i<NDIRAC;i++)
-      color_copy(a[i],b[i]);
+    UNROLL_FOR_ALL_DIRAC(id)
+      color_copy(a[id],b[id]);
   }
   
   template <typename Out,
@@ -190,8 +211,8 @@ namespace nissa
   void colorspinspin_copy(Out&& b,
 			  const In& a)
   {
-    for(int i=0;i<NCOL;i++)
-      spinspin_copy(b[i],a[i]);
+    UNROLL_FOR_ALL_COLS(ic)
+      spinspin_copy(b[ic],a[ic]);
   }
   
   template <typename A,
@@ -200,8 +221,8 @@ namespace nissa
   void su3spinspin_copy(A&& a,
 			const B& b)
   {
-    for(int i=0;i<NCOL;i++)
-      colorspinspin_copy(a[i],b[i]);
+    UNROLL_FOR_ALL_COLS(ic)
+      colorspinspin_copy(a[ic],b[ic]);
   }
   
   //////////////////// Switch directions so to agree to ILDG ordering ////////////////////
@@ -215,7 +236,7 @@ namespace nissa
     quad_su3 buff;
     quad_su3_copy(buff,in);
     
-    for(int mu=0;mu<NDIM;mu++)
+    UNROLL_FOR_ALL_DIRS(mu)
       su3_copy(out[(mu+NDIM-1)%NDIM],buff[mu]);
   }
   
@@ -228,17 +249,20 @@ namespace nissa
     quad_su3 buff;
     quad_su3_copy(buff,in);
     
-    for(int mu=0;mu<NDIM;mu++)
+    UNROLL_FOR_ALL_DIRS(mu)
       su3_copy(out[(mu+1)%NDIM],buff[mu]);
   }
   
   ////////////////////////////////// Operations between colors //////////////////////////
   
   //just print a color
-  inline void color_print(const color c)
+  template <typename C>
+  INLINE_FUNCTION
+  void color_print(const C& c)
   {
-    for(size_t ic=0;ic<NCOL;ic++) printf("%+16.16lg,%+16.16lg\t",c[ic][RE],c[ic][IM]);
-    master_printf("\n");
+    UNROLL_FOR_ALL_COLS(ic)
+      printf("%+16.16lg,%+16.16lg\t",c[ic][RE],c[ic][IM]);
+    printf("\n");
   }
   
   /// a=b+c
@@ -250,7 +274,7 @@ namespace nissa
 		  const B& b,
 		  const C& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_summ(a[ic],b[ic],c[ic]);
   }
   
@@ -263,7 +287,7 @@ namespace nissa
 		  const B& b,
 		  const C& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_isumm(a[ic],b[ic],c[ic]);
   }
   
@@ -276,7 +300,7 @@ namespace nissa
 		   const B& b,
 		   const C& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_isubt(a[ic],b[ic],c[ic]);
   }
   
@@ -289,7 +313,7 @@ namespace nissa
 		  const B& b,
 		  const C& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_subt(a[ic],b[ic],c[ic]);
   }
   
@@ -340,7 +364,7 @@ namespace nissa
 			 const B& b,
 			 const double& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_prod_double(a[ic],b[ic],c);
   }
   
@@ -352,7 +376,7 @@ namespace nissa
 			  const B& b,
 			  const C& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_prod_idouble(a[ic],b[ic],c);
   }
   
@@ -363,7 +387,7 @@ namespace nissa
 				  const B& b,
 				  const double& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_summ_the_prod_double(a[ic],b[ic],c);
   }
   
@@ -375,7 +399,7 @@ namespace nissa
 				   const B& b,
 				   const C& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_summ_the_prod_idouble(a[ic],b[ic],c);
   }
   
@@ -387,7 +411,7 @@ namespace nissa
 				   const B& b,
 				   const C& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_summ_the_prod(a[ic],b[ic],c);
   }
   
@@ -399,7 +423,7 @@ namespace nissa
 				 const B& b,
 				 const C& c)
   {
-    for(size_t ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_subt_the_prod(a[ic],b[ic],c);
   }
   
@@ -410,7 +434,7 @@ namespace nissa
 			      const B& b,
 			      const size_t& c)
   {
-    for(size_t ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_prod_double(a[ic],b[ic],c==ic);
   }
   
@@ -424,7 +448,7 @@ namespace nissa
 			 const C& c,
 			 const double& cc)
   {
-    for(size_t ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       complex_linear_comb(a[ic],b[ic],cb,c[ic],cc);
   }
   
@@ -438,7 +462,7 @@ namespace nissa
 			 const C& c)
   {
     unsafe_complex_conj1_prod(a,b[0],c[0]);
-    for(int ic=1;ic<NCOL;ic++)
+    UNROLL_FOR(ic,1,NCOL)
       complex_summ_the_conj1_prod(a,b[ic],c[ic]);
   }
   
@@ -446,9 +470,9 @@ namespace nissa
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   double color_norm2(A&& c)
   {
-    double out=complex_norm2(c[0]);
+    double out=0;
     
-    for(int ic=1;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       out+=complex_norm2(c[ic]);
     
     return out;
@@ -464,8 +488,8 @@ namespace nissa
 			       const B& in,
 			       const C& factor)
   {
-    for(size_t i=0;i<NCOL;i++)
-      safe_complex_prod(out[i],in[i],factor);
+    UNROLL_FOR_ALL_COLS(ic)
+      safe_complex_prod(out[ic],in[ic],factor);
   }
   
   template <typename O,
@@ -476,14 +500,21 @@ namespace nissa
 				 const I& in,
 				 const F& factor)
    {
-     for(int i=0;i<NCOL;i++)
-      unsafe_complex_prod(out[i],in[i],factor);
+     UNROLL_FOR_ALL_COLS(ic)
+      unsafe_complex_prod(out[ic],in[ic],factor);
   }
   
   inline void safe_color_prod_complex_conj(color out,const color in,const complex factor)
-  {for(size_t i=0;i<NCOL;i++) safe_complex_conj2_prod(((complex*)out)[i],((complex*)in)[i],factor);}
+  {
+    UNROLL_FOR_ALL_COLS(ic)
+      safe_complex_conj2_prod(((complex*)out)[ic],((complex*)in)[ic],factor);
+  }
+  
   inline void unsafe_color_prod_complex_conj(color out,const color in,const complex factor)
-  {for(size_t i=0;i<NCOL;i++) unsafe_complex_conj2_prod(((complex*)out)[i],((complex*)in)[i],factor);}
+  {
+    UNROLL_FOR_ALL_COLS(ic)
+      unsafe_complex_conj2_prod(((complex*)out)[ic],((complex*)in)[ic],factor);
+  }
   
   ////////////////////////////////// Operations between su3 //////////////////////////
   
@@ -504,10 +535,10 @@ namespace nissa
   template <typename U>
   inline void su3_print(const U& u)
   {
-    for(size_t ic1=0;ic1<NCOL;ic1++)
+    UNROLL_FOR_ALL_COLS(ic)
       {
-	for(size_t ic2=0;ic2<NCOL;ic2++)
-	  printf("%+16.16lg,%+16.16lg\t",u[ic1][ic2][RE],u[ic1][ic2][IM]);
+	UNROLL_FOR_ALL_COLS(jc)
+	  printf("%+16.16lg,%+16.16lg\t",u[ic][jc][RE],u[ic][jc][IM]);
 	printf("\n");
       }
     printf("\n");
@@ -521,7 +552,7 @@ namespace nissa
 		 const B& m)
   {
     complex_copy(tr,m[0][0]);
-    for(int ic=1;ic<NCOL;ic++)
+    UNROLL_FOR(ic,1,NCOL)
       complex_summassign(tr,m[ic][ic]);
   }
   
@@ -532,7 +563,7 @@ namespace nissa
   {
     auto a=m[0][0][RE];
     
-    for(int ic=1;ic<NCOL;ic++)
+    UNROLL_FOR(ic,1,NCOL)
       a+=m[ic][ic][RE];
     
     return a;
@@ -587,10 +618,10 @@ namespace nissa
     int ic2=su3_sub_gr_indices[isub_gr][1];
     
     //create the two new rows of the matrix, column by column
-    for(size_t ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       {
 	complex row[2];
-	for(int irow=0;irow<2;irow++)
+	UNROLL_FOR(irow,0,2)
 	  {
 	    safe_complex_prod    (row[irow],mod[irow][0],in[ic1][ic]);
 	    complex_summ_the_prod(row[irow],mod[irow][1],in[ic2][ic]);
@@ -617,7 +648,7 @@ namespace nissa
   
   //summ the trace to the input
   inline void su3_summ_the_trace(complex tr,const su3 m)
-  {for(size_t ic=0;ic<NCOL;ic++) complex_summ(tr,tr,m[ic][ic]);}
+  {UNROLL_FOR_ALL_COLS(ic) complex_summ(tr,tr,m[ic][ic]);}
   
   /// Return the anti-hermitian traceless part of an su3 matrix
   template <typename A,
@@ -627,18 +658,18 @@ namespace nissa
 						const B& in)
   {
     double trace_im_third=0;
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       trace_im_third+=in[ic][ic][IM];
     trace_im_third/=NCOL;
     
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       {
 	//real part of diagonal: 0
 	out[ic][ic][RE]=0;
 	//imag part of diagonal: subtract the trace
 	out[ic][ic][IM]=in[ic][ic][IM]-trace_im_third;
 	
-	for(int jc=0;jc<ic;jc++)
+	UNROLL_FOR(jc,0,ic)
 	  {
 	    //out-of-diag real part
 	    out[ic][jc][RE]=-(out[jc][ic][RE]=(in[jc][ic][RE]-in[ic][jc][RE])/2);
@@ -651,14 +682,14 @@ namespace nissa
   //keep the antihermitian part of an su3 matrix
   CUDA_HOST_AND_DEVICE inline void su3_anti_hermitian_part(su3 out,su3 in)
   {
-    for(size_t ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       {
 	//real part of diagonal: 0
 	out[ic][ic][RE]=0;
 	//imag part of diagonal: no change
 	out[ic][ic][IM]=in[ic][ic][IM];
 	
-	for(size_t jc=0;jc<ic;jc++)
+	UNROLL_FOR(jc,0,ic)
 	  {
 	    //out-of-diag real part
 	    out[ic][jc][RE]=-(out[jc][ic][RE]=(in[jc][ic][RE]-in[ic][jc][RE])/2);
@@ -676,17 +707,17 @@ namespace nissa
 					   const B& in)
   {
     double trace_re_third=0;
-    for(int ic=0;ic<NCOL;ic++) trace_re_third+=in[ic][ic][RE];
+    UNROLL_FOR_ALL_COLS(ic) trace_re_third+=in[ic][ic][RE];
     trace_re_third/=NCOL;
     
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       {
 	//imag part of diagonal: 0
 	out[ic][ic][IM]=0;
 	//real part of diagonal: subtract the trace
 	out[ic][ic][RE]=in[ic][ic][RE]-trace_re_third;
 	
-	for(int jc=0;jc<ic;jc++)
+	UNROLL_FOR(jc,0,ic)
 	  {
 	    //out-of-diag real part
 	    out[ic][jc][RE]=+(out[jc][ic][RE]=(in[jc][ic][RE]+in[ic][jc][RE])/2);
@@ -742,9 +773,9 @@ namespace nissa
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void unsafe_su3_hermitian(A&& out,const B& in)
   {
-    for(int ic_in=0;ic_in<NCOL;ic_in++)
-      for(int ic_out=0;ic_out<NCOL;ic_out++)
-	complex_conj(out[ic_in][ic_out],in[ic_out][ic_in]);
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
+        complex_conj(out[ic][jc],in[jc][ic]);
   }
   
   inline void safe_su3_hermitian(su3 out,const su3 in)
@@ -757,10 +788,11 @@ namespace nissa
   //return the transposed su3 matrix
   inline void unsafe_su3_transpose(su3 out,const su3 in)
   {
-    for(size_t ic_in=0;ic_in<NCOL;ic_in++)
-      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
-	complex_copy(out[ic_in][ic_out],in[ic_out][ic_in]);
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
+	complex_copy(out[ic][jc],in[jc][ic]);
   }
+  
   inline void safe_su3_transpose(su3 out,const su3 in)
   {
     su3 tmp;
@@ -777,7 +809,7 @@ namespace nissa
 		const B& b,
 		const C& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       color_summ(a[ic],b[ic],c[ic]);
   }
   
@@ -789,9 +821,9 @@ namespace nissa
 			       const B& b,
 			       const C& c)
   {
-    for(int i=0;i<NCOL;i++)
-      for(int j=0;j<NCOL;j++)
-	complex_summ_conj2(a[i][j],b[i][j],c[j][i]);
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
+        complex_summ_conj2(a[ic][jc],b[ic][jc],c[jc][ic]);
   }
   
   template <typename A,
@@ -814,7 +846,11 @@ namespace nissa
   }
   
   inline void su3_summ_real(su3 a,const su3 b,const double c)
-  {su3_copy(a,b);for(size_t i=0;i<NCOL;i++) a[i][i][0]=b[i][i][0]+c;}
+  {
+    su3_copy(a,b);
+    UNROLL_FOR_ALL_COLS(ic)
+      a[ic][ic][0]=b[ic][ic][0]+c;
+  }
   
   template <typename A,
 	    typename B,
@@ -824,7 +860,7 @@ namespace nissa
 		const B& b,
 		const C& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       color_subt(a[ic],b[ic],c[ic]);
   }
   
@@ -838,12 +874,18 @@ namespace nissa
     su3_subt(a,a,b);
   }
   
-  inline void su3_subt_complex(su3 a,const su3 b,const complex c) {su3_copy(a,b);for(size_t i=0;i<NCOL;i++) complex_subt(a[i][i],b[i][i],c);}
+  inline void su3_subt_complex(su3 a,const su3 b,const complex c)
+  {
+    su3_copy(a,b);
+    UNROLL_FOR_ALL_COLS(ic)
+      complex_subt(a[ic][ic],b[ic][ic],c);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void unsafe_su3_subt_su3_dag(su3 a,const su3 b,const su3 c)
   {
-    for(size_t i=0;i<NCOL;i++)
-      for(size_t j=0;j<NCOL;j++)
-	complex_subt_conj2(a[i][j],b[i][j],c[j][i]);
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
+	complex_subt_conj2(a[ic][jc],b[ic][jc],c[jc][ic]);
   }
   inline void su3_subtassign_su3_dag(su3 a,const su3 b) {unsafe_su3_subt_su3_dag(a,a,b);}
   
@@ -855,14 +897,14 @@ namespace nissa
   void unsafe_su3_prod_su3(A&& a,
 			   const B& b,
 			   const C& c,
-			   const size_t nr_max=NCOL)
+			   const int& nr_max=NCOL)
   {
-    for(size_t ir_out=0;ir_out<nr_max;ir_out++)
-      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
+    UNROLL_FOR(ic,0,nr_max)
+      UNROLL_FOR_ALL_COLS(jc)
 	{
-	  unsafe_complex_prod(a[ir_out][ic_out],b[ir_out][0],c[0][ic_out]);
-	  for(int itemp=1;itemp<NCOL;itemp++)
-	    complex_summ_the_prod(a[ir_out][ic_out],b[ir_out][itemp],c[itemp][ic_out]);
+	  unsafe_complex_prod(a[ic][jc],b[ic][0],c[0][jc]);
+	  UNROLL_FOR(itemp,1,NCOL)
+	    complex_summ_the_prod(a[ic][jc],b[ic][itemp],c[itemp][jc]);
 	}
   }
 
@@ -890,9 +932,9 @@ namespace nissa
 			     const B& b,
 			     const C& c)
   {
-    for(int ir_out=0;ir_out<NCOL;ir_out++)
-      for(int ic_out=0;ic_out<NCOL;ic_out++)
-	for(int itemp=0;itemp<NCOL;itemp++)
+    UNROLL_FOR_ALL_COLS(ir_out)
+      UNROLL_FOR_ALL_COLS(ic_out)
+        UNROLL_FOR_ALL_COLS(itemp)
 	  complex_summ_the_prod(a[ir_out][ic_out],b[ir_out][itemp],c[itemp][ic_out]);
   }
   
@@ -905,9 +947,9 @@ namespace nissa
 				 const B& b,
 				 const C& c)
   {
-    for(int ir_out=0;ir_out<NCOL;ir_out++)
-      for(int ic_out=0;ic_out<NCOL;ic_out++)
-	for(int itemp=0;itemp<NCOL;itemp++)
+    UNROLL_FOR_ALL_COLS(ir_out)
+      UNROLL_FOR_ALL_COLS(ic_out)
+        UNROLL_FOR_ALL_COLS(itemp)
 	  complex_summ_the_conj2_prod(a[ir_out][ic_out],b[ir_out][itemp],c[ic_out][itemp]);
   }
   
@@ -920,9 +962,9 @@ namespace nissa
 				 const B& b,
 				 const C& c)
   {
-    for(int ir_out=0;ir_out<NCOL;ir_out++)
-      for(int ic_out=0;ic_out<NCOL;ic_out++)
-	for(int itemp=0;itemp<NCOL;itemp++)
+    UNROLL_FOR_ALL_COLS(ir_out)
+      UNROLL_FOR_ALL_COLS(ic_out)
+        UNROLL_FOR_ALL_COLS(itemp)
 	  complex_summ_the_conj1_prod(a[ir_out][ic_out],b[itemp][ir_out],c[itemp][ic_out]);
   }
   
@@ -936,8 +978,8 @@ namespace nissa
 			       const C& c,
 			       const int nr_max=NCOL)
   {
-    for(int ir_out=0;ir_out<nr_max;ir_out++)
-      for(int ic_out=0;ic_out<NCOL;ic_out++)
+    UNROLL_FOR(ir_out,0,nr_max)
+      UNROLL_FOR_ALL_COLS(ic_out)
 	{
 	  unsafe_complex_conj1_prod(a[ir_out][ic_out],b[0][ir_out],c[0][ic_out]);
 	  for(int itemp=1;itemp<NCOL;itemp++)
@@ -945,13 +987,19 @@ namespace nissa
 	}
   }
   
-  inline void safe_su3_dag_prod_su3(su3 a,const su3 b,const su3 c) {su3 d;unsafe_su3_dag_prod_su3(d,b,c);su3_copy(a,d);}
+  inline void safe_su3_dag_prod_su3(su3 a,const su3 b,const su3 c)
+  {
+    su3 d;
+    unsafe_su3_dag_prod_su3(d,b,c);
+    su3_copy(a,d);
+  }
+  
   inline void su3_dag_summ_the_prod_su3(su3 a,const su3 b,const su3 c)
   {
-    for(size_t ir_out=0;ir_out<NCOL;ir_out++)
-      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
-	for(size_t itemp=0;itemp<NCOL;itemp++)
-	  complex_summ_the_conj1_prod(a[ir_out][ic_out],b[itemp][ir_out],c[itemp][ic_out]);
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
+        UNROLL_FOR_ALL_COLS(itemp)
+	  complex_summ_the_conj1_prod(a[ic][jc],b[itemp][ic],c[itemp][jc]);
   }
   
   /// Product of two su3 matrixes
@@ -964,11 +1012,11 @@ namespace nissa
 			       const C& c,
 			       const int nr_max=NCOL)
   {
-    for(int ir_out=0;ir_out<nr_max;ir_out++)
-      for(int ic_out=0;ic_out<NCOL;ic_out++)
+    UNROLL_FOR(ir_out,0,nr_max)
+      UNROLL_FOR_ALL_COLS(ic_out)
 	{
 	  unsafe_complex_conj2_prod(a[ir_out][ic_out],b[ir_out][0],c[ic_out][0]);
-	  for(int jc=1;jc<NCOL;jc++)
+	  UNROLL_FOR(jc,1,NCOL)
 	    complex_summ_the_conj2_prod(a[ir_out][ic_out],b[ir_out][jc],c[ic_out][jc]);
 	}
   }
@@ -982,10 +1030,10 @@ namespace nissa
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void su3_subt_the_prod_su3_dag(A&& a,const B& b,const C& c)
   {
-    for(size_t ir_out=0;ir_out<NCOL;ir_out++)
-      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
-	for(size_t jc=0;jc<NCOL;jc++)
-	  complex_subt_the_conj2_prod(a[ir_out][ic_out],b[ir_out][jc],c[ic_out][jc]);
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
+        UNROLL_FOR_ALL_COLS(kc)
+	  complex_subt_the_conj2_prod(a[ic][jc],b[ic][kc],c[jc][kc]);
   }
   
   /// Trace of the product of two su3 matrices
@@ -997,9 +1045,9 @@ namespace nissa
   {
     double t=0.0;
     
-    for(int ic1=0;ic1<NCOL;ic1++)
-      for(int ic2=0;ic2<NCOL;ic2++)
-	t+=real_part_of_complex_scalar_prod(a[ic1][ic2],b[ic1][ic2]);
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
+	t+=real_part_of_complex_scalar_prod(a[ic][jc],b[ic][jc]);
     
     return t;
   }
@@ -1008,9 +1056,9 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void trace_su3_prod_su3(complex t,const su3 a,const su3 b)
   {
     complex_put_to_zero(t);
-    for(size_t ic1=0;ic1<NCOL;ic1++)
-      for(size_t ic2=0;ic2<NCOL;ic2++)
-	complex_summ_the_prod(t,a[ic1][ic2],b[ic2][ic1]);
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
+	complex_summ_the_prod(t,a[ic][jc],b[jc][ic]);
   }
   
   /// Product of two su3 matrixes
@@ -1023,12 +1071,12 @@ namespace nissa
 				   const C& c,
 				   const int nr_max=NCOL)
   {
-    for(int ir_out=0;ir_out<nr_max;ir_out++)
-      for(int ic_out=0;ic_out<NCOL;ic_out++)
+    UNROLL_FOR(ic,0,nr_max)
+      UNROLL_FOR_ALL_COLS(jc)
 	{
-	  unsafe_complex_conj_conj_prod(a[ir_out][ic_out],b[0][ir_out],c[ic_out][0]);
-	  for(int itemp=1;itemp<NCOL;itemp++)
-	    complex_summ_the_conj_conj_prod(a[ir_out][ic_out],b[itemp][ir_out],c[ic_out][itemp]);
+	  unsafe_complex_conj_conj_prod(a[ic][jc],b[0][ic],c[jc][0]);
+	  UNROLL_FOR(itemp,1,NCOL)
+	    complex_summ_the_conj_conj_prod(a[ic][jc],b[itemp][ic],c[jc][itemp]);
 	}
   }
   
@@ -1044,7 +1092,7 @@ namespace nissa
 			       const B& b,
 			       const C& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       unsafe_color_prod_complex(a[ic],b[ic],c);
   }
   
@@ -1063,9 +1111,17 @@ namespace nissa
   
   //product of an su3 matrix by a complex
   inline void unsafe_su3_prod_complex_conj(su3 a,const su3 b,const complex c)
-  {for(size_t ic=0;ic<NCOL;ic++) unsafe_color_prod_complex_conj(a[ic],b[ic],c);}
+  {
+    UNROLL_FOR_ALL_COLS(ic)
+      unsafe_color_prod_complex_conj(a[ic],b[ic],c);
+  }
+  
   inline void safe_su3_prod_complex_conj(su3 a,const su3 b,const complex c)
-  {su3 d;unsafe_su3_prod_complex_conj(d,b,c);su3_copy(a,d);}
+  {
+    su3 d;
+    unsafe_su3_prod_complex_conj(d,b,c);
+    su3_copy(a,d);
+  }
   
   /// Product of an su3 matrix by a real
   template <typename A,
@@ -1075,7 +1131,7 @@ namespace nissa
 		       const B& b,
 		       const double& r)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       color_prod_double(a[ic],b[ic],r);
   }
   
@@ -1094,11 +1150,11 @@ namespace nissa
 					const B& b,
 					const double& r)
   {
-    for(int i=0;i<NCOL;i++)
-      for(int j=0;j<NCOL;j++)
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
 	{
-	  a[i][j][RE]=+r*b[j][i][RE];
-	  a[i][j][IM]=-r*b[j][i][IM];
+	  a[ic][jc][RE]=+r*b[jc][ic][RE];
+	  a[ic][jc][IM]=-r*b[jc][ic][IM];
 	}
   }
   
@@ -1109,19 +1165,19 @@ namespace nissa
 				      const B& b,
 				      const double& r)
   {
-    for(int i=0;i<NCOL;i++)
+    UNROLL_FOR_ALL_COLS(ic)
       {
-	a[i][i][RE]=+r*b[i][i][RE];
-	a[i][i][IM]=-r*b[i][i][IM];
+	a[ic][ic][RE]=+r*b[ic][ic][RE];
+	a[ic][ic][IM]=-r*b[ic][ic][IM];
 	
-	for(int j=i+1;j<NCOL;j++)
+	UNROLL_FOR(jc,ic+1,NCOL)
 	  {
-	    const double a_i_j_RE=+r*b[j][i][RE];
-	    const double a_i_j_IM=-r*b[j][i][IM];
-	    a[j][i][RE]=+r*b[i][j][RE];
-	    a[j][i][IM]=-r*b[i][j][IM];
-	    a[i][j][RE]=a_i_j_RE;
-	    a[i][j][IM]=a_i_j_IM;
+	    const double a_i_j_RE=+r*b[jc][ic][RE];
+	    const double a_i_j_IM=-r*b[jc][ic][IM];
+	    a[jc][ic][RE]=+r*b[ic][jc][RE];
+	    a[jc][ic][IM]=-r*b[ic][jc][IM];
+	    a[ic][jc][RE]=a_i_j_RE;
+	    a[ic][jc][IM]=a_i_j_IM;
 	  }
       }
   }
@@ -1133,11 +1189,11 @@ namespace nissa
 					  const B& b,
 					  const double& r)
   {
-    for(int i=0;i<NCOL;i++)
-      for(int j=0;j<NCOL;j++)
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
 	{
-	  a[i][j][RE]+= r*b[j][i][RE];
-	  a[i][j][IM]+=-r*b[j][i][IM];
+	  a[ic][jc][RE]+= r*b[jc][ic][RE];
+	  a[ic][jc][IM]+=-r*b[jc][ic][IM];
 	}
   }
   
@@ -1149,8 +1205,8 @@ namespace nissa
 			const B& b,
 			const double& r)
   {
-    for(int i=0;i<NCOL;i++)
-      color_prod_idouble(a[i],b[i],r);
+    UNROLL_FOR_ALL_COLS(ic)
+      color_prod_idouble(a[ic],b[ic],r);
   }
   
   inline void su3_prodassign_idouble(su3 a,const double r) {su3_prod_idouble(a,a,r);}
@@ -1168,21 +1224,21 @@ namespace nissa
   }
   
   //summ the prod of su3 with real
-  CUDA_HOST_AND_DEVICE inline void su3_summ_the_prod_double(su3 a,const su3 b,const double r) {for(size_t i=0;i<NCOL;i++) color_summ_the_prod_double(a[i],b[i],r);}
+  CUDA_HOST_AND_DEVICE inline void su3_summ_the_prod_double(su3 a,const su3 b,const double r) {UNROLL_FOR_ALL_COLS(ic) color_summ_the_prod_double(a[ic],b[ic],r);}
   
   //summ the prod of the dag su3 with real
   inline void su3_dag_summ_the_prod_double(su3 a,const su3 b,const double r)
   {
-    for(size_t i=0;i<NCOL;i++)
-      for(size_t j=0;j<NCOL;j++)
+    UNROLL_FOR_ALL_COLS(ic)
+      for(size_t jc=0;jc<NCOL;jc++)
 	{
-	  a[i][j][RE]+=b[j][i][RE]*r;
-	  a[i][j][IM]-=b[j][i][IM]*r;
+	  a[ic][jc][RE]+=b[jc][ic][RE]*r;
+	  a[ic][jc][IM]-=b[jc][ic][IM]*r;
 	}
   }
   
   //combine linearly two su3 elements
-  inline void su3_linear_comb(su3 a,const su3 b,const double cb,su3 c,const double cc) {for(size_t ic=0;ic<NCOL;ic++) color_linear_comb(a[ic],b[ic],cb,c[ic],cc);}
+  inline void su3_linear_comb(su3 a,const su3 b,const double cb,su3 c,const double cc) {UNROLL_FOR_ALL_COLS(ic) color_linear_comb(a[ic],b[ic],cb,c[ic],cc);}
   
   /// Summ the prod of su3 with complex
   template <typename A,
@@ -1193,7 +1249,7 @@ namespace nissa
 				 const B& b,
 				 const C& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       color_summ_the_prod_complex(a[ic],b[ic],c);
   }
   
@@ -1231,9 +1287,9 @@ namespace nissa
     complex_subt_the_prod(invU[1][2],U[0][0],U[1][2]);
     complex_subt_the_prod(invU[2][2],U[0][1],U[1][0]);
     
-    for(size_t icol1=0;icol1<NCOL;icol1++)
-      for(size_t icol2=0;icol2<NCOL;icol2++)
-	safe_complex_prod(invU[icol1][icol2],invU[icol1][icol2],rec_det);
+    for(size_t ic=0;ic<NCOL;ic++)
+      for(size_t jc=0;jc<NCOL;jc++)
+	safe_complex_prod(invU[ic][jc],invU[ic][jc],rec_det);
   }
   inline void safe_su3_explicit_inverse(su3 invU,const su3 U)
   {su3 tempU;unsafe_su3_explicit_inverse(tempU,U);su3_copy(invU,tempU);}
@@ -1242,7 +1298,8 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline double su3_norm2(const su3 U)
   {
     double norm2=0;
-    for(size_t ic=0;ic<NCOL;ic++) norm2+=color_norm2(U[ic]);
+    UNROLL_FOR_ALL_COLS(ic)
+      norm2+=color_norm2(U[ic]);
     
     return norm2;
   }
@@ -1314,21 +1371,22 @@ namespace nissa
     complex f;
     complex_prod_double(f,row10_sc_prod,1/row0_norm2);
     
-    for(size_t c=0;c<NCOL;c++)
+    for(size_t ic=0;ic<NCOL;ic++)
       {
-	for(size_t ri=0;ri<2;ri++) o[1][c][ri]=i[1][c][ri];
-	complex_subt_the_prod(o[1][c],f,i[0][c]);
+	for(size_t ri=0;ri<2;ri++)
+	  o[1][ic][ri]=i[1][ic][ri];
+	complex_subt_the_prod(o[1][ic],f,i[0][ic]);
       }
     
     const double row0_norm=1/sqrt(row0_norm2);
     const double row1_norm=1/sqrt(complex_norm2(o[1][0])+complex_norm2(o[1][1])+complex_norm2(o[1][2]));
     
     //normalize the rows
-    for(size_t c=0;c<NCOL;c++)
+    for(size_t ic=0;ic<NCOL;ic++)
       for(size_t ri=0;ri<2;ri++)
 	{
-	  o[0][c][ri]=row0_norm*i[0][c][ri];
-	  o[1][c][ri]=row1_norm*o[1][c][ri];
+	  o[0][ic][ri]=row0_norm*i[0][ic][ri];
+	  o[1][ic][ri]=row1_norm*o[1][ic][ri];
 	}
     
     //orthonormalize the third row
@@ -1368,14 +1426,14 @@ namespace nissa
 	
 	//average U and U^-1^+
 	residue=0;
-	for(size_t icol1=0;icol1<NCOL;icol1++)
-	  for(size_t icol2=0;icol2<NCOL;icol2++)
+	for(size_t ic=0;ic<NCOL;ic++)
+	  for(size_t jc=0;jc<NCOL;jc++)
 	    {
-	      new_link[icol1][icol2][RE]=0.5*(temp_link[icol1][icol2][RE]*gamma+inv[icol2][icol1][RE]/gamma);
-	      new_link[icol1][icol2][IM]=0.5*(temp_link[icol1][icol2][IM]*gamma-inv[icol2][icol1][IM]/gamma);
+	      new_link[ic][jc][RE]=0.5*(temp_link[ic][jc][RE]*gamma+inv[jc][ic][RE]/gamma);
+	      new_link[ic][jc][IM]=0.5*(temp_link[ic][jc][IM]*gamma-inv[jc][ic][IM]/gamma);
 	      for(size_t ri=0;ri<2;ri++)
 		{
-		  double diff=new_link[icol1][icol2][ri]-temp_link[icol1][icol2][ri];
+		  double diff=new_link[ic][jc][ri]-temp_link[ic][jc][ri];
 		  residue+=diff*diff;
 		}
 	    }
@@ -1505,10 +1563,11 @@ namespace nissa
   //product of an su3 matrix by a color vector
   CUDA_HOST_AND_DEVICE inline void unsafe_single_su3_prod_single_color(single_color a,const single_su3 b,const single_color c)
   {
-    for(size_t c1=0;c1<NCOL;c1++)
+    for(size_t ic=0;ic<NCOL;ic++)
       {
-	unsafe_single_complex_prod(a[c1],b[c1][0],c[0]);
-	for(size_t c2=1;c2<NCOL;c2++) single_complex_summ_the_prod(a[c1],b[c1][c2],c[c2]);
+	unsafe_single_complex_prod(a[ic],b[ic][0],c[0]);
+	for(size_t jc=1;jc<NCOL;jc++)
+	  single_complex_summ_the_prod(a[ic],b[ic][jc],c[jc]);
       }
   }
   
@@ -1523,9 +1582,9 @@ namespace nissa
 			       const B& b,
 			       const C& c)
   {
-    for(int c1=0;c1<NCOL;c1++)
-      for(int c2=0;c2<NCOL;c2++)
-	complex_summ_the_prod(a[c1],b[c1][c2],c[c2]);
+    for(int ic=0;ic<NCOL;ic++)
+      for(int jc=0;jc<NCOL;jc++)
+	complex_summ_the_prod(a[ic],b[ic][jc],c[jc]);
   }
   
   CUDA_HOST_AND_DEVICE inline void single_su3_summ_the_prod_single_color(single_color a,const single_su3 b,const single_color c)
@@ -1540,9 +1599,9 @@ namespace nissa
 			       const B& b,
 			       const C& c)
   {
-    for(int c1=0;c1<NCOL;c1++)
-      for(int c2=0;c2<NCOL;c2++)
-	complex_subt_the_prod(a[c1],b[c1][c2],c[c2]);
+    for(int ic=0;ic<NCOL;ic++)
+      for(int jc=0;jc<NCOL;jc++)
+	complex_subt_the_prod(a[ic],b[ic][jc],c[jc]);
   }
   
   // a=b^*c
@@ -1587,9 +1646,9 @@ namespace nissa
 						 const B& b,
 						 const C& c)
   {
-    for(size_t c1=0;c1<NCOL;c1++)
-      for(size_t c2=0;c2<NCOL;c2++)
-	single_complex_summ_the_conj1_prod(a[c1],b[c2][c1],c[c2]);
+    for(size_t ic=0;ic<NCOL;ic++)
+      for(size_t jc=0;jc<NCOL;jc++)
+	single_complex_summ_the_conj1_prod(a[ic],b[jc][ic],c[jc]);
   }
   
   //subt dag
@@ -1601,9 +1660,9 @@ namespace nissa
 				   const B& b,
 				   const C& c)
   {
-    for(int c1=0;c1<NCOL;c1++)
-      for(int c2=0;c2<NCOL;c2++)
-	complex_subt_the_conj1_prod(a[c1],b[c2][c1],c[c2]);
+    for(int ic=0;ic<NCOL;ic++)
+      for(int jc=0;jc<NCOL;jc++)
+	complex_subt_the_conj1_prod(a[ic],b[jc][ic],c[jc]);
   }
   
   template <typename A,
@@ -1614,9 +1673,9 @@ namespace nissa
 						 const B& b,
 						 const C& c)
   {
-    for(size_t c1=0;c1<NCOL;c1++)
-      for(size_t c2=0;c2<NCOL;c2++)
-	single_complex_subt_the_conj1_prod(a[c1],b[c2][c1],c[c2]);
+    for(size_t ic=0;ic<NCOL;ic++)
+      for(size_t jc=0;jc<NCOL;jc++)
+	single_complex_subt_the_conj1_prod(a[ic],b[jc][ic],c[jc]);
   }
   
   //////////////////////////////////////////// color prod su3 ///////////////////////////////////////////
@@ -1630,10 +1689,11 @@ namespace nissa
 			     const B& b,
 			     const C& c)
   {
-    for(size_t c1=0;c1<NCOL;c1++)
+    for(size_t ic=0;ic<NCOL;ic++)
       {
-	unsafe_complex_prod(a[c1],b[0],c[0][c1]);
-	for(size_t c2=1;c2<NCOL;c2++) complex_summ_the_prod(a[c1],b[c2],c[c2][c1]);
+	unsafe_complex_prod(a[ic],b[0],c[0][ic]);
+	for(size_t jc=1;jc<NCOL;jc++)
+	  complex_summ_the_prod(a[ic],b[jc],c[jc][ic]);
       }
   }
   
@@ -1659,11 +1719,11 @@ namespace nissa
 				 const B& b,
 				 const C& c)
   {
-    for(size_t c1=0;c1<NCOL;c1++)
+    for(size_t ic=0;ic<NCOL;ic++)
       {
-	unsafe_complex_conj2_prod(a[c1],b[0],c[c1][0]);
-	for(size_t c2=1;c2<NCOL;c2++)
-	  complex_summ_the_conj2_prod(a[c1],b[c2],c[c1][c2]);
+	unsafe_complex_conj2_prod(a[ic],b[0],c[ic][0]);
+	for(size_t jc=1;jc<NCOL;jc++)
+	  complex_summ_the_conj2_prod(a[ic],b[jc],c[ic][jc]);
       }
   }
   
@@ -1673,9 +1733,9 @@ namespace nissa
   {
     double out=0;
     for(int id=0;id<NDIRAC/2;id++)
-      for(int icol=0;icol<NCOL;icol++)
+      for(int ic=0;ic<NCOL;ic++)
 	for(int ri=0;ri<2;ri++)
-	  out+=a[id][icol][ri]*b[id][icol][ri];
+	  out+=a[id][ic][ri]*b[id][ic][ri];
     
     return out;
   }
@@ -1687,9 +1747,9 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void halfspincolor_summ_the_prod_double(halfspincolor a,const halfspincolor b,const halfspincolor c,const double d)
   {
     for(int id=0;id<NDIRAC/2;id++)
-      for(int icol=0;icol<NCOL;icol++)
+      for(int ic=0;ic<NCOL;ic++)
 	for(int ri=0;ri<2;ri++)
-	  a[id][icol][ri]=b[id][icol][ri]+c[id][icol][ri]*d;
+	  a[id][ic][ri]=b[id][ic][ri]+c[id][ic][ri]*d;
   }
   CUDA_HOST_AND_DEVICE inline void halfspincolor_summ_the_prod_double(halfspincolor a,const halfspincolor b,const double c)
   {halfspincolor_summ_the_prod_double(a,a,b,c);}
@@ -1745,7 +1805,7 @@ namespace nissa
   {
     for(size_t id=0;id<NDIRAC;id++)
       {
-	for(size_t ic=0;ic<NCOL;ic++) printf("%+16.16lg,%+16.16lg\t",c[id][ic][0],c[id][ic][1]);
+	UNROLL_FOR_ALL_COLS(ic) printf("%+16.16lg,%+16.16lg\t",c[id][ic][0],c[id][ic][1]);
 	master_printf("\n");
       }
     master_printf("\n");
@@ -1774,7 +1834,13 @@ namespace nissa
   }
   
   //subtract two spincolors
-  CUDA_HOST_AND_DEVICE inline void spincolor_subt(spincolor a,const spincolor b,const spincolor c) {for(size_t i=0;i<NDIRAC;i++) color_subt(a[i],b[i],c[i]);}
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void spincolor_subt(spincolor a,const spincolor b,const spincolor c)
+  {
+    for(size_t id=0;id<NDIRAC;id++)
+      color_subt(a[id],b[id],c[id]);
+  }
+  
   inline void spincolor_subtassign(spincolor a,const spincolor b) {spincolor_subt(a,a,b);}
   
   //spincolor*real
@@ -1835,8 +1901,8 @@ typename B>
 				  const B& b,
 				  const int c)
   {
-    for(size_t i=0;i<NDIRAC;i++)
-      color_prod_color_delta(a[i],b[i],c);
+    for(size_t id=0;id<NDIRAC;id++)
+      color_prod_color_delta(a[id],b[id],c);
   }
   
   //spincolor*complex
@@ -1913,14 +1979,24 @@ typename B>
   }
   
   CUDA_HOST_AND_DEVICE inline void dirac_summ_the_prod_spincolor(spincolor out,const dirac_matr& m,const spincolor in)
-  {for(size_t id1=0;id1<NDIRAC;id1++) color_summ_the_prod_complex(out[id1],in[m.pos[id1]],m.entr[id1]);}
+  {
+    for(size_t id=0;id<NDIRAC;id++)
+      color_summ_the_prod_complex(out[id],in[m.pos[id]],m.entr[id]);
+  }
   
   CUDA_HOST_AND_DEVICE inline void dirac_subt_the_prod_spincolor(spincolor out,const dirac_matr& m,const spincolor in)
-  {for(size_t id1=0;id1<NDIRAC;id1++) color_subt_the_prod_complex(out[id1],in[m.pos[id1]],m.entr[id1]);}
+  {
+    for(size_t id=0;id<NDIRAC;id++)
+      color_subt_the_prod_complex(out[id],in[m.pos[id]],m.entr[id]);
+  }
   
   //spincolor*dirac
   inline void unsafe_spincolor_prod_dirac(spincolor out,const spincolor in,const dirac_matr& m)
-  {spincolor_put_to_zero(out);for(size_t id1=0;id1<NDIRAC;id1++) color_summ_the_prod_complex(out[m.pos[id1]],in[id1],m.entr[id1]);}
+  {
+    spincolor_put_to_zero(out);
+    for(size_t id=0;id<NDIRAC;id++)
+      color_summ_the_prod_complex(out[m.pos[id]],in[id],m.entr[id]);
+  }
   
   //dirac*spincolor
   template <typename A,
@@ -1937,7 +2013,11 @@ typename B>
   
   //spincolor*dirac
   inline void safe_spincolor_prod_dirac(spincolor out,const spincolor in,const dirac_matr& m)
-  {spincolor tmp;unsafe_spincolor_prod_dirac(tmp,in,m);spincolor_copy(out,tmp);}
+  {
+    spincolor tmp;
+    unsafe_spincolor_prod_dirac(tmp,in,m);
+    spincolor_copy(out,tmp);
+  }
   
   /// su3*spincolor
   template <typename A,
@@ -1948,8 +2028,8 @@ typename B>
 				 const B& U,
 				 const C& in)
   {
-    for(int is=0;is<NDIRAC;is++)
-      unsafe_su3_prod_color(out[is],U,in[is]);
+    for(int id=0;id<NDIRAC;id++)
+      unsafe_su3_prod_color(out[id],U,in[id]);
   }
   
   template <typename A,
@@ -1960,12 +2040,15 @@ typename B>
 				   const B& U,
 				   const C& in)
   {
-    for(int is=0;is<NDIRAC;is++)
-      su3_summ_the_prod_color(out[is],U,in[is]);
+    for(int id=0;id<NDIRAC;id++)
+      su3_summ_the_prod_color(out[id],U,in[id]);
   }
   
   CUDA_HOST_AND_DEVICE inline void su3_subt_the_prod_spincolor(spincolor out,const su3 U,const spincolor in)
-  {for(size_t is=0;is<NDIRAC;is++) su3_subt_the_prod_color(out[is],U,in[is]);}
+  {
+    for(size_t id=0;id<NDIRAC;id++)
+      su3_subt_the_prod_color(out[id],U,in[id]);
+  }
   
   /// su3^*spincolor
   template <typename A,
@@ -1976,8 +2059,8 @@ typename B>
 				     const B& U,
 				     const C& in)
   {
-    for(int is=0;is<NDIRAC;is++)
-      unsafe_su3_dag_prod_color(out[is],U,in[is]);
+    for(int id=0;id<NDIRAC;id++)
+      unsafe_su3_dag_prod_color(out[id],U,in[id]);
   }
   
   inline void safe_su3_dag_prod_spincolor(spincolor out,const su3 U,const spincolor in)
@@ -1991,8 +2074,8 @@ typename B>
 				       const B& U,
 				       const C& in)
   {
-    for(int is=0;is<NDIRAC;is++)
-      su3_dag_summ_the_prod_color(out[is],U,in[is]);
+    for(int id=0;id<NDIRAC;id++)
+      su3_dag_summ_the_prod_color(out[id],U,in[id]);
   }
   
   template <typename A,
@@ -2018,10 +2101,10 @@ typename B>
   {
     spincolor_put_to_zero(a);
     
-    for(int id1=0;id1<NDIRAC;id1++)
-      for(int id2=0;id2<NDIRAC;id2++)
-	for(int ic=0;ic<NCOL;ic++)
-	  complex_summ_the_prod(a[id1][ic],b[id2][ic],c[id2][id1]);
+    for(int id=0;id<NDIRAC;id++)
+      for(int jd=0;jd<NDIRAC;jd++)
+	UNROLL_FOR_ALL_COLS(ic)
+	  complex_summ_the_prod(a[id][ic],b[jd][ic],c[jd][id]);
   }
   
   template <typename A,
@@ -2047,10 +2130,10 @@ typename B>
 				      const C& c)
   {
     spincolor_put_to_zero(a);
-    for(int id1=0;id1<NDIRAC;id1++)
-      for(int id2=0;id2<NDIRAC;id2++)
-	for(int ic=0;ic<NCOL;ic++)
-	  complex_summ_the_prod(a[id1][ic],b[id1][id2],c[id2][ic]);
+    for(int id=0;id<NDIRAC;id++)
+      for(int jd=0;jd<NDIRAC;jd++)
+	UNROLL_FOR_ALL_COLS(ic)
+	  complex_summ_the_prod(a[id][ic],b[id][jd],c[jd][ic]);
   }
   
   template <typename A,
@@ -2070,20 +2153,22 @@ typename B>
   inline void unsafe_su3_dag_dirac_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
-    for(size_t id1=0;id1<NDIRAC;id1++)
+    for(size_t id=0;id<NDIRAC;id++)
       {
-	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m.entr[id1],in[m.pos[id1]][ic]);
-	unsafe_su3_dag_prod_color(out[id1],U,tmp);
+	UNROLL_FOR_ALL_COLS(ic)
+	  unsafe_complex_prod(tmp[ic],m.entr[id],in[m.pos[id]][ic]);
+	unsafe_su3_dag_prod_color(out[id],U,tmp);
       }
   }
   
   inline void unsafe_su3_dag_dirac_summ_the_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
-    for(size_t id1=0;id1<NDIRAC;id1++)
+    for(size_t id=0;id<NDIRAC;id++)
       {
-	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m.entr[id1],in[m.pos[id1]][ic]);
-	su3_dag_summ_the_prod_color(out[id1],U,tmp);
+	UNROLL_FOR_ALL_COLS(ic)
+	  unsafe_complex_prod(tmp[ic],m.entr[id],in[m.pos[id]][ic]);
+	su3_dag_summ_the_prod_color(out[id],U,tmp);
       }
   }
   
@@ -2091,30 +2176,33 @@ typename B>
   inline void unsafe_su3_dirac_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
-    for(size_t id1=0;id1<NDIRAC;id1++)
+    for(size_t id=0;id<NDIRAC;id++)
       {
-	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m.entr[id1],in[m.pos[id1]][ic]);
-	unsafe_su3_prod_color(out[id1],U,tmp);
+	UNROLL_FOR_ALL_COLS(ic)
+	  unsafe_complex_prod(tmp[ic],m.entr[id],in[m.pos[id]][ic]);
+	unsafe_su3_prod_color(out[id],U,tmp);
       }
   }
   
   inline void unsafe_su3_dirac_subt_the_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
-    for(size_t id1=0;id1<NDIRAC;id1++)
+    for(size_t id=0;id<NDIRAC;id++)
       {
-	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m.entr[id1],in[m.pos[id1]][ic]);
-	su3_subt_the_prod_color(out[id1],U,tmp);
+	UNROLL_FOR_ALL_COLS(ic)
+	  unsafe_complex_prod(tmp[ic],m.entr[id],in[m.pos[id]][ic]);
+	su3_subt_the_prod_color(out[id],U,tmp);
       }
   }
   
   inline void unsafe_su3_dirac_summ_the_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
-    for(size_t id1=0;id1<NDIRAC;id1++)
+    for(size_t id=0;id<NDIRAC;id++)
       {
-	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m.entr[id1],in[m.pos[id1]][ic]);
-	su3_summ_the_prod_color(out[id1],U,tmp);
+	UNROLL_FOR_ALL_COLS(ic)
+	  unsafe_complex_prod(tmp[ic],m.entr[id],in[m.pos[id]][ic]);
+	su3_summ_the_prod_color(out[id],U,tmp);
       }
   }
   
@@ -2137,7 +2225,13 @@ typename B>
   }
   
   inline double spincolor_norm2(const spincolor s)
-  {double out=color_norm2(s[0]);for(size_t id=1;id<NDIRAC;id++) out+=color_norm2(s[id]);return out;}
+  {
+    double out=0;
+    for(size_t id=0;id<NDIRAC;id++)
+      out+=color_norm2(s[id]);
+    
+    return out;
+  }
   
   ///////////////////////////////// su3*colorspinspin ///////////////////////////////////
   
@@ -2180,9 +2274,9 @@ typename B>
   {
     for(size_t id_so=0;id_so<NDIRAC;id_so++)
       for(size_t id_si=0;id_si<NDIRAC;id_si++)
-	for(size_t c1=0;c1<NCOL;c1++)
-	  for(size_t c2=0;c2<NCOL;c2++)
-	    complex_summ_the_prod(a[c1][id_si][id_so],b[c1][c2],c[c2][id_si][id_so]);
+	for(size_t ic=0;ic<NCOL;ic++)
+	  for(size_t jc=0;jc<NCOL;jc++)
+	    complex_summ_the_prod(a[ic][id_si][id_so],b[ic][jc],c[jc][id_si][id_so]);
   }
   
   template <typename A,
@@ -2195,9 +2289,9 @@ typename B>
   {
     for(int id_so=0;id_so<NDIRAC;id_so++)
       for(int id_si=0;id_si<NDIRAC;id_si++)
-	for(int c1=0;c1<NCOL;c1++)
-	  for(int c2=0;c2<NCOL;c2++)
-	    complex_subt_the_conj1_prod(a[c1][id_si][id_so],b[c2][c1],c[c2][id_si][id_so]);
+	for(int ic=0;ic<NCOL;ic++)
+	  for(int jc=0;jc<NCOL;jc++)
+	    complex_subt_the_conj1_prod(a[ic][id_si][id_so],b[jc][ic],c[jc][id_si][id_so]);
   }
   
   template <typename A,
@@ -2222,7 +2316,7 @@ typename B>
 				       const dirac_matr& m,
 				       const B& in)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       unsafe_dirac_prod_spinspin(out[ic],m,in[ic]);
   }
   
@@ -2245,7 +2339,7 @@ typename B>
 				     const dirac_matr& m,
 				     const B& in)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       unsafe_dirac_prod_colorspinspin(out[ic],m,in[ic]);
   }
   
@@ -2329,8 +2423,8 @@ typename B>
 				 const B& in,
 				 const double& factor)
   {
-    for(size_t i=0;i<NCOL;i++)
-      spinspin_prod_double(out[i],in[i],factor);
+    UNROLL_FOR_ALL_COLS(ic)
+      spinspin_prod_double(out[ic],in[ic],factor);
   }
   
   template <typename A>
@@ -2346,7 +2440,7 @@ typename B>
   void colorspinspin_prodassign_idouble(A&& c,
 					const double& f)
   {
-    for(int ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       spinspin_prodassign_idouble(c[ic],f);
   }
   
@@ -2358,7 +2452,7 @@ typename B>
 				  const B& in,
 				  const C& factor)
   {
-    for(size_t ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       safe_spinspin_prod_complex(out[ic],in[ic],factor);
   }
   
@@ -2400,7 +2494,7 @@ typename B>
 				      const B& b,
 				      const size_t& c)
   {
-    for(size_t ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       spinspin_prod_double(a[ic],b[ic],c==ic);
   }
   
@@ -2435,8 +2529,8 @@ typename B>
 			  const B& in1,
 			  const C& in2)
   {
-    for(size_t i=0;i<NCOL;i++)
-      spinspin_subt(out[i],in1[i],in2[i]);
+    UNROLL_FOR_ALL_COLS(ic)
+      spinspin_subt(out[ic],in1[ic],in2[ic]);
   }
   
   template <typename A,
@@ -2467,8 +2561,8 @@ typename B>
 					   const B& in,
 					   const double& factor)
   {
-    for(size_t i=0;i<NCOL;i++)
-      spinspin_summ_the_prod_idouble(out[i],in[i],factor);
+    UNROLL_FOR_ALL_COLS(ic)
+      spinspin_summ_the_prod_idouble(out[ic],in[ic],factor);
   }
   
   //colorspinspin*complex
@@ -2480,8 +2574,8 @@ typename B>
 					 const B& in,
 					 const C& factor)
   {
-    for(size_t i=0;i<NCOL;i++)
-      unsafe_spinspin_prod_complex(out[i],in[i],factor);
+    UNROLL_FOR_ALL_COLS(ic)
+      unsafe_spinspin_prod_complex(out[ic],in[ic],factor);
   }
   
   /////////////////////////////// su3spinspin /////////////////////////////////////////////
@@ -2494,8 +2588,8 @@ typename B>
 			       const B& in,
 			       const double& factor)
   {
-    for(size_t i=0;i<NCOL;i++)
-      colorspinspin_prod_double(out[i],in[i],factor);
+    UNROLL_FOR_ALL_COLS(ic)
+      colorspinspin_prod_double(out[ic],in[ic],factor);
   }
   
   template <typename A>
@@ -2524,8 +2618,8 @@ typename B>
 				const B& b,
 				const C& c)
   {
-    for(size_t i=0;i<NCOL;i++)
-      colorspinspin_prod_complex(a[i],b[i],c);
+    UNROLL_FOR_ALL_COLS(ic)
+      colorspinspin_prod_complex(a[ic],b[ic],c);
   }
   
   template <typename A,
@@ -2536,8 +2630,8 @@ typename B>
 				     const B& b,
 				     const C& c)
   {
-    for(size_t i=0;i<NCOL;i++)
-      colorspinspin_prod_complex_conj(a[i],b[i],c);
+    UNROLL_FOR_ALL_COLS(ic)
+      colorspinspin_prod_complex_conj(a[ic],b[ic],c);
   }
   
   template <typename A,
@@ -2546,8 +2640,8 @@ typename B>
   void su3spinspin_prodassign_complex(A&& a,
 				      const B& b)
   {
-    for(size_t i=0;i<NCOL;i++)
-      colorspinspin_prodassign_complex(a[i],b);
+    UNROLL_FOR_ALL_COLS(ic)
+      colorspinspin_prodassign_complex(a[ic],b);
   }
   
   template <typename A,
@@ -2556,8 +2650,8 @@ typename B>
   void su3spinspin_prodassign_complex_conj(A&& a,
 					   const B& b)
   {
-    for(size_t i=0;i<NCOL;i++)
-      colorspinspin_prodassign_complex_conj(a[i],b);
+    UNROLL_FOR_ALL_COLS(ic)
+      colorspinspin_prodassign_complex_conj(a[ic],b);
   }
   
   template <typename A,
@@ -2567,7 +2661,7 @@ typename B>
 				    const B& b,
 				    const size_t& c)
   {
-    for(size_t ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       colorspinspin_prod_double(a[ic],b[ic],c==ic);
   }
   
@@ -2602,8 +2696,8 @@ typename B>
 			const B& b,
 			const C& c)
   {
-    for(size_t i=0;i<NCOL;i++)
-      colorspinspin_subt(a[i],b[i],c[i]);}
+    UNROLL_FOR_ALL_COLS(ic)
+      colorspinspin_subt(a[ic],b[ic],c[ic]);}
   
   //su3spinspin subt
   template <typename A,
@@ -2634,8 +2728,8 @@ typename B>
 					 const B& in,
 					 const double& factor)
   {
-    for(size_t i=0;i<NCOL;i++)
-      colorspinspin_summ_the_prod_idouble(out[i],in[i],factor);
+    UNROLL_FOR_ALL_COLS(ic)
+      colorspinspin_summ_the_prod_idouble(out[ic],in[ic],factor);
   }
   
   ////////////////////////////////////// su3spinspin /////////////////////////////////////
@@ -2649,8 +2743,8 @@ typename B>
 				       const B& in,
 				       const C& factor)
   {
-    for(size_t i=0;i<NCOL;i++)
-      unsafe_colorspinspin_prod_complex(out[i],in[i],factor);
+    UNROLL_FOR_ALL_COLS(ic)
+      unsafe_colorspinspin_prod_complex(out[ic],in[ic],factor);
   }
   
   template <typename A,

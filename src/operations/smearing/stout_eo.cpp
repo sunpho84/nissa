@@ -118,9 +118,11 @@ namespace nissa
 		   const stout_pars_t& stout_pars,
 		   const which_dir_t& dirs)
   {
-    verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(in));
+    const int nlevels=stout_pars.nlevels;
     
-    if(const int nlevels=stout_pars.nlevels;nlevels==0)
+    verbosity_lv1_master_printf("sme_step 0/%d, plaquette: %16.16lg\n",nlevels,global_plaquette_eo_conf(in));
+    
+    if(nlevels==0)
       out=in;
     else
       {
