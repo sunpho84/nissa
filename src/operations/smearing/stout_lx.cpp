@@ -196,7 +196,7 @@ namespace nissa
 	    
 	    //compute the ingredients needed to exponentiate
 	    hermitian_exp_ingredients ing;
-	    hermitian_exact_i_exponentiate_ingredients(ing,sto_ste.Q);
+	    ing.prepareIngredients(sto_ste.Q);
 	    
 	    //compute the Lambda
 	    stouted_force_compute_Lambda(Lambda[A][mu],conf[A][mu],F[A][mu],&ing);

@@ -51,24 +51,6 @@
 
 namespace nissa
 {
-#if NCOL == 3
-  //used to exponentiate for stouting
-  struct hermitian_exp_ingredients
-  {
-    int sign;
-    double c0,c1;
-    double cu,su;
-    double c2u,s2u;
-    su3 Q,Q2;
-    double u,w,theta;
-    double xi0w;
-    double cw;
-    complex f[3];
-  };
-  
-  CUDA_MANAGED extern int su3_sub_gr_indices[3][2];
-#endif
-  
   ////////////////////////////////////////////////////////////////////
   
   extern su3 gell_mann_matr[NCOL*NCOL-1];
@@ -432,7 +414,7 @@ namespace nissa
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void color_prod_color_delta(A&& a,
 			      const B& b,
-			      const size_t& c)
+			      const int& c)
   {
     UNROLL_FOR_ALL_COLS(ic)
       complex_prod_double(a[ic],b[ic],c==ic);
@@ -568,6 +550,55 @@ namespace nissa
     
     return a;
   }
+  
+  //calculate the determinant of an su3 matrix
+  template <typename C,
+	    typename U>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_det(C&& d,
+	       const U& u)
+  {
+#if NCOL == 3
+    complex a;
+    
+    unsafe_complex_prod(a,u[1][1],u[2][2]);
+    complex_subt_the_prod(a,u[1][2],u[2][1]);
+    unsafe_complex_prod(d,u[0][0],a);
+    
+    unsafe_complex_prod(a,u[1][2],u[2][0]);
+    complex_subt_the_prod(a,u[1][0],u[2][2]);
+    complex_summ_the_prod(d,u[0][1],a);
+    
+    unsafe_complex_prod(a,u[1][0],u[2][1]);
+    complex_subt_the_prod(a,u[1][1],u[2][0]);
+    complex_summ_the_prod(d,u[0][2],a);
+#else
+    matrix_determinant(d,(complex*)u,NCOL);
+#endif
+  }
+  
+  //calculate the real part of the determinant of an su3 matrix
+  template <typename U>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  double su3_real_det(const U& u)
+  {
+#if NCOL == 3
+    return
+      u[0][2][IM]*(u[1][1][RE]*u[2][0][IM]+u[1][1][IM]*u[2][0][RE]-u[1][0][RE]*u[2][1][IM]-u[1][0][IM]*u[2][1][RE])+
+      u[0][2][RE]*(u[1][1][IM]*u[2][0][IM]-u[1][1][RE]*u[2][0][RE]-u[1][0][IM]*u[2][1][IM]+u[1][0][RE]*u[2][1][RE])+
+      u[0][1][IM]*(u[1][0][RE]*u[2][2][IM]-u[1][2][RE]*u[2][0][IM]-u[1][2][IM]*u[2][0][RE]+u[1][0][IM]*u[2][2][RE])+
+      u[0][1][RE]*(u[1][0][IM]*u[2][2][IM]-u[1][2][IM]*u[2][0][IM]+u[1][2][RE]*u[2][0][RE]-u[1][0][RE]*u[2][2][RE])+
+      u[0][0][IM]*(u[1][2][RE]*u[2][1][IM]+u[1][2][IM]*u[2][1][RE]-u[1][1][RE]*u[2][2][IM]-u[1][1][IM]*u[2][2][RE])+
+      u[0][0][RE]*(u[1][2][IM]*u[2][1][IM]-u[1][2][RE]*u[2][1][RE]-u[1][1][IM]*u[2][2][IM]+u[1][1][RE]*u[2][2][RE]);
+#else
+    complex d;
+    su3_det(d,u);
+    return d[RE];
+#endif
+  }
+  
+  
+  CUDA_MANAGED extern int su3_sub_gr_indices[3][2];
   
   //take projection of the su2 matrix over an su3 matrix
   //return the inverse modulo of the part parallel in the original matrix
@@ -725,46 +756,6 @@ namespace nissa
 	    out[ic][jc][IM]=-(out[jc][ic][IM]=(in[jc][ic][IM]-in[ic][jc][IM])/2);
 	  }
       }
-  }
-  
-  //calculate the determinant of an su3 matrix
-  CUDA_HOST_AND_DEVICE inline void su3_det(complex d,const su3 U)
-  {
-#if NCOL == 3
-    complex a;
-    
-    unsafe_complex_prod(a,U[1][1],U[2][2]);
-    complex_subt_the_prod(a,U[1][2],U[2][1]);
-    unsafe_complex_prod(d,U[0][0],a);
-    
-    unsafe_complex_prod(a,U[1][2],U[2][0]);
-    complex_subt_the_prod(a,U[1][0],U[2][2]);
-    complex_summ_the_prod(d,U[0][1],a);
-    
-    unsafe_complex_prod(a,U[1][0],U[2][1]);
-    complex_subt_the_prod(a,U[1][1],U[2][0]);
-    complex_summ_the_prod(d,U[0][2],a);
-#else
-    matrix_determinant(d,(complex*)U,NCOL);
-#endif
-  }
-  
-  //calculate the real part of the determinant of an su3 matrix
-  CUDA_HOST_AND_DEVICE inline double su3_real_det(const su3 u)
-  {
-#if NCOL == 3
-    return
-      u[0][2][IM]*(u[1][1][RE]*u[2][0][IM]+u[1][1][IM]*u[2][0][RE]-u[1][0][RE]*u[2][1][IM]-u[1][0][IM]*u[2][1][RE])+
-      u[0][2][RE]*(u[1][1][IM]*u[2][0][IM]-u[1][1][RE]*u[2][0][RE]-u[1][0][IM]*u[2][1][IM]+u[1][0][RE]*u[2][1][RE])+
-      u[0][1][IM]*(u[1][0][RE]*u[2][2][IM]-u[1][2][RE]*u[2][0][IM]-u[1][2][IM]*u[2][0][RE]+u[1][0][IM]*u[2][2][RE])+
-      u[0][1][RE]*(u[1][0][IM]*u[2][2][IM]-u[1][2][IM]*u[2][0][IM]+u[1][2][RE]*u[2][0][RE]-u[1][0][RE]*u[2][2][RE])+
-      u[0][0][IM]*(u[1][2][RE]*u[2][1][IM]+u[1][2][IM]*u[2][1][RE]-u[1][1][RE]*u[2][2][IM]-u[1][1][IM]*u[2][2][RE])+
-      u[0][0][RE]*(u[1][2][IM]*u[2][1][IM]-u[1][2][RE]*u[2][1][RE]-u[1][1][IM]*u[2][2][IM]+u[1][1][RE]*u[2][2][RE]);
-#else
-    complex d;
-    su3_det(d,u);
-    return d[RE];
-#endif
   }
   
   /// Return the hemitian su3 matrix
@@ -2492,10 +2483,10 @@ typename B>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void colorspinspin_prod_color_delta(A&& a,
 				      const B& b,
-				      const size_t& c)
+				      const int& c)
   {
     UNROLL_FOR_ALL_COLS(ic)
-      spinspin_prod_double(a[ic],b[ic],c==ic);
+      spinspin_prod_double(std::forward<A>(a)[ic],b[ic],c==ic);
   }
   
   //colorspinspin summ
@@ -2659,7 +2650,7 @@ typename B>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void su3spinspin_prod_color_delta(A&& a,
 				    const B& b,
-				    const size_t& c)
+				    const int& c)
   {
     UNROLL_FOR_ALL_COLS(ic)
       colorspinspin_prod_double(a[ic],b[ic],c==ic);
@@ -2843,11 +2834,129 @@ typename B>
 	for(int c1=0;c1<NCOL;c1++)
 	  for(int c2=0;c2<NCOL;c2++)
 	    for(int c3=0;c3<NCOL;c3++)
-	      complex_summ_the_conj1_prod(a[c1][c3][id_si][id_so],b[c2][c1],c[c2][c3][id_si][id_so]);
+	      complex_summ_the_conj1_prod(std::forward<A>(a)[c1][c3][id_si][id_so],b[c2][c1],c[c2][c3][id_si][id_so]);
   }
   
-  CUDA_HOST_AND_DEVICE void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,
-								       const su3& Q);
+  //used to exponentiate for stouting
+  struct hermitian_exp_ingredients
+  {
+    int sign;
+    double c0,c1;
+    double cu,su;
+    double c2u,s2u;
+    su3 Q,Q2;
+    double u,w,theta;
+    double xi0w;
+    double cw;
+    complex f[3];
+    
+    template <typename U>
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    void prepareIngredients(const U& u)
+    {
+      su3_copy(Q,u);
+      
+      //compute the real part of the determinant (eq. 14)
+      double c0=
+	su3_real_det(Q);
+      
+      //takes the square of Q
+      unsafe_su3_prod_su3(Q2,Q,Q);
+      
+      //takes 1/2 of the real part of the trace of Q2 (eq. 15)
+      const double c1=
+	su3_real_trace(Q2)/2;
+      
+      //compute c0_max (eq. 17)
+      const double c0_max=
+	2*pow(c1/3,1.5);
+      
+      //consider the case in which c1<4*10^-3 apart, as done in MILC
+      if(c1<4e-3)
+	{
+	  f[0][RE]=1-c0*c0/720;
+	  f[0][IM]=-c0*(1-c1*(1-c1/42)/20)/6;
+	  f[1][RE]=c0*(1-c1*(1-3*c1/112)/15)/24;
+	  f[1][IM]=1-c1*(1-c1*(1-c1/42)/20)/6-c0*c0/5040;
+	  f[2][RE]=0.5*(-1+c1*(1-c1*(1-c1/56)/30)/12+c0*c0/20160);
+	  f[2][IM]=0.5*(c0*(1-c1*(1-c1/48)/21)/60);
+	}
+      else
+	{
+	  //take c0 module and write separately its sign (see note after eq. 34)
+	  sign=0;
+	  if(c0<0)
+	    {
+	      sign=1;
+	      c0=-c0;
+	    }
+	  
+	  //check rounding error
+	  double eps=(c0_max-c0)/c0_max;
+	  
+	  //(eqs. 23-24)
+	  double theta;
+	  if(eps<0) theta=0; //only possible as an effect of rounding error when c0/c0_max=1
+	  else
+	    if(eps<1e-3) theta=sqrt(2*eps)*(1+(1.0/12+(3.0/160+(5.0/896+(35.0/18432+63.0/90112*eps)*eps)*eps)*eps)*eps);
+	    else theta=acos(c0/c0_max);
+	  const double u=sqrt(c1/3)*cos(theta/3);
+	  const double w=sqrt(c1)*sin(theta/3);
+	  
+	  //auxiliary variables for the computation of h0, h1, h2
+	  double u2=u*u,w2=w*w,u2mw2=u2-w2,w2p3u2=w2+3*u2,w2m3u2=w2-3*u2;
+	  double cu=cos(u),c2u=cos(2*u);
+	  double su=sin(u),s2u=sin(2*u);
+	  double cw=cos(w);
+	  
+	  //compute xi function defined after (eq. 33)
+	  double xi0w;
+	  if(fabs(w)<0.05)
+	    {
+	      double temp0=w*w,temp1=1-temp0/42,temp2=1.0-temp0/20*temp1;
+	      xi0w=1-temp0/6*temp2;
+	    }
+	  else xi0w=sin(w)/w;
+	  
+	  //computation of h0, h1, h2 (eqs. 30-32)
+	  complex h0={
+	    u2mw2*c2u+ //(u2-w2)*cos(2u)
+	    cu*8*u2*cw+ //cos(u)*8*u2*cos(w)
+	    2*su*u*w2p3u2*xi0w, //sin(u)*2*mu*(3*u2+w2)*xi0(w)
+	    u2mw2*s2u+ //(u2-w2)*sin(2u)
+	    -su*8*u2*cw+ //-sin(u)*8*u2*cos(w)
+	    cu*2*u*w2p3u2*xi0w}; //cos(u)*2*u*(3*u2+w2)*xi0(w)
+	  complex h1={
+	    2*u*c2u+ //2*u*cos(2u)
+	    -cu*2*u*cw+ //cos(u)*2*u*cos(w)
+	    -su*w2m3u2*xi0w, //sin(u)*(u2-3*w2)*xi0(w)
+	    2*u*s2u+ //2*u*sin(2u)
+	    su*2*u*cos(w)+ //sin(u)*2*u*cos(w)
+	    -cu*w2m3u2*xi0w};//cos(u)*(3*u2-w2)*xi0(w)
+	  complex h2={
+	    c2u+ //cos(2u)
+	    -cu*cw+ //-cos(u)*cos(w)
+	    -3*su*u*xi0w, //-3*sin(u)*u*xi0(w)
+	    s2u+ //sin(2u)
+	    su*cw+ //sin(w)*cos(w)
+	    -cu*3*u*xi0w};//-cos(u)*3*u*xi0(w)
+	  
+	  //build f (eq. 29)
+	  double fact=1/(9*u*u-w*w);
+	  complex_prod_double(f[0],h0,fact);
+	  complex_prod_double(f[1],h1,fact);
+	  complex_prod_double(f[2],h2,fact);
+	  
+	  //change sign to f according to (eq. 34)
+	  if(sign!=0)
+	    {
+	      f[0][IM]*=-1;
+	      f[1][RE]*=-1;
+	      f[2][IM]*=-1;
+	    }
+	}
+    }
+  };
   
   /// Build the exponential from the ingredients
   template <typename A>
@@ -2856,19 +2965,9 @@ typename B>
 					   const hermitian_exp_ingredients& ing)
   {
     //compute out according to (eq. 13)
-    su3_put_to_diag_complex(out,ing.f[0]);
-    su3_summ_the_prod_complex(out,ing.Q,ing.f[1]);
-    su3_summ_the_prod_complex(out,ing.Q2,ing.f[2]);
-  }
-  
-  template <typename A,
-	    ENABLE_THIS_TEMPLATE_IF(not std::is_same_v<A,su3>)>
-  CUDA_HOST_AND_DEVICE void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,
-								       const A& Q)
-  {
-    su3 temp;
-    su3_copy(temp,Q);
-    hermitian_exact_i_exponentiate_ingredients(out,temp);
+    su3_put_to_diag_complex(std::forward<A>(out),ing.f[0]);
+    su3_summ_the_prod_complex(std::forward<A>(out),ing.Q,ing.f[1]);
+    su3_summ_the_prod_complex(std::forward<A>(out),ing.Q2,ing.f[2]);
   }
   
   template <typename A,
@@ -2877,8 +2976,8 @@ typename B>
 								       const B& Q)
   {
     hermitian_exp_ingredients ing;
-    hermitian_exact_i_exponentiate_ingredients(ing,Q);
-    safe_hermitian_exact_i_exponentiate(out,ing);
+    ing.prepareIngredients(Q);
+    safe_hermitian_exact_i_exponentiate(std::forward<A>(out),ing);
   }
   
   template <typename A,
@@ -2891,7 +2990,7 @@ typename B>
     su3 Q;
     su3_prod_idouble(Q,iQ,-1);
     
-    safe_hermitian_exact_i_exponentiate(out,Q);
+    safe_hermitian_exact_i_exponentiate(std::forward<A>(out),Q);
   }
   
   //return sqrt(|U*U^+-1|)
