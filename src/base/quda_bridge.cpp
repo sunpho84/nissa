@@ -154,22 +154,22 @@ namespace quda_iface
   using CustomRealOfQudaPrecision=
     typename internal::_CustomRealOfQudaPrecision<Prec>::type;
   
-  /// Gets the i-th entry of an array v, interpeting entries as Prec type 
-  double getFromCustomPrecArray(const void* v,
-				const size_t& i,
-				const size_t prec)
-  {
-    if(prec==8)
-      return (double)((CustomRealOfQudaPrecision<QUDA_DOUBLE_PRECISION>*)v)[i];
-    else if(prec==4)
-      return (double)((CustomRealOfQudaPrecision<QUDA_SINGLE_PRECISION>*)v)[i];
-    else if(prec==QUDA_HALF_PRECISION)
-      return __half2float(((__half*)v)[i]);
-    else
-      crash("Unknown precision %zu",prec);
+  // /// Gets the i-th entry of an array v, interpeting entries as Prec type 
+  // double getFromCustomPrecArray(const void* v,
+  // 				const size_t& i,
+  // 				const size_t prec)
+  // {
+  //   if(prec==8)
+  //     return (double)((CustomRealOfQudaPrecision<QUDA_DOUBLE_PRECISION>*)v)[i];
+  //   else if(prec==4)
+  //     return (double)((CustomRealOfQudaPrecision<QUDA_SINGLE_PRECISION>*)v)[i];
+  //   else if(prec==QUDA_HALF_PRECISION)
+  //     return __half2float(((__half*)v)[i]);
+  //   else
+  //     crash("Unknown precision %zu",prec);
     
-    return 0;
-  }
+  //   return 0;
+  // }
   
 #ifdef QUDASETUPSTORE
   void QudaSetup::restoreOrTakeCopyOfB(const bool takeCopy,
