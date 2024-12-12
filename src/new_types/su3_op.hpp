@@ -2852,20 +2852,18 @@ typename B>
     
     template <typename U>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    void prepareIngredients(const U& u)
+    void prepareIngredients(const U& l)
     {
-      su3_copy(Q,u);
+      su3_copy(Q,l);
       
       //compute the real part of the determinant (eq. 14)
-      double c0=
-	su3_real_det(Q);
+      c0=su3_real_det(Q);
       
       //takes the square of Q
       unsafe_su3_prod_su3(Q2,Q,Q);
       
       //takes 1/2 of the real part of the trace of Q2 (eq. 15)
-      const double c1=
-	su3_real_trace(Q2)/2;
+      c1=su3_real_trace(Q2)/2;
       
       //compute c0_max (eq. 17)
       const double c0_max=
@@ -2895,22 +2893,22 @@ typename B>
 	  double eps=(c0_max-c0)/c0_max;
 	  
 	  //(eqs. 23-24)
-	  double theta;
 	  if(eps<0) theta=0; //only possible as an effect of rounding error when c0/c0_max=1
 	  else
 	    if(eps<1e-3) theta=sqrt(2*eps)*(1+(1.0/12+(3.0/160+(5.0/896+(35.0/18432+63.0/90112*eps)*eps)*eps)*eps)*eps);
 	    else theta=acos(c0/c0_max);
-	  const double u=sqrt(c1/3)*cos(theta/3);
-	  const double w=sqrt(c1)*sin(theta/3);
+	  u=sqrt(c1/3)*cos(theta/3);
+	  w=sqrt(c1)*sin(theta/3);
 	  
 	  //auxiliary variables for the computation of h0, h1, h2
 	  double u2=u*u,w2=w*w,u2mw2=u2-w2,w2p3u2=w2+3*u2,w2m3u2=w2-3*u2;
-	  double cu=cos(u),c2u=cos(2*u);
-	  double su=sin(u),s2u=sin(2*u);
-	  double cw=cos(w);
+	  cu=cos(u);
+	  c2u=cos(2*u);
+	  su=sin(u);
+	  s2u=sin(2*u);
+	  cw=cos(w);
 	  
 	  //compute xi function defined after (eq. 33)
-	  double xi0w;
 	  if(fabs(w)<0.05)
 	    {
 	      double temp0=w*w,temp1=1-temp0/42,temp2=1.0-temp0/20*temp1;

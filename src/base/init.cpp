@@ -1,6 +1,8 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
+
+#include <cfenv>
 
 #include <base/init.hpp>
 
@@ -12,7 +14,7 @@
 #include <string.h>
 
 #if HIGH_PREC_TYPE == GMP_HIGH_PREC
- #include <gmpxx.h>
+# include <gmpxx.h>
 #endif
 
 #ifdef USE_CUDA
@@ -48,7 +50,7 @@
 #include <sys/ioctl.h>
 
 #ifdef USE_QUDA
- #include "base/quda_bridge.hpp"
+# include "base/quda_bridge.hpp"
 #endif
 
 //test to remove limit 2
@@ -115,6 +117,7 @@ namespace nissa
 	signal(SIGXCPU,signal_handler);
 	signal(SIGABRT,signal_handler);
 	signal(SIGINT,signal_handler);
+	feenableexcept(FE_DIVBYZERO|FE_INVALID|FE_OVERFLOW);
       }
     else
       master_printf("Not trapping signals\n");
