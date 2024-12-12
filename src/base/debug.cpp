@@ -77,8 +77,10 @@ namespace nissa
   }
   
   //crash reporting the expanded error message
+  CUDA_HOST_AND_DEVICE
   void internal_crash(int line,const char *file,const char *templ,...)
   {
+#ifndef COMPILING_FOR_DEVICE
     fflush(stdout);
     fflush(stderr);
     
@@ -100,6 +102,9 @@ namespace nissa
     }
     
     ranks_abort(0);
+#else
+    __trap();
+#endif
   }
   
   void internal_crash_printing_error(int line,const char *file,int err_code,const char *templ,...)
