@@ -43,6 +43,7 @@ namespace nissa
     in.fill();
     
     //perform initial normalization
+    [[maybe_unused]]
     const double init_norm=
       in.normalize();
     verbosity_lv3_master_printf("Init norm: %lg\n",init_norm);
@@ -116,7 +117,6 @@ namespace nissa
   {
     //compute condition numbers
     double cond_numb=eig_max/eig_min;
-    double cond_numb_stored=appr.maximum/appr.minimum;
     
     //check that approximation is valid
     bool valid=true;
@@ -128,6 +128,8 @@ namespace nissa
 	if(!allocated) verbosity_lv2_master_printf(" Not allocated\n");
 	valid&=allocated;
       }
+    else
+      return false;
     
     //check that exponent is the same
     if(valid)
@@ -137,6 +139,11 @@ namespace nissa
 	if(!expo_is_the_same) verbosity_lv2_master_printf(" Approx stored is for x^%lg, required is for x^%lg\n",expo_stored,expo);
 	valid&=expo_is_the_same;
       }
+    else
+      return false;
+    
+    const double cond_numb_stored=
+      appr.maximum/appr.minimum;
     
     //check that it can be fitted
     if(valid)
@@ -145,6 +152,8 @@ namespace nissa
 	if(!can_fit) verbosity_lv2_master_printf(" Condition number %lg>=%lg (stored)\n",cond_numb,cond_numb_stored);
 	valid&=can_fit;
       }
+    else
+      return false;
     
     //check that approximation it is not exagerated
     if(valid)
@@ -155,6 +164,8 @@ namespace nissa
 	if(!does_not_exceed) verbosity_lv2_master_printf(" Condition number %lg more than %lg smaller (%lg) than %lg (stored)\n",cond_numb,exc,fact,cond_numb_stored);
 	valid&=does_not_exceed;
       }
+    else
+      return false;
     
     //check that the approximation accuracy is close to the required one
     if(valid)
@@ -167,6 +178,8 @@ namespace nissa
 						     maxerr,toll,appr.maxerr/maxerr,appr.maxerr);
 	valid&=is_accurate;
       }
+    else
+      return false;
     
     return valid;
   }
