@@ -15,11 +15,11 @@ namespace nissa
   {
     /// Initializes the remap, with a lambda
     template <typename F>
-    vector_remap_t(const int& nel_fr,
+    vector_remap_t(const int64_t& nel_fr,
 		   F&& index)
     {
       all_to_all_scattering_list_t sl;
-      for(int iel_fr=0;iel_fr<nel_fr;iel_fr++)
+      for(int64_t iel_fr=0;iel_fr<nel_fr;iel_fr++)
 	{
 	  const auto [rank_to,iel_to]=index(iel_fr);
 	  

@@ -667,7 +667,7 @@ namespace nissa
 	}
     edge_vol*=4;
     edge_volh=edge_vol/2;
-    master_printf("Edge vol: %d\n",edge_vol);
+    master_printf("Edge vol: %ld\n",edge_vol);
     
     //set edge numb
     for(int iedge=0,mu=0;mu<NDIM;mu++)
@@ -697,14 +697,14 @@ namespace nissa
     //print information
     master_printf("Local volume\t%d",locSize[0]);
     for(int mu=1;mu<NDIM;mu++) master_printf("x%d",locSize[mu]);
-    master_printf(" = %d\n",locVol);
+    master_printf(" = %ld\n",locVol);
     master_printf("List of parallelized dirs:\t");
     for(int mu=0;mu<NDIM;mu++) if(is_dir_parallel[mu]) master_printf("%d ",mu);
     if(nparal_dir==0) master_printf("(none)");
     master_printf("\n");
-    master_printf("Border size: %d\n",bord_vol);
+    master_printf("Border size: %ld\n",bord_vol);
     for(int mu=0;mu<NDIM;mu++)
-      verbosity_lv3_master_printf("Border offset for dir %d: %d\n",mu,bord_offset[mu]);
+      verbosity_lv3_master_printf("Border offset for dir %d: %ld\n",mu,bord_offset[mu]);
     
     //print orderd list of the rank names
     if(VERBOSITY_LV3)

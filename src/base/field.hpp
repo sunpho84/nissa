@@ -116,7 +116,7 @@ namespace nissa
     
     /// Number of sites covered by the field
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr int& nSites()
+    static constexpr int64_t& nSites()
     {
       if constexpr(fieldCoverage==FULL_SPACE)
 	return locVol;
@@ -126,7 +126,7 @@ namespace nissa
     
     /// Number of sites in the halo of the field (not necessarily allocated)
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr int& nHaloSites()
+    static constexpr int64_t& nHaloSites()
     {
       if constexpr(fieldCoverage==FULL_SPACE)
 	return bord_vol;
@@ -136,7 +136,7 @@ namespace nissa
     
     /// Number of sites in the edges of the field (not necessarily allocated)
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr int& nEdgesSites()
+    static constexpr int64_t& nEdgesSites()
     {
       if constexpr(fieldCoverage==FULL_SPACE)
 	return edge_vol;
@@ -145,9 +145,9 @@ namespace nissa
     }
     
     /// Computes the size to allocate
-    static int nSitesToAllocate(const HaloEdgesPresence& haloEdgesPresence)
+    static int64_t nSitesToAllocate(const HaloEdgesPresence& haloEdgesPresence)
     {
-      int res=nSites();
+      int64_t res=nSites();
       
       if(haloEdgesPresence>=WITH_HALO)
 	res+=nHaloSites();
@@ -160,7 +160,7 @@ namespace nissa
     
     /// Surface site of a site in the halo
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static auto surfSiteOfHaloSite(const int& iHalo)
+    static auto surfSiteOfHaloSite(const int64_t& iHalo)
     {
       assertHasDefinedCoverage();
       
@@ -173,7 +173,7 @@ namespace nissa
     
     /// Surface site of a site in the e
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static auto surfSiteOfEdgeSite(const int& iEdge)
+    static auto surfSiteOfEdgeSite(const int64_t& iEdge)
     {
       assertHasDefinedCoverage();
       
@@ -188,7 +188,7 @@ namespace nissa
 									\
     /* Neighbor in the UD orientation */				\
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION				\
-    static auto locNeigh ## UD(const int& site,				\
+    static auto locNeigh ## UD(const int64_t& site,			\
 			       const int& mu)				\
     {									\
       assertHasDefinedCoverage();					\
@@ -211,7 +211,7 @@ namespace nissa
     
     /// Global coordinates
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static auto glbCoord(const int& site,
+    static auto glbCoord(const int64_t& site,
 			 const int& mu)
     {
       assertHasDefinedCoverage();
@@ -241,13 +241,13 @@ namespace nissa
     
     F& f;
     
-    const int externalSize;
+    const int64_t externalSize;
     
     Fund* _data;
     
 #define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
-    decltype(auto) operator[](const int& site) CONST			\
+    decltype(auto) operator[](const int64_t& site) CONST		\
     {									\
       if constexpr(not std::is_array_v<Comps>)				\
 	return								\
@@ -268,7 +268,7 @@ namespace nissa
     
 #define PROVIDE_FLATTENED_CALLER(CONST)					\
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
-    CONST Fund& operator()(const int& site,				\
+    CONST Fund& operator()(const int64_t& site,				\
 			   const int& internalDeg) CONST		\
     {									\
       return _data[index(site,internalDeg)];				\
@@ -283,8 +283,8 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    int index(const int& site,
-	      const int& internalDeg) const
+    int64_t index(const int64_t& site,
+		  const int& internalDeg) const
     {
       return F::index(site,internalDeg,externalSize);
     }
@@ -367,7 +367,7 @@ namespace nissa
     const HaloEdgesPresence haloEdgesPresence;
     
     /// Total allocated sites
-    const int externalSize;
+    const int64_t externalSize;
     
     /// Container for actual data
     Fund* _data;
@@ -380,9 +380,9 @@ namespace nissa
     
     /// Computes the index of the data
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    static int index(const int& site,
-		     const int& internalDeg,
-		     const int& externalSize)
+    static int64_t index(const int64_t& site,
+			 const int& internalDeg,
+			 const int& externalSize)
     {
       if constexpr(FL==FieldLayout::CPU)
 	return internalDeg+nInternalDegs*site;
@@ -392,8 +392,8 @@ namespace nissa
     
     /// Nonstatic index
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    int index(const int& site,
-	      const int& internalDeg) const
+    int64_t index(const int64_t& site,
+		  const int& internalDeg) const
     {
       return Field::index(site,internalDeg,externalSize);
     }
@@ -754,7 +754,7 @@ namespace nissa
     
 #define PROVIDE_FLATTENED_CALLER(CONST)					\
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
-    CONST Fund& operator()(const int& site,				\
+    CONST Fund& operator()(const int64_t& site,				\
 			   const int& internalDeg) CONST		\
     {									\
       return _data[index(site,internalDeg,externalSize)];		\
@@ -1360,7 +1360,7 @@ namespace nissa
     using Comps=
       typename F::Comps;
     
-    const int site;
+    const int64_t site;
     
     const P* ptr;
     
@@ -1399,7 +1399,7 @@ namespace nissa
     
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     SubscribedField(F& f,
-		    const int& site,
+		    const int64_t& site,
 		    const P* ptr) :
       f(f),site(site),ptr(ptr)
     {

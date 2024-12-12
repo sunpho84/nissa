@@ -68,8 +68,8 @@ namespace nissa
   
   template <typename T>
   void fft4d(LxField<T,FieldLayout::CPU>& f,
-	const double& sign,
-	const bool& normalize)
+	     const double& sign,
+	     const bool& normalize)
   {
     fft4d(f._data,sign,normalize);
   }

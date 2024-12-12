@@ -47,7 +47,7 @@ namespace nissa
   //-loc to the local one
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t glbSize,locSize;
   CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t glbVol,glbSpatVol,glbVolh;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int locVol,locSpatVol,locVolh;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t locVol,locSpatVol,locVolh;
   EXTERN_GEOMETRY_LX int64_t bulkVol,nonBwSurfVol,nonFwSurfVol;
   EXTERN_GEOMETRY_LX int64_t surfVol,bwSurfVol,fwSurfVol;
   EXTERN_GEOMETRY_LX double glb_vol2,loc_vol2;
@@ -58,19 +58,19 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_LX int nsite_per_box[1<<NDIM];
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t *glbCoordOfLoclx;
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t *locCoordOfLoclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *glblxOfLoclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *glblxOfBordlx;
-  EXTERN_GEOMETRY_LX int *loclxOfBordlx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflxOfBordlx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflxOfEdgelx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *glblxOfEdgelx;
-  EXTERN_GEOMETRY_LX int *loclxOfBulklx;
-  EXTERN_GEOMETRY_LX int *loclxOfSurflx;
-  EXTERN_GEOMETRY_LX int *loclxOfNonBwSurflx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *loclxOfNonFwSurflx;
-  EXTERN_GEOMETRY_LX int *loclxOfBwSurflx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *loclxOfFwSurflx;
-  EXTERN_GEOMETRY_LX int lxGeomInited;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *glblxOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *glblxOfBordlx;
+  EXTERN_GEOMETRY_LX int64_t *loclxOfBordlx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *surflxOfBordlx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *surflxOfEdgelx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *glblxOfEdgelx;
+  EXTERN_GEOMETRY_LX int64_t *loclxOfBulklx;
+  EXTERN_GEOMETRY_LX int64_t *loclxOfSurflx;
+  EXTERN_GEOMETRY_LX int64_t *loclxOfNonBwSurflx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *loclxOfNonFwSurflx;
+  EXTERN_GEOMETRY_LX int64_t *loclxOfBwSurflx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *loclxOfFwSurflx;
+  EXTERN_GEOMETRY_LX bool lxGeomInited;
   //neighbours of local volume + borders
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t *loclxNeighdw,*loclxNeighup;
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t *loclx_neigh[2];
@@ -84,12 +84,14 @@ namespace nissa
   EXTERN_GEOMETRY_LX int nparal_dir;
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t is_dir_parallel;
   //size of the border and edges
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int bord_vol,bord_volh;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_vol,edge_volh;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t bord_vol,bord_volh;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t edge_vol,edge_volh;
   //size along various dir
   constexpr int nEdges=NDIM*(NDIM-1)/2;
-  EXTERN_GEOMETRY_LX int bord_dir_vol[NDIM],bord_offset[NDIM];
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_dir_vol[nEdges],edge_offset[nEdges],edge_dirs[nEdges][2],isEdgeParallel[nEdges];
+  EXTERN_GEOMETRY_LX int64_t bord_dir_vol[NDIM],bord_offset[NDIM];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t edge_dir_vol[nEdges],edge_offset[nEdges];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_dirs[nEdges][2];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX bool isEdgeParallel[nEdges];
   EXTERN_GEOMETRY_LX int rank_edge_neigh[2][2][nEdges];
   CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
   //mapping of ILDG data
@@ -114,19 +116,33 @@ namespace nissa
 #endif
     ;
   
-  CUDA_HOST_AND_DEVICE coords_t get_stagphase_of_lx(const int& ivol);
-  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(const int& ivol,const int& mu);
+  CUDA_HOST_AND_DEVICE coords_t get_stagphase_of_lx(const int64_t& ivol);
   
-  int bordlx_of_coord(const coords_t& x,const int& mu);
-  int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
-  coords_t coord_of_lx(int ilx,const coords_t s);
+  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(const int64_t& ivol,
+					       const int& mu);
+  
+  int64_t bordlx_of_coord(const coords_t& x,
+			  const int& mu);
+  
+  int bordlx_of_coord_list(const int& x0,
+			   const int& x1,
+			   const int& x2,
+			   const int& x3,
+			   const int& mu);
+  
+  coords_t coord_of_lx(const int64_t& ilx,
+		       const coords_t& s);
+  
   coords_t coord_of_rank(const int& irank);
   
-  inline coords_t coord_summ(const coords_t& a1,const coords_t& a2,const coords_t& l)
+  inline coords_t coord_summ(const coords_t& a1,
+			     const coords_t& a2,
+			     const coords_t& l)
   {
     coords_t s;
     
-    for(int mu=0;mu<NDIM;mu++) s[mu]=(a1[mu]+a2[mu])%l[mu];
+    for(int mu=0;mu<NDIM;mu++)
+      s[mu]=(a1[mu]+a2[mu])%l[mu];
     
     return s;
   }
@@ -136,34 +152,61 @@ namespace nissa
     s=coord_summ(s,a,l);
   }
   
-  int edgelx_of_coord(const coords_t& x,const int& mu,const int& nu);
+  int64_t edgelx_of_coord(const coords_t &x,
+			  const int &mu,
+			  const int &nu);
   int full_lx_of_coords_list(const int t,const int x,const int y,const int z);
-  int glblx_neighdw(const int& gx,const int& mu);
-  int glblx_neighup(const int& gx,const int& mu);
-  int glblx_of_comb(int b,int wb,int c,int wc);
-  int glblx_of_coord(const coords_t& x);
-  int glblx_of_coord_list(int x0,int x1,int x2,int x3);
-  int glblx_of_diff(const int& b,const int& c);
-  int glblx_of_summ(const int& b,const int& c);
-  int glblx_opp(const int& b);
-  CUDA_HOST_AND_DEVICE int loclx_of_coord(const coords_t& x);
   
-  inline int loclx_of_coord_list(int x0,int x1,int x2,int x3)
+  int64_t glblx_neighdw(const int64_t& gx,
+			const int& mu);
+  
+  int64_t glblx_neighup(const int64_t& gx,
+			const int& mu);
+  
+  int64_t glblx_of_comb(const int64_t& b,
+			const int& wb,
+			const int64_t& c,
+			const int& wc);
+  
+  int64_t glblx_of_coord(const coords_t& x);
+  
+  int64_t glblx_of_coord_list(const int& x0,
+			      const int& x1,
+			      const int& x2,
+			      const int& x3);
+  
+  int64_t glblx_of_diff(const int64_t& b,
+			const int64_t& c);
+  
+  int64_t glblx_of_summ(const int64_t& b,
+			const int64_t& c);
+  
+  int64_t glblx_opp(const int64_t& b);
+  
+  CUDA_HOST_AND_DEVICE int64_t loclx_of_coord(const coords_t& x);
+  
+  inline int64_t loclx_of_coord_list(const int& x0,
+				     const int& x1,
+				     const int& x2,
+				     const int& x3)
   {
-    const coords_t c={x0,x1,x2,x3};
-    return loclx_of_coord(c);
+    return loclx_of_coord(coords_t{x0,x1,x2,x3});
   }
   
-  CUDA_HOST_AND_DEVICE int lx_of_coord(const coords_t& x,const coords_t& s);
-  int vol_of_lx(const coords_t& size);
-  int rank_hosting_glblx(const int& gx);
+  CUDA_HOST_AND_DEVICE int64_t lx_of_coord(const coords_t& x,
+					   const coords_t& s);
+  
+  int64_t vol_of_lx(const coords_t& size);
+
+  int rank_hosting_glblx(const int64_t& gx);
+  
   int rank_hosting_site_of_coord(const coords_t& x);
   int rank_of_coord(const coords_t& x);
   
-  coords_t glb_coord_of_glblx(int gx);
+  coords_t glb_coord_of_glblx(const int64_t& gx);
   
   /// Return the local site and rank containing the global coordinates
-  inline std::pair<int,int> get_loclx_and_rank_of_coord(const coords_t& g)
+  inline std::pair<int,int64_t> get_loclx_and_rank_of_coord(const coords_t& g)
   {
     coords_t l,p;
     for(int mu=0;mu<NDIM;mu++)
@@ -173,13 +216,13 @@ namespace nissa
       }
     
     const int rank=rank_of_coord(p);
-    const int ivol=loclx_of_coord(l);
+    const int64_t ivol=loclx_of_coord(l);
     
     return {rank,ivol};
   }
   
   /// Return the local site and rank containing the global site
-  inline std::pair<int,int> get_loclx_and_rank_of_glblx(const int& gx)
+  inline std::pair<int,int64_t> get_loclx_and_rank_of_glblx(const int64_t& gx)
   {
     return get_loclx_and_rank_of_coord(glb_coord_of_glblx(gx));
   }
@@ -196,13 +239,16 @@ namespace nissa
   int hypercubic_red_point_of_red_coords(const coords_t& h);
   
   //get mirrorized coord
-  inline int get_mirrorized_site_coord(const int& c,const int& mu,const bool& flip)
+  inline int get_mirrorized_site_coord(const int& c,
+				       const int& mu,
+				       const bool& flip)
   {
     return (glbSize[mu]+(1-2*flip)*c)%glbSize[mu];
   }
   
   //get mirrorized coords according to a bit decomposition of imir
-  inline coords_t get_mirrorized_site_coords(const coords_t& c,const int& imir)
+  inline coords_t get_mirrorized_site_coords(const coords_t& c,
+					     const int& imir)
   {
     coords_t cmir;
     

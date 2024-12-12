@@ -29,6 +29,9 @@ namespace nissa
 			 const IMax max,
 			 F&& f)
   {
+    using I=
+      std::common_type_t<IMin,IMax>;
+    
     double initTime=0;
     extern int rank;
     const bool print=
@@ -43,7 +46,7 @@ namespace nissa
       }
     
 #pragma omp parallel for
-    for(int i=min;i<(int)max;i++)
+    for(I i=min;i<max;i++)
       f(IMax(i));
     
     if(print)
@@ -73,7 +76,11 @@ namespace nissa
 			 const IMax max,
 			 F f) // Needs to take by value
   {
-    const IMax i=(int)(min+blockIdx.x*blockDim.x+threadIdx.x);
+    using I=
+      std::common_type_t<IMin,IMax>;
+    
+    const I i=
+      (min+blockIdx.x*blockDim.x+threadIdx.x);
     if(i<max)
       f(i);
   }
@@ -82,12 +89,14 @@ namespace nissa
 	    typename IMax,
 	    typename F>
   void cudaParallelFor(const int line,
-			 const char* file,
-			 const IMin min,
-			 const IMax max,
+		       const char* file,
+		       const IMin min,
+		       const IMax max,
 		       F f) // Needs to take by value
   {
-    const auto length=(int)max-(int)min;
+    using I=
+      std::common_type_t<IMin,IMax>;
+    const I length=max-min;
     const dim3 blockDimension(128); // to be improved
     const dim3 gridDimension((length+blockDimension.x-1)/blockDimension.x);
     

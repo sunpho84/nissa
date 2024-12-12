@@ -21,9 +21,9 @@ namespace nissa
 {
   //compute the remapping index to make dir mu local
   auto get_index_make_loc_dir(const int& mu,
-			      const int& prp_max_vol)
+			      const int64_t& prp_max_vol)
   {
-    return [mu,prp_max_vol](int iloc_lx)
+    return [mu,prp_max_vol](int64_t iloc_lx)
     {
       int glb_perp_site=0;
       for(int nu=0;nu<NDIM;nu++)
@@ -31,7 +31,7 @@ namespace nissa
 	  glb_perp_site=glb_perp_site*glbSize[nu]+glbCoordOfLoclx[iloc_lx][nu];
       
       const int irank_locld=glb_perp_site/prp_max_vol;
-      int iloc_locld=glb_perp_site-irank_locld*prp_max_vol;
+      int64_t iloc_locld=glb_perp_site-irank_locld*prp_max_vol;
       iloc_locld=iloc_locld*glbSize[mu]+glbCoordOfLoclx[iloc_lx][mu];
       
       return std::make_pair(irank_locld,iloc_locld);
@@ -39,16 +39,16 @@ namespace nissa
   }
   
   //unmake
-  auto get_index_unmake_loc_dir(const int mu,
-				const int& prp_max_vol)
+  auto get_index_unmake_loc_dir(const int& mu,
+				const int64_t& prp_max_vol)
   {
-    return [mu,prp_max_vol](int iloc_locld) // don't make constant
+    return [mu,prp_max_vol](int64_t iloc_locld) // don't make constant
     {
       coords_t c;
       c[mu]=iloc_locld%glbSize[mu];
       iloc_locld/=glbSize[mu];
       
-      int glb_perp_site=
+      int64_t glb_perp_site=
 	iloc_locld+rank*prp_max_vol;
       
       for(int nu=NDIM-1;nu>=0;nu--)

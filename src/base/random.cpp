@@ -132,10 +132,10 @@ namespace nissa
     
     //allocate the grid of random generator, one for site
     loc_rnd_gen=nissa_malloc("Loc_rnd_gen",locVol,rnd_gen);
-    for(int ivol=0;ivol<locVol;ivol++)
+    for(int64_t ivol=0;ivol<locVol;ivol++)
       {
-	int loc_seed=internal_seed+glblxOfLoclx[ivol];
-	if(loc_seed<0) crash("something went wrong with local seed: %d + %d = %d",internal_seed,glblxOfLoclx[ivol],loc_seed);
+	int64_t loc_seed=internal_seed+glblxOfLoclx[ivol];
+	if(loc_seed<0) crash("something went wrong with local seed: %d + %ld = %ld",internal_seed,glblxOfLoclx[ivol],loc_seed);
 	start_rnd_gen(&(loc_rnd_gen[ivol]),loc_seed);
       }
     loc_rnd_gen_inited=1;
