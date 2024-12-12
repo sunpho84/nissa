@@ -5,9 +5,6 @@
 #define EXTERN_QUDA_BRIDGE
 # include "quda_bridge.hpp"
 
-#include <cuda_fp16.h>
-#include <quda_fp16.cuh>
-
 #include "base/cuda.hpp"
 #include "io/checksum.hpp"
 #include "base/export_conf_to_external_solver.hpp"

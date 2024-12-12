@@ -7,8 +7,6 @@
 
 #ifdef USE_QUDA
 # include <quda.h>
-# include <quda_api.h>
-# include <multigrid.h>
 #endif
 
 #include <complex>
