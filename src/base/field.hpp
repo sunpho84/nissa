@@ -18,6 +18,7 @@
 #include <linalgs/reduce.hpp>
 #include <metaprogramming/constnessChanger.hpp>
 #include <metaprogramming/feature.hpp>
+#include <metaprogramming/unroll.hpp>
 #include <routines/ios.hpp>
 
 namespace nissa
@@ -417,9 +418,11 @@ namespace nissa
 #define FOR_EACH_SITE_DEG_OF_FIELD(F,CAPTURES,SITE,IDEG,CODE...)	\
     PAR(0,(F).nSites(),CAPTURE(CAPTURES),SITE,				\
     {									\
-      for(int IDEG=0;IDEG<std::remove_reference_t<decltype(F)>::nInternalDegs;IDEG++) \
-	CODE								\
-	  })
+      constexpr int nInternalDegs=					\
+	   std::remove_reference_t<decltype(F)>::nInternalDegs;		\
+	 UNROLL_FOR(IDEG,0,nInternalDegs)				\
+	   CODE								\
+	   })
     
     // /// Exec the operation f on each site
     // template <typename F>
@@ -442,7 +445,7 @@ namespace nissa
 		  TO_READ(oth)),					\
 	  site,								\
 	  {								\
-	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++) \
+	    UNROLL_FOR(internalDeg,0,nInternalDegs)			\
 	      t(site,internalDeg) OP ## =oth(site,internalDeg);		\
 	  });								\
 									\
@@ -462,7 +465,7 @@ namespace nissa
 		  t=this->getWritable()),				\
 	  site,								\
 	  {								\
-	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++) \
+	    UNROLL_FOR(internalDeg,0,nInternalDegs)			\
 	      t(site,internalDeg) OP ## =oth;				\
 	  });								\
 									\
@@ -481,7 +484,7 @@ namespace nissa
 	  CAPTURE(t=this->getWritable()),
 	  site,
 	  {
-	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	    UNROLL_FOR(internalDeg,0,nInternalDegs)
 	      t(site,internalDeg)=0.0;
 	  });
     }
@@ -497,7 +500,7 @@ namespace nissa
 	  site,
 	  {
 	    double s2=0.0;
-	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	    UNROLL_FOR(internalDeg,0,nInternalDegs)
 	      s2+=sqr(t(site,internalDeg));
 	    buf[site]=s2;
 	  });
@@ -536,7 +539,7 @@ namespace nissa
 		  fact),
 	  site,
 	  {
-	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	    UNROLL_FOR(internalDeg,0,nInternalDegs)
 	      t(site,internalDeg)=oth(site,internalDeg)*fact;
 	  });
       
@@ -564,13 +567,13 @@ namespace nissa
 		const int64_t first=ireduction;
 		const int64_t second=first+stride;
 		
-		for(int iDeg=0;iDeg<nInternalDegs;iDeg++)
+		UNROLL_FOR(iDeg,0,nInternalDegs)
 		  tmp(first,iDeg)+=tmp(second,iDeg);
 	      });
 	  n=stride;
 	};
       
-      for(int iDeg=0;iDeg<nInternalDegs;iDeg++)
+      UNROLL_FOR(iDeg,0,nInternalDegs)
 	((Fund*)out)[iDeg]=tmp(0,iDeg);
       
       MPI_Allreduce(MPI_IN_PLACE,out,nInternalDegs,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
@@ -594,7 +597,7 @@ namespace nissa
 	  {
 	    complex c;
 	    complex_put_to_zero(c);
-	    for(int internalDeg=0;internalDeg<nInternalDegs/2;internalDeg++)
+	    UNROLL_FOR(internalDeg,0,nInternalDegs)
 	      complex_summ_the_conj1_prod(c,l[site][internalDeg],r[site][internalDeg]);
 	    complex_copy(buf[site],c);
 	  });
@@ -615,7 +618,7 @@ namespace nissa
 	  site,
 	  {
 	    double r=0;
-	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	    UNROLL_FOR(internalDeg,0,nInternalDegs)
 	      r+=t(site,internalDeg)*oth(site,internalDeg);
 	    buf[site]=r;
 	  });
@@ -792,7 +795,7 @@ namespace nissa
 		  t=this->getReadable()),
 	  i,
 	  {
-	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	    UNROLL_FOR(internalDeg,0,nInternalDegs)
 	      ((Fund*)send_buf)[internalDeg+nInternalDegs*i]=
 		t(f(i),internalDeg);
 	  });
