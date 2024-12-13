@@ -31,7 +31,7 @@ namespace nissa
 	  su3_dag_subt_the_prod_color(out[io],conf[EVN][evdw0][0],in[evdw0]);
 	  
 	  //derivatives in the spatial direction - with self summ
-	  for(int mu=1;mu<NDIM;mu++)
+	  UNROLL_FOR(mu,1,NDIM)
 	    {
 	      const int evup=loceo_neighup[ODD][io][mu];
 	      const int evdw=loceo_neighdw[ODD][io][mu];
@@ -51,9 +51,7 @@ namespace nissa
     
     PAR(0,locVolh,CAPTURE(TO_WRITE(out)),io,
 	{
-	  for(int ic=0;ic<NCOL;ic++)
-	    for(int ri=0;ri<2;ri++)
-	      out[io][ic][ri]*=0.5;
+	  color_prodassign_double(out[io],0.5);
 	});
   }
   
@@ -78,7 +76,7 @@ namespace nissa
 	  su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw0][0],in[oddw0]);
 	  
 	  //derivatives in the spatial direction - with self summ
-	  for(int mu=1;mu<NDIM;mu++)
+	  UNROLL_FOR(mu,1,NDIM)
 	    {
 	      const int odup=loceo_neighup[EVN][ie][mu];
 	      const int oddw=loceo_neighdw[EVN][ie][mu];
@@ -119,7 +117,7 @@ namespace nissa
 	  su3_dag_subt_the_prod_color(temp[io],conf[EVN][evdw0][0],in[evdw0]);
 	  
 	  //derivatives in the spatial direction - with self summ
-	  for(int mu=1;mu<NDIM;mu++)
+	  UNROLL_FOR(mu,1,NDIM)
 	    {
 	      const int evup=loceo_neighup[ODD][io][mu];
 	      const int evdw=loceo_neighdw[ODD][io][mu];
@@ -143,7 +141,7 @@ namespace nissa
 	  unsafe_su3_prod_color(      out[ie],conf[EVN][ie   ][0],temp[odup0]);
 	  su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw0][0],temp[oddw0]);
 	  
-	  for(int mu=1;mu<NDIM;mu++)
+	  UNROLL_FOR(mu,1,NDIM)
 	  {
 	    const int odup=loceo_neighup[EVN][ie][mu];
 	    const int oddw=loceo_neighdw[EVN][ie][mu];
@@ -160,8 +158,8 @@ namespace nissa
 		    TO_WRITE(out),
 		    TO_READ(in)),ie,
 	    {
-	      for(int ic=0;ic<NCOL;ic++)
-		for(int ri=0;ri<2;ri++)
+	      UNROLL_FOR_ALL_COLS(ic)
+		UNROLL_FOR(ri,0,2)
 		  out[ie][ic][ri]=mass2*in[ie][ic][ri]-out[ie][ic][ri]*0.25;
 	    });
       }
@@ -170,8 +168,8 @@ namespace nissa
 	PAR(0,locVolh,
 	    CAPTURE(TO_WRITE(out)),ie,
 	    {
-	      for(int ic=0;ic<NCOL;ic++)
-		for(int ri=0;ri<2;ri++)
+	      UNROLL_FOR_ALL_COLS(ic)
+		UNROLL_FOR(ri,0,2)
 		  out[ie][ic][ri]*=-0.25;
 	    });
       }

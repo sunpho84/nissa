@@ -11,6 +11,7 @@
 #include "geometry/geometry_eo.hpp"
 
 #include "metaprogramming/templateEnabler.hpp"
+#include "metaprogramming/unroll.hpp"
 
 #include "routines/ios.hpp"
 
@@ -36,18 +37,6 @@
   #define CCAST(A) (*(scomplex_t*)(A))
   
 #endif
-
-#define UNROLL_FOR(I,MIN,MAX)			\
-  for(auto I=MIN;I<MAX;I++)
-
-#define UNROLL_FOR_ALL_COLS(IC)			\
-  UNROLL_FOR(IC,0,NCOL)
-
-#define UNROLL_FOR_ALL_DIRS(MU)			\
-  UNROLL_FOR(MU,0,NDIM)
-
-#define UNROLL_FOR_ALL_DIRAC(ID)		\
-  UNROLL_FOR(ID,0,NDIRAC)
 
 namespace nissa
 {
@@ -348,6 +337,14 @@ namespace nissa
   {
     UNROLL_FOR_ALL_COLS(ic)
       complex_prod_double(a[ic],b[ic],c);
+  }
+  
+  template <typename A>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void color_prodassign_double(A&& a,
+			       const double& b)
+  {
+    color_prod_double(a,a,b);
   }
   
   template <typename A,
@@ -973,7 +970,7 @@ namespace nissa
       UNROLL_FOR_ALL_COLS(ic_out)
 	{
 	  unsafe_complex_conj1_prod(a[ir_out][ic_out],b[0][ir_out],c[0][ic_out]);
-	  for(int itemp=1;itemp<NCOL;itemp++)
+	  UNROLL_FOR(itemp,1,nr_max)
 	    complex_summ_the_conj1_prod(a[ir_out][ic_out],b[itemp][ir_out],c[itemp][ic_out]);
 	}
   }
@@ -1210,8 +1207,8 @@ namespace nissa
 				 const B& b,
 				 const double& r)
   {
-    for(int i=0;i<NCOL;i++)
-      color_summ_the_prod_idouble(a[i],b[i],r);
+    UNROLL_FOR_ALL_COLS(ic)
+      color_summ_the_prod_idouble(a[ic],b[ic],r);
   }
   
   //summ the prod of su3 with real
@@ -1221,8 +1218,8 @@ namespace nissa
   inline void su3_dag_summ_the_prod_double(su3 a,const su3 b,const double r)
   {
     UNROLL_FOR_ALL_COLS(ic)
-      for(size_t jc=0;jc<NCOL;jc++)
-	{
+      UNROLL_FOR_ALL_COLS(jc)
+        {
 	  a[ic][jc][RE]+=b[jc][ic][RE]*r;
 	  a[ic][jc][IM]-=b[jc][ic][IM]*r;
 	}
@@ -1278,8 +1275,8 @@ namespace nissa
     complex_subt_the_prod(invU[1][2],U[0][0],U[1][2]);
     complex_subt_the_prod(invU[2][2],U[0][1],U[1][0]);
     
-    for(size_t ic=0;ic<NCOL;ic++)
-      for(size_t jc=0;jc<NCOL;jc++)
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
 	safe_complex_prod(invU[ic][jc],invU[ic][jc],rec_det);
   }
   inline void safe_su3_explicit_inverse(su3 invU,const su3 U)
@@ -1362,10 +1359,9 @@ namespace nissa
     complex f;
     complex_prod_double(f,row10_sc_prod,1/row0_norm2);
     
-    for(size_t ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       {
-	for(size_t ri=0;ri<2;ri++)
-	  o[1][ic][ri]=i[1][ic][ri];
+	complex_copy(o[1][ic],i[1][ic]);
 	complex_subt_the_prod(o[1][ic],f,i[0][ic]);
       }
     
@@ -1373,7 +1369,7 @@ namespace nissa
     const double row1_norm=1/sqrt(complex_norm2(o[1][0])+complex_norm2(o[1][1])+complex_norm2(o[1][2]));
     
     //normalize the rows
-    for(size_t ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       for(size_t ri=0;ri<2;ri++)
 	{
 	  o[0][ic][ri]=row0_norm*i[0][ic][ri];
@@ -1417,8 +1413,8 @@ namespace nissa
 	
 	//average U and U^-1^+
 	residue=0;
-	for(size_t ic=0;ic<NCOL;ic++)
-	  for(size_t jc=0;jc<NCOL;jc++)
+	UNROLL_FOR_ALL_COLS(ic)
+	  UNROLL_FOR_ALL_COLS(jc)
 	    {
 	      new_link[ic][jc][RE]=0.5*(temp_link[ic][jc][RE]*gamma+inv[jc][ic][RE]/gamma);
 	      new_link[ic][jc][IM]=0.5*(temp_link[ic][jc][IM]*gamma-inv[jc][ic][IM]/gamma);
@@ -1462,7 +1458,7 @@ namespace nissa
   inline void su3_unitarize_maximal_trace_projecting_iteration_slow(su3 U,const su3 M)
   {
     //loop over the three subgroups
-    for(size_t isub_gr=0;isub_gr<NCOL;isub_gr++)
+    UNROLL_FOR_ALL_COLS(isub_gr)
       {
 	//compute the product
 	su3 prod;
@@ -1490,7 +1486,7 @@ namespace nissa
     
     //master_printf("isub -1, %16.16lg\n",su3_real_trace(prod));
     //loop over the three subgroups
-    for(size_t isub_gr=0;isub_gr<NCOL;isub_gr++)
+    UNROLL_FOR_ALL_COLS(isub_gr)
       {
 	//take the subgroup isub_gr
 	double a,b,c,d;
@@ -1541,11 +1537,11 @@ namespace nissa
 			     const B& b,
 			     const C& c)
   {
-    for(int c1=0;c1<NCOL;c1++)
+    UNROLL_FOR_ALL_COLS(ic)
       {
-	unsafe_complex_prod(a[c1],b[c1][0],c[0]);
-	for(int c2=1;c2<NCOL;c2++)
-	  complex_summ_the_prod(a[c1],b[c1][c2],c[c2]);
+	unsafe_complex_prod(a[ic],b[ic][0],c[0]);
+	UNROLL_FOR(jc,1,NCOL)
+	  complex_summ_the_prod(a[ic],b[ic][jc],c[jc]);
       }
   }
   
@@ -1554,10 +1550,10 @@ namespace nissa
   //product of an su3 matrix by a color vector
   CUDA_HOST_AND_DEVICE inline void unsafe_single_su3_prod_single_color(single_color a,const single_su3 b,const single_color c)
   {
-    for(size_t ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       {
 	unsafe_single_complex_prod(a[ic],b[ic][0],c[0]);
-	for(size_t jc=1;jc<NCOL;jc++)
+	UNROLL_FOR(jc,1,NCOL)
 	  single_complex_summ_the_prod(a[ic],b[ic][jc],c[jc]);
       }
   }
@@ -1573,12 +1569,14 @@ namespace nissa
 			       const B& b,
 			       const C& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
-      for(int jc=0;jc<NCOL;jc++)
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
 	complex_summ_the_prod(a[ic],b[ic][jc],c[jc]);
   }
   
-  CUDA_HOST_AND_DEVICE inline void single_su3_summ_the_prod_single_color(single_color a,const single_su3 b,const single_color c)
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void single_su3_summ_the_prod_single_color(single_color a,
+					     const single_su3 b,const single_color c)
   {for(size_t c1=0;c1<NCOL;c1++) for(size_t c2=0;c2<NCOL;c2++) single_complex_summ_the_prod(a[c1],b[c1][c2],c[c2]);}
   
   //subt
@@ -1590,8 +1588,8 @@ namespace nissa
 			       const B& b,
 			       const C& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
-      for(int jc=0;jc<NCOL;jc++)
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
 	complex_subt_the_prod(a[ic],b[ic][jc],c[jc]);
   }
   
@@ -1604,11 +1602,11 @@ namespace nissa
 				 const B& b,
 				 const C& c)
   {
-    for(int c1=0;c1<NCOL;c1++)
+    UNROLL_FOR_ALL_COLS(ic)
       {
-	unsafe_complex_conj1_prod(a[c1],b[0][c1],c[0]);
-	for(int c2=1;c2<NCOL;c2++)
-	  complex_summ_the_conj1_prod(a[c1],b[c2][c1],c[c2]);
+	unsafe_complex_conj1_prod(a[ic],b[0][ic],c[0]);
+	UNROLL_FOR(jc,1,NCOL)
+	  complex_summ_the_conj1_prod(a[ic],b[jc][ic],c[jc]);
       }
   }
   
@@ -1624,9 +1622,9 @@ namespace nissa
 				   const B& b,
 				   const C& c)
   {
-    for(int c1=0;c1<NCOL;c1++)
-      for(int c2=0;c2<NCOL;c2++)
-	complex_summ_the_conj1_prod(a[c1],b[c2][c1],c[c2]);
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
+	complex_summ_the_conj1_prod(a[ic],b[jc][ic],c[jc]);
   }
   
   template <typename A,
@@ -1651,8 +1649,8 @@ namespace nissa
 				   const B& b,
 				   const C& c)
   {
-    for(int ic=0;ic<NCOL;ic++)
-      for(int jc=0;jc<NCOL;jc++)
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
 	complex_subt_the_conj1_prod(a[ic],b[jc][ic],c[jc]);
   }
   
@@ -1664,8 +1662,8 @@ namespace nissa
 						 const B& b,
 						 const C& c)
   {
-    for(size_t ic=0;ic<NCOL;ic++)
-      for(size_t jc=0;jc<NCOL;jc++)
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
 	single_complex_subt_the_conj1_prod(a[ic],b[jc][ic],c[jc]);
   }
   
@@ -1680,10 +1678,10 @@ namespace nissa
 			     const B& b,
 			     const C& c)
   {
-    for(size_t ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       {
 	unsafe_complex_prod(a[ic],b[0],c[0][ic]);
-	for(size_t jc=1;jc<NCOL;jc++)
+	UNROLL_FOR(jc,1,NCOL)
 	  complex_summ_the_prod(a[ic],b[jc],c[jc][ic]);
       }
   }
@@ -1710,10 +1708,10 @@ namespace nissa
 				 const B& b,
 				 const C& c)
   {
-    for(size_t ic=0;ic<NCOL;ic++)
+    UNROLL_FOR_ALL_COLS(ic)
       {
 	unsafe_complex_conj2_prod(a[ic],b[0],c[ic][0]);
-	for(size_t jc=1;jc<NCOL;jc++)
+	UNROLL_FOR(jc,1,NCOL)
 	  complex_summ_the_conj2_prod(a[ic],b[jc],c[ic][jc]);
       }
   }
