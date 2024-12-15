@@ -22,7 +22,7 @@ namespace nissa
   //if the momentum has to be removed return 0, otherwise return 1
   //cancel the zero modes for all spatial when UNNO_ALEMANNA prescription asked
   //or if PECIONA prescription and full zero mode
-  CUDA_HOST_AND_DEVICE bool zero_mode_subtraction_mask(gauge_info gl,int imom)
+  CUDA_HOST_AND_DEVICE bool isNonZeroMode(gauge_info gl,int imom)
   {
     bool res=false;
     
@@ -46,7 +46,7 @@ namespace nissa
 				     const gauge_info& gl,
 				     const int& imom)
   {
-    bool m=zero_mode_subtraction_mask(gl,imom);
+    bool m=isNonZeroMode(gl,imom);
     
     for(int mu=0;mu<NDIM;mu++)
       for(int nu=0;nu<NDIM;nu++)
@@ -62,7 +62,7 @@ namespace nissa
 				      const gauge_info& gl,
 				      const int& imom)
   {
-    const bool m=zero_mode_subtraction_mask(gl,imom);
+    const bool m=isNonZeroMode(gl,imom);
     
     //if(gl.zms!=ONLY_100 &&m==0) printf("cancelling zero mode %d\n",glblx_of_loclx[imom]);
     //if(gl.zms==ONLY_100 &&m==1) printf("leaving mode %d=(%d,%d,%d,%d)\n",glblx_of_loclx[imom],glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3]);
@@ -79,6 +79,12 @@ namespace nissa
 								     const gauge_info& gl,
 								     const int& imom)
   {
+    if(not isNonZeroMode(gl,imom))
+      {
+	memset(prop,0,sizeof(spin1prop));
+	return ;
+      }
+    
     int kron_delta[4][4]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
     
     //momentum
@@ -121,13 +127,7 @@ namespace nissa
     if(gl.which_gauge==gauge_info::COULOMB)
       {
 	if(gl.c1!=0)
-	  {
-#ifndef COMPILING_FOR_DEVICE
 	  crash("Coulomb gauge implmented only for Wilson action");
-#else
-	__trap();
-#endif
-	  }
 	
 	double kt_spat_2=0;
 	for(int mu=1;mu<4;mu++)
@@ -155,6 +155,7 @@ namespace nissa
 	double Deltakt=(kt2-c1*kt4)*(kt2-c1*(kt22+kt4)+0.5*c12*(kt23+2*kt6-kt2*kt4));
 	for(int rho=0;rho<4;rho++)
 	  Deltakt-=4*c13*kt4_dir[rho]*ktpo2[rho][rho];
+
 	
 	//A
 	double A[4][4];
@@ -270,10 +271,13 @@ namespace nissa
 	const Matrix4d err=sqrt_eprop*sqrt_eprop-eprop;
 	const double err_norm=err.norm();
 	const double prop_norm=eprop.norm();
-	const double rel_err=err_norm/prop_norm;
-	// std::cout<<"Testing sqrt:          "<<rel_err<<std::endl;
-	if(prop_norm>tol and err_norm>tol)
-	  crash("Error! Relative error on sqrt for mode %ld (prop norm %lg) is %lg, greater than tolerance %lg",imom,prop_norm,rel_err,tol);
+	if(prop_norm)
+	  {
+	    const double rel_err=err_norm/prop_norm;
+	    // std::cout<<"Testing sqrt:          "<<rel_err<<std::endl;
+	    if(prop_norm>tol and err_norm>tol)
+	      crash("Error! Relative error on sqrt for mode %ld (prop norm %lg) is %lg, greater than tolerance %lg",imom,prop_norm,rel_err,tol);
+	  }
 	
 	//product with in, store
 	Vector4cd eout=sqrt_eprop*ein;

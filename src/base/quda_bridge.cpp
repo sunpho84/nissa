@@ -1114,11 +1114,13 @@ namespace quda_iface
     static double storedKappa=0;
     static double storedCloverCoeff=0;
     
+#ifdef QUDASETUPSTORE
     const char QUDA_DEBUG_EV[]="QUDA_DEBUG_EV";
     const bool doTheStorage=getenv(QUDA_DEBUG_EV)!=nullptr;
     
     SetupID setupId=
       std::make_tuple(export_conf::confTag,export_conf::check_old);
+#endif
     
     bool& setup_valid=multiGrid::setup_valid;
     if(not setup_valid)
