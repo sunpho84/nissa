@@ -1379,10 +1379,6 @@ namespace quda_iface
   PROVIDE_MAYBE_PRINT2(true_res_hq,"%lg");
   PROVIDE_MAYBE_PRINT(tune,"%lg");
   
-#undef PROVIDE_MAYBE_PRINT
-
-#undef PROVIDE_MAYBE_PRINT2
-  
   void sanfoPrint(QudaInvertParam& i)
   {
     printf("input_location: %d\n",i.input_location);
@@ -1500,6 +1496,10 @@ namespace quda_iface
     printf("extlib_type: %d\n",i.extlib_type);
     printf("native_blas_lapack: %d\n",i.native_blas_lapack);
   }
+  
+#undef PROVIDE_MAYBE_PRINT
+  
+#undef PROVIDE_MAYBE_PRINT2
   
   bool solve_tmD(LxField<spincolor>& sol,
 		 const LxField<quad_su3>& conf,
