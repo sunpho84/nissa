@@ -11,6 +11,9 @@
  #define CRASH_IF_NOT_3COL() crash("ncol == %d, expected 3",NCOL)
 #endif
 
+#define UNROLL_FOR_ALL_COLS(IC)			\
+  UNROLL_FOR(IC,0,NCOL)
+
 namespace nissa
 {
   typedef complex color[NCOL];

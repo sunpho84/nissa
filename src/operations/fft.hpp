@@ -55,8 +55,8 @@ namespace nissa
   template <typename T,
 	    FieldLayout FL>
   void fft4d(LxField<T,FL>& f,
-	const double& sign,
-	const bool& normalize)
+	     const double& sign,
+	     const bool& normalize)
   {
     LxField<T,FieldLayout::CPU> tmp("tmp");
     tmp=f;

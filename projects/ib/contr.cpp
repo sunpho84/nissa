@@ -150,12 +150,12 @@ namespace nissa
 				TO_READ(q2)),
 			ivol,
 		    {
-		      for(int k=0;k<NDIRAC;k++)
+		      UNROLL_FOR_ALL_SPIN(k)
 			{
 			  int l=(base_gamma+ig_si)->pos[k];
 			  
 			  complex c={0,0};
-			  for(int a=0;a<NCOL;a++)
+			  UNROLL_FOR_ALL_COLS(a)
 			    complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
 			  complex_summ_the_prod(loc_contr[ivol],c,AB[k]);
 			}

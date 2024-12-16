@@ -16,14 +16,8 @@
   UNROLL_PREFIX					\
   for(auto I=MIN;I<MAX;I++)
 
-#define UNROLL_FOR_ALL_COLS(IC)			\
-  UNROLL_FOR(IC,0,NCOL)
-
 #define UNROLL_FOR_ALL_DIRS(MU)			\
   UNROLL_FOR(MU,0,NDIM)
-
-#define UNROLL_FOR_ALL_DIRAC(ID)		\
-  UNROLL_FOR(ID,0,NDIRAC)
 
 namespace nissa
 {

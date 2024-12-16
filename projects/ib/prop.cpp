@@ -761,11 +761,11 @@ namespace nissa
     generate_photon_source(*photon_eta);
     
     //generate source and stochastich propagator
-    master_printf("Generating photon stochastic propagator\n"); 
+    master_printf("Generating photon stochastic propagator\n");
     multiply_by_tlSym_gauge_propagator(*photon_phi,*photon_eta,photon);
     multiply_by_sqrt_tlSym_gauge_propagator(*photon_field,*photon_eta,photon);
     
-    std::vector<std::pair<std::string,LxField<spin1field>*> > name_field;
+    std::vector<std::pair<std::string,LxField<spin1field>*>> name_field;
     name_field.push_back(std::make_pair("eta",photon_eta));
     name_field.push_back(std::make_pair("phi",photon_phi));
     name_field.push_back(std::make_pair("A",photon_field));

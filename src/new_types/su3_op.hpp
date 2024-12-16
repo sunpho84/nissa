@@ -72,7 +72,7 @@ namespace nissa
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void spincolor_put_to_zero(A&& a)
   {
-    UNROLL_FOR_ALL_DIRAC(id)
+    UNROLL_FOR_ALL_SPIN(id)
       color_put_to_zero(a[id]);
   }
   
@@ -172,7 +172,7 @@ namespace nissa
   void spincolor_copy(A&& a,
 		      const B& b)
   {
-    UNROLL_FOR_ALL_DIRAC(id)
+    UNROLL_FOR_ALL_SPIN(id)
       color_copy(a[id],b[id]);
   }
   
@@ -1370,7 +1370,7 @@ namespace nissa
     
     //normalize the rows
     UNROLL_FOR_ALL_COLS(ic)
-      for(size_t ri=0;ri<2;ri++)
+      UNROLL_FOR_RI(ri)
 	{
 	  o[0][ic][ri]=row0_norm*i[0][ic][ri];
 	  o[1][ic][ri]=row1_norm*o[1][ic][ri];
@@ -1418,7 +1418,7 @@ namespace nissa
 	    {
 	      new_link[ic][jc][RE]=0.5*(temp_link[ic][jc][RE]*gamma+inv[jc][ic][RE]/gamma);
 	      new_link[ic][jc][IM]=0.5*(temp_link[ic][jc][IM]*gamma-inv[jc][ic][IM]/gamma);
-	      for(size_t ri=0;ri<2;ri++)
+	      UNROLL_FOR_RI(ri)
 		{
 		  double diff=new_link[ic][jc][ri]-temp_link[ic][jc][ri];
 		  residue+=diff*diff;
@@ -1635,8 +1635,8 @@ namespace nissa
 						 const B& b,
 						 const C& c)
   {
-    for(size_t ic=0;ic<NCOL;ic++)
-      for(size_t jc=0;jc<NCOL;jc++)
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_ALL_COLS(jc)
 	single_complex_summ_the_conj1_prod(a[ic],b[jc][ic],c[jc]);
   }
   
@@ -1722,8 +1722,8 @@ namespace nissa
   {
     double out=0;
     for(int id=0;id<NDIRAC/2;id++)
-      for(int ic=0;ic<NCOL;ic++)
-	for(int ri=0;ri<2;ri++)
+    UNROLL_FOR_ALL_COLS(ic)
+      UNROLL_FOR_RI(ri)
 	  out+=a[id][ic][ri]*b[id][ic][ri];
     
     return out;
@@ -1792,7 +1792,7 @@ namespace nissa
   //just print a spincolor
   inline void spincolor_print(spincolor c)
   {
-    for(size_t id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       {
 	UNROLL_FOR_ALL_COLS(ic) printf("%+16.16lg,%+16.16lg\t",c[id][ic][0],c[id][ic][1]);
 	master_printf("\n");
@@ -1809,8 +1809,8 @@ namespace nissa
 		      const B& b,
 		      const C& c)
   {
-    for(int i=0;i<NDIRAC;i++)
-      color_summ(a[i],b[i],c[i]);
+    UNROLL_FOR_ALL_SPIN(id)
+      color_summ(a[id],b[id],c[id]);
   }
   
   template <typename A,
@@ -1826,7 +1826,7 @@ namespace nissa
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void spincolor_subt(spincolor a,const spincolor b,const spincolor c)
   {
-    for(size_t id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       color_subt(a[id],b[id],c[id]);
   }
   
@@ -1840,8 +1840,8 @@ namespace nissa
 			     const B& b,
 			     const double& factor)
   {
-    for(int i=0;i<NDIRAC;i++)
-      color_prod_double(a[i],b[i],factor);
+    UNROLL_FOR_ALL_SPIN(id)
+      color_prod_double(a[id],b[id],factor);
   }
   
   template <typename A,
@@ -1852,8 +1852,8 @@ namespace nissa
 				      const B& b,
 				      const C& c)
   {
-    for(int i=0;i<NDIRAC;i++)
-      color_summ_the_prod_double(a[i],b[i],c);
+    UNROLL_FOR_ALL_SPIN(id)
+      color_summ_the_prod_double(a[id],b[id],c);
   }
   
   template <typename A,
@@ -1863,8 +1863,8 @@ typename B>
 			      const B& b,
 			      const double& factor)
   {
-    for(int i=0;i<NDIRAC;i++)
-      color_prod_idouble(a[i],b[i],factor);
+    UNROLL_FOR_ALL_SPIN(id)
+      color_prod_idouble(a[id],b[id],factor);
   }
   
   template <typename A>
@@ -1890,7 +1890,7 @@ typename B>
 				  const B& b,
 				  const int c)
   {
-    for(size_t id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       color_prod_color_delta(a[id],b[id],c);
   }
   
@@ -1903,8 +1903,8 @@ typename B>
 				     const B& b,
 				     const C& factor)
   {
-    for(int i=0;i<NDIRAC;i++)
-      unsafe_color_prod_complex(a[i],b[i],factor);
+    UNROLL_FOR_ALL_SPIN(id)
+      unsafe_color_prod_complex(a[id],b[id],factor);
   }
   
   template <typename A,
@@ -1938,8 +1938,8 @@ typename B>
 				       const B& b,
 				       const C& factor)
   {
-    for(int i=0;i<NDIRAC;i++)
-      color_summ_the_prod_complex(a[i],b[i],factor);
+    UNROLL_FOR_ALL_SPIN(id)
+      color_summ_the_prod_complex(a[id],b[id],factor);
   }
   
   //spincolor+spincolor*idouble
@@ -1951,8 +1951,8 @@ typename B>
 				       const B& b,
 				       const C& c)
   {
-    for(int i=0;i<NDIRAC;i++)
-      color_summ_the_prod_idouble(a[i],b[i],c);
+    UNROLL_FOR_ALL_SPIN(id)
+      color_summ_the_prod_idouble(a[id],b[id],c);
   }
   
   /// Dirac*spincolor
@@ -1963,19 +1963,19 @@ typename B>
 				   const dirac_matr& m,
 				   const B& in)
   {
-    for(int id1=0;id1<NDIRAC;id1++)
-      unsafe_color_prod_complex(out[id1],in[m.pos[id1]],m.entr[id1]);
+    UNROLL_FOR_ALL_SPIN(id)
+      unsafe_color_prod_complex(out[id],in[m.pos[id]],m.entr[id]);
   }
   
   CUDA_HOST_AND_DEVICE inline void dirac_summ_the_prod_spincolor(spincolor out,const dirac_matr& m,const spincolor in)
   {
-    for(size_t id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       color_summ_the_prod_complex(out[id],in[m.pos[id]],m.entr[id]);
   }
   
   CUDA_HOST_AND_DEVICE inline void dirac_subt_the_prod_spincolor(spincolor out,const dirac_matr& m,const spincolor in)
   {
-    for(size_t id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       color_subt_the_prod_complex(out[id],in[m.pos[id]],m.entr[id]);
   }
   
@@ -1983,7 +1983,7 @@ typename B>
   inline void unsafe_spincolor_prod_dirac(spincolor out,const spincolor in,const dirac_matr& m)
   {
     spincolor_put_to_zero(out);
-    for(size_t id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       color_summ_the_prod_complex(out[m.pos[id]],in[id],m.entr[id]);
   }
   
@@ -2017,7 +2017,7 @@ typename B>
 				 const B& U,
 				 const C& in)
   {
-    for(int id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       unsafe_su3_prod_color(out[id],U,in[id]);
   }
   
@@ -2029,13 +2029,13 @@ typename B>
 				   const B& U,
 				   const C& in)
   {
-    for(int id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       su3_summ_the_prod_color(out[id],U,in[id]);
   }
   
   CUDA_HOST_AND_DEVICE inline void su3_subt_the_prod_spincolor(spincolor out,const su3 U,const spincolor in)
   {
-    for(size_t id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       su3_subt_the_prod_color(out[id],U,in[id]);
   }
   
@@ -2048,7 +2048,7 @@ typename B>
 				     const B& U,
 				     const C& in)
   {
-    for(int id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       unsafe_su3_dag_prod_color(out[id],U,in[id]);
   }
   
@@ -2063,7 +2063,7 @@ typename B>
 				       const B& U,
 				       const C& in)
   {
-    for(int id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       su3_dag_summ_the_prod_color(out[id],U,in[id]);
   }
   
@@ -2075,8 +2075,8 @@ typename B>
 				       const B& U,
 				       const C& in)
   {
-    for(int is=0;is<NDIRAC;is++)
-      su3_dag_subt_the_prod_color(out[is],U,in[is]);
+    UNROLL_FOR_ALL_SPIN(id)
+      su3_dag_subt_the_prod_color(out[id],U,in[id]);
   }
   
   /// Product of spincolor and spinspin
@@ -2090,8 +2090,8 @@ typename B>
   {
     spincolor_put_to_zero(a);
     
-    for(int id=0;id<NDIRAC;id++)
-      for(int jd=0;jd<NDIRAC;jd++)
+    UNROLL_FOR_ALL_SPIN(id)
+      UNROLL_FOR_ALL_SPIN(jd)
 	UNROLL_FOR_ALL_COLS(ic)
 	  complex_summ_the_prod(a[id][ic],b[jd][ic],c[jd][id]);
   }
@@ -2119,8 +2119,8 @@ typename B>
 				      const C& c)
   {
     spincolor_put_to_zero(a);
-    for(int id=0;id<NDIRAC;id++)
-      for(int jd=0;jd<NDIRAC;jd++)
+    UNROLL_FOR_ALL_SPIN(id)
+      UNROLL_FOR_ALL_SPIN(jd)
 	UNROLL_FOR_ALL_COLS(ic)
 	  complex_summ_the_prod(a[id][ic],b[id][jd],c[jd][ic]);
   }
@@ -2142,7 +2142,7 @@ typename B>
   inline void unsafe_su3_dag_dirac_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
-    for(size_t id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       {
 	UNROLL_FOR_ALL_COLS(ic)
 	  unsafe_complex_prod(tmp[ic],m.entr[id],in[m.pos[id]][ic]);
@@ -2153,7 +2153,7 @@ typename B>
   inline void unsafe_su3_dag_dirac_summ_the_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
-    for(size_t id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       {
 	UNROLL_FOR_ALL_COLS(ic)
 	  unsafe_complex_prod(tmp[ic],m.entr[id],in[m.pos[id]][ic]);
@@ -2165,7 +2165,7 @@ typename B>
   inline void unsafe_su3_dirac_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
-    for(size_t id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       {
 	UNROLL_FOR_ALL_COLS(ic)
 	  unsafe_complex_prod(tmp[ic],m.entr[id],in[m.pos[id]][ic]);
@@ -2176,7 +2176,7 @@ typename B>
   inline void unsafe_su3_dirac_subt_the_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
-    for(size_t id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       {
 	UNROLL_FOR_ALL_COLS(ic)
 	  unsafe_complex_prod(tmp[ic],m.entr[id],in[m.pos[id]][ic]);
@@ -2187,7 +2187,7 @@ typename B>
   inline void unsafe_su3_dirac_summ_the_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
-    for(size_t id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       {
 	UNROLL_FOR_ALL_COLS(ic)
 	  unsafe_complex_prod(tmp[ic],m.entr[id],in[m.pos[id]][ic]);
@@ -2205,7 +2205,7 @@ typename B>
 			     const C& in2)
   {
     complex_put_to_zero(out);
-    for(int id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       {
 	complex temp;
 	color_scalar_prod(temp,in1[id],in2[id]);
@@ -2216,7 +2216,7 @@ typename B>
   inline double spincolor_norm2(const spincolor s)
   {
     double out=0;
-    for(size_t id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       out+=color_norm2(s[id]);
     
     return out;
@@ -2232,12 +2232,13 @@ typename B>
 				     const B& b,
 				     const C& c)
   {
-    for(int id_so=0;id_so<NDIRAC;id_so++)
-      for(int id_si=0;id_si<NDIRAC;id_si++)
-	for(int c1=0;c1<NCOL;c1++)
+    UNROLL_FOR_ALL_SPIN(id_so)
+      UNROLL_FOR_ALL_SPIN(id_si)
+	UNROLL_FOR_ALL_COLS(c1)
 	  {
 	    unsafe_complex_prod(a[c1][id_si][id_so],b[c1][0],c[0][id_si][id_so]);
-	    for(int c2=1;c2<NCOL;c2++) complex_summ_the_prod(a[c1][id_si][id_so],b[c1][c2],c[c2][id_si][id_so]);
+	    UNROLL_FOR(c2,1,NCOL)
+	      complex_summ_the_prod(a[c1][id_si][id_so],b[c1][c2],c[c2][id_si][id_so]);
 	  }
   }
   
@@ -2249,22 +2250,22 @@ typename B>
 					 const B& b,
 					 const C& c)
   {
-    for(int id_so=0;id_so<NDIRAC;id_so++)
-      for(int id_si=0;id_si<NDIRAC;id_si++)
-	for(int c1=0;c1<NCOL;c1++)
+    UNROLL_FOR_ALL_SPIN(id_so)
+      UNROLL_FOR_ALL_SPIN(id_si)
+	UNROLL_FOR_ALL_COLS(c1)
 	  {
 	    unsafe_complex_conj1_prod(a[c1][id_si][id_so],b[0][c1],c[0][id_si][id_so]);
-	    for(int c2=1;c2<NCOL;c2++)
+	    UNROLL_FOR(c2,1,NCOL)
 	      complex_summ_the_conj1_prod(a[c1][id_si][id_so],b[c2][c1],c[c2][id_si][id_so]);
 	  }
   }
   
   CUDA_HOST_AND_DEVICE inline void su3_summ_the_prod_colorspinspin(colorspinspin a,const su3 b,const colorspinspin c)
   {
-    for(size_t id_so=0;id_so<NDIRAC;id_so++)
-      for(size_t id_si=0;id_si<NDIRAC;id_si++)
-	for(size_t ic=0;ic<NCOL;ic++)
-	  for(size_t jc=0;jc<NCOL;jc++)
+    UNROLL_FOR_ALL_SPIN(id_so)
+      UNROLL_FOR_ALL_SPIN(id_si)
+	UNROLL_FOR_ALL_COLS(ic)
+          UNROLL_FOR_ALL_COLS(jc)
 	    complex_summ_the_prod(a[ic][id_si][id_so],b[ic][jc],c[jc][id_si][id_so]);
   }
   
@@ -2276,10 +2277,10 @@ typename B>
 					   const B& b,
 					   const C& c)
   {
-    for(int id_so=0;id_so<NDIRAC;id_so++)
-      for(int id_si=0;id_si<NDIRAC;id_si++)
-	for(int ic=0;ic<NCOL;ic++)
-	  for(int jc=0;jc<NCOL;jc++)
+    UNROLL_FOR_ALL_SPIN(id_so)
+      UNROLL_FOR_ALL_SPIN(id_si)
+	UNROLL_FOR_ALL_COLS(ic)
+          UNROLL_FOR_ALL_COLS(jc)
 	    complex_subt_the_conj1_prod(a[ic][id_si][id_so],b[jc][ic],c[jc][id_si][id_so]);
   }
   
@@ -2291,10 +2292,10 @@ typename B>
 					   const B& b,
 					   const C& c)
   {
-    for(int id_so=0;id_so<NDIRAC;id_so++)
-      for(int id_si=0;id_si<NDIRAC;id_si++)
-	for(int c1=0;c1<NCOL;c1++)
-	  for(int c2=0;c2<NCOL;c2++)
+    UNROLL_FOR_ALL_SPIN(id_so)
+      UNROLL_FOR_ALL_SPIN(id_si)
+	UNROLL_FOR_ALL_COLS(c1)
+          UNROLL_FOR_ALL_COLS(c2)
 	    complex_summ_the_conj1_prod(a[c1][id_si][id_so],b[c2][c1],c[c2][id_si][id_so]);
   }
   
@@ -2347,61 +2348,110 @@ typename B>
   //////////////////////////////// get and put ///////////////////////////////////
   
   //Get a color from a colorspinspin
-  CUDA_HOST_AND_DEVICE inline void get_color_from_colorspinspin(color out,const colorspinspin in,int id1,int id2)
-  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink],in[ic_sink][id1][id2]);}
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void get_color_from_colorspinspin(color out,
+				    const colorspinspin in,
+				    const int& id1,
+				    const int& id2)
+  {
+    UNROLL_FOR_ALL_COLS(ic_sink)complex_copy(out[ic_sink],in[ic_sink][id1][id2]);
+  }
   
   //Get a color from a spincolor
-  CUDA_HOST_AND_DEVICE inline void get_color_from_spincolor(color out,const spincolor in,int id)
-  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink],in[id][ic_sink]);}
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void get_color_from_spincolor(color out,
+				const spincolor in,
+				const int& id)
+  {
+    UNROLL_FOR_ALL_COLS(ic_sink)complex_copy(out[ic_sink],in[id][ic_sink]);
+  }
   
   //Get a spincolor from a colorspinspin
   //In a spinspin the sink index runs slower than the source
-  CUDA_HOST_AND_DEVICE inline void get_spincolor_from_colorspinspin(spincolor out,const colorspinspin in,int id_source)
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void get_spincolor_from_colorspinspin(spincolor out,
+					const colorspinspin in,
+					const int& id_source)
   {
-    for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
-      for(int id_sink=0;id_sink<NDIRAC;id_sink++) //dirac index of sink
+    UNROLL_FOR_ALL_COLS(ic_sink)
+      UNROLL_FOR_ALL_SPIN(id_sink) //dirac index of sink
 	complex_copy(out[id_sink][ic_sink],in[ic_sink][id_sink][id_source]);
   }
   
   //Get a spincolor from a su3spinspin
-  CUDA_HOST_AND_DEVICE inline void get_spincolor_from_su3spinspin(spincolor out,const su3spinspin in,int id_source,int ic_source)
+  CUDA_HOST_AND_DEVICE inline void get_spincolor_from_su3spinspin(spincolor out,
+								  const su3spinspin in,
+								  const int& id_source,
+								  const int& ic_source)
   {
-    for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
-      for(int id_sink=0;id_sink<NDIRAC;id_sink++) //dirac index of sink
+    UNROLL_FOR_ALL_COLS(ic_sink)
+      UNROLL_FOR_ALL_SPIN(id_sink) //dirac index of sink
 	complex_copy(out[id_sink][ic_sink],in[ic_sink][ic_source][id_sink][id_source]);
   }
   
   //Get a color from a su3
-  CUDA_HOST_AND_DEVICE inline void get_color_from_su3(color out,const su3 in,int ic_source)
-  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink],in[ic_sink][ic_source]);}
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void get_color_from_su3(color out,
+			  const su3 in,
+			  const int& ic_source)
+  {
+    UNROLL_FOR_ALL_COLS(ic_sink)
+      complex_copy(out[ic_sink],in[ic_sink][ic_source]);
+  }
   
   //Put a color into a colorspinspin
-  CUDA_HOST_AND_DEVICE inline void put_color_into_colorspinspin(colorspinspin out,color in,int id1,int id2)
-  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink][id1][id2],in[ic_sink]);}
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void put_color_into_colorspinspin(colorspinspin out,
+				    const color in,
+				    const int& id1,
+				    const int& id2)
+  {
+    UNROLL_FOR_ALL_COLS(ic_sink)
+      complex_copy(out[ic_sink][id1][id2],in[ic_sink]);
+  }
   
   //Put a color into a spincolor
-  CUDA_HOST_AND_DEVICE inline void put_color_into_spincolor(spincolor out,color in,int id)
-  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[id][ic_sink],in[ic_sink]);}
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void put_color_into_spincolor(spincolor out,
+				const color in,
+				const int& id)
+  {
+    UNROLL_FOR_ALL_COLS(ic_sink)
+      complex_copy(out[id][ic_sink],in[ic_sink]);
+  }
   
   //Put a spincolor into a colorspinspin
-  CUDA_HOST_AND_DEVICE inline void put_spincolor_into_colorspinspin(colorspinspin out,const spincolor in,int id_source)
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void put_spincolor_into_colorspinspin(colorspinspin out,
+					const spincolor in,
+					const int& id_source)
   {
-    for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
-      for(int id_sink=0;id_sink<NDIRAC;id_sink++) //dirac index of sink
+    UNROLL_FOR_ALL_COLS(ic_sink)
+      UNROLL_FOR_ALL_SPIN(id_sink) //dirac index of sink
 	complex_copy(out[ic_sink][id_sink][id_source],in[id_sink][ic_sink]);
   }
   
   //Put a spincolor into a su3spinspin
-  CUDA_HOST_AND_DEVICE inline void put_spincolor_into_su3spinspin(su3spinspin out,const spincolor in,int id_source,int ic_source)
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void put_spincolor_into_su3spinspin(su3spinspin out,
+				      const spincolor in,
+				      const int& id_source,
+				      const int& ic_source)
   {
-    for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
-      for(int id_sink=0;id_sink<NDIRAC;id_sink++) //dirac index of sink
+    UNROLL_FOR_ALL_COLS(ic_sink)
+      UNROLL_FOR_ALL_SPIN(id_sink) //dirac index of sink
 	complex_copy(out[ic_sink][ic_source][id_sink][id_source],in[id_sink][ic_sink]);
   }
   
   //Put a spincolor into a su3
-  CUDA_HOST_AND_DEVICE inline void put_color_into_su3(su3 out,color in,int ic_source)
-  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink][ic_source],in[ic_sink]);}
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void put_color_into_su3(su3 out,
+			  const color in,
+			  const int& ic_source)
+  {
+    UNROLL_FOR_ALL_COLS(ic_sink)
+      complex_copy(out[ic_sink][ic_source],in[ic_sink]);
+  }
   ///////////////////////////////////// colorspinspin ////////////////////////////////////
   
   //colorspinspin*real or complex
@@ -2496,8 +2546,8 @@ typename B>
 			  const B& in1,
 			  const C& in2)
   {
-    for(int i=0;i<NCOL;i++)
-      spinspin_summ(out[i],in1[i],in2[i]);
+    UNROLL_FOR_ALL_COLS(ic)
+      spinspin_summ(out[ic],in1[ic],in2[ic]);
   }
   
   template <typename A,
@@ -2539,8 +2589,8 @@ typename B>
 					  const B& in,
 					  const double& factor)
   {
-    for(int i=0;i<NCOL;i++)
-      spinspin_summ_the_prod_double(out[i],in[i],factor);
+    UNROLL_FOR_ALL_COLS(ic)
+      spinspin_summ_the_prod_double(out[ic],in[ic],factor);
   }
   
   template <typename A,
@@ -2586,8 +2636,8 @@ typename B>
   void su3spinspin_prodassign_double(A&& out,
 				     const double& factor)
   {
-    for(int i=0;i<NCOL;i++)
-      colorspinspin_prodassign_double(out[i],factor);
+    UNROLL_FOR_ALL_COLS(ic)
+      colorspinspin_prodassign_double(out[ic],factor);
   }
   
   template <typename A>
@@ -2595,8 +2645,8 @@ typename B>
   void su3spinspin_prodassign_idouble(A&& out,
 				      const double& factor)
   {
-    for(int i=0;i<NCOL;i++)
-      colorspinspin_prodassign_idouble(out[i],factor);
+    UNROLL_FOR_ALL_COLS(ic)
+      colorspinspin_prodassign_idouble(out[ic],factor);
   }
   
   template <typename A,
@@ -2663,8 +2713,8 @@ typename B>
 			const B& in1,
 			const C& in2)
   {
-    for(int i=0;i<NCOL;i++)
-      colorspinspin_summ(out[i],in1[i],in2[i]);
+    UNROLL_FOR_ALL_COLS(ic)
+      colorspinspin_summ(out[ic],in1[ic],in2[ic]);
   }
   
   template <typename A,
@@ -2706,8 +2756,8 @@ typename B>
 					const B& in,
 					const double& factor)
   {
-    for(int i=0;i<NCOL;i++)
-      colorspinspin_summ_the_prod_double(out[i],in[i],factor);
+    UNROLL_FOR_ALL_COLS(ic)
+      colorspinspin_summ_the_prod_double(out[ic],in[ic],factor);
   }
   
   template <typename A,
@@ -2757,13 +2807,13 @@ typename B>
 				   const B& b,
 				   const C& c)
   {
-    for(int id_so=0;id_so<NDIRAC;id_so++)
-      for(int id_si=0;id_si<NDIRAC;id_si++)
-	for(int c1=0;c1<NCOL;c1++)
-	  for(int c3=0;c3<NCOL;c3++)
+    UNROLL_FOR_ALL_SPIN(id_so)
+      UNROLL_FOR_ALL_SPIN(id_si)
+	UNROLL_FOR_ALL_COLS(c1)
+          UNROLL_FOR_ALL_COLS(c3)
 	    {
 	      unsafe_complex_prod(a[c1][c3][id_si][id_so],b[c1][0],c[0][c3][id_si][id_so]);
-	      for(int c2=1;c2<NCOL;c2++)
+	      UNROLL_FOR(c2,1,NCOL)
 		complex_summ_the_prod(a[c1][c3][id_si][id_so],b[c1][c2],c[c2][c3][id_si][id_so]);
 	    }
   }
@@ -2776,13 +2826,13 @@ typename B>
 				       const B& b,
 				       const C& c)
   {
-    for(int id_so=0;id_so<NDIRAC;id_so++)
-      for(int id_si=0;id_si<NDIRAC;id_si++)
-	for(int c1=0;c1<NCOL;c1++)
-	  for(int c3=0;c3<NCOL;c3++)
+    UNROLL_FOR_ALL_SPIN(id_so)
+      UNROLL_FOR_ALL_SPIN(id_si)
+	UNROLL_FOR_ALL_COLS(c1)
+          UNROLL_FOR_ALL_COLS(c3)
 	    {
 	      unsafe_complex_conj1_prod(a[c1][c3][id_si][id_so],b[0][c1],c[0][c3][id_si][id_so]);
-	      for(int c2=1;c2<NCOL;c2++)
+	      UNROLL_FOR(c2,1,NCOL)
 		complex_summ_the_conj1_prod(a[c1][c3][id_si][id_so],b[c2][c1],c[c2][c3][id_si][id_so]);
 	    }
   }
@@ -2795,11 +2845,11 @@ typename B>
 				     const B& b,
 				     const C& c)
   {
-    for(size_t c1=0;c1<NCOL;c1++)
-      for(size_t c3=0;c3<NCOL;c3++)
-	for(size_t c2=0;c2<NCOL;c2++)
-	  for(size_t id_si=0;id_si<NDIRAC;id_si++)
-	    for(size_t id_so=0;id_so<NDIRAC;id_so++)
+    UNROLL_FOR_ALL_COLS(c1)
+      UNROLL_FOR_ALL_COLS(c3)
+        UNROLL_FOR_ALL_COLS(c2)
+          UNROLL_FOR_ALL_SPIN(id_so)
+            UNROLL_FOR_ALL_SPIN(id_si)
 	      complex_summ_the_prod(a[c1][c3][id_si][id_so],b[c1][c2],c[c2][c3][id_si][id_so]);
   }
   
@@ -2811,11 +2861,11 @@ typename B>
 					 const B& b,
 					 const C& c)
   {
-    for(int c1=0;c1<NCOL;c1++)
-      for(int c3=0;c3<NCOL;c3++)
-	for(int c2=0;c2<NCOL;c2++)
-	  for(int id_si=0;id_si<NDIRAC;id_si++)
-	    for(int id_so=0;id_so<NDIRAC;id_so++)
+    UNROLL_FOR_ALL_COLS(c1)
+      UNROLL_FOR_ALL_COLS(c3)
+        UNROLL_FOR_ALL_COLS(c2)
+          UNROLL_FOR_ALL_SPIN(id_so)
+            UNROLL_FOR_ALL_SPIN(id_si)
 	      complex_subt_the_conj1_prod(a[c1][c3][id_si][id_so],b[c2][c1],c[c2][c3][id_si][id_so]);
   }
   
@@ -2827,11 +2877,11 @@ typename B>
 					 const B& b,
 					 const C& c)
   {
-    for(int id_so=0;id_so<NDIRAC;id_so++)
-      for(int id_si=0;id_si<NDIRAC;id_si++)
-	for(int c1=0;c1<NCOL;c1++)
-	  for(int c2=0;c2<NCOL;c2++)
-	    for(int c3=0;c3<NCOL;c3++)
+    UNROLL_FOR_ALL_SPIN(id_so)
+      UNROLL_FOR_ALL_SPIN(id_si)
+        UNROLL_FOR_ALL_COLS(c1)
+          UNROLL_FOR_ALL_COLS(c2)
+            UNROLL_FOR_ALL_COLS(c3)
 	      complex_summ_the_conj1_prod(std::forward<A>(a)[c1][c3][id_si][id_so],b[c2][c1],c[c2][c3][id_si][id_so]);
   }
   
@@ -2968,7 +3018,8 @@ typename B>
   
   template <typename A,
 	    typename B>
-  CUDA_HOST_AND_DEVICE inline void safe_hermitian_exact_i_exponentiate(A&& out,
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void safe_hermitian_exact_i_exponentiate(A&& out,
 								       const B& Q)
   {
     hermitian_exp_ingredients ing;

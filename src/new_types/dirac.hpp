@@ -6,13 +6,17 @@
 
 #include "complex.hpp"
 #include "base/debug.hpp"
+#include "metaprogramming/unroll.hpp"
 
 #ifndef EXTERN_DIRAC
- #define EXTERN_DIRAC extern
- #define ONLY_INSTANTIATION
+# define EXTERN_DIRAC extern
+# define ONLY_INSTANTIATION
 #endif
 
 #define NDIRAC 4
+
+#define UNROLL_FOR_ALL_SPIN(ID)			\
+  UNROLL_FOR(ID,0,NDIRAC)
 
 namespace nissa
 {
@@ -66,7 +70,7 @@ namespace nissa
   {
     dirac_matr out;
     
-    for(int ig=0;ig<NDIRAC;ig++)
+    UNROLL_FOR_ALL_SPIN(ig)
       if(in1.pos[ig]==in2.pos[ig])
 	{
 	  out.pos[ig]=in1.pos[ig];
@@ -82,7 +86,7 @@ namespace nissa
   {
     dirac_matr out;
     
-    for(int ig=0;ig<NDIRAC;ig++)
+    UNROLL_FOR_ALL_SPIN(ig)
       if(in1.pos[ig]==in2.pos[ig])
 	{
 	  out.pos[ig]=in1.pos[ig];
@@ -100,7 +104,7 @@ namespace nissa
     dirac_matr out;
     
     //This is the line on the first matrix
-    for(int ig1=0;ig1<NDIRAC;ig1++)
+    UNROLL_FOR_ALL_SPIN(ig1)
       {
 	//This is the line to be taken on the second matrix
 	int ig2=in1.pos[ig1];
@@ -131,7 +135,7 @@ namespace nissa
   {
     dirac_matr out;
     
-    for(int id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       {
 	out.pos[id]=in1.pos[id];
 	complex_prod_double(out.entr[id],in1.entr[id],in2);
@@ -144,7 +148,7 @@ namespace nissa
   {
     dirac_matr out;
     
-    for(int id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       {
 	out.pos[id]=in1.pos[id];
 	complex_prod_idouble(out.entr[id],in1.entr[id],in2);
@@ -157,7 +161,7 @@ namespace nissa
   {
     dirac_matr out;
     
-    for(int id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       {
 	out.pos[id]=in1.pos[id];
 	unsafe_complex_prod(out.entr[id],in1.entr[id],in2);
@@ -171,9 +175,9 @@ namespace nissa
   {
     dirac_matr out;
     
-    for(int id=0;id<NDIRAC;id++)
+    UNROLL_FOR_ALL_SPIN(id)
       {
-	for(int jd=id+1;jd<NDIRAC;jd++)
+	UNROLL_FOR(jd,id+1,NDIRAC)
 	  if(in.pos[id]==in.pos[jd])
 	    crash("pos[%d]=%d==pos[%d]",id,in.pos[id],jd);
 	int od=in.pos[id];
@@ -191,7 +195,7 @@ namespace nissa
     dirac_matr out;
     
     //This is the line on the matrix
-    for(int ig=0;ig<NDIRAC;ig++)
+    UNROLL_FOR_ALL_SPIN(ig)
       {
 	out.pos[ig]=in.pos[ig];
 	
@@ -204,7 +208,7 @@ namespace nissa
   //Print the dirac matrix passed as argument only on node 0
   inline void print_dirac(const dirac_matr& in)
   {
-    for(int ir=0;ir<NDIRAC;ir++)
+    UNROLL_FOR_ALL_SPIN(ir)
       {
 	int pos=in.pos[ir];
 	
@@ -213,7 +217,7 @@ namespace nissa
 	
 	printf("%+02.2f,%+02.2f\t",in.entr[ir][0],in.entr[ir][1]);
 	
-	for(int ic=pos+1;ic<NDIRAC;ic++)
+	UNROLL_FOR(ic,pos+1,NDIRAC)
 	  printf("+%02.2f,+%02.2f\t",0.,0.);
 	
 	printf("\n");

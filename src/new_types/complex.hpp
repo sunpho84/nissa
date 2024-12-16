@@ -14,6 +14,9 @@
 
 #include <metaprogramming/inline.hpp>
 
+#define UNROLL_FOR_RI(RI)			\
+  UNROLL_FOR(RI,0,2)
+
 namespace nissa
 {
   typedef double complex[2];
