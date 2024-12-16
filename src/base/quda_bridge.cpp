@@ -1370,7 +1370,7 @@ namespace quda_iface
   void maybe_print_ ## X(const T& i)					\
   {									\
     if constexpr(hasMember_ ## X<T>)					\
-      printf(#X": " F F "\n",i.X[0],i.X[1]);				\
+      printf(#X": " F "\n",i.X[0]);				\
   }
   
   PROVIDE_MAYBE_PRINT(cl_pad,"%d");
