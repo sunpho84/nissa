@@ -71,7 +71,7 @@ namespace quda_iface
   /// Tags needed to define a setup
   using SetupID=
     std::tuple<std::string,nissa::Checksum>;
-
+  
 #ifdef USE_QUDA
   // /// Restore or take copy of raw data, taking care of the direction of the request
   // inline void restoreOrTakeCopyOfData(void* host,
@@ -185,6 +185,21 @@ namespace quda_iface
   EXTERN_QUDA_BRIDGE QudaEigParam mg_eig_param[QUDA_MAX_MG_LEVEL];
   
   EXTERN_QUDA_BRIDGE MPI_Comm cart_comm;
+
+# ifndef READY_TO_DEL
+  EXTERN_QUDA_BRIDGE quda::Dirac* D;
+  EXTERN_QUDA_BRIDGE quda::Dirac* DSloppy;
+  EXTERN_QUDA_BRIDGE quda::Dirac* DPre;
+  EXTERN_QUDA_BRIDGE quda::DiracMatrix* M;
+  EXTERN_QUDA_BRIDGE quda::DiracMatrix* MSloppy;
+  EXTERN_QUDA_BRIDGE quda::DiracMatrix* MPre;
+  EXTERN_QUDA_BRIDGE quda::SolverParam* solverParam;
+  EXTERN_QUDA_BRIDGE quda::Solver* solver;
+  EXTERN_QUDA_BRIDGE quda::ColorSpinorField* b;
+  EXTERN_QUDA_BRIDGE quda::ColorSpinorField* x;
+  std::map<std::string,quda::TimeProfile> profilers;
+# endif
+  
 #endif
   
   EXTERN_QUDA_BRIDGE void* quda_mg_preconditioner INIT_QUDA_BRIDGE_TO(=nullptr);

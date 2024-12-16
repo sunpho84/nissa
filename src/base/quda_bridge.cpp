@@ -1210,8 +1210,37 @@ namespace quda_iface
 	 storedKappa!=inv_param.kappa or
 	 storedCloverCoeff!=inv_param.clover_coeff)
 	{
-	  master_printf("Updating mg\n");
+	  const int nlevels=multiGrid::nlevels;
+	  
+	  /// Check if tolerance is satisfied, such that only the coarsest level is afjusted
+	  constexpr bool relTol=0.01;
+	  const bool tolSatisfied=
+	    (fabs(storedMu/inv_param.mu-1)<relTol) and
+	    (fabs(storedKappa/inv_param.kappa-1)<relTol) and
+	    (fabs(storedCloverCoeff/inv_param.clover_coeff-1)<relTol);
+	  
+	  int stored_setup_maxiter_refresh[QUDA_MAX_MG_LEVEL];
+	  
+	  /// Access the quda_mg_param.setup_maxiter_refresh for the asked level
+	  auto iR=
+	    [](const int& level)->int&
+	    {
+	      return quda_mg_param.setup_maxiter_refresh[level];
+	    };
+	  
+	  /// Store the parameters, and possibly set it to zero
+	  for(int level=0;level<nlevels-1;level++)
+	    {
+	      stored_setup_maxiter_refresh[level]=iR(level);
+	      if(tolSatisfied)
+		iR(level)=0;
+	    }
+	  
 	  updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+	  
+	  /// Restore them no matter what
+	  for(int level=0;level<nlevels-1;level++)
+	    iR(level)=stored_setup_maxiter_refresh[level];
 	}
       else
 	master_printf("No need to update the multigrid\n");
@@ -1335,13 +1364,23 @@ namespace quda_iface
       printf(#X": " F "\n",i.X);				\
   }
   
+#define PROVIDE_MAYBE_PRINT2(X,F)					\
+  template <typename T>							\
+  void maybe_print_ ## X(const T& i)					\
+  {									\
+    if constexpr(hasMember_ ## X<T>)					\
+      printf(#X": " F F "\n",i.X[0],i.X[1]);				\
+  }
+  
   PROVIDE_MAYBE_PRINT(cl_pad,"%d");
   PROVIDE_MAYBE_PRINT(sp_pad,"%d");
-  PROVIDE_MAYBE_PRINT(true_res,"%lg");
-  PROVIDE_MAYBE_PRINT(true_res_hq,"%lg");
+  PROVIDE_MAYBE_PRINT2(true_res,"%lg");
+  PROVIDE_MAYBE_PRINT2(true_res_hq,"%lg");
   PROVIDE_MAYBE_PRINT(tune,"%lg");
   
-  #undef PROVIDE_MAYBE_PRINT
+#undef PROVIDE_MAYBE_PRINT
+
+#undef PROVIDE_MAYBE_PRINT2
   
   void sanfoPrint(QudaInvertParam& i)
   {
