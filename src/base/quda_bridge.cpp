@@ -1210,15 +1210,17 @@ namespace quda_iface
 	 storedKappa!=inv_param.kappa or
 	 storedCloverCoeff!=inv_param.clover_coeff)
 	{
-	  const int nlevels=multiGrid::nlevels;
+	  const int& nlevels=
+	    multiGrid::nlevels;
+	  const double& setup_refresh_tol=
+	    multiGrid::setup_refresh_tol;
 	  
 	  /// Check if tolerance is satisfied, such that only the coarsest level is afjusted
-	  constexpr bool relTol=0.01;
 	  const bool tolSatisfied=
-	    (fabs(storedMu/inv_param.mu-1)<relTol) and
-	    (fabs(storedKappa/inv_param.kappa-1)<relTol) and
-	    (fabs(storedCloverCoeff/inv_param.clover_coeff-1)<relTol);
-	  master_printf("Tolerance to avoid deep update is satisfied: %d\n",tolSatisfied);
+	    (fabs(storedMu/(inv_param.mu+1e-300)-1)<setup_refresh_tol) and
+	    (fabs(storedKappa/(inv_param.kappa+1e-300)-1)<setup_refresh_tol) and
+	    (fabs(storedCloverCoeff/(inv_param.clover_coeff+1e-300)-1)<setup_refresh_tol);
+	  master_printf("Tolerance to avoid deep update on csw, mu and kappa change is %lg satisfied: %d\n",setup_refresh_tol,tolSatisfied);
 	  
 	  int stored_setup_maxiter_refresh[QUDA_MAX_MG_LEVEL];
 	  
