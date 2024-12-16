@@ -7,9 +7,11 @@
 
 #ifdef USE_QUDA
 # include <quda.h>
-# include <dirac_quda.h>
-# include <invert_quda.h>
-# include <color_spinor_field.h>
+# ifndef READY_TO_DEL
+#  include <dirac_quda.h>
+#  include <invert_quda.h>
+#  include <color_spinor_field.h>
+# endif
 #endif
 
 #include <complex>
