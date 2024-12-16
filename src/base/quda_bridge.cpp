@@ -1218,6 +1218,7 @@ namespace quda_iface
 	    (fabs(storedMu/inv_param.mu-1)<relTol) and
 	    (fabs(storedKappa/inv_param.kappa-1)<relTol) and
 	    (fabs(storedCloverCoeff/inv_param.clover_coeff-1)<relTol);
+	  master_printf("Tolerance to avoid deep update is satisfied: %d\n",tolSatisfied);
 	  
 	  int stored_setup_maxiter_refresh[QUDA_MAX_MG_LEVEL];
 	  
