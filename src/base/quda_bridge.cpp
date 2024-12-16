@@ -106,8 +106,7 @@ namespace quda_iface
     int out;
     MPI_Cart_rank(quda_iface::cart_comm,c,&out);
     
-    if(VERBOSITY_LV3)
-      printf("rank %d, {%d %d %d %d}->%d\n",rank,c[0],c[1],c[2],c[3],out);
+    verbosity_lv3_master_printf("rank %d, {%d %d %d %d}->%d\n",rank,c[0],c[1],c[2],c[3],out);
     
     return out;
   }
@@ -544,7 +543,7 @@ namespace quda_iface
 		       {
 			 const int iquda=quda_of_loclx[ivol];
 			 
-			 for(int nu=0;nu<NDIM;nu++)
+			 UNROLL_FOR_ALL_DIRS(nu)
 			   {
 			     const int out_dir=(nu+NDIM-1)%NDIM;
 			     su3_copy(out[out_dir][iquda],in[ivol][nu]);
@@ -567,7 +566,7 @@ namespace quda_iface
 			   const int ivol=loclx_of_loceo[par][ivolh];
 			   const int iquda=quda_of_loclx[ivol];
 			   
-			   for(int nu=0;nu<NDIM;nu++)
+			   UNROLL_FOR_ALL_DIRS(nu)
 			     {
 			       const int out_dir=(nu+NDIM-1)%NDIM;
 			       su3_copy(out[out_dir][iquda],in[par][ivolh][nu]);
