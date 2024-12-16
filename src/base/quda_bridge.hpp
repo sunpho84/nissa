@@ -2,11 +2,14 @@
 #define _QUDA_BRIDGE_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #ifdef USE_QUDA
 # include <quda.h>
+# include <dirac_quda.h>
+# include <invert_quda.h>
+# include <color_spinor_field.h>
 #endif
 
 #include <complex>
@@ -18,10 +21,10 @@
 #include "geometry/geometry_eo.hpp"
 
 #ifndef EXTERN_QUDA_BRIDGE
- #define EXTERN_QUDA_BRIDGE extern
- #define INIT_QUDA_BRIDGE_TO(cond)
+# define EXTERN_QUDA_BRIDGE extern
+# define INIT_QUDA_BRIDGE_TO(cond)
 #else
- #define INIT_QUDA_BRIDGE_TO(cond) cond
+# define INIT_QUDA_BRIDGE_TO(cond) cond
 #endif
 
 #ifdef USE_QUDA

@@ -52,6 +52,14 @@ extern "C"
   QUDA_BYPASS(,void plaqQuda(double plaq[3]))
 }
 
+#ifdef READY_TO_DEL
+namespace quda
+{
+  /// Make visible quda headers not exported
+  void setDiracParam(DiracParam &diracParam,QudaInvertParam *inv_param,const bool pc);
+}
+#endif
+
 namespace nissa
 {
   int iCudaDevice;
@@ -398,7 +406,7 @@ namespace quda_iface
 	quda_of_loclx=nissa_malloc("quda_of_loclx",locVol,int);
 	loclx_of_quda=nissa_malloc("loclx_of_quda",locVol,int);
 	
-	for(int ivol=0;ivol<locVol;ivol++)
+	for(int64_t ivol=0;ivol<locVol;ivol++)
 	  {
 	    const coords_t& c=locCoordOfLoclx[ivol];
 	    const coords_t& l=locSize;
@@ -412,7 +420,7 @@ namespace quda_iface
 	    const int quda=loclx_parity[ivol]*locVolh+itmp/2;
 	    
 	    if(quda<0 or quda>=locVol)
-	      crash("quda %d remapping to ivol %d not in range [0,%d]",quda,ivol,locVol);
+	      crash("quda %d remapping to ivol %ld not in range [0,%ld]",quda,ivol,locVol);
 	    
 	    quda_of_loclx[ivol]=quda;
 	    loclx_of_quda[quda]=ivol;
@@ -1162,6 +1170,30 @@ namespace quda_iface
 	      destroyMultigridQuda(quda_mg_preconditioner);
 	    
 	    quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
+	    
+#ifdef READY_TO_DEL
+	    createDirac(D,DSloppy,DPre,inv_param,true);
+	    
+	    using namespace quda;
+	    
+	    M=(inv_param.inv_type==QUDA_CG_INVERTER or inv_param.inv_type==QUDA_CA_CG_INVERTER)?
+	      static_cast<DiracMatrix*>(new DiracMdagM(*D)):
+	      static_cast<DiracMatrix*>(new DiracM(*D));
+	    MSloppy=(inv_param.inv_type==QUDA_CG_INVERTER or inv_param.inv_type==QUDA_CA_CG_INVERTER)?
+	      static_cast<DiracMatrix*>(new DiracMdagM(*DSloppy)):
+	      static_cast<DiracMatrix*>(new DiracM(*DSloppy));
+	    MPre=(inv_param.inv_type==QUDA_CG_INVERTER or inv_param.inv_type==QUDA_CA_CG_INVERTER)?
+	      static_cast<DiracMatrix*>(new DiracMdagM(*DPre)):static_cast<DiracMatrix*>(new DiracM(*DPre));
+
+	    solverParam=new SolverParam(inv_param);
+	    
+	    const std::string tag="Solver profiler mu="+std::to_string(inv_param.mu);
+	    new TimeProfile("ergere");
+	    profilers.try_emplace(tag,tag);
+	    auto& p=profilers.find(tag)->second;
+	    p.TPSTART(QUDA_PROFILE_TOTAL);
+	    solver=Solver::create(*solverParam,*M,*MSloppy,*MPre,*MPre,p);
+#endif
 	    
 #ifdef QUDASETUPSTORE
 	    if(doTheStorage)
