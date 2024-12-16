@@ -543,7 +543,8 @@ namespace quda_iface
 		       {
 			 const int iquda=quda_of_loclx[ivol];
 			 
-			 UNROLL_FOR_ALL_DIRS(nu)
+#pragma unroll 4
+			 for(int nu=0;nu<NDIM;nu++)
 			   {
 			     const int out_dir=(nu+NDIM-1)%NDIM;
 			     su3_copy(out[out_dir][iquda],in[ivol][nu]);
@@ -566,7 +567,8 @@ namespace quda_iface
 			   const int ivol=loclx_of_loceo[par][ivolh];
 			   const int iquda=quda_of_loclx[ivol];
 			   
-			   UNROLL_FOR_ALL_DIRS(nu)
+#pragma unroll 4
+			   for(int nu=0;nu<NDIM;nu++)
 			     {
 			       const int out_dir=(nu+NDIM-1)%NDIM;
 			       su3_copy(out[out_dir][iquda],in[par][ivolh][nu]);
