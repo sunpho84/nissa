@@ -7,7 +7,7 @@
 
 #ifdef USE_QUDA
 # include <quda.h>
-# ifndef READY_TO_DEL
+# ifdef READY_TO_DEL
 #  include <dirac_quda.h>
 #  include <invert_quda.h>
 #  include <color_spinor_field.h>
@@ -188,7 +188,7 @@ namespace quda_iface
   
   EXTERN_QUDA_BRIDGE MPI_Comm cart_comm;
 
-# ifndef READY_TO_DEL
+# ifdef READY_TO_DEL
   EXTERN_QUDA_BRIDGE quda::Dirac* D;
   EXTERN_QUDA_BRIDGE quda::Dirac* DSloppy;
   EXTERN_QUDA_BRIDGE quda::Dirac* DPre;
@@ -199,7 +199,7 @@ namespace quda_iface
   EXTERN_QUDA_BRIDGE quda::Solver* solver;
   EXTERN_QUDA_BRIDGE quda::ColorSpinorField* b;
   EXTERN_QUDA_BRIDGE quda::ColorSpinorField* x;
-  std::map<std::string,quda::TimeProfile> profilers;
+  EXTERN_QUDA_BRIDGE std::map<std::string,quda::TimeProfile> profilers;
 # endif
   
 #endif
