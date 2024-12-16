@@ -21,6 +21,10 @@
 # include "base/cuda.hpp"
 #endif
 
+#ifdef HAVE_OPENMP
+# include <omp.h>
+#endif
+
 #include "base/DDalphaAMG_bridge.hpp"
 #include "base/bench.hpp"
 #include "base/debug.hpp"
