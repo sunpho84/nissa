@@ -1223,6 +1223,7 @@ namespace quda_iface
 	  master_printf("Tolerance to avoid deep update on csw, mu and kappa change is %lg satisfied: %d\n",setup_refresh_tol,tolSatisfied);
 	  
 	  int stored_setup_maxiter_refresh[QUDA_MAX_MG_LEVEL];
+	  QudaBoolean stored_preserve_deflation;
 	  
 	  /// Access the quda_mg_param.setup_maxiter_refresh for the asked level
 	  auto iR=
@@ -1235,8 +1236,12 @@ namespace quda_iface
 	  for(int level=0;level<nlevels-1;level++)
 	    {
 	      stored_setup_maxiter_refresh[level]=iR(level);
+	      stored_preserve_deflation=quda_mg_param.preserve_deflation;
 	      if(tolSatisfied)
-		iR(level)=0;
+		{
+		  iR(level)=0;
+		  quda_mg_param.preserve_deflation=QUDA_BOOLEAN_TRUE;
+		}
 	    }
 	  
 	  updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
@@ -1244,6 +1249,7 @@ namespace quda_iface
 	  /// Restore them no matter what
 	  for(int level=0;level<nlevels-1;level++)
 	    iR(level)=stored_setup_maxiter_refresh[level];
+	  quda_mg_param.preserve_deflation=stored_preserve_deflation;
 	}
       else
 	master_printf("No need to update the multigrid\n");
