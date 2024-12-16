@@ -1360,9 +1360,9 @@ namespace quda_iface
 #define PROVIDE_MAYBE_PRINT(X,F)					\
   template <typename T>							\
   void maybe_print_ ## X(const T& i)					\
-  {								\
-    if constexpr(hasMember_ ## X<T>)				\
-      printf(#X": " F "\n",i.X);				\
+  {									\
+    if constexpr(hasMember_ ## X<T>)					\
+      printf(#X": " F "\n",i.X);					\
   }
   
 #define PROVIDE_MAYBE_PRINT2(X,F)					\
@@ -1370,7 +1370,10 @@ namespace quda_iface
   void maybe_print_ ## X(const T& i)					\
   {									\
     if constexpr(hasMember_ ## X<T>)					\
-      printf(#X": " F "\n",i.X[0]);				\
+      if constexpr(std::is_array_v<decltype(i.X)>)			\
+	printf(#X": " F "\n",i.X[0]);					\
+      else								\
+	printf(#X": " F "\n",i.X);					\
   }
   
   PROVIDE_MAYBE_PRINT(cl_pad,"%d");
