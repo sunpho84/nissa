@@ -136,6 +136,11 @@ namespace nissa
     init_cuda();
 #endif
     
+#ifdef HAVE_OPENMP
+# pragma omp parallel
+    master_printf("Compiled with OpenMP support, nThreads: %d\n",omp_get_num_threads());
+#endif
+    
     //initialize the first vector of nissa
     initialize_main_vect();
     
