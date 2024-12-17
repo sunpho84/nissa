@@ -740,8 +740,8 @@ namespace quda_iface
     inv_param.preserve_source=QUDA_PRESERVE_SOURCE_NO;
     inv_param.dirac_order=QUDA_DIRAC_ORDER;
     
-    inv_param.input_location=QUDA_GPU_FIELD_LOCATION;
-    inv_param.output_location=QUDA_GPU_FIELD_LOCATION;
+    inv_param.input_location=QUDA_CUDA_FIELD_LOCATION;
+    inv_param.output_location=QUDA_CUDA_FIELD_LOCATION;
     
     //inv_param.tune=QUDA_TUNE_YES;
     
