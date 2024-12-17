@@ -543,21 +543,21 @@ namespace quda_iface
   void remap_nissa_to_quda(quda_conf_t& out,
 			   const LxField<quad_su3>& in)
   {
-    HOST_PARALLEL_LOOP(0,
-		       locVol,
-		       CAPTURE(TO_READ(in),
-			       out),
-		       ivol,
-		       {
-			 const int iquda=quda_of_loclx[ivol];
-			 
+    PAR(0,
+	locVol,
+	CAPTURE(TO_READ(in),
+		out),
+	ivol,
+	{
+	  const int iquda=quda_of_loclx[ivol];
+	  
 #pragma unroll 4
-			 for(int nu=0;nu<NDIM;nu++)
-			   {
-			     const int out_dir=(nu+NDIM-1)%NDIM;
-			     su3_copy(out[out_dir][iquda],in[ivol][nu]);
-			   }
-		       });
+	  for(int nu=0;nu<NDIM;nu++)
+	    {
+	      const int out_dir=(nu+NDIM-1)%NDIM;
+	      su3_copy(out[out_dir][iquda],in[ivol][nu]);
+	    }
+	});
   }
   
   /// Reorder conf into QUDA format
@@ -565,38 +565,38 @@ namespace quda_iface
 			   const EoField<quad_su3>& in)
   {
     for(int par=0;par<2;par++)
-      HOST_PARALLEL_LOOP(0,
-			 locVolh,
-			 CAPTURE(TO_READ(in),
-				 out,
-				 par),
-			 ivolh,
-			 {
-			   const int ivol=loclx_of_loceo[par][ivolh];
-			   const int iquda=quda_of_loclx[ivol];
-			   
+      PAR(0,
+	  locVolh,
+	  CAPTURE(TO_READ(in),
+		  out,
+		  par),
+	  ivolh,
+	  {
+	    const int ivol=loclx_of_loceo[par][ivolh];
+	    const int iquda=quda_of_loclx[ivol];
+	    
 #pragma unroll 4
-			   for(int nu=0;nu<NDIM;nu++)
-			     {
-			       const int out_dir=(nu+NDIM-1)%NDIM;
-			       su3_copy(out[out_dir][iquda],in[par][ivolh][nu]);
-			     }
-			 });
+	    for(int nu=0;nu<NDIM;nu++)
+	      {
+		const int out_dir=(nu+NDIM-1)%NDIM;
+		su3_copy(out[out_dir][iquda],in[par][ivolh][nu]);
+	      }
+	  });
   }
   
   /// Reorder spincolor to QUDA format
   void remap_nissa_to_quda(spincolor* out,
 			   const LxField<spincolor>& in)
   {
-    HOST_PARALLEL_LOOP(0,
-		       locVol,
-		       CAPTURE(TO_READ(in),
-			       out),
-		       ivol,
-		       {
-			 const int iquda=quda_of_loclx[ivol];
-			 spincolor_copy(out[iquda],in[ivol]);
-		       });
+    PAR(0,
+	locVol,
+	CAPTURE(TO_READ(in),
+		out),
+	ivol,
+	{
+	  const int iquda=quda_of_loclx[ivol];
+	  spincolor_copy(out[iquda],in[ivol]);
+	});
   }
   
   /// Reorder color to QUDA format
@@ -604,66 +604,66 @@ namespace quda_iface
 			   const EoField<color>& in)
   {
     for(int par=0;par<2;par++)
-      HOST_PARALLEL_LOOP(0,
-			 locVolh,
-			 CAPTURE(TO_READ(in),
-				 out,
-				 par),
-			 ivolh,
-			 {
-			   const int ivol=loclx_of_loceo[par][ivolh];
-			   const int iquda=quda_of_loclx[ivol];
-			   color_copy(out[iquda],in[par][ivolh]);
-			 });
+      PAR(0,
+	  locVolh,
+	  CAPTURE(TO_READ(in),
+		  out,
+		  par),
+	  ivolh,
+	  {
+	    const int ivol=loclx_of_loceo[par][ivolh];
+	    const int iquda=quda_of_loclx[ivol];
+	    color_copy(out[iquda],in[par][ivolh]);
+	  });
   }
   
   /// Reorder spincolor from QUDA format
   void remap_quda_to_nissa(LxField<spincolor>& out,
 			   spincolor *in)
   {
-      HOST_PARALLEL_LOOP(0,
-			 locVol,
-			 CAPTURE(TO_WRITE(out),
-				 in),
-			 iquda,
-			 {
-			   const int ivol=loclx_of_quda[iquda];
-			   spincolor_copy(out[ivol],in[iquda]);
-			 });
+    PAR(0,
+	locVol,
+	CAPTURE(TO_WRITE(out),
+		in),
+	iquda,
+	{
+	  const int ivol=loclx_of_quda[iquda];
+	  spincolor_copy(out[ivol],in[iquda]);
+	});
   }
   
   /// Reorder color from QUDA format
   void remap_quda_to_nissa(EoField<color>& out,
 			   color* in)
   {
-    HOST_PARALLEL_LOOP(0,
-		       locVol,
-		       CAPTURE(in,
-			       TO_WRITE(out)),
-		       iquda,
-      {
-	const int ivol=loclx_of_quda[iquda];
-	const int par=loclx_parity[ivol];
-	const int ivolh=loceo_of_loclx[ivol];
-	color_copy(out[par][ivolh],in[iquda]);
-	
+    PAR(0,
+	locVol,
+	CAPTURE(in,
+		TO_WRITE(out)),
+	iquda,
+	{
+	  const int ivol=loclx_of_quda[iquda];
+	  const int par=loclx_parity[ivol];
+	  const int ivolh=loceo_of_loclx[ivol];
+	  color_copy(out[par][ivolh],in[iquda]);
+	  
 #ifdef DEBUG_QUDA
-	for(int ic=0;ic<NCOL;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    {
-	      const double& f=in[iquda][ic][ri];
-	      if(fabs(f))
-		printf("REMA %d %d %d %d %d %lg\n",iquda,par,ivol,ic,ri,f);
-	    }
+	  for(int ic=0;ic<NCOL;ic++)
+	    for(int ri=0;ri<2;ri++)
+	      {
+		const double& f=in[iquda][ic][ri];
+		if(fabs(f))
+		  printf("REMA %d %d %d %d %d %lg\n",iquda,par,ivol,ic,ri,f);
+	      }
 #endif
-      });
+	});
   }
   
   // /// Sets the sloppy precision
   // void set_sloppy_prec(const QudaPrecision sloppy_prec)
   // {
   //   master_printf("Quda sloppy precision: ");
-    
+  
   //   switch(sloppy_prec)
   //     {
   //     case QUDA_DOUBLE_PRECISION:
@@ -740,8 +740,8 @@ namespace quda_iface
     inv_param.preserve_source=QUDA_PRESERVE_SOURCE_NO;
     inv_param.dirac_order=QUDA_DIRAC_ORDER;
     
-    inv_param.input_location=QUDA_CPU_FIELD_LOCATION;
-    inv_param.output_location=QUDA_CPU_FIELD_LOCATION;
+    inv_param.input_location=QUDA_GPU_FIELD_LOCATION;
+    inv_param.output_location=QUDA_GPU_FIELD_LOCATION;
     
     //inv_param.tune=QUDA_TUNE_YES;
     

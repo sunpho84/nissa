@@ -141,8 +141,7 @@ namespace nissa
 #endif
     
 #ifdef HAVE_OPENMP
-# pragma omp parallel
-    master_printf("Compiled with OpenMP support, nThreads: %d\n",omp_get_num_threads());
+    master_printf("Compiled with OpenMP support, nThreads: %d\n",omp_get_max_threads());
 #endif
     
     //initialize the first vector of nissa
