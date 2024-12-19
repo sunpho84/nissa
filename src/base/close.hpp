@@ -65,6 +65,14 @@ namespace nissa
     MPI_Barrier(MPI_COMM_WORLD);
     master_printf("   Ciao!\n\n");
     MPI_Finalize();
+    
+#ifdef USE_CUDA
+    FILE* kernelBench=open_file("kernelBenchmarks.txt","w");
+    for(const auto& [hash,b] : kernelBenchmarks)
+      master_fprintf(kernelBench,"Kernel with hash %zu name %s file %s line %d invoked %zu times, total time %lg s, average time %lg s\n",
+		    hash,b.name.c_str(),b.file.c_str(),b.line,b.nInvoke,b.totalTime,b.totalTime/b.nInvoke);
+    close_file(kernelBench);
+#endif
   }
 }
 

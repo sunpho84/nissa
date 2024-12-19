@@ -99,8 +99,8 @@ namespace quda_iface
   color *color_out=nullptr;
   
   /// Spincolor used to remap
-  spincolor *spincolor_in=nullptr;
-  spincolor *spincolor_out=nullptr;
+  CUDA_MANAGED spincolor *spincolor_in=nullptr;
+  CUDA_MANAGED spincolor *spincolor_out=nullptr;
   
   /// Return the rank of the given quda coords
   int get_rank_of_quda_coords(const int *coords,void *fdata)
@@ -619,7 +619,7 @@ namespace quda_iface
   
   /// Reorder spincolor from QUDA format
   void remap_quda_to_nissa(LxField<spincolor>& out,
-			   spincolor *in)
+			   const spincolor *in)
   {
     PAR(0,
 	locVol,
