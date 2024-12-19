@@ -775,7 +775,8 @@ namespace nissa
 	LxField<spin1field> *ph=(*nf).second;
 	
 	//combine the filename
-	std::string path=combine("%s/hit%d_field%s",outfolder,ihit,name.c_str());
+	const std::string path=
+	  combine("%s/hit%d_field%s",outfolder,ihit,name.c_str());
 	
 	ReadWriteRealVector<spin1field> rw(*ph,path);
 	

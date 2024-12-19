@@ -332,9 +332,11 @@ namespace nissa
     
     ReadWriteRealVector(LxField<T>& v,
 			const std::string& _path) :
-      v(v),path(_path)
+      v(v),
+      path(_path)
     {
-      path+="_rank"+std::to_string(rank);
+      if(fast_read_write_vectors)
+	path+="_rank"+std::to_string(rank);
     }
     
     bool canLoad() const
