@@ -5,6 +5,8 @@
 # include "config.hpp"
 #endif
 
+#include <map>
+
 #include <routines/mpi_routines.hpp>
 
 #define TO_READ(A) A=A.getReadable()
