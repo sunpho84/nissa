@@ -68,9 +68,15 @@ namespace nissa
     
 #ifdef USE_CUDA
     FILE* kernelBench=open_file("kernelBenchmarks.txt","w");
-    for(const auto& [hash,b] : kernelBenchmarks)
-      master_fprintf(kernelBench,"Kernel with hash %zu name %s file %s line %d invoked %zu times, total time %lg s, average time %lg s\n",
-		    hash,b.name.c_str(),b.file.c_str(),b.line,b.nInvoke,b.totalTime,b.totalTime/b.nInvoke);
+    for(const KernelInfoLaunchParsStat& kernelInfoLaunchParsStats : kernelInfoLaunchParsStats)
+      {
+	const auto& [info,launchParsStats]=kernelInfoLaunchParsStats;
+	for(const auto& [loopSize,lPStat] : launchParsStats)
+	  {
+	    master_fprintf(kernelBench,"Kernel with name %s file %s line %d invoked %zu times, total time %lg s, average time %lg s\n",
+			   info.name.c_str(),info.file.c_str(),info.line,lPStat.nInvoke,lPStat.totalTime,lPStat.totalTime/lPStat.nInvoke);
+	  }
+      }
     close_file(kernelBench);
 #endif
   }
