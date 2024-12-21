@@ -1388,7 +1388,7 @@ namespace quda_iface
   PROVIDE_MAYBE_PRINT(sp_pad,"%d");
   PROVIDE_MAYBE_PRINT2(true_res,"%lg");
   PROVIDE_MAYBE_PRINT2(true_res_hq,"%lg");
-  PROVIDE_MAYBE_PRINT(tune,"%lg");
+  PROVIDE_MAYBE_PRINT(tune,"%d");
   
   void sanfoPrint(QudaInvertParam& i)
   {
