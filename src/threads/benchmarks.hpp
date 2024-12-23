@@ -69,7 +69,42 @@ namespace nissa
     }
   };
   
+  /// Stores the info, statistics and parameters to launch a kernel
   inline std::vector<KernelInfoLaunchParsStat> kernelInfoLaunchParsStats;
+  
+  /// Overhead of the benchmark
+  inline std::pair<double,double> benchOverhead;
+  
+  /// Compute and stores the benchmark overhead
+  inline std::pair<double,double> estimateBenchOverhead()
+  {
+    double x=0.0;
+    
+    double x2=0.0;
+    
+    const int nt=1000;
+    for(int t=0;t<nt;t++)
+      {
+	const double i=take_time();
+	
+	const double e=take_time();
+	
+	const double d=e-i;
+	
+	x+=d;
+	
+	x2+=d*d;
+      }
+    
+    x/=nt;
+    
+    x2/=nt;
+    
+    x2-=x*x;
+    
+    return std::make_pair(x,sqrt(x2/(nt-1)));
+  }
+  
 }
 
 #endif

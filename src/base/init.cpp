@@ -173,6 +173,9 @@ namespace nissa
       break;
     };
     
+    /// Internal storage of the overhead
+    benchOverhead=estimateBenchOverhead();
+    
     //set scidac mapping
     scidac_mapping[0]=0;
     for(int mu=1;mu<NDIM;mu++) scidac_mapping[mu]=NDIM-mu;
