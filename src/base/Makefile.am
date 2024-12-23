@@ -51,8 +51,6 @@ include_HEADERS+= \
 endif
 
 if USE_CUDA
-__top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/cuda.cpp
 include_HEADERS+= \
 	%D%/cuda.hpp
 endif
