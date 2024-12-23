@@ -31,6 +31,7 @@ namespace nissa
   void open_input(std::string input_path);
   void read_double(double *out);
   void read_int(int *out);
+  void read_int64_t(int64_t *out);
   void read_list_of_chars(const char *tag,int *nentries,char ***list,int nchar_per_entry);
   void read_list_of_double_pairs(const char *tag,int *nentries,double **list1,double **list2);
   void read_list_of_doubles(const char *tag,int *nentries,double **list);

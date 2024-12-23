@@ -9,6 +9,9 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
+#define EXTERN_INPUT
+# include "input.hpp"
+
 #include "base/bench.hpp"
 #include "base/debug.hpp"
 #ifdef USE_TMLQCD
@@ -30,9 +33,6 @@
 #include "new_types/high_prec.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
-
-#define EXTERN_INPUT
-#include "input.hpp"
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -247,6 +247,10 @@ namespace nissa
   //Read an integer from the file
   void read_int(int *out)
   {read_var((char*)out,"%d",sizeof(int));}
+  
+  //Read a long integer from the file
+  void read_int64_t(int64_t *out)
+  {read_var((char*)out,"%ld",sizeof(int64_t));}
   
   //Read a double from the file
   void read_double(double *out)
