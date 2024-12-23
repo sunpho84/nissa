@@ -62,23 +62,12 @@ namespace nissa
     master_printf("Total communication time: %lg s\n",tot_comm_time);
 #endif
     
+#ifdef USE_CUDA
+    storeKernelInfo();
+#endif
     MPI_Barrier(MPI_COMM_WORLD);
     master_printf("   Ciao!\n\n");
     MPI_Finalize();
-    
-#ifdef USE_CUDA
-    FILE* kernelBench=open_file("kernelBenchmarks.txt","w");
-    for(const KernelInfoLaunchParsStat& kernelInfoLaunchParsStats : kernelInfoLaunchParsStats)
-      {
-	const auto& [info,launchParsStats]=kernelInfoLaunchParsStats;
-	for(const auto& [loopSize,lPStat] : launchParsStats)
-	  {
-	    master_fprintf(kernelBench,"Kernel with name %s file %s line %d invoked %zu times, total time %lg s, average time %lg s\n",
-			   info.name.c_str(),info.file.c_str(),info.line,lPStat.nInvoke,lPStat.totalTime,lPStat.totalTime/lPStat.nInvoke);
-	  }
-      }
-    close_file(kernelBench);
-#endif
   }
 }
 

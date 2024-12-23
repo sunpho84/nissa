@@ -5,7 +5,9 @@
 # include "config.hpp"
 #endif
 
-#include <map>
+#ifdef USE_CUDA
+# include <base/cuda.hpp>
+#endif
 
 #include <base/debug.hpp>
 
@@ -76,6 +78,7 @@ namespace nissa
 
 namespace nissa
 {
+  /// Generic kernel to be used for the cuda launcher
   template <typename IMin,
 	    typename IMax,
 	    typename F>
@@ -89,23 +92,9 @@ namespace nissa
     
     const I i=
       (min+blockIdx.x*blockDim.x+threadIdx.x);
+    
     if(i<max)
       f(i);
-  }
-  
-  template <typename Head,
-	    typename...Tail>
-  inline size_t hashCombine(std::size_t seed,
-			    const Head& v,
-			    Tail&&...tail)
-  {
-    seed^=std::hash<Head>()(v)+0x9e3779b9+(seed<<6)+(seed>>2);
-    
-    if constexpr(sizeof...(Tail))
-      return
-	hashCombine(seed,std::forward<Tail>(tail)...);
-    else
-      return seed;
   }
   
   template <typename IMin,
@@ -122,94 +111,179 @@ namespace nissa
       [line,
        file]()
       {
+	/// Name of the kernel
 	const std::string name=
-	  demangle(typeid(F).name());
+	  typeid(F).name();
 	
-	kernelInfoLaunchParsStats.emplace_back(name,file,line);
+	bool kernelIdIsFound=false;
 	
-	return kernelInfoLaunchParsStats.size()-1;
+	size_t id=0;
+	for(id=0;id<kernelInfoLaunchParsStats.size() and not kernelIdIsFound;id++)
+	  if(kernelInfoLaunchParsStats[id].info.name==name)
+	    kernelIdIsFound=true;
+	
+	if(not kernelIdIsFound)
+	  {
+	    kernelInfoLaunchParsStats.emplace_back(name,file,line);
+	    printf("Kernel %s not found, storing into id %zu, total size %zu\n",name.c_str(),id,kernelInfoLaunchParsStats.size());
+	  }
+	else
+	  {
+	    auto& i=
+	      kernelInfoLaunchParsStats[id].info;
+	    printf("Providing kernel %s additional info on file and line\n",name.c_str());
+	    i.file=file;
+	    i.line=line;
+	  }
+	
+	return id;
       }();
     
-    for(const KernelInfoLaunchParsStat& kernelInfoLaunchParsStat : kernelInfoLaunchParsStats)
+    /// Attributes of the function
+    static const cudaFuncAttributes attr=
+      []()
       {
-	const auto& [info,launchParsStatList]=kernelInfoLaunchParsStat;
-	for(auto& [size,stat] : launchParsStatList)
-	  printf("name %s length %ld launched %ld times\n",info.name.c_str(),size,stat.nInvoke);
-      }
+	/// Fetch the attributes of the kernel function and return
+	cudaFuncAttributes attr;
+	cudaFuncGetAttributes(&attr,cudaGenericKernel<IMin,IMax,F>);
+	
+	return attr;
+      }();
     
-    /// Type for the index
+    /// Type for the index of the loop
     using I=
       std::common_type_t<IMin,IMax>;
     
     /// Compute the length of the loop
-    const I length=
+    const I loopSize=
       max-min;
     
-    if(length>0)
+    /// Takes note of the action to carry out before benchmarking
+    std::vector<BenchmarkAction> benchmarkBeginActions(std::move(nissa::benchmarkBeginActions));
+    
+    /// Takes note of the action to carry out after benchmarking
+    std::vector<BenchmarkAction> benchmarkEndActions(std::move(nissa::benchmarkEndActions));
+    
+    if(loopSize>0)
       {
+	master_printf("/////////////////////////////////////////////////////////////////\n");
+	
+	/// Proxy for the info of the kernel
+	auto k=
+	  []() -> KernelInfo&
+	  {
+	    return kernelInfoLaunchParsStats[id].info;
+	  };
+	
+	master_printf("Going to launch kernel %s of file %s line %d for loop size [%ld;%ld) = %ld\n",
+		      k().name.c_str(),
+		      k().file.c_str(),
+		      k().line,
+		      (int64_t)min,
+		      (int64_t)max,
+		      (int64_t)loopSize);
+	
+	// printf("List of all kernel known and profiled\n");
+	// for(const KernelInfoLaunchParsStat& kernelInfoLaunchParsStat : kernelInfoLaunchParsStats)
+	//   {
+	//     const auto& [info,launchParsStatList]=kernelInfoLaunchParsStat;
+	//     for(auto& [loopSize,stat] : launchParsStatList)
+	//       printf("name %s loopSize %ld optimal blocksize %d launched %ld times\n",
+	// 	     info.name.c_str(),loopSize,stat.optimalBlockSize,stat.nInvoke);
+	//   }
+	// printf("\n");
+	
 	/// Launch the actual calculation
 	auto launch=
-	  [&](const int blockSize)
+	  [min,
+	   max,
+	   loopSize,
+	   f](const int blockSize)
 	  {
+	    /// Dimensions of the block
 	    const dim3 blockDimension(blockSize);
-	    const dim3 gridDimension((length+blockSize-1)/blockSize);
+	    
+	    /// First entry in the sizes of the grid
+	    const I g=(loopSize+blockDimension.x-1)/blockDimension.x;
+	    
+	    /// Size of the grid
+	    const dim3 gridDimension(g);
 	    
 	    cudaGenericKernel<<<gridDimension,blockDimension>>>(min,max,f);
 	    cudaDeviceSynchronize();
 	  };
 	
+	/// External value of the rank, needed to decide whether to print
 	extern int rank;
 	
+	/// Decide whether to print
 	const bool print=
 	  (VERBOSITY_LV3
 	   and rank==0);
 	
+	/// Fetch the info and the parameters of the kernel launches
 	auto& [info,launchParsStatList]=
 	  kernelInfoLaunchParsStats[id];
 	
-	auto [launchParsStatIt,toBeComputed]=
-	  launchParsStatList.try_emplace(length);
+	/// Retrieves the parameters to launch with thte given loop size
+	const auto re=
+	  launchParsStatList.try_emplace(loopSize);
+	
+	bool toBeComputed=
+	  re.second;
 	
 	/// Reference to the parameters for the launch
 	KernelSizeLaunchParsStat& launchParsStat=
-	  launchParsStatIt->second;
+	  re.first->second;
 	
 	/// Reference to the optimal block size
 	int& optimalBlockSize=
 	  launchParsStat.optimalBlockSize;
 	
-	printf("ToBeComputed: %d\n",toBeComputed);
+	if(0)
+	  {
+	    optimalBlockSize=128;
+	    toBeComputed=false;
+	  }
+	
+	printf("ToBeComputed: %d indeed optimalBlockSize is %d, nInvoke: %ld\n",
+	       toBeComputed,optimalBlockSize,launchParsStat.nInvoke);
 	
 	if(toBeComputed)
 	  {
-	    printf("Benchmarking kernel %s for length %ld\n",
-		   info.name.c_str(),(int64_t)length);
+	    printf("Benchmarking kernel %s for loop size %ld\n",
+		   info.name.c_str(),(int64_t)loopSize);
 	    
-	    toBeComputed=false;
-	    
-	    benchmarkInProgress=true;
-	    
-	    for(BenchmarkAction& b : benchmarkBeginActions)
-	      b();
-	    benchmarkBeginActions.clear();
+	    if(not doNotBackupDuringBenchmark)
+	      {
+		doNotBackupDuringBenchmark=true;
+		for(BenchmarkAction& b : benchmarkBeginActions)
+		  b();
+		doNotBackupDuringBenchmark=false;
+	      }
 	    
 	    optimalBlockSize=0;
 	    
 	    const int nBench=100;
 	    double minTime=0.0;
 	    
+	    const int nMaxThreads=
+	      attr.maxThreadsPerBlock;
+	    
 	    printf("starting testBlockSize\n");
-	    for(int testBlockSize=64;testBlockSize<=1024;testBlockSize*=2)
+	    for(int testBlockSize=1;testBlockSize<=nMaxThreads;testBlockSize*=2)
 	      {
 		// warmup
 		launch(testBlockSize);
 		
+		/// Initial time
 		const double initTime=
 		  take_time();
 		
 		for(int i=0;i<nBench;i++)
 		  launch(testBlockSize);
 		
+		/// Execution time
 		const double runTime=
 		  take_time()-initTime;
 		
@@ -222,11 +296,13 @@ namespace nissa
 		printf("Benchmarked with blockSize %d, runtime %lg s minimal %lg s current optimal size %d\n",testBlockSize,runTime,minTime,optimalBlockSize);
 	      }
 	    
-	    benchmarkInProgress=false;
-	    
-	    for(BenchmarkAction& e : benchmarkEndActions)
-	      e();
-	    benchmarkEndActions.clear();
+	    if(not doNotBackupDuringBenchmark)
+	      {
+		doNotBackupDuringBenchmark=true;
+		for(BenchmarkAction& e : benchmarkEndActions)
+		  e();
+		doNotBackupDuringBenchmark=false;
+	      }
 	  }
 	
 	if(print)
@@ -237,6 +313,7 @@ namespace nissa
 	const double initTime=
 	  take_time();
 	
+	printf("Launching with blocksize %d\n",optimalBlockSize);
 	launch(optimalBlockSize);
 	
 	/// Compute runtime
@@ -250,9 +327,17 @@ namespace nissa
 	  printf(" finished in %lg s\n",runTime);
       }
   }
+  
+  /// Take notes of whether we are inside a parallel for
+  ///
+  /// Needed to take care of the reference
+  inline int insideParallelFor;
 }
 
-# define CUDA_PARALLEL_LOOP(ARGS...) cudaParallelFor(__LINE__,__FILE__,ARGS)
+# define CUDA_PARALLEL_LOOP(ARGS...)			\
+  MACRO_GUARD(insideParallelFor++;			\
+	      cudaParallelFor(__LINE__,__FILE__,ARGS);	\
+	      insideParallelFor--;)
 
 #else
 
@@ -264,7 +349,7 @@ namespace nissa
   THREADS_PARALLEL_LOOP(MIN,MAX,[CAPTURES] (const auto& INDEX) mutable A)
 
 #define DEVICE_PARALLEL_LOOP(MIN,MAX,CAPTURES,INDEX,A...) \
-  CUDA_PARALLEL_LOOP(MIN,MAX,[CAPTURES] CUDA_DEVICE (const auto& INDEX) mutable A)
+  CUDA_PARALLEL_LOOP(MIN,MAX,[CAPTURES] CUDA_DEVICE INLINE_ATTRIBUTE (const auto& INDEX) mutable A)
 
 #if THREADS_TYPE == CUDA_THREADS
 # define DEFAULT_PARALLEL_LOOP DEVICE_PARALLEL_LOOP

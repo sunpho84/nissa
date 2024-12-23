@@ -20,6 +20,7 @@
 #include <metaprogramming/feature.hpp>
 #include <metaprogramming/unroll.hpp>
 #include <routines/ios.hpp>
+#include <threads/benchmarks.hpp>
 
 namespace nissa
 {
@@ -744,9 +745,29 @@ namespace nissa
     
 #undef PROVIDE_SUBSCRIBE_OPERATOR
     
+    /// Register the actions to backup and restore the field
     constexpr INLINE_FUNCTION
     FieldRef<Field> getWritable()
     {
+#ifdef USE_CUDA
+      if(insideParallelFor)
+	{
+	  benchmarkBeginActions.emplace_back([this]()
+	  {
+	    master_printf("Backing up field %s\n",name);
+	    backup=new Field("backup",haloEdgesPresence);
+	    *backup=*this;
+	  });
+	  
+	  benchmarkEndActions.emplace_back([this]()
+	  {
+	    *this=*backup;
+	    delete backup;
+	    master_printf("Restored field %s\n",name);
+	  });
+	}
+#endif
+      
       return *this;
     }
     
@@ -1069,6 +1090,9 @@ namespace nissa
     INLINE_FUNCTION
     void assign(const O& oth)
     {
+      const bool b=doNotBackupDuringBenchmark;
+      doNotBackupDuringBenchmark=true;
+      
       FOR_EACH_SITE_DEG_OF_FIELD(*this,
 				 CAPTURE(TO_READ(oth),
 					 t=this->getWritable()),
@@ -1078,6 +1102,8 @@ namespace nissa
 				   t(site,iDeg)=oth(site,iDeg);
 				 }
       );
+      
+      doNotBackupDuringBenchmark=b;
     }
     
     /// Assigns from a different layout
