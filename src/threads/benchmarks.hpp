@@ -197,6 +197,107 @@ namespace nissa
     close_file(fin);
     input_global=back;
   }
+  
+  /// Fetches the optimal block size in the archive, or tunes the kernel
+  template <typename F>
+  int getOptimalBlockSize(const int& kernelId,
+			  const int64_t& loopLength,
+			  const int minBlockSize,
+			  const int maxBlockSize,
+			  const F& launch)
+  {
+    /// Decide whether to print
+    const bool print=
+      (VERBOSITY_LV3
+       and rank==0);
+    
+    /// Fetch the info and the parameters of the kernel launches
+    auto& [info,launchParsStatList]=
+      kernelInfoLaunchParsStats[kernelId];
+    
+    /// Retrieves the parameters to launch wih thte given loop size
+    const auto re=
+      launchParsStatList.try_emplace(loopLength);
+	
+    bool toBeTuned=
+      re.second;
+    
+    /// Reference to the parameters for the launch
+    KernelSizeLaunchParsStat& launchParsStat=
+      re.first->second;
+    
+    /// Reference to the optimal block size
+    int& optimalBlockSize=
+      launchParsStat.optimalBlockSize;
+    
+    if(0)
+      {
+	optimalBlockSize=128;
+	toBeTuned=false;
+      }
+    
+    if(print)
+      printf("ToBeTuned: %d indeed optimalBlockSize is %d, nInvoke: %ld\n",
+	     toBeTuned,optimalBlockSize,launchParsStat.nInvoke);
+    
+    if(toBeTuned)
+      {
+	if(print)
+	  printf("Benchmarking kernel %s for loop size %ld\n",
+		 info.name.c_str(),loopLength);
+	
+	if(not doNotBackupDuringBenchmark)
+	  {
+	    doNotBackupDuringBenchmark=true;
+	    for(BenchmarkAction& b : benchmarkBeginActions)
+	      b();
+	    doNotBackupDuringBenchmark=false;
+	  }
+	
+	optimalBlockSize=0;
+	
+	const int nBench=100;
+	double minTime=0.0;
+	
+	if(print)
+	  printf("starting test with block size of powers of two in the range [%d;%d\n",minBlockSize,maxBlockSize);
+	for(int testBlockSize=minBlockSize;testBlockSize<=maxBlockSize;testBlockSize*=2)
+	  {
+	    // warmup
+	    launch(testBlockSize);
+	    
+	    /// Initial time
+	    const double initTime=
+	      take_time();
+	    
+	    for(int i=0;i<nBench;i++)
+	      launch(testBlockSize);
+	    
+	    /// Execution time
+	    const double runTime=
+	      take_time()-initTime;
+	    
+	    if(optimalBlockSize==0 or minTime>runTime)
+	      {
+		optimalBlockSize=testBlockSize;
+		minTime=runTime;
+	      }
+	    
+	    if(print)
+	      printf("Benchmarked with blockSize %d, runtime %lg s minimal %lg s current optimal size %d\n",testBlockSize,runTime,minTime,optimalBlockSize);
+	  }
+	
+	if(not doNotBackupDuringBenchmark)
+	  {
+	    doNotBackupDuringBenchmark=true;
+	    for(BenchmarkAction& e : benchmarkEndActions)
+	      e();
+	    doNotBackupDuringBenchmark=false;
+	  }
+      }
+    
+    return optimalBlockSize;
+  }
 }
 
 #endif

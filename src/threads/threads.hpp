@@ -163,7 +163,7 @@ namespace nissa
       std::common_type_t<IMin,IMax>;
     
     /// Compute the length of the loop
-    const I loopSize=
+    const I loopLength=
       max-min;
     
     /// Takes note of the action to carry out before benchmarking
@@ -172,7 +172,7 @@ namespace nissa
     /// Takes note of the action to carry out after benchmarking
     std::vector<BenchmarkAction> benchmarkEndActions(std::move(nissa::benchmarkEndActions));
     
-    if(loopSize>0)
+    if(loopLength>0)
       {
 	master_printf("/////////////////////////////////////////////////////////////////\n");
 	
@@ -189,15 +189,15 @@ namespace nissa
 		      k().line,
 		      (int64_t)min,
 		      (int64_t)max,
-		      (int64_t)loopSize);
+		      (int64_t)loopLength);
 	
 	// printf("\n\n\nList of all kernel known and profiled\n");
 	// for(const KernelInfoLaunchParsStat& kernelInfoLaunchParsStat : kernelInfoLaunchParsStats)
 	//   {
 	//     const auto& [info,launchParsStatList]=kernelInfoLaunchParsStat;
-	//     for(auto& [loopSize,stat] : launchParsStatList)
-	//       printf("name %s loopSize %ld optimal blocksize %d launched %ld times\n",
-	// 	     info.name.c_str(),loopSize,stat.optimalBlockSize,stat.nInvoke);
+	//     for(auto& [loopLength,stat] : launchParsStatList)
+	//       printf("name %s loopLength %ld optimal blocksize %d launched %ld times\n",
+	// 	     info.name.c_str(),loopLength,stat.optimalBlockSize,stat.nInvoke);
 	//   }
 	// printf("\n\n\n\n");
 	
@@ -205,14 +205,14 @@ namespace nissa
 	auto launch=
 	  [min,
 	   max,
-	   loopSize,
+	   loopLength,
 	   f](const int blockSize)
 	  {
 	    /// Dimensions of the block
 	    const dim3 blockDimension(blockSize);
 	    
 	    /// First entry in the sizes of the grid
-	    const I g=(loopSize+blockDimension.x-1)/blockDimension.x;
+	    const I g=(loopLength+blockDimension.x-1)/blockDimension.x;
 	    
 	    /// Size of the grid
 	    const dim3 gridDimension(g);
@@ -224,93 +224,12 @@ namespace nissa
 	/// External value of the rank, needed to decide whether to print
 	extern int rank;
 	
-	/// Fetch the info and the parameters of the kernel launches
-	auto& [info,launchParsStatList]=
-	  kernelInfoLaunchParsStats[id];
+	/// Gets the maximum number of threads per block
+	const int nMaxThreads=
+	  attr.maxThreadsPerBlock;
 	
-	/// Retrieves the parameters to launch with thte given loop size
-	const auto re=
-	  launchParsStatList.try_emplace(loopSize);
-	
-	bool toBeTuned=
-	  re.second;
-	
-	/// Reference to the parameters for the launch
-	KernelSizeLaunchParsStat& launchParsStat=
-	  re.first->second;
-	
-	/// Reference to the optimal block size
-	int& optimalBlockSize=
-	  launchParsStat.optimalBlockSize;
-	
-	if(0)
-	  {
-	    optimalBlockSize=128;
-	    toBeTuned=false;
-	  }
-	
-	if(print)
-	  printf("ToBeTuned: %d indeed optimalBlockSize is %d, nInvoke: %ld\n",
-		 toBeTuned,optimalBlockSize,launchParsStat.nInvoke);
-	
-	if(toBeTuned)
-	  {
-	    if(print)
-	      printf("Benchmarking kernel %s for loop size %ld\n",
-		     info.name.c_str(),(int64_t)loopSize);
-	    
-	    if(not doNotBackupDuringBenchmark)
-	      {
-		doNotBackupDuringBenchmark=true;
-		for(BenchmarkAction& b : benchmarkBeginActions)
-		  b();
-		doNotBackupDuringBenchmark=false;
-	      }
-	    
-	    optimalBlockSize=0;
-	    
-	    const int nBench=100;
-	    double minTime=0.0;
-	    
-	    const int nMaxThreads=
-	      attr.maxThreadsPerBlock;
-	    
-	    if(print)
-	      printf("starting test with block size of powers of two in the range [1;%d\n",nMaxThreads);
-	    for(int testBlockSize=1;testBlockSize<=nMaxThreads;testBlockSize*=2)
-	      {
-		// warmup
-		launch(testBlockSize);
-		
-		/// Initial time
-		const double initTime=
-		  take_time();
-		
-		for(int i=0;i<nBench;i++)
-		  launch(testBlockSize);
-		
-		/// Execution time
-		const double runTime=
-		  take_time()-initTime;
-		
-		if(optimalBlockSize==0 or minTime>runTime)
-		  {
-		    optimalBlockSize=testBlockSize;
-		    minTime=runTime;
-		  }
-		
-		if(print)
-		  printf("Benchmarked with blockSize %d, runtime %lg s minimal %lg s current optimal size %d\n",testBlockSize,runTime,minTime,optimalBlockSize);
-	      }
-	    
-	    if(not doNotBackupDuringBenchmark)
-	      {
-		doNotBackupDuringBenchmark=true;
-		for(BenchmarkAction& e : benchmarkEndActions)
-		  e();
-		doNotBackupDuringBenchmark=false;
-	      }
-	  }
+	const int optimalBlockSize=
+	  getOptimalBlockSize(id,loopLength,1,nMaxThreads,launch);
 	
 	if(print)
 	  printf("at line %d of file %s launching kernel on loop [%d,%d) using blocks of size %d\n",
@@ -327,6 +246,8 @@ namespace nissa
 	const double runTime=
 	  take_time()-initTime;
 	
+	KernelSizeLaunchParsStat& launchParsStat=
+	  kernelInfoLaunchParsStats[id].launchParsStatList[loopLength];
 	launchParsStat.totalTime+=runTime;
 	launchParsStat.nInvoke++;
 	
