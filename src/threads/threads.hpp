@@ -106,9 +106,15 @@ namespace nissa
 		       const IMax max,
 		       F f) // Needs to take by value
   {
+    /// Decide whether to print
+    const bool print=
+      (VERBOSITY_LV3
+       and rank==0);
+    
     /// Register the kernel and gets the id
     static const size_t id=
-      [line,
+      [print,
+       line,
        file]()
       {
 	/// Name of the kernel
@@ -125,13 +131,15 @@ namespace nissa
 	if(not kernelIdIsFound)
 	  {
 	    kernelInfoLaunchParsStats.emplace_back(name,file,line);
-	    printf("Kernel %s not found, storing into id %zu, total size %zu\n",name.c_str(),id,kernelInfoLaunchParsStats.size());
+	    if(print)
+	      printf("Kernel %s not found, storing into id %zu, total size %zu\n",name.c_str(),id,kernelInfoLaunchParsStats.size());
 	  }
 	else
 	  {
 	    auto& i=
 	      kernelInfoLaunchParsStats[id].info;
-	    printf("Providing kernel %s additional info on file and line\n",name.c_str());
+	    if(print)
+	      printf("Providing kernel %s additional info on file %s and line %d\n",name.c_str(),file,line);
 	    i.file=file;
 	    i.line=line;
 	  }
@@ -183,7 +191,7 @@ namespace nissa
 		      (int64_t)max,
 		      (int64_t)loopSize);
 	
-	// printf("List of all kernel known and profiled\n");
+	// printf("\n\n\nList of all kernel known and profiled\n");
 	// for(const KernelInfoLaunchParsStat& kernelInfoLaunchParsStat : kernelInfoLaunchParsStats)
 	//   {
 	//     const auto& [info,launchParsStatList]=kernelInfoLaunchParsStat;
@@ -191,7 +199,7 @@ namespace nissa
 	//       printf("name %s loopSize %ld optimal blocksize %d launched %ld times\n",
 	// 	     info.name.c_str(),loopSize,stat.optimalBlockSize,stat.nInvoke);
 	//   }
-	// printf("\n");
+	// printf("\n\n\n\n");
 	
 	/// Launch the actual calculation
 	auto launch=
@@ -216,11 +224,6 @@ namespace nissa
 	/// External value of the rank, needed to decide whether to print
 	extern int rank;
 	
-	/// Decide whether to print
-	const bool print=
-	  (VERBOSITY_LV3
-	   and rank==0);
-	
 	/// Fetch the info and the parameters of the kernel launches
 	auto& [info,launchParsStatList]=
 	  kernelInfoLaunchParsStats[id];
@@ -229,7 +232,7 @@ namespace nissa
 	const auto re=
 	  launchParsStatList.try_emplace(loopSize);
 	
-	bool toBeComputed=
+	bool toBeTuned=
 	  re.second;
 	
 	/// Reference to the parameters for the launch
@@ -243,16 +246,18 @@ namespace nissa
 	if(0)
 	  {
 	    optimalBlockSize=128;
-	    toBeComputed=false;
+	    toBeTuned=false;
 	  }
 	
-	printf("ToBeComputed: %d indeed optimalBlockSize is %d, nInvoke: %ld\n",
-	       toBeComputed,optimalBlockSize,launchParsStat.nInvoke);
+	if(print)
+	  printf("ToBeTuned: %d indeed optimalBlockSize is %d, nInvoke: %ld\n",
+		 toBeTuned,optimalBlockSize,launchParsStat.nInvoke);
 	
-	if(toBeComputed)
+	if(toBeTuned)
 	  {
-	    printf("Benchmarking kernel %s for loop size %ld\n",
-		   info.name.c_str(),(int64_t)loopSize);
+	    if(print)
+	      printf("Benchmarking kernel %s for loop size %ld\n",
+		     info.name.c_str(),(int64_t)loopSize);
 	    
 	    if(not doNotBackupDuringBenchmark)
 	      {
@@ -270,7 +275,8 @@ namespace nissa
 	    const int nMaxThreads=
 	      attr.maxThreadsPerBlock;
 	    
-	    printf("starting testBlockSize\n");
+	    if(print)
+	      printf("starting test with block size of powers of two in the range [1;%d\n",nMaxThreads);
 	    for(int testBlockSize=1;testBlockSize<=nMaxThreads;testBlockSize*=2)
 	      {
 		// warmup
@@ -293,7 +299,8 @@ namespace nissa
 		    minTime=runTime;
 		  }
 		
-		printf("Benchmarked with blockSize %d, runtime %lg s minimal %lg s current optimal size %d\n",testBlockSize,runTime,minTime,optimalBlockSize);
+		if(print)
+		  printf("Benchmarked with blockSize %d, runtime %lg s minimal %lg s current optimal size %d\n",testBlockSize,runTime,minTime,optimalBlockSize);
 	      }
 	    
 	    if(not doNotBackupDuringBenchmark)
@@ -313,7 +320,7 @@ namespace nissa
 	const double initTime=
 	  take_time();
 	
-	printf("Launching with blocksize %d\n",optimalBlockSize);
+	master_printf("Launching with optimal blocksize %d\n",optimalBlockSize);
 	launch(optimalBlockSize);
 	
 	/// Compute runtime
