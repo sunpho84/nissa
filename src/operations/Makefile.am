@@ -13,7 +13,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/smearing/hex.cpp \
 	%D%/smearing/HYP.cpp \
 	%D%/smearing/smooth.cpp \
-	%D%/smearing/stout_common.cpp \
 	%D%/smearing/stout_eo.cpp \
 	%D%/smearing/stout_lx.cpp \
 	%D%/smearing/Wflow.cpp \
