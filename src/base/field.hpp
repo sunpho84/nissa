@@ -373,6 +373,9 @@ namespace nissa
     /// Container for actual data
     Fund* _data;
     
+    /// Store the data in case of a backup
+    Field* backup;
+    
     /// States whether the halo is updated
     mutable bool haloIsValid;
     
