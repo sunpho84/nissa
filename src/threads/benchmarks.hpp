@@ -218,7 +218,8 @@ namespace nissa
     /// Retrieves the parameters to launch wih thte given loop size
     const auto re=
       launchParsStatList.try_emplace(loopLength);
-	
+    
+    /// Determine if tuned needs to be done or not
     bool toBeTuned=
       re.second;
     
@@ -237,8 +238,7 @@ namespace nissa
       }
     
     if(print)
-      printf("ToBeTuned: %d indeed optimalBlockSize is %d, nInvoke: %ld\n",
-	     toBeTuned,optimalBlockSize,launchParsStat.nInvoke);
+      printf("ToBeTuned: %d\n",toBeTuned);
     
     if(toBeTuned)
       {
@@ -260,7 +260,7 @@ namespace nissa
 	double minTime=0.0;
 	
 	if(print)
-	  printf("starting test with block size of powers of two in the range [%d;%d\n",minBlockSize,maxBlockSize);
+	  printf("starting test with block size of powers of two in the range [%d;%d)\n",minBlockSize,maxBlockSize);
 	for(int testBlockSize=minBlockSize;testBlockSize<=maxBlockSize;testBlockSize*=2)
 	  {
 	    // warmup
@@ -295,6 +295,10 @@ namespace nissa
 	    doNotBackupDuringBenchmark=false;
 	  }
       }
+    else
+      if(print)
+	printf("Retrieved optimalBlockSize %d, nInvoke: %ld\n",
+	       optimalBlockSize,launchParsStat.nInvoke);
     
     return optimalBlockSize;
   }
