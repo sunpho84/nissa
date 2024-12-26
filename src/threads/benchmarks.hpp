@@ -137,7 +137,7 @@ namespace nissa
     "tunedKernelInfo.txt";
   
   /// Stores the tuned kernel info
-  inline void storeKernelsTunedInfo()
+  inline void storeTunedKernelsInfo()
   {
     FILE* fout=open_file(tunedKernelInfoFileName,"w");
     
@@ -295,7 +295,7 @@ namespace nissa
 	    doNotBackupDuringBenchmark=false;
 	  }
 	
-	storeKernelsTunedInfo();
+	storeTunedKernelsInfo();
       }
     else
       if(print)
