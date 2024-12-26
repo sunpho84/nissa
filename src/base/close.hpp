@@ -63,7 +63,7 @@ namespace nissa
 #endif
     
 #ifdef USE_CUDA
-    storeKernelInfo();
+    storeTunedKernelInfo();
 #endif
     MPI_Barrier(MPI_COMM_WORLD);
     master_printf("   Ciao!\n\n");

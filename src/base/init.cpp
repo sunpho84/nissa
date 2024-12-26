@@ -138,7 +138,7 @@ namespace nissa
     
 #ifdef USE_CUDA
     init_cuda();
-    tryLoadKernelInfo();
+    tryLoadTunedKernelInfo();
 #endif
     
 #ifdef HAVE_OPENMP
