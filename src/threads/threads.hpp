@@ -121,8 +121,10 @@ namespace nissa
       {
 	/// Name of the kernel
 	const std::string name=
-	  func+(std::string)file+std::to_string(line);
-	//typeid(F).name();
+	  func+
+	  (std::string)":"+
+	  file+
+	  std::to_string(line);
 	
 	bool kernelIdIsFound=false;
 	
