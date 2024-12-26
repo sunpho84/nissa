@@ -231,6 +231,9 @@ namespace nissa
 	const int nMaxThreads=
 	  attr.maxThreadsPerBlock;
 	
+	if(nMaxThreads<=0)
+	  crash("kernel %s file %s line %d has max threads per block=%d",func,file,line,nMaxThreads);
+	
 	const int optimalBlockSize=
 	  getOptimalBlockSize(id,loopLength,1,nMaxThreads,launch);
 	

@@ -198,8 +198,8 @@ namespace nissa
   template <typename F>
   int getOptimalBlockSize(const int& kernelId,
 			  const int64_t& loopLength,
-			  const int minBlockSize,
-			  const int maxBlockSize,
+			  const int& minBlockSize,
+			  const int& maxBlockSize,
 			  const F& launch)
   {
     /// Decide whether to print
@@ -254,6 +254,9 @@ namespace nissa
 	
 	const int nBench=100;
 	double minTime=0.0;
+	
+	if(maxBlockSize<=minBlockSize)
+	  crash("minbockSize %d cannot be equal or larger than maxBlockSize %d",minBlockSize,maxBlockSize);
 	
 	if(print)
 	  printf("starting test with block size of powers of two in the range [%d;%d)\n",minBlockSize,maxBlockSize);
