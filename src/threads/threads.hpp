@@ -267,7 +267,13 @@ namespace nissa
 
 # define CUDA_PARALLEL_LOOP(ARGS...)					\
   MACRO_GUARD(insideParallelFor++;					\
-	      cudaParallelFor(__LINE__,__FILE__,__FUNCTION__,ARGS);	\
+	      cudaParallelFor(__LINE__,					\
+			      __FILE__,					\
+			      [](const auto& f)				\
+			      {						\
+				return typeid(f).name();		\
+			      }([](){}),				\
+			      ARGS);					\
 	      insideParallelFor--;)
 
 #else
