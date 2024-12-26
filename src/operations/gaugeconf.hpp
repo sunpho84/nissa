@@ -162,11 +162,13 @@ namespace nissa
   template <typename C>
   void generate_cold_lx_conf(C& conf)
   {
-    NISSA_LOC_VOL_LOOP(ivol)
-      for(int mu=0;mu<NDIM;mu++)
-	su3_put_to_id(conf[ivol][mu]);
-    
-    set_borders_invalid(conf);
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(conf)),
+	ivol,
+	{
+	  for(int mu=0;mu<NDIM;mu++)
+	    su3_put_to_id(conf[ivol][mu]);
+	});
   }
   
   /// Generate a random conf
@@ -176,11 +178,14 @@ namespace nissa
     if(loc_rnd_gen_inited==0)
       crash("random number generator not inited");
     
-    NISSA_LOC_VOL_LOOP(ivol)
-      for(int mu=0;mu<NDIM;mu++)
-	su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
-    
-    set_borders_invalid(conf);
+    PAR(0,locVol,
+	CAPTURE(b=maybeBackupLocRndGenForBenchmark(),
+		TO_WRITE(conf)),
+	ivol,
+	{
+	  for(int mu=0;mu<NDIM;mu++)
+	    su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
+	});
   }
   
   void heatbath_lx_conf(LxField<quad_su3>& conf,gauge_sweeper_t* sweeper,const double& beta,const int& nhits);

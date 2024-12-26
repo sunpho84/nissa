@@ -810,7 +810,8 @@ namespace nissa
     
     //extract random SU(3) matrix
     PAR(0,locVol,
-	CAPTURE(TO_WRITE(fixm)),
+	CAPTURE(b=maybeBackupLocRndGenForBenchmark(),
+		TO_WRITE(fixm)),
 	ivol,
 	{
 	  su3_put_to_rnd(fixm[ivol],loc_rnd_gen[ivol]);
@@ -829,7 +830,8 @@ namespace nissa
     
     //extract random SU(3) matrix
     PAR(0,locVol,
-	CAPTURE(TO_WRITE(fixm)),
+	CAPTURE(b=maybeBackupLocRndGenForBenchmark(),
+		TO_WRITE(fixm)),
 	ivol,
 	{
 	  su3_put_to_rnd(fixm[loclx_parity[ivol]][loceo_of_loclx[ivol]],loc_rnd_gen[ivol]);

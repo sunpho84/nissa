@@ -351,7 +351,9 @@ namespace nissa
   {
     //fill with Z2
     PAR(0,locVol,
-	CAPTURE(TO_WRITE(eta)),ivol,
+	CAPTURE(TO_WRITE(eta),
+		b=maybeBackupLocRndGenForBenchmark()),
+	ivol,
 	{
 	  for(int mu=0;mu<NDIM;mu++)
 	    comp_get_rnd(eta[ivol][mu],&(loc_rnd_gen[ivol]),RND_Z2);

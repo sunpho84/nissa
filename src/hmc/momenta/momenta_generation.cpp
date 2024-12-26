@@ -21,7 +21,8 @@ namespace nissa
       {
 	PAR(0,locVolh,
 	    CAPTURE(par,
-		    TO_WRITE(H)),
+		    TO_WRITE(H),
+		    b=maybeBackupLocRndGenForBenchmark()),
 	    ieo,
 	    {
 	      for(int mu=0;mu<NDIM;mu++)

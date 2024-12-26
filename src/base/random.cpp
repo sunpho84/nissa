@@ -135,7 +135,8 @@ namespace nissa
     for(int64_t ivol=0;ivol<locVol;ivol++)
       {
 	int64_t loc_seed=internal_seed+glblxOfLoclx[ivol];
-	if(loc_seed<0) crash("something went wrong with local seed: %d + %ld = %ld",internal_seed,glblxOfLoclx[ivol],loc_seed);
+	if(loc_seed<0)
+	  crash("something went wrong with local seed: %d + %ld = %ld",internal_seed,glblxOfLoclx[ivol],loc_seed);
 	start_rnd_gen(&(loc_rnd_gen[ivol]),loc_seed);
       }
     loc_rnd_gen_inited=1;
@@ -260,7 +261,13 @@ namespace nissa
     //reset
     source.reset();
     
-    PAR(0,locVol,CAPTURE(twall,rtype,TO_WRITE(source)),ivol,
+    PAR(0,
+	locVol,
+	CAPTURE(twall,
+		rtype,
+		b=maybeBackupLocRndGenForBenchmark(),
+		TO_WRITE(source)),
+	ivol,
 	{
 	  if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
 	    {
@@ -280,7 +287,13 @@ namespace nissa
   {
     source.reset();
     
-    PAR(0,locVol,CAPTURE(twall,rtype,TO_WRITE(source)),ivol,
+    PAR(0,
+	locVol,
+	CAPTURE(twall,
+		rtype,
+		b=maybeBackupLocRndGenForBenchmark(),
+		TO_WRITE(source)),
+	ivol,
 	{
 	  if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
 	    for(int ic=0;ic<NCOL;ic++)
@@ -299,7 +312,13 @@ namespace nissa
   {
     source.reset();
     
-    PAR(0,locVol,CAPTURE(twall,rtype,TO_WRITE(source)),ivol,
+    PAR(0,
+	locVol,
+	CAPTURE(twall,
+		rtype,
+		b=maybeBackupLocRndGenForBenchmark(),
+		TO_WRITE(source)),
+	ivol,
 	{
 	  if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
 	    for(int id=0;id<NDIRAC;id++)
@@ -316,7 +335,14 @@ namespace nissa
   {
     source.reset();
     
-    PAR(0,locVol,CAPTURE(dir,twall,rtype,TO_WRITE(source)),ilx,
+    PAR(0,
+	locVol,
+	CAPTURE(dir,
+		twall,
+		rtype,
+		b=maybeBackupLocRndGenForBenchmark(),
+		TO_WRITE(source)),
+	ilx,
 	{
 	  if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
 	    for(int ic=0;ic<NCOL;ic++)
@@ -333,7 +359,15 @@ namespace nissa
   {
     source.reset();
     
-    PAR(0,locVolh,CAPTURE(par,dir,twall,rtype,TO_WRITE(source)),ieo,
+    PAR(0,
+	locVolh,
+	CAPTURE(par,
+		dir,
+		twall,
+		rtype,
+		b=maybeBackupLocRndGenForBenchmark(),
+		TO_WRITE(source)),
+	ieo,
 	{
 	  int ilx=loclx_of_loceo[par][ieo];
 	  if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
@@ -360,7 +394,15 @@ namespace nissa
   {
     source.reset();
     
-    PAR(0,locVolh,CAPTURE(par,dir,twall,rtype,TO_WRITE(source)),ieo,
+    PAR(0,
+	locVolh,
+	CAPTURE(par,
+		dir,
+		twall,
+		rtype,
+		b=maybeBackupLocRndGenForBenchmark(),
+		TO_WRITE(source)),
+	ieo,
 	{
 	  int ilx=loclx_of_loceo[par][ieo];
 	  if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
@@ -494,5 +536,39 @@ namespace nissa
 	  su2_prodassign_su3(x0,x1,x2,x3,isub_gr,prod);
 	  su2_prodassign_su3(x0,x1,x2,x3,isub_gr,out);
 	}
+  }
+  
+  int maybeBackupLocRndGenForBenchmark()
+  {
+#ifdef USE_CUDA
+    if(insideParallelFor)
+      {
+	benchmarkBeginActions.emplace_back([]()
+	{
+	  verbosity_lv3_master_printf("Backing up local random generator\n");
+	  backup_loc_rnd_gen=nissa_malloc("backup_loc_rnd_gen",locVol,rnd_gen);
+	  memcpy(backup_loc_rnd_gen,loc_rnd_gen,locVol*sizeof(rnd_gen));
+	});
+	
+	benchmarkEndActions.emplace_back([]()
+	{
+	  memcpy(loc_rnd_gen,backup_loc_rnd_gen,locVol*sizeof(rnd_gen));
+	  nissa_free(backup_loc_rnd_gen);
+	  verbosity_lv3_master_printf("Restored loc_rnd_gen\n");
+	});
+	
+	verbosity_lv3_master_printf("Added backup actions for loc_rnd_gen\n");
+	
+	return true;
+      }
+    else
+      {
+	verbosity_lv3_master_printf("Skipping backup actions for loc_rnd_gen as we are not inside a parallel for\n");
+	
+	return false;
+      }
+#else
+      return false;
+#endif
   }
 }

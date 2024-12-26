@@ -292,6 +292,10 @@ namespace nissa
     H[1][2][1]=-(H[2][1][1]=r[6]);
   }
 #endif
+  
+  CUDA_MANAGED EXTERN_RANDOM rnd_gen* backup_loc_rnd_gen;
+  
+  int maybeBackupLocRndGenForBenchmark();
 }
 
 #undef EXTERN_RANDOM
