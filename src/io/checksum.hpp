@@ -28,6 +28,15 @@ namespace nissa
     return c;
   }
   
+  /// Computes the checksum
+  CUDA_DEVICE INLINE_FUNCTION
+  void checksumFunctor(Checksum& res,
+		       const Checksum& acc)
+  {
+    for(int i=0;i<2;i++)
+      res[i]^=acc[i];
+  }
+  
   template <typename T,
 	    FieldLayout FL>
   Checksum ildgChecksum(const LxField<T,FL>& field)
@@ -64,13 +73,7 @@ namespace nissa
 	});
     
     Checksum loc_check;
-    locReduce(&loc_check,buff,locVol,1,
-	      [] CUDA_DEVICE(Checksum& res,
-			     const Checksum& acc) INLINE_ATTRIBUTE
-	      {
-		for(int i=0;i<2;i++)
-		  res[i]^=acc[i];
-	      });
+    locReduce(&loc_check,buff,locVol,1,checksumFunctor);
     
     Checksum check;
     MPI_Allreduce(&loc_check,&check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);

@@ -258,7 +258,9 @@ namespace nissa
 		  const momentum_t& th)
   {
     
-    for(int mu=1;mu<NDIM;mu++) if(fabs((int)(th[mu]/2)-th[mu]/2)>1e-10) crash("Error: phase %lg must be an even integer",th[mu]);
+    for(int mu=1;mu<NDIM;mu++)
+      if(fabs((int)(th[mu]/2)-th[mu]/2)>1e-10)
+	crash("Error: phase %lg must be an even integer",th[mu]);
     
     out.reset();
     PAR(0,locVol,
@@ -271,7 +273,7 @@ namespace nissa
 	  double arg=0.0;
 	  for(int mu=1;mu<NDIM;mu++)
 	    arg+=M_PI*th[mu]*rel_coord_of_loclx(ivol,mu)/glbSize[mu]; //N.B: valid only if source is on origin...
-	
+	  
 	  //compute exp(ip)
 	  complex factor;
 	  complex_iexp(factor,arg);

@@ -41,24 +41,11 @@ namespace nissa
     /// Name of the kernel
     std::string name;
     
-    /// File where the kernel is defined
-    std::string file;
-    
-    /// Line where the kernel is defined
-    int line;
-    
     /// Creates from the name, file and line
-    KernelInfo(const std::string& name,
-	       const std::string& file,
-	       const int& line) :
-      name(name),
-      file(file),
-      line(line)
+    KernelInfo(const std::string& name) :
+      name(name)
     {
     }
-    
-    /// Default constructor
-    KernelInfo()=default;
     
     /// Default move constructor
     KernelInfo(KernelInfo&&)=default;
@@ -87,10 +74,8 @@ namespace nissa
     std::map<int64_t,KernelSizeLaunchParsStat> launchParsStatList;
     
     /// Constructor from name, file and line
-    KernelInfoLaunchParsStat(const std::string& name,
-			     const std::string& file,
-			     const int& line) :
-      info(name,file,line),
+    KernelInfoLaunchParsStat(const std::string& name) :
+      info(name),
       launchParsStatList()
     {
     }
@@ -134,7 +119,7 @@ namespace nissa
   
   /// Name of the file used to store the tuned kernel info
   constexpr char tunedKernelInfoFileName[]=
-    "tunedKernelInfo.txt";
+    "autoTunedKernelInfo.snf";
   
   /// Stores the tuned kernel info
   inline void storeTunedKernelsInfo()
@@ -180,7 +165,7 @@ namespace nissa
 	int nSizes;
 	read_int(&nSizes);
 	
-	kernelInfoLaunchParsStats.emplace_back(name,"",0);
+	kernelInfoLaunchParsStats.emplace_back(name);
 	
 	for(int i=0;i<nSizes;i++)
 	  {
@@ -193,6 +178,17 @@ namespace nissa
 	    kernelInfoLaunchParsStats.back().launchParsStatList[size].optimalBlockSize=optimalBlockSize;
 	  }
       }
+    
+    verbosity_lv3_master_printf("-------- List of tuned kernels --------\n");
+    int id=0;
+    for(const auto& [kernelInfo,kernelLaunchParsStats] :  kernelInfoLaunchParsStats)
+      {
+	verbosity_lv3_master_printf("| %d - %s %zu\n",id,kernelInfo.name.c_str(),kernelLaunchParsStats.size());
+	for(const auto& u : kernelLaunchParsStats)
+	  verbosity_lv3_master_printf("|| %ld %d\n",u.first,u.second.optimalBlockSize);
+	id++;
+      }
+    verbosity_lv3_master_printf("-------------------\n");
     
     close_file(fin);
     input_global=back;

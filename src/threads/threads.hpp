@@ -87,9 +87,11 @@ namespace nissa
 			 const IMax max,
 			 F f) // Needs to take by value
   {
+    /// Type used for index, might we take it as int64_t?
     using I=
       std::common_type_t<IMin,IMax>;
     
+    /// Index
     const I i=
       (min+blockIdx.x*blockDim.x+threadIdx.x);
     
@@ -97,6 +99,7 @@ namespace nissa
       f(i);
   }
   
+  /// Issue a parallel for using cuda kernel
   template <typename IMin,
 	    typename IMax,
 	    typename F>
@@ -124,30 +127,27 @@ namespace nissa
 	  func+
 	  (std::string)":"+
 	  file+
+	  (std::string)":"+
 	  std::to_string(line);
 	
-	bool kernelIdIsFound=false;
+	bool kernelIsFound=false;
 	
 	size_t id=0;
-	for(id=0;id<kernelInfoLaunchParsStats.size() and not kernelIdIsFound;id++)
+	while(id<kernelInfoLaunchParsStats.size() and not kernelIsFound)
 	  if(kernelInfoLaunchParsStats[id].info.name==name)
-	    kernelIdIsFound=true;
+	    kernelIsFound=true;
+	  else
+	    id++;
 	
-	if(not kernelIdIsFound)
+	if(not kernelIsFound)
 	  {
-	    kernelInfoLaunchParsStats.emplace_back(name,file,line);
+	    kernelInfoLaunchParsStats.emplace_back(name);
 	    if(print)
-	      printf("Kernel %s not found, storing into id %zu, total size %zu\n",name.c_str(),id,kernelInfoLaunchParsStats.size());
+	      printf("Kernel %s not found, stored into id %zu/%zu\n",name.c_str(),id,kernelInfoLaunchParsStats.size());
 	  }
 	else
-	  {
-	    auto& i=
-	      kernelInfoLaunchParsStats[id].info;
-	    if(print)
-	      printf("Providing kernel %s additional info on file %s and line %d\n",name.c_str(),file,line);
-	    i.file=file;
-	    i.line=line;
-	  }
+	  if(print)
+	    printf("Found kernel %s, id: %zu\n",name.c_str(),id);
 	
 	return id;
       }();
@@ -188,10 +188,8 @@ namespace nissa
 	    return kernelInfoLaunchParsStats[id].info;
 	  };
 	
-	master_printf("Going to launch kernel %s of file %s line %d for loop size [%ld;%ld) = %ld\n",
+	master_printf("Going to launch kernel %s for loop size [%ld;%ld) = %ld\n",
 		      k().name.c_str(),
-		      k().file.c_str(),
-		      k().line,
 		      (int64_t)min,
 		      (int64_t)max,
 		      (int64_t)loopLength);
