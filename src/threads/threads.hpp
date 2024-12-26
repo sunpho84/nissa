@@ -152,17 +152,6 @@ namespace nissa
 	return id;
       }();
     
-    /// Attributes of the function
-    static const cudaFuncAttributes attr=
-      []()
-      {
-	/// Fetch the attributes of the kernel function and return
-	cudaFuncAttributes attr;
-	cudaFuncGetAttributes(&attr,cudaGenericKernel<IMin,IMax,F>);
-	
-	return attr;
-      }();
-    
     /// Type for the index of the loop
     using I=
       std::common_type_t<IMin,IMax>;
@@ -171,15 +160,20 @@ namespace nissa
     const I loopLength=
       max-min;
     
-    /// Takes note of the action to carry out before benchmarking
-    std::vector<BenchmarkAction> benchmarkBeginActions(std::move(nissa::benchmarkBeginActions));
-    
-    /// Takes note of the action to carry out after benchmarking
-    std::vector<BenchmarkAction> benchmarkEndActions(std::move(nissa::benchmarkEndActions));
-    
     if(loopLength>0)
       {
 	master_printf("/////////////////////////////////////////////////////////////////\n");
+	
+	/// Attributes of the function
+	static const cudaFuncAttributes attr=
+	  []()
+	  {
+	    /// Fetch the attributes of the kernel function and return
+	    cudaFuncAttributes attr;
+	    cudaFuncGetAttributes(&attr,cudaGenericKernel<IMin,IMax,F>);
+	    
+	    return attr;
+	  }();
 	
 	/// Proxy for the info of the kernel
 	auto k=
@@ -270,6 +264,8 @@ namespace nissa
 
 # define CUDA_PARALLEL_LOOP(ARGS...)					\
   MACRO_GUARD(insideParallelFor++;					\
+	      benchmarkBeginActions.clear();				\
+	      benchmarkEndActions.clear();				\
 	      cudaParallelFor(__LINE__,					\
 			      __FILE__,					\
 			      [](const auto& f)				\

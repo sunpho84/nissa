@@ -194,6 +194,9 @@ namespace nissa
     input_global=back;
   }
   
+  /// Reference to the flag specifying whether we are inside a parallel for
+  extern int insideParallelFor;
+  
   /// Fetches the optimal block size in the archive, or tunes the kernel
   template <typename F>
   int getOptimalBlockSize(const int& kernelId,
@@ -239,9 +242,15 @@ namespace nissa
     if(toBeTuned)
       {
 	if(print)
-	  printf("Benchmarking kernel %s for loop size %ld\n",
-		 info.name.c_str(),loopLength);
+	  printf("Benchmarking kernel %s for loop size %ld, doNotBackupDuringBenchmark: %d, insideParallelFor: %d\n",
+		 info.name.c_str(),loopLength,doNotBackupDuringBenchmark,insideParallelFor);
 	
+	/// Takes note of the action to carry out before benchmarking
+	std::vector<BenchmarkAction> benchmarkBeginActions(std::move(nissa::benchmarkBeginActions));
+	
+	/// Takes note of the action to carry out after benchmarking
+	std::vector<BenchmarkAction> benchmarkEndActions(std::move(nissa::benchmarkEndActions));
+    
 	if(not doNotBackupDuringBenchmark)
 	  {
 	    doNotBackupDuringBenchmark=true;

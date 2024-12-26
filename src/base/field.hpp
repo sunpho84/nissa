@@ -754,7 +754,7 @@ namespace nissa
 	{
 	  benchmarkBeginActions.emplace_back([this]()
 	  {
-	    master_printf("Backing up field %s\n",name);
+	    verbosity_lv3_master_printf("Backing up field %s\n",name);
 	    backup=new Field("backup",haloEdgesPresence);
 	    *backup=*this;
 	  });
@@ -763,9 +763,12 @@ namespace nissa
 	  {
 	    *this=*backup;
 	    delete backup;
-	    master_printf("Restored field %s\n",name);
+	    verbosity_lv3_master_printf("Restored field %s\n",name);
 	  });
+	  verbosity_lv3_master_printf("Added backup actions for field %s\n",name);
 	}
+      else
+	verbosity_lv3_master_printf("Skipping backup actions for field %s as we are not inside a parallel for\n",name);
 #endif
       
       return *this;
