@@ -102,6 +102,7 @@ namespace nissa
 	    typename F>
   void cudaParallelFor(const int line,
 		       const char* file,
+		       const char* func,
 		       const IMin min,
 		       const IMax max,
 		       F f) // Needs to take by value
@@ -115,11 +116,13 @@ namespace nissa
     static const size_t id=
       [print,
        line,
-       file]()
+       file,
+       func]()
       {
 	/// Name of the kernel
 	const std::string name=
-	  typeid(F).name();
+	  func+(std::string)file+std::to_string(line);
+	//typeid(F).name();
 	
 	bool kernelIdIsFound=false;
 	
@@ -262,9 +265,9 @@ namespace nissa
   inline int insideParallelFor;
 }
 
-# define CUDA_PARALLEL_LOOP(ARGS...)			\
-  MACRO_GUARD(insideParallelFor++;			\
-	      cudaParallelFor(__LINE__,__FILE__,ARGS);	\
+# define CUDA_PARALLEL_LOOP(ARGS...)					\
+  MACRO_GUARD(insideParallelFor++;					\
+	      cudaParallelFor(__LINE__,__FILE__,__FUNCTION__,ARGS);	\
 	      insideParallelFor--;)
 
 #else
