@@ -142,6 +142,35 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  /// Functor to handle the pairwise sum reduce
+  struct GlbReduceSumFunctor
+  {
+    ///Pairwise reduction
+    template <typename F1,
+	      typename F2>
+    CUDA_DEVICE INLINE_FUNCTION
+    void operator()(F1&& res,
+		    const F2& acc)
+    {
+      reduceSummer(res,acc);
+    }
+  };
+  
+  /// Functor to handle the pairwise max reduce
+  struct GlbReduceMaxFunctor
+  {
+    ///Pairwise reduction
+    template <typename F1,
+	      typename F2>
+    CUDA_DEVICE INLINE_FUNCTION
+    void operator()(F1&& res,
+		    const F2& acc)
+    {
+      if(acc>res)
+	res=acc;
+    }
+  };
+  
   /// Reduce a vector over all nodes
   template <typename T,
 	    typename B>
@@ -160,11 +189,7 @@ namespace nissa
 	      buf,
 	      nloc,
 	      nloc_slices,
-	      [] CUDA_DEVICE (auto&& res,
-			      const auto& acc) INLINE_ATTRIBUTE
-	      {
-		reduceSummer(res,acc);
-	      });
+	      GlbReduceSumFunctor());
     // printf("rank %d local reduction %lg\n",rank,loc_res[0]);
     non_loc_reduce(glb_res,loc_res,nslices);
   }

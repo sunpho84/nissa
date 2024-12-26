@@ -226,12 +226,7 @@ namespace nissa
     glb_reduce(&result.average_diff,locAvg,locVol);
     result.average_diff/=glbVol*NDIM;
     
-    glbReduce(&result.max_diff,locMax,locVol,
-	      [] CUDA_DEVICE (double& res,const double& acc) INLINE_ATTRIBUTE
-	      {
-		if(acc>res)
-		  res=acc;
-	      });
+    glbReduce(&result.max_diff,locMax,locVol,GlbReduceMaxFunctor());
     glb_reduce(&result.nbroken_links,locNbroken,locVol);
   }
   

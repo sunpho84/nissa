@@ -28,15 +28,19 @@ namespace nissa
     return c;
   }
   
-  /// Computes the checksum
-  CUDA_DEVICE INLINE_FUNCTION
-  void checksumFunctor(Checksum& res,
-		       const Checksum& acc)
+  /// Pairwise reduce the checksum
+  struct ChecksumReduceFunctor
   {
-    for(int i=0;i<2;i++)
-      res[i]^=acc[i];
-  }
+    CUDA_DEVICE INLINE_FUNCTION
+    void operator()(Checksum& res,
+		    const Checksum& acc)
+    {
+      for(int i=0;i<2;i++)
+	res[i]^=acc[i];
+    }
+  };
   
+  /// Computes the ildg checksum
   template <typename T,
 	    FieldLayout FL>
   Checksum ildgChecksum(const LxField<T,FL>& field)
@@ -48,17 +52,24 @@ namespace nissa
 		TO_READ(field)),
 	ivol,
 	{
-	  const coords_t& X=glbCoordOfLoclx[ivol];
+	  const coords_t X=
+	    glbCoordOfLoclx[ivol];
+	  
 	  uint32_t ildg_ivol=X[0];
 	  for(int mu=NDIM-1;mu>0;mu--)
 	    ildg_ivol=ildg_ivol*glbSize[mu]+X[mu];
-	  const uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};
+	  
+	  const uint32_t crc_rank[2]=
+	    {ildg_ivol%29,ildg_ivol%31};
 	  
 	  uint32_t crc=0xffffffffL;
 	  for(int iDeg=0;iDeg<(LxField<T>::nInternalDegs);iDeg++)
 	    {
-	      auto temp=field(ivol,iDeg);
-	      using Fund=decltype(temp);
+	      auto temp=
+		field(ivol,iDeg);
+	      
+	      using Fund=
+		decltype(temp);
 	      
 	      EndiannessMask<BigEndian,nativeEndianness,Fund> mask(temp);
 	      
@@ -73,7 +84,7 @@ namespace nissa
 	});
     
     Checksum loc_check;
-    locReduce(&loc_check,buff,locVol,1,checksumFunctor);
+    locReduce(&loc_check,buff,locVol,1,ChecksumReduceFunctor());
     
     Checksum check;
     MPI_Allreduce(&loc_check,&check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
