@@ -550,8 +550,10 @@ namespace nissa
       return 1/fact;
     }
     
+    /// Reduce the field summing all elements and storing the result inside 'out'
     void reduce(T& out) const
-    { //hack
+    {
+      /// Copy to a temporary to avoid destroying the field
       Field tmp("tmp");
       tmp=*this;
       

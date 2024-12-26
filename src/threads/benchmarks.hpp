@@ -153,15 +153,18 @@ namespace nissa
     FILE* back=input_global;
     input_global=fin;
     
+    /// Read the number of tuned kernels
     int n;
     read_int(&n);
     master_printf("Found %d tuned kernels\n",n);
     
     for(int i=0;i<n;i++)
       {
+	/// Read the kernel name
 	char name[1024];
 	read_str(name,1024);
 	
+	/// Read the number of tuned suzes
 	int nSizes;
 	read_int(&nSizes);
 	
@@ -169,13 +172,15 @@ namespace nissa
 	
 	for(int i=0;i<nSizes;i++)
 	  {
-	    int64_t size;
-	    read_int64_t(&size);
+	    /// Read the loop length
+	    int64_t loopLength;
+	    read_int64_t(&loopLength);
 	    
+	    /// Read the optimal block size
 	    int optimalBlockSize;
 	    read_int(&optimalBlockSize);
 	    
-	    kernelInfoLaunchParsStats.back().launchParsStatList[size].optimalBlockSize=optimalBlockSize;
+	    kernelInfoLaunchParsStats.back().launchParsStatList[loopLength].optimalBlockSize=optimalBlockSize;
 	  }
       }
     
@@ -283,7 +288,7 @@ namespace nissa
 	    
 	    /// Execution time
 	    const double runTime=
-	      take_time()-initTime;
+	      (take_time()-initTime)/nBench;
 	    
 	    if(optimalBlockSize==0 or minTime>runTime)
 	      {

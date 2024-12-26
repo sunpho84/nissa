@@ -251,8 +251,7 @@ namespace nissa
 	launchParsStat.totalTime+=runTime;
 	launchParsStat.nInvoke++;
 	
-	if(print)
-	  printf(" finished in %lg s\n",runTime);
+	master_printf(" finished in %lg s\n",runTime);
       }
   }
   
