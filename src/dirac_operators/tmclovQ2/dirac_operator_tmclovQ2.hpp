@@ -28,6 +28,38 @@ namespace nissa
   {
     apply_tmclovQ2(out,conf,kappa,Cl,temp,sqrt(mu2),in);
   }
+  
+  /// Wraps the application of apply_tmclovQ2_m2 with a specific conf, kappa, Cl and temp
+  struct ApplyTmclovQ2M2Functor
+  {
+    const LxField<quad_su3>& conf;
+    
+    const double kappa;
+    
+    const LxField<clover_term_t>& Cl;
+    
+    LxField<spincolor>& temp;
+    
+    /// Constructor
+    ApplyTmclovQ2M2Functor(const LxField<quad_su3>& conf,
+			   const double& kappa,
+			   const LxField<clover_term_t>& Cl,
+			   LxField<spincolor>& temp) :
+      conf(conf),
+      kappa(kappa),
+      Cl(Cl),
+      temp(temp)
+    {
+    }
+    
+    /// Callable
+    void operator()(LxField<spincolor>& out,
+		    const double& mass2,
+		    const LxField<spincolor>& in)
+    {
+      apply_tmclovQ2_m2(out,conf,kappa,Cl,temp,mass2,in);
+    }
+  };
 }
 
 #endif

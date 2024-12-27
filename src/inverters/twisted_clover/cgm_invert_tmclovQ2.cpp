@@ -20,18 +20,11 @@ namespace nissa
     for(auto& m : m2)
       m*=m;
     
+    LxField<spincolor> temp("temp",WITH_HALO);
+    
     cgm_invert(sol,
 	       m2,
-	       [temp=LxField<spincolor>("temp",WITH_HALO),
-		&conf,
-		&kappa,
-		&Cl]
-	       (LxField<spincolor>& out,
-		const double& mass2,
-		const LxField<spincolor>& in) mutable
-	       {
-		 apply_tmclovQ2_m2(out,conf,kappa,Cl,temp,mass2,in);
-	       },
+	       ApplyTmclovQ2M2Functor(conf,kappa,Cl,temp),
 	       niter_max,
 	       req_res,
 	       source);
