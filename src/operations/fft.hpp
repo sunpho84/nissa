@@ -30,25 +30,25 @@ namespace nissa
      fft4d(out,in,all_dirs,ncpp,sign,normalize);
    }
   
-  template <typename T>
-  void fft4d(T *out,
-	     const T *in,
-	     const double& sign,
-	     int normalize)
+  inline void fft4d(void *out,
+		    const void* in,
+		    const int& ncpp,
+		    const double& sign,
+		    int normalize)
   {
-    fft4d((complex*)out,(const complex*)in,all_dirs,sizeof(T)/sizeof(complex),sign,normalize);
+    fft4d((complex*)out,(const complex*)in,all_dirs,ncpp,sign,normalize);
   }
   
   // template <class T>
   // void fft4d(T *x,double sign,int normalize)
   // {fft4d(x,x,sign,normalize);}
   
-  template <typename T>
-  void fft4d(T *x,
-	     const double& sign,
-	     const bool normalize)
+  inline void fft4d(void *x,
+		    const int& ncpp,
+		    const double& sign,
+		    const bool normalize)
   {
-    fft4d(x,x,sign,normalize);
+    fft4d(x,x,ncpp,sign,normalize);
   }
   
   /// Fourier transform of the field
@@ -58,20 +58,20 @@ namespace nissa
 	     const double& sign,
 	     const bool& normalize)
   {
-    LxField<T,FieldLayout::CPU> tmp("tmp");
-    tmp=f;
+    static_assert(LxField<T>::nInternalDegs%2==0,"Needs to be able to interpret the field as complex");
     
-    fft4d(tmp,sign,normalize);
-    
-    f=tmp;
-  }
-  
-  template <typename T>
-  void fft4d(LxField<T,FieldLayout::CPU>& f,
-	     const double& sign,
-	     const bool& normalize)
-  {
-    fft4d(f._data,sign,normalize);
+    if constexpr(FL!=FieldLayout::CPU)
+      {
+	LxField<T,FieldLayout::CPU> tmp("tmp");
+	tmp=f;
+	master_printf("Making a temporary copy of the field to be 4D-fourier-transformed\n");
+	
+	fft4d(tmp,sign,normalize);
+	
+	f=tmp;
+      }
+    else
+      fft4d(f._data,LxField<T>::nInternalDegs/2,sign,normalize);
   }
 }
 
