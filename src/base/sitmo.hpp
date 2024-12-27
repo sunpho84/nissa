@@ -153,7 +153,8 @@ namespace Sitmo
     }
     
     /// Holds the state of the generator
-    struct State : public Sitmo::Word
+    struct State :
+      public Sitmo::Word
     {
       /// Increment of a certain amount
       CUDA_HOST_AND_DEVICE
@@ -291,8 +292,10 @@ namespace nissa
     
     //Constructor
     CUDA_HOST_AND_DEVICE
-    RngView(Sitmo::Rng& ref,const uint64_t& irng) :
-      ref(ref),irng(irng)
+    RngView(Sitmo::Rng& ref,
+	    const uint64_t& irng) :
+      ref(ref),
+      irng(irng)
     {
     }
     
@@ -324,8 +327,11 @@ namespace nissa
       sizeof(T)/sizeof(double);
     
     //Constructor
-    FieldRngOf(Sitmo::Rng& rng,const uint64_t& offsetReal) :
-      used(false),rng(rng),offsetReal(offsetReal)
+    FieldRngOf(Sitmo::Rng& rng,
+	       const uint64_t& offsetReal) :
+      used(false),
+      rng(rng),
+      offsetReal(offsetReal)
     {
       //master_printf("All entries of FieldRng initialized\n");
     }
@@ -336,10 +342,12 @@ namespace nissa
 					const int& irnd_real_per_site)
     {
       //Computes the number in the stream of reals
-      const uint64_t irnd_double=offsetReal*nissa::glbVol+glblx+nissa::glbVol*irnd_real_per_site;
+      const uint64_t irnd_double=
+	offsetReal*nissa::glbVol+glblx+nissa::glbVol*irnd_real_per_site;
       
       //Computes the offset in the rng stream
-      const uint64_t irnd_uint32_t=2*irnd_double;
+      const uint64_t irnd_uint32_t=
+	2*irnd_double;
       
       return RngView(rng,irnd_uint32_t);
     }
@@ -351,7 +359,8 @@ namespace nissa
     {
       for(int irnd_real=0;irnd_real<nRealsPerSite;irnd_real++)
 	{
-	  auto view=getRngViewOnGlbSiteIRndReal(glblx,irnd_real);
+	  auto view=
+	    getRngViewOnGlbSiteIRndReal(glblx,irnd_real);
 	  
 	  ((double*)out)[irnd_real]=distr(view);
 	}
@@ -395,26 +404,28 @@ namespace nissa
               iDeg<std::remove_reference_t<decltype(out)>::nInternalDegs;
 	      iDeg++)
 	    {
-              auto view=getRngViewOnGlbSiteIRndReal(site,iDeg);
+              auto view=
+		getRngViewOnGlbSiteIRndReal(site,iDeg);
               out(site,iDeg)=distr(view);
             }
 	}
     }
   };
   
+  /// Stream of numbers for all lattice sites
   struct FieldRngStream
   {
     //Embeds the random number generator
     Sitmo::Rng rng;
     
     //Number of double precision numbers generated per site
-    uint64_t ndouble_gen;
+    uint64_t nGeneratedDouble;
     
     //Skip n drawers
     template <typename T>
     void skipDrawers(const uint64_t& nDrawers)
     {
-      ndouble_gen+=FieldRngOf<T>::nRealsPerSite*nDrawers;
+      nGeneratedDouble+=FieldRngOf<T>::nRealsPerSite*nDrawers;
     }
     
     //Return a proxy from which to fetch the random numbers
@@ -424,7 +435,7 @@ namespace nissa
       static_assert(sizeof(T)%sizeof(double)==0,"Type not multiple in size of double");
       
       //Result
-      FieldRngOf<T> res(rng,ndouble_gen);
+      FieldRngOf<T> res(rng,nGeneratedDouble);
       
       skipDrawers<T>(1);
       
@@ -446,7 +457,35 @@ namespace nissa
     void init(const uint32_t& seed)
     {
       rng.seed(seed);
-      ndouble_gen=0;
+      nGeneratedDouble=0;
+    }
+    
+    /// Returns the commands to exec
+    bool maybeBackupForBenchmark()
+    {
+#ifdef USE_CUDA
+      if(insideParallelFor)
+	{
+	  benchmarkEndActions.emplace_back([this,
+					    n=nGeneratedDouble]()
+	  {
+	    verbosity_lv3_master_printf("Restoring FieldRngStream\n");
+	    this->nGeneratedDouble=n;
+	  });
+	
+	verbosity_lv3_master_printf("Added backup action for FieldRngStream\n");
+	
+	return true;
+      }
+    else
+      {
+	verbosity_lv3_master_printf("Skipping backup actions for FieldRngStream as we are not inside a parallel for\n");
+	
+	return false;
+      }
+#else
+      return false;
+#endif
     }
   };
   
