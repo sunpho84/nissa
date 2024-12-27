@@ -17,6 +17,9 @@ namespace nissa
 		  const std::vector<double>& residue,
 		  const T& source)
   {
+    ncgm_inv++;
+    cgm_inv_over_time-=take_time();
+    
     const size_t nShift=
       shifts.size();
     
