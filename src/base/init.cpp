@@ -221,13 +221,6 @@ namespace nissa
 #endif
       } //mu
     
-    //print fft implementation
-#if FFT_TYPE == FFTW_FFT
-    master_printf("Fast Fourier Transform: FFTW3\n");
-#else
-    master_printf("Fast Fourier Transform: NATIVE\n");
-#endif
-    
 #if HIGH_PREC_TYPE == GMP_HIGH_PREC
     mpf_precision=NISSA_DEFAULT_MPF_PRECISION;
 #endif

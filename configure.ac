@@ -257,30 +257,10 @@ AX_SUBPACKAGE(ssl,openssl/ssl.h,crypto ssl,MD5_Final,SSL)
 AX_SUBPACKAGE(fftw,fftw3.h,fftw3,fftw_plan_dft_r2c_2d,FFTW)
 
 #fast fourier type
-AC_DEFINE([NATIVE_FFT],[0],["Native implementation"])
-AC_DEFINE([FFTW_FFT],[1],["FFTW library"])
-AC_ARG_WITH(fft-type,
-	AS_HELP_STRING([--with-fft-type],[Select the Fast Fourier transform implementation (native, fftw [NOT default if found])]),
-	with_fft_type="${withval}",
-	if test "$enable_fftw" != "no"
-	then
-		with_fft_type="fftw"
-	else
-		with_fft_type="native"
-	fi)
-case "$with_fft_type" in
-     native) AC_DEFINE_UNQUOTED([FFT_TYPE],[NATIVE_FFT],[Enable native Fast Fourier transform]) ;;
-     fftw) if test "$fftw_found" != "no"
-    	   then
-		AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW])
-	   else
-		AC_MSG_ERROR(["Unable to find fftw3 lib"])
-     	   fi ;;
-     *) AC_MSG_ERROR(["Unkwnown Fast Fourier type ${withval}"])
-esac
-AC_MSG_RESULT([with Fast Fourier type... ${with_fft_type}])
-SUMMARY_RESULT="$SUMMARY_RESULT
-FFT type            : $with_fft_type"
+if test "$fftw_found" == "no"
+then
+	AC_MSG_ERROR(["Unable to find fftw3 lib"])
+fi
 
 #################### eigen ####################
 
