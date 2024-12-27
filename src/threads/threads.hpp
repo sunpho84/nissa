@@ -162,7 +162,7 @@ namespace nissa
     
     if(loopLength>0)
       {
-	master_printf("/////////////////////////////////////////////////////////////////\n");
+	verbosity_lv3_master_printf("/////////////////////////////////////////////////////////////////\n");
 	
 	/// Attributes of the function
 	static const cudaFuncAttributes attr=
@@ -182,7 +182,7 @@ namespace nissa
 	    return kernelInfoLaunchParsStats[id].info;
 	  };
 	
-	master_printf("Going to launch kernel %s for loop size [%ld;%ld) = %ld\n",
+	verbosity_lv3_master_printf("Going to launch kernel %s for loop size [%ld;%ld) = %ld\n",
 		      k().name.c_str(),
 		      (int64_t)min,
 		      (int64_t)max,
@@ -239,7 +239,7 @@ namespace nissa
 	const double initTime=
 	  take_time();
 	
-	master_printf("Launching with optimal blocksize %d\n",optimalBlockSize);
+	verbosity_lv3_master_printf("Launching with optimal blocksize %d\n",optimalBlockSize);
 	launch(optimalBlockSize);
 	
 	/// Compute runtime
@@ -251,7 +251,7 @@ namespace nissa
 	launchParsStat.totalTime+=runTime;
 	launchParsStat.nInvoke++;
 	
-	master_printf(" finished in %lg s\n",runTime);
+	verbosity_lv3_master_printf(" finished in %lg s\n",runTime);
       }
   }
   

@@ -162,7 +162,7 @@ namespace nissa
     else
       {
 	stout_smear_single_level(out,in,stout_pars.rho,dirs);
-	verbosity_lv2_master_printf("sme_step 1/%d, plaquette: %16.16lg\n",nlevels,global_plaquette_eo_conf(out));
+	verbosity_lv1_master_printf("sme_step 1/%d, plaquette: %16.16lg\n",nlevels,global_plaquette_eo_conf(out));
 	
 	if(stout_pars.nlevels>1)
 	  {
@@ -173,7 +173,7 @@ namespace nissa
 	      {
 		tmp=out;
 		stout_smear_single_level(out,tmp,stout_pars.rho,dirs);
-		verbosity_lv2_master_printf("sme_step %d/%d, plaquette: %16.16lg\n",i+1,nlevels,global_plaquette_eo_conf(out));
+		verbosity_lv1_master_printf("sme_step %d/%d, plaquette: %16.16lg\n",i+1,nlevels,global_plaquette_eo_conf(out));
 	      }
 	  }
       }
