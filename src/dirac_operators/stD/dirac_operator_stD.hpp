@@ -37,6 +37,32 @@ namespace nissa
 		       OddField<color>& temp,
 		       const double& mass2,
 		       const EvnField<color>& in);
+
+  /// Functor needed to find the call to apply_stD2ee_m2 with specific conf and temp
+  struct ApplyStD2eeM2Functor
+  {
+    /// Conf to be used
+    const EoField<quad_su3>& eo_conf;
+    
+    /// Temporary vector
+    OddField<color>& temp;
+    
+    /// Callable
+    void operator()(EvnField<color>& out,
+		    const double& mass2,
+		    const EvnField<color>& in)
+    {
+      apply_stD2ee_m2(out,eo_conf,temp,mass2,in);
+    }
+    
+    /// Construct taking reference
+    ApplyStD2eeM2Functor(const EoField<quad_su3>& eo_conf,
+			 OddField<color>& temp) :
+      eo_conf(eo_conf),
+      temp(temp)
+    {
+    }
+  };
   
   void evn_apply_stD(EvnField<color>& out,
 		     const EoField<quad_su3>& conf,

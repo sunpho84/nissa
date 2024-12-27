@@ -14,16 +14,15 @@ namespace nissa
 								const double& residue,
 								const EvnField<color>& pf)
   {
+    /// Field to be used as a temporary
+    OddField<color> temp("temp",WITH_HALO);
+    
+    /// Applier
+    ApplyStD2eeM2Functor applier(eo_conf,temp);
+    
     cgm_invert(chi_e,
 	       poles,
-	       [temp=OddField<color>("temp",WITH_HALO),
-		&eo_conf]
-	       (EvnField<color>& out,
-		const double& mass2,
-		const EvnField<color>& in) mutable
-	       {
-		 apply_stD2ee_m2(out,eo_conf,temp,mass2,in);
-	       },
+	       applier,
 	       niter_max,
 	       std::vector<double>(poles.size(),residue),
 	       pf);
