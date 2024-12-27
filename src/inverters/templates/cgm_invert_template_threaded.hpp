@@ -179,7 +179,7 @@ namespace nissa
 		verbosity_lv3_master_printf("ishift %ld alpha: %16.16lg\n",ishift,alphas[ishift]);
 #endif
 		FOR_EACH_SITE_DEG_OF_FIELD(r,
-					   CAPTURE(psi=ps[ishift].getWriteable(),
+					   CAPTURE(psi=ps[ishift].getWritable(),
 						   TO_READ(r),
 						   alpha=alphas[ishift],
 						   zfs=zfs[ishift]),
