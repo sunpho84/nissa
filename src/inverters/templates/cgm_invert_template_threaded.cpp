@@ -202,7 +202,7 @@ namespace nissa
 	
 // 	//     calculate
 // 	//     -alphas=alpha*zfs*betas/zas*beta
-// 	//     -ps'=r'+alpha*ps
+// 	//     -ps'=zfs*r'+alpha*ps
 // 	for(int ishift=0;ishift<nshift;ishift++)
 // 	  {
 // 	    if(run_flag[ishift]==1)
