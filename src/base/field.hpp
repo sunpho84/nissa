@@ -419,14 +419,21 @@ namespace nissa
     //   return *this;
     // }
     
-#define FOR_EACH_SITE_DEG_OF_FIELD(F,CAPTURES,SITE,IDEG,CODE...)	\
-    PAR(0,(F).nSites(),CAPTURE(CAPTURES),SITE,				\
-    {									\
-      constexpr int nInternalDegs=					\
+#define FOR_EACH_SITE_DEG_OF_FIELD(F,					\
+				   CAPTURES,				\
+				   SITE,				\
+				   IDEG,				\
+				   CODE...)				\
+    PAR(0,								\
+	(F).nSites(),							\
+	CAPTURE(CAPTURES),						\
+	SITE,								\
+	{								\
+	  constexpr int nInternalDegs=					\
 	   std::remove_reference_t<decltype(F)>::nInternalDegs;		\
 	 UNROLL_FOR(IDEG,0,nInternalDegs)				\
 	   CODE								\
-	   })
+	})
     
     // /// Exec the operation f on each site
     // template <typename F>

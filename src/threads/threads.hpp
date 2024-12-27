@@ -276,23 +276,41 @@ namespace nissa
 
 #else
 
-# define CUDA_PARALLEL_LOOP(ARGS...) SERIAL_LOOP(ARGS)
+# define CUDA_PARALLEL_LOOP(ARGS...)		\
+  SERIAL_LOOP(ARGS)
 
 #endif
 
-#define HOST_PARALLEL_LOOP(MIN,MAX,CAPTURES,INDEX,A...) \
-  THREADS_PARALLEL_LOOP(MIN,MAX,[CAPTURES] (const auto& INDEX) mutable A)
+#define HOST_PARALLEL_LOOP(MIN,						\
+			   MAX,						\
+			   CAPTURES,					\
+			   INDEX,					\
+			   A...)					\
+  THREADS_PARALLEL_LOOP(MIN,						\
+			MAX,						\
+			[CAPTURES] (const auto& INDEX) mutable A)
 
-#define DEVICE_PARALLEL_LOOP(MIN,MAX,CAPTURES,INDEX,A...) \
-  CUDA_PARALLEL_LOOP(MIN,MAX,[CAPTURES] CUDA_DEVICE INLINE_ATTRIBUTE (const auto& INDEX) mutable A)
+#define DEVICE_PARALLEL_LOOP(MIN,MAX,CAPTURES,INDEX,ARGS...)		\
+  CUDA_PARALLEL_LOOP(MIN,						\
+		     MAX,						\
+		     [CAPTURES] CUDA_DEVICE INLINE_ATTRIBUTE (const auto& INDEX) mutable \
+		     ARGS)
 
 #if THREADS_TYPE == CUDA_THREADS
-# define DEFAULT_PARALLEL_LOOP DEVICE_PARALLEL_LOOP
+# define DEFAULT_PARALLEL_LOOP			\
+  DEVICE_PARALLEL_LOOP
 #else
-# define DEFAULT_PARALLEL_LOOP HOST_PARALLEL_LOOP
+# define DEFAULT_PARALLEL_LOOP			\
+  HOST_PARALLEL_LOOP
 #endif
- 
-#define PAR(MIN,MAX,CAPTURES,A...)		\
-  DEFAULT_PARALLEL_LOOP(MIN,MAX,CAPTURE(CAPTURES),A)
+
+#define PAR(MIN,					\
+	    MAX,					\
+	    CAPTURES,					\
+	    ARGS...)					\
+  DEFAULT_PARALLEL_LOOP(MIN,				\
+			MAX,				\
+			CAPTURE(CAPTURES),		\
+			ARGS)
 
 #endif
