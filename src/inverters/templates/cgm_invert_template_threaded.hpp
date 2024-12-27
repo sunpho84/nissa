@@ -178,10 +178,15 @@ namespace nissa
 #ifdef CGM_DEBUG
 		verbosity_lv3_master_printf("ishift %ld alpha: %16.16lg\n",ishift,alphas[ishift]);
 #endif
-		ps[ishift]*=alphas[ishift];
-		t=r; //improvable
-		t*=zfs[ishift];
-		ps[ishift]+=t;
+		FOR_EACH_SITE_DEG_OF_FIELD(r,
+					   CAPTURE(psi=ps[ishift].getWriteable(),
+						   TO_READ(r),
+						   alpha=alphas[ishift],
+						   zfs=zfs[ishift]),
+					   i,iD,
+					   {
+					     psi(i,iD)=r(i,iD)*zfs+psi(i,iD)*alpha;
+					   });
 		
 		// shift z
 		zps[ishift]=zas[ishift];
