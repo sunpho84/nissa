@@ -632,17 +632,43 @@ namespace nissa
       glb_reduce(&res2,buf,this->nSites());
       
 #ifdef USE_CUDA
+      
       double res;
+      if(haloEdgesPresence)
+	{
+	  Field tmp("tmp");
+	  tmp=*this;
+	  
+	  if(_data==oth._data)
+	    res=
+	      tmp.realPartOfScalarProdWith(tmp);
+	  else
+	    res=
+	      tmp.realPartOfScalarProdWith(oth);
+	    }
+      else
+	{
+	  if(oth.haloEdgesPresence)
+	    {
+	      Field tmp("tmp2");
+	      tmp2=oth;
+	      
+	      res=
+		realPartOfScalarProdWith(tmp2);
+	    }
+	  else
+	    {
+	      res=
+		thrust::inner_product(thrust::device,
+				      _data,
+				      _data+this->nSites()*nInternalDegs,
+				      oth._data,
+				      Fund{});
+	    }
+	}
+      non_loc_reduce(&res,&locRes);
       
-      res=
-	thrust::inner_product(thrust::device,
-			     _data,
-			     _data+this->nSites()*nInternalDegs,
-			     oth._data,
-			     Fund{});
-      non_loc_reduce(&res);
-      
-      master_printf("(%s,%s) res: %lg res2: %lg, nSites: %ld, ninternaldegs: %d type: %s\n",name,oth.name,res,res2,this->nSites(),nInternalDegs,typeid(Field).name());
+      master_printf("(%s,%s) res: %lg (loc: %lg) res2: %lg, nSites: %ld, ninternaldegs: %d type: %s, _data: %s\n",name,oth.name,res,locRes,res2,this->nSites(),nInternalDegs,typeid(Field).name(),typeid(_data).name());
 #endif
       
       return res2;
