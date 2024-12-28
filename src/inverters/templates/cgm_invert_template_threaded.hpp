@@ -139,18 +139,29 @@ namespace nissa
 					    "zfs: %16.16lg, betas: %16.16lg\n",
 					    ishift,shifts[ishift],zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
 #endif
-		t=ps[ishift]; //improvable
-		t*=-betas[ishift];
-		sol[ishift]+=t;
+		FOR_EACH_SITE_DEG_OF_FIELD(r,
+					   CAPTURE(sol=sol[ishift].getWritable(),
+						   psi=ps[ishift].getReadable(),
+						   beta=betas[ishift],
+						   zfs=zfs[ishift]),
+					   i,iD,
+					   {
+					     sol(i,iD)-=beta*psi(i,iD);
+					   });
 	      }
 	  }
 	
 	//     calculate
 	//     -r'=r+betaa*s=r+beta*Ap
 	//     -rfrf=(r',r')
-	t=s;
-	t*=betaa;
-	r+=t;
+	FOR_EACH_SITE_DEG_OF_FIELD(r,
+				   CAPTURE(TO_READ(s),
+					   betaa,
+					   TO_WRITE(r)),
+				   i,iD,
+				   {
+				     r(i,iD)+=s(i,iD)*betaa;
+				   });
 	rfrf=r.norm2();
 #ifdef CGM_DEBUG
 	verbosity_lv3_master_printf("rfrf: %16.16lg\n",rfrf);
@@ -160,8 +171,14 @@ namespace nissa
 	alpha=rfrf/rr;
 	
 	//     calculate p'=r'+p*alpha
-	p*=alpha;
-	p+=r;
+	FOR_EACH_SITE_DEG_OF_FIELD(r,
+				   CAPTURE(TO_READ(r),
+					   alpha,
+					   TO_WRITE(p)),
+				   i,iD,
+				   {
+				     p(i,iD)=r(i,iD)+p(i,iD)*alpha;
+				   });
 	
 	//start the communications of the border
 	if(use_async_communications)
