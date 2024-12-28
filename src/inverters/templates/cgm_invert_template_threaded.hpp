@@ -185,13 +185,13 @@ namespace nissa
 	
 #ifdef USE_CUDA
 	cgm_inv_over_time5-=take_time();
-	double res=
+	double rest=
 	  thrust::reduce(thrust::device,
 			 &buf[0],
 			 &buf[r.nSites()],
 			 0.0,
 			 thrust::plus<double>());
-	non_loc_reduce(&res);
+	non_loc_reduce(&rest);
 	cgm_inv_over_time5+=take_time();
 #endif
 	
