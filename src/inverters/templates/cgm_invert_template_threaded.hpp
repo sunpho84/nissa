@@ -104,8 +104,10 @@ namespace nissa
 	cgm_inv_over_time-=take_time();
 	
 	//     -pap=(p,s)=(p,Ap)
+	cgm_inv_over_time1-=take_time();
 	const double pap=
 	  p.realPartOfScalarProdWith(s);
+	cgm_inv_over_time1+=take_time();
 	
 #ifdef CGM_DEBUG
 	verbosity_lv3_master_printf("pap: %16.16lg, ap[0]: %16.16lg, p[0]: %16.16lg\n",pap,s._data[0],p._data[0]);
@@ -139,6 +141,7 @@ namespace nissa
 					    "zfs: %16.16lg, betas: %16.16lg\n",
 					    ishift,shifts[ishift],zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
 #endif
+		cgm_inv_over_time2-=take_time();
 		FOR_EACH_SITE_DEG_OF_FIELD(r,
 					   CAPTURE(sol=sol[ishift].getWritable(),
 						   psi=ps[ishift].getReadable(),
@@ -148,12 +151,14 @@ namespace nissa
 					   {
 					     sol(i,iD)-=beta*psi(i,iD);
 					   });
+		cgm_inv_over_time2+=take_time();
 	      }
 	  }
 	
 	//     calculate
 	//     -r'=r+betaa*s=r+beta*Ap
 	//     -rfrf=(r',r')
+	cgm_inv_over_time3-=take_time();
 	FOR_EACH_SITE_DEG_OF_FIELD(r,
 				   CAPTURE(TO_READ(s),
 					   betaa,
@@ -162,7 +167,10 @@ namespace nissa
 				   {
 				     r(i,iD)+=s(i,iD)*betaa;
 				   });
+	cgm_inv_over_time3+=take_time();
+	cgm_inv_over_time4-=take_time();
 	rfrf=r.norm2();
+	cgm_inv_over_time4+=take_time();
 #ifdef CGM_DEBUG
 	verbosity_lv3_master_printf("rfrf: %16.16lg\n",rfrf);
 #endif
@@ -171,6 +179,7 @@ namespace nissa
 	alpha=rfrf/rr;
 	
 	//     calculate p'=r'+p*alpha
+	cgm_inv_over_time5-=take_time();
 	FOR_EACH_SITE_DEG_OF_FIELD(r,
 				   CAPTURE(TO_READ(r),
 					   alpha,
@@ -179,6 +188,7 @@ namespace nissa
 				   {
 				     p(i,iD)=r(i,iD)+p(i,iD)*alpha;
 				   });
+	cgm_inv_over_time5+=take_time();
 	
 	//start the communications of the border
 	if(use_async_communications)
@@ -195,6 +205,7 @@ namespace nissa
 #ifdef CGM_DEBUG
 		verbosity_lv3_master_printf("ishift %ld alpha: %16.16lg\n",ishift,alphas[ishift]);
 #endif
+		cgm_inv_over_time6-=take_time();
 		FOR_EACH_SITE_DEG_OF_FIELD(r,
 					   CAPTURE(psi=ps[ishift].getWritable(),
 						   TO_READ(r),
@@ -204,6 +215,7 @@ namespace nissa
 					   {
 					     psi(i,iD)=r(i,iD)*zfs+psi(i,iD)*alpha;
 					   });
+		cgm_inv_over_time6+=take_time();
 		
 		// shift z
 		zps[ishift]=zas[ishift];

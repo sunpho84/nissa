@@ -19,7 +19,14 @@ namespace nissa
   
   EXTERN_BENCH double tot_comm_time EQUAL_ZERO;
   EXTERN_BENCH int ntot_comm EQUAL_ZERO;
-  EXTERN_BENCH double cgm_inv_over_time,cg_inv_over_time EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time1 EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time2 EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time3 EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time4 EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time5 EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time6 EQUAL_ZERO;
+  EXTERN_BENCH double cg_inv_over_time EQUAL_ZERO;
   EXTERN_BENCH int ncgm_inv,ncg_inv EQUAL_ZERO;
   EXTERN_BENCH double portable_stD_app_time EQUAL_ZERO;
   EXTERN_BENCH int nportable_stD_app EQUAL_ZERO;

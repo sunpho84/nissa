@@ -1664,6 +1664,12 @@ void in_main(int narg,char **arg)
   
   print_stat("apply non vectorized staggered operator",portable_stD_app_time,nportable_stD_app,1158*locVolh);
   print_stat("cgm invert (overhead)",cgm_inv_over_time,ncgm_inv);
+  print_stat("cgm invert (overhead1)",cgm_inv_over_time1,ncgm_inv);
+  print_stat("cgm invert (overhead2)",cgm_inv_over_time2,ncgm_inv);
+  print_stat("cgm invert (overhead3)",cgm_inv_over_time3,ncgm_inv);
+  print_stat("cgm invert (overhead4)",cgm_inv_over_time4,ncgm_inv);
+  print_stat("cgm invert (overhead5)",cgm_inv_over_time5,ncgm_inv);
+  print_stat("cgm invert (overhead6)",cgm_inv_over_time6,ncgm_inv);
   print_stat("cg invert (overhead)",cg_inv_over_time,ncg_inv);
   print_stat("stout smearing",sto_time,nsto);
   print_stat("stout remapping",sto_remap_time,nsto_remap);
