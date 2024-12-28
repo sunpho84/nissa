@@ -636,13 +636,13 @@ namespace nissa
       double res;
       if(haloEdgesPresence!=WITHOUT_HALO and bord_vol>0)
 	{
-	  master_printf("this %s has bord\n",name);
+	  verbosity_lv3_master_printf("this %s has bord\n",name);
 	  Field tmp("tmp");
 	  tmp=*this;
 	  
 	  if(_data==oth._data)
 	    {
-	      master_printf("oth=this so calling realPartOfScalarProd with non-bord copy\n");
+	      verbosity_lv3_master_printf("oth=this so calling realPartOfScalarProd with non-bord copy\n");
 	      
 	      res=
 		tmp.realPartOfScalarProdWith(tmp);
@@ -655,7 +655,8 @@ namespace nissa
 	{
 	  if(oth.haloEdgesPresence!=WITHOUT_HALO and bord_vol>0)
 	    {
-	      master_printf("oth %s has bord\n",oth.name);
+	      verbosity_lv3_master_printf("oth %s has bord\n",oth.name);
+	      
 	      Field tmp2("tmp2");
 	      tmp2=oth;
 	      
@@ -674,7 +675,7 @@ namespace nissa
 	  
 	  non_loc_reduce(&res);
 	  
-	  master_printf("(%s,%s) res: %lg res2: %lg, nSites: %ld, ninternaldegs: %d type: %s, _data: %s\n",name,oth.name,res,res2,this->nSites(),nInternalDegs,typeid(Field).name(),typeid(_data).name());
+	  verbosity_lv3_master_printf("(%s,%s) res: %lg res2: %lg, nSites: %ld, ninternaldegs: %d type: %s, _data: %s\n",name,oth.name,res,res2,this->nSites(),nInternalDegs,typeid(Field).name(),typeid(_data).name());
 	}
 #endif
       
