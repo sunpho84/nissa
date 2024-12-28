@@ -90,7 +90,7 @@ namespace nissa
     double rfrf,betap;
     double res[nShift];
     
-	Field<double,T::FieldCoverage> buf("buf");
+	Field<double,T::fieldCoverage> buf("buf");
     do
       {
 	//     this is already iteration 0
