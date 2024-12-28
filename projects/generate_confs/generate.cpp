@@ -1670,9 +1670,6 @@ void in_main(int narg,char **arg)
   print_stat("cgm invert (overhead4)",cgm_inv_over_time4,ncgm_inv);
   print_stat("cgm invert (overhead5)",cgm_inv_over_time5,ncgm_inv);
   print_stat("cgm invert (overhead6)",cgm_inv_over_time6,ncgm_inv);
-  print_stat("cgm invert (overhead7)",cgm_inv_over_time7,ncgm_inv);
-  print_stat("cgm invert (overhead8)",cgm_inv_over_time8,ncgm_inv);
-  print_stat("cgm invert (overhead9)",cgm_inv_over_time9,ncgm_inv);
   print_stat("cg invert (overhead)",cg_inv_over_time,ncg_inv);
   print_stat("stout smearing",sto_time,nsto);
   print_stat("stout remapping",sto_remap_time,nsto_remap);

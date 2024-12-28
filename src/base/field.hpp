@@ -8,6 +8,7 @@
 #ifdef USE_CUDA
 # include <thrust/complex.h>
 # include <thrust/execution_policy.h>
+# include <thrust/inner_product.h>
 # include <thrust/reduce.h>
 #endif
 
@@ -510,6 +511,16 @@ namespace nissa
     template <typename R=double>
     R norm2() const
     {
+#ifdef USE_CUDA
+      R res=
+	thrust::inner_product(thrust::device,
+			      (R*)_data,
+			      (R*)_data+this->nSites()*nInternalDegs,
+			      (R*)_data,
+			      (R)0.0,
+			      thrust::plus<R>());
+      non_loc_reduce(&res);
+#else
       Field<R,FC> buf("buf");
       
       PAR(0,this->nSites(),
@@ -523,15 +534,6 @@ namespace nissa
 	    buf[site]=s2;
 	  });
       
-#ifdef USE_CUDA
-      R res=
-	thrust::reduce(thrust::device,
-		       &buf[0],
-		       &buf[this->nSites()],
-		       0.0,
-		       thrust::plus<R>());
-      non_loc_reduce(&res);
-#else
       R res;
       glb_reduce(&res,buf,this->nSites());
 #endif

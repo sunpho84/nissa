@@ -171,37 +171,8 @@ namespace nissa
 	cgm_inv_over_time3+=take_time();
 	
 	cgm_inv_over_time4-=take_time();
-	PAR(0,r.nSites(),
-	  CAPTURE(TO_READ(r),
-		  TO_WRITE(buf)),
-	  site,
-	  {
-	    double s2{};
-	    UNROLL_FOR(internalDeg,0,T::nInternalDegs)
-	      s2+=sqr(r(site,internalDeg));
-	    buf[site]=s2;
-	  });
-	cgm_inv_over_time4+=take_time();
-	
-#ifdef USE_CUDA
-	cgm_inv_over_time5-=take_time();
-	double rest=
-	  thrust::reduce(thrust::device,
-			 &buf[0],
-			 &buf[r.nSites()],
-			 0.0,
-			 thrust::plus<double>());
-	non_loc_reduce(&rest);
-	cgm_inv_over_time5+=take_time();
-	
-	cgm_inv_over_time6-=take_time();
-	glb_reduce(&rest,buf,r.nSites());
-	cgm_inv_over_time6+=take_time();
-	
-	cgm_inv_over_time7-=take_time();
 	rfrf=r.norm2();
-	cgm_inv_over_time7+=take_time();
-#endif
+	cgm_inv_over_time4+=take_time();
 	
 #ifdef CGM_DEBUG
 	verbosity_lv3_master_printf("rfrf: %16.16lg\n",rfrf);
@@ -211,7 +182,7 @@ namespace nissa
 	alpha=rfrf/rr;
 	
 	//     calculate p'=r'+p*alpha
-	cgm_inv_over_time8-=take_time();
+	cgm_inv_over_time5-=take_time();
 	FOR_EACH_SITE_DEG_OF_FIELD(r,
 				   CAPTURE(TO_READ(r),
 					   alpha,
@@ -220,7 +191,7 @@ namespace nissa
 				   {
 				     p(i,iD)=r(i,iD)+p(i,iD)*alpha;
 				   });
-	cgm_inv_over_time8+=take_time();
+	cgm_inv_over_time5+=take_time();
 	
 	//start the communications of the border
 	if(use_async_communications)
@@ -237,7 +208,7 @@ namespace nissa
 #ifdef CGM_DEBUG
 		verbosity_lv3_master_printf("ishift %ld alpha: %16.16lg\n",ishift,alphas[ishift]);
 #endif
-		cgm_inv_over_time9-=take_time();
+		cgm_inv_over_time6-=take_time();
 		FOR_EACH_SITE_DEG_OF_FIELD(r,
 					   CAPTURE(psi=ps[ishift].getWritable(),
 						   TO_READ(r),
@@ -247,7 +218,7 @@ namespace nissa
 					   {
 					     psi(i,iD)=r(i,iD)*zfs+psi(i,iD)*alpha;
 					   });
-		cgm_inv_over_time9+=take_time();
+		cgm_inv_over_time6+=take_time();
 		
 		// shift z
 		zps[ishift]=zas[ishift];
@@ -317,8 +288,5 @@ namespace nissa
     master_printf("overhead 4 %lg s\n",cgm_inv_over_time4/ncgm_inv);
     master_printf("overhead 5 %lg s\n",cgm_inv_over_time5/ncgm_inv);
     master_printf("overhead 6 %lg s\n",cgm_inv_over_time6/ncgm_inv);
-    master_printf("overhead 7 %lg s\n",cgm_inv_over_time7/ncgm_inv);
-    master_printf("overhead 8 %lg s\n",cgm_inv_over_time8/ncgm_inv);
-    master_printf("overhead 9 %lg s\n",cgm_inv_over_time9/ncgm_inv);
   }
 }
