@@ -14,77 +14,23 @@ using namespace nissa;
 //   return res;
 // }
 
-DECLARE_TRANSPOSABLE_COMP(Spin,int,4,spin);
-
-void testPar(EoField2<OfComps<SpinRow>,double>& f,
-	     const LocEoSite& locEo,
-	     const SpinRow& spinRow)
+void testPar(LxField<spincolor,nissa::FieldLayout::CPU>& a,
+	     const LxField<spincolor,nissa::FieldLayout::CPU>& b)
 {
-  ASM_BOOKMARK_BEGIN("testPar");
-  f(parity(0),locEo,spinRow)=9.9;
-  ASM_BOOKMARK_END("testPar");
+  FOR_EACH_SITE_DEG_OF_FIELD(a,
+			     CAPTURE(TO_WRITE(a),
+				     TO_READ(b)),
+			     site,
+			     ideg,
+			     {
+			       ASM_BOOKMARK_BEGIN("ab");
+			       a(site,ideg)+=b(site,ideg);
+			       ASM_BOOKMARK_END("ab");
+			     });
 }
 
 void in_main(int narg,char **arg)
 {
-  const int T=16,L=16;
-  
-  init_grid(T,L);
-  
-  LxField<quad_su3> conf("conf");
-  
-  {
-    DynamicTens<OfComps<SpinRow,LocEoSite>,double, MemoryType::CPU> d(std::make_tuple(locEoSite(locVolh)));
-    auto e=d.getReadable();
-    // e(spinRow(1))=1.0;
-  }
-  
-  {
-    constexpr StackTens<OfComps<ComplId>,double> I{0,1};
-    
-    verbosity_lv=3;
-    Field2<OfComps<SpinRow,ComplId>,double> df(WITH_HALO);
-    df.updateHalo();
-    auto fl=df.flatten();
-    fl(decltype(df)::FlattenedInnerComp(0));
-    Field2<OfComps<ComplId>,double> ds;
-    // EoField2<OfComps<SpinRow>,double> df2;
-    //auto rdf=df.getWritable();
-    // auto rdf2=df2.getWritable();
-    df=I;
-    master_printf("written 0? %lg\n",df(locLxSite(0),spinRow(0),reIm(0)));
-    master_printf("written 1? %lg\n",df(locLxSite(0),spinRow(0),reIm(1)));
-    df=df+I;
-    ds=trace(dag(df(spinRow(0))));
-    master_printf("written 2? %lg\n",df(locLxSite(0),spinRow(0),reIm(1)));
-    master_printf("copied -2? %lg\n",ds(locLxSite(0),reIm(1)));
-    // rdf(spinRow(0),locLxSite(0))=1.0;
-    // rdf2(parity(0),spinRow(0),locEoSite(0))=1.0;
-  }
-  verbosity_lv=1;
-  
-  crash("bbbb");
-
-  [[maybe_unused]]
-  auto u=mergedComp<CompsList<Spin,ComplId>>(0);
-  
-  /////////////////////////////////////////////////////////////////
-  
-  master_printf("allocated in %p\n",conf._data);
-  {
-    auto c=conf.getWritable();
-    master_printf("allocated in %p\n",c._data);
-    double& e=c[locVol-1][3][2][2][1];
-    master_printf("end: %p, should be %p\n",&e,c._data+locVol*4*3*3*2-1);
-  }
-  
-  PAR(0,locVol,
-      CAPTURE(TO_WRITE(conf)),
-      ivol,
-      {
-	su3_put_to_id(conf[ivol][0]);
-      });
-  
   // start_loc_rnd_gen(235235);
   
   // spincolor *in=nissa_malloc("in",locVol+bord_vol,spincolor);
