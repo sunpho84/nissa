@@ -196,7 +196,7 @@ namespace nissa
 #endif
 	
 	cgm_inv_over_time6-=take_time();
-	glb_reduce(&res,buf,r.nSites());
+	glb_reduce(&rest,buf,r.nSites());
 	cgm_inv_over_time6+=take_time();
 	
 	cgm_inv_over_time7-=take_time();
