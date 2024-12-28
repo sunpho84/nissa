@@ -530,6 +530,7 @@ namespace nissa
 		       &buf[this->nSites()],
 		       0.0,
 		       thrust::plus<R>());
+    non_loc_reduce(&res2);
 #endif
 // #else
       R res;
