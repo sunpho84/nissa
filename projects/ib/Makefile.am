@@ -1,5 +1,6 @@
 bin_PROGRAMS+= \
 	$(top_builddir)/bin/ib \
+	$(top_builddir)/bin/test_wip \
 	$(top_builddir)/bin/checks
 
 assembly_reports+= \
@@ -43,6 +44,10 @@ __top_builddir__bin_checks_LDFLAGS=$(LDFLAGS)
 __top_builddir__bin_ib_SOURCES=%D%/ib.cpp $(common_sources)
 __top_builddir__bin_ib_LDADD=$(LDADD)
 __top_builddir__bin_ib_LDFLAGS=$(LDFLAGS)
+
+__top_builddir__bin_test_wip_SOURCES=%D%/test_wip.cpp
+__top_builddir__bin_test_wip_LDADD=$(LDADD)
+__top_builddir__bin_test_wip_LDFLAGS=$(LDFLAGS)
 
 # __top_builddir__bin_EU3_source_SOURCES=%D%/EU3_source.cpp $(common_sources)
 # __top_builddir__bin_EU3_source_LDADD=$(LDADD)

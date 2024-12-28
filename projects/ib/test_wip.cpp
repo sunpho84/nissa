@@ -14,23 +14,27 @@ using namespace nissa;
 //   return res;
 // }
 
-void testPar(LxField<spincolor,nissa::FieldLayout::CPU>& a,
-	     const LxField<spincolor,nissa::FieldLayout::CPU>& b)
+void testPar()
 {
+  LxField<spincolor,nissa::FieldLayout::CPU> a("a");
+  
   FOR_EACH_SITE_DEG_OF_FIELD(a,
-			     CAPTURE(TO_WRITE(a),
-				     TO_READ(b)),
+			     CAPTURE(TO_WRITE(a)),
 			     site,
 			     ideg,
 			     {
-			       ASM_BOOKMARK_BEGIN("ab");
-			       a(site,ideg)+=b(site,ideg);
-			       ASM_BOOKMARK_END("ab");
+			       a(site,ideg)=ideg;
 			     });
+  
+  master_printf("Norm2: %lg\n",a.norm2());
 }
 
 void in_main(int narg,char **arg)
 {
+  init_grid(24,12);
+  
+  testPar();
+  
   // start_loc_rnd_gen(235235);
   
   // spincolor *in=nissa_malloc("in",locVol+bord_vol,spincolor);
