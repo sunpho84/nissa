@@ -90,7 +90,7 @@ namespace nissa
     double rfrf,betap;
     double res[nShift];
     
-	Field<double,T::fieldCoverage> buf("buf");
+    Field<double,T::fieldCoverage> buf("buf");
     do
       {
 	//     this is already iteration 0
@@ -178,7 +178,7 @@ namespace nissa
 	  {
 	    double s2{};
 	    UNROLL_FOR(internalDeg,0,T::nInternalDegs)
-	      s2+=sqr(t(site,internalDeg));
+	      s2+=sqr(r(site,internalDeg));
 	    buf[site]=s2;
 	  });
 	cgm_inv_over_time4+=take_time();
