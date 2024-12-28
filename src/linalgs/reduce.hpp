@@ -1,7 +1,17 @@
 #ifndef _REDUCE_HPP
 #define _REDUCE_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <cstdint>
+
+#ifdef USE_CUDA
+# include <thrust/complex.h>
+# include <thrust/execution_policy.h>
+# include <thrust/reduce.h>
+#endif
 
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
