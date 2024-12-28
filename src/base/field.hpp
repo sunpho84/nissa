@@ -636,7 +636,7 @@ namespace nissa
       double res;
       if(haloEdgesPresence!=WITHOUT_HALO and bord_vol>0)
 	{
-	  master_printf("this has bord\n");
+	  master_printf("this %s has bord\n",name);
 	  Field tmp("tmp");
 	  tmp=*this;
 	  
@@ -655,7 +655,7 @@ namespace nissa
 	{
 	  if(oth.haloEdgesPresence!=WITHOUT_HALO and bord_vol>0)
 	    {
-	      master_printf("oth has bord\n");
+	      master_printf("oth %s has bord\n",oth.name);
 	      Field tmp2("tmp2");
 	      tmp2=oth;
 	      
