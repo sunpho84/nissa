@@ -155,8 +155,10 @@ struct HitLooper
 	}
     
     verbosity_lv2_master_printf("futureDeps:\n");
-    for(const auto& [delay,name] : futureDeps)
-      verbosity_lv2_master_printf(" %d %s\n",delay,name.c_str());
+    for([[maybe_unused]] const auto&  [delay,name] : futureDeps)
+      {
+	verbosity_lv2_master_printf(" %d %s\n",delay,name.c_str());
+      }
     
     // \todo simplify
     
@@ -533,7 +535,7 @@ struct HitLooper
     
     if(runStep==1)
       {
-	for(const auto& s : orderedDep)
+	for([[maybe_unused]] const auto& s : orderedDep)
 	  verbosity_lv2_master_printf("  %s\n",s.c_str());
 	verbosity_lv2_master_printf("Dependencies end\n");
       }

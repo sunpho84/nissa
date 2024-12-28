@@ -189,7 +189,7 @@ namespace nissa
     for(const auto& [kernelInfo,kernelLaunchParsStats] :  kernelInfoLaunchParsStats)
       {
 	verbosity_lv3_master_printf("| %d - %s %zu\n",id,kernelInfo.name.c_str(),kernelLaunchParsStats.size());
-	for(const auto& u : kernelLaunchParsStats)
+	for([[maybe_unused]] const auto& u : kernelLaunchParsStats)
 	  verbosity_lv3_master_printf("|| %ld %d\n",u.first,u.second.optimalBlockSize);
 	id++;
       }
