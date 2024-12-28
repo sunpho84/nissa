@@ -5,6 +5,12 @@
 # include "config.hpp"
 #endif
 
+#ifdef USE_CUDA
+# include <thrust/complex.h>
+# include <thrust/execution_policy.h>
+# include <thrust/reduce.h>
+#endif
+
 #include <cstddef>
 #include <mpi.h>
 #include <optional>
@@ -516,8 +522,17 @@ namespace nissa
 	    buf[site]=s2;
 	  });
       
+#ifndef USE_CUDA
       double res;
       glb_reduce(&res,buf,this->nSites());
+#else
+      double res=
+	thrust::reduce(thrust::device,
+		       &buf[0],
+		       &buf[this->nSites()],
+		       0.0,
+		       thrust::plus<double>());
+#endif
       
       return res;
     }
