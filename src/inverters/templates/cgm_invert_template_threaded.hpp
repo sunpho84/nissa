@@ -193,7 +193,6 @@ namespace nissa
 			 thrust::plus<double>());
 	non_loc_reduce(&rest);
 	cgm_inv_over_time5+=take_time();
-#endif
 	
 	cgm_inv_over_time6-=take_time();
 	glb_reduce(&rest,buf,r.nSites());
@@ -201,7 +200,8 @@ namespace nissa
 	
 	cgm_inv_over_time7-=take_time();
 	rfrf=r.norm2();
-	cgm_inv_over_time7-=take_time();
+	cgm_inv_over_time7+=take_time();
+#endif
 	
 #ifdef CGM_DEBUG
 	verbosity_lv3_master_printf("rfrf: %16.16lg\n",rfrf);
