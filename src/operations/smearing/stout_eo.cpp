@@ -27,7 +27,7 @@ namespace nissa
     
     in.updateEdges();
     
-    master_printf("Stouting dirs: %d %d %d %d with rho=%lg\n",dirs[0],dirs[1],dirs[2],dirs[3],rho);
+    verbosity_lv2_master_printf("Stouting dirs: %d %d %d %d with rho=%lg\n",dirs[0],dirs[1],dirs[2],dirs[3],rho);
     
     // master_printf("Test, in 1:\n");
     // for(int par=0;par<1;par++)
