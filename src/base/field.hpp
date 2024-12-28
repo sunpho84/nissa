@@ -524,15 +524,20 @@ namespace nissa
 	  });
       
 #ifdef USE_CUDA
-      R res=
+      R res2=
 	thrust::reduce(thrust::device,
 		       &buf[0],
 		       &buf[this->nSites()],
 		       0.0,
 		       thrust::plus<R>());
-#else
+#endif
+// #else
       R res;
       glb_reduce(&res,buf,this->nSites());
+// #endif
+      
+#ifdef USE_CUDA
+      master_printf("Using thrust for reduction obtained %lg instead of %lg\n",(double)res2,(double)res);
 #endif
       
       return res;
