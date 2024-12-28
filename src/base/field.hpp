@@ -517,8 +517,7 @@ namespace nissa
 			      (R*)_data,
 			      (R*)_data+this->nSites()*nInternalDegs,
 			      (R*)_data,
-			      (R)0.0,
-			      thrust::plus<R>());
+			      (R)0.0);
       non_loc_reduce(&res);
 #else
       Field<R,FC> buf("buf");
