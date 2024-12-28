@@ -634,22 +634,28 @@ namespace nissa
 #ifdef USE_CUDA
       
       double res;
-      if(haloEdgesPresence)
+      if(haloEdgesPresence!=WITHOUT_HALO and bord_vol>0)
 	{
+	  master_printf("this has bord\n");
 	  Field tmp("tmp");
 	  tmp=*this;
 	  
 	  if(_data==oth._data)
-	    res=
-	      tmp.realPartOfScalarProdWith(tmp);
+	    {
+	      master_printf("oth=this so calling realPartOfScalarProd with non-bord copy\n");
+	      
+	      res=
+		tmp.realPartOfScalarProdWith(tmp);
+	    }
 	  else
 	    res=
 	      tmp.realPartOfScalarProdWith(oth);
 	    }
       else
 	{
-	  if(oth.haloEdgesPresence)
+	  if(oth.haloEdgesPresence!=WITHOUT_HALO and bord_vol>0)
 	    {
+	      master_printf("oth has bord\n");
 	      Field tmp2("tmp2");
 	      tmp2=oth;
 	      
