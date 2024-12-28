@@ -642,7 +642,7 @@ namespace nissa
 			     Fund{});
       non_loc_reduce(&res);
       
-      master_printf("res: %lg res2: %lg\n",res,res2);
+      master_printf("res: %lg res2: %lg, nSites: %ld, ninternaldegs: %d type: %s\n",res,res2,this->nSites(),nInternalDegs,typeid(Field).name());
 #endif
       
       return res2;
