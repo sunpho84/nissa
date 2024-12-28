@@ -507,31 +507,34 @@ namespace nissa
     }
     
     /// Squared norm
-    double norm2() const
+    template <typename R=double>
+    R norm2() const
     {
-      Field<Fund,FC> buf("buf");
+      Field<R,FC> buf("buf");
       
       PAR(0,this->nSites(),
 	  CAPTURE(t=this->getReadable(),
 		  TO_WRITE(buf)),
 	  site,
 	  {
-	    double s2=0.0;
+	    R s2{};
 	    UNROLL_FOR(internalDeg,0,nInternalDegs)
 	      s2+=sqr(t(site,internalDeg));
 	    buf[site]=s2;
 	  });
       
 #ifndef USE_CUDA
-      double res;
+      R res;
       glb_reduce(&res,buf,this->nSites());
 #else
-      double res=
+      master_printf("Using thrust for reduction\n");
+      
+      R res=
 	thrust::reduce(thrust::device,
 		       &buf[0],
 		       &buf[this->nSites()],
 		       0.0,
-		       thrust::plus<double>());
+		       thrust::plus<R>());
 #endif
       
       return res;
