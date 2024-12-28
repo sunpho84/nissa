@@ -514,10 +514,10 @@ namespace nissa
 #ifdef USE_CUDA
       R res=
 	thrust::inner_product(thrust::device,
-			      (R*)_data,
-			      (R*)_data+this->nSites()*nInternalDegs,
-			      (R*)_data,
-			      (R)0.0);
+			      _data,
+			      _data+this->nSites()*nInternalDegs,
+			      _data,
+			      Fund{});
       non_loc_reduce(&res);
 #else
       Field<R,FC> buf("buf");
@@ -640,6 +640,17 @@ namespace nissa
     /// Re(*this,out)
     double realPartOfScalarProdWith(const Field& oth) const
     {
+      double res;
+      
+#ifdef USE_CUDA
+      res=
+	thrust::inner_product(thrust::device,
+			     _data,
+			     _data+this->nSites()*nInternalDegs,
+			     oth._data,
+			     Fund{});
+      non_loc_reduce(&res);
+#else
       Field<double,FC> buf("buf");
       
       PAR(0,this->nSites(),
@@ -654,8 +665,8 @@ namespace nissa
 	    buf[site]=r;
 	  });
       
-      double res;
       glb_reduce(&res,buf,this->nSites());
+#endif
       
       return res;
     }
