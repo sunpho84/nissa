@@ -511,33 +511,7 @@ namespace nissa
     template <typename R=double>
     R norm2() const
     {
-#ifdef USE_CUDA
-      R res=
-	thrust::inner_product(thrust::device,
-			      _data,
-			      _data+this->nSites()*nInternalDegs,
-			      _data,
-			      Fund{});
-      non_loc_reduce(&res);
-#else
-      Field<R,FC> buf("buf");
-      
-      PAR(0,this->nSites(),
-	  CAPTURE(t=this->getReadable(),
-		  TO_WRITE(buf)),
-	  site,
-	  {
-	    R s2{};
-	    UNROLL_FOR(internalDeg,0,nInternalDegs)
-	      s2+=sqr(t(site,internalDeg));
-	    buf[site]=s2;
-	  });
-      
-      R res;
-      glb_reduce(&res,buf,this->nSites());
-#endif
-      
-      return res;
+      return realPartOfScalarProdWith(*this);
     }
     
     /// Put the field to the new norm, returning the reciprocal of normalizing factor
