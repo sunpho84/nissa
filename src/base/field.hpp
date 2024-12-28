@@ -508,8 +508,7 @@ namespace nissa
     }
     
     /// Squared norm
-    template <typename R=double>
-    R norm2() const
+    double norm2() const
     {
       return realPartOfScalarProdWith(*this);
     }
@@ -614,17 +613,6 @@ namespace nissa
     /// Re(*this,out)
     double realPartOfScalarProdWith(const Field& oth) const
     {
-      double res;
-      
-#ifdef USE_CUDA
-      res=
-	thrust::inner_product(thrust::device,
-			     _data,
-			     _data+this->nSites()*nInternalDegs,
-			     oth._data,
-			     Fund{});
-      non_loc_reduce(&res);
-#else
       Field<double,FC> buf("buf");
       
       PAR(0,this->nSites(),
@@ -639,10 +627,24 @@ namespace nissa
 	    buf[site]=r;
 	  });
       
-      glb_reduce(&res,buf,this->nSites());
+      double res2;
+      glb_reduce(&res2,buf,this->nSites());
+      
+#ifdef USE_CUDA
+      double res;
+      
+      res=
+	thrust::inner_product(thrust::device,
+			     _data,
+			     _data+this->nSites()*nInternalDegs,
+			     oth._data,
+			     Fund{});
+      non_loc_reduce(&res);
+      
+      master_printf("res: %lg res2: %lg\n",res,res2);
 #endif
       
-      return res;
+      return res2;
     }
     
 #define PROVIDE_CASTS(CONST)						\
