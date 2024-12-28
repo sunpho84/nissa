@@ -666,9 +666,9 @@ namespace nissa
 				      Fund{});
 	    }
 	}
-      non_loc_reduce(&res,&locRes);
+      non_loc_reduce(&res);
       
-      master_printf("(%s,%s) res: %lg (loc: %lg) res2: %lg, nSites: %ld, ninternaldegs: %d type: %s, _data: %s\n",name,oth.name,res,locRes,res2,this->nSites(),nInternalDegs,typeid(Field).name(),typeid(_data).name());
+      master_printf("(%s,%s) res: %lg res2: %lg, nSites: %ld, ninternaldegs: %d type: %s, _data: %s\n",name,oth.name,res,res2,this->nSites(),nInternalDegs,typeid(Field).name(),typeid(_data).name());
 #endif
       
       return res2;
