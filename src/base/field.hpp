@@ -650,7 +650,7 @@ namespace nissa
 	{
 	  if(oth.haloEdgesPresence)
 	    {
-	      Field tmp("tmp2");
+	      Field tmp2("tmp2");
 	      tmp2=oth;
 	      
 	      res=
