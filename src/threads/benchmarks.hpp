@@ -235,11 +235,11 @@ namespace nissa
     int& optimalBlockSize=
       launchParsStat.optimalBlockSize;
     
-    if(0)
-      {
-	optimalBlockSize=128;
-	toBeTuned=false;
-      }
+    /// A reference block size
+    const int defaultBlockSize=128;
+    
+    /// RunTime for default block size
+    double defaultBlockRunTime;
     
     if(print)
       printf("ToBeTuned: %d\n",toBeTuned);
@@ -266,8 +266,11 @@ namespace nissa
 	
 	optimalBlockSize=0;
 	
+	/// Number of iterations to use for benchmarking
 	const int nBench=100;
-	double minTime=0.0;
+	
+	/// Minimal runtime for the kernel
+	double minRunTime=0.0;
 	
 	if(maxBlockSize<=minBlockSize)
 	  crash("minbockSize %d cannot be equal or larger than maxBlockSize %d",minBlockSize,maxBlockSize);
@@ -290,14 +293,17 @@ namespace nissa
 	    const double runTime=
 	      (take_time()-initTime)/nBench;
 	    
-	    if(optimalBlockSize==0 or minTime>runTime)
+	    if(optimalBlockSize==0 or minRunTime>runTime)
 	      {
 		optimalBlockSize=testBlockSize;
-		minTime=runTime;
+		minRunTime=runTime;
 	      }
 	    
+	    if(testBlockSize==defaultBlockSize)
+	      defaultBlockRunTime=runTime;
+	    
 	    if(print)
-	      printf("Benchmarked with blockSize %d, runtime %lg s minimal %lg s current optimal size %d\n",testBlockSize,runTime,minTime,optimalBlockSize);
+	      printf("Benchmarked with blockSize %d, runtime %lg s minimal %lg s current optimal size %d\n",testBlockSize,runTime,minRunTime,optimalBlockSize);
 	  }
 	
 	if(not doNotBackupDuringBenchmark)
@@ -307,6 +313,9 @@ namespace nissa
 	      e();
 	    doNotBackupDuringBenchmark=false;
 	  }
+	
+	verbosity_lv1_master_printf("Tuned kernel %s for loop length %ld, optimal block size: %d, minimal time: %lg s, time with default block size (%d) would have been %lg s, saved time: %lg %c\n",
+				    info.name.c_str(),loopLength,optimalBlockSize,minRunTime,defaultBlockSize,defaultBlockRunTime,(1-minRunTime/defaultBlockRunTime)*100,'%');
 	
 	storeTunedKernelsInfo();
       }
