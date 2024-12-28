@@ -510,7 +510,6 @@ namespace nissa
     /// Squared norm
     double norm2() const
     {
-      master_printf("Next is norm2\n");
       return realPartOfScalarProdWith(*this);
     }
     
