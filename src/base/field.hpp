@@ -671,10 +671,11 @@ namespace nissa
 				      oth._data,
 				      Fund{});
 	    }
+	  
+	  non_loc_reduce(&res);
+	  
+	  master_printf("(%s,%s) res: %lg res2: %lg, nSites: %ld, ninternaldegs: %d type: %s, _data: %s\n",name,oth.name,res,res2,this->nSites(),nInternalDegs,typeid(Field).name(),typeid(_data).name());
 	}
-      non_loc_reduce(&res);
-      
-      master_printf("(%s,%s) res: %lg res2: %lg, nSites: %ld, ninternaldegs: %d type: %s, _data: %s\n",name,oth.name,res,res2,this->nSites(),nInternalDegs,typeid(Field).name(),typeid(_data).name());
 #endif
       
       return res2;
