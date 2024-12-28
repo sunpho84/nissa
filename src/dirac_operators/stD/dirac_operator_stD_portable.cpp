@@ -108,23 +108,28 @@ namespace nissa
 		TO_READ(conf),
 		TO_WRITE(temp)),io,
 	{
-	  //neighbours search
-	  const int evup0=loceo_neighup[ODD][io][0];
-	  const int evdw0=loceo_neighdw[ODD][io][0];
 	  
-	  //derivative in the time direction - without self-summ
-	  unsafe_su3_prod_color(      temp[io],conf[ODD][io   ][0],in[evup0]);
-	  su3_dag_subt_the_prod_color(temp[io],conf[EVN][evdw0][0],in[evdw0]);
+	  color o{};
 	  
 	  //derivatives in the spatial direction - with self summ
-	  UNROLL_FOR(mu,1,NDIM)
+	  UNROLL_FOR_ALL_DIRS(mu)
 	    {
 	      const int evup=loceo_neighup[ODD][io][mu];
 	      const int evdw=loceo_neighdw[ODD][io][mu];
 	      
-	      su3_summ_the_prod_color(    temp[io],conf[ODD][io  ][mu],in[evup]);
-	      su3_dag_subt_the_prod_color(temp[io],conf[EVN][evdw][mu],in[evdw]);
+	      color iu,id;
+	      color_copy(iu,in[evup]);
+	      color_copy(id,in[evdw]);
+	      
+	      su3 cu,cd;
+	      su3_copy(cu,conf[ODD][io  ][mu]);
+	      su3_copy(cd,conf[EVN][evdw][mu]);
+	      
+	      su3_summ_the_prod_color(o,cu,iu);
+	      su3_dag_subt_the_prod_color(o,cd,id);
 	    }
+	  
+	  color_copy(temp[io],o);
 	});
     
     temp.updateHalo();
@@ -135,20 +140,26 @@ namespace nissa
 		TO_READ(conf),
 		TO_WRITE(out)),ie,
 	{
-	  const int odup0=loceo_neighup[EVN][ie][0];
-	  const int oddw0=loceo_neighdw[EVN][ie][0];
+	  color o{};
 	  
-	  unsafe_su3_prod_color(      out[ie],conf[EVN][ie   ][0],temp[odup0]);
-	  su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw0][0],temp[oddw0]);
+	  UNROLL_FOR_ALL_DIRS(mu)
+	    {
+	      const int odup=loceo_neighup[EVN][ie][mu];
+	      const int oddw=loceo_neighdw[EVN][ie][mu];
+	      
+	      color tu,td;
+	      color_copy(tu,temp[odup]);
+	      color_copy(td,temp[oddw]);
+	      
+	      su3 cu,cd;
+	      su3_copy(cu,conf[EVN][ie  ][mu]);
+	      su3_copy(cd,conf[ODD][oddw][mu]);
+	      
+	      su3_summ_the_prod_color(o,cu,tu);
+	      su3_dag_subt_the_prod_color(o,cd,td);
+	    }
 	  
-	  UNROLL_FOR(mu,1,NDIM)
-	  {
-	    const int odup=loceo_neighup[EVN][ie][mu];
-	    const int oddw=loceo_neighdw[EVN][ie][mu];
-	    
-	    su3_summ_the_prod_color(    out[ie],conf[EVN][ie  ][mu],temp[odup]);
-	    su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw][mu],temp[oddw]);
-	  }
+	  color_copy(out[ie],o);
 	});
     
     if(mass2!=0)
