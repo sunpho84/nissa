@@ -615,20 +615,20 @@ namespace nissa
     {
       double res;
       
-#ifdef USE_CUDA
-      if(fieldLayout==FieldLayout::CPU or bord_vol==0 or haloEdgesPresence==WITHOUT_HALO)
-	{
-	  res=
-	    thrust::inner_product(thrust::device,
-				  _data,
-				  _data+this->nSites()*nInternalDegs,
-				  oth._data,
-				  Fund{});
-	  non_loc_reduce(&res);
-	}
-      else
-	{
-#endif
+// #ifdef USE_CUDA
+//       if(fieldLayout==FieldLayout::CPU or bord_vol==0 or haloEdgesPresence==WITHOUT_HALO)
+// 	{
+// 	  res=
+// 	    thrust::inner_product(thrust::device,
+// 				  _data,
+// 				  _data+this->nSites()*nInternalDegs,
+// 				  oth._data,
+// 				  Fund{});
+// 	  non_loc_reduce(&res);
+// 	}
+//       else
+// 	{
+// #endif
 	  Field<double,FC> buf("buf");
 	  
 	  PAR(0,this->nSites(),
@@ -645,9 +645,9 @@ namespace nissa
 	  
 	  glb_reduce(&res,buf,this->nSites());
 	  
-#ifdef USE_CUDA
-	}
-#endif
+// #ifdef USE_CUDA
+// 	}
+// #endif
       
       return res;
     }
