@@ -65,7 +65,7 @@ namespace nissa
     void (*compute_staples_packed)(su3 staples,su3 *links,double C1);
     
     //inits the parity checkboard according to an external parity
-    void init_box_dir_par_geometry(int ext_gpar,int(*par_comp)(const coords_t& ivol_coord,const int& dir));
+    void init_box_dir_par_geometry(int ext_gpar,int(*par_comp)(const Coords& ivol_coord,const int& dir));
     
     //sweep the conf
     void sweep_conf(LxField<quad_su3>& conf,void (*update_fun)(su3 out,su3 staples,int ivol,int mu,void *pars),void *pars)

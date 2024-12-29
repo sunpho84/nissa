@@ -10,7 +10,6 @@
 
 #include "measures/fermions/mesons.hpp"
 #include "measures/fermions/magnetization.hpp"
-#include "measures/fermions/nucleon.hpp"
 #include "measures/fermions/putpourri.hpp"
 #include "measures/fermions/rendens.hpp"
 #include "measures/fermions/spinpol.hpp"

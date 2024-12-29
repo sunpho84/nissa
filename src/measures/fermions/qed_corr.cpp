@@ -37,12 +37,12 @@ namespace nissa
       // nissa_free(photon_eta);
     }
     
-    void insert_tadpole_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=(*(momentum_t*)pars)[mu];out[IM]=0;}
+    void insert_tadpole_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=(*(Momentum*)pars)[mu];out[IM]=0;}
     void insert_conserved_current_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=((int*)pars)[mu];out[IM]=0;}
     void insert_time_conserved_vector_current_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=(mu==0);out[IM]=0;}
     
     //insert the tadpol
-    void insert_tadpole(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t* theory_pars,int iflav,eo_ptr<color> in,momentum_t& tad,int t)
+    void insert_tadpole(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t* theory_pars,int iflav,eo_ptr<color> in,Momentum& tad,int t)
     {
       //call with no source insertion, plus between fw and bw, and a global -0.25
       complex fw_factor={-0.25,0},bw_factor={-0.25,0};
@@ -106,7 +106,7 @@ namespace nissa
     crash(" ");
     
     // //compute tadpole
-    // momentum_t tadpole=compute_tadpole(photon);
+    // Momentum tadpole=compute_tadpole(photon);
     
     // //allocate
     // const int nflavs=theory_pars.nflavs();

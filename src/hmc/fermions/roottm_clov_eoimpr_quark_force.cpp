@@ -23,7 +23,7 @@ namespace nissa
     
     spincolor temp;
     spincolor_copy(temp,a[!eo][ineoup]);
-    dirac_subt_the_prod_spincolor(temp,base_gamma[igamma_of_mu[dir]],a[!eo][ineoup]);
+    dirac_subt_the_prod_spincolor(temp,base_gamma[iGammaOfMu(dir)],a[!eo][ineoup]);
     safe_dirac_prod_spincolor(temp,base_gamma[5],temp);
     
     for(int ic1=0;ic1<NCOL;ic1++)
@@ -79,7 +79,7 @@ namespace nissa
     
     for(int inu=0;inu<NDIM-1;inu++)
       {
-	int nu=perp_dir[dir][inu];
+	int nu=perpDirs[dir][inu];
 	
 	int xpmu=loceo_neighup[eo][ieo][dir];
 	int xmnu=loceo_neighdw[eo][ieo][nu];

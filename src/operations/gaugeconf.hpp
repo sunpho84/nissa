@@ -20,10 +20,17 @@ namespace nissa
   struct unitarity_check_result_t
   {
     std::int64_t nbroken_links;
+    
     double average_diff;
+    
     double max_diff;
     
-    unitarity_check_result_t () : nbroken_links(0),average_diff(0.0),max_diff(0.0) {}
+    unitarity_check_result_t () :
+      nbroken_links(0),
+      average_diff(0.0),
+      max_diff(0.0)
+    {
+    }
   };
   
   //parameters to compute gauge observabls
@@ -137,20 +144,20 @@ namespace nissa
   
   /// Adapt the border condition
   void adapt_theta(LxField<quad_su3>& conf,
-		   momentum_t& old_theta,
-		   const momentum_t& put_theta,
+		   Momentum& old_theta,
+		   const Momentum& put_theta,
 		   const int& putonbords=false,
 		   const int& putonedges=false);
   
   /// Put boundary conditions on the gauge conf
   void put_boundaries_conditions(LxField<quad_su3>& conf,
-				 const momentum_t& theta_in_pi,
+				 const Momentum& theta_in_pi,
 				 const int& putonbords=false,
 				 const int& putonedges=false);
   
   /// Remove boundary conditions on the gauge conf
   void rem_boundaries_conditions(LxField<quad_su3>& conf,
-				 const momentum_t& theta_in_pi,
+				 const Momentum& theta_in_pi,
 				 const int& putonbords=false,
 				 const int& putonedges=false);
   

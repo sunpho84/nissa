@@ -1,6 +1,11 @@
 #ifndef _CLOSE_HPP
 #define _CLOSE_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
+#include <base/init.hpp>
 #include <base/memory_manager.hpp>
 #include <base/random.hpp>
 #include <base/vectors.hpp>
@@ -14,8 +19,13 @@
 
 namespace nissa
 {
-  inline void close_nissa()
+  inline void closeNissa()
   {
+    if(not nissaInited)
+      crash("Trying to finalize nissa, but it has been already finalized");
+    
+    nissaInited=false;
+    
     master_printf("Closing nissa\n");
     
     //unset remappers

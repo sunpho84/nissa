@@ -82,8 +82,8 @@ namespace nissa
 	spinspin_put_to_id(opg[mu]);
 	spinspin_put_to_id(omg[mu]);
 	
-	spinspin_dirac_summ_the_prod_double(opg[mu],base_gamma[igamma_of_mu[mu]],+1);
-	spinspin_dirac_summ_the_prod_double(omg[mu],base_gamma[igamma_of_mu[mu]],-1);
+	spinspin_dirac_summ_the_prod_double(opg[mu],base_gamma[iGammaOfMu(mu)],+1);
+	spinspin_dirac_summ_the_prod_double(omg[mu],base_gamma[iGammaOfMu(mu)],-1);
       }
   }
 }

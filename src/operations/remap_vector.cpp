@@ -44,7 +44,7 @@ namespace nissa
   {
     return [mu,prp_max_vol](int64_t iloc_locld) // don't make constant
     {
-      coords_t c;
+      Coords c;
       c[mu]=iloc_locld%glbSize[mu];
       iloc_locld/=glbSize[mu];
       
@@ -58,7 +58,7 @@ namespace nissa
 	    glb_perp_site/=glbSize[nu];
 	  }
       //int &irank_lx,int &iloc_lx;
-      return get_loclx_and_rank_of_coord(c);
+      return getLoclxAndRankOfCoords(c);
     };
   }
   

@@ -122,7 +122,7 @@ namespace nissa
       eo_ptr<color> temp[2];
       for(int itemp=0;itemp<2;itemp++)
 	for(int eo=0;eo<2;eo++)
-	  temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);
+	  temp[itemp][eo]=nissa_malloc("temp",locVolh+bordVolh,color);
       
       //Form the mask and shift
       int shift=(spin^taste);

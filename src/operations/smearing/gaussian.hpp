@@ -13,7 +13,7 @@ namespace nissa
   //apply kappa*H
 #define DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(TYPE)			\
   void inline NAME2(gaussian_smearing_apply_kappa_H,TYPE)(LxField<TYPE>& H, \
-							  const momentum_t& kappa, \
+							  const Momentum& kappa, \
 							  const LxField<quad_su3>& conf, \
 							  const LxField<TYPE>& in) \
   {									\
@@ -47,7 +47,7 @@ namespace nissa
   inline void gaussian_smearing(LxField<TYPE>& smear_sc,		\
 				const LxField<TYPE>& origi_sc,		\
 				const LxField<quad_su3>& conf,		\
-				const momentum_t& kappa,		\
+				const Momentum& kappa,		\
 				const int& niter,			\
 				LxField<TYPE>* ext_temp=nullptr,	\
 				LxField<TYPE>* ext_H=nullptr)		\
@@ -164,7 +164,7 @@ namespace nissa
 			 LxField<T>* ext_temp=nullptr,
 			 LxField<T>* ext_H=nullptr)
   {
-    const momentum_t kappa={0.0,kappa_iso,kappa_iso,kappa_iso};
+    const Momentum kappa={0.0,kappa_iso,kappa_iso,kappa_iso};
     
     gaussian_smearing(smear_sc,origi_sc,conf,kappa,niter,ext_temp,ext_H);
   }

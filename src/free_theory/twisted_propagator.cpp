@@ -21,14 +21,14 @@
 namespace nissa
 {
   //compute the energy of a twisted mass quark
-  double tm_quark_energy(const tm_quark_info& qu,
+  double tm_quark_energy(const TmQuarkInfo& qu,
 			 const int& imom)
   {
     double m0=m0_of_kappa(qu.kappa);
     double mass=qu.mass;
     double m2=m0*m0+mass*mass;
     double p2=0,p4=0;
-    coords_t c=glb_coord_of_glblx(imom);
+    Coords c=glbCoordOfGlblx(imom);
     for(int mu=1;mu<NDIM;mu++)
       {
 	double p=M_PI*(2*c[mu]+qu.bc[mu])/glbSize[mu];
@@ -48,11 +48,11 @@ namespace nissa
   }
   
   //compute the energy of a naive massless fermion
-  double naive_massless_quark_energy(const momentum_t& bc,
+  double naive_massless_quark_energy(const Momentum& bc,
 				     const int& imom)
   {
     double sinh2E=0;
-    const coords_t c=glb_coord_of_glblx(imom);
+    const Coords c=glbCoordOfGlblx(imom);
     for(int mu=1;mu<NDIM;mu++) sinh2E+=sqr(sin(M_PI*(2*c[mu]+bc[mu])/glbSize[mu]));
     return asinh(sqrt(sinh2E));
   }
@@ -60,10 +60,10 @@ namespace nissa
   ////////////////////////////////////////////// twisted propagator in momentum space ////////////////////////////////////////////
   
   //return sin(p), \sum sin(p)^2, \sum sin(p/2)^2
-  CUDA_HOST_AND_DEVICE void get_component_of_twisted_propagator_of_imom(momentum_t& sin_mom,
+  CUDA_HOST_AND_DEVICE void get_component_of_twisted_propagator_of_imom(Momentum& sin_mom,
 									double &sin2_mom,
 									double &sin2_momh,
-									const tm_quark_info& qu,
+									const TmQuarkInfo& qu,
 									const int& imom)
   {
     sin2_mom=sin2_momh=0;
@@ -78,12 +78,12 @@ namespace nissa
   
   //takes the dirac operator of fixed momentum
   void mom_space_twisted_operator_of_imom(spinspin& out,
-					  const tm_quark_info& qu,
+					  const TmQuarkInfo& qu,
 					  const int& imom,
 					  const tm_basis_t& base)
   {
     //takes the momenta part and M
-    momentum_t sin_mom;
+    Momentum sin_mom;
     double sin2_mom,sin2_momh;
     get_component_of_twisted_propagator_of_imom(sin_mom,sin2_mom,sin2_momh,qu,imom);
     double M=m0_of_kappa(qu.kappa)+2*sin2_momh;
@@ -92,18 +92,18 @@ namespace nissa
     
     //fill the pieces
     spinspin_put_to_diag_double(out,c0[base]);
-    for(int mu=0;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(out,base_gamma[igamma_of_mu[mu]],sin_mom[mu]);
+    for(int mu=0;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(out,base_gamma[iGammaOfMu(mu)],sin_mom[mu]);
     spinspin_dirac_summ_the_prod_idouble(out,base_gamma[5],c5[base]);
   }
   
   //single momentum - normalisation is such that D*S=1/vol
   CUDA_HOST_AND_DEVICE void mom_space_twisted_propagator_of_imom(spinspin& prop,
-								 const tm_quark_info& qu,
+								 const TmQuarkInfo& qu,
 								 const int& imom,
 								 const tm_basis_t& base)
   {
     //takes the momenta part
-    momentum_t sin_mom;
+    Momentum sin_mom;
     double sin2_mom,sin2_momh;
     get_component_of_twisted_propagator_of_imom(sin_mom,sin2_mom,sin2_momh,qu,imom);
     
@@ -145,7 +145,7 @@ namespace nissa
 	double c5[2]; c5[MAX_TWIST_BASE]=M*tau3[qu.r]; c5[WILSON_BASE]=-qu.mass*tau3[qu.r];
 	
 	spinspin_dirac_summ_the_prod_double(prop,base_gamma[0],c0[base]*rep_den);
-	for(int mu=0;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(prop,base_gamma[igamma_of_mu[mu]],-sin_mom[mu]*rep_den);
+	for(int mu=0;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(prop,base_gamma[iGammaOfMu(mu)],-sin_mom[mu]*rep_den);
 	spinspin_dirac_summ_the_prod_idouble(prop,base_gamma[5],c5[base]*rep_den);
       }
   }
@@ -153,7 +153,7 @@ namespace nissa
   //replace p0 with on shell in the tilded (conjugated) or non-tilded dirac operator
   //the sign of the energy is according to passed argument
   double twisted_on_shell_operator_of_imom(spinspin& proj,
-					   const tm_quark_info& qu,
+					   const TmQuarkInfo& qu,
 					   const int& imom,
 					   const bool& tilded,
 					   const int& esign,
@@ -163,10 +163,10 @@ namespace nissa
     double abse=tm_quark_energy(qu,imom);
     double e=esign*abse;
     
-    momentum_t sin_mom;
+    Momentum sin_mom;
     //double sin2_mom=-sqr(sinh(e));
     double sin2_momh=-sqr(sinh(e/2));
-    const coords_t c=glb_coord_of_glblx(imom);
+    const Coords c=glbCoordOfGlblx(imom);
     for(int mu=1;mu<NDIM;mu++)
       {
 	double p=M_PI*(2*c[mu]+qu.bc[mu])/glbSize[mu];
@@ -185,8 +185,8 @@ namespace nissa
     
     spinspin_put_to_diag_double(proj,c0[base]);
     int se[2]={-1,+1},sp[2]={+1,-1},s5[2]={-1,+1}; //we put here implicitly the difference of g5 with Nazario
-    spinspin_dirac_summ_the_prod_double(proj,base_gamma[igamma_of_mu[0]],se[tilded]*sinh(e));
-    for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma[igamma_of_mu[mu]],sp[tilded]*sin_mom[mu]);
+    spinspin_dirac_summ_the_prod_double(proj,base_gamma[iGammaOfMu(0)],se[tilded]*sinh(e));
+    for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma[iGammaOfMu(mu)],sp[tilded]*sin_mom[mu]);
     spinspin_dirac_summ_the_prod_idouble(proj,base_gamma[5],s5[tilded]*c5[base]);
     
     return abse;
@@ -194,7 +194,7 @@ namespace nissa
   
   //same for the naive fermions
   double naive_massless_on_shell_operator_of_imom(spinspin& proj,
-						  const momentum_t& bc,
+						  const Momentum& bc,
 						  const int& imom,
 						  const int& esign)
   {
@@ -202,9 +202,9 @@ namespace nissa
     double abse=naive_massless_quark_energy(bc,imom);
     double e=esign*abse;
     
-    spinspin_dirac_prod_double(proj,base_gamma[igamma_of_mu[0]],-sinh(e));
-    const coords_t c=glb_coord_of_glblx(imom);
-    for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma[igamma_of_mu[mu]],sin(M_PI*(2*c[mu]+bc[mu])/glbSize[mu]));
+    spinspin_dirac_prod_double(proj,base_gamma[iGammaOfMu(0)],-sinh(e));
+    const Coords c=glbCoordOfGlblx(imom);
+    for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma[iGammaOfMu(mu)],sin(M_PI*(2*c[mu]+bc[mu])/glbSize[mu]));
     
     return abse;
   }
@@ -221,7 +221,7 @@ namespace nissa
   
   //return the wave function of "u_r(p)" (particle) or "v_r(-p)" (antiparticle)
   void twisted_wavefunction_of_imom(spin& wf,
-				    const tm_quark_info& qu,
+				    const TmQuarkInfo& qu,
 				    const int& imom,
 				    const int& par_apar,
 				    const int s,const tm_basis_t& base)
@@ -233,13 +233,13 @@ namespace nissa
     double e=twisted_on_shell_operator_of_imom(osp,qu,imom,tilde[par_apar],1,base);
     unsafe_spinspin_prod_spin(wf,osp,ompg0_eig[!par_apar][s]);
     spin_prodassign_double(wf,1/sqrt(qu.mass+sinh(e)));
-    int ig[2]={0,igamma_of_mu[0]};
+    int ig[2]={0,iGammaOfMu(0)};
     safe_dirac_prod_spin(wf,base_gamma[ig[par_apar]],wf);
   }
   
   //same for naive massless fermions
   void naive_massless_wavefunction_of_imom(spin& wf,
-					   const momentum_t& bc,
+					   const Momentum& bc,
 					   const int& imom,
 					   const int& par_apar,
 					   const int& s)
@@ -255,7 +255,7 @@ namespace nissa
   
   //whole quark propagator in momentum space
   void compute_mom_space_twisted_propagator(LxField<spinspin>& prop,
-					    const tm_quark_info& qu,
+					    const TmQuarkInfo& qu,
 					    const tm_basis_t& base)
   {
     PAR(0,locVol,
@@ -273,7 +273,7 @@ namespace nissa
   
   //single
   void compute_x_space_twisted_propagator_by_fft(LxField<spinspin>& prop,
-						 const tm_quark_info& qu,
+						 const TmQuarkInfo& qu,
 						 const tm_basis_t& base)
   {
     compute_mom_space_twisted_propagator(prop,qu,base);
@@ -282,7 +282,7 @@ namespace nissa
   
   //squared (scalar insertion)
   void compute_x_space_twisted_squared_propagator_by_fft(LxField<spinspin>& sq_prop,
-							 const tm_quark_info& qu,
+							 const TmQuarkInfo& qu,
 							 const tm_basis_t& base)
   {
     compute_mom_space_twisted_propagator(sq_prop,qu,base);
@@ -305,7 +305,7 @@ namespace nissa
 #define DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(TYPE) \
   void multiply_from_left_by_mom_space_twisted_propagator(LxField<TYPE>& out, \
 							  const LxField<TYPE>& in, \
-							  const tm_quark_info& qu, \
+							  const TmQuarkInfo& qu, \
 							  const tm_basis_t& base) \
   {									\
     PAR(0,locVol,							\
@@ -322,7 +322,7 @@ namespace nissa
   /*multiply from right*/						\
   void multiply_from_right_by_mom_space_twisted_propagator(LxField<TYPE>& out,\
 							   const LxField<TYPE>& in,\
-							   const tm_quark_info& qu, \
+							   const TmQuarkInfo& qu, \
 							   const tm_basis_t& base) \
   {									\
     PAR(0,locVol,							\
@@ -345,7 +345,7 @@ namespace nissa
   //multiply the source for the twisted propagator by inverting twisted Dirac operator
   void multiply_from_left_by_x_space_twisted_propagator_by_inv(LxField<spin>& prop,
 							       const LxField<spin>& source,
-							       const tm_quark_info& qu,
+							       const TmQuarkInfo& qu,
 							       const tm_basis_t& base)
   {
     crash("reimplement");
@@ -356,7 +356,7 @@ namespace nissa
   
   void multiply_from_left_by_x_space_twisted_propagator_by_inv(LxField<spinspin>& prop,
 							       const LxField<spinspin>& source,
-							       const tm_quark_info& qu,
+							       const TmQuarkInfo& qu,
 							       const tm_basis_t& base)
   {
     //source and temp prop
@@ -376,7 +376,7 @@ namespace nissa
   
   //prepare it by inverting
   void compute_x_space_twisted_propagator_by_inv(LxField<spinspin>& prop,
-						 const tm_quark_info& qu,
+						 const TmQuarkInfo& qu,
 						 const tm_basis_t& base)
   {
     //allocate a source

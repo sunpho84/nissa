@@ -80,7 +80,7 @@ namespace nissa
 		    for(int ilev=0;ilev<nlevels;ilev++)
 		      for(int idir=0;idir<4;idir++)
 			{
-			  int jdir=nissa::scidac_mapping[idir];
+			  int jdir=nissa::scidacMapping[idir];
 			  nissa::read_int(&block_size[ilev][jdir]);
 			  master_printf("DD: block_size[%d][%d*]=%d\n",ilev,jdir,block_size[ilev][jdir]);
 			}

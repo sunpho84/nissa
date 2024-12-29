@@ -17,7 +17,7 @@ namespace nissa
     read_str_int("L",&L);
     read_str_int("T",&T);
     
-    init_grid(T,L);
+    initGrid(T,L);
   }
   
   /// Check that "finished" file present
@@ -115,7 +115,7 @@ namespace nissa
   
   //take a set of theta, charge and photon field, and update the conf
   LxField<quad_su3>* get_updated_conf(const double& charge,
-				      const momentum_t& theta,
+				      const Momentum& theta,
 				      const LxField<quad_su3>& in_conf)
   {
     master_printf("Checking if conf needs to be updated\n");
@@ -161,7 +161,7 @@ namespace nissa
 	*inner_conf=in_conf;
 	
 	//put momentum
-	momentum_t old_theta;
+	Momentum old_theta;
 	old_theta[0]=0;old_theta[1]=old_theta[2]=old_theta[3]=0;
 	adapt_theta(*inner_conf,old_theta,theta,0,0);
 	

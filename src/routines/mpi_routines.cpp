@@ -85,9 +85,9 @@ namespace nissa
   void create_MPI_cartesian_grid()
   {
 #ifdef USE_MPI
-    rank_coord=coord_of_rank(rank);
+    rankCoord=coordOfRank(rank);
 #else
-    for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=0;
+    for(int mu=0;mu<NDIM;mu++) rankCoord[mu]=0;
 #endif
   }
   
@@ -166,7 +166,7 @@ namespace nissa
   }
   
   //broadcast a coord
-  void coords_broadcast(coords_t& c)
+  void coords_broadcast(Coords& c)
   {
     MPI_Bcast(&c[0],NDIM,MPI_INT,master_rank,MPI_COMM_WORLD);
   }

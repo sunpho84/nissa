@@ -248,7 +248,6 @@ Ey DEBUG_PRINTF("Found Ey\n");yylval->int_numb=1;return TK_E_COMP;
 Ez DEBUG_PRINTF("Found Ez\n");yylval->int_numb=2;return TK_E_COMP;
 
  /* fermionic measures */
-MeasNucleonCorrs DEBUG_PRINTF("Found MeasNucleonCorrs\n");return TK_MEAS_NUCLEON_CORRS;
 MeasMesonCorrs DEBUG_PRINTF("Found MeasMesonCorrs\n");return TK_MEAS_MESON_CORRS;
 MeasPutpourri DEBUG_PRINTF("Found MeasPutpourri\n");return TK_MEAS_PUTPOURRI;
 MeasRendens DEBUG_PRINTF("Found MeasRendens\n");return TK_MEAS_RENDENS;
@@ -260,12 +259,6 @@ MeasSpinPol DEBUG_PRINTF("Found MeasSpinPol\n");return TK_MEAS_SPINPOL;
 MeasSpectrProj DEBUG_PRINTF("Found MeasSpectrProj\n");return TK_SPECTR_PROJ;
 MeasTMTuning DEBUG_PRINTF("Found MeasTMTuning\n");return TK_TM_TUNING;
 MeasElleSettete DEBUG_PRINTF("Found MeasElleSettete\n");return TK_MEAS_ELLESETTETE;
-
- /* nucleon smearing reimplementation */
-GaussSmeNsteps DEBUG_PRINTF("Found GaussSmeNsteps\n");return TK_GAUSS_SME_NSTEPS;
-GaussSmeKappa DEBUG_PRINTF("Found GaussSmeKappa\n");return TK_GAUSS_SME_KAPPA;
-ApeSmeNsteps DEBUG_PRINTF("Found ApeSmeNsteps\n");return TK_APE_SME_NSTEPS;
-ApeSmeAlpha DEBUG_PRINTF("Found ApeSmeAlpha\n");return TK_APE_SME_ALPHA;
 
  /* parameters for PutPourri */
 ComputeSusc DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;

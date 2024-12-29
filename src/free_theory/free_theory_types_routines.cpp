@@ -9,7 +9,7 @@
 namespace nissa
 {
   gauge_info create_tlSym_gauge_info(const gauge_info::which_gauge_t& which_gauge,
-				     const momentum_t& bc,
+				     const Momentum& bc,
 				     const double c1)
   {
     gauge_info out;
@@ -22,18 +22,18 @@ namespace nissa
   }
   
   gauge_info create_Wilson_gauge_info(const gauge_info::which_gauge_t& which_gauge,
-				      const momentum_t& bc)
+				      const Momentum& bc)
   {
     return create_tlSym_gauge_info(which_gauge,bc,0);
   }
   
-  tm_quark_info create_twisted_quark_info(const double& kappa,
-					  const double& mass,
-					  const momentum_t& bc,
-					  const int& r,
-					  const double& zmp)
+  TmQuarkInfo create_twisted_quark_info(const double& kappa,
+					const double& mass,
+					const Momentum& bc,
+					const int& r,
+					const double& zmp)
   {
-    tm_quark_info out;
+    TmQuarkInfo out;
     
     out.bc=bc;
     out.kappa=kappa;
@@ -44,8 +44,8 @@ namespace nissa
     return out;
   }
   
-  tm_quark_info create_Wilson_quark_info(const double& kappa,
-					 const momentum_t& bc)
+  TmQuarkInfo create_Wilson_quark_info(const double& kappa,
+				       const Momentum& bc)
   {
     return create_twisted_quark_info(kappa,0,bc,0);
   }

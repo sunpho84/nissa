@@ -34,11 +34,11 @@ namespace nissa
     bool is_source{false};
     
     double kappa{};
-    momentum_t kappa_asymm{};
+    Momentum kappa_asymm{};
     double mass{};
     int r{};
     double charge{};
-    momentum_t theta{};
+    Momentum theta{};
     
     insertion_t insertion{};
     std::vector<source_term_t> source_terms{};
@@ -87,7 +87,7 @@ namespace nissa
 			    const char *_ext_field_path,
 			    const int& _r,
 			    const double& _charge,
-			    const momentum_t& _theta,
+			    const Momentum& _theta,
 			    const bool& _store)
     {
       is_source=false;
@@ -164,7 +164,7 @@ namespace nissa
 	    const char* ext_field_path,
 	    const int& r,
 	    const double& charge,
-	    const momentum_t& theta,
+	    const Momentum& theta,
 	    const bool& store)
     {
       init_as_propagator(insertion,source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store);
@@ -260,13 +260,13 @@ namespace nissa
   void generate_quark_propagator(std::string& name,qprop_t& q,int ihit);
   void generate_photon_source(LxField<spin1field>& photon_eta);
   
-  void generate_source(insertion_t inser,int r,double charge,double kappa,const momentum_t& theta,spincolor *ori,int t);
+  void generate_source(insertion_t inser,int r,double charge,double kappa,const Momentum& theta,spincolor *ori,int t);
   
   void generate_quark_propagators(const int& ihit);
   
   void generate_photon_stochastic_propagator(const int& ihit);
   
-  //CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const momentum_t bc);
+  //CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const Momentum bc);
   void generate_lepton_propagators();
   void propagators_fft(const int& ihit);
   

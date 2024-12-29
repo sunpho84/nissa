@@ -645,12 +645,12 @@ namespace nissa
       {
 	GAMMA[4]=base_gamma[5]*temp_gamma;
 	for(int mu=0;mu<NDIM;mu++)
-	 GAMMA[mu]=base_gamma[5]*base_gamma[igamma_of_mu[mu]];
+	  GAMMA[mu]=base_gamma[5]*base_gamma[iGammaOfMu(mu)];
       }
     else
       {
 	GAMMA[4]=temp_gamma;
-	for(int mu=0;mu<NDIM;mu++) GAMMA[mu]=base_gamma[igamma_of_mu[mu]];
+	for(int mu=0;mu<NDIM;mu++) GAMMA[mu]=base_gamma[iGammaOfMu(mu)];
       }
     
     dirac_matr g;
@@ -718,8 +718,8 @@ namespace nissa
     
     dirac_matr GAMMA[NDIM];
     for(int mu=0;mu<NDIM;mu++)
-      if(revert) GAMMA[mu]=base_gamma[5]*base_gamma[igamma_of_mu[mu]];
-      else       GAMMA[mu]=base_gamma[igamma_of_mu[mu]];
+      if(revert) GAMMA[mu]=base_gamma[5]*base_gamma[iGammaOfMu(mu)];
+      else       GAMMA[mu]=base_gamma[iGammaOfMu(mu)];
     
     dirac_matr g;
     if(revert) g=dirac_prod(ext_g,base_gamma[5]);
@@ -765,7 +765,7 @@ namespace nissa
       vector_current_mel(si,g,Q[prop_name_fw].r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
     else
       {
-	momentum_t plain_bc;
+	Momentum plain_bc;
 	plain_bc[0]=temporal_bc;
 	for(int mu=1;mu<NDIM;mu++)
 	  plain_bc[mu]=0.0;

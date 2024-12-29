@@ -239,7 +239,7 @@ struct HitLooper
 	
 	//compute relative coords
 	bool is_spat_orig=true;
-	coords_t rel_c;
+	Coords rel_c;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
 	    rel_c[mu]=rel_coord_of_loclx(ivol,mu);

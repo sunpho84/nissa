@@ -52,7 +52,7 @@ namespace nissa
 		TO_READ(field)),
 	ivol,
 	{
-	  const coords_t X=
+	  const Coords X=
 	    glbCoordOfLoclx[ivol];
 	  
 	  uint32_t ildg_ivol=X[0];

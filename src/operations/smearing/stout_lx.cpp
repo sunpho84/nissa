@@ -18,17 +18,6 @@
 #include "routines/mpi_routines.hpp"
 #include "stout.hpp"
 
-/*
-  
-  
-  
-  white space needed for macros to work
-  
-  
-  
-  
-*/
-
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
@@ -46,19 +35,19 @@ namespace nissa
     su3 temp1,temp2;
     for(int inu=0;inu<NDIM-1;inu++)                   //  E---F---C
       {                                               //  |   |   | mu
-	int nu=perp_dir[mu][inu];                     //  D---A---B
-	  int B=loclxNeighup[A][nu];                 //        nu
-	  int F=loclxNeighup[A][mu];
-	  unsafe_su3_prod_su3(    temp1,conf[A][nu],conf[B][mu]);
-	  unsafe_su3_prod_su3_dag(temp2,temp1,      conf[F][nu]);
-	  su3_summ_the_prod_double(staples,temp2,rho);
-	  
-	  int D=loclxNeighdw[A][nu];
-	  int E=loclxNeighup[D][mu];
-	  unsafe_su3_dag_prod_su3(temp1,conf[D][nu],conf[D][mu]);
-	  unsafe_su3_prod_su3(    temp2,temp1,      conf[E][nu]);
-	  su3_summ_the_prod_double(staples,temp2,rho);
-	}
+	int nu=perpDirs[mu][inu];                     //  D---A---B
+	int B=loclxNeighup[A][nu];                    //        nu
+	int F=loclxNeighup[A][mu];
+	unsafe_su3_prod_su3(    temp1,conf[A][nu],conf[B][mu]);
+	unsafe_su3_prod_su3_dag(temp2,temp1,      conf[F][nu]);
+	su3_summ_the_prod_double(staples,temp2,rho);
+	
+	int D=loclxNeighdw[A][nu];
+	int E=loclxNeighup[D][mu];
+	unsafe_su3_dag_prod_su3(temp1,conf[D][nu],conf[D][mu]);
+	unsafe_su3_prod_su3(    temp2,temp1,      conf[E][nu]);
+	su3_summ_the_prod_double(staples,temp2,rho);
+      }
   }
   
   //compute the parameters needed to smear a link, that can be used to smear it or to compute the
@@ -87,7 +76,7 @@ namespace nissa
   void stout_smear_single_level(LxField<quad_su3>& out,
 				const LxField<quad_su3>& in,
 				const double& rho,
-				const which_dir_t& dirs)
+				const WhichDirs& dirs)
   {
     START_TIMING(sto_time,nsto);
     
@@ -120,7 +109,7 @@ namespace nissa
   void stout_smear(LxField<quad_su3>& out,
 		   const LxField<quad_su3> in,
 		   const stout_pars_t& stout_pars,
-		   const which_dir_t& dirs)
+		   const WhichDirs& dirs)
   {
     const int niter=stout_pars.nlevels;
     
@@ -163,7 +152,7 @@ namespace nissa
   void stout_smear_whole_stack(std::vector<LxField<quad_su3>*>& out,
 			       const LxField<quad_su3>& in,
 			       const stout_pars_t* stout_pars,
-			       const which_dir_t& dirs)
+			       const WhichDirs& dirs)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_lx_conf(*out[0]));
     for(int i=1;i<=stout_pars->nlevels;i++)

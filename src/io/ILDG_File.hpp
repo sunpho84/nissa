@@ -118,15 +118,15 @@ namespace nissa
     int iglb_ILDG=rank*locVol+iloc_ILDG;
     
     //find global coords in ildg ordering
-    coords_t xto;
+    Coords xto;
     for(int mu=NDIM-1;mu>=0;mu--)
       {
-	int nu=scidac_mapping[mu];
+	int nu=scidacMapping[mu];
 	xto[nu]=iglb_ILDG%glbSize[nu];
 	iglb_ILDG/=glbSize[nu];
       }
     
-    return get_loclx_and_rank_of_coord(xto);
+    return getLoclxAndRankOfCoords(xto);
   }
   
   /// Defines the reampping from lx in order to have in each rank a
@@ -138,7 +138,7 @@ namespace nissa
     int iglb_ILDG=0;
     for(int mu=0;mu<NDIM;mu++)
       {
-	const int nu=scidac_mapping[mu];
+	const int nu=scidacMapping[mu];
 	iglb_ILDG=iglb_ILDG*glbSize[nu]+glbCoordOfLoclx[iloc_lx][nu];
       }
     

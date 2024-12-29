@@ -199,7 +199,7 @@ namespace nissa
   
   std::string siteAsString(const int& n)
   {
-    const auto c=glb_coord_of_glblx(n);
+    const auto c=glbCoordOfGlblx(n);
     
     std::string res=
       std::to_string(n)+
@@ -317,16 +317,16 @@ namespace nissa
 	  test[i]=glblxOfLoclx[i];
 	});
     
-    PAR(0,bord_vol,
+    PAR(0,bordVol,
 	CAPTURE(TO_WRITE(test)),i,
 	{
 	  test[i+locVol]=-1;
 	});
     
-    PAR(0,edge_vol,
+    PAR(0,edgeVol,
 	CAPTURE(TO_WRITE(test)),i,
 	{
-	  test[i+locVol+bord_vol]=-2;
+	  test[i+locVol+bordVol]=-2;
 	});
     
     test.invalidateHalo();
@@ -347,7 +347,7 @@ namespace nissa
 		
 		const int l1n=loclx_neigh[ori1][site][mu];
 		const int ln=loclx_neigh[ori2][l1n][nu];
-		const int gn=(ln<locVol)?glblxOfLoclx[ln]:((ln<locVol+bord_vol)?glblxOfBordlx[ln-locVol]:glblxOfEdgelx[ln-locVol-bord_vol]);
+		const int gn=(ln<locVol)?glblxOfLoclx[ln]:((ln<locVol+bordVol)?glblxOfBordlx[ln-locVol]:glblxOfEdgelx[ln-locVol-bordVol]);
 		const int neighVal=test[ln];
 		
 		if(neighVal!=gn)
@@ -371,16 +371,16 @@ namespace nissa
 			    test[i]=glblxOfLoclx[loclx_of_loceo[par][i]];
 			  });
 		      
-		      PAR(0,bord_volh,
+		      PAR(0,bordVolh,
 			  CAPTURE(test=test[par].getWritable()),i,
 			  {
 			    test[i+locVolh]=-1;
 			  });
 		      
-		      PAR(0,edge_volh,
+		      PAR(0,edgeVolh,
 			  CAPTURE(test=test[par].getWritable()),i,
 			  {
-			    test[i+locVolh+bord_volh]=-2;
+			    test[i+locVolh+bordVolh]=-2;
 			  });
 		      );
     
@@ -412,7 +412,7 @@ namespace nissa
 				const int l1n=((ori1==0)?loceo_neighdw:loceo_neighup)[par][ieo][mu];
 				const int ln=((ori2==0)?loceo_neighdw:loceo_neighup)[!par][l1n][nu];
 				const int lx=loclx_of_loceo[par][ln];
-				const int gn=(lx<locVol)?glblxOfLoclx[lx]:((lx<locVol+bord_vol)?glblxOfBordlx[lx-locVol]:glblxOfEdgelx[lx-locVol-bord_vol]);
+				const int gn=(lx<locVol)?glblxOfLoclx[lx]:((lx<locVol+bordVol)?glblxOfBordlx[lx-locVol]:glblxOfEdgelx[lx-locVol-bordVol]);
 				const int neighVal=test[par][ln];
 				
 				if(neighVal!=gn)

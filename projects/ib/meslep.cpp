@@ -18,7 +18,7 @@ namespace nissa
     
     lep_contr_iq1=nissa_malloc("lep_contr_iq1",nquark_lep_combos,int);
     lep_contr_iq2=nissa_malloc("lep_contr_iq2",nquark_lep_combos,int);
-    leps=nissa_malloc("leps",nquark_lep_combos,tm_quark_info);
+    leps=nissa_malloc("leps",nquark_lep_combos,TmQuarkInfo);
     lep_energy=nissa_malloc("lep_energy",nquark_lep_combos,double);
     neu_energy=nissa_malloc("neu_energy",nquark_lep_combos,double);
     for(int il=0;il<nquark_lep_combos;il++)
@@ -93,9 +93,9 @@ namespace nissa
   }
   
   //return appropriately modified info
-  tm_quark_info get_lepton_info(int ilepton,int orie,int r)
+  TmQuarkInfo get_lepton_info(int ilepton,int orie,int r)
   {
-    tm_quark_info le=leps[ilepton];
+    TmQuarkInfo le=leps[ilepton];
     le.r=r;
     le.bc[0]=temporal_bc;
     for(int i=1;i<NDIM;i++) le.bc[i]*=sign_orie[orie];
@@ -104,7 +104,7 @@ namespace nissa
   }
   
   //compute phase exponent for space part: vec{p}*\vec{x}
-  CUDA_HOST_AND_DEVICE double get_space_arg(int ivol,const momentum_t& bc)
+  CUDA_HOST_AND_DEVICE double get_space_arg(int ivol,const Momentum& bc)
   {
     double arg=0;
     for(int mu=1;mu<NDIM;mu++)
@@ -116,7 +116,7 @@ namespace nissa
   }
   
   //compute the phase for lepton on its sink
-  CUDA_HOST_AND_DEVICE void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info le)
+  CUDA_HOST_AND_DEVICE void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,TmQuarkInfo le)
   {
     //compute space and time factor
     double arg=get_space_arg(ivol,le.bc);
@@ -130,7 +130,7 @@ namespace nissa
   }
   
   //compute the phase for antineutrino - the orientation is that of the muon (as above)
-  CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,const momentum_t& bc)
+  CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,const Momentum& bc)
   {
     //compute space and time factor
     double arg=get_space_arg(ivol,bc);
@@ -144,7 +144,7 @@ namespace nissa
   }
   
   //set everything to a phase factor
-  void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &le)
+  void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,TmQuarkInfo &le)
   {
     crash("reimplement");
     // vector_reset(prop);
@@ -159,7 +159,7 @@ namespace nissa
   }
   
   //insert the photon on the source side
-  void insert_photon_on_the_source(spinspin* prop,spin1field* A,int* dirs,tm_quark_info le,int twall)
+  void insert_photon_on_the_source(spinspin* prop,spin1field* A,int* dirs,TmQuarkInfo le,int twall)
   {
     crash("reimplement");
     
@@ -266,7 +266,7 @@ namespace nissa
     // 	    {
     // 	      //set the properties of the meson
     // 	      //time boundaries are anti-periodic, space are as for external line
-    // 	      tm_quark_info le=get_lepton_info(ilepton,ori,r);
+    // 	      TmQuarkInfo le=get_lepton_info(ilepton,ori,r);
 	      
     // 	      //select the propagator
     // 	      int iprop=ilprop(ilepton,ilins,ori,r);
@@ -336,7 +336,7 @@ namespace nissa
     vector_reset(loc_contr);
     
     //get the lepton info and prop
-    tm_quark_info le=get_lepton_info(ilepton,orie,rl);
+    TmQuarkInfo le=get_lepton_info(ilepton,orie,rl);
     // spinspin *lept=L[iprop];
     
     //get the projectors
@@ -349,7 +349,7 @@ namespace nissa
     else naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,-1);
     if(follow_chris_or_nazario==follow_chris)
       for(int i=0;i<2;i++)
-	safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma[igamma_of_mu[0]]);
+	safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma[iGammaOfMu(0)]);
     
     //compute the right part of the leptonic loop: G0 G^dag
     // dirac_matr meslep_proj_gamma[nmeslep_proj];

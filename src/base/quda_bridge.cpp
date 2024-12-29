@@ -391,10 +391,10 @@ namespace quda_iface
   {
     if(not inited)
       {
-	coords_t periods;
+	Coords periods;
 	for(int mu=0;mu<NDIM;mu++)
 	  periods[mu]=1;
-	MPI_Cart_create(MPI_COMM_WORLD,NDIM,&nrank_dir[0],&periods[0],1,&cart_comm);
+	MPI_Cart_create(MPI_COMM_WORLD,NDIM,&nRanksDir[0],&periods[0],1,&cart_comm);
 	
 	master_printf("Initializing QUDA\n");
 	
@@ -408,8 +408,8 @@ namespace quda_iface
 	
 	for(int64_t ivol=0;ivol<locVol;ivol++)
 	  {
-	    const coords_t& c=locCoordOfLoclx[ivol];
-	    const coords_t& l=locSize;
+	    const Coords& c=locCoordOfLoclx[ivol];
+	    const Coords& l=locSize;
 	    
 	    int itmp=0;
 	    for(int mu=0;mu<NDIM;mu++)
@@ -476,7 +476,7 @@ namespace quda_iface
 	
 	int grid[NDIM];
 	for(int mu=0;mu<NDIM;mu++)
-	  grid[mu]=nrank_dir[std::array<int,NDIM>{1,2,3,0}[mu]];
+	  grid[mu]=nRanksDir[std::array<int,NDIM>{1,2,3,0}[mu]];
 	
 	initCommsGridQuda(NDIM,grid,get_rank_of_quda_coords,NULL);
 	

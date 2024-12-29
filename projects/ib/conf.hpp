@@ -38,10 +38,10 @@ namespace nissa
   void allocate_confs();
   void free_confs();
   void read_init_grid();
-  coords_t generate_random_coord();
+  Coords generate_random_coord();
   
   LxField<quad_su3>* get_updated_conf(const double& charge,
-				      const momentum_t& theta,
+				      const Momentum& theta,
 				      const LxField<quad_su3>& in_conf);
   
   void start_new_conf();

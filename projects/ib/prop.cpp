@@ -3,7 +3,6 @@
 #define EXTERN_PROP
 # include "prop.hpp"
 
-#include <set>
 #include <tuple>
 
 namespace nissa
@@ -46,7 +45,7 @@ namespace nissa
 		 const int& r,
 		 const double charge,
 		 const double& residue,
-		 const momentum_t& theta)
+		 const Momentum& theta)
   {
     //rotate the source index - the propagator rotate AS the sign of mass term
     if(twisted_run>0)
@@ -69,7 +68,7 @@ namespace nissa
       {
 	master_printf("   working in FT\n");
 	
-	const tm_quark_info qu(kappa,fabs(mass),r,theta);
+	const TmQuarkInfo qu(kappa,fabs(mass),r,theta);
 	const tm_basis_t basis=WILSON_BASE;
 	multiply_from_left_by_x_space_twisted_propagator_by_fft(out,in,qu,basis,false);
       }
@@ -116,7 +115,7 @@ namespace nissa
 				  const LxField<spin1field>& curr,
 				  const LxField<spincolor>& in,
 				  const int& t,
-				  const which_dir_t& dirs)
+				  const WhichDirs& dirs)
   {
     
     if(in==out) crash("in==out");
@@ -135,7 +134,7 @@ namespace nissa
 	      if(t==-1 or glbCoordOfLoclx[ivol][0]==t)
 		{
 		  spincolor temp1,temp2;
-		  unsafe_dirac_prod_spincolor(temp1,base_gamma[igamma_of_mu[mu]],in[ivol]);
+		  unsafe_dirac_prod_spincolor(temp1,base_gamma[iGammaOfMu(mu)],in[ivol]);
 		  unsafe_spincolor_prod_complex(temp2,temp1,curr[ivol][mu]);
 		  spincolor_summ_the_prod_idouble(out[ivol],temp2,1);
 		}
@@ -163,7 +162,7 @@ namespace nissa
 	    if(t==-1 or glbCoordOfLoclx[ivol][0]==t)
 	      {
 		spincolor temp1;
-		unsafe_dirac_prod_spincolor(temp1,base_gamma[igamma_of_mu[mu]],in[ivol]);
+		unsafe_dirac_prod_spincolor(temp1,base_gamma[iGammaOfMu(mu)],in[ivol]);
 		
 		complex curr;
 		currCalc(curr,ivol,mu,0.0);
@@ -182,7 +181,7 @@ namespace nissa
 			      const LxField<spincolor>& ori,
 			      const int& t,
 			      const int& r,
-			      const which_dir_t& dirs,
+			      const WhichDirs& dirs,
 			      const int loc)
   {
     if(loc) insert_external_loc_source(out,curr,ori,t,dirs);
@@ -224,7 +223,7 @@ namespace nissa
 				const LxField<spincolor>& ori,
 				const int& t,
 				const int& r,
-				const which_dir_t& dirs)
+				const WhichDirs& dirs)
   {
     if(twisted_run>0) insert_tm_conserved_current(*loop_source,conf,ori,r,dirs,t);
     else              insert_Wilson_conserved_current(*loop_source,conf,ori,dirs,t);
@@ -255,7 +254,7 @@ namespace nissa
   void phase_prop(LxField<spincolor>& out,
 		  const LxField<spincolor>& ori,
 		  const int& t,
-		  const momentum_t& th)
+		  const Momentum& th)
   {
     
     for(int mu=1;mu<NDIM;mu++)
@@ -306,7 +305,7 @@ namespace nissa
     recursive_Wflower_t recu(Wf,flown_conf);
     
     //the adjoint flower needed for fermionic source
-    fermion_adjoint_flower_t<spincolor> adj_ferm_flower(dt,all_other_dirs[0]);
+    fermion_adjoint_flower_t<spincolor> adj_ferm_flower(dt,allOtherDirs[0]);
     
     //at each step it goes from iflow+1 to iflow
     select_propagator_timeslice(out,ori,t);
@@ -342,7 +341,7 @@ namespace nissa
     flown_conf=conf;
     
     //the flower, need to cache integration
-    fermion_flower_t<spincolor,4> ferm_flower(dt,all_other_dirs[0]);
+    fermion_flower_t<spincolor,4> ferm_flower(dt,allOtherDirs[0]);
     
     select_propagator_timeslice(out,ori,t);
     for(int iflow=0;iflow<=nflows;iflow++)
@@ -412,7 +411,7 @@ namespace nissa
 		   const double mass,
 		   const int r,
 		   const double& charge,
-		   const momentum_t& theta)
+		   const Momentum& theta)
   {
     LxField<spincolor> tmp("tmp",WITH_HALO);
     
@@ -437,8 +436,7 @@ namespace nissa
       apply_tmQ(out,conf,kappa,mass,tmp);
     
     PAR(0,locVol,
-	CAPTURE(r,
-		TO_WRITE(out)),
+	CAPTURE(TO_WRITE(out)),
 	ivol,
 	{
 	  safe_dirac_prod_spincolor(out[ivol],base_gamma[5],out[ivol]);
@@ -460,8 +458,8 @@ namespace nissa
 		       const LxField<spincolor>& ori,
 		       const int& pos)
   {
-    const coords_t g=
-      glb_coord_of_glblx(pos);
+    const Coords g=
+      glbCoordOfGlblx(pos);
     
     PAR(0,locVol,
 	CAPTURE(g,
@@ -519,7 +517,7 @@ namespace nissa
   }
   
   //generate a sequential source
-  void generate_source(insertion_t inser,char *ext_field_path,double mass,int r,double charge,double kappa,const momentum_t& kappa_asymm,const momentum_t& theta,std::vector<source_term_t>& source_terms,int isou,int t)
+  void generate_source(insertion_t inser,char *ext_field_path,double mass,int r,double charge,double kappa,const Momentum& kappa_asymm,const Momentum& theta,std::vector<source_term_t>& source_terms,int isou,int t)
   {
     source_time-=take_time();
     
@@ -604,11 +602,11 @@ namespace nissa
       case PSEUDO:prop_multiply_with_gamma(loop_source,5,ori,rel_t);break;
       case GAMMA:prop_multiply_with_gamma(loop_source,r,ori,rel_t);break;
       case COLOR:prop_multiply_with_color_delta(loop_source,r,ori,rel_t);break;
-      case PHOTON:insert_external_source(loop_source,*conf,*photon_field,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
-      case PHOTON0:insert_external_source(loop_source,*conf,*photon_field,ori,rel_t,r,only_dir[0],loc_hadr_curr);break;
-      case PHOTON1:insert_external_source(loop_source,*conf,*photon_field,ori,rel_t,r,only_dir[1],loc_hadr_curr);break;
-      case PHOTON2:insert_external_source(loop_source,*conf,*photon_field,ori,rel_t,r,only_dir[2],loc_hadr_curr);break;
-      case PHOTON3:insert_external_source(loop_source,*conf,*photon_field,ori,rel_t,r,only_dir[3],loc_hadr_curr);break;
+      case PHOTON:insert_external_source(loop_source,*conf,*photon_field,ori,rel_t,r,allDirs,loc_hadr_curr);break;
+      case PHOTON0:insert_external_source(loop_source,*conf,*photon_field,ori,rel_t,r,onlyDir[0],loc_hadr_curr);break;
+      case PHOTON1:insert_external_source(loop_source,*conf,*photon_field,ori,rel_t,r,onlyDir[1],loc_hadr_curr);break;
+      case PHOTON2:insert_external_source(loop_source,*conf,*photon_field,ori,rel_t,r,onlyDir[2],loc_hadr_curr);break;
+      case PHOTON3:insert_external_source(loop_source,*conf,*photon_field,ori,rel_t,r,onlyDir[3],loc_hadr_curr);break;
       case VBHOTON0:insert_external_source(loop_source,*conf,vphotonInsertCurr(BwFw::BW,0),ori,rel_t,r,loc_hadr_curr);break;
       case VBHOTON1:insert_external_source(loop_source,*conf,vphotonInsertCurr(BwFw::BW,1),ori,rel_t,r,loc_hadr_curr);break;
       case VBHOTON2:insert_external_source(loop_source,*conf,vphotonInsertCurr(BwFw::BW,2),ori,rel_t,r,loc_hadr_curr);break;
@@ -617,15 +615,15 @@ namespace nissa
       case VPHOTON1:insert_external_source(loop_source,*conf,vphotonInsertCurr(BwFw::FW,1),ori,rel_t,r,loc_hadr_curr);break;
       case VPHOTON2:insert_external_source(loop_source,*conf,vphotonInsertCurr(BwFw::FW,2),ori,rel_t,r,loc_hadr_curr);break;
       case VPHOTON3:insert_external_source(loop_source,*conf,vphotonInsertCurr(BwFw::FW,3),ori,rel_t,r,loc_hadr_curr);break;
-      case PHOTON_PHI:insert_external_source(loop_source,*conf,*photon_phi,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
-      case PHOTON_ETA:insert_external_source(loop_source,*conf,*photon_eta,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
+      case PHOTON_PHI:insert_external_source(loop_source,*conf,*photon_phi,ori,rel_t,r,allDirs,loc_hadr_curr);break;
+      case PHOTON_ETA:insert_external_source(loop_source,*conf,*photon_eta,ori,rel_t,r,allDirs,loc_hadr_curr);break;
       case TADPOLE:insert_tadpole(loop_source,*conf,ori,rel_t,r);break;
-      case CVEC:insert_conserved_current(loop_source,*conf,ori,rel_t,r,all_dirs);break;
-      case CVEC0:insert_conserved_current(loop_source,*conf,ori,rel_t,r,only_dir[0]);break;
-      case CVEC1:insert_conserved_current(loop_source,*conf,ori,rel_t,r,only_dir[1]);break;
-      case CVEC2:insert_conserved_current(loop_source,*conf,ori,rel_t,r,only_dir[2]);break;
-      case CVEC3:insert_conserved_current(loop_source,*conf,ori,rel_t,r,only_dir[3]);break;
-      case EXT_FIELD:insert_external_source(loop_source,*conf,*ext_field,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
+      case CVEC:insert_conserved_current(loop_source,*conf,ori,rel_t,r,allDirs);break;
+      case CVEC0:insert_conserved_current(loop_source,*conf,ori,rel_t,r,onlyDir[0]);break;
+      case CVEC1:insert_conserved_current(loop_source,*conf,ori,rel_t,r,onlyDir[1]);break;
+      case CVEC2:insert_conserved_current(loop_source,*conf,ori,rel_t,r,onlyDir[2]);break;
+      case CVEC3:insert_conserved_current(loop_source,*conf,ori,rel_t,r,onlyDir[3]);break;
+      case EXT_FIELD:insert_external_source(loop_source,*conf,*ext_field,ori,rel_t,r,allDirs,loc_hadr_curr);break;
       case SMEARING:smear_prop(loop_source,*conf,ori,rel_t,kappa,r);break;
       case ANYSM:smear_prop(loop_source,*conf,ori,rel_t,kappa_asymm,r);break;
       case WFLOW:flow_prop(loop_source,*conf,ori,rel_t,kappa,r);break;
@@ -850,11 +848,11 @@ namespace nissa
     //scattering list
     all_to_all_scattering_list_t sl;
     for(auto &f : fft_mom_range_list)
-      for(int vol=vol_of_lx(f.first.width),ifilt=0;ifilt<vol;ifilt++)
+      for(int vol=volOfLx(f.first.width),ifilt=0;ifilt<vol;ifilt++)
 	{
 	  //gets the coordinate in the filtering volume
-	  coords_t c=coord_of_lx(ifilt,f.first.width);
-	  coord_summassign(c,f.first.offs,glbSize);
+	  Coords c=coordOfLx(ifilt,f.first.width);
+	  coordsSummassign(c,f.first.offs,glbSize);
 	  
 	  //compute p~4/p~2^2
 	  double pt2=0,pt4=0;
@@ -871,12 +869,12 @@ namespace nissa
 	    for(int imir=0;imir<pow(2,NDIM);imir++)
 	      {
 		//get mirrorized
-		coords_t cmir;
+		Coords cmir;
 		for(int mu=0;mu<NDIM;mu++)
 		  cmir[mu]=get_mirrorized_site_coord(c[mu]+(mu==0 and get_bit(imir,0) and temporal_bc==ANTIPERIODIC_BC),mu,get_bit(imir,mu));
 		
 		//check if not already collected
-		int iglb=glblx_of_coord(cmir);
+		int iglb=glblxOfCoord(cmir);
 		if(list_of_filtered.find(iglb)==list_of_filtered.end())
 		  {
 		    //print momentum coordinates
@@ -890,7 +888,7 @@ namespace nissa
 		    
 		    //search where data is stored
 		    const auto [wrank,iloc]=
-		      get_loclx_and_rank_of_coord(cmir); //the remapper will leave holes
+		      getLoclxAndRankOfCoords(cmir); //the remapper will leave holes
 		    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks));
 		    
 		    list_of_filtered.insert(iglb);
@@ -945,7 +943,7 @@ namespace nissa
     bool ended=false;
     while(not ended)
       {
-	coords_t c;
+	Coords c;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
 	    int cmu;
@@ -962,10 +960,10 @@ namespace nissa
 	  {
 	    //search where data is stored
 	    const auto [wrank,iloc]=
-	      get_loclx_and_rank_of_coord(c);
+	      getLoclxAndRankOfCoords(c);
 	    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks));
 	    
-	    int iglb=glblx_of_coord(c);
+	    int iglb=glblxOfCoord(c);
 	    list_of_filtered.insert(iglb);
 	  }
       }

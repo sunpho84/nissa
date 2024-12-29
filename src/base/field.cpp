@@ -16,7 +16,7 @@ namespace nissa
     std::vector<MPI_Request> requests;
     
     for(int mu=0;mu<NDIM;mu++)
-      if(is_dir_parallel[mu])
+      if(isDirParallel[mu])
 	for(int sendOri=0;sendOri<2;sendOri++)
 	  if((not dirs.has_value()) or
 	     std::find(dirs->begin(),dirs->end(),std::make_pair(sendOri,mu))!=dirs->end())
@@ -32,9 +32,14 @@ namespace nissa
 		 auto* ptr,
 		 const int& ori)
 		{
-		  const size_t offset=(bord_offset[mu]+bord_volh*ori)*bps/divCoeff;
-		  const int neighRank=rank_neigh[ori][mu];
-		  const size_t messageLength=bord_dir_vol[mu]*bps/divCoeff;
+		  const size_t offset=
+		    (bordOffset[mu]+bordVolh*ori)*bps/divCoeff;
+		  
+		  const int neighRank=
+		    rankNeigh[ori][mu];
+		  
+		  const size_t messageLength=
+		    bordDirVol[mu]*bps/divCoeff;
 		  // printf("rank %d %s ori %d dir %d, corresponding rank: %d, tag: %d length: %zu\n"
 		  //        ,rank,oper,ori,mu,neighRank,messageTag,messageLength);
 		  
@@ -80,7 +85,7 @@ namespace nissa
 		  {
 		    if(isEdgeParallel[iEdge])
 		      {
-			const size_t offset=(edge_offset[iEdge]+edge_vol*(ori2+2*ori1)/4)*bps/divCoeff;
+			const size_t offset=(edge_offset[iEdge]+edgeVol*(ori2+2*ori1)/4)*bps/divCoeff;
 			const int neighRank=rank_edge_neigh[ori1][ori2][iEdge];
 			const size_t messageLength=edge_dir_vol[iEdge]*bps/divCoeff;
 			

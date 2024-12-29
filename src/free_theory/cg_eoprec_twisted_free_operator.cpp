@@ -21,7 +21,7 @@ namespace nissa
   //invert Koo defined in equation (7)
   void inv_tmDkern_eoprec_square_eos(OddField<spin>& sol,
 				     const std::optional<OddField<spin>>& guess,
-				     const tm_quark_info& qu,
+				     const TmQuarkInfo& qu,
 				     const int& nMaxIter,
 				     const double& residue,
 				     const OddField<spin>& source)
@@ -120,7 +120,7 @@ namespace nissa
   //Invert twisted mass operator using e/o preconditioning.
   void inv_tmD_cg_eoprec_eos(LxField<spin>& solution_lx,
 			     std::optional<OddField<spin>> guess_Koo,
-			     const tm_quark_info& qu,
+			     const TmQuarkInfo& qu,
 			     const int& nitermax,
 			     const double& residue,
 			     const LxField<spin>& source_lx)
@@ -156,7 +156,7 @@ namespace nissa
     
     // //Equation (9)
     // inv_tmDkern_eoprec_square_eos(temp,guess_Koo,qu,nitermax,residue,varphi);
-    // tm_quark_info mqu=qu;
+    // TmQuarkInfo mqu=qu;
     // mqu.mass*=-1;
     // //auto& uuu=solution_eos[EVN].castSitesCoverage<>()
     // tmDkern_eoprec_eos(solution_eos.oddPart,solution_eos.evenPart,mqu,temp);

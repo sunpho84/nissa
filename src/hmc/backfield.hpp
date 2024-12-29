@@ -71,18 +71,18 @@ namespace nissa
   
   //compute args for non-present quantization
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  coords_t get_args_of_null_quantization(const int& ivol,
+  Coords get_args_of_null_quantization(const int64_t& ivol,
 					 const int& mu,
 					 const int& nu);
   
   //compute args for 1/L2 quantization
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  coords_t get_args_of_one_over_L2_quantization(const int& ivol,
+  Coords get_args_of_one_over_L2_quantization(const int64_t& ivol,
 						const int& mu,
 						const int& nu);
   
   //compute args for half-half quantization
-  CUDA_HOST_AND_DEVICE coords_t get_args_of_half_half_quantization(const int& ivol,
+  CUDA_HOST_AND_DEVICE Coords get_args_of_half_half_quantization(const int64_t& ivol,
 								   const int& mu,
 								   const int& nu);
   //multiply a background field by a constant em field
@@ -151,6 +151,6 @@ namespace nissa
     add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,1,u1,1);
   }
   
-  CUDA_MANAGED extern coords_t (*get_args_of_quantization[3])(const int&,const int&,const int&);
+  CUDA_MANAGED extern Coords (*get_args_of_quantization[3])(const int64_t&,const int&,const int&);
 }
 #endif

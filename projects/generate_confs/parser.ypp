@@ -52,7 +52,6 @@
     nissa::Wflow_pars_t *Wflow_pars;
     
     nissa::meson_corr_meas_pars_t *meson_corr_meas;
-    nissa::nucleon_corr_meas_pars_t *nucleon_corr_meas;
     nissa::magnetization_meas_pars_t *magnetization_meas;
     nissa::minmax_eigenvalues_meas_pars_t *minmax_eigenvalues_meas;
     nissa::quark_rendens_meas_pars_t *quark_rendens_meas;
@@ -228,13 +227,6 @@
 %token TK_MEAS_MESON_CORRS
 %token TK_OPERATORS
 %type <int_pair_list> operators
-//nucleon corr
-%type <nucleon_corr_meas> nucleon_corr_meas
-%token TK_MEAS_NUCLEON_CORRS
-%token TK_GAUSS_SME_NSTEPS
-%token TK_GAUSS_SME_KAPPA
-%token TK_APE_SME_NSTEPS
-%token TK_APE_SME_ALPHA
 //putpourri
 %type <fermionic_putpourri_meas> fermionic_putpourri_meas
 %token TK_MEAS_PUTPOURRI
@@ -351,7 +343,6 @@ global_specify: geometry
               | theory {driver->theories.push_back(*$1);delete $1;}
 /////////////// fermionic measures ////////////////
               | meson_corr_meas {driver->add_meson_corr_meas(*$1);delete $1;}
-              | nucleon_corr_meas {driver->add_nucleon_corr_meas(*$1);delete $1;}
               | fermionic_putpourri_meas {driver->add_fermionic_putpourri_meas(*$1);delete $1;}
               | quark_rendens_meas {driver->add_quark_rendens_meas(*$1);delete $1;}
               | chir_zumba_meas {driver->add_chir_zumba_meas(*$1);delete $1;}
@@ -557,23 +548,6 @@ quark: TK_QUARK '=' text
      | quark TK_RE_POT_CH '=' double_numb {$$->re_pot=$4;}
      | quark TK_IM_POT_CH '=' double_numb {$$->im_pot=$4;}
      | quark TK_ELEC_CHARGE '=' double_numb {$$->charge=$4;}
-;
-
-////////////////////////////////////////////////// NUCLEON CORR //////////////////////////////////////////////////
-
-nucleon_corr_meas: TK_MEAS_NUCLEON_CORRS {$$=new nucleon_corr_meas_pars_t();}
-                 | nucleon_corr_meas each {$$->each=$2;}
-                 | nucleon_corr_meas after {$$->after=$2;}
-                 | nucleon_corr_meas path {$$->path=(*$2);delete $2;}
-                 | nucleon_corr_meas residue {$$->residue=$2;}
-                 | nucleon_corr_meas itheory {$$->itheory=$2;}
-                 | nucleon_corr_meas ncopies {$$->ncopies=$2;}
-                 | nucleon_corr_meas noise_type {$$->rnd_type=$2;}
-                 | nucleon_corr_meas nhits {$$->nhits=$2;}
-                 | nucleon_corr_meas TK_GAUSS_SME_NSTEPS '=' int_numb {$$->gaussSmeNSteps=$4;}
-                 | nucleon_corr_meas TK_GAUSS_SME_KAPPA '=' double_numb {$$->gaussSmeKappa=$4;}
-                 | nucleon_corr_meas TK_APE_SME_NSTEPS '=' int_numb {$$->apeSmeNSteps=$4;}
-                 | nucleon_corr_meas TK_APE_SME_ALPHA '=' double_numb {$$->apeSmeAlpha=$4;}
 ;
 
 ////////////////////////////////////////////////// MESON CORR //////////////////////////////////////////////////

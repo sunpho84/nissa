@@ -166,7 +166,7 @@ namespace nissa
     
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol+edge_vol,quad_su3);
+    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bordVol+edgeVol,quad_su3);
     //paste_eo_parts_into_lx_vector(conf_lx,conf);
     crash("reimplement");
     

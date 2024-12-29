@@ -19,10 +19,10 @@
 
 namespace nissa
 {
-  typedef int tricoords_t[3];
+  typedef int triCoords[3];
   
   //return the three coords of site in the transposed space
-  void get_tricoords_of_site(tricoords_t c,int icmp,tricoords_t L)
+  void get_tricoords_of_site(triCoords c,int icmp,triCoords L)
   {
     for(int mu=2;mu>=0;mu--)
       {
@@ -32,7 +32,7 @@ namespace nissa
   }
   
   //return the three coords of site in the transposed space
-  int get_site_of_tricoords(tricoords_t c,tricoords_t L)
+  int get_site_of_tricoords(triCoords c,triCoords L)
   {
     int icmp=0;
     
@@ -43,7 +43,7 @@ namespace nissa
   }
   
   //copy
-  void tricoords_copy(tricoords_t out,tricoords_t in)
+  void tricoords_copy(triCoords out,triCoords in)
   {
     out[0]=in[0];
     out[1]=in[1];
@@ -51,9 +51,9 @@ namespace nissa
   }
   
   //shift in a single dir
-  int site_shift(int icmp,tricoords_t L,int mu,int shift)
+  int site_shift(int icmp,triCoords L,int mu,int shift)
   {
-    tricoords_t in;
+    triCoords in;
     get_tricoords_of_site(in,icmp,L);
     
     in[mu]=in[mu]+shift;
@@ -68,10 +68,10 @@ namespace nissa
   {
 #if NDIM>=3
     int mu0=((int*)pars)[0],imu1=((int*)pars)[1],prp_vol=((int*)pars)[2];
-    int mu1=perp_dir[mu0][imu1],mu2=perp2_dir[mu0][imu1][0],mu3=perp2_dir[mu0][imu1][1];
+    int mu1=perpDirs[mu0][imu1],mu2=perp2Dirs[mu0][imu1][0],mu3=perp2Dirs[mu0][imu1][1];
     
     //find dest in the global indexing
-    const coords_t& g=glbCoordOfLoclx[iloc_lx];
+    const Coords& g=glbCoordOfLoclx[iloc_lx];
     int glb_dest_site=g[mu1]+glbSize[mu1]*(g[mu0]+glbSize[mu0]*(g[mu2]+glbSize[mu2]*g[mu3]));
     irank_transp=glb_dest_site/prp_vol;
     iloc_transp=glb_dest_site-irank_transp*prp_vol;
@@ -206,7 +206,7 @@ namespace nissa
 //     int irect=0;
 //     for(int imu01=0;imu01<12;imu01++)
 //       {
-// 	// tricoords_t L={cmp_vol[imu01]/glb_size[mu0_l[imu01]]/glb_size[mu1_l[imu01]],glb_size[mu0_l[imu01]],
+// 	// triCoords L={cmp_vol[imu01]/glb_size[mu0_l[imu01]]/glb_size[mu1_l[imu01]],glb_size[mu0_l[imu01]],
 // 	// 	       glb_size[mu1_l[imu01]]};
 	
 // 	//create all Tline

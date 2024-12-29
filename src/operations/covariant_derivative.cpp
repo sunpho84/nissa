@@ -100,7 +100,7 @@ namespace nissa
   //multiply by the 2-links Laplace operator
   void Laplace_operator_2_links(LxField<spincolor>& out,
 				const LxField<quad_su3>& conf,
-				const which_dir_t& dirs,
+				const WhichDirs& dirs,
 				const LxField<spincolor>& in)
   {
     LxField<spincolor> temp("temp",WITH_HALO);
@@ -133,7 +133,7 @@ namespace nissa
   //multiply by the Laplace operator
   void Laplace_operator(LxField<spincolor>& out,
 			const LxField<quad_su3>& conf,
-			const which_dir_t& dirs,
+			const WhichDirs& dirs,
 			const LxField<spincolor>& in)
   {
     out.reset();
@@ -256,7 +256,7 @@ namespace nissa
 									\
 		/*put gmu on the difference*/				\
 		TYPE gmu_bw_M_fw;					\
-		NAME2(unsafe_dirac_prod,TYPE)(gmu_bw_M_fw,base_gamma[igamma_of_mu[mu]],bw_M_fw); \
+		NAME2(unsafe_dirac_prod,TYPE)(gmu_bw_M_fw,base_gamma[iGammaOfMu(mu)],bw_M_fw); \
 		NAME2(TYPE,summassign)(out[ivol],gmu_bw_M_fw);		\
 	      }								\
 	});								\
@@ -267,7 +267,7 @@ namespace nissa
 		      const LxField<quad_su3>& conf,			\
 		      const LxField<TYPE>& in,				\
 		      const dirac_matr& GAMMA,				\
-		      const momentum_t& tad,				\
+		      const Momentum& tad,				\
 		      const int& t)					\
   {									\
     /*call with no source insertion, plus between fw and bw, and a global -0.25*/ \
@@ -286,7 +286,7 @@ namespace nissa
   void insert_Wilson_tadpole(LxField<TYPE>& out,			\
 			     const LxField<quad_su3>& conf,		\
 			     const LxField<TYPE>& in,			\
-			     const momentum_t& tad,			\
+			     const Momentum& tad,			\
 			     const int& t)				\
   {									\
     insert_tadpole(out,conf,in,base_gamma[0],tad,t);			\
@@ -296,7 +296,7 @@ namespace nissa
 			 const LxField<quad_su3>& conf,			\
 			 const LxField<TYPE>& in,			\
 			 const int& r,					\
-			 const momentum_t& tad,				\
+			 const Momentum& tad,				\
 			 const int& t)					\
   {									\
     DEF_TM_GAMMA(r);							\
@@ -309,7 +309,7 @@ namespace nissa
 			      const LxField<spin1field>& curr,		\
 			      const LxField<TYPE>& in,			\
 			      const dirac_matr& GAMMA,			\
-			      const which_dir_t& dirs,			\
+			      const WhichDirs& dirs,			\
 			      const int& t)				\
   {									\
     /*call with source insertion, minus between fw and bw, and a global -i*0.5 - the minus comes from definition in eq.11 of 1303.4896*/ \
@@ -332,7 +332,7 @@ namespace nissa
 				     const LxField<quad_su3>& conf,	\
 				     const LxField<spin1field>& curr,	\
 				     const LxField<TYPE>& in,		\
-				     const which_dir_t& dirs,		\
+				     const WhichDirs& dirs,		\
 				     const int& t)			\
   {									\
     insert_external_source(out,conf,curr,in,base_gamma[0],dirs,t);	\
@@ -343,7 +343,7 @@ namespace nissa
 				 const LxField<spin1field>& curr,	\
 				 const LxField<TYPE>& in,		\
 				 const int& r,				\
-				 const which_dir_t& dirs,		\
+				 const WhichDirs& dirs,			\
 				 const int& t)				\
   {									\
     DEF_TM_GAMMA(r);							\
@@ -373,7 +373,7 @@ namespace nissa
 				const LxField<quad_su3>& conf,		\
 				const LxField<TYPE>& in,		\
 				const dirac_matr& GAMMA,		\
-				const which_dir_t& dirs,		\
+				const WhichDirs& dirs,		\
 				const int& t)				\
   {									\
     /*call with no source insertion, minus between fw and bw, and a global 0.5*/ \
@@ -392,7 +392,7 @@ namespace nissa
   void insert_Wilson_conserved_current(LxField<TYPE>& out,		\
 				       const LxField<quad_su3>& conf,	\
 				       const LxField<TYPE>& in,		\
-				       const which_dir_t& dirs,		\
+				       const WhichDirs& dirs,		\
 				       const int& t)			\
   {									\
     insert_conserved_current(out,conf,in,base_gamma[0],dirs,t);		\
@@ -402,11 +402,11 @@ namespace nissa
 				   const LxField<quad_su3>& conf,	\
 				   const LxField<TYPE>& in,		\
 				   const int& r,			\
-				   const which_dir_t& dirs,		\
+				   const WhichDirs& dirs,		\
 				   const int& t)			\
   {									\
     DEF_TM_GAMMA(r);							\
-    insert_conserved_current(out,conf,in,GAMMA,dirs,t);\
+    insert_conserved_current(out,conf,in,GAMMA,dirs,t);			\
   }									\
 									\
   /*multiply with gamma*/						\

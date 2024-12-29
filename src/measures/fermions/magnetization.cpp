@@ -18,7 +18,7 @@ namespace nissa
 {
   //compute the magnetization starting from chi and rnd
   //please note that the conf must hold backfield
-  void magnetization(complex* magn,complex* magn_proj_x,eo_ptr<quad_su3> conf,quark_content_t* quark,eo_ptr<color> rnd,eo_ptr<color> chi,complex* point_magn,coords_t* arg,int mu,int nu)
+  void magnetization(complex* magn,complex* magn_proj_x,eo_ptr<quad_su3> conf,quark_content_t* quark,eo_ptr<color> rnd,eo_ptr<color> chi,complex* point_magn,Coords* arg,int mu,int nu)
   {
     crash("reimplement");
     // communicate_ev_and_od_color_borders(chi);
@@ -105,7 +105,7 @@ namespace nissa
     // eo_ptr<color> chi={nissa_malloc("chi_EVN",locVolh+bord_volh,color),nissa_malloc("chi_ODD",locVolh+bord_volh,color)};
     
     // //we need to store phases
-    // coords_t *arg=nissa_malloc("arg",locVol+bord_vol,coords_t);
+    // Coords *arg=nissa_malloc("arg",locVol+bord_vol,Coords);
     // NISSA_PARALLEL_LOOP(ivol,0,locVol+bord_vol)
     //   arg[ivol]=get_args_of_quantization[quantization](ivol,mu,nu);
     // NISSA_PARALLEL_LOOP_END;

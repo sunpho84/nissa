@@ -43,7 +43,6 @@ namespace nissa
       std::common_type_t<IMin,IMax>;
     
     double initTime=0;
-    extern int rank;
     const bool print=
       (VERBOSITY_LV3
        and rank==0);
@@ -217,9 +216,6 @@ namespace nissa
 	    cudaGenericKernel<<<gridDimension,blockDimension>>>(min,max,f);
 	    cudaDeviceSynchronize();
 	  };
-	
-	/// External value of the rank, needed to decide whether to print
-	extern int rank;
 	
 	/// Gets the maximum number of threads per block
 	const int nMaxThreads=

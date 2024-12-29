@@ -332,7 +332,7 @@ namespace nissa
 	//     if(found==false and contr>1e-4)
 	//       {
 	// 	found=true;
-	// 	const coords_t c=locCoordOfLoclx[ivol];
+	// 	const Coords c=locCoordOfLoclx[ivol];
 	// 	// master_
 	// 	printf("rank %d found first exceeding, %lg at %d %d %d %d\n",rank,contr,c[0],c[1],c[2],c[3]);
 	//       }

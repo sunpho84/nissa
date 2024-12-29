@@ -13,20 +13,20 @@ namespace nissa
 {
   void tmDkern_eoprec_eos(OddField<spin>& out,
 			  EvnField<spin>& temp,
-			  const tm_quark_info& qu,
+			  const TmQuarkInfo& qu,
 			  const OddField<spin>& in);
   
   void tmDkern_eoprec_square_eos(OddField<spin>& out,
 				 OddField<spin>& temp1,
 				 EvnField<spin> &temp2,
-				 const tm_quark_info& qu,
+				 const TmQuarkInfo& qu,
 				 const OddField<spin>& in);
   
   /// Inverse
   template <typename O,
 	    typename I>
   void inv_tmDee_or_oo_eos(O&& out,
-			   const tm_quark_info& qu,
+			   const TmQuarkInfo& qu,
 			   const I& in)
   {
     const double a=1/(2*qu.kappa),b=qu.mass,nrm=1/(a*a+b*b);
@@ -50,7 +50,7 @@ namespace nissa
 	    typename I>
   void tmn2Deo_or_tmn2Doe_eos(O& out,
 			      const I& in,
-			      const momentum_t& bc)
+			      const Momentum& bc)
   {
     in.updateHalo();
     

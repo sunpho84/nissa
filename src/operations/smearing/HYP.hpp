@@ -77,7 +77,7 @@ namespace nissa
     }
   };
   
-  void hyp_smear_conf(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2,const which_dir_t& dirs=all_dirs);
+  void hyp_smear_conf(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2,const WhichDirs& dirs=allDirs);
 }
 
 #endif

@@ -18,7 +18,7 @@ namespace nissa
   template <typename O,
 	    typename I>
   void tmDee_or_oo_eos(O&& out,
-		       const tm_quark_info& qu,
+		       const TmQuarkInfo& qu,
 		       const I& in)
   {
     PAR(0,locVolh,
@@ -38,7 +38,7 @@ namespace nissa
   //implement Koo defined in equation (7)
   void tmDkern_eoprec_eos(OddField<spin>& out,
 			  EvnField<spin>& temp,
-			  const tm_quark_info& qu,
+			  const TmQuarkInfo& qu,
 			  const OddField<spin>& in)
   {
     tmn2Deo_or_tmn2Doe_eos(out,in,qu.bc);
@@ -64,10 +64,10 @@ namespace nissa
   void tmDkern_eoprec_square_eos(OddField<spin>& out,
 				 OddField<spin>& temp1,
 				 EvnField<spin> &temp2,
-				 const tm_quark_info& qu,
+				 const TmQuarkInfo& qu,
 				 const OddField<spin>& in)
   {
-    tm_quark_info mqu=qu;
+    TmQuarkInfo mqu=qu;
     mqu.mass*=-1;
     
     tmDkern_eoprec_eos(temp1,temp2,mqu, in   );

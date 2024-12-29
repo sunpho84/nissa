@@ -40,24 +40,24 @@ namespace nissa
     }
     
     //returns the directions to smooth according to parameter
-    static which_dir_t get_dirs(const space_or_time_t& space_or_time)
+    static WhichDirs get_dirs(const space_or_time_t& space_or_time)
     {
-      which_dir_t res={};
+      WhichDirs res={};
       
       switch(space_or_time)
-      {
-      case SPACE:
-	res=all_other_dirs[0];
-	break;
-      case TIME:
-	res=only_dir[0];
-	break;
-      case SPACETIME:
-	res=all_dirs;
-	break;
-      default:
-	crash("Unknown type");
-      }
+	{
+	case SPACE:
+	  res=allOtherDirs[0];
+	  break;
+	case TIME:
+	  res=onlyDir[0];
+	  break;
+	case SPACETIME:
+	  res=allDirs;
+	  break;
+	default:
+	  crash("Unknown type");
+	}
       
       return res;
     }
@@ -68,20 +68,20 @@ namespace nissa
       int res=0;
       
       switch(space_or_time)
-      {
-      case SPACE:
-	res=1;
-	break;
-      case TIME:
-	res=1;
-	break;
-      case SPACETIME:
-	res=0;
-	break;
-      default:
-	res=0;
-	crash("Unknown type");
-      }
+	{
+	case SPACE:
+	  res=1;
+	  break;
+	case TIME:
+	  res=1;
+	  break;
+	case SPACETIME:
+	  res=0;
+	  break;
+	default:
+	  res=0;
+	  crash("Unknown type");
+	}
       
       return res;
     }
@@ -223,16 +223,16 @@ namespace nissa
   
   void smooth_lx_conf_one_step(LxField<quad_su3>& smoothed_conf,
 			       const smooth_pars_t &sp,
-			       const which_dir_t& dirs=all_dirs,
+			       const WhichDirs& dirs=allDirs,
 			       const int& staple_min_dir=0);
   
   bool smooth_lx_conf_until_next_meas(LxField<quad_su3>& smoothed_conf,
 				      const smooth_pars_t &sp,
 				      int &nsmooth,
-				      const which_dir_t& dirs,
+				      const WhichDirs& dirs,
 				      const int& staple_min_dir=0);
   
-  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,const which_dir_t& dirs=all_dirs,int staple_min_dir=0);
+  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,const WhichDirs& dirs=allDirs,int staple_min_dir=0);
 }
 
 #endif

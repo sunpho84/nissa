@@ -17,21 +17,25 @@ using namespace nissa;
 void testPar()
 {
   LxField<spincolor,nissa::FieldLayout::CPU> a("a");
+  LxField<spincolor,nissa::FieldLayout::CPU> b("b");
   
   FOR_EACH_SITE_DEG_OF_FIELD(a,
-			     CAPTURE(TO_WRITE(a)),
+			     CAPTURE(TO_WRITE(a),
+				     TO_WRITE(b)),
 			     site,
 			     ideg,
 			     {
 			       a(site,ideg)=ideg;
+			       b(site,ideg)=1+ideg;
 			     });
   
+  master_printf("a*b: %lg\n",a.realPartOfScalarProdWith(b));
   master_printf("Norm2: %lg\n",a.norm2());
 }
 
 void in_main(int narg,char **arg)
 {
-  init_grid(24,12);
+  initGrid(24,12);
   
   testPar();
   
@@ -96,9 +100,9 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   in_main(narg,arg);
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

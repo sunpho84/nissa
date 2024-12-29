@@ -72,17 +72,17 @@ namespace nissa
   };
   
   //eo
-  void stout_smear_whole_stack(eo_ptr<quad_su3> *out,eo_ptr<quad_su3> in,stout_pars_t *stout_pars,const which_dir_t& dirs=all_dirs);
+  void stout_smear_whole_stack(eo_ptr<quad_su3> *out,eo_ptr<quad_su3> in,stout_pars_t *stout_pars,const WhichDirs& dirs=allDirs);
   
   void stout_smear(EoField<quad_su3>& ext_out,
 		   const EoField<quad_su3>& ext_in,
 		   const stout_pars_t& stout_pars,
-		   const which_dir_t& dirs=all_dirs);
+		   const WhichDirs& dirs=allDirs);
   
   void stout_smear_single_level(EoField<quad_su3>& out,
 				const EoField<quad_su3>& ext_in,
 				const double& rho,
-				const which_dir_t& dirs=all_dirs);
+				const WhichDirs& dirs=allDirs);
     
   //compute the staples for the link U_A_mu weighting them with rho
   template <typename S,
@@ -132,10 +132,10 @@ namespace nissa
   void stout_smear_whole_stack(std::vector<EoField<quad_su3>*>& out,
 			       const EoField<quad_su3>& in,
 			       const stout_pars_t& stout_pars,
-			       const which_dir_t& dirs=all_dirs);
+			       const WhichDirs& dirs=allDirs);
   
-  void stout_smear(quad_su3 *ext_out,quad_su3 *ext_in,stout_pars_t *stout_pars,const which_dir_t& dirs=all_dirs);
-  void stout_smear_single_level(quad_su3 *out,quad_su3 *ext_in,double rho,const which_dir_t& dirs=all_dirs);
+  void stout_smear(quad_su3 *ext_out,quad_su3 *ext_in,stout_pars_t *stout_pars,const WhichDirs& dirs=allDirs);
+  void stout_smear_single_level(quad_su3 *out,quad_su3 *ext_in,double rho,const WhichDirs& dirs=allDirs);
 
   //partial derivative of the force
   template <typename C>

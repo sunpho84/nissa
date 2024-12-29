@@ -155,13 +155,13 @@ namespace nissa
       }
     
     //summ the smaller-index cubes
-    coords_t nsubcubes_per_dir;
+    Coords nsubcubes_per_dir;
     for(int mu=0;mu<NDIM;mu++) nsubcubes_per_dir[mu]=2;
     int minind_cube_vol=0;
     for(int isubcube=0;isubcube<subcube;isubcube++)
       {
 	//get coords
-	coords_t c=coord_of_lx(isubcube,nsubcubes_per_dir);
+	Coords c=coordOfLx(isubcube,nsubcubes_per_dir);
 	//compute vol
 	int subcube_vol=1;
 	for(int mu=0;mu<NDIM;mu++) subcube_vol*=subcube_size[mu][c[mu]];
@@ -358,7 +358,7 @@ namespace nissa
 	  for(int mu=0;mu<NDIM;mu++) //link direction
 	    for(int inu=0;inu<NDIM-1;inu++)              //  E---F---C
 	      {                                          //  |   |   | mu
-		int nu=perp_dir[mu][inu];                //  D---A---B
+		int nu=perpDirs[mu][inu];                //  D---A---B
 		//this gives the other pair element      //        nu
 		int iplan=plan_perp[mu][inu];
 		

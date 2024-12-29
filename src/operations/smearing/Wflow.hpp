@@ -1,15 +1,16 @@
 #ifndef _WFLOW_HPP
 #define _WFLOW_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <sstream>
 
-#include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "hmc/backfield.hpp"
-#include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 #include "operations/covariant_derivative.hpp"
-#include "operations/su3_paths/plaquette.hpp"
 #include "routines/ios.hpp"
 
 namespace nissa
@@ -20,7 +21,7 @@ namespace nissa
     inline void update_arg(LxField<quad_su3>& arg,
 			   const LxField<quad_su3>& conf,
 			   const double& dt,
-			   const which_dir_t& dirs,
+			   const WhichDirs& dirs,
 			   const int& iter)
     {
       conf.updateEdges();
@@ -31,7 +32,11 @@ namespace nissa
       
       //add the new argument of the exponential to the old one
       PAR(0,locVol,
-	  CAPTURE(dirs,RK_wn,RK_wo,iter,dt,
+	  CAPTURE(perpDirs=perpDirs,
+		  dirs,
+		  RK_wn,
+		  RK_wo,
+		  iter,dt,
 		  TO_WRITE(arg),
 		  TO_READ(conf)),
 	  ivol,
@@ -44,7 +49,7 @@ namespace nissa
 		  su3_put_to_zero(staple);
 		  for(int inu=0;inu<NDIM-1;inu++)
 		    {
-		      int nu=perp_dir[mu][inu];
+		      int nu=perpDirs[mu][inu];
 		      int A=ivol,B=loclxNeighup[A][nu],D=loclxNeighdw[A][nu],E=loclxNeighup[D][mu],F=loclxNeighup[A][mu];
 		      unsafe_su3_prod_su3(       temp, conf[A][nu],conf[B][mu]);
 		      su3_summ_the_prod_su3_dag(staple,temp,       conf[F][nu]);
@@ -71,7 +76,7 @@ namespace nissa
     //update the conf according to exp(i arg) conf_
     inline void update_conf(const LxField<quad_su3>& arg,
 			    LxField<quad_su3>& conf,
-			    const which_dir_t& dirs)
+			    const WhichDirs& dirs)
     {
       //integrate
       PAR(0,locVol,
@@ -93,7 +98,7 @@ namespace nissa
     //call the 2-links Laplace operator, for staggered fields
     inline void Laplace_operator_switch(LxField<color>&out,
 					const LxField<quad_su3>& c,
-					const which_dir_t& dirs,
+					const WhichDirs& dirs,
 					const LxField<color>& in)
     {
        Laplace_operator_2_links(out,c,dirs,in);
@@ -102,7 +107,7 @@ namespace nissa
     //call the 1-link Laplace operator, for non-staggered fields
     inline void Laplace_operator_switch(LxField<spincolor>& out,
 					const LxField<quad_su3>& c,
-					const which_dir_t& dirs,
+					const WhichDirs& dirs,
 					const LxField<spincolor>& in)
     {
       Laplace_operator(out,c,dirs,in);
@@ -186,14 +191,14 @@ namespace nissa
     std::vector<LxField<quad_su3>> conf;
     
     //dirs to smear
-    which_dir_t dirs;
+    WhichDirs dirs;
     
     //storage for staples
     LxField<quad_su3> arg;
     
     //creator
     internal_fermion_flower_t(const double& dt,
-			      const which_dir_t& dirs) :
+			      const WhichDirs& dirs) :
       nd(locVol*sizeof(T)/sizeof(double)),
       dt(dt),
       conf(nint_steps,"conf"),
@@ -246,7 +251,7 @@ namespace nissa
     
     //creator
     fermion_flower_t(double dt,
-		     const which_dir_t& ext_dirs) :
+		     const WhichDirs& ext_dirs) :
       internal_fermion_flower_t<T,nint_steps>(dt,ext_dirs),
       df0("df0",WITH_HALO),
       df1("df1",WITH_HALO),
@@ -309,7 +314,7 @@ namespace nissa
     LxField<T> l1,l2;
     
     //creator
-    fermion_adjoint_flower_t(double dt,const which_dir_t& ext_dirs) :
+    fermion_adjoint_flower_t(double dt,const WhichDirs& ext_dirs) :
       internal_fermion_flower_t<T,nint_steps>(dt,ext_dirs),
       l1("l1",WITH_HALO),
       l2("l2",WITH_HALO)
@@ -345,7 +350,7 @@ namespace nissa
   //flow for the given time for a dt using 1006.4518 appendix C
   inline void Wflow_lx_conf(LxField<quad_su3>& conf,
 			    const double& dt,
-			    const which_dir_t& dirs)
+			    const WhichDirs& dirs)
   {
     //storage for staples
     LxField<quad_su3> arg("arg");

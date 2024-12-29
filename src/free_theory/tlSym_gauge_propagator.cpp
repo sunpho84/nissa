@@ -88,7 +88,7 @@ namespace nissa
     int kron_delta[4][4]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
     
     //momentum
-    momentum_t k,kt;
+    Momentum k,kt;
     double kt2=0,kt4=0,kt6=0;
     double kt2_dir[4],kt4_dir[4],kt6_dir[4];
     double ktpo2[4][4],ktso2[4][4];
@@ -416,7 +416,7 @@ namespace nissa
   }
   
   //compute the tadpole by taking the zero momentum ft of momentum prop
-  momentum_t compute_tadpole(const gauge_info& photon)
+  Momentum compute_tadpole(const gauge_info& photon)
   {
     double tad_time=-take_time();
     
@@ -426,7 +426,7 @@ namespace nissa
     spin1prop tmp;
     gprop.reduce(tmp);
     
-    momentum_t tadpole;
+    Momentum tadpole;
     for(int mu=0;mu<NDIM;mu++)
       tadpole[mu]=tmp[mu][mu][RE];
     
@@ -445,7 +445,7 @@ namespace nissa
       crash("Implemented only for Wilson gluons");
     
     double p2=0;
-    const coords_t c=glb_coord_of_glblx(imom);
+    const Coords c=glbCoordOfGlblx(imom);
     for(int mu=1;mu<NDIM;mu++)
       {
 	double p=M_PI*(2*c[mu]+gl.bc[mu])/glbSize[mu];

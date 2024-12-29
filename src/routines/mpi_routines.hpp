@@ -100,7 +100,7 @@ namespace nissa
 #undef DEFINE_MPI_OP_DISPATCHER
   
   size_t MPI_Get_count_size_t(MPI_Status &status);
-  void coords_broadcast(coords_t& c);
+  void coords_broadcast(Coords& c);
   void get_MPI_nranks();
   void get_MPI_rank();
   void init_MPI_thread(int narg,char **arg);

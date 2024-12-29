@@ -21,7 +21,7 @@ namespace nissa
   //sign of the lepton momentum
   const int sign_orie[2]={-1,+1};
   
-  EXTERN_MESLEP tm_quark_info *leps;
+  EXTERN_MESLEP TmQuarkInfo *leps;
   
   //list the 8 matrices to insert for the weak current
   const int nmeslep_weak_ins=17;
@@ -44,7 +44,7 @@ namespace nissa
   
   void allocate_L_prop();
   void free_L_prop();
-  tm_quark_info get_lepton_info(int ilepton,int orie,int r);
+  TmQuarkInfo get_lepton_info(int ilepton,int orie,int r);
   
   void read_meslep_contr_pars();
   void compute_meslep_contr();

@@ -334,11 +334,11 @@ namespace nissa
   }
   
   //add links to the buffer of the conf if needed
-  int all_to_all_gathering_list_t::add_conf_link_for_paths(const coords_t& g,const int& mu)
+  int all_to_all_gathering_list_t::add_conf_link_for_paths(const Coords& g,const int& mu)
   {
     //find rank and local position
     const auto[ivol,irank]=
-      get_loclx_and_rank_of_coord(g);
+      getLoclxAndRankOfCoords(g);
     
     int ilink_asked=NDIM*ivol+mu;
     

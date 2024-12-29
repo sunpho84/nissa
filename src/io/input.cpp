@@ -280,7 +280,8 @@ namespace nissa
   }
   
   //Read 4 doubles checking the tag
-  void read_str_momentum_t(const char *exp_str,momentum_t& in)
+  void read_str_momentum_t(const char *exp_str,
+			   Momentum& in)
   {
     expect_str(exp_str);
     for(int i=0;i<4;i++)

@@ -6,7 +6,6 @@
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"
-#include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
@@ -19,7 +18,7 @@ namespace nissa
   void stout_smear_single_level(EoField<quad_su3>& out,
 				const EoField<quad_su3>& in,
 				const double& rho,
-				const which_dir_t& dirs)
+				const WhichDirs& dirs)
   {
     START_TIMING(sto_time,nsto);
     
@@ -151,7 +150,7 @@ namespace nissa
   void stout_smear(EoField<quad_su3>& out,
 		   const EoField<quad_su3>& in,
 		   const stout_pars_t& stout_pars,
-		   const which_dir_t& dirs)
+		   const WhichDirs& dirs)
   {
     const int nlevels=stout_pars.nlevels;
     
@@ -202,7 +201,7 @@ namespace nissa
   void stout_smear_whole_stack(std::vector<EoField<quad_su3>*>& out,
 			       const EoField<quad_su3>& in,
 			       const stout_pars_t& stout_pars,
-			       const which_dir_t& dirs)
+			       const WhichDirs& dirs)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(*(out[0])));
     for(int i=1;i<=stout_pars.nlevels;i++)

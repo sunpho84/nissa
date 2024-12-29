@@ -16,7 +16,7 @@ namespace nissa
   
   void fft4d(complex *out,
 	     const complex *in,
-	     const which_dir_t& dirs,
+	     const WhichDirs& dirs,
 	     const int& ncpp,
 	     const double& sign,
 	     const bool& normalize);
@@ -27,7 +27,7 @@ namespace nissa
 		     const double& sign,
 		     const bool& normalize)
    {
-     fft4d(out,in,all_dirs,ncpp,sign,normalize);
+     fft4d(out,in,allDirs,ncpp,sign,normalize);
    }
   
   inline void fft4d(void *out,
@@ -36,7 +36,7 @@ namespace nissa
 		    const double& sign,
 		    int normalize)
   {
-    fft4d((complex*)out,(const complex*)in,all_dirs,ncpp,sign,normalize);
+    fft4d((complex*)out,(const complex*)in,allDirs,ncpp,sign,normalize);
   }
   
   // template <class T>

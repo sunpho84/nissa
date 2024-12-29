@@ -31,20 +31,20 @@ namespace nissa
 	
     // 	//reorder data
     // 	int *ord=nissa_malloc("ord",glbVol,int);
-    // 	coords_t r;
+    // 	Coords r;
     // 	for(r[0]=0;r[0]<nrank_dir[0];r[0]++)
     // 	  for(r[1]=0;r[1]<nrank_dir[1];r[1]++)
     // 	    for(r[2]=0;r[2]<nrank_dir[2];r[2]++)
     // 	      for(r[3]=0;r[3]<nrank_dir[3];r[3]++)
     // 		{
     // 		  int irank=rank_of_coord(r);
-    // 		  coords_t l;
+    // 		  Coords l;
     // 		  for(l[0]=0;l[0]<locSize[0];l[0]++)
     // 		    for(l[1]=0;l[1]<locSize[1];l[1]++)
     // 		      for(l[2]=0;l[2]<locSize[2];l[2]++)
     // 			for(l[3]=0;l[3]<locSize[3];l[3]++)
     // 			  {
-    // 			    coords_t g;
+    // 			    Coords g;
     // 			    for(int mu=0;mu<4;mu++) g[mu]=r[mu]*locSize[mu]+l[mu];
 			    
     // 			    int ivol=locVol*irank+loclx_of_coord(l);
@@ -102,10 +102,10 @@ namespace nissa
 	      int ivol[8];
 	      for(int imirr=0;imirr<8;imirr++)
 		{
-		  coords_t xmirr;
+		  Coords xmirr;
 		  for(int mu=0;mu<4;mu++)
 		    xmirr[mu]=(imirr & (1<<mu)) ? (glbSize[mu]-x[mu])%glbSize[mu] : x[mu];
-		  ivol[imirr]=glblx_of_coord(xmirr);
+		  ivol[imirr]=glblxOfCoord(xmirr);
 		}
 	      
 	      //average
@@ -132,7 +132,7 @@ namespace nissa
 	      //find cubic partners
 	      int ivol[6];
 	      for(int iperm=0;iperm<6;iperm++)
-		ivol[iperm]=glblx_of_coord_list(x[0],x[perm[iperm][0]],x[perm[iperm][1]],x[perm[iperm][2]]);
+		ivol[iperm]=glblxOfCoordList(x[0],x[perm[iperm][0]],x[perm[iperm][1]],x[perm[iperm][2]]);
 	      
 	      //average
 	      average_list_of_gathered_vector_sites(vec,ivol,6,dps);

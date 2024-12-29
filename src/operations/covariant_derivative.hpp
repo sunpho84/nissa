@@ -25,68 +25,68 @@ namespace nissa
 			 const LxField<quad_su3>& conf,
 			 const LxField<spincolor>& in,
 			 const int& r,
-			 const momentum_t& tad,
+			 const Momentum& tad,
 			 const int& t);
   void insert_tm_tadpole(LxField<colorspinspin>& out,
 			 const LxField<quad_su3>& conf,
 			 const LxField<colorspinspin>& in,
 			 const int& r,
-			 const momentum_t& tad,
+			 const Momentum& tad,
 			 const int& t);
   void insert_tm_tadpole(LxField<su3spinspin>& out,
 			 const LxField<quad_su3>& conf,
 			 const LxField<su3spinspin>& in,
 			 const int& r,
-			 const momentum_t& tad,
+			 const Momentum& tad,
 			 const int& t);
   void insert_Wilson_tadpole(LxField<spincolor>& out,
 			     const LxField<quad_su3>& conf,
 			     const LxField<spincolor>& in,
-			     const momentum_t& tad,
+			     const Momentum& tad,
 			     const int& t);
   void insert_Wilson_tadpole(LxField<colorspinspin>& out,
 			     const LxField<quad_su3>& conf,
 			     const LxField<colorspinspin>& in,
-			     const momentum_t& tad,
+			     const Momentum& tad,
 			     const int& t);
   void insert_Wilson_tadpole(LxField<su3spinspin>& out,
 			     const LxField<quad_su3>& conf,
 			     const LxField<su3spinspin>& in,
-			     const momentum_t& tad,
+			     const Momentum& tad,
 			     const int& t);
   
   void insert_tm_conserved_current(LxField<spincolor>& out,
 				   const LxField<quad_su3>& conf,
 				   const LxField<spincolor>& in,
 				   const int& r,
-				   const which_dir_t& dirs,
+				   const WhichDirs& dirs,
 				   const int& t);
   void insert_tm_conserved_current(LxField<colorspinspin>& out,
 				   const LxField<quad_su3>& conf,
 				   const LxField<colorspinspin>& in,
 				   const int& r,
-				   const which_dir_t& dirs,
+				   const WhichDirs& dirs,
 				   const int& t);
   void insert_tm_conserved_current(LxField<su3spinspin>& out,
 				   const LxField<quad_su3>& conf,
 				   const LxField<su3spinspin>& in,
 				   const int& r,
-				   const which_dir_t& dirs,
+				   const WhichDirs& dirs,
 				   const int& t);
   void insert_Wilson_conserved_current(LxField<spincolor>& out,
 				       const LxField<quad_su3>& conf,
 				       const LxField<spincolor>& in,
-				       const which_dir_t& dirs,
+				       const WhichDirs& dirs,
 				       const int& t);
   void insert_Wilson_conserved_current(LxField<colorspinspin>& out,
 				       const LxField<quad_su3>& conf,
 				       const LxField<colorspinspin>& in,
-				       const which_dir_t& dirs,
+				       const WhichDirs& dirs,
 				       const int& t);
   void insert_Wilson_conserved_current(LxField<su3spinspin>& out,
 				       const LxField<quad_su3>& conf,
 				       const LxField<su3spinspin>& in,
-				       const which_dir_t& dirs,
+				       const WhichDirs& dirs,
 				       const int& t);
   
   void insert_tm_external_source(LxField<spincolor>& out,
@@ -94,39 +94,39 @@ namespace nissa
 				 const LxField<spin1field>& curr,
 				 const LxField<spincolor>& in,
 				 const int& r,
-				 const which_dir_t& dirs,
+				 const WhichDirs& dirs,
 				 const int& t);
   void insert_tm_external_source(LxField<colorspinspin>& out,
 				 const LxField<quad_su3>& conf,
 				 const LxField<spin1field>& curr,
 				 const LxField<colorspinspin>& in,
 				 const int& r,
-				 const which_dir_t& dirs,
+				 const WhichDirs& dirs,
 				 const int& t);
   void insert_tm_external_source(LxField<su3spinspin>& out,
 				 const LxField<quad_su3>& conf,
 				 const LxField<spin1field>& curr,
 				 const LxField<su3spinspin>& in,
 				 const int& r,
-				 const which_dir_t& dirs,
+				 const WhichDirs& dirs,
 				 const int& t);
   void insert_Wilson_external_source(LxField<spincolor>& out,
 				     const LxField<quad_su3>& conf,
 				     const LxField<spin1field>& curr,
 				     const LxField<spincolor>& in,
-				     const which_dir_t& dirs,
+				     const WhichDirs& dirs,
 				     const int& t);
   void insert_Wilson_external_source(LxField<colorspinspin>& out,
 				     const LxField<quad_su3>& conf,
 				     const LxField<spin1field>& curr,
 				     const LxField<colorspinspin>& in,
-				     const which_dir_t& dirs,
+				     const WhichDirs& dirs,
 				     const int& t);
   void insert_Wilson_external_source(LxField<su3spinspin>& out,
 				     const LxField<quad_su3>& conf,
 				     const LxField<spin1field>& curr,
 				     const LxField<su3spinspin>& in,
-				     const which_dir_t& dirs,
+				     const WhichDirs& dirs,
 				     const int& t);
   
   void prop_multiply_with_gamma(LxField<spincolor>& out,
@@ -157,11 +157,11 @@ namespace nissa
   
   void Laplace_operator_2_links(LxField<color>& out,
 				const LxField<quad_su3>& conf,
-				const which_dir_t& dirs,
+				const WhichDirs& dirs,
 				const LxField<color>& in);
   void Laplace_operator(LxField<spincolor>& out,
 			const LxField<quad_su3>& conf,
-			const which_dir_t& dirs,
+			const WhichDirs& dirs,
 			const LxField<spincolor>& in);
   
   /////////////////////////////////////////////////////////////////
@@ -211,7 +211,7 @@ namespace nissa
 		unsafe_dirac_prod_spincolor(GAMMA_bw_P_fw, GAMMA, bw_P_fw);
 		spincolor_summassign(out[ivol], GAMMA_bw_P_fw);
 		spincolor gmu_bw_M_fw;
-		unsafe_dirac_prod_spincolor(gmu_bw_M_fw, base_gamma[igamma_of_mu[mu]],bw_M_fw);
+		unsafe_dirac_prod_spincolor(gmu_bw_M_fw,base_gamma[iGammaOfMu(mu)],bw_M_fw);
 		spincolor_summassign(out[ivol], gmu_bw_M_fw);
 	      }
 	});

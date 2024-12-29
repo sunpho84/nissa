@@ -43,7 +43,7 @@ namespace nissa
   void read_nissa_config_file();
   void read_str(char *str,int length);
   void read_str_double(const char *exp_str,double *in);
-  void read_str_momentum_t(const char *exp_str,momentum_t& in);
+  void read_str_momentum_t(const char *exp_str,Momentum& in);
   void read_str_int(const char *exp_str,int *in);
   void read_str_str(const char *exp_str,char *in,int length);
   void read_var(char *out,const char *par,int size_of);

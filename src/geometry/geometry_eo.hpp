@@ -78,15 +78,15 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> loclx_of_loceo;
   CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> surfeo_of_bordeo;
   CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> surfeo_of_edgeo;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<coords_t> loceo_neighup;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<coords_t> loceo_neighdw;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<Coords> loceo_neighup;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<Coords> loceo_neighdw;
 
   EXTERN_GEOMETRY_EO int eo_geom_inited;
   EXTERN_GEOMETRY_EO int use_eo_geom;
   
   void filter_hypercube_origin_sites(color **vec);
   int glblx_parity(int glx);
-  int glb_coord_parity(const coords_t& c);
+  int glb_coord_parity(const Coords& c);
   void initialize_eo_edge_receivers_of_kind(MPI_Datatype *MPI_EDGES_RECE,MPI_Datatype *base);
   void initialize_eo_edge_senders_of_kind(MPI_Datatype *MPI_EO_EDGES_SEND,MPI_Datatype *base);
   void set_eo_edge_senders_and_receivers(MPI_Datatype *MPI_EO_EDGES_SEND,MPI_Datatype *MPI_EO_EDGES_RECE,MPI_Datatype *base);

@@ -133,7 +133,6 @@
 #include "measures/fermions/magnetization.hpp"
 #include "measures/fermions/mesons.hpp"
 #include "measures/fermions/minmax_eigenvalues.hpp"
-#include "measures/fermions/nucleon.hpp"
 #include "measures/fermions/putpourri.hpp"
 #include "measures/fermions/qed_corr.hpp"
 #include "measures/fermions/rendens.hpp"

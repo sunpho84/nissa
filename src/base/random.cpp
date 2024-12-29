@@ -188,9 +188,9 @@ namespace nissa
   }
   
   //generate a random postion
-  coords_t generate_random_coord()
+  Coords generate_random_coord()
   {
-    coords_t c;
+    Coords c;
     for(int mu=0;mu<NDIM;mu++)
       c[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSize[mu]));
     
@@ -423,16 +423,16 @@ namespace nissa
   
   //generate a delta source
   void generate_delta_source(LxField<su3spinspin>& source,
-			     const coords_t& x)
+			     const Coords& x)
   {
     //reset
     source.reset();
     
     int islocal=1;
-    coords_t lx;
+    Coords lx;
     for(int mu=0;mu<NDIM;mu++)
       {
-	lx[mu]=x[mu]-rank_coord[mu]*locSize[mu];
+	lx[mu]=x[mu]-rankCoord[mu]*locSize[mu];
 	islocal&=(lx[mu]>=0);
 	islocal&=(lx[mu]<locSize[mu]);
       }
@@ -443,22 +443,22 @@ namespace nissa
 	
 	for(int id=0;id<4;id++)
 	  for(int ic=0;ic<NCOL;ic++)
-	  s[loclx_of_coord(lx)][ic][ic][id][id][0]=1;
+	  s[loclxOfCoord(lx)][ic][ic][id][id][0]=1;
       }
   }
   
   //generate a delta source
   void generate_delta_eo_source(EoField<su3>& source,
-				const coords_t& x)
+				const Coords& x)
   {
     //reset
     source.reset();
     
     int islocal=1;
-    coords_t lx;
+    Coords lx;
     for(int mu=0;mu<NDIM;mu++)
       {
-        lx[mu]=x[mu]-rank_coord[mu]*locSize[mu];
+        lx[mu]=x[mu]-rankCoord[mu]*locSize[mu];
         islocal&=(lx[mu]>=0);
         islocal&=(lx[mu]<locSize[mu]);
       }
@@ -467,7 +467,7 @@ namespace nissa
       {
 	auto s=source.getWritable();
 	
-	const int ivol=loclx_of_coord(lx);
+	const int ivol=loclxOfCoord(lx);
 	su3_put_to_id(s[loclx_parity[ivol]][loceo_of_loclx[ivol]]);
       }
   }

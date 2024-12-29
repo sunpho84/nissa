@@ -60,11 +60,11 @@ namespace nissa
   
   //compute args for non-present quantization
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  coords_t get_args_of_null_quantization(const int& ivol,
-					 const int& mu,
-					 const int& nu)
+  Coords get_args_of_null_quantization(const int64_t& ivol,
+				       const int& mu,
+				       const int& nu)
   {
-    coords_t phase;
+    Coords phase;
     phase[0]=phase[1]=phase[2]=phase[3]=0;
     
     return phase;
@@ -72,11 +72,11 @@ namespace nissa
   
   //compute args for 1/L2 quantization
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  coords_t get_args_of_one_over_L2_quantization(const int& ivol,
-						const int& mu,
-						const int& nu)
+  Coords get_args_of_one_over_L2_quantization(const int64_t& ivol,
+					      const int& mu,
+					      const int& nu)
   {
-    coords_t phase;
+    Coords phase;
     
     //reset
     phase[0]=phase[1]=phase[2]=phase[3]=0;
@@ -95,11 +95,11 @@ namespace nissa
   }
   
   //compute args for half-half quantization
-  CUDA_HOST_AND_DEVICE coords_t get_args_of_half_half_quantization(const int& ivol,
-								   const int& mu,
-								   const int& nu)
+  CUDA_HOST_AND_DEVICE Coords get_args_of_half_half_quantization(const int64_t& ivol,
+								 const int& mu,
+								 const int& nu)
   {
-    coords_t phase;
+    Coords phase;
     
     //reset
     phase[0]=phase[1]=phase[2]=phase[3]=0;
@@ -115,7 +115,7 @@ namespace nissa
     return phase;
   }
   
-  CUDA_MANAGED coords_t (*get_args_of_quantization[3])(const int&,const int&,const int&)=
+  CUDA_MANAGED Coords (*get_args_of_quantization[3])(const int64_t&,const int&,const int&)=
   {get_args_of_null_quantization,get_args_of_one_over_L2_quantization,get_args_of_half_half_quantization};
   
   //multiply a background field by a constant em field
@@ -141,7 +141,7 @@ namespace nissa
 	    ieo,
 	    {
 	      //compute arg
-	      const coords_t arg=get_args_of_quantization[quantization](loclx_of_loceo[par][ieo],mu,nu);
+	      const Coords arg=get_args_of_quantization[quantization](loclx_of_loceo[par][ieo],mu,nu);
 	      
 	      //compute u1phase and multiply
 	      for(int rho=0;rho<4;rho++)
@@ -193,6 +193,24 @@ namespace nissa
   void add_antiperiodic_condition_to_backfield(EoField<quad_u1>& S,
 					       const int& mu)
   {
+    // const double arg=
+    //   -1.0*M_PI/glbSize[mu];
+    
+    // for(int par=0;par<2;par++)
+    //   {
+    // 	PAR(0,locVolh,
+    // 	    CAPTURE(par,
+    // 		    mu,
+    // 		    c=cos(arg),
+    // 		    s=sin(arg),
+    // 		    TO_WRITE(S)),
+    // 	    ieo,
+    // 	  {
+	    
+    // 	    complex_prodassign(S[par][ieo][mu],complex{c,s});
+    // 	  });
+    //   }
+    
     for(int par=0;par<2;par++)
       {
 	PAR(0,locVolh,
@@ -218,7 +236,7 @@ namespace nissa
 		    TO_WRITE(conf)),
 	    ieo,
 	    {
-	      const coords_t ph=get_stagphase_of_lx(loclx_of_loceo[par][ieo]);
+	      const Coords ph=getStagphaseOfLx(loclx_of_loceo[par][ieo]);
 	      
 	      for(int mu=0;mu<NDIM;mu++)
 		su3_prodassign_double(conf[par][ieo][mu],ph[mu]);
@@ -243,9 +261,9 @@ namespace nissa
 		    TO_READ(u1)),
 	    ieo,
 	  {
-	    coords_t ph;
+	    Coords ph;
 	    if(with_without==0)
-	      ph=get_stagphase_of_lx(loclx_of_loceo[par][ieo]);
+	      ph=getStagphaseOfLx(loclx_of_loceo[par][ieo]);
 	    
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
@@ -281,9 +299,9 @@ namespace nissa
 		    TO_READ(u1)),
 	    ieo,
 	  {
-	    const int ilx=loclx_of_loceo[par][ieo];
-	    coords_t ph;
-	    if(with_without==0) ph=get_stagphase_of_lx(ilx);
+	    const int64_t ilx=loclx_of_loceo[par][ieo];
+	    Coords ph;
+	    if(with_without==0) ph=getStagphaseOfLx(ilx);
 	    
 	    for(int mu=0;mu<NDIM;mu++)
 	      {

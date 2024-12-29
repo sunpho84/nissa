@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include "base/bench.hpp"
@@ -47,8 +47,8 @@ namespace nissa
     int L=glbSize[d1];
     
     //allocate destinations and sources
-    coords_t *xto=nissa_malloc("xto",locVol,coords_t);
-    coords_t *xfr=nissa_malloc("xfr",locVol,coords_t);
+    Coords *xto=nissa_malloc("xto",locVol,Coords);
+    Coords *xfr=nissa_malloc("xfr",locVol,Coords);
     
     //scan all local sites to see where to send and from where to expect data
     NISSA_LOC_VOL_LOOP(ivol)
@@ -123,7 +123,7 @@ namespace nissa
   }
   
   void put_boundaries_conditions(LxField<quad_su3>& conf,
-				 const momentum_t& theta_in_pi,
+				 const Momentum& theta_in_pi,
 				 const int& putonbords,
 				 const int& putonedges)
   {
@@ -135,8 +135,8 @@ namespace nissa
       }
     
     int nsite=locVol;
-    if(putonbords) nsite+=bord_vol;
-    if(putonedges) nsite+=edge_vol;
+    if(putonbords) nsite+=bordVol;
+    if(putonedges) nsite+=edgeVol;
     
     PAR(0,nsite,
 	CAPTURE(theta,
@@ -149,21 +149,21 @@ namespace nissa
   }
   
   void rem_boundaries_conditions(LxField<quad_su3>& conf,
-				 const momentum_t& theta_in_pi,
+				 const Momentum& theta_in_pi,
 				 const int& putonbords,
 				 const int& putonedges)
   {
-    const momentum_t minus_theta_in_pi={-theta_in_pi[0],-theta_in_pi[1],-theta_in_pi[2],-theta_in_pi[3]};
+    const Momentum minus_theta_in_pi={-theta_in_pi[0],-theta_in_pi[1],-theta_in_pi[2],-theta_in_pi[3]};
     put_boundaries_conditions(conf,minus_theta_in_pi,putonbords,putonedges);
   }
   
   void adapt_theta(LxField<quad_su3>& conf,
-		   momentum_t& old_theta,
-		   const momentum_t& put_theta,
+		   Momentum& old_theta,
+		   const Momentum& put_theta,
 		   const int& putonbords,
 		   const int& putonedges)
   {
-    momentum_t diff_theta;
+    Momentum diff_theta;
     int adapt=0;
     
     for(int idir=0;idir<NDIM;idir++)

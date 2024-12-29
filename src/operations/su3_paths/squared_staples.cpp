@@ -18,7 +18,7 @@ namespace nissa
     su3 temp1,temp2;
     for(int inu=0;inu<NDIM-1;inu++)                //  E---F---C
       {                                            //  |   |   | mu
-	int nu=perp_dir[mu][inu];                  //  D---A---B
+	int nu=perpDirs[mu][inu];                  //  D---A---B
 	int p=loclx_parity[A];                     //        nu
 	int B=loclxNeighup[A][nu];
 	int F=loclxNeighup[A][mu];
@@ -88,7 +88,7 @@ namespace nissa
     //obtained scanning on first half of the border, and storing them
     //in the first half of sending buf
     PAR(0,
-	bord_volh,
+	bordVolh,
 	CAPTURE(TO_READ(conf)),
 	ibord,
 	{
@@ -115,7 +115,7 @@ namespace nissa
 		      TO_READ(conf),
 		      mu,
 		      inu,
-		      nu=perp_dir[mu][inu]),
+		      nu=perpDirs[mu][inu]),
 	      ibulk,
 	      {
 		su3 temp;
@@ -135,11 +135,11 @@ namespace nissa
     
     //copy the received forward border (stored in the second half of receiving buf) on its destination
     PAR(0,
-	bord_volh,
+	bordVolh,
 	CAPTURE(TO_WRITE(conf)),
 	i,
 	{
-	  quad_su3_copy(conf[locVol+bord_volh+i],((quad_su3*)recv_buf)[bord_volh+i]);
+	  quad_su3_copy(conf[locVol+bordVolh+i],((quad_su3*)recv_buf)[bordVolh+i]);
 	});
   }
   
@@ -158,7 +158,7 @@ namespace nissa
 		      TO_WRITE(out),
 		      inu,
 		      mu,
-		      nu=perp_dir[mu][inu]),
+		      nu=perpDirs[mu][inu]),
 	      ifw_surf,
 	    {
 	      const int D=loclxOfFwSurflx[ifw_surf],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
@@ -171,17 +171,17 @@ namespace nissa
     //copy in send buf, obtained scanning second half of each parallelized direction external border and
     //copying the three perpendicular links staple
     for(int nu=0;nu<4;nu++) //border and staple direction
-      if(is_dir_parallel[nu])
+      if(isDirParallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
 	    const int mu=
-	      perp_dir[nu][imu];
+	      perpDirs[nu][imu];
 	    
 	    const int inu=
 	      (nu<mu)?nu:nu-1;
 	    
-	    PAR(bord_volh+bord_offset[nu],
-		bord_volh+bord_offset[nu]+bord_dir_vol[nu],
+	    PAR(bordVolh+bordOffset[nu],
+		bordVolh+bordOffset[nu]+bordDirVol[nu],
 		CAPTURE(mu,
 			inu,
 			TO_WRITE(out)),
@@ -212,7 +212,7 @@ namespace nissa
 		      TO_READ(conf),
 		      mu,
 		      inu,
-		      nu=perp_dir[mu][inu]),
+		      nu=perpDirs[mu][inu]),
 	      inon_fw_surf,
 	    {
 	      su3 temp;
@@ -237,7 +237,7 @@ namespace nissa
 		      TO_WRITE(out),
 		      mu,
 		      inu,
-		      nu=perp_dir[mu][inu]),
+		      nu=perpDirs[mu][inu]),
 	      ifw_surf,
 	    {
 	      const int A=loclxOfFwSurflx[ifw_surf],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
@@ -257,17 +257,17 @@ namespace nissa
     
     //copy the received backward staples (stored on first half of receiving buf) on bw_surf sites
     for(int nu=0;nu<4;nu++) //staple and fw bord direction
-      if(is_dir_parallel[nu])
+      if(isDirParallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
 	    const int mu=
-	      perp_dir[nu][imu];
+	      perpDirs[nu][imu];
 	    
 	    const int inu=
 	      (nu<mu)?nu:nu-1;
 	    
-	    PAR(bord_offset[nu],
-		bord_offset[nu]+bord_dir_vol[nu],
+	    PAR(bordOffset[nu],
+		bordOffset[nu]+bordDirVol[nu],
 		CAPTURE(TO_WRITE(out),
 			mu,
 			inu),

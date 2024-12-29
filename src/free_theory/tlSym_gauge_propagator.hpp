@@ -42,7 +42,7 @@ namespace nissa
 					  const LxField<spin1field>& in,
 					  const gauge_info& gl);
   
-  momentum_t compute_tadpole(const gauge_info& photon);
+  Momentum compute_tadpole(const gauge_info& photon);
   
   double gluon_energy(const gauge_info& gl,
 		      const double& virt,

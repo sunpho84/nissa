@@ -28,7 +28,7 @@ namespace nissa
       mov=ext_mov;
       link_id=gx*4+mu;
       const auto [rx,lx]=
-	get_loclx_and_rank_of_glblx(gx);
+	getLoclxAndRankOfGlblx(gx);
       ord=((rank+nranks-rx)%nranks*locVol+lx)*4+mu; //sort according to recv rank
     }
   };
@@ -137,11 +137,11 @@ namespace nissa
   ////////////////////////////////////////////////////////////
   
   struct coords_summable_t{
-    coords_t c;
+    Coords c;
     int &operator[](int i){return c[i];}
     bool operator==(coords_summable_t in){bool out=true;for(int i=0;i<NDIM;i++) out&=(c[i]==in.c[i]);return out;}
     bool operator!=(coords_summable_t i){return !((*this)==i);}
-    coords_summable_t(){memset(&c,0,sizeof(coords_t));}
+    coords_summable_t(){memset(&c,0,sizeof(Coords));}
     coords_summable_t(const coords_summable_t &o)
     {
       c=o.c;

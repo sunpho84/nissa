@@ -66,7 +66,7 @@ namespace nissa
 		      LxField<quad_su3> conf,
 		      const double& alpha,
 		      const int& nSteps,
-		      const which_dir_t& dirs=all_dirs,
+		      const WhichDirs& dirs=allDirs,
 		      const int& minStapleDir=0);
   
   inline void ape_single_dir_smear_conf(LxField<quad_su3>& smear_conf,
@@ -76,7 +76,7 @@ namespace nissa
 					const int& mu,
 					const int& min_staple_dir=0)
   {
-    ape_smear_conf(smear_conf,origi_conf,alpha,nstep,only_dir[mu],min_staple_dir);
+    ape_smear_conf(smear_conf,origi_conf,alpha,nstep,onlyDir[mu],min_staple_dir);
   }
   
   inline void ape_perp_dir_smear_conf(LxField<quad_su3>& smear_conf,
@@ -86,7 +86,7 @@ namespace nissa
 				      const int& mu,
 				      const int& min_staple_dir=0)
   {
-    ape_smear_conf(smear_conf,origi_conf,alpha,nstep,all_other_dirs[mu]);
+    ape_smear_conf(smear_conf,origi_conf,alpha,nstep,allOtherDirs[mu]);
   }
   
   inline void ape_temporal_smear_conf(LxField<quad_su3>& smear_conf,

@@ -19,7 +19,7 @@ namespace nissa
 {
   void fft4d(complex *out,
 	     const complex *in,
-	     const which_dir_t& dirs,
+	     const WhichDirs& dirs,
 	     const int& ncpp,
 	     const double& sign,
 	     const bool& normalize)

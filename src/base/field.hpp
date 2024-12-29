@@ -135,22 +135,22 @@ namespace nissa
     
     /// Number of sites in the halo of the field (not necessarily allocated)
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr int64_t& nHaloSites()
+    static constexpr const int64_t& nHaloSites()
     {
       if constexpr(fieldCoverage==FULL_SPACE)
-	return bord_vol;
+	return bordVol;
       else
-	return bord_volh;
+	return bordVolh;
     }
     
     /// Number of sites in the edges of the field (not necessarily allocated)
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr int64_t& nEdgesSites()
+    static constexpr const int64_t& nEdgesSites()
     {
       if constexpr(fieldCoverage==FULL_SPACE)
-	return edge_vol;
+	return edgeVol;
       else
-	return edge_volh;
+	return edgeVolh;
     }
     
     /// Computes the size to allocate
@@ -853,7 +853,7 @@ namespace nissa
       fillSendingBufWith([] CUDA_DEVICE(const int& i) INLINE_ATTRIBUTE
       {
 	return Field::surfSiteOfHaloSite(i);
-      },bord_vol/divCoeff);
+      },bordVol/divCoeff);
     }
     
     /// Fill the sending buf using the data on the surface edge
@@ -862,7 +862,7 @@ namespace nissa
       fillSendingBufWith([] CUDA_DEVICE(const int& i) INLINE_ATTRIBUTE
       {
 	return Field::surfSiteOfEdgeSite(i);
-      },edge_vol/divCoeff);
+      },edgeVol/divCoeff);
     }
     
     /// Fill the surface using the data from the buffer
@@ -872,14 +872,14 @@ namespace nissa
     {
       for(int bf=0;bf<2;bf++)
 	for(int mu=0;mu<NDIM;mu++)
-	  PAR(0,bord_dir_vol[mu]/divCoeff,
+	  PAR(0,bordDirVol[mu]/divCoeff,
 	      CAPTURE(f,bf,mu,
 		      t=this->getWritable()),
 	      iHaloOriDir,
 	      {
 		const int iHalo=
-		  bf*bord_volh/divCoeff+
-		  iHaloOriDir+bord_offset[mu]/divCoeff;
+		  bf*bordVolh/divCoeff+
+		  iHaloOriDir+bordOffset[mu]/divCoeff;
 		
 		const int iSurf=
 		  Field::surfSiteOfHaloSite(iHalo);
@@ -910,7 +910,7 @@ namespace nissa
     {
       assertHasHalo();
       
-      fillHaloOrEdgesWithReceivingBuf(locVol/divCoeff,bord_vol/divCoeff);
+      fillHaloOrEdgesWithReceivingBuf(locVol/divCoeff,bordVol/divCoeff);
     }
     
     /// Fills the halo with the received buffer
@@ -918,7 +918,7 @@ namespace nissa
     {
       assertHasEdges();
       
-      fillHaloOrEdgesWithReceivingBuf((locVol+bord_vol)/divCoeff,edge_vol/divCoeff);
+      fillHaloOrEdgesWithReceivingBuf((locVol+bordVol)/divCoeff,edgeVol/divCoeff);
     }
     
     /// Fills the sending buffer with the halo, compressing into elements of B using f
@@ -928,14 +928,14 @@ namespace nissa
     {
       for(int bf=0;bf<2;bf++)
 	for(int mu=0;mu<NDIM;mu++)
-	  PAR(0,bord_dir_vol[mu]/divCoeff,
+	  PAR(0,bordDirVol[mu]/divCoeff,
 	      CAPTURE(bf,mu,f,
 		      t=this->getReadable()),
 	      iHaloOriDir,
 	      {
 		const int iHalo=
-		  bf*bord_volh/divCoeff+
-		  iHaloOriDir+bord_offset[mu]/divCoeff;
+		  bf*bordVolh/divCoeff+
+		  iHaloOriDir+bordOffset[mu]/divCoeff;
 		
 		f(((B*)send_buf)[iHalo],
 		  t[locVol/divCoeff+iHalo],

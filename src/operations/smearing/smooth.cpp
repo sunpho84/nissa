@@ -1,9 +1,8 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include "smooth.hpp"
-#include "operations/gaugeconf.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
 
 namespace nissa
@@ -11,7 +10,7 @@ namespace nissa
   //smooth a configuration for one step
   void smooth_lx_conf_one_step(LxField<quad_su3>& smoothed_conf,
 			       const smooth_pars_t &sp,
-			       const which_dir_t& dirs,
+			       const WhichDirs& dirs,
 			       const int& staple_min_dir)
   {
     crash("reimplement"); //reimplement
@@ -30,12 +29,12 @@ namespace nissa
   bool smooth_lx_conf_until_next_meas(LxField<quad_su3>& smoothed_conf,
 				      const smooth_pars_t &sp,
 				      int &nsmooth,
-				      const which_dir_t& dirs,
+				      const WhichDirs& dirs,
 				      const int& staple_min_dir)
   {
     bool diff=false;
     for(int mu=0;mu<NDIM;mu++)
-      diff|=dirs[mu]!=all_dirs[mu];
+      diff|=dirs[mu]!=allDirs[mu];
     
     if(sp.method==smooth_pars_t::COOLING and diff) crash("not implemented");
     
@@ -54,7 +53,7 @@ namespace nissa
   }
   
   //smooth a configuration as imposed
-  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,const which_dir_t& dirs,int staple_min_dir)
+  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,const WhichDirs& dirs,int staple_min_dir)
   {
     crash("reimplement");
     

@@ -18,8 +18,8 @@ namespace nissa
   //interpret free index as source or sink
   void pass_spinspin_from_mom_to_x_space(LxField<spinspin>& out,
 					 const LxField<spinspin>& in,
-					 const which_dir_t& dirs,
-					 const momentum_t& bc,
+					 const WhichDirs& dirs,
+					 const Momentum& bc,
 					 const int& source_or_sink,
 					 const bool& include_phases)
   {
@@ -32,7 +32,7 @@ namespace nissa
     //fft4d((complex*)out,(complex*)in,dirs,sizeof(spinspin)/sizeof(complex),sign[source_or_sink],0);
     
     // //compute steps
-    // momentum_t steps;
+    // Momentum steps;
     // for(int mu=0;mu<NDIM;mu++)
     //   steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
     
@@ -57,8 +57,8 @@ namespace nissa
   //interprets free index as source or sink (see above)
   void pass_spinspin_from_x_to_mom_space(LxField<spinspin>& out,
 					 const LxField<spinspin>& in,
-					 const which_dir_t& dirs,
-					 const momentum_t& bc,
+					 const WhichDirs& dirs,
+					 const Momentum& bc,
 					 const int& source_or_sink,
 					 const bool& include_phases)
   {
@@ -68,7 +68,7 @@ namespace nissa
     // const int s=sign[source_or_sink]*include_phases;
     
     // //compute steps
-    // momentum_t steps;
+    // Momentum steps;
     // for(int mu=0;mu<NDIM;mu++)
     //   steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
     
@@ -97,8 +97,8 @@ namespace nissa
   //see above
   void pass_spin1prop_from_mom_to_x_space(LxField<spin1prop>& out,
 					  const LxField<spin1prop>& in,
-					  const which_dir_t& dirs,
-					  const momentum_t& bc,
+					  const WhichDirs& dirs,
+					  const Momentum& bc,
 					  const int& source_or_sink,
 					  const bool& include_phases)
   {
@@ -133,7 +133,7 @@ namespace nissa
     //fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1prop)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
-    // momentum_t steps;
+    // Momentum steps;
     // for(int mu=0;mu<NDIM;mu++)
     //   steps[mu]=s*bc[mu]*M_PI/glbSize[mu];
     
@@ -160,8 +160,8 @@ namespace nissa
   //see previous note
   void pass_spin1prop_from_x_to_mom_space(LxField<spin1prop>& out,
 					  const LxField<spin1prop>& in,
-					  const which_dir_t& dirs,
-					  const momentum_t& bc,
+					  const WhichDirs& dirs,
+					  const Momentum& bc,
 					  const int& source_or_sink,
 					  const bool& include_phases)
   {
@@ -171,7 +171,7 @@ namespace nissa
     // const int s=sign[source_or_sink]*include_phases;
     
     // //compute steps
-    // momentum_t steps;
+    // Momentum steps;
     // for(int mu=0;mu<NDIM;mu++)
     //   steps[mu]=s*dirs[mu]*bc[mu]*M_PI/glbSize[mu];
     
@@ -223,8 +223,8 @@ namespace nissa
   
   void pass_spin1field_from_mom_to_x_space(LxField<spin1field>& out,
 					   const LxField<spin1field>& in,
-					   const which_dir_t& dirs,
-					   const momentum_t& bc,
+					   const WhichDirs& dirs,
+					   const Momentum& bc,
 					   const int& source_or_sink,
 					   const bool& include_phases)
   {
@@ -256,7 +256,7 @@ namespace nissa
     fft4d(out,sign[source_or_sink],0);
     
     //compute steps
-    momentum_t steps;
+    Momentum steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
     
@@ -282,8 +282,8 @@ namespace nissa
   
   void pass_spin1field_from_x_to_mom_space(LxField<spin1field>& out,
 					   const LxField<spin1field>& in,
-					   const which_dir_t& dirs,
-					   const momentum_t& bc,
+					   const WhichDirs& dirs,
+					   const Momentum& bc,
 					   const int& source_or_sink,
 					   const bool& include_phases)
   {
@@ -292,7 +292,7 @@ namespace nissa
     const int s=sign[source_or_sink]*include_phases;
     
     //compute steps
-    momentum_t steps;
+    Momentum steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
     
@@ -342,8 +342,8 @@ namespace nissa
   
   void pass_spin_from_mom_to_x_space(LxField<spin>& out,
 				     const LxField<spin>& in,
-				     const which_dir_t& dirs,
-				     const momentum_t& bc,
+				     const WhichDirs& dirs,
+				     const Momentum& bc,
 				     const int& source_or_sink,
 				     const bool& include_phases)
   {
@@ -356,7 +356,7 @@ namespace nissa
     // fft4d((complex*)out,(complex*)in,dirs,sizeof(spin)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
-    momentum_t steps;
+    Momentum steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
     
@@ -382,8 +382,8 @@ namespace nissa
   
   void pass_spin_from_x_to_mom_space(LxField<spin>& out,
 				     const LxField<spin>& in,
-				     const which_dir_t& dirs,
-				     const momentum_t& bc,
+				     const WhichDirs& dirs,
+				     const Momentum& bc,
 				     const int& source_or_sink,
 				     const bool& include_phases)
   {
@@ -391,7 +391,7 @@ namespace nissa
     const int s=sign[source_or_sink]*include_phases;
     
     //compute steps
-    momentum_t steps;
+    Momentum steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
     
@@ -422,8 +422,8 @@ namespace nissa
   
   void pass_spincolor_from_mom_to_x_space(LxField<spincolor>& out,
 					  const LxField<spincolor>& in,
-					  const which_dir_t& dirs,
-					  const momentum_t& bc,
+					  const WhichDirs& dirs,
+					  const Momentum& bc,
 					  const int& source_or_sink,
 					  const bool& include_phases)
   {
@@ -435,7 +435,7 @@ namespace nissa
     //fft4d((complex*)out,(complex*)in,dirs,sizeof(spincolor)/sizeof(complex),sign[source_or_sink],0);
     
     // //compute steps
-    // momentum_t steps;
+    // Momentum steps;
     // for(int mu=0;mu<NDIM;mu++)
     //   steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
     
@@ -462,8 +462,8 @@ namespace nissa
   
   void pass_spincolor_from_x_to_mom_space(LxField<spincolor>& out,
 					  const LxField<spincolor>& in,
-					  const which_dir_t& dirs,
-					  const momentum_t& bc,
+					  const WhichDirs& dirs,
+					  const Momentum& bc,
 					  const int& source_or_sink,
 					  const bool& include_phases)
   {
@@ -472,7 +472,7 @@ namespace nissa
     // const int s=sign[source_or_sink]*include_phases;
     
     // //compute steps
-    // momentum_t steps;
+    // Momentum steps;
     // for(int mu=0;mu<NDIM;mu++)
     //   steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
     

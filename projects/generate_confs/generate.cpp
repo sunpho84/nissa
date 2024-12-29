@@ -234,11 +234,14 @@ void init_simulation(char *path)
   if(drv->theories.size()==0) crash("need to specify a theory");
   
   //geometry
-  glbSize[0]=drv->T;
-  glbSize[1]=drv->LX;
-  glbSize[2]=drv->LY;
-  glbSize[3]=drv->LZ;
-  init_grid(0,0);
+  Coords _glbSize;
+  _glbSize[0]=drv->T;
+  _glbSize[1]=drv->LX;
+  _glbSize[2]=drv->LY;
+  _glbSize[3]=drv->LZ;
+  set_glbSize(_glbSize);
+  
+  initGrid(0,0);
   
   top_meas_time=nissa_malloc("top_meas_time",drv->top_meas.size(),double);
   vector_reset(top_meas_time);
@@ -416,7 +419,8 @@ void measure_gauge_obs(const gauge_obs_meas_pars_t &pars,
 	  
 	  //get internal parameters
 	  const smooth_pars_t::space_or_time_t &space_or_time=pars.smooth_pars.space_or_time;
-	  const which_dir_t& dirs=smooth_pars_t::get_dirs(space_or_time);
+	  const WhichDirs& dirs=
+	    smooth_pars_t::get_dirs(space_or_time);
 	  int staple_min_dir=smooth_pars_t::get_staple_min_dir(space_or_time);
 	  
 	  finished=smooth_lx_conf_until_next_meas(temp_conf,pars.smooth_pars,nsmooth,dirs,staple_min_dir);
@@ -1690,9 +1694,9 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   in_main(narg,arg);
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

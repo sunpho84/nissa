@@ -29,10 +29,10 @@ namespace nissa
       {
 	//find coords
 	int jperp=iperp;
-	coords_t x;
+	Coords x;
 	for(int inu=2;inu>=0;inu--)
 	  {
-	    int nu=perp_dir[mu][inu];
+	    int nu=perpDirs[mu][inu];
 	    x[nu]=jperp%locSize[nu];
 	    jperp/=locSize[nu];
 	  }
@@ -42,8 +42,8 @@ namespace nissa
 	
 	//make a buffer in the case in which this dir is not parallelized
 	su3 buf;
-	int isite=loclx_of_coord(x);
-	if(nrank_dir[mu]==1)
+	int isite=loclxOfCoord(x);
+	if(nRanksDir[mu]==1)
 	  su3_copy(buf,u[isite]);
 	
 	//loop on remaining dir
@@ -62,7 +62,7 @@ namespace nissa
 	while(x[mu]!=en+sh);
 	
 	//if dir not parallelized, restore end
-	if(nrank_dir[mu]==1)
+	if(nRanksDir[mu]==1)
 	  su3_copy(u[isite],buf);
       });
   }

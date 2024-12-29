@@ -48,7 +48,7 @@ namespace nissa
 // 					  iflav+1,tp.nflavs(),icopy+1,ncopies);
 	  
 // 	  //Source time
-// 	  coords_t source_coord=generate_random_coord();
+// 	  Coords source_coord=generate_random_coord();
 	  
 // 	  const int& nhits=meas_pars.nhits;
 // 	  for(int hit=0;hit<nhits;hit++)

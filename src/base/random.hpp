@@ -101,10 +101,10 @@ namespace nissa
   
   //generate a delta source
   void generate_delta_source(LxField<su3spinspin>& source,
-			     const coords_t& x);
+			     const Coords& x);
   
   void generate_delta_eo_source(EoField<su3>& source,
-				const coords_t& x);
+				const Coords& x);
 
   // void generate_delta_eo_source(eo_ptr<su3> source,int *x);
   // void generate_delta_source(su3spinspin *source,int *x);
@@ -137,7 +137,7 @@ namespace nissa
   
   void rnd_fill_pm_one_loc_vector(double *v,int nps);
   void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max);
-  coords_t generate_random_coord();
+  Coords generate_random_coord();
   double rnd_get_gauss_double(rnd_gen *gen,double ave=0,double sig=1);
   
   //return a Z2 complex

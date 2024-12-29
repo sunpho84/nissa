@@ -10,7 +10,7 @@ namespace nissa
 		      LxField<quad_su3> conf,
 		      const double& alpha,
 		      const int& nSteps,
-		      const which_dir_t& dirs,
+		      const WhichDirs& dirs,
 		      const int& minStapleDir)
   {
     char listed_dirs[21]="";

@@ -53,7 +53,7 @@ namespace nissa
   }
   
   //initialize the geometry of the boxes subdirpar sets
-  void gauge_sweeper_t::init_box_dir_par_geometry(int ext_gpar,int(*par_comp)(const coords_t& ivol_coord,const int& dir))
+  void gauge_sweeper_t::init_box_dir_par_geometry(int ext_gpar,int(*par_comp)(const Coords& ivol_coord,const int& dir))
   {
     comm_init_time-=take_time();
     
@@ -74,12 +74,12 @@ namespace nissa
 	    for(int isub=0;isub<nsite_per_box[ibox];isub++)
 	      {
 		//get coordinates of site
-		coords_t isub_coord=coord_of_lx(isub,box_size[ibox]);
+		Coords isub_coord=coordOfLx(isub,boxSize[ibox]);
 		
 		//get coords in the local size, and parity
-		coords_t ivol_coord;
+		Coords ivol_coord;
 		for(int mu=0;mu<NDIM;mu++)
-		  ivol_coord[mu]=box_size[0][mu]*box_coord[ibox][mu]+isub_coord[mu];
+		  ivol_coord[mu]=boxSize[0][mu]*boxCoord[ibox][mu]+isub_coord[mu];
 		
 		int site_par=par_comp(ivol_coord,dir);
 		if(site_par>=gpar||site_par<0) crash("obtained par %d while expecting in the range [0,%d]",par,gpar-1);
@@ -87,7 +87,7 @@ namespace nissa
 		//map sites in current parity
 		if(site_par==par)
 		  {
-		    ivol_of_box_dir_par[ibox_dir_par++]=lx_of_coord(ivol_coord,locSize);
+		    ivol_of_box_dir_par[ibox_dir_par++]=lxOfCoord(ivol_coord,locSize);
 		    nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)]++;
 		  }
 	      }
@@ -98,7 +98,7 @@ namespace nissa
   //check that everything is hit once and only once
   void gauge_sweeper_t::check_hit_exactly_once()
   {
-    coords_t *hit=nissa_malloc("hit",locVol,coords_t);
+    Coords *hit=nissa_malloc("hit",locVol,Coords);
     vector_reset(hit);
     
     //mark what we hit
@@ -227,7 +227,7 @@ namespace nissa
     
     //check cached
     verbosity_lv3_master_printf("Max cached links: %d\n",max_cached_link);
-    if(max_cached_link>bord_vol+edge_vol) crash("larger buffer needed [really? recheck this]");
+    if(max_cached_link>bordVol+edgeVol) crash("larger buffer needed [really? recheck this]");
     
     //perform two checks
     check_hit_exactly_once();
@@ -348,7 +348,7 @@ namespace nissa
   }
   
   //compute the parity according to the Symanzik requirements
-  int Symanzik_par(const coords_t& ivol_coord,const int& dir)
+  int Symanzik_par(const Coords& ivol_coord,const int& dir)
   {
     int site_par=0;
     for(int mu=0;mu<NDIM;mu++) site_par+=((mu==dir)?2:1)*ivol_coord[mu];
@@ -361,8 +361,8 @@ namespace nissa
   //add all links needed for a certain site
   void add_Symanzik_staples(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu)
   {
-    coords_t& A=glbCoordOfLoclx[ivol];                            //       P---O---N
-    coords_t B,C,/*D,*/E,F,G,H,I,J,K,L,M,/*N,*/O,P;               //       |   |   |
+    Coords& A=glbCoordOfLoclx[ivol];                            //       P---O---N
+    Coords B,C,/*D,*/E,F,G,H,I,J,K,L,M,/*N,*/O,P;               //       |   |   |
     //find coord mu                                             //   H---G---F---E---D
     K[mu]=L[mu]=M[mu]=(A[mu]-1+glbSize[mu])%glbSize[mu];      //   |   |   |   |   |
     I[mu]=J[mu]=B[mu]=C[mu]=A[mu];                              //   I---J---A---B---C
@@ -370,13 +370,13 @@ namespace nissa
     /*N[mu]=*/O[mu]=P[mu]=(A[mu]+2)%glbSize[mu];               //       K---L---M
     for(int inu=0;inu<NDIM-1;inu++)
       {
-	int nu=perp_dir[mu][inu];
+	int nu=perpDirs[mu][inu];
 	
 	//copy orthogonal coords
 #if NDIM>=3
 	for(int irh=0;irh<NDIM-2;irh++)
 	  {
-	    int rh=perp2_dir[mu][inu][irh];
+	    int rh=perp2Dirs[mu][inu][irh];
 	    B[rh]=C[rh]=/*D[rh]=*/E[rh]=F[rh]=G[rh]=H[rh]=I[rh]=J[rh]=K[rh]=L[rh]=M[rh]=/*N[rh]=*/O[rh]=P[rh]=A[rh];
 	  }
 #endif
@@ -583,7 +583,7 @@ namespace nissa
   ///////////////////////////////////////// Wilson ////////////////////////////////////////
   
   //compute the parity according to the Wilson requirements
-  int Wilson_par(const coords_t& ivol_coord,const int& dir)
+  int Wilson_par(const Coords& ivol_coord,const int& dir)
   {
     int site_par=0;
     for(int mu=0;mu<NDIM;mu++) site_par+=ivol_coord[mu];
@@ -596,20 +596,20 @@ namespace nissa
   //add all links needed for a certain site
   void add_Wilson_staples(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu)
   {
-    coords_t& A=glbCoordOfLoclx[ivol];
-    coords_t B,F,G,J;                                       //       G---F---E
+    Coords& A=glbCoordOfLoclx[ivol];
+    Coords B,F,G,J;                                       //       G---F---E
     //find coord mu                                         //       |   |   |
     J[mu]=B[mu]=A[mu];                                      //       J---A---B
     F[mu]=G[mu]=(A[mu]+1)%glbSize[mu];
     for(int inu=0;inu<NDIM-1;inu++)
       {
-	int nu=perp_dir[mu][inu];
+	int nu=perpDirs[mu][inu];
 	
 	//copy orthogonal coords
 #if NDIM>=3
 	for(int irh=0;irh<NDIM-2;irh++)
 	  {
-	    int rh=perp2_dir[mu][inu][irh];
+	    int rh=perp2Dirs[mu][inu][irh];
 	    B[rh]=F[rh]=G[rh]=J[rh]=A[rh];
 	  }
 #endif

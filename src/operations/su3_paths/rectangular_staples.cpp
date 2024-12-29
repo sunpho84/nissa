@@ -40,14 +40,14 @@ namespace nissa
     //obtained scanning on first half of the border, and storing them
     //in the first half of sending buf
     for(int nu=0;nu<4;nu++) //border and staple direction
-      if(is_dir_parallel[nu])
+      if(isDirParallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
-	    const int mu=perp_dir[nu][imu];
+	    const int mu=perpDirs[nu][imu];
 	    const int inu=(nu<mu)?nu:nu-1;
 	    
-	    PAR(bord_offset[nu],
-		bord_offset[nu]+bord_dir_vol[nu],
+	    PAR(bordOffset[nu],
+		bordOffset[nu]+bordDirVol[nu],
 		CAPTURE(mu,
 			inu,
 			TO_READ(sq_staples)),
@@ -72,7 +72,7 @@ namespace nissa
     for(int mu=0;mu<4;mu++) //link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  const int nu=perp_dir[mu][inu];
+	  const int nu=perpDirs[mu][inu];
 	  const int imu=(mu<nu)?mu:mu-1;
 	  
 	  PAR(0,
@@ -102,14 +102,14 @@ namespace nissa
     
     //copy the received forward border (stored in the second half of receiving buf) to its destination
     for(int nu=0;nu<4;nu++) //border and staple direction
-      if(is_dir_parallel[nu])
+      if(isDirParallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
-	    int mu=perp_dir[nu][imu];
+	    int mu=perpDirs[nu][imu];
 	    int inu=(nu<mu)?nu:nu-1;
 	    
-	    PAR(bord_volh+bord_offset[nu],
-		bord_volh+bord_offset[nu]+bord_dir_vol[nu],
+	    PAR(bordVolh+bordOffset[nu],
+		bordVolh+bordOffset[nu]+bordDirVol[nu],
 		CAPTURE(mu,
 			inu,
 			TO_WRITE(sq_staples)),
@@ -130,7 +130,7 @@ namespace nissa
     for(int inu=0;inu<3;inu++) //staple direction
       for(int mu=0;mu<4;mu++) //link direction
 	{
-	  int nu=perp_dir[mu][inu];
+	  int nu=perpDirs[mu][inu];
 	  int imu=(mu<nu)?mu:mu-1;
 	  
 	  PAR(0,
@@ -153,14 +153,14 @@ namespace nissa
     //copy in send buf, obtained scanning second half of each parallelized direction external border and
     //copying the three perpendicular links staple
     for(int nu=0;nu<4;nu++) //border and staple direction
-      if(is_dir_parallel[nu])
+      if(isDirParallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
-	    const int mu=perp_dir[nu][imu];
+	    const int mu=perpDirs[nu][imu];
 	    const int inu=(nu<mu)?nu:nu-1;
 	    
-	    PAR(bord_volh+bord_offset[nu],
-		bord_volh+bord_offset[nu]+bord_dir_vol[nu],
+	    PAR(bordVolh+bordOffset[nu],
+		bordVolh+bordOffset[nu]+bordDirVol[nu],
 		CAPTURE(mu,
 			inu,
 			TO_WRITE(out)),
@@ -185,7 +185,7 @@ namespace nissa
     for(int mu=0;mu<4;mu++) //link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  int nu=perp_dir[mu][inu];
+	  int nu=perpDirs[mu][inu];
 	  int imu=(mu<nu)?mu:mu-1;
 	  
 	  //obtained scanning D on fw_surf
@@ -215,7 +215,7 @@ namespace nissa
     for(int mu=0;mu<4;mu++) //link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  int nu=perp_dir[mu][inu];
+	  int nu=perpDirs[mu][inu];
 	  int imu=(mu<nu)?mu:mu-1;
 	  
 	  //obtained looping A on forward surface
@@ -246,14 +246,14 @@ namespace nissa
     
     //copy the received backward staples (stored on first half of receiving buf) on bw_surf sites
     for(int nu=0;nu<4;nu++) //staple and fw bord direction
-      if(is_dir_parallel[nu])
+      if(isDirParallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
-	    const int mu=perp_dir[nu][imu];
+	    const int mu=perpDirs[nu][imu];
 	    const int inu=(nu<mu)?nu:nu-1;
 	    
-	    PAR(bord_offset[nu],
-		bord_offset[nu]+bord_dir_vol[nu],
+	    PAR(bordOffset[nu],
+		bordOffset[nu]+bordDirVol[nu],
 		CAPTURE(mu,
 			inu,
 			TO_WRITE(out)),

@@ -213,7 +213,7 @@ void init_simulation(int narg,char **arg)
 	}
       
       double kappa=0.125,mass=0.0,charge=0,residue=1e-16;
-      momentum_t theta;
+      Momentum theta;
       char ext_field_path[32]="";
       theta[0]=temporal_bc;
       for(int mu=1;mu<NDIM;mu++) theta[mu]=0;
@@ -317,7 +317,7 @@ void init_simulation(int narg,char **arg)
       
       if(strcasecmp(ins,ins_tag[DEL_POS])==0)
 	{
-	  coords_t c;
+	  Coords c;
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
 	      read_int(&c[mu]);
@@ -327,7 +327,7 @@ void init_simulation(int narg,char **arg)
 		crash("dir %d has been chosen larger than glb size %d",mu,glbSize[mu]);
 	    }
 	  
-	  r=glblx_of_coord(c);
+	  r=glblxOfCoord(c);
 	  master_printf("Choosing coords {%d,%d,%d,%d} corresponding to site %d\n",c[0],c[1],c[2],c[3],r);
 	  
 	  decripted=true;
@@ -598,9 +598,9 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   in_main(narg,arg);
-  close_nissa();
+  closeNissa();
   
   return 0;
 }
