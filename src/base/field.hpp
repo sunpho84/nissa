@@ -613,72 +613,43 @@ namespace nissa
     /// Re(*this,out)
     double realPartOfScalarProdWith(const Field& oth) const
     {
-      Field<double,FC> buf("buf");
-      
-      PAR(0,this->nSites(),
-	  CAPTURE(TO_WRITE(buf),
-		  t=this->getReadable(),
-		  TO_READ(oth)),
-	  site,
-	  {
-	    double r=0;
-	    UNROLL_FOR(internalDeg,0,nInternalDegs)
-	      r+=t(site,internalDeg)*oth(site,internalDeg);
-	    buf[site]=r;
-	  });
-      
-      double res2;
-      glb_reduce(&res2,buf,this->nSites());
+      double res;
       
 #ifdef USE_CUDA
-      
-      double res;
-      if(haloEdgesPresence!=WITHOUT_HALO and bord_vol>0)
+      if(fieldLayout==FieldLayout::CPU or bord_vol==0 or haloEdgesPresence==WITHOUT_HALO)
 	{
-	  verbosity_lv3_master_printf("this %s has bord\n",name);
-	  Field tmp("tmp");
-	  tmp=*this;
-	  
-	  if(_data==oth._data)
-	    {
-	      verbosity_lv3_master_printf("oth=this so calling realPartOfScalarProd with non-bord copy\n");
-	      
-	      res=
-		tmp.realPartOfScalarProdWith(tmp);
-	    }
-	  else
-	    res=
-	      tmp.realPartOfScalarProdWith(oth);
-	    }
+	  res=
+	    thrust::inner_product(thrust::device,
+				  _data,
+				  _data+this->nSites()*nInternalDegs,
+				  oth._data,
+				  Fund{});
+	  non_loc_reduce(&res);
+	}
       else
 	{
-	  if(oth.haloEdgesPresence!=WITHOUT_HALO and bord_vol>0)
-	    {
-	      verbosity_lv3_master_printf("oth %s has bord\n",oth.name);
-	      
-	      Field tmp2("tmp2");
-	      tmp2=oth;
-	      
-	      res=
-		realPartOfScalarProdWith(tmp2);
-	    }
-	  else
-	    {
-	      res=
-		thrust::inner_product(thrust::device,
-				      _data,
-				      _data+this->nSites()*nInternalDegs,
-				      oth._data,
-				      Fund{});
-	    }
+#endif
+	  Field<double,FC> buf("buf");
 	  
-	  non_loc_reduce(&res);
+	  PAR(0,this->nSites(),
+	      CAPTURE(TO_WRITE(buf),
+		      t=this->getReadable(),
+		      TO_READ(oth)),
+	      site,
+	      {
+		double r=0;
+		UNROLL_FOR(internalDeg,0,nInternalDegs)
+		  r+=t(site,internalDeg)*oth(site,internalDeg);
+		buf[site]=r;
+	      });
 	  
-	  verbosity_lv3_master_printf("(%s,%s) res: %lg res2: %lg, nSites: %ld, ninternaldegs: %d type: %s, _data: %s\n",name,oth.name,res,res2,this->nSites(),nInternalDegs,typeid(Field).name(),typeid(_data).name());
+	  glb_reduce(&res,buf,this->nSites());
+	  
+#ifdef USE_CUDA
 	}
 #endif
       
-      return res2;
+      return res;
     }
     
 #define PROVIDE_CASTS(CONST)						\
