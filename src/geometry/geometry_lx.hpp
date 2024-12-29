@@ -22,6 +22,8 @@
 
 #define NISSA_LOC_VOL_LOOP(a) for(int a=0;a<locVol;a++)
 
+#define NDIM 4
+
 namespace nissa
 {
   template <typename T,

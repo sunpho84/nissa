@@ -413,15 +413,7 @@ if ! printf "%f" "$max_verbosity_lv" >/dev/null 2>&1; then AC_MSG_ERROR([String 
 AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
 AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
 
-#number of dimension
-AC_ARG_ENABLE(ndim,
-        AS_HELP_STRING([--enable-ndim=n],[Set number of dimensions [Default: 4]]),
-        ndim="${enableval}",
-        ndim=4)
-if ! printf "%f" "$ndim" >/dev/null 2>&1; then AC_MSG_ERROR([String $ndim is not a number]); fi
-AM_CONDITIONAL([NDIM2], [test x$ndim = x2])
-AC_DEFINE_UNQUOTED([NDIM],$ndim,[Number of dimensions])
-AC_MSG_RESULT([enabling number of dimension... $ndim])
+AC_DEFINE_UNQUOTED([NDIM],4,[Number of dimensions])
 
 #external solver
 if test x"$enable_quda" == x"yes" -o x"$enable_DDalphaAMG" == x"yes"
