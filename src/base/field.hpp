@@ -125,7 +125,7 @@ namespace nissa
     
     /// Number of sites covered by the field
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr int64_t& nSites()
+    static constexpr const int64_t& nSites()
     {
       if constexpr(fieldCoverage==FULL_SPACE)
 	return locVol;

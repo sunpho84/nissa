@@ -611,7 +611,7 @@ namespace nissa
     
     //calculate the local volume
     for(int mu=0;mu<NDIM;mu++) locSize[mu]=glbSize[mu]/nrank_dir[mu];
-    locVol=glbVol/nranks;
+    set_locVol(glbVol/nranks);
     locSpatVol=locVol/locSize[0];
     loc_vol2=(double)locVol*locVol;
     

@@ -2,19 +2,22 @@
 #define _GEOMETRY_LX_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
-#endif
-
-#ifdef USE_MPI
- #include <mpi.h>
+# include "config.hpp"
 #endif
 
 #include <stdint.h>
+
+#ifdef USE_MPI
+# include <mpi.h>
+#endif
+
+#include <metaprogramming/globalVariable.hpp>
+
 #include <routines/math_routines.hpp>
 
 #ifndef EXTERN_GEOMETRY_LX
- #define EXTERN_GEOMETRY_LX extern
- #define ONLY_INSTANTIATION
+# define EXTERN_GEOMETRY_LX extern
+# define ONLY_INSTANTIATION
 #endif
 
 #define NISSA_LOC_VOL_LOOP(a) for(int a=0;a<locVol;a++)
@@ -42,12 +45,14 @@ namespace nissa
   typedef my_array<int,NDIM> coords_t;
   typedef my_array<double,NDIM> momentum_t;
   
+  PROVIDE_GLOBAL_VAR(int64_t,locVol)
+  
   //nomenclature:
   //-glb is relative to the global grid
   //-loc to the local one
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t glbSize,locSize;
   CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t glbVol,glbSpatVol,glbVolh;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t locVol,locSpatVol,locVolh;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t locSpatVol,locVolh;
   EXTERN_GEOMETRY_LX int64_t bulkVol,nonBwSurfVol,nonFwSurfVol;
   EXTERN_GEOMETRY_LX int64_t surfVol,bwSurfVol,fwSurfVol;
   EXTERN_GEOMETRY_LX double glb_vol2,loc_vol2;
