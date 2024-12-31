@@ -637,7 +637,7 @@ namespace nissa
 	//summ of the border extent up to dir mu
 	if(mu>0) bordOffset[mu]=bordOffset[mu-1]+bordDirVol[mu-1];
       }
-    set_bordVolh(bordVolh);
+    set_bordVolh(_bordVolh);
     set_bordVol(2*bordVolh);
     
     init_boxes();
