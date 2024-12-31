@@ -42,8 +42,8 @@ namespace nissa
     int d2=1+(axis-1+2)%3;
     
     //check that the two directions have the same size and that we are not asking 0 as axis
-    if(glbSize[d1]!=glbSize[d2]) crash("Rotation works only if dir %d and %d have the same size!",glbSize[d1],glbSize[d2]);
-    if(axis==0) crash("Error, only spatial rotations implemented");
+    if(glbSize[d1]!=glbSize[d2]) CRASH("Rotation works only if dir %d and %d have the same size!",glbSize[d1],glbSize[d2]);
+    if(axis==0) CRASH("Error, only spatial rotations implemented");
     int L=glbSize[d1];
     
     //allocate destinations and sources
@@ -68,7 +68,7 @@ namespace nissa
     
     //call the remapping
     //remap_vector((char*)out,(char*)in,xto,xfr,bps);
-    crash("to be reimplemented");
+    CRASH("to be reimplemented");
     
     //free vectors
     nissa_free(xfr);
@@ -95,7 +95,7 @@ namespace nissa
   
   void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // int d0=0;
     // int d1=1+(axis-1+1)%3;
@@ -175,7 +175,7 @@ namespace nissa
     
     if(adapt)
       {
-	master_printf("Necessary to add boundary condition: %f %f %f %f\n",diff_theta[0],diff_theta[1],diff_theta[2],diff_theta[3]);
+	MASTER_PRINTF("Necessary to add boundary condition: %f %f %f %f\n",diff_theta[0],diff_theta[1],diff_theta[2],diff_theta[3]);
 	put_boundaries_conditions(conf,diff_theta,putonbords,putonedges);
       }
   }
@@ -199,7 +199,7 @@ namespace nissa
   //generate a random conf
   void generate_hot_eo_conf(EoField<quad_su3>& conf)
   {
-    if(loc_rnd_gen_inited==0) crash("random number generator not inited");
+    if(loc_rnd_gen_inited==0) CRASH("random number generator not inited");
     
     for(int par=0;par<2;par++)
       {
@@ -218,7 +218,7 @@ namespace nissa
   //unitarize an a lx conf
   void unitarize_lx_conf_orthonormalizing(quad_su3* conf)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // START_TIMING(unitarize_time,nunitarize);
     
@@ -239,7 +239,7 @@ namespace nissa
   //unitarize the conf by explicitly by projecting it maximally to su3
   void unitarize_lx_conf_maximal_trace_projecting(quad_su3* conf)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // START_TIMING(unitarize_time,nunitarize);
     
@@ -281,7 +281,7 @@ namespace nissa
   
   void overrelax_lx_conf(LxField<quad_su3>& conf,gauge_sweeper_t* sweeper,int nhits)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     //(sweeper->sweep_conf(conf,overrelax_lx_conf_handle,(void*)&nhits);
   }
@@ -301,7 +301,7 @@ namespace nissa
   
   void heatbath_lx_conf(LxField<quad_su3>& conf,gauge_sweeper_t* sweeper,const double& beta,const int& nhits)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // heatbath_lx_conf_ns::pars_t pars(beta,nhits);sweeper->sweep_conf(conf,heatbath_lx_conf_ns::handle,&pars);
   }
   

@@ -24,7 +24,7 @@ namespace nissa
   {
     void matrix_element_with_gamma(double* out,complex* buffer,spincolor* x,int igamma)
     {
-    crash("Reimplement");
+    CRASH("Reimplement");
       
     //   NISSA_PARALLEL_LOOP(ivol,0,locVol)
     // 	{
@@ -42,7 +42,7 @@ namespace nissa
   //Computes the participation ratio
   double participation_ratio(spincolor *v)
   {
-    crash("Reimplement");
+    CRASH("Reimplement");
     
     // double *l=nissa_malloc("l",locVol,double);
     
@@ -66,7 +66,7 @@ namespace nissa
   //measure minmax_eigenvalues
   void measure_minmax_eigenvalues(eo_ptr<quad_su3> conf_eo,theory_pars_t &theory_pars,minmax_eigenvalues_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // double eig_time=-take_time();
     
     // //Parameters of the eigensolver
@@ -76,7 +76,7 @@ namespace nissa
     // //zero smooth time of the conf
     // quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol,quad_su3);
     // // paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
-    // crash("reimplement");
+    // CRASH("reimplement");
     // //parameters of the measure
     // bool min_max=meas_pars.min_max;
     // int neigs=meas_pars.neigs;
@@ -98,7 +98,7 @@ namespace nissa
     // bool finished;
     // do
     //   {
-    // 	verbosity_lv1_master_printf("Measuring minmax_eigenvalues for nsmooth %d/%d\n",nsmooth,meas_pars.smooth_pars.nsmooth());
+    // 	VERBOSITY_LV1_MASTER_PRINTF("Measuring minmax_eigenvalues for nsmooth %d/%d\n",nsmooth,meas_pars.smooth_pars.nsmooth());
 	
     // 	//plaquette for the current nsmooth
     // 	double plaq=global_plaquette_lx_conf(conf_lx);
@@ -109,11 +109,11 @@ namespace nissa
     // 	  {
     // 	    master_fprintf(fout,"   # iquark: %d\n",iquark);
 	    
-    // 	    verbosity_lv1_master_printf("Measuring minmax_eigenvalues for quark %d/%d\n",iquark+1,(int)theory_pars.nflavs());
+    // 	    VERBOSITY_LV1_MASTER_PRINTF("Measuring minmax_eigenvalues for quark %d/%d\n",iquark+1,(int)theory_pars.nflavs());
 	    
     // 	    double mass=theory_pars.quarks[iquark].mass;
     // 	    double mass_overlap=theory_pars.quarks[iquark].mass_overlap;
-    // 	    if(theory_pars.quarks[0].discretiz!=ferm_discretiz::OVERLAP) crash("Implemented only for overlap");
+    // 	    if(theory_pars.quarks[0].discretiz!=ferm_discretiz::OVERLAP) CRASH("Implemented only for overlap");
 	    
     // 	    //Generate the approximation
     // 	    rat_approx_t appr;
@@ -152,12 +152,12 @@ namespace nissa
     // 		minmax::matrix_element_with_gamma(chir,buffer,eigvec[ieig],5);
     // 		master_fprintf(fout,"     chirality: %.16lg %.16lg\n",chir[RE],chir[IM]);
 		
-    // 		master_printf("\n");
+    // 		MASTER_PRINTF("\n");
     // 	      }
     // 	  }
 	
     // 	//proceeds with smoothing
-    // 	crash("reimplement");	  finished=1;
+    // 	CRASH("reimplement");	  finished=1;
     // 	// finished=smooth_lx_conf_until_next_meas(conf_lx,meas_pars.smooth_pars,nsmooth);
     //   }
     // while(not finished);
@@ -167,7 +167,7 @@ namespace nissa
     
     // //print elapsed time
     // eig_time+=take_time();
-    // master_printf("Eigenvalues computation time: %lg\n", eig_time);
+    // MASTER_PRINTF("Eigenvalues computation time: %lg\n", eig_time);
     
     // //free
     // nissa_free(conf_lx);

@@ -82,7 +82,7 @@ namespace nissa
 	
 	for(size_t ipf=0;ipf<pf[iflav].size();ipf++)
 	  {
-	    verbosity_lv2_master_printf("Computing quark force for flavour %d/%d, pseudofermion %zu/%zu\n",iflav+1,tp.nflavs(),ipf+1,pf[iflav].size());
+	    VERBOSITY_LV2_MASTER_PRINTF("Computing quark force for flavour %d/%d, pseudofermion %zu/%zu\n",iflav+1,tp.nflavs(),ipf+1,pf[iflav].size());
 	    
 	    switch(q.discretiz)
 	      {
@@ -90,10 +90,10 @@ namespace nissa
 		summ_the_rootst_eoimpr_quark_force(F,conf,*pf[iflav][ipf].stag,bf,app,residue);
 		break;
 	      case ferm_discretiz::ROOT_TM_CLOV:
-		crash("reimplement");//summ_the_roottm_clov_eoimpr_quark_force(F,conf,q.kappa,q.cSW,Cl[ODD],invCl_evn,q.mass,*pf[iflav][ipf].Wils,bf,app,residue);
+		CRASH("reimplement");//summ_the_roottm_clov_eoimpr_quark_force(F,conf,q.kappa,q.cSW,Cl[ODD],invCl_evn,q.mass,*pf[iflav][ipf].Wils,bf,app,residue);
 		break;
 	      default:
-		crash("unknown discretization");
+		CRASH("unknown discretization");
 	      }
 	  }
 	
@@ -149,7 +149,7 @@ namespace nissa
     //   {
     // 	double norm=0;
     // 	for(int par=0;par<2;par++) norm+=double_vector_glb_norm2(F[par],locVolh);
-    // 	master_printf("  Quark force average norm: %lg\n",sqrt(norm/glbVol));
+    // 	MASTER_PRINTF("  Quark force average norm: %lg\n",sqrt(norm/glbVol));
     //   }
   }
 }

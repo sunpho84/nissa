@@ -37,7 +37,7 @@ namespace nissa
     {
       if(flag==2 and iconf%each==0 and iconf>=after)
 	{
-	  crash("reimplement");
+	  CRASH("reimplement");
 	  
 	  // double charge;
 	  // eo_ptr<quad_su3> conf;
@@ -55,7 +55,7 @@ namespace nissa
 	  
 	  // //compute topocharge
 	  // total_topological_charge_eo_conf(&charge,conf);
-	  // master_printf("Topological charge to be stored: %lg\n",charge);
+	  // MASTER_PRINTF("Topological charge to be stored: %lg\n",charge);
 	  // update(iconf,charge);
 	  
 	  // //free if needed
@@ -133,9 +133,9 @@ namespace nissa
       pars.load(topo_file_name);
     else
       if(mandatory)
-	crash("%s file not found when mandatory present",topo_file_name);
+	CRASH("%s file not found when mandatory present",topo_file_name);
       else
-	verbosity_lv2_master_printf("%s not found, skipping reading",topo_file_name);
+	VERBOSITY_LV2_MASTER_PRINTF("%s not found, skipping reading",topo_file_name);
   }
   
   //Compute the topological action
@@ -164,7 +164,7 @@ namespace nissa
 	topo_action=topodynamical_potential(Q,pars);
 	break;
       default:
-	crash("unknown flag %d",pars.flag);
+	CRASH("unknown flag %d",pars.flag);
       }
     
     return topo_action;

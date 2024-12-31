@@ -158,20 +158,20 @@ int read_conf_parameters(int *iconf)
       read_str(outfolder,1024);
       
       //Check if the conf has been finished or is already running
-      master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+      MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
 
       //if not chosen
       if(!dir_exists(outfolder))
 	{
-          master_printf(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
-	  if(create_dir(outfolder)) crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+          MASTER_PRINTF(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
+	  if(create_dir(outfolder)) CRASH(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
 	  ok_conf=1;
 	}
       (*iconf)++;
     }
   while(!ok_conf && (*iconf)<ngauge_conf);
   
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   
   return ok_conf;
 }
@@ -181,13 +181,13 @@ void setup_conf()
 {
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_ildg_gauge_conf(conf,conf_path);
-  master_printf("plaq: %.16g\n",global_plaquette_lx_conf(conf));
+  MASTER_PRINTF("plaq: %.16g\n",global_plaquette_lx_conf(conf));
 
   conf_smear_time-=take_time();
   ape_spatial_smear_conf(sme_conf,conf,ape_smearing_pars.alpha,ape_smearing_pars.nlevels);
   conf_smear_time+=take_time();
   
-  master_printf("smerded plaq: %.16g\n",global_plaquette_lx_conf(sme_conf));
+  MASTER_PRINTF("smerded plaq: %.16g\n",global_plaquette_lx_conf(sme_conf));
   
   //put the anti-periodic condition on the temporal border
   old_theta[0]=old_theta[1]=old_theta[2]=old_theta[3]=0;
@@ -201,16 +201,16 @@ void setup_conf()
 //Finalization
 void close_gevp_3pts()
 {
-  master_printf("\n");
-  master_printf("Inverted %d configurations.\n",nanalyzed_conf);
-  master_printf("Total time: %g s, of which:\n",tot_prog_time);
-  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",
+  MASTER_PRINTF("\n");
+  MASTER_PRINTF("Inverted %d configurations.\n",nanalyzed_conf);
+  MASTER_PRINTF("Total time: %g s, of which:\n",tot_prog_time);
+  MASTER_PRINTF(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",
 		ninv_tot,inv_time/ninv_tot);
-  master_printf("  of which  %02.2f%s for %d cgm inversion overhead (%2.2gs avg)\n",cgm_inv_over_time/inv_time*100,"%",
+  MASTER_PRINTF("  of which  %02.2f%s for %d cgm inversion overhead (%2.2gs avg)\n",cgm_inv_over_time/inv_time*100,"%",
                 ninv_tot,cgm_inv_over_time/ninv_tot);
-  master_printf(" - %02.2f%s to smear configuration\n",conf_smear_time*100.0/tot_prog_time,"%");
-  master_printf(" - %02.2f%s to sink-smear propagators\n",smear_time*100.0/tot_prog_time,"%");
-  master_printf(" - %02.2f%s to compute %d correlations (%2.2gs avg)\n",corr_time/tot_prog_time*100,"%",
+  MASTER_PRINTF(" - %02.2f%s to smear configuration\n",conf_smear_time*100.0/tot_prog_time,"%");
+  MASTER_PRINTF(" - %02.2f%s to sink-smear propagators\n",smear_time*100.0/tot_prog_time,"%");
+  MASTER_PRINTF(" - %02.2f%s to compute %d correlations (%2.2gs avg)\n",corr_time/tot_prog_time*100,"%",
 		ncorr_tot,corr_time/ncorr_tot);
   
   nissa_free(conf);nissa_free(sme_conf);
@@ -248,14 +248,14 @@ void close_gevp_3pts()
 void generate_source(int isource)
 {
   twall=(int)rnd_get_unif(&glb_rnd_gen,0,glb_size[0]-1);
-  master_printf("Source %d on t=%d\n",isource,twall);
+  MASTER_PRINTF("Source %d on t=%d\n",isource,twall);
   generate_spindiluted_source(loc_source,rnd_type_map[4],twall);
 
   //apply C
   apply_C_operator(C_loc_source,loc_source);
 
   //smear the source
-  master_printf("Source Smearing\n");
+  MASTER_PRINTF("Source Smearing\n");
   smear_time-=take_time();
   gaussian_smearing(sme_source,loc_source,sme_conf,gaussian_kappa,gaussian_niter);
   gaussian_smearing(C_sme_source,C_loc_source,sme_conf,gaussian_kappa,gaussian_niter);
@@ -283,7 +283,7 @@ void calculate_S0_lcsi(colorspinspin *out,double theta,colorspinspin *in)
       inv_time+=part_time;
       ninv_tot++;
       
-      master_printf("Finished the inversion of dirac index %d in %g sec\n",id,part_time);
+      MASTER_PRINTF("Finished the inversion of dirac index %d in %g sec\n",id,part_time);
       
       //reconstruct the doublet
       reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass,cgm_solution[0]);
@@ -292,13 +292,13 @@ void calculate_S0_lcsi(colorspinspin *out,double theta,colorspinspin *in)
 
   //rotate to physical basis, remember that D^-1 rotate opposite than D!
   rotate_vol_colorspinspin_to_physical_basis(out,!rspec,!rspec);
-  master_printf("Propagators rotated\n");
+  MASTER_PRINTF("Propagators rotated\n");
 }
 
 //smear the sink
 void calculate_S0_smsi()
 {
-  master_printf("S0 smearing\n");
+  MASTER_PRINTF("S0 smearing\n");
   smear_time-=take_time();
   gaussian_smearing(S0_std_smsi_lcso,S0_std_lcsi_lcso,sme_conf,gaussian_kappa,gaussian_niter);
   gaussian_smearing(S0_std_smsi_smso,S0_std_lcsi_smso,sme_conf,gaussian_kappa,gaussian_niter);
@@ -311,7 +311,7 @@ void calculate_S0_smsi()
 //generate the sequential source
 void generate_sequential_source(int iseq)
 {
-  master_printf("\nCreating the sequential source for sequential operator %d\n",iseq);
+  MASTER_PRINTF("\nCreating the sequential source for sequential operator %d\n",iseq);
   
   //seq source smearing
   switch(iseq)
@@ -326,13 +326,13 @@ void generate_sequential_source(int iseq)
       apply_C_operator(seq_source,S0_std_smsi_smso);
       break;
     default:
-      crash("unknown operator");
+      CRASH("unknown operator");
     }
 
   //seq source smearing
   if(iseq==1||iseq==2)
     {
-      master_printf("Seq source smearing\n");
+      MASTER_PRINTF("Seq source smearing\n");
       smear_time-=take_time();
       gaussian_smearing(seq_source,seq_source,sme_conf,gaussian_kappa,gaussian_niter);
       smear_time+=take_time();
@@ -342,7 +342,7 @@ void generate_sequential_source(int iseq)
   rotate_vol_colorspinspin_to_physical_basis(seq_source,rspec,rspec);
   select_propagator_timeslice(seq_source,seq_source,(tsep+twall)%glb_size[0]);
   
-  master_printf("Sequential source created\n\n");
+  MASTER_PRINTF("Sequential source created\n\n");
 }
   
 //calculate S1 propagator
@@ -369,7 +369,7 @@ void calculate_S1(int iseq)
       inv_time+=part_time;
       ninv_tot++;
       
-      master_printf("Finished the inversion of dirac index %d in %g sec\n",id,part_time);
+      MASTER_PRINTF("Finished the inversion of dirac index %d in %g sec\n",id,part_time);
       
       //reconstruct the doublet: r(S1)=!r(spec), so we have to multiply by Q+ if r(spec)==1 and Q- if 0
       double reco_mass=-mass;
@@ -380,7 +380,7 @@ void calculate_S1(int iseq)
   //put the (1+-ig5)/sqrt(2) factor if tm. On the source rotate as r_spec, on the sink as !r_spec
   rotate_vol_colorspinspin_to_physical_basis(S1,!rspec,rspec);
   
-  master_printf("S1 propagators %d computed\n",iseq);
+  MASTER_PRINTF("S1 propagators %d computed\n",iseq);
 }
 
 //calculate all 3pts
@@ -500,10 +500,10 @@ int check_remaining_time()
   double left_time=wall_time-temp_time;
   enough_time=left_time>(ave_time*1.1);
 
-  master_printf("Remaining time: %lg sec\n",left_time);
-  master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
-  if(enough_time) master_printf("Continuing with next conf!\n");
-  else master_printf("Not enough time, exiting!\n");
+  MASTER_PRINTF("Remaining time: %lg sec\n",left_time);
+  MASTER_PRINTF("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
+  if(enough_time) MASTER_PRINTF("Continuing with next conf!\n");
+  else MASTER_PRINTF("Not enough time, exiting!\n");
   
   return enough_time;
 }
@@ -540,7 +540,7 @@ void in_main(int narg,char **arg)
   tot_prog_time-=take_time();
   
   //initialize the program
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   initialize_semileptonic(arg[1]);
   
   //loop over the configs
@@ -579,7 +579,7 @@ void in_main(int narg,char **arg)
       enough_time=check_remaining_time();
     }
   
-  if(iconf==ngauge_conf) master_printf("Finished all the conf!\n");
+  if(iconf==ngauge_conf) MASTER_PRINTF("Finished all the conf!\n");
   
   tot_prog_time+=take_time();
   close_gevp_3pts();

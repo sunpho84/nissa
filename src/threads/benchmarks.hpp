@@ -142,7 +142,7 @@ namespace nissa
   {
     if(not file_exists(tunedKernelInfoFileName))
       {
-	master_printf("%s file not found, ignoring load tuned parameters\n",tunedKernelInfoFileName);
+	MASTER_PRINTF("%s file not found, ignoring load tuned parameters\n",tunedKernelInfoFileName);
 	return ;
       }
     
@@ -156,7 +156,7 @@ namespace nissa
     /// Read the number of tuned kernels
     int n;
     read_int(&n);
-    master_printf("Found %d tuned kernels\n",n);
+    MASTER_PRINTF("Found %d tuned kernels\n",n);
     
     for(int i=0;i<n;i++)
       {
@@ -184,16 +184,16 @@ namespace nissa
 	  }
       }
     
-    verbosity_lv3_master_printf("-------- List of tuned kernels --------\n");
+    VERBOSITY_LV3_MASTER_PRINTF("-------- List of tuned kernels --------\n");
     int id=0;
     for(const auto& [kernelInfo,kernelLaunchParsStats] :  kernelInfoLaunchParsStats)
       {
-	verbosity_lv3_master_printf("| %d - %s %zu\n",id,kernelInfo.name.c_str(),kernelLaunchParsStats.size());
+	VERBOSITY_LV3_MASTER_PRINTF("| %d - %s %zu\n",id,kernelInfo.name.c_str(),kernelLaunchParsStats.size());
 	for([[maybe_unused]] const auto& u : kernelLaunchParsStats)
-	  verbosity_lv3_master_printf("|| %ld %d\n",u.first,u.second.optimalBlockSize);
+	  VERBOSITY_LV3_MASTER_PRINTF("|| %ld %d\n",u.first,u.second.optimalBlockSize);
 	id++;
       }
-    verbosity_lv3_master_printf("-------------------\n");
+    VERBOSITY_LV3_MASTER_PRINTF("-------------------\n");
     
     close_file(fin);
     input_global=back;
@@ -273,7 +273,7 @@ namespace nissa
 	double minRunTime=0.0;
 	
 	if(maxBlockSize<=minBlockSize)
-	  crash("minbockSize %d cannot be equal or larger than maxBlockSize %d",minBlockSize,maxBlockSize);
+	  CRASH("minbockSize %d cannot be equal or larger than maxBlockSize %d",minBlockSize,maxBlockSize);
 	
 	if(print)
 	  printf("starting test with block size of powers of two in the range [%d;%d)\n",minBlockSize,maxBlockSize);
@@ -314,7 +314,7 @@ namespace nissa
 	    doNotBackupDuringBenchmark=false;
 	  }
 	
-	verbosity_lv1_master_printf("Tuned kernel %s for loop length %ld, optimal block size: %d, minimal time: %lg s, time with default block size (%d) would have been %lg s, saved time: %lg %c\n",
+	VERBOSITY_LV1_MASTER_PRINTF("Tuned kernel %s for loop length %ld, optimal block size: %d, minimal time: %lg s, time with default block size (%d) would have been %lg s, saved time: %lg %c\n",
 				    info.name.c_str(),loopLength,optimalBlockSize,minRunTime,defaultBlockSize,defaultBlockRunTime,(1-minRunTime/defaultBlockRunTime)*100,'%');
 	
 	storeTunedKernelsInfo();

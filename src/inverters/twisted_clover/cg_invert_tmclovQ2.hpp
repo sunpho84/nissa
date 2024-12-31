@@ -17,7 +17,7 @@ namespace nissa
 			      const LxField<spincolor>& source)
   {
     if(use_128_bit_precision)
-      crash("reimplement");//inv_tmclovQ2_cg_128(sol,guess,conf,kappa,Cl,m,niter,residue,source);
+      CRASH("reimplement");//inv_tmclovQ2_cg_128(sol,guess,conf,kappa,Cl,m,niter,residue,source);
     else inv_tmclovQ2_cg_64(sol,guess,conf,kappa,Cl,mu,niter,residue,source);
   }
 }

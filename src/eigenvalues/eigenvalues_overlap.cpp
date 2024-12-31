@@ -20,7 +20,7 @@ namespace nissa
 				const double& mass,
 				const int& wspace_size)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // //Application of the overlap Operator
     // const auto imp_mat=[conf,&appr,residue,mass_overlap,mass](complex *out_lx,complex *in_lx)
@@ -37,12 +37,12 @@ namespace nissa
     // const int mat_size=locVol*NCOL*NDIRAC;
     // const int mat_size_to_allocate=(locVol+bord_vol)*NCOL*NDIRAC;
     // const int niter_max=100000000;
-    // master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
+    // MASTER_PRINTF("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     
     // //precision of the eigenvalues
     // double maxerr=sqrt(residue);
     
-    // verbosity_lv1_master_printf("Starting to search for %d %s eigenvalues of the overlap operator, with a precision of %lg, and Krylov space size of %d\n",neigs,(min_max?"max":"min"),maxerr,wspace_size);
+    // VERBOSITY_LV1_MASTER_PRINTF("Starting to search for %d %s eigenvalues of the overlap operator, with a precision of %lg, and Krylov space size of %d\n",neigs,(min_max?"max":"min"),maxerr,wspace_size);
     
     // //find eigenvalues and eigenvectors of the overlap
     // eigenvalues_find((complex**)eigvec,eigval,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,maxerr,niter_max,filler,wspace_size);

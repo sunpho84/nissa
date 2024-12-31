@@ -29,11 +29,11 @@ namespace nissa
   template <class F>
   void print_all_eigenstuff(const F &f,int mat_size)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // #ifndef USE_EIGEN
     
-//     crash("Need Eigen");
+//     CRASH("Need Eigen");
     
 // #else
     
@@ -62,10 +62,10 @@ namespace nissa
 //     //print eigenvectors
 //     for(int ieig=0;ieig<mat_size;ieig++)
 //       {
-// 	master_printf("---\n");
-// 	master_printf("%d\n",ieig);
+// 	MASTER_PRINTF("---\n");
+// 	MASTER_PRINTF("%d\n",ieig);
 // 	std::complex<double> lambda=solver.eigenvalues()(ieig);
-// 	master_printf("%.16lg %.16lg\n",lambda.real(),lambda.imag());
+// 	MASTER_PRINTF("%.16lg %.16lg\n",lambda.real(),lambda.imag());
 	
 // 	for(int i=0;i<mat_size;i++)
 // 	  {
@@ -77,11 +77,11 @@ namespace nissa
 // 	f(out,test);
 	
 // 	complex e;
-// 	crash("reimplement");
+// 	CRASH("reimplement");
 // 	//complex_vector_glb_scalar_prod(e,(complex*)test,(complex*)out,mat_size);
 	
 // 	complex_vector_subtassign_complex_vector_prod_complex((complex*)out,(complex*)test,e,mat_size);
-// 	master_printf(" (%.16lg,%.16lg), residue: %lg\n",ieig,e[RE],e[IM],sqrt(double_vector_glb_norm2(out,mat_size)));
+// 	MASTER_PRINTF(" (%.16lg,%.16lg), residue: %lg\n",ieig,e[RE],e[IM],sqrt(double_vector_glb_norm2(out,mat_size)));
 //       }
 // #endif
   }

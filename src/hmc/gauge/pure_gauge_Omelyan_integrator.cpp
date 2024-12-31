@@ -38,7 +38,7 @@ namespace nissa
 					    const double& dt,
 					    LxField<quad_su3>& F)
   {
-    verbosity_lv2_master_printf("Evolving momenta with pure gauge force, dt=%lg\n",dt);
+    VERBOSITY_LV2_MASTER_PRINTF("Evolving momenta with pure gauge force, dt=%lg\n",dt);
     
     compute_gluonic_force_lx_conf(F,conf,theory_pars);
     
@@ -49,7 +49,7 @@ namespace nissa
   //integrator for pure gauge
   void Omelyan_pure_gauge_evolver(quad_su3* H,quad_su3* conf,theory_pars_t* theory_pars,pure_gauge_evol_pars_t* simul)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // //macro step or micro step
     // double dt=simul->traj_length/simul->nmd_steps,dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
@@ -63,7 +63,7 @@ namespace nissa
     // //         Main loop
     // for(int istep=0;istep<nsteps;istep++)
     //   {
-    // 	verbosity_lv1_master_printf("Omelyan pure gauge step %d/%d\n",istep+1,nsteps);
+    // 	VERBOSITY_LV1_MASTER_PRINTF("Omelyan pure gauge step %d/%d\n",istep+1,nsteps);
 	
     // 	//decide if last step is final or not
     // 	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;

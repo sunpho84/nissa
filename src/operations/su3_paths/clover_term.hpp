@@ -54,7 +54,7 @@ namespace nissa
 					 const double& cSW_new,
 					 const double& cSW_old)
   {
-    /*master_printf("adjusting from: %lg to %lg\n",cSW_old,cSW_new);*/
+    /*MASTER_PRINTF("adjusting from: %lg to %lg\n",cSW_old,cSW_new);*/
     Cl*=chromo_operator_factor(cSW_new)/chromo_operator_factor(cSW_old);
   }
   
@@ -62,7 +62,7 @@ namespace nissa
 					 const double& cSW_new,
 					 const double& cSW_old)
   {
-    /*master_printf("adjusting from: %lg to %lg\n",cSW_old,cSW_new);*/
+    /*MASTER_PRINTF("adjusting from: %lg to %lg\n",cSW_old,cSW_new);*/
     for(int eo=0;eo<2;eo++)
       Cl[eo]*=chromo_operator_factor(cSW_new)/chromo_operator_factor(cSW_old);
   }
@@ -210,7 +210,7 @@ namespace nissa
 		//write residual
 		if(iter>=niter_for_verbosity)
 #ifndef COMPILING_FOR_DEVICE
-		  master_printf("iter %d rel residue: %lg\n",iter,res)
+		  MASTER_PRINTF("iter %d rel residue: %lg\n",iter,res)
 #endif
 		    ;
 		iter++;
@@ -218,7 +218,7 @@ namespace nissa
 	    while(res>=target_res and iter<niter_max);
 	    if(iter>=niter_max)
 #ifndef COMPILING_FOR_DEVICE
-	      crash("exceeded maximal number of iterations %d, arrived to %d with residue %lg, target %lg",niter_max,iter,res,target_res);
+	      CRASH("exceeded maximal number of iterations %d, arrived to %d with residue %lg, target %lg",niter_max,iter,res,target_res);
  #else
 	    __trap();
 #endif
@@ -226,7 +226,7 @@ namespace nissa
 	    //apply_point_squared_twisted_clover_term_to_halfspincolor(ap,mass,kappa,Cl+2*x_high_low,x);
 	    //halfspincolor_summ_the_prod_double(ap,b,-1);
 	    //double trr=halfspincolor_norm2(ap)/ori_rr;
-	    //master_printf("true residue: %lg vs %lg\n",trr,rr);
+	    //MASTER_PRINTF("true residue: %lg vs %lg\n",trr,rr);
 	    
 	    //copy the solution after removing the hermitian
 	    halfspincolor temp;
@@ -245,7 +245,7 @@ namespace nissa
 				   const double& kappa,
 				   const FieldFeat<ClF>& _Cl)
    {
-     verbosity_lv2_master_printf("Computing inverse clover term for quark of mass %lg and kappa %lg\n",mass,kappa);
+     VERBOSITY_LV2_MASTER_PRINTF("Computing inverse clover term for quark of mass %lg and kappa %lg\n",mass,kappa);
      
      InvClF& invCl=*_invCl;
      const ClF& Cl=*_Cl;

@@ -40,7 +40,7 @@ namespace nissa
   // Compute the insertion to be plugged inside the clover staples
   void compute_clover_staples_insertions(eo_ptr<as2t_su3> cl_insertion,eo_ptr<spincolor> X,eo_ptr<spincolor> Y)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // for(int eo=0;eo<2;eo++)
     //   {
     // 	NISSA_PARALLEL_LOOP(jeo,0,locVolh)
@@ -125,7 +125,7 @@ namespace nissa
   // implement appendix B of https://arxiv.org/pdf/0905.3331.pdf
   void summ_the_roottm_clov_eoimpr_quark_force(eo_ptr<quad_su3> F,eo_ptr<quad_su3> eo_conf,double kappa,double cSW,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,spincolor *phi_o,eo_ptr<quad_u1> u1b,rat_approx_t *appr,double residue)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // START_TIMING(quark_force_over_time,nquark_force_over);
     
     // //allocate each terms of the expansion
@@ -150,7 +150,7 @@ namespace nissa
     // // eq. B.8a
     // if(appr->degree()==1 and appr->poles[0]==0)
     //   {
-    // 	master_printf("please cleanup, put this into the template\n");
+    // 	MASTER_PRINTF("please cleanup, put this into the template\n");
     // 	inv_tmclovDkern_eoprec_square_eos_cg_64(X[ODD][0],nullptr,eo_conf,kappa,cSW,Cl_odd,invCl_evn,mu,10000000,residue,phi_o);
     //   }
     // else

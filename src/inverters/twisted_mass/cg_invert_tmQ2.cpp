@@ -11,7 +11,7 @@ namespace nissa
   //switch 64 and 128
   void inv_tmQ2_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,double residue,spincolor *source)
   {
-      crash("reimplement");//not linking
+      CRASH("reimplement");//not linking
       //if(use_128_bit_precision)
     //inv_tmQ2_cg_128(sol,guess,conf,kappa,m,niter,residue,source);
       //else

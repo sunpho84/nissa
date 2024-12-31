@@ -17,8 +17,8 @@ void init_calc(int narg,char **arg)
   //Basic mpi initialization
   init_nissa(narg,arg);
   
-  if(nranks>1) crash("only available in scalar");
-  if(narg<3) crash("use %s T L",arg[0]);
+  if(nranks>1) CRASH("only available in scalar");
+  if(narg<3) CRASH("use %s T L",arg[0]);
   
   int T=atoi(arg[1]);
   int L=atoi(arg[2]);

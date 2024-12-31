@@ -22,7 +22,7 @@ namespace nissa
 			      const int& mu,
 			      const EoField<color>& in,const shift_orie_t& side)
     {
-      if(in==out) crash("in==out");
+      if(in==out) CRASH("in==out");
       
       in.updateHalo();
       conf.updateHalo();
@@ -66,7 +66,7 @@ namespace nissa
 			     const EoField<quad_su3>& conf,
 			     const EoField<color>& in)
     {
-      crash("reimplement");
+      CRASH("reimplement");
       
       // //allocate temp
       // eo_ptr<color> temp;
@@ -110,7 +110,7 @@ namespace nissa
       for(auto mu_it=list_dir.begin();mu_it!=list_dir.end();mu_it++)
 	{
 	  //write comment, copy and communicate
-	  verbosity_lv2_master_printf(" shift %d\n",*mu_it);
+	  VERBOSITY_LV2_MASTER_PRINTF(" shift %d\n",*mu_it);
 	  if(mu_it!=list_dir.begin())
 	    temp=out;
 	  
@@ -148,9 +148,9 @@ namespace nissa
 	  do
 	    {
 	      //incrementing the number of permutations
-	      verbosity_lv2_master_printf("Considering permutation %d:",nperm);
-	      for(std::vector<int>::iterator it=list_dir.begin();it!=list_dir.end();it++) verbosity_lv2_master_printf(" %d",*it);
-	      verbosity_lv2_master_printf("\n");
+	      VERBOSITY_LV2_MASTER_PRINTF("Considering permutation %d:",nperm);
+	      for(std::vector<int>::iterator it=list_dir.begin();it!=list_dir.end();it++) VERBOSITY_LV2_MASTER_PRINTF(" %d",*it);
+	      VERBOSITY_LV2_MASTER_PRINTF("\n");
 	      nperm++;
 	      
 	      //apply and summ
@@ -325,7 +325,7 @@ namespace nissa
 		    const int& ord,
 		    const EoField<color>& in)
     {
-      if(ord==0) crash("makes no sense to call with order zero");
+      if(ord==0) CRASH("makes no sense to call with order zero");
       
       add_backfield_with_stagphases_to_conf(conf,theory_pars.backfield[iflav]);
       conf.updateHalo();
@@ -394,7 +394,7 @@ namespace nissa
     //insert an external current
     void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,int ieo,int mu,void *pars),int t,void *pars)
     {
-      crash("reimplement");
+      CRASH("reimplement");
       
       //   add_backfield_with_stagphases_to_conf(conf,theory_pars->backfield[iflav]);
     //   communicate_ev_and_od_quad_su3_borders(conf);

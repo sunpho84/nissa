@@ -22,8 +22,8 @@
 #include <routines/mpi_routines.hpp>
 #include <threads/threads.hpp>
 
-#define VERBOSITY_MASTER_PRINTF verbosity_lv1_master_printf
-//#define VERBOSITY_MASTER_PRINTF verbosity_lv3_master_printf
+#define VERBOSITY_MASTER_PRINTF VERBOSITY_LV1_MASTER_PRINTF
+//#define VERBOSITY_MASTER_PRINTF VERBOSITY_LV3_MASTER_PRINTF
 
 namespace nissa
 {
@@ -92,7 +92,7 @@ namespace nissa
   //transform a color field
   void gauge_transform_color(eo_ptr<color> out,eo_ptr<su3> g,eo_ptr<color> in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // //communicate borders
     // communicate_ev_and_od_su3_borders(g);
     
@@ -110,7 +110,7 @@ namespace nissa
   //determine the gauge transformation bringing to temporal gauge with T-1 timeslice diferent from id
   void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // int loc_slice_area=locSize[1]*locSize[2]*locSize[3];
     // su3 *buf=NULL;
     
@@ -275,7 +275,7 @@ namespace nissa
 						const LxField<su3>& fixer,
 						const LxField<quad_su3>& ori_conf)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // for(int eo=0;eo<2;eo++)
     //   {
@@ -345,7 +345,7 @@ namespace nissa
   //put the Fourier Acceleration kernel of eq.3.6 of C.Davies paper
   void Fourier_accelerate_derivative(LxField<su3>& der)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // //Fourier Transform
     // fft4d(der,FFT_MINUS,FFT_NORMALIZE);
     
@@ -423,7 +423,7 @@ namespace nissa
 		     int& nskipped_adapt)
   {
 #ifndef REPRODUCIBLE_RUN
-    crash("need reproducible run to enable adaptative search");
+    CRASH("need reproducible run to enable adaptative search");
 #endif
     
     //first guess
@@ -450,7 +450,7 @@ namespace nissa
 	double F[3];
 	F[0]=0;
 	fixer=ori_fixer;
-	// master_printf("Check: %lg %lg\n",func_0,compute_Landau_or_Coulomb_functional(fixed_conf,start_mu));
+	// MASTER_PRINTF("Check: %lg %lg\n",func_0,compute_Landau_or_Coulomb_functional(fixed_conf,start_mu));
 	
 	for(int i=1;i<=2;i++)
 	  {
@@ -738,7 +738,7 @@ namespace nissa
 	    bool get_out=false;
 	    do
 	      {
-		master_printf("iter: %d quality: %16.16lg functional: %16.16lg\n",iter,prec,func);
+		MASTER_PRINTF("iter: %d quality: %16.16lg functional: %16.16lg\n",iter,prec,func);
 		
 		switch(pars.method)
 		  {
@@ -747,7 +747,7 @@ namespace nissa
 		  case LC_gauge_fixing_pars_t::overrelax:
 		    Landau_or_Coulomb_gauge_fixing_overrelax(fixed_conf,pars.gauge,pars.overrelax_prob,fixer,ext_conf);break;
 		  default:
-		    crash("unknown method %d",pars.method);
+		    CRASH("unknown method %d",pars.method);
 		  }
 		iter++;
 		
@@ -761,7 +761,7 @@ namespace nissa
 		int nskipped_adapt_tol=5;
 		if(use_adapt and nskipped_adapt>=nskipped_adapt_tol)
 		  {
-		    master_printf("Reached tolerance of skipping %d, switching off adaptative search\n",nskipped_adapt);
+		    MASTER_PRINTF("Reached tolerance of skipping %d, switching off adaptative search\n",nskipped_adapt);
 		    use_adapt=false;
 		  }
 		
@@ -769,7 +769,7 @@ namespace nissa
 		double use_adapt_prec_tol=1e-14;
 		if(use_adapt and prec<=use_adapt_prec_tol)
 		  {
-		    master_printf("Reached precision %lg, smaller than tolerance (%lg), switching off adaptative search\n",prec,use_adapt_prec_tol);
+		    MASTER_PRINTF("Reached precision %lg, smaller than tolerance (%lg), switching off adaptative search\n",prec,use_adapt_prec_tol);
 		    use_adapt=false;
 		  }
 	      }
@@ -794,12 +794,12 @@ namespace nissa
 	while(not really_get_out);
 	
 	//crash if this did not work
-	if(not really_get_out) crash("unable to fix to precision %16.16lg in %d iterations",pars.target_precision,pars.nmax_iterations);
+	if(not really_get_out) CRASH("unable to fix to precision %16.16lg in %d iterations",pars.target_precision,pars.nmax_iterations);
 	
 	//free
 	if(pars.use_generalized_cg) free_GCG_stuff();
 	
-	master_printf("Gauge fix time: %lg\n",time+take_time());
+	MASTER_PRINTF("Gauge fix time: %lg\n",time+take_time());
       }
   }
   

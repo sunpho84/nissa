@@ -45,7 +45,7 @@ namespace nissa
   {
     if(use_128_bit_precision)
       {
-	crash("reimplement");
+	CRASH("reimplement");
 	//inv_tmclovDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,cSW,Cl_odd,invCl_evn,mass,nitermax,residue,source);
       }
     else inv_tmclovDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,Cl_odd,invCl_evn,mass,nitermax,residue,source);
@@ -67,7 +67,7 @@ namespace nissa
     // set_borders_invalid(conf_lx);
     // communicate_lx_quad_su3_borders(conf_lx);
     if(not use_eo_geom)
-      crash("eo geometry needed to use cg_eoprec");
+      CRASH("eo geometry needed to use cg_eoprec");
     
     const LxField<inv_clover_term_t> *_invCl_lx;
     if(ext_invCl_lx)
@@ -145,7 +145,7 @@ namespace nissa
     //compute residual and print
     const double real_residue=check_res.norm2();
     if(real_residue>residue*1.1)
-      master_printf("WARNING preconditioned tmclovD solver, asked for residual: %lg, obtained %lg\n\n",residue,real_residue);
+      MASTER_PRINTF("WARNING preconditioned tmclovD solver, asked for residual: %lg, obtained %lg\n\n",residue,real_residue);
     
     if(ext_invCl_lx==nullptr)
       delete _invCl_lx;
@@ -179,7 +179,7 @@ namespace nissa
     
   //   const int incrSite=533223;
     
-  //   master_printf("conf_lx pointer: %p\n",conf_lx);
+  //   MASTER_PRINTF("conf_lx pointer: %p\n",conf_lx);
     
   //   if(rank==0)
   //     {
@@ -201,7 +201,7 @@ namespace nissa
   //   {
   //     checksum check;
   //     checksum_compute_nissa_data(check,Cl_lx,64,sizeof(clover_term_t));
-  //     master_printf("initial checksum of the clover %x %x\n",check[0],check[1]);
+  //     MASTER_PRINTF("initial checksum of the clover %x %x\n",check[0],check[1]);
   //   }
     
     /// Keep track of convergence
@@ -212,7 +212,7 @@ namespace nissa
       {
 	const double call_time=take_time();
 	solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
-	master_printf("calling quda to solve took %lg s\n",take_time()-call_time);
+	MASTER_PRINTF("calling quda to solve took %lg s\n",take_time()-call_time);
       }
 #endif
     
@@ -220,11 +220,11 @@ namespace nissa
     if(multiGrid::checkIfMultiGridAvailableAndRequired(mass) and not solved)
       {
 	if(source_lx.fieldLayout!=FieldLayout::CPU)
-	  crash("wrong layout");
+	  CRASH("wrong layout");
 	
 	const double call_time=take_time();
 	solved=DD::solve((spincolor*)solution_lx._data,(quad_su3*)conf_lx._data,kappa,cSW,mass,residue,(spincolor*)source_lx._data);
-	master_printf("calling DDalphaAMG to solve took %lg s\n",take_time()-call_time);
+	MASTER_PRINTF("calling DDalphaAMG to solve took %lg s\n",take_time()-call_time);
       }
 #endif
     
@@ -282,7 +282,7 @@ namespace nissa
     // 	// 	fclose(ftemp);
     // 	// 	unlink(temp_path.c_str());
     // 	//   }
-    // 	crash("Not yet implemented");
+    // 	CRASH("Not yet implemented");
     //   }
     
     if(not solved)
@@ -296,9 +296,9 @@ namespace nissa
 	LxField<spincolor> residueVec("residueVec");
 	// checksum check;
 	// checksum_compute_nissa_data(check,solution_lx,64,sizeof(spincolor));
-	// master_printf("checksum of the solution %x %x\n",check[0],check[1]);
+	// MASTER_PRINTF("checksum of the solution %x %x\n",check[0],check[1]);
 	// checksum_compute_nissa_data(check,conf_lx,64,sizeof(quad_su3));
-	// master_printf("checksum of the conf %x %x\n",check[0],check[1]);
+	// MASTER_PRINTF("checksum of the conf %x %x\n",check[0],check[1]);
 	
 	// const double sou=source_lx[0][0][0][0];
 	// const double sol=solution_lx[0][0][0][0];
@@ -307,11 +307,11 @@ namespace nissa
 	// const double sola=solution_lx[0][0][0][0];
 	// const double soll=solution_lx[locVol][0][0][0];
 	// checksum_compute_nissa_data(check,Cl_lx,64,sizeof(clover_term_t));
-	// master_printf("checksum of the clover %x %x\n",check[0],check[1]);
+	// MASTER_PRINTF("checksum of the clover %x %x\n",check[0],check[1]);
 	// checksum_compute_nissa_data(check,residueVec,64,sizeof(spincolor));
-	// master_printf("checksum of the residue %x %x\n",check[0],check[1]);
+	// MASTER_PRINTF("checksum of the residue %x %x\n",check[0],check[1]);
 	// checksum_compute_nissa_data(check,solution_lx+bord_vol,64,sizeof(spincolor));
-	// master_printf("checksum of the solution shifted by bord %x %x\n",check[0],check[1]);
+	// MASTER_PRINTF("checksum of the solution shifted by bord %x %x\n",check[0],check[1]);
 	// const double res=residueVec[0][0][0][0];
 	// const double res1=residueVec[loclx_of_coord_list(0,8,23,7)][0][0][0];
 	PAR(0,locVol,
@@ -347,7 +347,7 @@ namespace nissa
 	/// Source L2 norm
 	const double sourceNorm2=source_lx.norm2();
 	
-	master_printf("check solution, source norm2: %lg, residue: %lg, target one: %lg checked in %lg s\n",
+	MASTER_PRINTF("check solution, source norm2: %lg, residue: %lg, target one: %lg checked in %lg s\n",
 		      sourceNorm2,residueNorm2/sourceNorm2,residue,take_time()-check_time);
 	// printf("check rank %d %lg %lg %lg %lg %lg %lg %lg %lg     %lg %lg %lg\n",rank,sou,sol,sola,soll,res,res1,res5,ress,resn,resnt,resntg);
 	

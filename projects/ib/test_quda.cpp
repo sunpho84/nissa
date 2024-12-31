@@ -41,7 +41,7 @@ void in_main(int narg,char **arg)
   // quda_iface::remap_nissa_to_quda(tmp,in);
   // quda_iface::remap_quda_to_nissa(out,tmp);
   
-  // master_printf("testing map and unmap, residue: %lg\n",rel_diff_norm(out,in));
+  // MASTER_PRINTF("testing map and unmap, residue: %lg\n",rel_diff_norm(out,in));
   
   // /// Second test: apply the dirac operator
   
@@ -49,7 +49,7 @@ void in_main(int narg,char **arg)
   // spincolor *out_nissa=nissa_malloc("out_nissa",locVol+bord_vol,spincolor);
   
   // generate_hot_lx_conf(conf);
-  // master_printf("plaq: %lg\n",global_plaquette_lx_conf(conf));
+  // MASTER_PRINTF("plaq: %lg\n",global_plaquette_lx_conf(conf));
   
   // vector_reset(in);
   // in[0][0][0][0]=1.0;
@@ -67,7 +67,7 @@ void in_main(int narg,char **arg)
   
   // safe_dirac_prod_spincolor(out_nissa,base_gamma[5],out_nissa);
   
-  // master_printf("comparing\n");
+  // MASTER_PRINTF("comparing\n");
   // for(int ivol=0;ivol<locVol;ivol++)
   //   for(int id=0;id<NDIRAC;id++)
   //     for(int ic=0;ic<NCOL;ic++)
@@ -76,10 +76,10 @@ void in_main(int narg,char **arg)
   // 	    const double n=out_nissa[ivol][id][ic][ri];
   // 	    const double q=out[ivol][id][ic][ri];
   // 	    if(fabs(n)>1e-10 or fabs(q)>1e-10)
-  // 	      master_printf("out,[nissa,quda][ivol=%d,id=%d,ic=%d,ri=%d]: %lg %lg\n",
+  // 	      MASTER_PRINTF("out,[nissa,quda][ivol=%d,id=%d,ic=%d,ri=%d]: %lg %lg\n",
   // 			    ivol,id,ic,ri,n,q);
   // 	  }
-  // master_printf("testing tmD, residue: %lg\n",rel_diff_norm(out,out_nissa));
+  // MASTER_PRINTF("testing tmD, residue: %lg\n",rel_diff_norm(out,out_nissa));
   
   // nissa_free(tmp);
   // nissa_free(in);

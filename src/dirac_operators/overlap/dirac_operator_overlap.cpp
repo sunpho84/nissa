@@ -44,7 +44,7 @@ namespace nissa
 				       const double& mass_overlap,
 				       const double& maxerr)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // communicate_lx_quad_su3_borders(conf);
     
@@ -79,9 +79,9 @@ namespace nissa
     
     // // Since H is hermitian, H^2 has only real eigenvalues, so we check that their imaginary part is 0
     // double minimum=lambda_min[RE];
-    // master_printf("min eigenvalue (%lg,%lg)\n",lambda_min[RE],lambda_min[IM]);
+    // MASTER_PRINTF("min eigenvalue (%lg,%lg)\n",lambda_min[RE],lambda_min[IM]);
     // double maximum=lambda_max[RE];
-    // master_printf("max eigenvalue (%lg,%lg)\n",lambda_max[RE],lambda_max[IM]);
+    // MASTER_PRINTF("max eigenvalue (%lg,%lg)\n",lambda_max[RE],lambda_max[IM]);
     
     // int num=-1,den=2;
     // generate_approx_of_maxerr(*appr,minimum,maximum,maxerr,num,den); // we evaluate the rational approximation of 1/sqrt(x) in [epsilon,1]
@@ -96,7 +96,7 @@ namespace nissa
 				     const double& mass_overlap,
 				     const double& residue)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // //generates the source and gets its norm
     // spincolor *in=nissa_malloc("in",locVol+bord_vol,spincolor);
     // generate_undiluted_source(in,RND_GAUSS,-1);
@@ -117,9 +117,9 @@ namespace nissa
     // double_vector_subtassign((double*)out,(double*)in,sizeof(spincolor)/sizeof(double)*locVol);
     // double nout=double_vector_glb_norm2(out,locVol);
     
-    // master_printf("Norm of the source: %.16lg\n",sqrt(nin));
-    // master_printf("Norm of the difference: %.16lg\n",sqrt(nout));
-    // master_printf("Relative norm of the difference: %.16lg\n",sqrt(nout/nin));
+    // MASTER_PRINTF("Norm of the source: %.16lg\n",sqrt(nin));
+    // MASTER_PRINTF("Norm of the difference: %.16lg\n",sqrt(nout));
+    // MASTER_PRINTF("Relative norm of the difference: %.16lg\n",sqrt(nout/nin));
     
     // nissa_free(in);
     // nissa_free(tmp);
@@ -134,7 +134,7 @@ namespace nissa
 		     const double& mass,
 		     const LxField<spincolor>& in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // communicate_lx_quad_su3_borders(conf);
     // communicate_lx_spincolor_borders(in);
     
@@ -164,7 +164,7 @@ namespace nissa
     // 	}
     // NISSA_PARALLEL_LOOP_END;
     
-    // master_printf("Diagonal part of overlap operator: %lg\n",(1.0+mass));
+    // MASTER_PRINTF("Diagonal part of overlap operator: %lg\n",(1.0+mass));
     
     // set_borders_invalid(out);
     

@@ -35,7 +35,7 @@ namespace
   //compute correlation functions for staggered mesons, arbitary taste and spin
   void compute_meson_corr(complex* corr,eo_ptr<quad_su3> conf,theory_pars_t* tp,meson_corr_meas_pars_t* meas_pars)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // //allocate
     // eo_ptr<color> ori_source,source,sol,temp[2];
@@ -63,8 +63,8 @@ namespace
     // 	int taste=meas_pars->mesons[iop].second;
     // 	shift[iop]=(spin^taste);
     // 	mask[iop]=form_stag_meson_pattern_with_g5g5(spin,taste);
-    // 	//if((shift[iop])&1) crash("operator %d (%d %d) has unmatched number of g0",iop,spin,taste);
-    // 	verbosity_lv3_master_printf(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift[iop]);
+    // 	//if((shift[iop])&1) CRASH("operator %d (%d %d) has unmatched number of g0",iop,spin,taste);
+    // 	VERBOSITY_LV3_MASTER_PRINTF(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift[iop]);
     //   }
     
     // vector_reset(corr);
@@ -72,12 +72,12 @@ namespace
     // //measure the putpourri for each quark
     // for(int ihit=0;ihit<meas_pars->nhits;ihit++)
     //   {
-    // 	verbosity_lv2_master_printf("Computing hit %d/%d\n",ihit,meas_pars->nhits);
+    // 	VERBOSITY_LV2_MASTER_PRINTF("Computing hit %d/%d\n",ihit,meas_pars->nhits);
 	
     // 	//generate tso
     // 	int source_coord;
     // 	source_coord=rnd_get_unif(&glb_rnd_gen,0,glbSize[0]);
-    // 	verbosity_lv2_master_printf("tsource: %d\n",source_coord);
+    // 	VERBOSITY_LV2_MASTER_PRINTF("tsource: %d\n",source_coord);
 	
     // 	//generate source
     // 	generate_fully_undiluted_eo_source(ori_source,meas_pars->rnd_type,source_coord);
@@ -165,7 +165,7 @@ namespace
     int ncopies=meas_pars.ncopies;
     for(int icopy=0;icopy<ncopies;icopy++)
       {
-	verbosity_lv2_master_printf("Computing copy %d/%d\n",icopy,ncopies);
+	VERBOSITY_LV2_MASTER_PRINTF("Computing copy %d/%d\n",icopy,ncopies);
 	
 	compute_meson_corr(corr,ext_conf,&tp,&meas_pars);
 	

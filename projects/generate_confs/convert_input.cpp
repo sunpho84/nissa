@@ -19,7 +19,7 @@ int parser_lex_destroy  (driver_t* yyscanner);
     while(imet<nmet_known && strcasecmp(name,name_known[imet])!=0) imet++;
     
     //check
-    if(imet==nmet_known) crash("unknown smoothing method: %s",name);
+    if(imet==nmet_known) CRASH("unknown smoothing method: %s",name);
     
     return met_known[imet];
   }
@@ -58,7 +58,7 @@ void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
 	case smooth_pars_t::COOLING: read_cool_pars(smooth_pars.cool);break;
 	case smooth_pars_t::STOUT: read_stout_pars(smooth_pars.stout);break;
 	case smooth_pars_t::WFLOW: legacy_read_Wflow_pars(smooth_pars.Wflow);break;
-	default: crash("should not arrive here");break;
+	default: CRASH("should not arrive here");break;
 	}
       double each;
       read_str_double("MeasEach",&each);
@@ -79,7 +79,7 @@ void read_topotential_pars(topotential_pars_t &pars,int flag=0)
     case 2:
       pars.read_pars();
       break;
-    default: crash("Not implemented yet"); break;
+    default: CRASH("Not implemented yet"); break;
     }
   if(pars.flag) read_stout_pars(pars.stout_pars);
 }
@@ -387,7 +387,7 @@ void read_hmc_evol_pars(hmc_evol_pars_t &pars,theory_pars_t &th)
 void in_main(int narg,char **arg)
 {
   //check argument
-  if(narg<3) crash("Use: %s input_file output_file",arg[0]);
+  if(narg<3) CRASH("Use: %s input_file output_file",arg[0]);
   
   //open input file
   open_input(arg[1]);
@@ -420,8 +420,8 @@ void in_main(int narg,char **arg)
   //read physical theory: theory 0 is the sea (simulated one)
   for(int itheory=0;itheory<ntheories;itheory++)
     {
-      if(itheory==0) master_printf("Reading info on sea theory\n");
-      else           master_printf("Reading info on additional (valence) theory %d/%d\n",itheory,nvalence_theories);
+      if(itheory==0) MASTER_PRINTF("Reading info on sea theory\n");
+      else           MASTER_PRINTF("Reading info on additional (valence) theory %d/%d\n",itheory,nvalence_theories);
       read_theory_pars(driver->theories[itheory]);
       read_nucleon_corr_meas_pars(driver->nucleon_corr_meas,itheory);
       read_stag_meson_corr_meas_pars(driver->meson_corr_meas,itheory);

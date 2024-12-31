@@ -109,10 +109,10 @@ void test_unitarity(FILE *fout,
   StackTens<OfComps<SpaceTime,Spin>,double> ss;
   
   read_ildg_gauge_conf(conf,filename);
-  master_printf("conf has valid halo: %d\n",conf.haloIsValid);
+  MASTER_PRINTF("conf has valid halo: %d\n",conf.haloIsValid);
   conf.invalidateHalo();
   conf.updateHalo();
-  master_printf("forced update, conf has valid halo: %d\n",conf.haloIsValid);
+  MASTER_PRINTF("forced update, conf has valid halo: %d\n",conf.haloIsValid);
   PAR(0,1,
       CAPTURE(d,TO_WRITE(conf)),
       ivol,
@@ -122,8 +122,8 @@ void test_unitarity(FILE *fout,
 	//a();
 	d(spinRow(0),spinCln(1),reIm(1));
       });
-  master_printf("writing, conf has valid halo: %d\n",conf.haloIsValid);
-  master_printf("Plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));
+  MASTER_PRINTF("writing, conf has valid halo: %d\n",conf.haloIsValid);
+  MASTER_PRINTF("Plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));
   
   // OddField<oct_su3> test("test");
   // conf.updateHalo();
@@ -193,7 +193,7 @@ void test_unitarity(FILE *fout,
 	if(0)
 	  if(r>1.e-30)
 	    {
-	      master_printf("diff %d %d %d %d   %d   %lg\n",glbCoordOfLoclx[ivol][0],glbCoordOfLoclx[ivol][1],
+	      MASTER_PRINTF("diff %d %d %d %d   %d   %lg\n",glbCoordOfLoclx[ivol][0],glbCoordOfLoclx[ivol][1],
 			    glbCoordOfLoclx[ivol][2],glbCoordOfLoclx[ivol][3],idir,r);
 	      su3_print(conf[ivol][idir]);
 	      for(int i=0;i<3;i++)
@@ -238,7 +238,7 @@ int main(int narg,char **arg)
   init_nissa(narg,arg);
   
   {
-    if(narg<2) crash("Use: %s input_file",arg[0]);
+    if(narg<2) CRASH("Use: %s input_file",arg[0]);
     
     open_input(arg[1]);
     

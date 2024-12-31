@@ -204,7 +204,7 @@ void read_conf_smearing_pars()
 	conf_smearing=stout_conf_smearing;
 	read_stout_pars(stout_smearing_pars);
       }
-    else crash("Unkown conf smearing type: %s\n",conf_smearing_str);
+    else CRASH("Unkown conf smearing type: %s\n",conf_smearing_str);
 }
 
 //This function contract a source with a sequential spinor putting the passed list of operators
@@ -254,7 +254,7 @@ void generate_sequential_source(int ispec)
 {
   int r=r_spec[ispec];
   
-  master_printf("\nCreating the sequential source for spectator %d\n",ispec);
+  MASTER_PRINTF("\nCreating the sequential source for spectator %d\n",ispec);
   NISSA_LOC_VOL_LOOP(ivol)
     {
       //put to zero everywhere but on the slice
@@ -275,7 +275,7 @@ void generate_sequential_source(int ispec)
 	      }
 	}
     }
-  master_printf("Sequential source created\n\n");
+  MASTER_PRINTF("Sequential source created\n\n");
 }  
 
 //Parse all the input file
@@ -322,15 +322,15 @@ void initialize_semileptonic(char *input_path)
   read_list_of_ints("GaussianNiterSo",&nsm_lev_so,&gaussian_niter_so);
   for(int iter=1;iter<nsm_lev_so;iter++)
     if(gaussian_niter_so[iter]<gaussian_niter_so[iter-1])
-      crash("Error, gaussian lev sou %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_so[iter],gaussian_niter_so[iter-1]);
+      CRASH("Error, gaussian lev sou %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_so[iter],gaussian_niter_so[iter-1]);
   read_list_of_ints("GaussianNiterSe",&nsm_lev_se,&gaussian_niter_se);
   for(int iter=1;iter<nsm_lev_se;iter++)
     if(gaussian_niter_se[iter]<gaussian_niter_se[iter-1])
-      crash("Error, gaussian lev seq %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_se[iter],gaussian_niter_se[iter-1]);
+      CRASH("Error, gaussian lev seq %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_se[iter],gaussian_niter_se[iter-1]);
   read_list_of_ints("GaussianNiterSi",&nsm_lev_si,&gaussian_niter_si);
   for(int iter=1;iter<nsm_lev_si;iter++)
     if(gaussian_niter_si[iter]<gaussian_niter_si[iter-1])
-      crash("Error, gaussian lev seq %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_si[iter],gaussian_niter_si[iter-1]);
+      CRASH("Error, gaussian lev seq %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_si[iter],gaussian_niter_si[iter-1]);
   read_conf_smearing_pars();
   
   // 4) Read list of masses and of thetas
@@ -367,9 +367,9 @@ void initialize_semileptonic(char *input_path)
       read_str_str("TwoPointsOpListFilePath",path,100);
       two_pts_comp=read_two_pts_sink_source_corr_from_file(path);
       ncontr_2pts=two_pts_comp.ncorr;
-      verbosity_lv2_master_printf("Read %d corrs, corresponding to %d contr\n",ncontr_2pts,two_pts_comp.size());
+      VERBOSITY_LV2_MASTER_PRINTF("Read %d corrs, corresponding to %d contr\n",ncontr_2pts,two_pts_comp.size());
       for(int icorr=0;icorr<two_pts_comp.ncorr;icorr++)
-	verbosity_lv2_master_printf(" %s\n",two_pts_comp.corr_name[icorr].c_str());
+	VERBOSITY_LV2_MASTER_PRINTF(" %s\n",two_pts_comp.corr_name[icorr].c_str());
       new_contr_2pts=nissa_malloc("new_contr_2pts",ncontr_2pts*glbSize[0],double);
     }
   else
@@ -384,7 +384,7 @@ void initialize_semileptonic(char *input_path)
 	  read_int(&(op_sour_2pts[icontr]));
 	  read_int(&(op_sink_2pts[icontr]));
 	  
-	  master_printf(" contr.%d %d %d\n",icontr,op_sour_2pts[icontr],op_sink_2pts[icontr]);
+	  MASTER_PRINTF(" contr.%d %d %d\n",icontr,op_sour_2pts[icontr],op_sink_2pts[icontr]);
 	}
       
       read_str_int("NChromoContrTwoPoints",&nch_contr_2pts);
@@ -397,7 +397,7 @@ void initialize_semileptonic(char *input_path)
 	  read_int(&(ch_op_sour_2pts[icontr]));
 	  read_int(&(ch_op_sink_2pts[icontr]));
 	  
-	  master_printf(" ch-contr.%d %d %d\n",icontr,ch_op_sour_2pts[icontr],ch_op_sink_2pts[icontr]);
+	  MASTER_PRINTF(" ch-contr.%d %d %d\n",icontr,ch_op_sour_2pts[icontr],ch_op_sink_2pts[icontr]);
 	}
     }
   
@@ -412,7 +412,7 @@ void initialize_semileptonic(char *input_path)
   
   read_str_int("TSep",&tsep);
   read_str_int("NSpec",&nspec);
-  if(nspec==0) crash("it has no meaning to specify 0 spectators");
+  if(nspec==0) CRASH("it has no meaning to specify 0 spectators");
   ith_spec=nissa_malloc("ith_spec",nspec,int);
   imass_spec=nissa_malloc("imass_spec",nspec,int);
   r_spec=nissa_malloc("r_spec",nspec,int);
@@ -423,12 +423,12 @@ void initialize_semileptonic(char *input_path)
       read_int(&(imass_spec[ispec]));
       read_int(&(r_spec[ispec]));
       
-      if(ith_spec[ispec]<0 or ith_spec[ispec]>=nthetaS0)    crash("theta for ispec %d out of bounds",ispec);
-      if(imass_spec[ispec]<0 or imass_spec[ispec]>=nmassS0) crash("mass for ispec %d out of bounds",ispec);
-      if(r_spec[ispec]<0 or r_spec[ispec]>=2)               crash("r for ispec %d out of bounds",ispec);
-      if(which_r_S0!=2 and r_spec[ispec]!=which_r_S0)        crash("r for ispec %d uncomputed",ispec);
+      if(ith_spec[ispec]<0 or ith_spec[ispec]>=nthetaS0)    CRASH("theta for ispec %d out of bounds",ispec);
+      if(imass_spec[ispec]<0 or imass_spec[ispec]>=nmassS0) CRASH("mass for ispec %d out of bounds",ispec);
+      if(r_spec[ispec]<0 or r_spec[ispec]>=2)               CRASH("r for ispec %d out of bounds",ispec);
+      if(which_r_S0!=2 and r_spec[ispec]!=which_r_S0)        CRASH("r for ispec %d uncomputed",ispec);
       
-      master_printf(" spec %d: th=%g, m=%g, r=%d\n",ispec,thetaS0[ith_spec[ispec]],massS0[imass_spec[ispec]],r_spec[ispec]);
+      MASTER_PRINTF(" spec %d: th=%g, m=%g, r=%d\n",ispec,thetaS0[ith_spec[ispec]],massS0[imass_spec[ispec]],r_spec[ispec]);
     }
   
   if(use_new_contraction_layout)
@@ -437,9 +437,9 @@ void initialize_semileptonic(char *input_path)
       read_str_str("ThreePointsOpListFilePath",path,100);
       three_pts_comp=read_two_pts_sink_source_corr_from_file(path);
       ncontr_3pts=three_pts_comp.ncorr;
-      verbosity_lv2_master_printf("Read %d corrs, corresponding to %d contr\n",ncontr_3pts,three_pts_comp.size());      
+      VERBOSITY_LV2_MASTER_PRINTF("Read %d corrs, corresponding to %d contr\n",ncontr_3pts,three_pts_comp.size());      
       for(int icorr=0;icorr<three_pts_comp.ncorr;icorr++)
-	verbosity_lv2_master_printf(" %s\n",three_pts_comp.corr_name[icorr].c_str());
+	VERBOSITY_LV2_MASTER_PRINTF(" %s\n",three_pts_comp.corr_name[icorr].c_str());
       
       new_contr_3pts=nissa_malloc("new_contr_3pts",ncontr_3pts*glbSize[0],double);
     }
@@ -456,7 +456,7 @@ void initialize_semileptonic(char *input_path)
 	  read_int(&(op_sour_3pts[icontr]));
 	  read_int(&(op_sink_3pts[icontr]));
 	  
-	  master_printf(" contr.%d %d %d\n",icontr,op_sour_3pts[icontr],op_sink_3pts[icontr]);
+	  MASTER_PRINTF(" contr.%d %d %d\n",icontr,op_sour_3pts[icontr],op_sink_3pts[icontr]);
 	}
       
       read_str_int("NChromoContrThreePoints",&nch_contr_3pts);
@@ -469,14 +469,14 @@ void initialize_semileptonic(char *input_path)
 	  read_int(&(ch_op_sour_3pts[icontr]));
 	  read_int(&(ch_op_sink_3pts[icontr]));
 	  
-	  master_printf(" ch-contr.%d %d %d\n",icontr,ch_op_sour_3pts[icontr],ch_op_sink_3pts[icontr]);
+	  MASTER_PRINTF(" ch-contr.%d %d %d\n",icontr,ch_op_sour_3pts[icontr],ch_op_sink_3pts[icontr]);
 	}
     }
   if(ncontr_3pts!=0 or nch_contr_3pts!=0) sequential_source=nissa_malloc("Sequential source",locVol,PROP_TYPE);
   
   read_str_int("NGaugeConf",&ngauge_conf);
   
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   
   ////////////////////////////////////// end of input reading/////////////////////////////////
   
@@ -538,7 +538,7 @@ int read_conf_parameters(int *iconf)
       read_str(outfolder,1024);
       
       //Check if the conf has been finished or is already running
-      master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+      MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
       char fin_file[1024],run_file[1024];
       safe_snprintf(fin_file,1024,"%s/finished",outfolder);
       safe_snprintf(run_file,1024,"%s/running",outfolder);
@@ -547,23 +547,23 @@ int read_conf_parameters(int *iconf)
       //if not finished
       if(ok_conf)
 	{
-	  master_printf(" Configuration \"%s\" not yet analyzed, starting",conf_path);
+	  MASTER_PRINTF(" Configuration \"%s\" not yet analyzed, starting",conf_path);
 	  if(!dir_exists(outfolder))
 	    {
 	      int ris=create_dir(outfolder);
-	      if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
+	      if(ris==0) MASTER_PRINTF(" Output path \"%s\" not present, created.\n",outfolder);
 	      else
 		crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
 	    }
 	  file_touch(run_file);
 	}
       else
-	master_printf(" In output path \"%s\" terminating file already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
+	MASTER_PRINTF(" In output path \"%s\" terminating file already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
       (*iconf)++;
     }
   while(!ok_conf and (*iconf)<ngauge_conf);
   
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   
   return ok_conf;
 }
@@ -573,7 +573,7 @@ void setup_conf()
 {
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_ildg_gauge_conf(conf,conf_path);
-  master_printf("plaq: %16.16lg\n",global_plaquette_lx_conf(conf));
+  MASTER_PRINTF("plaq: %16.16lg\n",global_plaquette_lx_conf(conf));
   
   clover_term(Cl,cSW,conf);
   
@@ -599,13 +599,13 @@ void setup_conf()
       nissa_free(eo_conf[ODD]);
       break;
     default:
-      crash("unknown conf smearing type %d",(int)conf_smearing);
+      CRASH("unknown conf smearing type %d",(int)conf_smearing);
       break;
     }
   
   conf_smear_time+=take_time();
   
-  if(conf_smearing!=no_conf_smearing) master_printf("smerded plaq: %.16g\n",global_plaquette_lx_conf(sme_conf));
+  if(conf_smearing!=no_conf_smearing) MASTER_PRINTF("smerded plaq: %.16g\n",global_plaquette_lx_conf(sme_conf));
   
   //put the anti-periodic condition on the temporal border
   old_theta[0]=old_theta[1]=old_theta[2]=old_theta[3]=0;
@@ -618,22 +618,22 @@ void close_semileptonic()
 {
   close_input();
   
-  master_printf("\n");
-  master_printf("Inverted %d configurations.\n",nanalyzed_conf);
-  master_printf("Total time: %g",tot_prog_time);
+  MASTER_PRINTF("\n");
+  MASTER_PRINTF("Inverted %d configurations.\n",nanalyzed_conf);
+  MASTER_PRINTF("Total time: %g",tot_prog_time);
   
   double contr_time=contr_2pts_time+contr_3pts_time;
-  master_printf(", of which:\n");
-  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
-  master_printf("  of which  %02.2f%s for %d cgm inversion overhead (%2.2gs avg)\n",cgm_inv_over_time/inv_time*100,"%",
+  MASTER_PRINTF(", of which:\n");
+  MASTER_PRINTF(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
+  MASTER_PRINTF("  of which  %02.2f%s for %d cgm inversion overhead (%2.2gs avg)\n",cgm_inv_over_time/inv_time*100,"%",
 		ninv_tot,cgm_inv_over_time/ninv_tot);
-  master_printf(" - %02.2f%s to smear configuration\n",conf_smear_time*100.0/tot_prog_time,"%");
-  master_printf(" - %02.2f%s to sink-smear propagators\n",smear_time*100.0/tot_prog_time,"%");
-  master_printf(" - %02.2f%s to load or save propagators\n",load_save_S0_time*100.0/tot_prog_time,"%");
-  master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg) of which:\n",contr_time/tot_prog_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
-  master_printf("   * %02.2f%s to compute two points\n",contr_2pts_time*100.0/contr_time,"%");
-  master_printf("   * %02.2f%s to compute three points\n",contr_3pts_time*100.0/contr_time,"%");
-  master_printf(" - %02.2f%s to save correlations\n",contr_save_time*100.0/tot_prog_time,"%");
+  MASTER_PRINTF(" - %02.2f%s to smear configuration\n",conf_smear_time*100.0/tot_prog_time,"%");
+  MASTER_PRINTF(" - %02.2f%s to sink-smear propagators\n",smear_time*100.0/tot_prog_time,"%");
+  MASTER_PRINTF(" - %02.2f%s to load or save propagators\n",load_save_S0_time*100.0/tot_prog_time,"%");
+  MASTER_PRINTF(" - %02.2f%s to perform %d contr. (%2.2gs avg) of which:\n",contr_time/tot_prog_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
+  MASTER_PRINTF("   * %02.2f%s to compute two points\n",contr_2pts_time*100.0/contr_time,"%");
+  MASTER_PRINTF("   * %02.2f%s to compute three points\n",contr_3pts_time*100.0/contr_time,"%");
+  MASTER_PRINTF(" - %02.2f%s to save correlations\n",contr_save_time*100.0/tot_prog_time,"%");
   nissa_free(Cl);nissa_free(conf);if(conf_smearing!=no_conf_smearing) nissa_free(sme_conf);
   for(int iprop=0;iprop<npropS0;iprop++)
     for(int r=0;r<2;r++)
@@ -699,9 +699,9 @@ void smear_additive_propagator(PROP_TYPE *out,PROP_TYPE *in,int ism_lev,int *gau
 void calculate_all_S0(int ism_lev_so)
 {
   //smear additively the source
-  master_printf("\nSource Smearing level: %d\n",ism_lev_so);
+  MASTER_PRINTF("\nSource Smearing level: %d\n",ism_lev_so);
   smear_additive_propagator(original_source,original_source,ism_lev_so,gaussian_niter_so);
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   
   //loop over derivative of the source
   for(int muS=0;muS<nmuS;muS++)
@@ -760,20 +760,20 @@ void calculate_all_S0(int ism_lev_so)
 			  else //m=kappa
 			    inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,Cl,niter_max,stop_res[imass],source);
 			  
-			  master_printf("Finished submass[%d]=%lg\n",imass,m);
+			  MASTER_PRINTF("Finished submass[%d]=%lg\n",imass,m);
 			}
 		    
 		    part_time+=take_time();ninv_tot++;inv_time+=part_time;
 		    
-		    master_printf("Finished the inversion of S0 theta %d, ",itheta);
-		    if(compute_der) master_printf("source derivative %d ",muS);
+		    MASTER_PRINTF("Finished the inversion of S0 theta %d, ",itheta);
+		    if(compute_der) MASTER_PRINTF("source derivative %d ",muS);
 
 #ifdef POINT_SOURCE_VERSION
-		    master_printf("color index %d ",ic);
+		    MASTER_PRINTF("color index %d ",ic);
 #endif
-		    master_printf("dirac index %d",id);
+		    MASTER_PRINTF("dirac index %d",id);
 		    
-		    master_printf(", in %lg s\n",part_time);
+		    MASTER_PRINTF(", in %lg s\n",part_time);
 		  }
 		
 		//read or write, if needed
@@ -805,7 +805,7 @@ void calculate_all_S0(int ism_lev_so)
 		      {
 			if(cSW==0) reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgm_solution[imass]);
 			else       reconstruct_tmclov_doublet(temp_vec[0],temp_vec[1],conf,kappa,Cl,mass[imass],cgm_solution[imass]);
-			master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
+			MASTER_PRINTF("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 		      }
 		    else memcpy(temp_vec[which_r_S0],cgm_solution[imass],sizeof(spincolor)*locVol);
 		    for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
@@ -835,20 +835,20 @@ void calculate_all_S0(int ism_lev_so)
 	      rotate_vol_colorspinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
 #endif
 	    }
-      master_printf("Propagators rotated\n");
+      MASTER_PRINTF("Propagators rotated\n");
     }
   
-  master_printf("\n");
+  MASTER_PRINTF("\n");
 }
 
 //calculate the sequential propagators
 void calculate_all_S1(int ispec,int ism_lev_se)
 {
   //smear additively the seq
-  master_printf("\nSeq Smearing level: %d (will be applied twice!)\n",ism_lev_se);
+  MASTER_PRINTF("\nSeq Smearing level: %d (will be applied twice!)\n",ism_lev_se);
   smear_additive_propagator(sequential_source,sequential_source,ism_lev_se,gaussian_niter_se);
   smear_additive_propagator(sequential_source,sequential_source,ism_lev_se,gaussian_niter_se);
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   
   for(int itheta=0;itheta<nthetaS1;itheta++)
     {
@@ -896,13 +896,13 @@ void calculate_all_S1(int ispec,int ism_lev_se)
 	    
 	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
 	    
-	    master_printf("Finished the inversion of S1 theta %d, seq sme lev %d,",itheta,ism_lev_se);
+	    MASTER_PRINTF("Finished the inversion of S1 theta %d, seq sme lev %d,",itheta,ism_lev_se);
 	    
 #ifdef POINT_SOURCE_VERSION
-	    master_printf(" color index %d,",ic);
+	    MASTER_PRINTF(" color index %d,",ic);
 #endif
-	    master_printf(" dirac index %d,",id);
-	    master_printf(" in %g sec\n",part_time);
+	    MASTER_PRINTF(" dirac index %d,",id);
+	    MASTER_PRINTF(" in %g sec\n",part_time);
 	    
 	    for(int imass=0;imass<nmassS1;imass++)
 	      {
@@ -914,7 +914,7 @@ void calculate_all_S1(int ispec,int ism_lev_se)
 		  {
 		    if(cSW==0) apply_tmQ(temp_vec[0],conf,kappa,reco_mass,cgm_solution[imass]);
 		    else       apply_tmclovQ(temp_vec[0],conf,kappa,Cl,reco_mass,cgm_solution[imass]);
-		    master_printf("Mass %d (%g) reconstructed \n",imass,massS1[imass]);
+		    MASTER_PRINTF("Mass %d (%g) reconstructed \n",imass,massS1[imass]);
 		  }
 		else memcpy(temp_vec[0],cgm_solution[imass],sizeof(spincolor)*locVol);
 		
@@ -938,10 +938,10 @@ void calculate_all_S1(int ispec,int ism_lev_se)
 	  rotate_vol_colorspinspin_to_physical_basis(S1[ipropS1],!(r_spec[ispec]),(r_spec[ispec]));
 #endif
 	}
-      master_printf("Propagators rotated\n");
+      MASTER_PRINTF("Propagators rotated\n");
     }
   
-  master_printf("\n");
+  MASTER_PRINTF("\n");
 }
 
 //transpose dirac indices with spatial ones, so that destination
@@ -1390,10 +1390,10 @@ int check_remaining_time()
   double left_time=wall_time-temp_time;
   enough_time=left_time>(ave_time*1.1);
   
-  master_printf("Remaining time: %lg sec\n",left_time);
-  master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
-  if(enough_time) master_printf("Continuing with next conf!\n");
-  else master_printf("Not enough time, exiting!\n");
+  MASTER_PRINTF("Remaining time: %lg sec\n",left_time);
+  MASTER_PRINTF("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
+  if(enough_time) MASTER_PRINTF("Continuing with next conf!\n");
+  else MASTER_PRINTF("Not enough time, exiting!\n");
   
   return enough_time;
 }
@@ -1404,7 +1404,7 @@ void in_main(int narg,char **arg)
   tot_prog_time-=take_time();
   
   //initialize the program
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   initialize_semileptonic(arg[1]);
   
   //loop over the configs
@@ -1452,7 +1452,7 @@ void in_main(int narg,char **arg)
 	  }
 	  MPI_Allreduce(loc,glb,glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	  for(int t=0;t<glb_size[0];t++)
-	    master_printf("ANNA %d %16.16lg\n",t,glb[t]);
+	    MASTER_PRINTF("ANNA %d %16.16lg\n",t,glb[t]);
 	  */
 	  
 	  //loop on spectator
@@ -1485,7 +1485,7 @@ void in_main(int narg,char **arg)
       enough_time=check_remaining_time();
     }
   
-  if(iconf==ngauge_conf) master_printf("Finished all the conf!\n");
+  if(iconf==ngauge_conf) MASTER_PRINTF("Finished all the conf!\n");
   
   tot_prog_time+=take_time();
   close_semileptonic();

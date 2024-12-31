@@ -24,7 +24,7 @@ namespace nissa
   inline void init_cuda()
   {
     if(cudaGetDeviceCount(&nCudaDevices)!=cudaSuccess)
-      crash("no CUDA enabled device");
+      CRASH("no CUDA enabled device");
     
     printf("Number of CUDA enabled devices on rank[%d] (%s) : %d\n",rank,MPI_get_processor_name().c_str(),nCudaDevices);
     for(int i=0;i<nCudaDevices;i++)

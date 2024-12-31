@@ -36,7 +36,7 @@ namespace nissa
 				   const LxField<quad_su3>& H,
 				   const double& dt)
   {
-    verbosity_lv2_master_printf("Evolving conf with momenta, dt=%lg\n",dt);
+    VERBOSITY_LV2_MASTER_PRINTF("Evolving conf with momenta, dt=%lg\n",dt);
     
     START_TIMING(conf_evolve_time,nconf_evolve);
     

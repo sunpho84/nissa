@@ -8,7 +8,7 @@ int main(int narg,char **arg)
   //basic mpi initialization
   init_nissa();
 
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
 
   open_input(arg[1]);
 
@@ -39,7 +39,7 @@ int main(int narg,char **arg)
   //smear the conf
   quad_su3 *smea_conf=nissa_malloc("Smea_Conf",loc_vol+bord_vol+edge_vol,quad_su3);
   ape_spatial_smear_conf(smea_conf,orig_conf,ape_alpha,ape_niters);
-  master_printf("gauge conf smeared\n");
+  MASTER_PRINTF("gauge conf smeared\n");
   
   //allocate and generate the source
   spincolor *sp=nissa_malloc("orig_spincolor",loc_vol+bord_vol,spincolor);

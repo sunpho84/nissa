@@ -35,9 +35,9 @@ namespace nissa
   }
   void compute_point_summed_squared_staples_lx_conf_single_dir(su3 staple,quad_su3 *lx_conf,int A,int mu)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
-    // if(!check_edges_valid(lx_conf)) crash("communicate edges externally");
+    // if(!check_edges_valid(lx_conf)) CRASH("communicate edges externally");
     
     // su3_put_to_zero(staple);
     
@@ -68,7 +68,7 @@ namespace nissa
   //compute the summ of all the staples for the whole conf
   void compute_summed_squared_staples_eo_conf(eo_ptr<quad_su3> F,eo_ptr<quad_su3> eo_conf)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // communicate_eo_quad_su3_edges(eo_conf);
     

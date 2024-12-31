@@ -22,11 +22,11 @@ namespace nissa
   inline void closeNissa()
   {
     if(not nissaInited)
-      crash("Trying to finalize nissa, but it has been already finalized");
+      CRASH("Trying to finalize nissa, but it has been already finalized");
     
     nissaInited=false;
     
-    master_printf("Closing nissa\n");
+    MASTER_PRINTF("Closing nissa\n");
     
     //unset remappers
     for(int mu=0;mu<NDIM;mu++)
@@ -49,9 +49,9 @@ namespace nissa
     if(loc_rnd_gen_inited) stop_loc_rnd_gen();
     
     //print information over the maximum amount of memory used
-    master_printf("Maximal memory used during the run: %zu bytes (",max_required_memory);
+    MASTER_PRINTF("Maximal memory used during the run: %zu bytes (",max_required_memory);
     if(is_master_rank()) fprintf_friendly_filesize(stdout,max_required_memory);
-    master_printf(") per rank\n\n");
+    MASTER_PRINTF(") per rank\n\n");
     
     //check wether there are still allocated vectors
     if(main_vect.next!=NULL && is_master_rank())
@@ -67,16 +67,16 @@ namespace nissa
 #endif
     
     tot_time+=take_time();
-    master_printf("Total time: %lg s\n",tot_time);
+    MASTER_PRINTF("Total time: %lg s\n",tot_time);
 #ifdef COMM_BENCH
-    master_printf("Total communication time: %lg s\n",tot_comm_time);
+    MASTER_PRINTF("Total communication time: %lg s\n",tot_comm_time);
 #endif
     
 #ifdef USE_CUDA
     storeTunedKernelsInfo();
 #endif
     MPI_Barrier(MPI_COMM_WORLD);
-    master_printf("   Ciao!\n\n");
+    MASTER_PRINTF("   Ciao!\n\n");
     MPI_Finalize();
   }
 }

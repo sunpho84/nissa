@@ -98,7 +98,7 @@ namespace nissa
   void chromo_operator(LxField<clover_term_t>& Cl,
 		       const LxField<quad_su3>& conf)
   {
-    master_printf("Computing Chromo operator\n");
+    MASTER_PRINTF("Computing Chromo operator\n");
     
     conf.updateEdges();
     PAR(0,locVol,
@@ -151,7 +151,7 @@ namespace nissa
   }
   void unsafe_apply_chromo_operator_to_spincolor_128(spincolor_128* out,clover_term_t* Cl,spincolor_128* in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // NISSA_PARALLEL_LOOP(ivol,0,locVol)
     //   unsafe_apply_point_chromo_operator_to_spincolor_128(out[ivol],Cl[ivol],in[ivol]);
@@ -163,7 +163,7 @@ namespace nissa
   //normalization as in ape next
   void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin* out,clover_term_t* Cl,colorspinspin* in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // NISSA_PARALLEL_LOOP(ivol,0,locVol)
     //   {
     // 	spincolor temp1,temp2;
@@ -190,7 +190,7 @@ namespace nissa
   //normalization as in ape next
   void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin* out,clover_term_t* Cl,su3spinspin* in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // NISSA_PARALLEL_LOOP(ivol,0,locVol)
     //   {
@@ -274,7 +274,7 @@ namespace nissa
     // 	      complex_subtassign(out_sure[id][ic][id1][ic1],out[id][ic][id1][ic1]);
     // 	      diff+=complex_norm2(out_sure[id][ic][id1][ic1]);
     // 	    }
-    // master_printf("DIFF: %lg\n",sqrt(diff/norm2));
+    // MASTER_PRINTF("DIFF: %lg\n",sqrt(diff/norm2));
     
     // auto pr=[](halfspincolor_halfspincolor out)
     // 	    {
@@ -283,15 +283,15 @@ namespace nissa
     // 		  {
     // 		    for(int id=0;id<NDIRAC/2;id++)
     // 		      for(int ic=0;ic<NCOL;ic++)
-    // 			master_printf("%lg %lg\t",out[id1][ic1][id][ic][RE],out[id1][ic1][id][ic][IM]);
-    // 		    master_printf("\n");
+    // 			MASTER_PRINTF("%lg %lg\t",out[id1][ic1][id][ic][RE],out[id1][ic1][id][ic][IM]);
+    // 		    MASTER_PRINTF("\n");
     // 		  }
-    // 		    master_printf("\n");
+    // 		    MASTER_PRINTF("\n");
     // 	    };
     
-    // master_printf("out:\n");
+    // MASTER_PRINTF("out:\n");
     // pr(out);
-    // master_printf("correct:\n");
+    // MASTER_PRINTF("correct:\n");
     // pr(out_sure);
   }
 }

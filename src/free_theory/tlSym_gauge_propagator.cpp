@@ -127,7 +127,7 @@ namespace nissa
     if(gl.which_gauge==gauge_info::COULOMB)
       {
 	if(gl.c1!=0)
-	  crash("Coulomb gauge implmented only for Wilson action");
+	  CRASH("Coulomb gauge implmented only for Wilson action");
 	
 	double kt_spat_2=0;
 	for(int mu=1;mu<4;mu++)
@@ -218,7 +218,7 @@ namespace nissa
   {
 #ifndef USE_EIGEN
     if(gl.which_gauge!=gauge_info::FEYNMAN or gl.c1!=0)
-      crash("Eigen required when out of Wilson regularisation or in the Feynaman gauge");
+      CRASH("Eigen required when out of Wilson regularisation or in the Feynaman gauge");
 #endif
     
     PAR(0,locVol,
@@ -247,7 +247,7 @@ namespace nissa
 	  }
 	
 	Matrix4d sqrt_eprop;
-	// master_printf("Computing sqrt for mode: %d (%d %d %d %d)\n",imom,glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3]);
+	// MASTER_PRINTF("Computing sqrt for mode: %d (%d %d %d %d)\n",imom,glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3]);
 	// std::cout<<eprop<<std::endl;
 	
 	//compute eigenthings
@@ -260,7 +260,7 @@ namespace nissa
 	
 	//check positivity
 	const double tol=1e-14,min_coef=eva.minCoeff();
-	if(min_coef<-tol) crash("Minimum coefficient: %lg, greater in module than tolerance %lg",min_coef,tol);
+	if(min_coef<-tol) CRASH("Minimum coefficient: %lg, greater in module than tolerance %lg",min_coef,tol);
 	
 	// //compute sqrt of eigenvalues, forcing positivity (checked to tolerance before)
 	Vector4d sqrt_eva;
@@ -276,7 +276,7 @@ namespace nissa
 	    const double rel_err=err_norm/prop_norm;
 	    // std::cout<<"Testing sqrt:          "<<rel_err<<std::endl;
 	    if(prop_norm>tol and err_norm>tol)
-	      crash("Error! Relative error on sqrt for mode %ld (prop norm %lg) is %lg, greater than tolerance %lg",imom,prop_norm,rel_err,tol);
+	      CRASH("Error! Relative error on sqrt for mode %ld (prop norm %lg) is %lg, greater than tolerance %lg",imom,prop_norm,rel_err,tol);
 	  }
 	
 	//product with in, store
@@ -306,7 +306,7 @@ namespace nissa
   
   void multiply_x_space_tlSym_gauge_propagator_by_fft(spin1prop* out,spin1prop* in,gauge_info gl)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // pass_spin1prop_from_x_to_mom_space(out,in,gl.bc,true,true);
     // NISSA_PARALLEL_LOOP(imom,0,locVol)
@@ -324,7 +324,7 @@ namespace nissa
 						      const LxField<spin1prop>& in,
 						      const gauge_info& gl)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // pass_spin1prop_from_x_to_mom_space(out,in,gl.bc,true,true);
     // NISSA_PARALLEL_LOOP(imom,0,locVol)
@@ -431,7 +431,7 @@ namespace nissa
       tadpole[mu]=tmp[mu][mu][RE];
     
     tad_time+=take_time();
-    master_printf("Tadpole: (%lg,%lg,%lg,%lg), time to compute: %lg s\n",tadpole[0],tadpole[1],tadpole[2],tadpole[3],tad_time);
+    MASTER_PRINTF("Tadpole: (%lg,%lg,%lg,%lg), time to compute: %lg s\n",tadpole[0],tadpole[1],tadpole[2],tadpole[3],tad_time);
     
     return tadpole;
   }
@@ -442,7 +442,7 @@ namespace nissa
 		      const int& imom)
   {
     if(gl.c1!=WILSON_C1)
-      crash("Implemented only for Wilson gluons");
+      CRASH("Implemented only for Wilson gluons");
     
     double p2=0;
     const Coords c=glbCoordOfGlblx(imom);
@@ -453,7 +453,7 @@ namespace nissa
       }
     
     const double four_sinh2_Eh=sqr(2.0*asinh(sqrt(p2)/2))+sqr(virt);
-    if(four_sinh2_Eh<0) master_printf("WARNING, negative squared energy %lg\n",four_sinh2_Eh);
+    if(four_sinh2_Eh<0) MASTER_PRINTF("WARNING, negative squared energy %lg\n",four_sinh2_Eh);
     
     return sqrt(four_sinh2_Eh);
   }

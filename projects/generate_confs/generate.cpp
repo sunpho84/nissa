@@ -95,7 +95,7 @@ void read_conf(EoField<quad_su3>& conf,
 {
   START_TIMING(read_conf_time,nread_conf);
   
-  master_printf("Reading conf from file: %s\n",path);
+  MASTER_PRINTF("Reading conf from file: %s\n",path);
   
   //init messages
   ILDG_message mess;
@@ -115,7 +115,7 @@ void read_conf(EoField<quad_su3>& conf,
       //check for rational approximation
       if(strcasecmp(cur_mess->name,"RAT_approx")==0)
 	{
-	  verbosity_lv1_master_printf("Rational approximation found in the configuration\n");
+	  VERBOSITY_LV1_MASTER_PRINTF("Rational approximation found in the configuration\n");
 	  rat_appr=convert_rat_approx(cur_mess->data,cur_mess->data_length);
 	}
     }
@@ -137,7 +137,7 @@ void init_rnd_gen()
   const char seed_new_path[]="seed_new";
   if(file_exists(seed_new_path))
     {
-      if(rnd_gen_mess=="") master_printf("Ignoring loaded rnd_gen status\n");
+      if(rnd_gen_mess=="") MASTER_PRINTF("Ignoring loaded rnd_gen status\n");
       rnd_gen_mess="";
       
       open_input(seed_new_path);
@@ -146,26 +146,26 @@ void init_rnd_gen()
       read_int(&drv->seed);
       
       //initialize
-      master_printf("Overriding with seed from file %s\n",seed_new_path);
+      MASTER_PRINTF("Overriding with seed from file %s\n",seed_new_path);
       
       //close and destroy
       close_input();
       if(rank==0)
 	{
 	  int rc=system(combine("rm %s",seed_new_path).c_str());
-	  if(rc!=0) crash("Unable to eliminate the file %s",seed_new_path);
+	  if(rc!=0) CRASH("Unable to eliminate the file %s",seed_new_path);
 	}
     }
   
   //if message with string not found start from input seed
   if(rnd_gen_mess!="")
     {
-      master_printf("Random generator status found inside conf, starting from it\n");
+      MASTER_PRINTF("Random generator status found inside conf, starting from it\n");
       start_loc_rnd_gen(rnd_gen_mess.c_str());
     }
   else
     {
-      master_printf("Starting random generator from input seed %d\n",drv->seed);
+      MASTER_PRINTF("Starting random generator from input seed %d\n",drv->seed);
       start_loc_rnd_gen(drv->seed);
     }
 }
@@ -180,7 +180,7 @@ void init_program_to_run(start_conf_cond_t start_conf_cond)
   //load conf or generate it
   if(file_exists(drv->conf_pars.path))
     {
-      master_printf("File %s found, loading\n",drv->conf_pars.path.c_str());
+      MASTER_PRINTF("File %s found, loading\n",drv->conf_pars.path.c_str());
       read_conf(*conf,drv->conf_pars.path.c_str());
       conf_created=false;
       
@@ -196,12 +196,12 @@ void init_program_to_run(start_conf_cond_t start_conf_cond)
       //generate hot or cold conf
       if(start_conf_cond==HOT_START_COND)
 	{
-	  master_printf("File %s not found, generating hot conf\n",drv->conf_pars.path.c_str());
+	  MASTER_PRINTF("File %s not found, generating hot conf\n",drv->conf_pars.path.c_str());
 	  generate_hot_eo_conf(*conf);
 	}
       else
 	{
-	  master_printf("File %s not found, generating cold conf\n",drv->conf_pars.path.c_str());
+	  MASTER_PRINTF("File %s not found, generating cold conf\n",drv->conf_pars.path.c_str());
 	  generate_cold_eo_conf(*conf);
 	}
       
@@ -220,7 +220,7 @@ void init_program_to_analyze()
   conf_created=false;
   
   //check conf list
-  if(drv->an_conf_list.size()==0) crash("no configuration has been specified in the analysis list, add:\n ConfList\t=\t{\"conf1\",\"conf2\",...} to the input file");
+  if(drv->an_conf_list.size()==0) CRASH("no configuration has been specified in the analysis list, add:\n ConfList\t=\t{\"conf1\",\"conf2\",...} to the input file");
 }
 
 //initialize the simulation
@@ -231,7 +231,7 @@ void init_simulation(char *path)
   open_input(path);
   drv=new driver_t(input_global);
   parser_parse(drv);
-  if(drv->theories.size()==0) crash("need to specify a theory");
+  if(drv->theories.size()==0) CRASH("need to specify a theory");
   
   //geometry
   Coords _glbSize;
@@ -272,7 +272,7 @@ void init_simulation(char *path)
 //finalize everything
 void close_simulation()
 {
-  master_printf("store: %d %d\n",stored_last_conf,ntraj_prod);
+  MASTER_PRINTF("store: %d %d\n",stored_last_conf,ntraj_prod);
   if(!stored_last_conf and ntraj_prod>0) write_conf(drv->conf_pars.path,*conf);
   
   //destroy topo pars
@@ -303,23 +303,23 @@ int generate_new_conf(int itraj)
       const double diff_act=multipseudo_rhmc_step(*new_conf,*conf,drv->sea_theory(),drv->hmc_evol_pars,rat_appr,itraj);
       
       //perform the test in any case
-      master_printf("Diff action: %lg, ",diff_act);
+      MASTER_PRINTF("Diff action: %lg, ",diff_act);
       acc=metro_test(diff_act);
       
       //if not needed override
       if(not perform_test)
 	{
 	  acc=1;
-	  master_printf("(no test performed) ");
+	  MASTER_PRINTF("(no test performed) ");
 	}
       
       //copy conf if accepted
       if(acc)
 	{
-	  master_printf("accepted.\n");
+	  MASTER_PRINTF("accepted.\n");
 	  *conf=*new_conf;
 	}
-      else master_printf("rejected.\n");
+      else MASTER_PRINTF("rejected.\n");
       
       //store the topological charge if needed
       drv->sea_theory().topotential_pars.store_if_needed(*conf,itraj);
@@ -371,7 +371,7 @@ void measure_gauge_obs_internal(FILE *file,
   //polyakov loop
   if(pars.meas_poly)
     {
-      crash("reimplement");
+      CRASH("reimplement");
       // complex poly;
       // average_polyakov_loop_lx_conf(poly,conf,0);
       // master_fprintf(file,"\t%+16.16lg\t%+16.16lg",poly[0],poly[1]);
@@ -399,7 +399,7 @@ void measure_gauge_obs(const gauge_obs_meas_pars_t &pars,
   if(not pars.use_smooth)
     {
       //header
-      verbosity_lv1_master_printf("Measuring gauge obs\n");
+      VERBOSITY_LV1_MASTER_PRINTF("Measuring gauge obs\n");
       master_fprintf(file,"%d\t%d",iconf,acc);
       
       measure_gauge_obs_internal(file,temp_conf,pars,gauge_action_name);
@@ -412,7 +412,7 @@ void measure_gauge_obs(const gauge_obs_meas_pars_t &pars,
       do
 	{
 	  //header
-	  verbosity_lv1_master_printf("Measuring gauge obs, nsmooth=%d/%d\n",nsmooth,pars.smooth_pars.nsmooth());
+	  VERBOSITY_LV1_MASTER_PRINTF("Measuring gauge obs, nsmooth=%d/%d\n",nsmooth,pars.smooth_pars.nsmooth());
 	  master_fprintf(file,"%d\t%d\t%d",iconf,acc,nsmooth);
 	  
 	  measure_gauge_obs_internal(file,temp_conf,pars,gauge_action_name);
@@ -436,24 +436,24 @@ void measure_poly_corrs(const poly_corr_meas_pars_t &pars,
 			EoField<quad_su3>& eo_conf,
 			const bool& conf_created)
 {
-  verbosity_lv1_master_printf("Measuring Polyakov loop correlators\n");
+  VERBOSITY_LV1_MASTER_PRINTF("Measuring Polyakov loop correlators\n");
   
   //merge conf
   LxField<quad_su3> lx_conf("conf",WITH_HALO_EDGES);
   paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
   
-  crash("tobe fixed");
+  CRASH("tobe fixed");
   
   //hyp or ape
   //gauge_obs_temp_smear_pars_t smear_pars=pars.gauge_smear_pars;
   //if(smear_pars.use_hyp_or_ape_temp==0) hyp_smear_conf_dir(lx_conf,lx_conf,smear_pars.hyp_temp_alpha0,smear_pars.hyp_temp_alpha1,smear_pars.hyp_temp_alpha2,pars.dir);
   //else ape_single_dir_smear_conf(lx_conf,lx_conf,smear_pars.ape_temp_alpha,smear_pars.nape_temp_iters,pars.dir);
-  verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %16.16lg\n",pars.dir,global_plaquette_lx_conf(lx_conf));
+  VERBOSITY_LV1_MASTER_PRINTF("Plaquette after \"temp\" (%d) smear: %16.16lg\n",pars.dir,global_plaquette_lx_conf(lx_conf));
   
   //open
   FILE *fout=fopen(pars.path.c_str(),(conf_created or !file_exists(pars.path))?"w":"r+");
-  if(fout==NULL) crash("opening %s",pars.path.c_str());
-  if(fseek(fout,0,SEEK_END)) crash("seeking to the end");
+  if(fout==NULL) CRASH("opening %s",pars.path.c_str());
+  if(fseek(fout,0,SEEK_END)) CRASH("seeking to the end");
   
   // //compute and print
   // complex temp;
@@ -498,32 +498,32 @@ void measurements(EoField<quad_su3>& temp,
       top_meas_time[i]+=take_time();
     }
   
-  RANGE_GAUGE_MEAS(all_rects_meas,i) crash("reimplement");//measure_all_rectangular_paths(&drv->all_rects_meas[i],temp,iconf,conf_created);
-  RANGE_GAUGE_MEAS(watusso_meas,i) crash("reimplement");//measure_watusso(&drv->watusso_meas[i],temp,iconf,conf_created);
+  RANGE_GAUGE_MEAS(all_rects_meas,i) CRASH("reimplement");//measure_all_rectangular_paths(&drv->all_rects_meas[i],temp,iconf,conf_created);
+  RANGE_GAUGE_MEAS(watusso_meas,i) CRASH("reimplement");//measure_watusso(&drv->watusso_meas[i],temp,iconf,conf_created);
   
   for(int itheory=0;itheory<drv->ntheories();itheory++)
     if(drv->any_fermionic_measure_is_due(itheory,iconf))
       {
 	//smear
-	crash("reimplement");//stout_smear(temp,conf,&(drv->theories[itheory].stout_pars));
+	CRASH("reimplement");//stout_smear(temp,conf,&(drv->theories[itheory].stout_pars));
 	
-	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,fermionic_putpourri);
-	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,quark_rendens);
-	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,ellesettete);
-	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,chir_zumba);
-	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,qed_corr);
-	crash("reimplement");//RANGE_FERMIONIC_MEAS_EXTENDED(drv,spinpol,drv->theories[itheory].stout_pars,temp);
-	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,magnetization);
-	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,minmax_eigenvalues);
-	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,nucleon_corr);
-	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,meson_corr);
-	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,spectral_proj);
-	crash("reimplement");//RANGE_FERMIONIC_MEAS(drv,tm_tuning);
+	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,fermionic_putpourri);
+	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,quark_rendens);
+	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,ellesettete);
+	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,chir_zumba);
+	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,qed_corr);
+	CRASH("reimplement");//RANGE_FERMIONIC_MEAS_EXTENDED(drv,spinpol,drv->theories[itheory].stout_pars,temp);
+	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,magnetization);
+	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,minmax_eigenvalues);
+	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,nucleon_corr);
+	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,meson_corr);
+	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,spectral_proj);
+	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,tm_tuning);
       }
   
   meas_time+=take_time();
   
-  verbosity_lv1_master_printf("Time to do all the measurement: %lg sec\n",meas_time);
+  VERBOSITY_LV1_MASTER_PRINTF("Time to do all the measurement: %lg sec\n",meas_time);
 }
 
 //store conf when appropriate
@@ -555,10 +555,10 @@ bool enough_time()
   
   //compute the number of trajectory that can be run
   double remaining_time=broadcast(drv->walltime-(take_time()-init_time));
-  verbosity_lv2_master_printf("Remaining time: %2.2lg s, max time per trajectory, needed so far: %2.2lg s\n",remaining_time,max_traj_time);
+  VERBOSITY_LV2_MASTER_PRINTF("Remaining time: %2.2lg s, max time per trajectory, needed so far: %2.2lg s\n",remaining_time,max_traj_time);
   int ntraj_poss=floor(remaining_time/max_traj_time);
   int nmin_traj_req=2;
-  verbosity_lv2_master_printf("Would allow to produce: %d trajectories in the worst case (stopping when <=%d)\n",ntraj_poss,nmin_traj_req);
+  VERBOSITY_LV2_MASTER_PRINTF("Would allow to produce: %d trajectories in the worst case (stopping when <=%d)\n",ntraj_poss,nmin_traj_req);
   
   //check if we have enough time to make another traj
   return (ntraj_poss>=nmin_traj_req);
@@ -571,7 +571,7 @@ bool check_if_continue()
   bool stop_present=file_exists("stop");
   if(stop_present)
     {
-      verbosity_lv1_master_printf("'Stop' file present, closing\n");
+      VERBOSITY_LV1_MASTER_PRINTF("'Stop' file present, closing\n");
       return false;
     }
   
@@ -579,7 +579,7 @@ bool check_if_continue()
   bool restart_present=file_exists("restart");
   if(restart_present)
     {
-      verbosity_lv1_master_printf("'Restart' file present, closing\n");
+      VERBOSITY_LV1_MASTER_PRINTF("'Restart' file present, closing\n");
       return false;
     }
   
@@ -587,7 +587,7 @@ bool check_if_continue()
   bool finished_all_traj=(itraj>=drv->hmc_evol_pars.ntraj_tot);
   if(finished_all_traj)
     {
-      verbosity_lv1_master_printf("Requested trajectory %d, perfomed %d, closing\n",drv->hmc_evol_pars.ntraj_tot,itraj);
+      VERBOSITY_LV1_MASTER_PRINTF("Requested trajectory %d, perfomed %d, closing\n",drv->hmc_evol_pars.ntraj_tot,itraj);
       file_touch("stop");
       return false;
     }
@@ -596,7 +596,7 @@ bool check_if_continue()
   bool have_enough_time=enough_time();
   if(!have_enough_time)
     {
-      verbosity_lv1_master_printf("Running out of time, closing\n");
+      VERBOSITY_LV1_MASTER_PRINTF("Running out of time, closing\n");
       return false;
     }
   
@@ -672,18 +672,18 @@ void compare(int eo,int ieo,int dir,FNu fnu,FAn fan,Ts...ts)
   su3 nu;
   get_num(nu,eo,ieo,dir,fnu,ts...);
   
-  master_printf("nu\n");
+  MASTER_PRINTF("nu\n");
   su3_print(nu);
   
   su3 an;
   get_an(an,eo,ieo,dir,fan,ts...);
   
-  master_printf("an\n");
+  MASTER_PRINTF("an\n");
   su3_print(an);
   
   su3 diff;
   su3_subt(diff,an,nu);
-  master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
+  MASTER_PRINTF("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
 }
 
 int EO;
@@ -695,7 +695,7 @@ int DIR;
 
 double xQx(eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mass,double cSW)
 {
-  crash("reimplement");
+  CRASH("reimplement");
   // eo_ptr<spincolor> out;
   // for(int eo=0;eo<2;eo++)
   //   out[eo]=nissa_malloc("out",locVolh,spincolor);
@@ -735,7 +735,7 @@ double xQx(eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mas
   
   // complex act;
   // complex_summ(act,act_eo[EVN],act_eo[ODD]);
-  // master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
+  // MASTER_PRINTF("%.16lg %.16lg\n",act[RE],act[IM]);
   
   // for(int eo=0;eo<2;eo++)
   //   nissa_free(out[eo]);
@@ -753,7 +753,7 @@ namespace nissa
 
 void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mass,double cSW)
 {
-  crash("reimplement");
+  CRASH("reimplement");
   // add_backfield_without_stagphases_to_conf(conf,drv->theories[0].backfield[0]);
   
   // eo_ptr<quad_su3> an;
@@ -806,9 +806,9 @@ void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,eo_ptr<spincolor> in_
 
 void test_xQx()
 {
-  crash("reimplement");
+  CRASH("reimplement");
   
-  // master_printf("Testing TM\n");
+  // MASTER_PRINTF("Testing TM\n");
   
   // double kappa=0.24;
   // double mass=0.324;
@@ -829,7 +829,7 @@ void test_xQx()
   
   // compare(eo,ieo,dir,xQx,xQx_der,in,in,kappa,mass,cSW);
   
-  // master_printf("Comparing derivative of xQx for link %d %d %d\n",(int)eo,ieo,dir);
+  // MASTER_PRINTF("Comparing derivative of xQx for link %d %d %d\n",(int)eo,ieo,dir);
   
   // for(int eo=0;eo<2;eo++)
   // nissa_free(in[eo]);
@@ -841,7 +841,7 @@ void test_xQx()
 
 double xQhatx(spincolor *in,double kappa,double mass,double cSW)
 {
-  crash("reimplement");
+  CRASH("reimplement");
   // spincolor *out=nissa_malloc("out",locVolh,spincolor);
   // spincolor *temp=nissa_malloc("temp",locVolh,spincolor);
   
@@ -869,7 +869,7 @@ double xQhatx(spincolor *in,double kappa,double mass,double cSW)
   // for(int eo=0;eo<2;eo++)
   //   nissa_free(Cl[eo]);
   
-  // master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
+  // MASTER_PRINTF("%.16lg %.16lg\n",act[RE],act[IM]);
   
   // nissa_free(out);
   // nissa_free(temp);
@@ -881,7 +881,7 @@ double xQhatx(spincolor *in,double kappa,double mass,double cSW)
 
 void xQhatx_der_old(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
 {
-  crash("reimplement");
+  CRASH("reimplement");
   
   // spincolor temp;
   
@@ -930,7 +930,7 @@ void xQhatx_der_old(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,dou
 
 void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
 {
-  crash("reimplement");
+  CRASH("reimplement");
   
   // /// Preprare clover
   // eo_ptr<clover_term_t> Cl;
@@ -968,9 +968,9 @@ void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double 
 
 void test_xQhatx()
 {
-  crash("reimplement");
+  CRASH("reimplement");
   
-  // master_printf("Testing TM\n");
+  // MASTER_PRINTF("Testing TM\n");
   
   // double kappa=0.24;
   // double mass=0.0; //leave it 0
@@ -989,7 +989,7 @@ void test_xQhatx()
   
   // compare(eo,ieo,dir,xQhatx,xQhatx_der,in,kappa,mass,cSW);
   
-  // master_printf("Comparing derivative of xQhatx for link %d %d %d\n",(int)eo,ieo,dir);
+  // MASTER_PRINTF("Comparing derivative of xQhatx for link %d %d %d\n",(int)eo,ieo,dir);
   
   // nissa_free(in);
 }
@@ -1000,7 +1000,7 @@ void test_xQhatx()
 
 double xQ2hatx(spincolor *in,double kappa,double mass,double cSW)
 {
-  crash("reimplement");
+  CRASH("reimplement");
   
   // spincolor *out=nissa_malloc("out",locVolh,spincolor);
   // spincolor *temp1=nissa_malloc("temp1",locVolh,spincolor);
@@ -1035,7 +1035,7 @@ double xQ2hatx(spincolor *in,double kappa,double mass,double cSW)
   //     nissa_free(invCl[eo]);
   //   }
   
-  // master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
+  // MASTER_PRINTF("%.16lg %.16lg\n",act[RE],act[IM]);
   
   // nissa_free(out);
   // nissa_free(temp1);
@@ -1048,7 +1048,7 @@ double xQ2hatx(spincolor *in,double kappa,double mass,double cSW)
 
 void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
 {
-  crash("reimplement");
+  CRASH("reimplement");
   
   // /// Preprare clover
   // eo_ptr<clover_term_t> Cl;
@@ -1089,9 +1089,9 @@ void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double
   // xQx_der(an,eo,ieo,dir,_X,_Y,kappa,mass,cSW);
   // //xQx_der(an2,eo,ieo,dir,_Y,_X,kappa,mass,cSW);
   
-  // // master_printf("an1:\n");
+  // // MASTER_PRINTF("an1:\n");
   // // su3_print(an1);
-  // // master_printf("an2:\n");
+  // // MASTER_PRINTF("an2:\n");
   // // su3_print(an2);
   
   // //free
@@ -1105,9 +1105,9 @@ void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double
 
 void test_xQ2hatx()
 {
-  crash("reimplement");
+  CRASH("reimplement");
   
-  // master_printf("Testing TM\n");
+  // MASTER_PRINTF("Testing TM\n");
   
   // double kappa=0.24;
   // double mass=0.4561;
@@ -1126,7 +1126,7 @@ void test_xQ2hatx()
   
   // compare(eo,ieo,dir,xQ2hatx,xQ2hatx_der,in,kappa,mass,cSW);
   
-  // master_printf("Comparing derivative of xQ2hatx for link %d %d %d\n",(int)eo,ieo,dir);
+  // MASTER_PRINTF("Comparing derivative of xQ2hatx for link %d %d %d\n",(int)eo,ieo,dir);
   
   // nissa_free(in);
 }
@@ -1217,7 +1217,7 @@ void test_xQ2hatx()
 // XQeeX functional
 double xQ2eex(double kappa,double mass,double cSW)
 {
-  crash("reimplement");
+  CRASH("reimplement");
   
   // //Preparre clover
   // eo_ptr<clover_term_t> Cl;
@@ -1263,7 +1263,7 @@ double xQ2eex(double kappa,double mass,double cSW)
 
 void xQ2eex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW)
 {
-  crash("reimplement");
+  CRASH("reimplement");
   
   // //Prepare clover
   // eo_ptr<clover_term_t> Cl;
@@ -1376,7 +1376,7 @@ void xQ2eex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cS
 
 void test_xQ2eex()
 {
-  crash("reimplement");
+  CRASH("reimplement");
   
   // double kappa=0.177;
   // double mass=0.4;
@@ -1392,7 +1392,7 @@ void test_xQ2eex()
   
   // compare(eo,ieo,dir,xQ2eex,xQ2eex_der,kappa,mass,cSW);
   
-  // master_printf("Comparing derivative of xQ2eex for link %d %d %d\n",(int)eo,ieo,dir);
+  // MASTER_PRINTF("Comparing derivative of xQ2eex for link %d %d %d\n",(int)eo,ieo,dir);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -1401,7 +1401,7 @@ void test_xQ2eex()
 
 double xQee_inv_x(spincolor *in,double kappa,double mass,double cSW)
 {
-  crash("reimplement");
+  CRASH("reimplement");
   
   // spincolor *out=nissa_malloc("out",locVolh,spincolor);
   // // spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
@@ -1426,7 +1426,7 @@ double xQee_inv_x(spincolor *in,double kappa,double mass,double cSW)
   // for(int eo=0;eo<2;eo++)
   //   nissa_free(Cl[eo]);
   
-  // master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
+  // MASTER_PRINTF("%.16lg %.16lg\n",act[RE],act[IM]);
   
   // nissa_free(out);
   // // nissa_free(temp1);
@@ -1438,7 +1438,7 @@ double xQee_inv_x(spincolor *in,double kappa,double mass,double cSW)
 
 void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,double mass,double cSW)
 {
-  crash("reimplement");
+  CRASH("reimplement");
   
   // /// Preprare clover
   // eo_ptr<clover_term_t> Cl;
@@ -1459,7 +1459,7 @@ void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,doub
   // 	m[ipair]=dirac_prod_double(m[ipair],-cSW/4);
 	  
   // 	  // print_dirac(m+ipair);
-  // 	  // master_printf("\n");
+  // 	  // MASTER_PRINTF("\n");
   //     }
   
   // /////////////////////////////////////////////////////////////////
@@ -1489,7 +1489,7 @@ void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,doub
   // 		  }
 	    
   // 	    // su3_print(insertion[ieo][ipair]);
-  // 	    // master_printf("\n");
+  // 	    // MASTER_PRINTF("\n");
 	    
   // 	    ipair++;
   // 	  }
@@ -1512,7 +1512,7 @@ void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,doub
       
   //     for(int i=0;i<4;i++)
   // 	{
-  // 	  // master_printf("i: %d \n",i);
+  // 	  // MASTER_PRINTF("i: %d \n",i);
 	  
   // 	  su3 u;
 	  
@@ -1525,7 +1525,7 @@ void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,doub
   // 	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
   // 	  if(i==3 and eo==ODD) safe_su3_prod_su3(u,u,insertion[ieo][ipair]);
 	  
-  // 	  // master_printf("u:\n");
+  // 	  // MASTER_PRINTF("u:\n");
   // 	  // su3_print(u);
   // 	  su3_summassign(an,u);
 	  
@@ -1540,7 +1540,7 @@ void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,doub
   // 	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
   // 	  if(i==3 and eo==ODD) safe_su3_prod_su3(v,v,insertion[ieo][ipair]);
 	  
-  // 	  // master_printf("v:\n");
+  // 	  // MASTER_PRINTF("v:\n");
   // 	  // su3_print(v);
   // 	  su3_subtassign(an,v);
 	  
@@ -1558,7 +1558,7 @@ void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,doub
 
 void test_xQinv_eex()
 {
-  crash("reimplement");
+  CRASH("reimplement");
   
   // double kappa=0.24;
   // double mass=0.0;
@@ -1577,7 +1577,7 @@ void test_xQinv_eex()
   
   // compare(eo,ieo,dir,xQee_inv_x,xQee_inv_x_der,in,kappa,mass,cSW);
   
-  // master_printf("Comparing derivative of xQeex for link %d %d %d\n",(int)eo,ieo,dir);
+  // MASTER_PRINTF("Comparing derivative of xQeex for link %d %d %d\n",(int)eo,ieo,dir);
   
   // nissa_free(in);
 }
@@ -1589,7 +1589,7 @@ void run_program_for_production()
 {
   //evolve for the required number of traj
   ntraj_prod=0;
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   while(check_if_continue())
     {
       double init_traj_time=take_time();
@@ -1613,7 +1613,7 @@ void run_program_for_production()
       store_conf_if_necessary();
       
       // 5) spacing between output
-      master_printf("\n");
+      MASTER_PRINTF("\n");
       
       //surely now we have created conf
       conf_created=0;
@@ -1621,7 +1621,7 @@ void run_program_for_production()
       increase_max_time_per_traj(init_traj_time);
     }
   
-  master_printf("Performed %d trajectories\n\n",ntraj_prod);
+  MASTER_PRINTF("Performed %d trajectories\n\n",ntraj_prod);
 }
 
 //run the program for "analysis"
@@ -1639,22 +1639,22 @@ void run_program_for_analysis()
     }
   while(it!=drv->an_conf_list.end() and !file_exists("stop") and enough_time());
   
-  master_printf("Analyzed %d configurations\n\n",nconf_analyzed);
+  MASTER_PRINTF("Analyzed %d configurations\n\n",nconf_analyzed);
 }
 
 //print the statistic
 void print_stat(const char *what,double time,int n,int64_t flops=0)
 {
   double tot_time=take_time()-init_time;
-  master_printf("time to %s %d times: %lg s (%2.2g %c tot), %lg per iter",what,n,time,time*100/tot_time,'%',time/std::max(n,1));
-  if(flops) master_printf(", %lg MFlop/s\n",flops*1e-6*n/(time?time:1));
-  else master_printf("\n");
+  MASTER_PRINTF("time to %s %d times: %lg s (%2.2g %c tot), %lg per iter",what,n,time,time*100/tot_time,'%',time/std::max(n,1));
+  if(flops) MASTER_PRINTF(", %lg MFlop/s\n",flops*1e-6*n/(time?time:1));
+  else MASTER_PRINTF("\n");
 }
 
 void in_main(int narg,char **arg)
 {
   //check argument
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   //init simulation according to input file
   init_simulation(arg[1]);
@@ -1686,7 +1686,7 @@ void in_main(int narg,char **arg)
   print_stat("read",read_conf_time,nread_conf);
   print_stat("write",write_conf_time,nwrite_conf);
   for(size_t i=0;i<drv->top_meas.size();i++)
-    master_printf("time to perform the %zu topo meas (%s): %lg (%2.2g %c tot)\n",i,drv->top_meas[i].path.c_str(),top_meas_time[i],
+    MASTER_PRINTF("time to perform the %zu topo meas (%s): %lg (%2.2g %c tot)\n",i,drv->top_meas[i].path.c_str(),top_meas_time[i],
 		  top_meas_time[i]*100/(take_time()-init_time),'%');
   
   close_simulation();

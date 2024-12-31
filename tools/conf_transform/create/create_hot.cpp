@@ -7,7 +7,7 @@ int main(int narg,char **arg)
   //basic mpi initialization
   init_nissa(narg,arg);
   
-  if(narg<5) crash("use: %s L T seed file_out",arg[0]);
+  if(narg<5) CRASH("use: %s L T seed file_out",arg[0]);
   
   const int L=atoi(arg[1]);
   const int T=atoi(arg[2]);

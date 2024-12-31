@@ -77,7 +77,7 @@ namespace nissa
       {
 	master_fprintf(stderr,"unable to find tag %s, use one in the list:\n",tag);
 	for(i=0;i<nins_kind;i++) master_fprintf(stderr," %s\n",ins_tag[i]);
-	crash("see previous error");
+	CRASH("see previous error");
       }
     return ins_list[i];
   }
@@ -162,7 +162,7 @@ namespace nissa
       {
 	seed=-seed;
 	use_new_generator=false;
-	master_printf("Reverting to the old rng\n");
+	MASTER_PRINTF("Reverting to the old rng\n");
 	start_loc_rnd_gen(seed);
       }
     else
@@ -221,22 +221,22 @@ namespace nissa
   {
     char text[128];
     read_str(text,128);
-    master_printf("Read %s",text);
+    MASTER_PRINTF("Read %s",text);
     if(strcasecmp(text,"NCopiesHits")==0)
       {
 	read_int(&ncopies);
-	master_printf(" %d",ncopies);
+	MASTER_PRINTF(" %d",ncopies);
       }
     else if(strcasecmp(text,"NHits")!=0)
-      crash("Expecting NCopiesHits of NHits");
+      CRASH("Expecting NCopiesHits of NHits");
     
     read_int(&nhits);
-    master_printf(" %d\n",nhits);
+    MASTER_PRINTF(" %d\n",nhits);
     
     if(ncopies<=0)
-      crash("nCopies must be a positive integer, %d unsupported",ncopies);
+      CRASH("nCopies must be a positive integer, %d unsupported",ncopies);
     if(nhits<=0)
-      crash("nHits must be a positive integer, %d unsupported",nhits);
+      CRASH("nHits must be a positive integer, %d unsupported",nhits);
   }
   
   //number of configurations
@@ -267,7 +267,7 @@ namespace nissa
 	  expect_str("ThetaY");
 	  expect_str("ThetaZ");
 	}
-      else crash("Unknown theta tag: %s",theta_tag);
+      else CRASH("Unknown theta tag: %s",theta_tag);
   }
   
   //handle to stop, running and finished
@@ -282,13 +282,13 @@ namespace nissa
       {
 	read_double(&theta[1]);
 	for(int mu=2;mu<NDIM;mu++) theta[mu]=theta[1];
-	master_printf("Read variable 'Theta' with value: %lg\n",theta[1]);
+	MASTER_PRINTF("Read variable 'Theta' with value: %lg\n",theta[1]);
       }
     else
       for(int mu=1;mu<NDIM;mu++)
 	{
 	  read_double(&theta[mu]);
-	  master_printf("Read variable 'Theta[%d]' with value: %lg\n",mu,theta[mu]);
+	  MASTER_PRINTF("Read variable 'Theta[%d]' with value: %lg\n",mu,theta[mu]);
 	}
   }
   

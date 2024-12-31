@@ -21,7 +21,7 @@ namespace nissa
 			      const double& beta,
 			      const double& C1)
   {
-    verbosity_lv2_master_printf("Computing Symanzik force\n");
+    VERBOSITY_LV2_MASTER_PRINTF("Computing Symanzik force\n");
     
     //coefficient of rectangles and squares, including beta
     const double C0=get_C0(C1);

@@ -27,7 +27,7 @@ extern "C"
 #define QUDA_BYPASS(RET,ARGS...)			\
   ARGS							\
   {							\
-    master_printf("Faking %s\n",__PRETTY_FUNCTION__);\
+    MASTER_PRINTF("Faking %s\n",__PRETTY_FUNCTION__);\
     						     \
     return RET;					     \
   }
@@ -114,7 +114,7 @@ namespace quda_iface
     int out;
     MPI_Cart_rank(quda_iface::cart_comm,c,&out);
     
-    verbosity_lv3_master_printf("rank %d, {%d %d %d %d}->%d\n",rank,c[0],c[1],c[2],c[3],out);
+    VERBOSITY_LV3_MASTER_PRINTF("rank %d, {%d %d %d %d}->%d\n",rank,c[0],c[1],c[2],c[3],out);
     
     return out;
   }
@@ -173,7 +173,7 @@ namespace quda_iface
   //   else if(prec==QUDA_HALF_PRECISION)
   //     return __half2float(((__half*)v)[i]);
   //   else
-  //     crash("Unknown precision %zu",prec);
+  //     CRASH("Unknown precision %zu",prec);
     
   //   return 0;
   // }
@@ -189,7 +189,7 @@ namespace quda_iface
     const int prec=Bdev[0]->Precision();
     const size_t byteSize=nB?(Bdev[0]->Bytes()):0;
     const size_t ghostSize=nB?Bdev[0]->GhostBytes():0;
-    master_printf("B size: %zu bytes, precision %d (%s) for each of the %zu vectors, corresponding to %zu complex, ghost size: %zu\n",byteSize,prec,getPrecTag(prec),nB,byteSize/(2*prec),ghostSize);
+    MASTER_PRINTF("B size: %zu bytes, precision %d (%s) for each of the %zu vectors, corresponding to %zu complex, ghost size: %zu\n",byteSize,prec,getPrecTag(prec),nB,byteSize/(2*prec),ghostSize);
     
     if(takeCopy)
       {
@@ -200,17 +200,17 @@ namespace quda_iface
       }
     else
       if(const size_t nBHost=B[lev].size();nBHost!=nB)
-	crash("B size not matching, this is %zu and device setup is %zu",nBHost,nB);
+	CRASH("B size not matching, this is %zu and device setup is %zu",nBHost,nB);
     
     for(size_t iB=0;iB<nB;iB++)
       {
 	restoreOrTakeCopyOfData(B[lev][iB],Bdev[iB]->V(),byteSize,takeCopy);
 	
-	master_printf("B[%zu] vec of lev %zu %s, first entries: ",iB,lev,takeCopy?"stored":"restored");
+	MASTER_PRINTF("B[%zu] vec of lev %zu %s, first entries: ",iB,lev,takeCopy?"stored":"restored");
 	for(int i=0;i<2;i++)
-	  master_printf("%lg ",getFromCustomPrecArray((B[lev])[iB],i,prec));
+	  MASTER_PRINTF("%lg ",getFromCustomPrecArray((B[lev])[iB],i,prec));
 	
-	master_printf("\n");
+	MASTER_PRINTF("\n");
       }
   }
   
@@ -220,11 +220,11 @@ namespace quda_iface
     using namespace nissa::Robbery;
     
     quda::Solver* nestedSolver=rob<solver>((quda::PreconditionedSolver*)csv);
-    master_printf("nested solver: %p\n",nestedSolver);
+    MASTER_PRINTF("nested solver: %p\n",nestedSolver);
     
     auto& eVecsDev=rob<evecs>(nestedSolver);
     const size_t nEig=eVecsDev.size();
-    master_printf("nEig: %zu\n",nEig);
+    MASTER_PRINTF("nEig: %zu\n",nEig);
     const size_t byteSize=nEig?(eVecsDev[0]->Bytes()):0;
     
     if(takeCopy)
@@ -236,7 +236,7 @@ namespace quda_iface
       }
     else
       if(nEig!=eVecs.size())
-	crash("eig size not matching, this is %zu and device setup is %zu",eVecs.size(),nEig);
+	CRASH("eig size not matching, this is %zu and device setup is %zu",eVecs.size(),nEig);
     
     for(size_t iEig=0;iEig<nEig;iEig++)
       restoreOrTakeCopyOfData(eVecs[iEig],
@@ -250,15 +250,15 @@ namespace quda_iface
     else
       eValsDev=eVals;
     
-    master_printf("eigenvecs %s, first entries of evals: (%lg,%lg) (%lg,%lg), of eVecs of prec %d: ",takeCopy?"stored":"restored",
+    MASTER_PRINTF("eigenvecs %s, first entries of evals: (%lg,%lg) (%lg,%lg), of eVecs of prec %d: ",takeCopy?"stored":"restored",
 		  eVals[0].real(),eVals[0].imag(),
 		  eVals[1].real(),eVals[1].imag(),
 		  eVecsDev[0]->Precision());
     for(int i=0;i<2;i++)
-      master_printf("(%lg,%lg) ",
+      MASTER_PRINTF("(%lg,%lg) ",
 		    getFromCustomPrecArray(eVecs[i],0+2*i,eVecsDev[0]->Precision()),
 		    getFromCustomPrecArray(eVecs[i],1+2*i,eVecsDev[0]->Precision()));
-    master_printf("\n");
+    MASTER_PRINTF("\n");
   }
   
   void QudaSetup::restoreOrTakeCopyOfAllY(const bool takeCopy)
@@ -285,9 +285,9 @@ namespace quda_iface
 	restoreOrTakeCopyOfData(Y[lev],yd->Gauge_p(),yd->Bytes(),takeCopy);
 	restoreOrTakeCopyOfData(Yhat[lev],yhat_d->Gauge_p(),yhat_d->Bytes(),takeCopy);
 	
-	master_printf("%s Y and Yhat, lev %d, size %d\n",takeCopy?"stored":"restored",lev,(int)yd->Bytes());
+	MASTER_PRINTF("%s Y and Yhat, lev %d, size %d\n",takeCopy?"stored":"restored",lev,(int)yd->Bytes());
 	for(int i=0;i<10;i++)
-	  master_printf("y[%zu]: %.16lg\n",i,getFromCustomPrecArray(Y[lev],i,yd->Precision()));
+	  MASTER_PRINTF("y[%zu]: %.16lg\n",i,getFromCustomPrecArray(Y[lev],i,yd->Precision()));
 	cur=rob<coarse>(cur);
 	
 	lev++;
@@ -301,27 +301,27 @@ namespace quda_iface
     
     multigrid_solver* mgs=static_cast<multigrid_solver*>(quda_mg_preconditioner);
     MG* cur=mgs->mg;
-    master_printf("/////////////////////////////////////////////////////////////////\n");
-    master_printf("/////////////////////////// preverify //////////////////////////////////////\n");
+    MASTER_PRINTF("/////////////////////////////////////////////////////////////////\n");
+    MASTER_PRINTF("/////////////////////////// preverify //////////////////////////////////////\n");
     cur->verify();
-    master_printf("/////////////////////////////////////////////////////////////////\n");
+    MASTER_PRINTF("/////////////////////////////////////////////////////////////////\n");
     int lev=0;
     
     allocatedMemory=0;
     
     if(takeCopy)
       {
-	if(not (B.empty() and Y.empty() and Yhat.empty())) crash("setup already in use!");
+	if(not (B.empty() and Y.empty() and Yhat.empty())) CRASH("setup already in use!");
 	B.resize(multiGrid::nlevels);
 	for(auto& p : {&Y,&Yhat})
 	  p->resize(multiGrid::nlevels);
       }
     else
-      if(B.empty() or Y.empty() or Yhat.empty()) crash("setup not in use!");
+      if(B.empty() or Y.empty() or Yhat.empty()) CRASH("setup not in use!");
     
     restoreOrTakeCopyOfAllY(takeCopy);
     
-    master_printf("&mgs->B %p , &mgs->mgParam.B %p\n",&mgs->B,&mgs->mgParam->B);
+    MASTER_PRINTF("&mgs->B %p , &mgs->mgParam.B %p\n",&mgs->B,&mgs->mgParam->B);
     restoreOrTakeCopyOfB(takeCopy,mgs->mgParam->B,lev);
     
     lev=1;
@@ -333,29 +333,29 @@ namespace quda_iface
 	
 	//Dirac* dc=rob<diracCoarseSmoother>(cur);
 	Solver* csv=rob<coarse_solver>(cur);
-	master_printf("csv: %p\n",csv);
+	MASTER_PRINTF("csv: %p\n",csv);
 	if(csv and quda_mg_param.use_eig_solver[lev]==QUDA_BOOLEAN_YES)
 	  {
-	    master_printf("Going to to the eig part\n");
+	    MASTER_PRINTF("Going to to the eig part\n");
 	    restoreOrTakeCopyOfEig(takeCopy,csv);
 	  }
 	
 	cur=rob<coarse>(cur);
 	
-	master_printf("Done with lev %d\n",lev);
+	MASTER_PRINTF("Done with lev %d\n",lev);
 	
 	lev++;
       }
     
     if(takeCopy)
-      master_printf("we have used %zu bytes to store the setup\n",allocatedMemory);
+      MASTER_PRINTF("we have used %zu bytes to store the setup\n",allocatedMemory);
     else
       {
-	master_printf("Everything recycled in the mg\n");
+	MASTER_PRINTF("Everything recycled in the mg\n");
 	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
 	multigrid_solver* mgs=static_cast<multigrid_solver*>(quda_mg_preconditioner);
 	MG* cur=mgs->mg;
-	master_printf("Let us verify\n");
+	MASTER_PRINTF("Let us verify\n");
 	cur->verify();
 	
 	// QudaBoolean& p=quda_mg_param.preserve_deflation; //thin_update_only
@@ -396,10 +396,10 @@ namespace quda_iface
 	  periods[mu]=1;
 	MPI_Cart_create(MPI_COMM_WORLD,NDIM,&nRanksDir[0],&periods[0],1,&cart_comm);
 	
-	master_printf("Initializing QUDA\n");
+	MASTER_PRINTF("Initializing QUDA\n");
 	
 	if(QUDA_VERSION_MAJOR==0 and QUDA_VERSION_MINOR<7)
-	  crash("minimum QUDA version required is 0.7.0");
+	  CRASH("minimum QUDA version required is 0.7.0");
 	
 	/////////////////////////////////////////////////////////////////
 	
@@ -420,13 +420,13 @@ namespace quda_iface
 	    const int quda=loclx_parity[ivol]*locVolh+itmp/2;
 	    
 	    if(quda<0 or quda>=locVol)
-	      crash("quda %d remapping to ivol %ld not in range [0,%ld]",quda,ivol,locVol);
+	      CRASH("quda %d remapping to ivol %ld not in range [0,%ld]",quda,ivol,locVol);
 	    
 	    quda_of_loclx[ivol]=quda;
 	    loclx_of_quda[quda]=ivol;
 	  }
 	
-	master_printf("allocating quda_conf\n");
+	MASTER_PRINTF("allocating quda_conf\n");
 	for(int mu=0;mu<NDIM;mu++)
 	  quda_conf[mu]=nissa_malloc("quda_conf",locVol,su3);
 	
@@ -493,7 +493,7 @@ namespace quda_iface
   {
     if(inited)
       {
-	master_printf("Finalizing QUDA\n");
+	MASTER_PRINTF("Finalizing QUDA\n");
 	
 	nissa_free(loclx_of_quda);
 	nissa_free(quda_of_loclx);
@@ -536,7 +536,7 @@ namespace quda_iface
       take_time();
     freeCloverQuda();
     loadCloverQuda(nullptr,nullptr,inv_param);
-    master_printf("Time for loadCloverQuda: %lg\n",take_time()-load_clover_time);
+    MASTER_PRINTF("Time for loadCloverQuda: %lg\n",take_time()-load_clover_time);
   }
   
   /// Reorder conf into QUDA format
@@ -662,26 +662,26 @@ namespace quda_iface
   // /// Sets the sloppy precision
   // void set_sloppy_prec(const QudaPrecision sloppy_prec)
   // {
-  //   master_printf("Quda sloppy precision: ");
+  //   MASTER_PRINTF("Quda sloppy precision: ");
   
   //   switch(sloppy_prec)
   //     {
   //     case QUDA_DOUBLE_PRECISION:
-  // 	master_printf("double");
+  // 	MASTER_PRINTF("double");
   // 	break;
   //     case QUDA_SINGLE_PRECISION:
-  // 	master_printf("single");
+  // 	MASTER_PRINTF("single");
   // 	break;
   //     case QUDA_HALF_PRECISION:
-  // 	master_printf("half");
+  // 	MASTER_PRINTF("half");
   // 	break;
   //     case QUDA_QUARTER_PRECISION:
-  // 	master_printf("quarter");
+  // 	MASTER_PRINTF("quarter");
   // 	break;
   //     case QUDA_INVALID_PRECISION:
-  // 	crash("invalid precision");
+  // 	CRASH("invalid precision");
   //     };
-  //   master_printf("\n");
+  //   MASTER_PRINTF("\n");
   
   // gauge_param.cuda_prec_sloppy=
   //   gauge_param.cuda_prec_refinement_sloppy=
@@ -762,11 +762,11 @@ namespace quda_iface
   /// Apply the dirac operator
   void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double csw,double mu,spincolor *in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     //     export_gauge_conf_to_external_solver(conf);
     
 // #ifdef DEBUG_QUDA
-//     master_printf("setting pars\n");
+//     MASTER_PRINTF("setting pars\n");
 // #endif
     
     // set_base_inverter_pars();
@@ -971,12 +971,12 @@ namespace quda_iface
 		      }
 		  }
 		
-		verbosity_lv1_master_printf("# QUDA: MG level %d, extent of (xyzt) dim %d: %d\n",level,mu,extent);
-		verbosity_lv1_master_printf("# QUDA: MG aggregation size set to: %d\n",geo_block_size_mu);
+		VERBOSITY_LV1_MASTER_PRINTF("# QUDA: MG level %d, extent of (xyzt) dim %d: %d\n",level,mu,extent);
+		VERBOSITY_LV1_MASTER_PRINTF("# QUDA: MG aggregation size set to: %d\n",geo_block_size_mu);
 		
 		//check that all lattice extents are even after blocking on all levels
 		if(level < nlevels-1 and (extent/geo_block_size_mu%2))
-		  crash("MG level %d, dim %d (xyzt) has extent %d. Block size of %d would result "
+		  CRASH("MG level %d, dim %d (xyzt) has extent %d. Block size of %d would result "
 			"in odd extent on level %d, aborting!\n"
 			"Adjust your block sizes or parallelisation, all local lattice extents on all levels must be even!\n",
 			level,mu,extent, geo_block_size_mu,level+1);
@@ -1000,7 +1000,7 @@ namespace quda_iface
 	    if(fabs(inv_param.mu)>0)
 	      {
 		quda_mg_param.mu_factor[level]=multiGrid::mu_factor[level];
-		master_printf("# QUDA: MG setting coarse mu scaling factor on level %d to %lf\n", level, quda_mg_param.mu_factor[level]);
+		MASTER_PRINTF("# QUDA: MG setting coarse mu scaling factor on level %d to %lf\n", level, quda_mg_param.mu_factor[level]);
 	      }
 	    
 	    //Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
@@ -1065,7 +1065,7 @@ namespace quda_iface
 		    mg_eig_param[level].eig_type==QUDA_EIG_IR_ARNOLDI)
 		   and not(mg_eig_param[level].spectrum==QUDA_SPECTRUM_LR_EIG or
 			   mg_eig_param[level].spectrum==QUDA_SPECTRUM_SR_EIG))
-		  crash("ERROR: MG level %d: Only real spectrum type (LR or SR)"
+		  CRASH("ERROR: MG level %d: Only real spectrum type (LR or SR)"
 			"can be passed to the a Lanczos type solver!\n",
 			level);
 		
@@ -1134,21 +1134,21 @@ namespace quda_iface
     bool& setup_valid=multiGrid::setup_valid;
     if(not setup_valid)
       {
-	master_printf("QUDA multigrid setup not valid\n");
+	MASTER_PRINTF("QUDA multigrid setup not valid\n");
 	
 #ifdef QUDASETUPSTORE
 	const bool canReuseStoredSetup=(qudaSetups.find(setupId)!=qudaSetups.end());
 	const auto [tag,fs]=setupId;
-	master_printf("CanReuseStoredSetup (%s,%zu,%zu): %s\n",tag.c_str(),fs[0],fs[1],canReuseStoredSetup?"true":"false");
+	MASTER_PRINTF("CanReuseStoredSetup (%s,%zu,%zu): %s\n",tag.c_str(),fs[0],fs[1],canReuseStoredSetup?"true":"false");
 	
 	setVerbosity(QUDA_VERBOSE);
-	master_printf("VERBOSITY OF QUDA: %d should be %d it might be %d\n",getVerbosity(),QUDA_VERBOSE,QUDA_SUMMARIZE);
+	MASTER_PRINTF("VERBOSITY OF QUDA: %d should be %d it might be %d\n",getVerbosity(),QUDA_VERBOSE,QUDA_SUMMARIZE);
 	
 	if(canReuseStoredSetup)
 	  {
 	    destroyMultigridQuda(quda_mg_preconditioner);
 	    
-	    master_printf("mg setup redue:\n");
+	    MASTER_PRINTF("mg setup redue:\n");
 	    
 	    const int& nlevels=multiGrid::nlevels;
 	    int b[nlevels];
@@ -1201,7 +1201,7 @@ namespace quda_iface
 #endif
 	  }
 	
-	master_printf("mg setup done!\n");
+	MASTER_PRINTF("mg setup done!\n");
 	
 	setup_valid=true;
       }
@@ -1220,7 +1220,7 @@ namespace quda_iface
 	    (fabs(storedMu/(inv_param.mu+1e-300)-1)<setup_refresh_tol) and
 	    (fabs(storedKappa/(inv_param.kappa+1e-300)-1)<setup_refresh_tol) and
 	    (fabs(storedCloverCoeff/(inv_param.clover_coeff+1e-300)-1)<setup_refresh_tol);
-	  master_printf("Tolerance to avoid deep update on csw, mu and kappa change is %lg satisfied: %d\n",setup_refresh_tol,tolSatisfied);
+	  MASTER_PRINTF("Tolerance to avoid deep update on csw, mu and kappa change is %lg satisfied: %d\n",setup_refresh_tol,tolSatisfied);
 	  
 	  int stored_setup_maxiter_refresh[QUDA_MAX_MG_LEVEL];
 	  QudaBoolean stored_preserve_deflation;
@@ -1252,7 +1252,7 @@ namespace quda_iface
 	  quda_mg_param.preserve_deflation=stored_preserve_deflation;
 	}
       else
-	master_printf("No need to update the multigrid\n");
+	MASTER_PRINTF("No need to update the multigrid\n");
     
     inv_param.preconditioner=quda_mg_preconditioner;
     
@@ -1525,7 +1525,7 @@ namespace quda_iface
     const bool exported=
       export_gauge_conf_to_external_solver(conf);
     
-    master_printf("time to export to the conf to quda: %lg s\n",take_time()-export_time);
+    MASTER_PRINTF("time to export to the conf to quda: %lg s\n",take_time()-export_time);
     
     set_base_inverter_pars();
     
@@ -1534,26 +1534,26 @@ namespace quda_iface
 #ifdef DEBUG_QUDA
     if(is_master_rank())
       {
-	master_printf("--- gauge pars: ---\n");
+	MASTER_PRINTF("--- gauge pars: ---\n");
 	printQudaGaugeParam(&gauge_param);
-	master_printf("--- inv pars: ---\n");
+	MASTER_PRINTF("--- inv pars: ---\n");
 	printQudaInvertParam(&inv_param);
 	
 	if(multiGrid::checkIfMultiGridAvailableAndRequired(mu))
 	  {
-	    master_printf("--- inv_mg pars: %p kappa %lg mu %lg mass %lg---\n",&inv_mg_param,inv_mg_param.kappa,inv_mg_param.mu,inv_mg_param.mass);
+	    MASTER_PRINTF("--- inv_mg pars: %p kappa %lg mu %lg mass %lg---\n",&inv_mg_param,inv_mg_param.kappa,inv_mg_param.mu,inv_mg_param.mass);
 	    printQudaInvertParam(&inv_mg_param);
-	    master_printf("--- multigrid pars: %p internal %p ---\n",&quda_mg_param,quda_mg_param.invert_param);
+	    MASTER_PRINTF("--- multigrid pars: %p internal %p ---\n",&quda_mg_param,quda_mg_param.invert_param);
 	    printQudaMultigridParam(&quda_mg_param);
-	    master_printf("AAAAAA\n");
+	    MASTER_PRINTF("AAAAAA\n");
 	    if(is_master_rank())
 	      sanfoPrint(quda_mg_param);
-	    master_printf("AAAAAA\n");
+	    MASTER_PRINTF("AAAAAA\n");
 	    if(is_master_rank())
 	      sanfoPrint(*quda_mg_param.invert_param);
-	    master_printf("AAAAAA\n");
+	    MASTER_PRINTF("AAAAAA\n");
 	    
-	    master_printf("-- -eig pars: ---\n");
+	    MASTER_PRINTF("-- -eig pars: ---\n");
 	    printQudaEigParam(mg_eig_param+multiGrid::nlevels-1);
 	  }
       }
@@ -1564,17 +1564,17 @@ namespace quda_iface
     
     const double remap_in_time=take_time();
     remap_nissa_to_quda(spincolor_in,source);
-    master_printf("time to remap rhs to quda: %lg s\n",take_time()-remap_in_time);
+    MASTER_PRINTF("time to remap rhs to quda: %lg s\n",take_time()-remap_in_time);
     
     const double solution_time=take_time();
     invertQuda(spincolor_out,spincolor_in,&inv_param);
-    master_printf("Solution time: %lg s\n",take_time()-solution_time);
+    MASTER_PRINTF("Solution time: %lg s\n",take_time()-solution_time);
     
-    master_printf("# QUDA solved in: %i iter / %g secs=%g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
+    MASTER_PRINTF("# QUDA solved in: %i iter / %g secs=%g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
     
     const double remap_out_time=take_time();
     remap_quda_to_nissa(sol,spincolor_out);
-    master_printf("time to remap solution from quda: %lg s\n",take_time()-remap_out_time);
+    MASTER_PRINTF("time to remap solution from quda: %lg s\n",take_time()-remap_out_time);
     
     // Might return actual result of the convergence with some proper error handling?
     return true;
@@ -1582,7 +1582,7 @@ namespace quda_iface
   
   bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // gauge_param.reconstruct=
     //   gauge_param.reconstruct_sloppy=
@@ -1594,7 +1594,7 @@ namespace quda_iface
     // add_or_rem_stagphases_to_conf(conf);
     // const bool exported=export_gauge_conf_to_external_solver(conf);
     // add_or_rem_stagphases_to_conf(conf);
-    // master_printf("time to export (%d) to external library: %lg s\n",exported,take_time()-export_time);
+    // MASTER_PRINTF("time to export (%d) to external library: %lg s\n",exported,take_time()-export_time);
     
     // set_base_inverter_pars();
     
@@ -1622,7 +1622,7 @@ namespace quda_iface
     // //invertQuda(color_out,color_in,&inv_param);
     // MatQuda(color_out,color_in,&inv_param);
     
-    // master_printf("# QUDA solved in: %i iter / %g secs=%g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
+    // MASTER_PRINTF("# QUDA solved in: %i iter / %g secs=%g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
     
     // remap_quda_to_nissa(sol,color_out);
     

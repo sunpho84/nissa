@@ -1490,7 +1490,7 @@ namespace nissa
     su3 prod;
     unsafe_su3_prod_su3_dag(prod,U,M);
     
-    //master_printf("isub -1, %16.16lg\n",su3_real_trace(prod));
+    //MASTER_PRINTF("isub -1, %16.16lg\n",su3_real_trace(prod));
     //loop over the three subgroups
     UNROLL_FOR_ALL_COLS(isub_gr)
       {
@@ -1505,7 +1505,7 @@ namespace nissa
 	su2_prodassign_su3(a,b,c,d,isub_gr,U);
 	su2_prodassign_su3(a,b,c,d,isub_gr,prod);
 	
-	//master_printf("isub %d, %16.16lg\n",isub_gr,su3_real_trace(prod));
+	//MASTER_PRINTF("isub %d, %16.16lg\n",isub_gr,su3_real_trace(prod));
       }
     
     return su3_real_trace(prod);
@@ -1801,9 +1801,9 @@ namespace nissa
     UNROLL_FOR_ALL_SPIN(id)
       {
 	UNROLL_FOR_ALL_COLS(ic) printf("%+16.16lg,%+16.16lg\t",c[id][ic][0],c[id][ic][1]);
-	master_printf("\n");
+	MASTER_PRINTF("\n");
       }
-    master_printf("\n");
+    MASTER_PRINTF("\n");
   }
   
   //summ two spincolors

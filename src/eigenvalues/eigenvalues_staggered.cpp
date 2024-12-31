@@ -14,7 +14,7 @@ namespace nissa
   //computes the spectrum of the staggered operator
   void find_eigenvalues_staggered_D2ee(color **eigvec,complex *eigval,int neigs,bool min_max,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double mass2,double residue,int wspace_size)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // add_backfield_with_stagphases_to_conf(conf,u1b);
     
@@ -35,12 +35,12 @@ namespace nissa
     // const int mat_size=locVolh*NCOL;
     // const int mat_size_to_allocate=(locVolh+bord_volh)*NCOL;
     // const int niter_max=100000000;
-    // master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
+    // MASTER_PRINTF("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     
     // //precision of the eigenvalues
     // double maxerr=sqrt(residue);
     
-    // verbosity_lv1_master_printf("Starting to search for %d %s eigenvalues of the Staggered operator DD^+ even-projected, with a precision of %lg, and Krylov space size of %d\n",neigs,(min_max?"max":"min"),maxerr,wspace_size);
+    // VERBOSITY_LV1_MASTER_PRINTF("Starting to search for %d %s eigenvalues of the Staggered operator DD^+ even-projected, with a precision of %lg, and Krylov space size of %d\n",neigs,(min_max?"max":"min"),maxerr,wspace_size);
     
     // //find eigenvalues and eigenvectors of the staggered
     // eigenvalues_find((complex**)eigvec,eigval,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,maxerr,niter_max,filler,wspace_size);
@@ -53,7 +53,7 @@ namespace nissa
   //computes the spectrum of the staggered iD operator
   void find_eigenvalues_staggered_iD(color **eigvec,complex *eigval,int neigs,bool min_max,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double residue,int wspace_size)
   {
-    crash("");
+    CRASH("");
     // eo_ptr<color> temp_in_eo={nissa_malloc("temp_in_eo_EVN",locVolh+bord_volh,color),nissa_malloc("temp_in_eo_ODD",locVolh+bord_volh,color)};
     // eo_ptr<color> temp_out_eo={nissa_malloc("temp_out_eo_EVN",locVolh+bord_volh,color),nissa_malloc("temp_out_eo_ODD",locVolh+bord_volh,color)};
     
@@ -89,12 +89,12 @@ namespace nissa
     // const int mat_size=2*locVolh*NCOL;
     // const int mat_size_to_allocate=2*(locVolh+bord_volh)*NCOL;
     // const int niter_max=100000000;
-    // master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
+    // MASTER_PRINTF("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     
     // //precision of the eigenvalues
     // double maxerr=sqrt(residue);
     
-    // verbosity_lv1_master_printf("Starting to search for %d %s eigenvalues of the Staggered iD operator with a precision of %lg, and Krylov space size of %d\n",
+    // VERBOSITY_LV1_MASTER_PRINTF("Starting to search for %d %s eigenvalues of the Staggered iD operator with a precision of %lg, and Krylov space size of %d\n",
     // 				neigs,(min_max?"max":"min"),maxerr,wspace_size);
     
     // //find eigenvalues and eigenvectors of the staggered
@@ -109,7 +109,7 @@ namespace nissa
   //computes the spectrum of the staggered Adams operator (iD_st - Gamma5 m_Adams)
   void find_eigenvalues_staggered_Adams(color **eigvec,complex *eigval,int neigs,bool min_max,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double mass,double m_Adams,double residue,int wspace_size)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // eo_ptr<color> temp={nissa_malloc("temp_EVN",locVolh+bord_volh,color),nissa_malloc("temp_ODD",locVolh+bord_volh,color)};
     // eo_ptr<color> temp_in_eo = {nissa_malloc("temp_in_eo_EVN",locVolh+bord_volh,color),nissa_malloc("temp_in_eo_ODD",locVolh+bord_volh,color)};
     // eo_ptr<color> temp_out_eo = {nissa_malloc("temp_out_eo_EVN",locVolh+bord_volh,color),nissa_malloc("temp_out_eo_ODD",locVolh+bord_volh,color)};
@@ -134,12 +134,12 @@ namespace nissa
     // const int mat_size=2*locVolh*NCOL;
     // const int mat_size_to_allocate=2*(locVolh+bord_volh)*NCOL;
     // const int niter_max=100000000;
-    // master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
+    // MASTER_PRINTF("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     
     // //precision of the eigenvalues
     // double maxerr=sqrt(residue);
     
-    // verbosity_lv1_master_printf("Starting to search for %d %s eigenvalues of the Staggered Adams operator with a precision of %lg, and Krylov space size of %d\n",neigs,(min_max?"max":"min"),maxerr,wspace_size);
+    // VERBOSITY_LV1_MASTER_PRINTF("Starting to search for %d %s eigenvalues of the Staggered Adams operator with a precision of %lg, and Krylov space size of %d\n",neigs,(min_max?"max":"min"),maxerr,wspace_size);
     
     // //find eigenvalues and eigenvectors of the staggered
     // eigenvalues_find((complex**)eigvec,eigval,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,maxerr,niter_max,filler,wspace_size);
@@ -155,7 +155,7 @@ namespace nissa
   //computes the spectrum of the staggered Adams operator (Eps D_st - Gamma5 m_Adams), where Eps = Gamma5 x Gamma5.
   void find_eigenvalues_staggered_AdamsII(color **eigvec,complex *eigval,int neigs,bool min_max,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double mass,double m_Adams,double residue,int wspace_size)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // eo_ptr<color> temp={nissa_malloc("temp_EVN",locVolh+bord_volh,color),nissa_malloc("temp_ODD",locVolh+bord_volh,color)};
     // eo_ptr<color> temp_in_eo={nissa_malloc("temp_in_eo_EVN",locVolh+bord_volh,color),nissa_malloc("temp_in_eo_ODD",locVolh+bord_volh,color)};
     // eo_ptr<color> temp_out_eo={nissa_malloc("temp_out_eo_EVN",locVolh+bord_volh,color),nissa_malloc("temp_out_eo_ODD",locVolh+bord_volh,color)};
@@ -181,12 +181,12 @@ namespace nissa
     // const int mat_size=2*locVolh*NCOL;
     // const int mat_size_to_allocate=2*(locVolh+bord_volh)*NCOL;
     // const int niter_max=100000000;
-    // master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
+    // MASTER_PRINTF("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     
     // //precision of the eigenvalues
     // double maxerr=sqrt(residue);
     
-    // verbosity_lv1_master_printf("Starting to search for %d %s eigenvalues of the Staggered Adams operator with a precision of %lg, and Krylov space size of %d\n",neigs,(min_max?"max":"min"),maxerr,wspace_size);
+    // VERBOSITY_LV1_MASTER_PRINTF("Starting to search for %d %s eigenvalues of the Staggered Adams operator with a precision of %lg, and Krylov space size of %d\n",neigs,(min_max?"max":"min"),maxerr,wspace_size);
     
     // //find eigenvalues and eigenvectors of the staggered
     // eigenvalues_find((complex**)eigvec,eigval,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,maxerr,niter_max,filler,wspace_size);

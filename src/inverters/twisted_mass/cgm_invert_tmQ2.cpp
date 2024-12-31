@@ -54,7 +54,7 @@ namespace nissa
   //put the g5
   void inv_tmDQ_cgm(spincolor** sol,quad_su3* conf,double kappa,double* m,int nmass,int niter_max,double* req_res,spincolor* source)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // NISSA_PARALLEL_LOOP(ivol,0,locVol)
     //   for(int id1=2;id1<4;id1++)
     // 	for(int ic1=0;ic1<3;ic1++)

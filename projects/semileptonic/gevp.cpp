@@ -52,7 +52,7 @@ void initialize_semileptonic(char *input_path)
   read_list_of_ints("GaussianNiter",&nsm_lev,&gaussian_niter);
   for(int iter=1;iter<nsm_lev;iter++)
     if(gaussian_niter[iter]<gaussian_niter[iter-1])
-      crash("Error, gaussian lev %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter[iter],gaussian_niter[iter-1]);
+      CRASH("Error, gaussian lev %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter[iter],gaussian_niter[iter-1]);
   read_ape_pars(ape_smearing_pars);
   
   // 4) Correlations
@@ -102,7 +102,7 @@ void initialize_semileptonic(char *input_path)
 	    ncorr_tot+=icorr;
 	    ncontr_tot+=two_pts_comp[mu_so][nu_so][mu_si][nu_si].size();
 	  }
-  verbosity_lv2_master_printf("Read %d corrs, corresponding to %d contr\n",ncorr_tot,ncontr_tot);
+  VERBOSITY_LV2_MASTER_PRINTF("Read %d corrs, corresponding to %d contr\n",ncorr_tot,ncontr_tot);
   ndoubles=nsm_lev*nsm_lev*glb_size[0]*ncorr_tot;
   
   //correlations
@@ -144,20 +144,20 @@ int read_conf_parameters(int *iconf)
       read_str(outfolder,1024);
       
       //Check if the conf has been finished or is already running
-      master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+      MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
 
       //if not chosen
       if(!dir_exists(outfolder))
 	{
-          master_printf(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
-	  if(create_dir(outfolder)) crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+          MASTER_PRINTF(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
+	  if(create_dir(outfolder)) CRASH(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
 	  ok_conf=1;
 	}
       (*iconf)++;
     }
   while(!ok_conf && (*iconf)<ngauge_conf);
   
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   
   return ok_conf;
 }
@@ -167,13 +167,13 @@ void setup_conf()
 {
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_ildg_gauge_conf(conf,conf_path);
-  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
+  MASTER_PRINTF("plaq: %.18g\n",global_plaquette_lx_conf(conf));
 
   conf_smear_time-=take_time();
   ape_spatial_smear_conf(sme_conf,conf,ape_smearing_pars.alpha,ape_smearing_pars.nlevels);
   conf_smear_time+=take_time();
   
-  master_printf("smeared plaq: %.16g\n",global_plaquette_lx_conf(sme_conf));
+  MASTER_PRINTF("smeared plaq: %.16g\n",global_plaquette_lx_conf(sme_conf));
   
   //put the anti-periodic condition on the temporal border
   momentum_t old_theta,put_theta;
@@ -189,16 +189,16 @@ void setup_conf()
 //Finalization
 void close_semileptonic()
 {
-  master_printf("\n");
-  master_printf("Inverted %d configurations.\n",nanalyzed_conf);
-  master_printf("Total time: %g s, of which:\n",tot_prog_time);
-  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",
+  MASTER_PRINTF("\n");
+  MASTER_PRINTF("Inverted %d configurations.\n",nanalyzed_conf);
+  MASTER_PRINTF("Total time: %g s, of which:\n",tot_prog_time);
+  MASTER_PRINTF(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",
 		ninv_tot,inv_time/ninv_tot);
-  master_printf("  of which  %02.2f%s for %d cgm inversion overhead (%2.2gs avg)\n",cgm_inv_over_time/inv_time*100,"%",
+  MASTER_PRINTF("  of which  %02.2f%s for %d cgm inversion overhead (%2.2gs avg)\n",cgm_inv_over_time/inv_time*100,"%",
                 ninv_tot,cgm_inv_over_time/ninv_tot);
-  master_printf(" - %02.2f%s to smear configuration\n",conf_smear_time*100.0/tot_prog_time,"%");
-  master_printf(" - %02.2f%s to sink-smear propagators\n",smear_time*100.0/tot_prog_time,"%");
-  master_printf(" - %02.2f%s to compute %d correlations (%2.2gs avg)\n",corr_time/tot_prog_time*100,"%",
+  MASTER_PRINTF(" - %02.2f%s to smear configuration\n",conf_smear_time*100.0/tot_prog_time,"%");
+  MASTER_PRINTF(" - %02.2f%s to sink-smear propagators\n",smear_time*100.0/tot_prog_time,"%");
+  MASTER_PRINTF(" - %02.2f%s to compute %d correlations (%2.2gs avg)\n",corr_time/tot_prog_time*100,"%",
 		ncorr_computed_tot,corr_time/ncorr_computed_tot);
   
   nissa_free(conf);nissa_free(sme_conf);
@@ -217,11 +217,11 @@ void close_semileptonic()
 void calculate_S0(int ism_lev_so)
 {
   //smear additively the source
-  master_printf("\nSource Smearing level: %d\n",ism_lev_so);
+  MASTER_PRINTF("\nSource Smearing level: %d\n",ism_lev_so);
   int nsme=gaussian_niter[ism_lev_so];
   if(ism_lev_so>0) nsme-=gaussian_niter[ism_lev_so-1];
   gaussian_smearing(ori_source,ori_source,sme_conf,gaussian_kappa,nsme);
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   
   //loop over derivative of the source
   for(int id=0;id<4;id++)
@@ -241,9 +241,9 @@ void calculate_S0(int ism_lev_so)
 	inv_time+=part_time;
 	ninv_tot++;
 	
-	master_printf("Finished the inversion of ");
-	master_printf("source displaced in %d ",imu);
-	master_printf("dirac index %d in %g sec\n",id,part_time);
+	MASTER_PRINTF("Finished the inversion of ");
+	MASTER_PRINTF("source displaced in %d ",imu);
+	MASTER_PRINTF("dirac index %d in %g sec\n",id,part_time);
 	
 	//reconstruct the doublet
 	reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass,cgm_solution[0]);
@@ -255,7 +255,7 @@ void calculate_S0(int ism_lev_so)
   for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
     for(int imu=0;imu<4;imu++)
       rotate_vol_colorspinspin_to_physical_basis(S0[r][imu][0],!r,!r);
-  master_printf("Propagators rotated\n");
+  MASTER_PRINTF("Propagators rotated\n");
   
   //create sink-derived propagators
   for(int r=0;r<2;r++)
@@ -263,7 +263,7 @@ void calculate_S0(int ism_lev_so)
       for(int inu=1;inu<4;inu++)
 	apply_nabla_i(S0[r][imu][inu],S0[r][imu][0],sme_conf,inu);
   
-  master_printf("\n");
+  MASTER_PRINTF("\n");
 }
 
 //transpose dirac indices with spatial ones, so that destination
@@ -306,7 +306,7 @@ void revert_prop_from_new_contraction(colorspinspin* prop,colorspinspin* aux)
 void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 {
   //take nsme
-  master_printf("\nSink Smearing level: %d\n",ism_lev_si);
+  MASTER_PRINTF("\nSink Smearing level: %d\n",ism_lev_si);
   int nsme=gaussian_niter[ism_lev_si];
   if(ism_lev_si>0) nsme-=gaussian_niter[ism_lev_si-1];
 
@@ -319,7 +319,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 	  gaussian_smearing(S0[r][imu][inu],S0[r][imu][inu],sme_conf,gaussian_kappa,nsme);
 	  prepare_prop_for_new_contraction(S0[r][imu][inu],temp_transp);
 	}
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   
   //take intermediate timing
   double temp_time=take_time();
@@ -333,7 +333,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 	for(int imu2_si=0;imu2_si<4;imu2_si++)
 	  if(two_pts_comp[imu1_so][imu2_so][imu1_si][imu2_si].ncorr)
 	    {
-	      //master_printf("%d%d%d%d\n",imu1_so,imu2_so,imu1_si,imu2_si);
+	      //MASTER_PRINTF("%d%d%d%d\n",imu1_so,imu2_so,imu1_si,imu2_si);
 	      //if(rank==0)
 	      //{
 	      //for(int icorr=0;icorr<two_pts_comp[imu1_so][imu2_so][imu1_si][imu2_si].ncorr;icorr++)
@@ -375,10 +375,10 @@ int check_remaining_time()
   double left_time=wall_time-temp_time;
   enough_time=left_time>(ave_time*1.1);
 
-  master_printf("Remaining time: %lg sec\n",left_time);
-  master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
-  if(enough_time) master_printf("Continuing with next conf!\n");
-  else master_printf("Not enough time, exiting!\n");
+  MASTER_PRINTF("Remaining time: %lg sec\n",left_time);
+  MASTER_PRINTF("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
+  if(enough_time) MASTER_PRINTF("Continuing with next conf!\n");
+  else MASTER_PRINTF("Not enough time, exiting!\n");
   
   return enough_time;
 }
@@ -389,7 +389,7 @@ void in_main(int narg,char **arg)
   tot_prog_time-=take_time();
   
   //initialize the program
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   initialize_semileptonic(arg[1]);
   
   //loop over the configs
@@ -403,7 +403,7 @@ void in_main(int narg,char **arg)
       for(int isource=0;isource<nsources;isource++)
 	{
 	  twall=(int)rnd_get_unif(&glb_rnd_gen,0,glb_size[0]-1);
-	  master_printf("Source %d on t=%d\n",isource,twall);
+	  MASTER_PRINTF("Source %d on t=%d\n",isource,twall);
 	  generate_spindiluted_source(ori_source,rnd_type_map[4],twall);
 	  
 	  //loop on smearing of the source
@@ -432,7 +432,7 @@ void in_main(int narg,char **arg)
 	  if(bin_write)
 	    {
 	      int nw=fwrite(glb_corr,sizeof(double),ndoubles,fout);
-	      if(nw!=ndoubles) crash("wanted to write %d, obtained %d",ndoubles,nw);
+	      if(nw!=ndoubles) CRASH("wanted to write %d, obtained %d",ndoubles,nw);
 	    }
 	  else
 	    {
@@ -468,7 +468,7 @@ void in_main(int narg,char **arg)
       enough_time=check_remaining_time();
     }
   
-  if(iconf==ngauge_conf) master_printf("Finished all the conf!\n");
+  if(iconf==ngauge_conf) MASTER_PRINTF("Finished all the conf!\n");
   
   tot_prog_time+=take_time();
   close_semileptonic();

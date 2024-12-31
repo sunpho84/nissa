@@ -97,7 +97,7 @@ namespace nissa
 		       const EvnField<color>& in)
   {
     //check arguments
-    if(out==in)   crash("out==in!");
+    if(out==in)   CRASH("out==in!");
     START_TIMING(portable_stD_app_time,nportable_stD_app);
     
     conf.updateHalo();

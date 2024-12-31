@@ -26,9 +26,9 @@ namespace nissa
 						const double& dt,
 						LxField<quad_su3>& ext_F)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
-    // verbosity_lv2_master_printf("Evolving lx momenta with topological force, dt=%lg\n",dt);
+    // VERBOSITY_LV2_MASTER_PRINTF("Evolving lx momenta with topological force, dt=%lg\n",dt);
     
     // //allocate force and compute it
     // quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol,quad_su3):ext_F;
@@ -45,9 +45,9 @@ namespace nissa
 						topotential_pars_t& topars,
 						const double& dt)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
-    // verbosity_lv2_master_printf("Evolving e/o momenta with topological force, dt=%lg\n",dt);
+    // VERBOSITY_LV2_MASTER_PRINTF("Evolving e/o momenta with topological force, dt=%lg\n",dt);
     
     // //reorder
     // quad_su3 *lx_conf=nissa_malloc("lx_conf",locVol+bord_vol+edge_vol,quad_su3);
@@ -85,7 +85,7 @@ namespace nissa
     //         Main loop
     for(int istep=0;istep<nsteps;istep++)
       {
-	verbosity_lv1_master_printf(" Omelyan gauge micro-step %d/%d\n",istep+1,nsteps);
+	VERBOSITY_LV1_MASTER_PRINTF(" Omelyan gauge micro-step %d/%d\n",istep+1,nsteps);
 	
 	//decide if last step is final or not
 	const double last_dt=
@@ -140,7 +140,7 @@ namespace nissa
 				       std::vector<rat_approx_t>& rat_appr,
 				       const double& dt)
   {
-    verbosity_lv2_master_printf("Evolving momenta with quark force, dt=%lg\n",dt);
+    VERBOSITY_LV2_MASTER_PRINTF("Evolving momenta with quark force, dt=%lg\n",dt);
     
     //allocate forces
     EoField<quad_su3> F("F");
@@ -207,14 +207,14 @@ namespace nissa
     su3_summ(nu,nu_plus,nu_minus);
     su3_prodassign_double(nu,0.5);
     
-    master_printf("checking quark force\n");
-    master_printf("an\n");
+    MASTER_PRINTF("checking quark force\n");
+    MASTER_PRINTF("an\n");
     su3_print(F[par][ieo][mu]);
-    master_printf("nu\n");
+    MASTER_PRINTF("nu\n");
     su3_print(nu);
-    // master_printf("nu_plus\n");
+    // MASTER_PRINTF("nu_plus\n");
     // su3_print(nu_plus);
-    // master_printf("nu_minus\n");
+    // MASTER_PRINTF("nu_minus\n");
     // su3_print(nu_minus);
     //crash("anna");
 #endif
@@ -262,7 +262,7 @@ namespace nissa
 	//         Main loop
 	for(int istep=0;istep<nsteps;istep++)
 	  {
-	    verbosity_lv1_master_printf("Omelyan macro-step %d/%d\n",istep+1,nsteps);
+	    VERBOSITY_LV1_MASTER_PRINTF("Omelyan macro-step %d/%d\n",istep+1,nsteps);
 	    
 	    //decide if last step is final or not
 	    double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;

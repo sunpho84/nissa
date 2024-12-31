@@ -18,7 +18,7 @@ namespace nissa
 					    const quark_content_t& q,
 					    const EvnField<spincolor>& eta)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // //allocate and compute clover term
     // EoField<clover_term_t> Cl("Cl");
     // EoField<inv_clover_term_t> invCl_evn("invCl_evn");
@@ -78,7 +78,9 @@ namespace nissa
       case ferm_discretiz::ROOT_TM_CLOV:
 	generate_root_tm_clov_pseudo_fermion(*pf.Wils,conf,u1b,rat,residue,q,*pf_hb_vec.Wils);
 	break;
-      default:crash("not supported");break;
+      default:
+	CRASH("not supported");
+	break;
       }
     
     //compute action
@@ -105,7 +107,7 @@ namespace nissa
 	//loop over pseudofermions
 	for(int ipf=0;ipf<simul_pars.npseudo_fs[iflav];ipf++)
 	  {
-	    verbosity_lv1_master_printf("Generating pseudofermion %d/%d for flavour %d/%d\n",ipf+1,simul_pars.npseudo_fs[iflav],iflav+1,theory_pars.nflavs());
+	    VERBOSITY_LV1_MASTER_PRINTF("Generating pseudofermion %d/%d for flavour %d/%d\n",ipf+1,simul_pars.npseudo_fs[iflav],iflav+1,theory_pars.nflavs());
 	    const double pf_action_flav=
 	      generate_pseudo_fermion(pf[iflav][ipf],conf,theory_pars.backfield[iflav],rat_appr[nappr_per_quark*iflav+RAT_APPR_PF_GEN],simul_pars.pf_action_residue,q);
 	    pf_action+=pf_action_flav;

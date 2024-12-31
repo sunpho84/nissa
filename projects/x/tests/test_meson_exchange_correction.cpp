@@ -17,7 +17,7 @@ void print_corr(quark_info qu,gluon_info gl,int n)
   
   //print ave
   for(int t=0;t<=glb_size[0]/2;t++)
-    master_printf("%d %16.16lg %16.16lg\n",t,ave[t][5][0]*3,err[t][5][0]*3);
+    MASTER_PRINTF("%d %16.16lg %16.16lg\n",t,ave[t][5][0]*3,err[t][5][0]*3);
 }
 
 int main(int narg,char **arg)

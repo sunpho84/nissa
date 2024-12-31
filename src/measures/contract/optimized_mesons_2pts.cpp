@@ -136,7 +136,7 @@ namespace nissa
   //summ the result (no glb reduction)
   void two_pts_comp_t::summ_the_loc_forw_back_contractions(double *out,double *S_forw,double *S_back,int nel,int twall)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
 //     //define the workload (to be improved)
 //     int ncontrib=this->size();
@@ -176,7 +176,7 @@ namespace nissa
     
     // THREAD_BARRIER();
     
-    // crash("#warning not implemented");
+    // CRASH("#warning not implemented");
     
     // //summ the result to all the corr to which it contributes
     // NISSA_PARALLEL_LOOP(loc_t,0,locSize[0])

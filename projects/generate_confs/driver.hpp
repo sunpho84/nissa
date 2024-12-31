@@ -78,7 +78,7 @@ namespace nissa
     {
       bool a=nissa::measure_is_due(obj,iconf);
       bool b=obj.itheory==itheory;
-      if(a and b) verbosity_lv1_master_printf("Measuring %s for theory %d/%d\n",text,itheory+1,ntheories());
+      if(a and b) VERBOSITY_LV1_MASTER_PRINTF("Measuring %s for theory %d/%d\n",text,itheory+1,ntheories());
       return a and b;
     }
     

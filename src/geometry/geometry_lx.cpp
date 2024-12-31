@@ -248,7 +248,7 @@ namespace nissa
 	  {
 	    if(is_bord[mu]==-1) return locVol+bordOffset[mu]+bordlxOfCoord(x,mu);             //backward border comes first
 	    if(is_bord[mu]==+1) return locVol+bordVol/2+bordOffset[mu]+bordlxOfCoord(x,mu);  //forward border comes after
-	    crash("if is bord should not arrive here %d %d %d %d",ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
+	    CRASH("if is bord should not arrive here %d %d %d %d",ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
 	  }
       }
     
@@ -274,7 +274,7 @@ namespace nissa
 	      if((is_bord[al]==-1)&&(is_bord[be]==+1)) return locVol+bordVol+edge_offset[iedge]+1*edgeVol/4+edgelxOfCoord(x,mu,nu);
 	      if((is_bord[al]==+1)&&(is_bord[be]==-1)) return locVol+bordVol+edge_offset[iedge]+2*edgeVol/4+edgelxOfCoord(x,mu,nu);
 	      if((is_bord[al]==+1)&&(is_bord[be]==+1)) return locVol+bordVol+edge_offset[iedge]+3*edgeVol/4+edgelxOfCoord(x,mu,nu);
-	      crash("Edge: %d, mu=%d, nu=%d %d %d %d %d",iedge,mu,nu,ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
+	      CRASH("Edge: %d, mu=%d, nu=%d %d %d %d %d",iedge,mu,nu,ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
 	    }
 	}
     
@@ -291,7 +291,7 @@ namespace nissa
     
 #ifndef COMPILING_FOR_DEVICE
     if(locSize[mu]<2) //nasty
-      crash("not working if one dir is smaller than 2");
+      CRASH("not working if one dir is smaller than 2");
 #endif
     
     if(locCoordOfLoclx[loclx][mu]==0)
@@ -315,7 +315,7 @@ namespace nissa
     
 #ifndef COMPILING_FOR_DEVICE
     if(locSize[mu]<2 or locSize[nu]<2)
-      crash("not working if one dir is smaller than 2");
+      CRASH("not working if one dir is smaller than 2");
 #endif
     
     auto iter=
@@ -479,21 +479,21 @@ namespace nissa
 	else               loclxOfBwSurflx[ibw_surf++]=ivol;
       }
     
-    if(ibulk!=bulkVol) crash("mismatch in bulk id");
-    if(isurf!=surfVol) crash("mismatch in surf id");
-    if(inon_fw_surf!=nonFwSurfVol) crash("mismatch in non_fw_surf id");
-    if(inon_bw_surf!=nonBwSurfVol) crash("mismatch in non_bw_surf id");
-    if(ifw_surf!=fwSurfVol) crash("mismatch in fw_surf id");
-    if(ibw_surf!=bwSurfVol) crash("mismatch in bw_surf id");
+    if(ibulk!=bulkVol) CRASH("mismatch in bulk id");
+    if(isurf!=surfVol) CRASH("mismatch in surf id");
+    if(inon_fw_surf!=nonFwSurfVol) CRASH("mismatch in non_fw_surf id");
+    if(inon_bw_surf!=nonBwSurfVol) CRASH("mismatch in non_bw_surf id");
+    if(ifw_surf!=fwSurfVol) CRASH("mismatch in fw_surf id");
+    if(ibw_surf!=bwSurfVol) CRASH("mismatch in bw_surf id");
   }
   
   //indexes run as t,x,y,z (faster:z)
   void set_lx_geometry()
   {
-    if(lxGeomInited==1) crash("cartesian geometry already intialized!");
+    if(lxGeomInited==1) CRASH("cartesian geometry already intialized!");
     lxGeomInited=1;
     
-    if(gridInited!=1) crash("grid not initialized!");
+    if(gridInited!=1) CRASH("grid not initialized!");
     
     //find the rank of the neighbour in the various dir
     for(int mu=0;mu<NDIM;mu++)
@@ -568,12 +568,12 @@ namespace nissa
 	remap_lx_to_locd[mu]=remap_locd_to_lx[mu]=NULL;
 	max_locd_perp_size_per_dir[mu]=(glbVol/glbSize[mu]+nranks-1)/nranks;
 	locd_perp_size_per_dir[mu]=(int)std::min((int64_t)max_locd_perp_size_per_dir[mu],glbVol/glbSize[mu]-max_locd_perp_size_per_dir[mu]*rank);
-	verbosity_lv3_master_printf("rank %d locd_perp_size_per_dir[%d]: %d\n",rank,mu,locd_perp_size_per_dir[mu]);
+	VERBOSITY_LV3_MASTER_PRINTF("rank %d locd_perp_size_per_dir[%d]: %d\n",rank,mu,locd_perp_size_per_dir[mu]);
 	locd_size_per_dir[mu]=locd_perp_size_per_dir[mu]*glbSize[mu];
 	max_locd_size=std::max(max_locd_size,locd_size_per_dir[mu]);
       }
     
-    master_printf("Cartesian geometry intialized\n");
+    MASTER_PRINTF("Cartesian geometry intialized\n");
   }
   
   //global movements
@@ -598,9 +598,9 @@ namespace nissa
   //unset cartesian geometry
   void unset_lx_geometry()
   {
-    if(lxGeomInited!=1) crash("cartesian geometry not initialized!");
+    if(lxGeomInited!=1) CRASH("cartesian geometry not initialized!");
     
-    master_printf("Unsetting cartesian geometry\n");
+    MASTER_PRINTF("Unsetting cartesian geometry\n");
     lxGeomInited=0;
     
     nissa_free(recv_buf);

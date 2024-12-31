@@ -52,8 +52,8 @@ namespace nissa
 			       const int itraj)
   {
     //header
-    master_printf("Trajectory %d->%d\n",itraj,itraj+1);
-    master_printf("-----------------------\n");
+    MASTER_PRINTF("Trajectory %d->%d\n",itraj,itraj+1);
+    MASTER_PRINTF("-----------------------\n");
     
     //take initial time
     double hmc_time=-take_time();
@@ -83,11 +83,11 @@ namespace nissa
     
     if(nLevels!=0)
       {
-	verbosity_lv2_master_printf("Stouting the links for pseudo-fermions generation and initial action computation\n");
+	VERBOSITY_LV2_MASTER_PRINTF("Stouting the links for pseudo-fermions generation and initial action computation\n");
 	stout_smear(sme_conf,out_conf,theory_pars.stout_pars);
 	
-	verbosity_lv2_master_printf("Original plaquette: %16.16lg\n",global_plaquette_eo_conf(out_conf));
-	verbosity_lv2_master_printf("Stouted plaquette: %16.16lg\n",global_plaquette_eo_conf(sme_conf));
+	VERBOSITY_LV2_MASTER_PRINTF("Original plaquette: %16.16lg\n",global_plaquette_eo_conf(out_conf));
+	VERBOSITY_LV2_MASTER_PRINTF("Stouted plaquette: %16.16lg\n",global_plaquette_eo_conf(sme_conf));
       }
     
     //generate the appropriate expansion of rational approximations
@@ -103,7 +103,7 @@ namespace nissa
     //compute initial action
     const double init_action=
       full_theory_action(out_conf,sme_conf,H,pf,theory_pars,simul_pars,rat_appr,pf_action);
-    verbosity_lv2_master_printf("Initial action: %lg\n",init_action);
+    VERBOSITY_LV2_MASTER_PRINTF("Initial action: %lg\n",init_action);
     
     //evolve
     Omelyan_integrator(H,out_conf,pf,theory_pars,simul_pars,rat_appr);
@@ -111,14 +111,14 @@ namespace nissa
     //if needed, resmear the conf
     if(theory_pars.stout_pars.nlevels!=0)
       {
-	verbosity_lv2_master_printf("Stouting the links for final action computation\n");
+	VERBOSITY_LV2_MASTER_PRINTF("Stouting the links for final action computation\n");
 	stout_smear(sme_conf,out_conf,theory_pars.stout_pars);
       }
     
     //compute final action
     double final_action=
       full_theory_action(out_conf,sme_conf,H,pf,theory_pars,simul_pars,rat_appr);
-    verbosity_lv2_master_printf("Final action: %lg\n",final_action);
+    VERBOSITY_LV2_MASTER_PRINTF("Final action: %lg\n",final_action);
     
     //compute the diff
     double diff_action=final_action-init_action;
@@ -128,7 +128,7 @@ namespace nissa
     
     //take time
     hmc_time+=take_time();
-    verbosity_lv1_master_printf("Total time to perform rhmc step: %lg s\n",hmc_time);
+    VERBOSITY_LV1_MASTER_PRINTF("Total time to perform rhmc step: %lg s\n",hmc_time);
     
     if(nLevels>0)
       delete _sme_conf;

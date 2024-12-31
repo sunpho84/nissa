@@ -12,7 +12,7 @@ namespace nissa
 {
   void apply_tmclovDkern_cgm_kernel(spincolor *out,spincolor *temp1,spincolor *temp2,eo_ptr<quad_su3> conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,double diag_coeff,spincolor *in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     //tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl_odd,invCl_evn,mu,in);
     
     if(diag_coeff!=0)

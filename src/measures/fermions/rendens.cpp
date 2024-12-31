@@ -25,7 +25,7 @@ namespace nissa
   //measure the quark number and its derivative w.r.t mu
   void measure_quark_rendens(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,quark_rendens_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // //open the file, allocate point result and source
     // FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
@@ -51,7 +51,7 @@ namespace nissa
     // 	//loop over flavor
     // 	for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
     // 	  {
-    // 	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
+    // 	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) CRASH("not defined for non-staggered quarks");
 	    
     // 	    //vectors for output
     // 	    NEW_TRACE_RES(Tr_M_dM);

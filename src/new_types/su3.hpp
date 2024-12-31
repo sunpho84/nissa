@@ -8,7 +8,7 @@
 #if NCOL == 3
  #define CRASH_IF_NOT_3COL()
 #else
- #define CRASH_IF_NOT_3COL() crash("ncol == %d, expected 3",NCOL)
+ #define CRASH_IF_NOT_3COL() CRASH("ncol == %d, expected 3",NCOL)
 #endif
 
 #define UNROLL_FOR_ALL_COLS(IC)			\

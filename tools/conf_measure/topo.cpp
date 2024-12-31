@@ -25,7 +25,7 @@ smooth_pars_t::method_t smooth_method_name_from_str(const char *name)
   while(imet<nmet_known && strcasecmp(name,name_known[imet])!=0) imet++;
   
   //check
-  if(imet==nmet_known) crash("unknown smoothing method: %s",name);
+  if(imet==nmet_known) CRASH("unknown smoothing method: %s",name);
   
   return met_known[imet];
 }
@@ -55,11 +55,11 @@ void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
         case smooth_pars_t::COOLING: read_cool_pars(smooth_pars.cool);break;
         case smooth_pars_t::STOUT: read_stout_pars(smooth_pars.stout);break;
         case smooth_pars_t::WFLOW: read_Wflow_pars(smooth_pars.Wflow);break;
-        default: crash("should not arrive here");break;
+        default: CRASH("should not arrive here");break;
         }
       read_str_int("MeasEach",&smooth_pars.meas_each_nsmooth);
       if((smooth_pars.method==smooth_pars_t::COOLING||smooth_pars.method==smooth_pars_t::STOUT)&&fabs(smooth_pars.meas_each_nsmooth-int(smooth_pars.meas_each_nsmooth))>=1.e-14)
-        crash("MeasEach must be integer if Cooling or Stouting method selected");
+        CRASH("MeasEach must be integer if Cooling or Stouting method selected");
     }
 }
 
@@ -91,7 +91,7 @@ void unitarize_conf_max(LxField<quad_su3>& conf)
 
 void in_main(int narg,char **arg)
 {
-  if(narg<2) crash("use: %s input",arg[0]);
+  if(narg<2) CRASH("use: %s input",arg[0]);
   
   //open input file
   open_input(arg[1]);
@@ -120,7 +120,7 @@ void in_main(int narg,char **arg)
   read_ildg_gauge_conf(conf,conf_path,&mess);
   unitarize_conf_max(conf);
   
-  crash("reimplement");
+  CRASH("reimplement");
   //measure_topology_lx_conf(top_meas_pars,conf,0,0,false);
   
   ILDG_message_free_all(&mess);

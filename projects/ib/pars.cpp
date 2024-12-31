@@ -20,7 +20,7 @@ namespace nissa
       if(strncasecmp(zero_mode_sub_str,"UNNO_ALEMANNA",100)==0) photon.zms=UNNO_ALEMANNA;
       else
 	if(strncasecmp(zero_mode_sub_str,"ONLY_100",100)==0) photon.zms=ONLY_100;
-	else crash("Unkwnown zero mode subtraction: %s",zero_mode_sub_str);
+	else CRASH("Unkwnown zero mode subtraction: %s",zero_mode_sub_str);
     
     //gauge for photon propagator
     char photon_gauge_str[100];
@@ -30,7 +30,7 @@ namespace nissa
       if(strncasecmp(photon_gauge_str,"LANDAU",100)==0) photon.which_gauge=gauge_info::LANDAU;
       else
 	if(strncasecmp(photon_gauge_str,"COULOMB",100)==0) photon.which_gauge=gauge_info::COULOMB;
-	else crash("Unkwnown photon gauge: %s",photon_gauge_str);
+	else CRASH("Unkwnown photon gauge: %s",photon_gauge_str);
     
     //discretization for photon propagator
     char photon_discrete_str[100];
@@ -38,7 +38,7 @@ namespace nissa
     if(strncasecmp(photon_discrete_str,"WILSON",100)==0) photon.c1=WILSON_C1;
     else
       if(strncasecmp(photon_discrete_str,"TLSYM",100)==0) photon.c1=TLSYM_C1;
-      else crash("Unkwnown photon discretization: %s",photon_discrete_str);
+      else CRASH("Unkwnown photon discretization: %s",photon_discrete_str);
     
     //compute the tadpole summing all momentum
     tadpole=compute_tadpole(photon);
@@ -69,7 +69,7 @@ namespace nissa
 	    for(int iq=0;iq<2;iq++)
 	      sprintf(q_full_name[iq],"%s%s",q_name[iq],suffix);
 	    for(int iq=0;iq<2;iq++)
-	      if(Q.find(q_full_name[iq])==Q.end()) crash("unable to find q%d %s",iq,q_full_name[iq]);
+	      if(Q.find(q_full_name[iq])==Q.end()) CRASH("unable to find q%d %s",iq,q_full_name[iq]);
 	    
 	    mes2pts_contr_map.push_back(mes_contr_map_t(full_name,q_full_name[0],q_full_name[1]));
 	    for(int iq=0;iq<2;iq++)
@@ -100,7 +100,7 @@ namespace nissa
 	  return
 	    i;
       
-      crash("Cannot convert gamma: %c",g);
+      CRASH("Cannot convert gamma: %c",g);
       
       return
 	{};
@@ -145,7 +145,7 @@ namespace nissa
 	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
       
       if(i<0 or i>=(int)numeric[c].size())
-	crash("Error, letter %c converts to int %d not in range [%d:%zu]",letter,i,m,numeric[c].size()+m);
+	CRASH("Error, letter %c converts to int %d not in range [%d:%zu]",letter,i,m,numeric[c].size()+m);
       
       return
 	{numeric[c][i]};
@@ -169,7 +169,7 @@ namespace nissa
 	read_str(tag,128);
 	
 	if(strlen(tag)!=4)
-	  crash("Error, string length %lu different from 4",strlen(tag));
+	  CRASH("Error, string length %lu different from 4",strlen(tag));
 	
 	LocBilinear sink(tag[0],tag[1]);
 	LocBilinear source(tag[2],tag[3]);
@@ -181,7 +181,7 @@ namespace nissa
 	else
 	  {
 	    if(source.list.size()!=sink.list.size())
-	      crash("Error, sizes of source %lu does not agree with size of sink %lu",source.list.size(),sink.list.size());
+	      CRASH("Error, sizes of source %lu does not agree with size of sink %lu",source.list.size(),sink.list.size());
 	  
 	  for(size_t i=0;i<source.list.size();i++)
 	    mes_gamma_list.push_back({sink.list[i],source.list[i]});
@@ -194,7 +194,7 @@ namespace nissa
   {
     int nbar2pts_contr;
     read_str_int("NBar2PtsContr",&nbar2pts_contr);
-    if(nbar2pts_contr and (!diluted_col_source or !diluted_spi_source)) crash("to make baryon contractions you need diluted color and spin");
+    if(nbar2pts_contr and (!diluted_col_source or !diluted_spi_source)) CRASH("to make baryon contractions you need diluted color and spin");
     if(nbar2pts_contr)
       {
 	read_str_int("ComputeOctet",&compute_octet);
@@ -219,7 +219,7 @@ namespace nissa
 	    for(int iq=0;iq<3;iq++)
 	      sprintf(q_full_name[iq],"%s%s",q_name[iq],suffix);
 	    for(int iq=0;iq<3;iq++)
-	      if(Q.find(q_full_name[iq])==Q.end()) crash("unable to find q%d %s",iq,q_full_name[iq]);
+	      if(Q.find(q_full_name[iq])==Q.end()) CRASH("unable to find q%d %s",iq,q_full_name[iq]);
 	    bar2pts_contr_map.push_back(bar_triplet_t(full_name,q_full_name[0],q_full_name[1],q_full_name[2]));
 	    for(int iq=0;iq<3;iq++)
 	      propsNeededToContr.insert(q_full_name[iq]);
@@ -263,8 +263,8 @@ namespace nissa
 		sprintf(full_name,"%s%s",name,suffix);
 		sprintf(bw_full,"%s%s",bw,suffix);
 		sprintf(fw_full,"%s%s",fw,suffix);
-		if(Q.find(bw_full)==Q.end()) crash("for bubble \'%s\' the first propagator \'%s\' is not present",name,bw_full);
-		if(Q.find(fw_full)==Q.end()) crash("for bubble \'%s\' the second propagator \'%s\' is not present",name,fw_full);
+		if(Q.find(bw_full)==Q.end()) CRASH("for bubble \'%s\' the first propagator \'%s\' is not present",name,bw_full);
+		if(Q.find(fw_full)==Q.end()) CRASH("for bubble \'%s\' the second propagator \'%s\' is not present",name,fw_full);
 		handcuffs_side_map.push_back(handcuffs_side_map_t(full_name,igamma,bw_full,fw_full,store));
 		for(auto& q : {bw_full,fw_full})
 		  propsNeededToContr.insert(q);
@@ -303,8 +303,8 @@ namespace nissa
 		    if(left_hand_found && right_hand_found) break;
 		  }
 		
-		if(!left_hand_found)   crash("for handcuffs \'%s\' the left bubble \'%s\' is not present",name,left_full);
-		if(!right_hand_found)  crash("for handcuffs \'%s\' the right bubble \'%s\' is not present",name,right_full);
+		if(!left_hand_found)   CRASH("for handcuffs \'%s\' the left bubble \'%s\' is not present",name,left_full);
+		if(!right_hand_found)  CRASH("for handcuffs \'%s\' the right bubble \'%s\' is not present",name,right_full);
 		
 		handcuffs_map.push_back(handcuffs_map_t(full_name,left_full,right_full));
 	      }
@@ -335,7 +335,7 @@ namespace nissa
 		char tag_full[1024+129];
 		sprintf(tag_full,"%s%s",tag,suffix);
 		
-		if(Q.find(tag_full)==Q.end()) crash("unable to find %s",tag_full);
+		if(Q.find(tag_full)==Q.end()) CRASH("unable to find %s",tag_full);
 		fft_prop_list.push_back(tag_full);
 		propsNeededToContr.insert(tag_full);
 	      }

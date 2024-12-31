@@ -19,13 +19,13 @@ void in_main(int narg,char **arg)
   read_ildg_gauge_conf(conf,arg[3]);
   communicate_lx_quad_su3_borders(conf);
   
-  crash("reimplement");
+  CRASH("reimplement");
   //perform_random_gauge_transform(fix_conf,conf);
   
   write_ildg_gauge_conf(arg[5],fix_conf,64);
   
-  master_printf("plaq: %16.16lg\n",global_plaquette_lx_conf(conf));
-  master_printf("plaq: %16.16lg\n",global_plaquette_lx_conf(fix_conf));
+  MASTER_PRINTF("plaq: %16.16lg\n",global_plaquette_lx_conf(conf));
+  MASTER_PRINTF("plaq: %16.16lg\n",global_plaquette_lx_conf(fix_conf));
   
   ///////////////////////////////////////////
   
@@ -36,7 +36,7 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  if(narg<6) crash("Use: %s L T path_in seed path_out",arg[0]);
+  if(narg<6) CRASH("Use: %s L T path_in seed path_out",arg[0]);
   
   //basic mpi initialization
   init_nissa_threaded(narg,arg,in_main);

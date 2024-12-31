@@ -34,7 +34,7 @@ namespace nissa
   void CGM_INVERT(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,double* shift,int nshift,int niter_max,double* ext_req_res,BASETYPE* source)
 #endif
   {
-    crash("reimplement");
+    CRASH("reimplement");
 // #ifdef CG_128_INVERT
 //     //limit inner solver precision
 //     double max_inner_solver=1.0e-25;
@@ -43,7 +43,7 @@ namespace nissa
 //     for(int ishift=0;ishift<nshift;ishift++)
 //       if(use_128_bit_precision && ext_req_res[ishift]<max_inner_solver)
 // 	{
-// 	  verbosity_lv2_master_printf("changing the inner solver residue for shift %d to %lg\n",ishift,max_inner_solver);
+// 	  VERBOSITY_LV2_MASTER_PRINTF("changing the inner solver residue for shift %d to %lg\n",ishift,max_inner_solver);
 // 	  inn_req_res[ishift]=max_inner_solver;
 // 	}
 //       else inn_req_res[ishift]=ext_req_res[ishift];
@@ -93,13 +93,13 @@ namespace nissa
 //     double_vector_glb_scalar_prod(&source_norm,(double*)r,(double*)r,prob_size);
     
 //     //writes source norm
-//     verbosity_lv2_master_printf(" Source norm: %lg\n",source_norm);
-//     if(source_norm==0 || std::isnan(source_norm)) crash("invalid norm: %lg",source_norm);
+//     VERBOSITY_LV2_MASTER_PRINTF(" Source norm: %lg\n",source_norm);
+//     if(source_norm==0 || std::isnan(source_norm)) CRASH("invalid norm: %lg",source_norm);
     
 //     //writes initial residue
-//     verbosity_lv2_master_printf(" cgm iter 0 rel. residues: ");
-//     for(int ishift=0;ishift<nshift;ishift++) verbosity_lv2_master_printf("%1.4e  ",1.0);
-//     verbosity_lv2_master_printf("\n");
+//     VERBOSITY_LV2_MASTER_PRINTF(" cgm iter 0 rel. residues: ");
+//     for(int ishift=0;ishift<nshift;ishift++) VERBOSITY_LV2_MASTER_PRINTF("%1.4e  ",1.0);
+//     VERBOSITY_LV2_MASTER_PRINTF("\n");
     
 //     int final_iter;
 //     double final_res[nshift];
@@ -127,7 +127,7 @@ namespace nissa
 //     //     -rr=(r,r)=source_norm
 //     double rr=source_norm;
 // #ifdef CGM_DEBUG
-//     verbosity_lv3_master_printf("rr: %16.16lg\n",rr);
+//     VERBOSITY_LV3_MASTER_PRINTF("rr: %16.16lg\n",rr);
 // #endif
     
 //     double rfrf,pap,betap;
@@ -148,15 +148,15 @@ namespace nissa
 // 	//     -pap=(p,s)=(p,Ap)
 // 	double_vector_glb_scalar_prod(&pap,(double*)p,(double*)s,prob_size);
 // #ifdef CGM_DEBUG
-// 	verbosity_lv3_master_printf("pap: %16.16lg (ap[0]: %16.16lg)\n",pap,((double*)s)[0]);
+// 	VERBOSITY_LV3_MASTER_PRINTF("pap: %16.16lg (ap[0]: %16.16lg)\n",pap,((double*)s)[0]);
 // 	for(int i=0;i<prob_size;i++)
-// 	  verbosity_lv3_master_printf("%d %lg\n",i,((double*)s)[i]);
+// 	  VERBOSITY_LV3_MASTER_PRINTF("%d %lg\n",i,((double*)s)[i]);
 // #endif
 // 	//     calculate betaa=rr/pap=(r,r)/(p,Ap)
 // 	betap=betaa;
 // 	betaa=-rr/pap;
 // #ifdef CGM_DEBUG
-// 	verbosity_lv3_master_printf("betap: %16.16lg, betaa: %16.16lg\n",betap,betaa);
+// 	VERBOSITY_LV3_MASTER_PRINTF("betap: %16.16lg, betaa: %16.16lg\n",betap,betaa);
 // #endif
 	
 // 	//     calculate
@@ -168,12 +168,12 @@ namespace nissa
 // 	    if(run_flag[ishift]==1)
 // 	      {
 // 		double ratio=betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-shift[ishift]*betaa));
-// 		if(std::isnan(ratio)) crash("nanned");
+// 		if(std::isnan(ratio)) CRASH("nanned");
 // 		zfs[ishift]=zas[ishift]*ratio;
 // 		betas[ishift]=betaa*ratio;
 		
 // #ifdef CGM_DEBUG
-// 		verbosity_lv3_master_printf("ishift %d [%lg] zas: %16.16lg, zps: %16.16lg, "
+// 		VERBOSITY_LV3_MASTER_PRINTF("ishift %d [%lg] zas: %16.16lg, zps: %16.16lg, "
 // 					    "zfs: %16.16lg, betas: %16.16lg\n",
 // 					    ishift,shift[ishift],zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
 // #endif
@@ -188,7 +188,7 @@ namespace nissa
 // 	double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,betaa,prob_size);
 // 	double_vector_glb_scalar_prod(&rfrf,(double*)r,(double*)r,prob_size);
 // #ifdef CGM_DEBUG
-// 	verbosity_lv3_master_printf("rfrf: %16.16lg\n",rfrf);
+// 	VERBOSITY_LV3_MASTER_PRINTF("rfrf: %16.16lg\n",rfrf);
 // #endif
 	
 // 	//     calculate alpha=rfrf/rr=(r',r')/(r,r)
@@ -209,7 +209,7 @@ namespace nissa
 // 	      {
 // 		alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
 // #ifdef CGM_DEBUG
-// 		verbosity_lv3_master_printf("ishift %d alpha: %16.16lg\n",ishift,alphas[ishift]);
+// 		VERBOSITY_LV3_MASTER_PRINTF("ishift %d alpha: %16.16lg\n",ishift,alphas[ishift]);
 // #endif
 // 		double_vector_linear_comb((double*)(ps[ishift]),(double*)r,zfs[ishift],(double*)(ps[ishift]),alphas[ishift],prob_size,DO_NOT_SET_FLAGS);
 		
@@ -224,7 +224,7 @@ namespace nissa
 // 	rr=rfrf;
 	
 // 	//check over residual
-// 	if(iter%each==0) verbosity_lv2_master_printf(" cgm iter %d rel. residues: ",iter);
+// 	if(iter%each==0) VERBOSITY_LV2_MASTER_PRINTF(" cgm iter %d rel. residues: ",iter);
 	
 // 	for(int ishift=0;ishift<nshift;ishift++)
 // 	  if(run_flag[ishift])
@@ -232,8 +232,8 @@ namespace nissa
 // 	      final_res[ishift]=res[ishift]=rr*zfs[ishift]*zfs[ishift]/source_norm;
 // 	      if(iter%each==0)
 // 		{
-// 		  verbosity_lv2_master_printf("%1.4e  ",res[ishift]);
-// 		  verbosity_lv3_master_printf("%16.16lg  ",res[ishift]);
+// 		  VERBOSITY_LV2_MASTER_PRINTF("%1.4e  ",res[ishift]);
+// 		  VERBOSITY_LV3_MASTER_PRINTF("%16.16lg  ",res[ishift]);
 // 		}
 	      
 // 	      if(res[ishift]<inn_req_res[ishift])
@@ -244,10 +244,10 @@ namespace nissa
 // 	    }
 // 	  else
 // 	    if(iter%each==0)
-// 	      verbosity_lv2_master_printf(" * ");
+// 	      VERBOSITY_LV2_MASTER_PRINTF(" * ");
 	
 // 	if(iter%each==0)
-// 	  verbosity_lv2_master_printf("\n");
+// 	  VERBOSITY_LV2_MASTER_PRINTF("\n");
 //       }
 //     while(nrun_shift>0 && iter<niter_max);
     
@@ -262,17 +262,17 @@ namespace nissa
 // 	double_vector_subtassign((double*)s,(double*)source,prob_size);
 // 	double_vector_glb_scalar_prod(&res,(double*)s,(double*)s,prob_size);
 	
-// 	verbosity_lv2_master_printf(" ishift %d, rel residue true=%lg approx=%lg commanded=%lg\n",
+// 	VERBOSITY_LV2_MASTER_PRINTF(" ishift %d, rel residue true=%lg approx=%lg commanded=%lg\n",
 // 				    ishift,res/source_norm,final_res[ishift],inn_req_res[ishift]);
 // 	if(res/source_norm>=2*final_res[ishift])
-// 	  master_printf("WARNING: shift[%d]=%lg true residue (%lg) much larger than expected one (%lg)\n",
+// 	  MASTER_PRINTF("WARNING: shift[%d]=%lg true residue (%lg) much larger than expected one (%lg)\n",
 // 			ishift,IN_SHIFT[ishift],res/source_norm,final_res[ishift]);
 //       }
     
-//     verbosity_lv1_master_printf(" Total cgm iterations: %d\n",final_iter);
+//     VERBOSITY_LV1_MASTER_PRINTF(" Total cgm iterations: %d\n",final_iter);
     
 //     //check if not converged
-//     if(final_iter==niter_max) crash("exit without converging");
+//     if(final_iter==niter_max) CRASH("exit without converging");
     
 //     for(int ishift=0;ishift<nshift;ishift++) nissa_free(ps[ishift]);
 //     nissa_free(s);
@@ -286,7 +286,7 @@ namespace nissa
 //     //if 128 bit precision required refine the solution
 //     if(use_128_bit_precision)
 //       {
-// 	verbosity_lv1_master_printf("\nRefining the solution in quaduple precision using cg solver\n");
+// 	VERBOSITY_LV1_MASTER_PRINTF("\nRefining the solution in quaduple precision using cg solver\n");
 // 	for(int ishift=0;ishift<nshift;ishift++)
 // 	  CG_128_INVERT(sol[ishift],sol[ishift],CG_128_ADDITIONAL_PARAMETERS_CALL shift[ishift],niter_max,ext_req_res[ishift],source);
 //       }

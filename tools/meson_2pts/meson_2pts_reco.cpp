@@ -54,7 +54,7 @@ int main(int narg,char **arg)
   //Basic mpi initialization
   init_nissa();
 
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   open_input(arg[1]);
 

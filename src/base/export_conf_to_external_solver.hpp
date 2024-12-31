@@ -48,43 +48,43 @@ namespace nissa
     bool export_needed=false;
     if(export_rule==FORCE_EXPORT)
       {
-	master_printf("Forcing export of the conf to external library\n");
+	MASTER_PRINTF("Forcing export of the conf to external library\n");
 	export_needed=true;
       }
     else
       if(relyOnTag)
 	{
-	  master_printf("Relying on tag to check,\n old tag: \"%s\"\n",confTagOld.c_str());
+	  MASTER_PRINTF("Relying on tag to check,\n old tag: \"%s\"\n",confTagOld.c_str());
 	  
 	  if(confTag!=confTagOld)
 	    {
-	      master_printf(" new tag: \"%s\"\n -> export needed\n",confTag.c_str());
+	      MASTER_PRINTF(" new tag: \"%s\"\n -> export needed\n",confTag.c_str());
 	      
 	      confTagOld=confTag;
 	      export_needed=true;
 	    }
 	  else
-	    master_printf(" -> tag \"%s\"not changed, avoiding export\n",confTag.c_str());
+	    MASTER_PRINTF(" -> tag \"%s\"not changed, avoiding export\n",confTag.c_str());
 	}
       else
 	{
-	  master_printf("Relying on checksum to check\n");
+	  MASTER_PRINTF("Relying on checksum to check\n");
 	  
 	  Checksum check_cur{};
 	  
 	  //compute checksum
-	  crash("reimplement");
+	  CRASH("reimplement");
 	  // checksum_compute_nissa_data(check_cur,conf,sizeof(double)*8,sizeof(quad_su3));
 	  
 	  for(int i=0;i<2;i++)
 	    {
 	      //check inited
 	      bool export_since_new=(check_old[i]==0);
-	      if(export_since_new) master_printf("external library: Old checksum 0, need to export the conf\n");
+	      if(export_since_new) MASTER_PRINTF("external library: Old checksum 0, need to export the conf\n");
 	      export_needed|=export_since_new;
 	      //check diff
 	      bool export_since_diff=(check_old[i]!=check_cur[i]);
-	      if(export_since_diff) master_printf("external library Old checksum %d is %x, new is %x, need to import\n",i,check_old[i],check_cur[i]);
+	      if(export_since_diff) MASTER_PRINTF("external library Old checksum %d is %x, new is %x, need to import\n",i,check_old[i],check_cur[i]);
 	      export_needed|=export_since_diff;
 	      //save
 	      check_old[i]=check_cur[i];
@@ -110,11 +110,11 @@ namespace nissa
 	multiGrid::setup_valid=false;
 	
 	if(export_result)
-	  verbosity_lv1_master_printf("external library conf set, plaquette %lg\n",plaq);
+	  VERBOSITY_LV1_MASTER_PRINTF("external library conf set, plaquette %lg\n",plaq);
 	else
-	  crash("configuration updating did not run correctly");
+	  CRASH("configuration updating did not run correctly");
       }
-    else master_printf("No import needed\n");
+    else MASTER_PRINTF("No import needed\n");
     
     return export_needed;
   }

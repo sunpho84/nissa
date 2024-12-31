@@ -28,7 +28,7 @@ namespace nissa
   {
     if(dag) mu=-mu;
     
-    if(in==out) crash("in==out!");
+    if(in==out) CRASH("in==out!");
     
     PAR(0,locVolh,
 	CAPTURE(mu,kappa,

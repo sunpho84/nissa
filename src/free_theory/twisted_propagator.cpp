@@ -42,7 +42,7 @@ namespace nissa
     p4*=4;
     
     double four_sinh2_Eh=(m2+p2*(1+m0)+p2*p2/4-p4)/(1+m0+p2/2);
-    if(four_sinh2_Eh<0) master_printf("WARNING, negative squared energy %lg\n",four_sinh2_Eh);
+    if(four_sinh2_Eh<0) MASTER_PRINTF("WARNING, negative squared energy %lg\n",four_sinh2_Eh);
     
     return 2*asinh(sqrt(four_sinh2_Eh/4));
   }
@@ -159,7 +159,7 @@ namespace nissa
 					   const int& esign,
 					   const tm_basis_t& base)
   {
-    if(esign!=-1&&esign!=+1) crash("illegal energy sign\"%d\"",esign);
+    if(esign!=-1&&esign!=+1) CRASH("illegal energy sign\"%d\"",esign);
     double abse=tm_quark_energy(qu,imom);
     double e=esign*abse;
     
@@ -198,7 +198,7 @@ namespace nissa
 						  const int& imom,
 						  const int& esign)
   {
-    if(esign!=-1&&esign!=+1) crash("illegal energy sign\"%d\"",esign);
+    if(esign!=-1&&esign!=+1) CRASH("illegal energy sign\"%d\"",esign);
     double abse=naive_massless_quark_energy(bc,imom);
     double e=esign*abse;
     
@@ -348,9 +348,9 @@ namespace nissa
 							       const TmQuarkInfo& qu,
 							       const tm_basis_t& base)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
-    // if(base!=MAX_TWIST_BASE) crash("not yet in phys base");
+    // if(base!=MAX_TWIST_BASE) CRASH("not yet in phys base");
     // inv_tmD_cg_eoprec_eos(prop,NULL,qu,1000000,1.e-28,ext_source);
   }
   

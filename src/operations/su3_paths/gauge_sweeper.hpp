@@ -70,7 +70,7 @@ namespace nissa
     //sweep the conf
     void sweep_conf(LxField<quad_su3>& conf,void (*update_fun)(su3 out,su3 staples,int ivol,int mu,void *pars),void *pars)
     {
-      crash("reimplement");
+      CRASH("reimplement");
       // MANDATORY_PARALLEL;
       
       // int ibase=0;
@@ -155,8 +155,12 @@ namespace nissa
 	Symanzik_sweeper->C1=C1_IWASAKI;
 	sweeper=Symanzik_sweeper;
 	break;
-      case UNSPEC_GAUGE_ACTION:crash("unspecified action");
-      default: crash("not implemented action");sweeper=NULL;break;
+      case UNSPEC_GAUGE_ACTION:
+	CRASH("unspecified action");
+      default:
+	CRASH("not implemented action");
+	sweeper=NULL;
+	break;
       }
     
     return sweeper;

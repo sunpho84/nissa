@@ -4,9 +4,9 @@ using namespace nissa;
 
 void in_main(int narg,char **arg)
 {
-  if(nranks>1) crash("cannot run in parallel");
+  if(nranks>1) CRASH("cannot run in parallel");
   
-  if(narg<6) crash("use: %s L T file_in file_out tag ndouble_per_site",arg[0]);
+  if(narg<6) CRASH("use: %s L T file_in file_out tag ndouble_per_site",arg[0]);
   
   int L=atoi(arg[1]);
   int T=atoi(arg[2]);
@@ -26,7 +26,7 @@ void in_main(int narg,char **arg)
   do
     {
       ILDG_header head=ILDG_File_get_next_record_header(fin);
-      master_printf("%s %lld\n",head.type,head.data_length);
+      MASTER_PRINTF("%s %lld\n",head.type,head.data_length);
       
       found=(strcasecmp(head.type,tag)==0);
       if(found) read_real_vector(v,fin,head,nbps);
@@ -35,7 +35,7 @@ void in_main(int narg,char **arg)
 	  char *mess=(char*)malloc(head.data_length+1);
 	  ILDG_File_read_all(mess,fin,head.data_length);
 	  mess[head.data_length]='\0';
-	  master_printf("%s\n================================================\n",mess);
+	  MASTER_PRINTF("%s\n================================================\n",mess);
 	  free(mess);
 	}
     }

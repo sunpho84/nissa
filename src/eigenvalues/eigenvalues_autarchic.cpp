@@ -28,7 +28,7 @@ namespace nissa
     void eigenvalues_find_all_and_sort(complex *eig_vec,int eig_vec_row_size,double *lambda,const complex *M,const int M_size,const int neig,const double tau)
     {
 #if !USE_EIGEN
-      crash("need Eigen");
+      CRASH("need Eigen");
 #else
       //structure to diagonalize
       using namespace Eigen;

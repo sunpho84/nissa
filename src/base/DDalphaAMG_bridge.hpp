@@ -37,14 +37,14 @@ namespace DD
   
   inline int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared=false)
   {
-    crash("Not available");
+    CRASH("Not available");
     
     return 0;
   }
   
   inline void set_configuration(nissa::quad_su3* conf)
   {
-    crash("Not available");
+    CRASH("Not available");
   }
   
 #endif
@@ -52,7 +52,7 @@ namespace DD
   
   inline void set_configuration(nissa::eo_ptr<nissa::quad_su3> conf)
   {
-    crash("Not implemented");
+    CRASH("Not implemented");
   }
   
 }

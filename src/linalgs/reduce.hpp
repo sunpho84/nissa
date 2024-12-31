@@ -47,9 +47,9 @@ namespace nissa
 //     if(reducing_buffer==nullptr)
 //       {
 // 	if(reducing_buffer_size==0)
-// 	  master_printf("Allocating the reduction buffer to %ld bytes\n",required_size);
+// 	  MASTER_PRINTF("Allocating the reduction buffer to %ld bytes\n",required_size);
 // 	else
-// 	  master_printf("Reallocating the reduction buffer from %ld bytes to %ld bytes\n",reducing_buffer_size,required_size);
+// 	  MASTER_PRINTF("Reallocating the reduction buffer from %ld bytes to %ld bytes\n",reducing_buffer_size,required_size);
 	
 // 	reducing_buffer=nissa_malloc("reducing_buffer",required_size,char);
 // 	reducing_buffer_size=required_size;
@@ -113,14 +113,14 @@ namespace nissa
 		 const int nslices,
 		 Op&& op)
   {
-    // master_printf("%s function\n",__PRETTY_FUNCTION__);
+    // MASTER_PRINTF("%s function\n",__PRETTY_FUNCTION__);
     
     if(n%nslices)
-      crash("number of elements %ld not divisible by number of slices %d",n,nslices);
+      CRASH("number of elements %ld not divisible by number of slices %d",n,nslices);
     
     const int64_t nori_per_slice=n/nslices;
     int64_t nper_slice=n/nslices;
-    verbosity_lv3_master_printf("n: %ld, nslices: %d, nori_per_slice: %ld nper_slice: %ld\n",n,nslices,nori_per_slice,nper_slice);
+    VERBOSITY_LV3_MASTER_PRINTF("n: %ld, nslices: %d, nori_per_slice: %ld nper_slice: %ld\n",n,nslices,nori_per_slice,nper_slice);
     
     // const double init_time=take_time();
     while(nper_slice>1)
@@ -128,7 +128,7 @@ namespace nissa
 	const int64_t stride=(nper_slice+1)/2;
 	const int64_t nreductions_per_slice=nper_slice/2;
 	const int64_t nreductions=nreductions_per_slice*nslices;
-	verbosity_lv3_master_printf("nper_slice: %ld, stride: %ld, nreductions_per_slice: %ld, nreductions: %ld \n",nper_slice,stride,nreductions_per_slice,nreductions);
+	VERBOSITY_LV3_MASTER_PRINTF("nper_slice: %ld, stride: %ld, nreductions_per_slice: %ld, nreductions: %ld \n",nper_slice,stride,nreductions_per_slice,nreductions);
 	
 	PAR(0,nreductions,
 	    CAPTURE(nslices,stride,nori_per_slice,op,TO_WRITE(buf)),ireduction,
@@ -144,7 +144,7 @@ namespace nissa
 	  nper_slice=stride;
       }
     
-    // master_printf("reduction ended, took %lg s\n",take_time()-init_time);
+    // MASTER_PRINTF("reduction ended, took %lg s\n",take_time()-init_time);
     
     for(int islice=0;islice<nslices;islice++)
       reduceAssigner(loc_res[islice],buf[islice*nori_per_slice]);

@@ -42,7 +42,7 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 
 #define YY_EXTRA_TYPE nissa::driver_t*
 
-#define DEBUG_PRINTF(...) if(debug_lexer) master_printf(__VA_ARGS__)
+#define DEBUG_PRINTF(...) if(debug_lexer) MASTER_PRINTF(__VA_ARGS__)
 
 #define YY_INPUT(buf,result,max_size)					\
    {									\
@@ -76,9 +76,9 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 %%
  /* ignoring rules */
 "/*"                                DEBUG_PRINTF("Entering c++-style comment\n");BEGIN(COMMENT);
-<COMMENT>"/*"                       master_printf("warning: multiple comments opened at line: %d\n", yylineno);
+<COMMENT>"/*"                       MASTER_PRINTF("warning: multiple comments opened at line: %d\n", yylineno);
 <COMMENT>"*/"                       DEBUG_PRINTF("Exiting c++-style comment\n");BEGIN(INITIAL);
-<COMMENT>"EOF"                      crash("reached end of file while scanning comment");
+<COMMENT>"EOF"                      CRASH("reached end of file while scanning comment");
 <COMMENT>"\n"                       yycolumn=1;yylineno++;
 <COMMENT>{ANY}
 {NEWLINE}                           DEBUG_PRINTF("Ignoring endline\n");yycolumn=1;yylineno++;
@@ -343,9 +343,9 @@ Minute? DEBUG_PRINTF("Found Minute(s)\n");yylval->int_numb=60;return TK_QUANTITY
 Seconds? DEBUG_PRINTF("Found Second(s)\n");yylval->int_numb=1;return TK_QUANTITY;
 
  /* crash if finds unexpected word or unrecognized char */
-\#{LETTER}{ALNUM}* crash("found unexpected preprocessor directive %s",yytext);
-{LETTER}{ALNUM}* master_printf("Found invalid string \"%s\"\n",yytext);return TK_INVALID_STRING;
-{ANY} master_printf("Found invalid character \'%c\'\n",yytext[0]);return TK_INVALID_CHAR;
+\#{LETTER}{ALNUM}* CRASH("found unexpected preprocessor directive %s",yytext);
+{LETTER}{ALNUM}* MASTER_PRINTF("Found invalid string \"%s\"\n",yytext);return TK_INVALID_STRING;
+{ANY} MASTER_PRINTF("Found invalid character \'%c\'\n",yytext[0]);return TK_INVALID_CHAR;
 
 %%
 

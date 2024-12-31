@@ -157,7 +157,7 @@ void compute_meson_exchange_correction_stochastically(corr16 *zm_ave,corr16 *zm_
   //summs n estimates
   for(int i=0;i<n;i++)
     {
-      master_printf("Elaborating estimate %d of %d\n",i,n);
+      MASTER_PRINTF("Elaborating estimate %d of %d\n",i,n);
       
       compute_meson_exchange_correction_stochastically(corr,q_prop,qu,gl);
       memset(zm_corr,0,sizeof(corr16)*glb_size[0]);
@@ -234,7 +234,7 @@ void compute_meson_exchange_correction_stochastically(corr16 *ave,quark_info qu,
   //summs n estimates
   for(int i=0;i<n;i++)
     {
-      master_printf("Elaborating estimate %d of %d\n",i,n);
+      MASTER_PRINTF("Elaborating estimate %d of %d\n",i,n);
       
       compute_meson_exchange_correction_stochastically(corr,q_prop,qu,gl);
 

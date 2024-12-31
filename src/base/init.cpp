@@ -84,7 +84,7 @@ namespace nissa
 	char sp[n+1];
 	for(int i=0;i<n;i++) sp[i]=' ';
 	sp[n]='\0';
-	master_printf("\n"
+	MASTER_PRINTF("\n"
 		      "%s███╗   ██╗██╗███████╗███████╗ █████╗ \n"
 		      "%s████╗  ██║██║██╔════╝██╔════╝██╔══██╗\n"
 		      "%s██╔██╗ ██║██║███████╗███████╗███████║\n"
@@ -100,7 +100,7 @@ namespace nissa
 		 const char compileConfigInfo[5][1024])
   {
     if(nissaInited)
-      crash("Cannot start nissa twice");
+      CRASH("Cannot start nissa twice");
     
     nissaInited=true;
     
@@ -121,7 +121,7 @@ namespace nissa
     const char DO_NOT_TRAP_SIGNALS_STRING[]=
       "NISSA_DO_NOT_TRAP_SIGNALS";
     
-    verbosity_lv1_master_printf("To avoid trapping signals, export: %s\n",DO_NOT_TRAP_SIGNALS_STRING);
+    VERBOSITY_LV1_MASTER_PRINTF("To avoid trapping signals, export: %s\n",DO_NOT_TRAP_SIGNALS_STRING);
     if(getenv(DO_NOT_TRAP_SIGNALS_STRING)==nullptr)
       {
 	signal(SIGBUS,signal_handler);
@@ -133,14 +133,14 @@ namespace nissa
 	//feenableexcept(FE_DIVBYZERO|FE_INVALID|FE_OVERFLOW);
       }
     else
-      master_printf("Not trapping signals\n");
+      MASTER_PRINTF("Not trapping signals\n");
     
     print_banner();
     
     //print version and configuration and compilation time
-    master_printf("\nInitializing NISSA, git hash: " GIT_HASH ", last commit at " GIT_TIME " with message: \"" GIT_LOG "\"\n");
-    master_printf("Configured at %s with flags: %s\n",compileConfigInfo[0],compileConfigInfo[1]);
-    master_printf("Compiled at %s of %s\n",compileConfigInfo[2],compileConfigInfo[3]);
+    MASTER_PRINTF("\nInitializing NISSA, git hash: " GIT_HASH ", last commit at " GIT_TIME " with message: \"" GIT_LOG "\"\n");
+    MASTER_PRINTF("Configured at %s with flags: %s\n",compileConfigInfo[0],compileConfigInfo[1]);
+    MASTER_PRINTF("Compiled at %s of %s\n",compileConfigInfo[2],compileConfigInfo[3]);
     
     //define all derived MPI types
     define_MPI_types();
@@ -151,7 +151,7 @@ namespace nissa
 #endif
     
 #ifdef HAVE_OPENMP
-    master_printf("Compiled with OpenMP support, nThreads: %d\n",omp_get_max_threads());
+    MASTER_PRINTF("Compiled with OpenMP support, nThreads: %d\n",omp_get_max_threads());
 #endif
     
     //initialize the first vector of nissa
@@ -177,10 +177,10 @@ namespace nissa
     switch(nativeEndianness)
       {
     case LittleEndian:
-      master_printf("System endianness: little (ordinary machine)\n");
+      MASTER_PRINTF("System endianness: little (ordinary machine)\n");
       break;
     case BigEndian:
-      master_printf("System endianness: big (BG, etc)\n");
+      MASTER_PRINTF("System endianness: big (BG, etc)\n");
       break;
     };
     
@@ -206,19 +206,19 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++) fix_nranks[mu]=0;
     
 #ifdef USE_DDALPHAAMG
-    master_printf("Linked with DDalphaAMG\n");
+    MASTER_PRINTF("Linked with DDalphaAMG\n");
 #endif
 
 #ifdef USE_QUDA
-	master_printf("Linked with QUDA, version: %d.%d.%d\n",QUDA_VERSION_MAJOR,QUDA_VERSION_MINOR,QUDA_VERSION_SUBMINOR);
+	MASTER_PRINTF("Linked with QUDA, version: %d.%d.%d\n",QUDA_VERSION_MAJOR,QUDA_VERSION_MINOR,QUDA_VERSION_SUBMINOR);
 #endif
     
 #ifdef USE_EIGEN
-    master_printf("Linked with Eigen\n");
+    MASTER_PRINTF("Linked with Eigen\n");
 #endif
     
 #ifdef USE_PARPACK
-    master_printf("Linked with Parpack\n");
+    MASTER_PRINTF("Linked with Parpack\n");
 #endif
     
 #ifdef USE_PARPACK
@@ -226,7 +226,7 @@ namespace nissa
 #endif
     
 #ifdef USE_GMP
-    master_printf("Linked with GMP\n");
+    MASTER_PRINTF("Linked with GMP\n");
 #endif
     
     //put 0 as minimal request
@@ -246,13 +246,13 @@ namespace nissa
     //initialize the base of the gamma matrices
     init_base_gamma();
     
-    master_printf("Nissa initialized!\n");
+    MASTER_PRINTF("Nissa initialized!\n");
     
     const char DEBUG_LOOP_STRING[]="WAIT_TO_ATTACH";
     if(getenv(DEBUG_LOOP_STRING)!=nullptr)
       debug_loop();
     else
-      master_printf("To wait attaching the debugger please export: %s\n",DEBUG_LOOP_STRING);
+      MASTER_PRINTF("To wait attaching the debugger please export: %s\n",DEBUG_LOOP_STRING);
   }
   
   //compute internal volume
@@ -327,15 +327,15 @@ namespace nissa
     if(check_all_dir_parallelized)
       {
 	//check that at least (1<<NDIM) ranks are present and is a multiple of (1<<NDIM)
-	if(NR<(1<<NDIM)) crash("in order to paralellize all the direcion, at least (1<<NDIM) ranks must be present");
-	if(NR%(1<<NDIM)) crash("in order to paralellize all the direcion, the number of ranks must be a multiple of (1<<NDIM)");
+	if(NR<(1<<NDIM)) CRASH("in order to paralellize all the direcion, at least (1<<NDIM) ranks must be present");
+	if(NR%(1<<NDIM)) CRASH("in order to paralellize all the direcion, the number of ranks must be a multiple of (1<<NDIM)");
       }
     
     //check that all directions can be made even, if requested
-    REM_2 if(use_eo_geom) if((V/NR)%(1<<NDIM)!=0) crash("in order to use eo geometry, local size must be a multiple of (1<<NDIM)");
+    REM_2 if(use_eo_geom) if((V/NR)%(1<<NDIM)!=0) CRASH("in order to use eo geometry, local size must be a multiple of (1<<NDIM)");
     
     //check that the global lattice is a multiple of the number of ranks
-    if(V%NR) crash("global volume must be a multiple of ranks number");
+    if(V%NR) CRASH("global volume must be a multiple of ranks number");
     
     //check that we did not asked to fix in an impossible way
     int res_NR=NR;
@@ -348,11 +348,11 @@ namespace nissa
 	if(fix_nranks[mu])
 	  {
 	    if(L[mu]%fix_nranks[mu]||L[mu]<nmin_dir)
-	      crash("asked to fix dir %d in an impossible way",mu);
+	      CRASH("asked to fix dir %d in an impossible way",mu);
 	    res_NR/=fix_nranks[mu];
 	  }
       }
-    if(res_NR<1) crash("overfixed the ranks per direction");
+    if(res_NR<1) CRASH("overfixed the ranks per direction");
     
     //////////////////// find the partitioning which minmize the surface /////////////////////
     
@@ -483,7 +483,7 @@ namespace nissa
 	while(icombo<ncombo);
       }
     
-    if(!something_found) crash("no valid partitioning found");
+    if(!something_found) CRASH("no valid partitioning found");
     
     return mR;
   }
@@ -494,7 +494,7 @@ namespace nissa
     //get the size of box 0
     for(int mu=0;mu<NDIM;mu++)
       {
-	if(locSize[mu]<2) crash("loc_size[%d]=%d must be at least 2",mu,locSize[mu]);
+	if(locSize[mu]<2) CRASH("loc_size[%d]=%d must be at least 2",mu,locSize[mu]);
 	boxSize[0][mu]=locSize[mu]/2;
       }
     
@@ -507,21 +507,21 @@ namespace nissa
     for(int ibox=0;ibox<(1<<NDIM);ibox++)
       {
 	//coords
-	verbosity_lv3_master_printf("Box %d coord [ ",ibox);
+	VERBOSITY_LV3_MASTER_PRINTF("Box %d coord [ ",ibox);
 	boxCoord[ibox]=coordOfLx(ibox,nboxes);
-	for(int mu=0;mu<NDIM;mu++) verbosity_lv3_master_printf("%d ",boxCoord[ibox][mu]);
+	for(int mu=0;mu<NDIM;mu++) VERBOSITY_LV3_MASTER_PRINTF("%d ",boxCoord[ibox][mu]);
 	
 	//size
-	verbosity_lv3_master_printf("] size [ ");
+	VERBOSITY_LV3_MASTER_PRINTF("] size [ ");
 	_nsite_per_box[ibox]=1;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
 	    if(ibox!=0) boxSize[ibox][mu]=((boxCoord[ibox][mu]==0)?
 					    (boxSize[0][mu]):(locSize[mu]-boxSize[0][mu]));
 	    _nsite_per_box[ibox]*=boxSize[ibox][mu];
-	    verbosity_lv3_master_printf("%d ",boxSize[ibox][mu]);
+	    VERBOSITY_LV3_MASTER_PRINTF("%d ",boxSize[ibox][mu]);
 	  }
-	verbosity_lv3_master_printf("], nsites: %d\n",nsite_per_box[ibox]);
+	VERBOSITY_LV3_MASTER_PRINTF("], nsites: %d\n",nsite_per_box[ibox]);
       }
     set_nsite_per_box(_nsite_per_box);
   }
@@ -534,10 +534,10 @@ namespace nissa
   {
     //take initial time
     double time_init=-take_time();
-    master_printf("\nInitializing grid, geometry and communications\n");
+    MASTER_PRINTF("\nInitializing grid, geometry and communications\n");
     
     if(gridInited==1)
-      crash("grid already intialized!");
+      CRASH("grid already intialized!");
     gridInited=1;
     
     if(T!=0 and L!=0)
@@ -561,10 +561,10 @@ namespace nissa
     set_glbSpatVol(glbVol/glbSize[0]);
     glbVol2=(double)glbVol*glbVol;
     
-    master_printf("Global lattice:\t%d",glbSize[0]);
-    for(int mu=1;mu<NDIM;mu++) master_printf("x%d",glbSize[mu]);
-    master_printf(" = %ld\n",glbVol);
-    master_printf("Number of running ranks: %d\n",nranks);
+    MASTER_PRINTF("Global lattice:\t%d",glbSize[0]);
+    for(int mu=1;mu<NDIM;mu++) MASTER_PRINTF("x%d",glbSize[mu]);
+    MASTER_PRINTF(" = %ld\n",glbVol);
+    MASTER_PRINTF("Number of running ranks: %d\n",nranks);
     
     //find the grid minimizing the surface
     Coords _nRanksDir=findMinimalSurfaceGrid(glbSize,nranks);
@@ -573,24 +573,24 @@ namespace nissa
     //check that lattice is commensurable with the grid
     //and check wether the mu dir is parallelized or not
     int ok=(glbVol%nranks==0);
-    if(!ok) crash("The lattice is incommensurable with nranks!");
+    if(!ok) CRASH("The lattice is incommensurable with nranks!");
     
     Coords _isDirParallel;
     for(int mu=0;mu<NDIM;mu++)
       {
 	ok&=(nRanksDir[mu]>0);
-	if(not ok) crash("nrank_dir[%d]: %d",mu,nRanksDir[mu]);
+	if(not ok) CRASH("nrank_dir[%d]: %d",mu,nRanksDir[mu]);
 	ok&=(glbSize[mu]%nRanksDir[mu]==0);
 	if(not ok)
-	  crash("glb_size[%d]" "%c" "nrank_dir[%d]=%d",mu,'%',mu,glbSize[mu]%nRanksDir[mu]);
+	  CRASH("glb_size[%d]" "%c" "nrank_dir[%d]=%d",mu,'%',mu,glbSize[mu]%nRanksDir[mu]);
 	_isDirParallel[mu]=(nRanksDir[mu]>1);
 	nParalDir+=isDirParallel[mu];
       }
     set_isDirParallel(_isDirParallel);
     
-    master_printf("Creating grid:\t%d",nRanksDir[0]);
-    for(int mu=1;mu<NDIM;mu++) master_printf("x%d",nRanksDir[mu]);
-    master_printf("\n");
+    MASTER_PRINTF("Creating grid:\t%d",nRanksDir[0]);
+    for(int mu=1;mu<NDIM;mu++) MASTER_PRINTF("x%d",nRanksDir[mu]);
+    MASTER_PRINTF("\n");
     
     //creates the grid
     create_MPI_cartesian_grid();
@@ -667,7 +667,7 @@ namespace nissa
     _edgeVol*=4;
     set_edgeVol(_edgeVol);
     set_edgeVolh(edgeVol/2);
-    master_printf("Edge vol: %ld\n",edgeVol);
+    MASTER_PRINTF("Edge vol: %ld\n",edgeVol);
     
     //set edge numb
     for(int iedge=0,mu=0;mu<NDIM;mu++)
@@ -695,16 +695,16 @@ namespace nissa
       }
     
     //print information
-    master_printf("Local volume\t%d",locSize[0]);
-    for(int mu=1;mu<NDIM;mu++) master_printf("x%d",locSize[mu]);
-    master_printf(" = %ld\n",locVol);
-    master_printf("List of parallelized dirs:\t");
-    for(int mu=0;mu<NDIM;mu++) if(isDirParallel[mu]) master_printf("%d ",mu);
-    if(nParalDir==0) master_printf("(none)");
-    master_printf("\n");
-    master_printf("Border size: %ld\n",bordVol);
+    MASTER_PRINTF("Local volume\t%d",locSize[0]);
+    for(int mu=1;mu<NDIM;mu++) MASTER_PRINTF("x%d",locSize[mu]);
+    MASTER_PRINTF(" = %ld\n",locVol);
+    MASTER_PRINTF("List of parallelized dirs:\t");
+    for(int mu=0;mu<NDIM;mu++) if(isDirParallel[mu]) MASTER_PRINTF("%d ",mu);
+    if(nParalDir==0) MASTER_PRINTF("(none)");
+    MASTER_PRINTF("\n");
+    MASTER_PRINTF("Border size: %ld\n",bordVol);
     for(int mu=0;mu<NDIM;mu++)
-      verbosity_lv3_master_printf("Border offset for dir %d: %ld\n",mu,bordOffset[mu]);
+      VERBOSITY_LV3_MASTER_PRINTF("Border offset for dir %d: %ld\n",mu,bordOffset[mu]);
     
     //print orderd list of the rank names
     if(VERBOSITY_LV3)
@@ -747,7 +747,7 @@ namespace nissa
 #endif
      
     //take final time
-    master_printf("Time elapsed for grid inizialization: %f s\n",time_init+take_time());
+    MASTER_PRINTF("Time elapsed for grid inizialization: %f s\n",time_init+take_time());
     
     //benchmark the net
     if(perform_benchmark) bench_net_speed();

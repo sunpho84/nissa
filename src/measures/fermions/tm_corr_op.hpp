@@ -54,11 +54,11 @@ namespace nissa
 	  if(cq.cSW)
 	    {
 	      chromo_operator_remove_cSW(*Cl,cq.cSW);
-	      master_printf("Remove cSW for flav %d\n",cur_flav);
+	      MASTER_PRINTF("Remove cSW for flav %d\n",cur_flav);
 	    }
 	  
 	  rem_backfield_without_stagphases_from_conf(conf,tp.backfield[cur_flav]);
-	  master_printf("Remove backfield %d\n",cur_flav);
+	  MASTER_PRINTF("Remove backfield %d\n",cur_flav);
 	}
       
       if(cur_flav!=iflav)
@@ -67,15 +67,15 @@ namespace nissa
 	  
 	  const quark_content_t& q=tp.quarks[iflav];
 	  add_backfield_without_stagphases_to_conf(conf,tp.backfield[iflav]);
-	  master_printf("Adding backfield %d\n",iflav);
+	  MASTER_PRINTF("Adding backfield %d\n",iflav);
 	  
-	  master_printf("Plaquette: %.16lg\n",global_plaquette_lx_conf(conf));
+	  MASTER_PRINTF("Plaquette: %.16lg\n",global_plaquette_lx_conf(conf));
 	  
 	  if(q.cSW)
 	    {
-	      master_printf("Adding cSW for flav %d\n",iflav);
+	      MASTER_PRINTF("Adding cSW for flav %d\n",iflav);
 	      chromo_operator_include_cSW(*Cl,q.cSW);
-	      crash("reimplement");
+	      CRASH("reimplement");
 	      //invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
 	    }
 	}
@@ -84,7 +84,7 @@ namespace nissa
     /// Command to invert
     void inv(spincolor *out,spincolor *in,const int iflav,const int r)
     {
-      crash("reimplement");
+      CRASH("reimplement");
       
       // set_for_quark(iflav);
       
@@ -110,14 +110,14 @@ namespace nissa
     {
       for(auto& q : tp.quarks)
 	if(q.discretiz!=ferm_discretiz::ROOT_TM_CLOV)
-	  crash("not defined for non-Wilson quarks");
+	  CRASH("not defined for non-Wilson quarks");
       
       // Check if clover is actually different from zero
       need_clov=false;
       for(auto& q : tp.quarks)
 	need_clov|=(q.cSW!=0);
       
-      crash("reimplement");
+      CRASH("reimplement");
       // paste_eo_parts_into_lx_vector_(conf,ext_conf);
       
       // if(need_clov)

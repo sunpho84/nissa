@@ -18,7 +18,7 @@ namespace nissa
   //the output is stored in twisted basis, assuming that prop=su3spinspin[2][nmass][>=loc_vol]
   void compute_su3spinspin_tmclov_propagators_multi_mass(su3spinspin ***prop,quad_su3 *conf,double kappa,clover_term_t *Cl,double *mass,int nmass,int niter_max,double *req_res,su3spinspin *source)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // //allocate temporary source
     // spincolor *temp_source=nissa_malloc("temp_source",locVol+bord_vol,spincolor);
     // //allocate temp_vec
@@ -40,7 +40,7 @@ namespace nissa
 	  
     // 	  double init_time=take_time();
     // 	  inv_tmclovDQ_cgm(cgm_solution,conf,kappa,Cl,mass,nmass,niter_max,req_res,temp_source);
-    // 	  master_printf("Finished the inversion of D*Q, dirac index %d, color %d in %g sec\n",id,ic,take_time()-init_time);
+    // 	  MASTER_PRINTF("Finished the inversion of D*Q, dirac index %d, color %d in %g sec\n",id,ic,take_time()-init_time);
 	  
     // 	  //reconstruct the doublet
     // 	  for(int imass=0;imass<nmass;imass++)
@@ -54,7 +54,7 @@ namespace nissa
     // 		    put_spincolor_into_su3spinspin(prop[r][imass][ivol],temp_vec[r][ivol],id,ic);
     // 		  set_borders_invalid(prop[r]);
     // 		}
-    // 	      verbosity_lv2_master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
+    // 	      VERBOSITY_LV2_MASTER_PRINTF("Mass %d (%g) reconstructed \n",imass,mass[imass]);
     // 	    }
     // 	}
     

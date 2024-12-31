@@ -18,9 +18,9 @@ namespace nissa
   //Of the result still need to be taken the TA
   void Wilson_force_eo_conf(eo_ptr<quad_su3> F,eo_ptr<quad_su3> eo_conf,double beta)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
-    // verbosity_lv1_master_printf("Computing Wilson force (eo)\n");
+    // VERBOSITY_LV1_MASTER_PRINTF("Computing Wilson force (eo)\n");
     
     // double r=-beta/NCOL;
     // compute_summed_squared_staples_eo_conf(F,eo_conf);
@@ -42,7 +42,7 @@ namespace nissa
 			    const LxField<quad_su3>& conf,
 			    const double beta)
   {
-    verbosity_lv1_master_printf("Computing Wilson force (lx)\n");
+    VERBOSITY_LV1_MASTER_PRINTF("Computing Wilson force (lx)\n");
     
     const double r=
       -beta/NCOL;

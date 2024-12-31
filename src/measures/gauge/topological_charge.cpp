@@ -107,7 +107,7 @@ namespace nissa
   //compute the correlator between topological charge
   void compute_topo_corr(double* charge)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // //pass to complex
     // complex *ccharge=nissa_malloc("ccharge",locVol,complex);
     // NISSA_PARALLEL_LOOP(ivol,0,locVol)
@@ -190,26 +190,26 @@ namespace nissa
     //change endianness to little
     if(not LittleEndian)
       {
-	crash("reimplement");
+	CRASH("reimplement");
 	// change_endianness((int*)&itraj,(int*)&itraj,1);
 	// change_endianness(corr,corr,locVol);
 	// change_endianness(&top,&top,1);
       }
     
     //offset to mantain 16 byte alignement
-    if(fseek(file,3*sizeof(int),SEEK_CUR)) crash("seeking to align");
+    if(fseek(file,3*sizeof(int),SEEK_CUR)) CRASH("seeking to align");
     MPI_Barrier(MPI_COMM_WORLD);
     
     //write conf id and polyakov
     if(rank==0)
       {
 	off_t nwr=fwrite(&itraj,sizeof(int),1,file);
-	if(nwr!=1) crash("wrote %ld int instead of 1",nwr);
+	if(nwr!=1) CRASH("wrote %ld int instead of 1",nwr);
 	nwr=fwrite(&top,sizeof(double),1,file);
-	if(nwr!=1) crash("wrote %ld doubles instead of 1",nwr);
+	if(nwr!=1) CRASH("wrote %ld doubles instead of 1",nwr);
       }
     else
-      if(fseek(file,sizeof(int)+sizeof(double),SEEK_CUR)) crash("seeking");
+      if(fseek(file,sizeof(int)+sizeof(double),SEEK_CUR)) CRASH("seeking");
     MPI_Barrier(MPI_COMM_WORLD);
     
     //find which piece has to write data
@@ -225,7 +225,7 @@ namespace nissa
     off_t ori=ftell(file);
     
     //jump to the correct point in the file
-    if(fseek(file,ori+istart*sizeof(double),SEEK_SET)) crash("seeking");
+    if(fseek(file,ori+istart*sizeof(double),SEEK_SET)) CRASH("seeking");
     MPI_Barrier(MPI_COMM_WORLD);
     
     //write if something has to be written
@@ -233,7 +233,7 @@ namespace nissa
       {
 	int nbytes_to_write=loc_data*sizeof(double);
 	off_t nbytes_wrote=fwrite(corr,1,nbytes_to_write,file);
-	if(nbytes_wrote!=nbytes_to_write) crash("wrote %ld bytes instead of %d",nbytes_wrote,nbytes_to_write);
+	if(nbytes_wrote!=nbytes_to_write) CRASH("wrote %ld bytes instead of %d",nbytes_wrote,nbytes_to_write);
       }
     
     //point to after the data
@@ -247,7 +247,7 @@ namespace nissa
 				const bool& conf_created,
 				const bool& preserve_unsmoothed)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // //open the file and allocate remapper
     // FILE *file=open_file(pars.path,conf_created?"w":"a"),*corr_file=NULL;
@@ -255,8 +255,8 @@ namespace nissa
     // if(pars.meas_corr)
     //   {
     // 	corr_file=fopen(pars.corr_path.c_str(),(conf_created or !file_exists(pars.corr_path))?"w":"r+");
-    // 	if(corr_file==NULL) crash("opening %s",pars.corr_path.c_str());
-    // 	if(fseek(corr_file,0,SEEK_END)) crash("seeking to the end");
+    // 	if(corr_file==NULL) CRASH("opening %s",pars.corr_path.c_str());
+    // 	if(fseek(corr_file,0,SEEK_END)) CRASH("seeking to the end");
     // 	topo_corr_rem=new vector_remap_t(locVol,index_to_topo_corr_remapping,NULL);
     //   }
     
@@ -283,7 +283,7 @@ namespace nissa
     // 	//correlators if asked
     // 	if(pars.meas_corr)
     // 	  {
-    // 	    crash("reimplement");
+    // 	    CRASH("reimplement");
     // 	    // compute_topo_corr(charge);
     // 	    // store_topo_corr(corr_file,charge,iconf,tot_charge,topo_corr_rem);
     // 	  }
@@ -307,7 +307,7 @@ namespace nissa
 				const int& iconf,
 				const bool& conf_created)
   {
-	    crash("reimplement");
+	    CRASH("reimplement");
     // quad_su3 *unsmoothed_conf_lx=nissa_malloc("unsmoothed_conf_lx",locVol+bord_vol+edge_vol,quad_su3);
     // paste_eo_parts_into_lx_vector(unsmoothed_conf_lx,unsmoothed_conf_eo);
     // measure_topology_lx_conf(pars,unsmoothed_conf_lx,iconf,conf_created,false);

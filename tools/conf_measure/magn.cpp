@@ -30,7 +30,7 @@ void compute_mag(quark_content_t* qc,int iconf,int ihit,int iflav)
     {
       //define the value of b
       double b=b_min+(b_max-b_min)*ip/nintervals;
-      master_printf("  B=%d/%d (%lg)\n",ip,nintervals,b);
+      MASTER_PRINTF("  B=%d/%d (%lg)\n",ip,nintervals,b);
       
       //initialize background field to id, then add magnetic field
       init_backfield_to_id(u1b);
@@ -68,7 +68,7 @@ void analyze_conf(int iconf)
   //loop over the number of hits
   for(int ihit=0;ihit<nhits;ihit++)
     {
-      master_printf("Hit %d/%d\n",ihit+1,nhits);
+      MASTER_PRINTF("Hit %d/%d\n",ihit+1,nhits);
       
       //generate the source
       generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
@@ -76,7 +76,7 @@ void analyze_conf(int iconf)
       //loop over all the flavors
       for(int iflav=0;iflav<nflavs;iflav++)
 	{
-	  master_printf(" Flav %d/%d\n",iflav+1,nflavs);
+	  MASTER_PRINTF(" Flav %d/%d\n",iflav+1,nflavs);
 	  compute_mag(quark_content+iflav,iconf,ihit,iflav);
 	}
     }
@@ -156,7 +156,7 @@ void stop()
 void in_main(int narg,char **arg)
 {
   //initialize
-  if(narg<2) crash("use: %s input",arg[0]);
+  if(narg<2) CRASH("use: %s input",arg[0]);
   init(arg[1]);
 
   //analyze the configurations one by one

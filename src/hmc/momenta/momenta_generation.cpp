@@ -35,7 +35,7 @@ namespace nissa
   //similar for lx
   void generate_hmc_momenta(quad_su3* H)
   {
-    crash("Reimplement");
+    CRASH("Reimplement");
     
     // NISSA_PARALLEL_LOOP(ivol,0,locVol)
     //   for(int mu=0;mu<NDIM;mu++)

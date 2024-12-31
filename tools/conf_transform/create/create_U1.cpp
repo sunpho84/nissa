@@ -23,7 +23,7 @@ void write_u1_field(ILDG_File file, realspin1field* field)
 void inMain(int narg,char **arg)
 {
   //check argument
-  if(narg<7) crash("Use: %s L T gauge[L=LANDAU,F=FEYNMAN,C=COULOMB] seed nconfs pattern [e for plaquette] [su3conf input] [u3conf output]",arg[0]);
+  if(narg<7) CRASH("Use: %s L T gauge[L=LANDAU,F=FEYNMAN,C=COULOMB] seed nconfs pattern [e for plaquette] [su3conf input] [u3conf output]",arg[0]);
   
   const int L=atoi(arg[1]);
   const int T=atoi(arg[2]);
@@ -54,7 +54,7 @@ void inMain(int narg,char **arg)
       gl.which_gauge=gauge_info::COULOMB;
       break;
     default:
-      crash("unknown gauge '%c'",gauge);
+      CRASH("unknown gauge '%c'",gauge);
     }
   gl.c1=WILSON_C1;
   
@@ -95,7 +95,7 @@ void inMain(int narg,char **arg)
       char outPath[128];
       snprintf(outPath,128,pattern,iConf);
       if(strncasecmp(outPath,pattern,128)==0)
-	crash("pattern %s cannot be used to creat the conf name, try something like: conf%%04d.dat",pattern);
+	CRASH("pattern %s cannot be used to creat the conf name, try something like: conf%%04d.dat",pattern);
       
       ILDG_File file=ILDG_File_open_for_write(outPath);
       char ildg_format_message[1024];
@@ -129,7 +129,7 @@ void inMain(int narg,char **arg)
       // 		complex t;
       // 		unsafe_complex_conj1_prod(t,photonEta[loclx][mu],photonEta[loclx][nu]);
       // 		if(loclx==1 and mu==0 and nu==0)
-      // 		  master_printf("%lg\n",t[RE]);
+      // 		  MASTER_PRINTF("%lg\n",t[RE]);
       // 		complex_summassign(propRecoMom[loclx][mu][nu],t);
       // 		for(int ri=0;ri<2;ri++)
       // 		  propRecoMom2[loclx][mu][nu][ri]+=sqr(t[ri]);
@@ -165,7 +165,7 @@ void inMain(int narg,char **arg)
 	  
 	  const double pSU3=global_plaquette_lx_conf(conf);
 	  
-	  master_printf("\nPlaquette of the conf without the u1 phase: %.16lg\n",pSU3);
+	  MASTER_PRINTF("\nPlaquette of the conf without the u1 phase: %.16lg\n",pSU3);
 	  
 	  NISSA_PARALLEL_LOOP(loclx,0,locVol)
 	    {
@@ -177,7 +177,7 @@ void inMain(int narg,char **arg)
 	  
 	  const double pU3=global_plaquette_lx_conf(conf);
 	  
-	  master_printf("Plaquette of the conf with the u1 phase: %.16lg\n",pU3);
+	  MASTER_PRINTF("Plaquette of the conf with the u1 phase: %.16lg\n",pU3);
 	  
 	  if(u3Path)
 	    write_ildg_gauge_conf(u3Path,conf,64);
@@ -185,7 +185,7 @@ void inMain(int narg,char **arg)
 	  nissa_free(conf);
 	}
       
-      master_printf("Plaquette of the u1 phase: %.16lg\n\n",pU1);
+      MASTER_PRINTF("Plaquette of the u1 phase: %.16lg\n\n",pU1);
       
       nissa_free(u1);
     }
@@ -230,7 +230,7 @@ void inMain(int narg,char **arg)
   // for(int site=0;site<2;site++)
   //   for(int mu=0;mu<NDIM;mu++)
   //     for(int nu=0;nu<NDIM;nu++)
-  // 	master_printf("%d %d %d %lg %lg %lg\n",site,mu,nu,propRecoMom[site][mu][nu][RE],propRecoMom2[site][mu][nu][RE],propMom[site][mu][nu][RE]);
+  // 	MASTER_PRINTF("%d %d %d %lg %lg %lg\n",site,mu,nu,propRecoMom[site][mu][nu][RE],propRecoMom2[site][mu][nu][RE],propMom[site][mu][nu][RE]);
       
   // nissa_free(prop);
   // nissa_free(propMom);

@@ -32,7 +32,7 @@ struct mass_res_group_t
   //read from input file
   void read() {destroy();int n;read_str_int("NMassRes",&n);create(n);for(int i=0;i<n;i++){read_double(&mass[i]);read_double(&residues[i]);}}
   //print to screen
-  void printf() {master_printf("List of masses and residues\n");for(int i=0;i<nmass;i++){master_printf("%lg %lg\n",mass[i],residues[i]);}}
+  void printf() {MASTER_PRINTF("List of masses and residues\n");for(int i=0;i<nmass;i++){master_printf("%lg %lg\n",mass[i],residues[i]);}}
 };
 
 // ######################################################### thppeta_group_t ###################################################
@@ -55,7 +55,7 @@ struct thppeta_group_t
   //read from input file
   void read() {destroy();int n;read_str_int("NTheta",&n);create(n);for(int i=0;i<n;i++) read_double(&thppeta[i]);}
   //print to screen
-  void printf() {master_printf("List of thetas\n");for(int i=0;i<ntheta;i++) master_printf("%lg\n",thppeta[i]);}
+  void printf() {MASTER_PRINTF("List of thetas\n");for(int i=0;i<ntheta;i++) master_printf("%lg\n",thppeta[i]);}
 };
 
 // ###################################################### ape_smear_pars_t ###############################################

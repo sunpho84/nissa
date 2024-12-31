@@ -24,7 +24,7 @@ namespace nissa
 	  const auto [rank_to,iel_to]=index(iel_fr);
 	  
 	  if(rank_to>=nranks or rank_to<0)
-	    crash("destination rank %d does not exist!",rank_to);
+	    CRASH("destination rank %d does not exist!",rank_to);
 	  
 	  sl.push_back(std::make_pair(iel_fr,iel_to*nranks+rank_to));
 	}

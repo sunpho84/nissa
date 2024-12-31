@@ -49,7 +49,7 @@ namespace nissa
 		     nper_rank_other_temp+recv_rank,1,MPI_INT,recv_rank,0,
 		     MPI_COMM_WORLD,MPI_STATUS_IGNORE);
       }
-    verbosity_lv3_master_printf("finished communicating setup_nper_rank_other_temp\n");
+    VERBOSITY_LV3_MASTER_PRINTF("finished communicating setup_nper_rank_other_temp\n");
   }
   
   //common part of initialization
@@ -146,7 +146,7 @@ namespace nissa
     for(int irank_note=0;irank_note<nranks_note;irank_note++)
 	  MPI_Irecv(buf_note+buf_note_off_per_rank[irank_note],nper_rank_note[irank_note],MPI_INT,
 		    list_ranks_note[irank_note],909,MPI_COMM_WORLD,&req_list[ireq++]);
-    if(ireq!=nranks_note+nranks_expl) crash("expected %d request, obtained %d",nranks_note+nranks_expl,ireq);
+    if(ireq!=nranks_note+nranks_expl) CRASH("expected %d request, obtained %d",nranks_note+nranks_expl,ireq);
     MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
     
     //check
@@ -159,8 +159,8 @@ namespace nissa
       {
 	int idest=in_buf_dest[iel_in];
 	
-	//if(idest<0 or idest>=nel_in) crash("in_buf_dest[%d] point to %d not in the range [0,nel_in=%d)",iel_in,idest,nel_in);
-	if(in_buf_dest_check[idest]++==1) crash("multiple assignement of %d",idest);
+	//if(idest<0 or idest>=nel_in) CRASH("in_buf_dest[%d] point to %d not in the range [0,nel_in=%d)",iel_in,idest,nel_in);
+	if(in_buf_dest_check[idest]++==1) CRASH("multiple assignement of %d",idest);
       }
     
     nissa_free(in_buf_dest_check);
@@ -177,14 +177,14 @@ namespace nissa
     //count the number of elements to send
     temp_build_t build;
     nel_out=sl.size();
-    verbosity_lv3_master_printf("nel to be scattered out: %d\n",nel_out);
+    VERBOSITY_LV3_MASTER_PRINTF("nel to be scattered out: %d\n",nel_out);
     
     //count how many elements to send to each rank
     vector_reset(build.nper_rank_to_temp);
     for(int iel_out=0;iel_out<nel_out;iel_out++)
       {
 	int rank_to=sl[iel_out].second%nranks;
-	if(rank_to>=nranks or rank_to<0) crash("destination rank %d does not exist!",rank_to);
+	if(rank_to>=nranks or rank_to<0) CRASH("destination rank %d does not exist!",rank_to);
 	build.nper_rank_to_temp[rank_to]++;
       }
     
@@ -226,7 +226,7 @@ namespace nissa
     for(auto it=gl.begin();it!=gl.end();it++)
       {
 	int rank_fr=it->first%nranks;
-	if(rank_fr>=nranks or rank_fr<0) crash("source rank %d does not exist!",rank_fr);
+	if(rank_fr>=nranks or rank_fr<0) CRASH("source rank %d does not exist!",rank_fr);
 	build.nper_rank_fr_temp[rank_fr]++;
       }
     
@@ -277,7 +277,7 @@ namespace nissa
       [](const size_t n)
       {
 	if(n>std::numeric_limits<int>::max())
-	  crash("trying to send or receive %zu elements, max value is %d",n,std::numeric_limits<int>::max());
+	  CRASH("trying to send or receive %zu elements, max value is %d",n,std::numeric_limits<int>::max());
 	
 	return n;
       };
@@ -290,7 +290,7 @@ namespace nissa
 	{
 	  MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,check_not_above_max_count(nper_rank_fr[irank_fr]*bps),MPI_CHAR,
 		    list_ranks_fr[irank_fr],909,MPI_COMM_WORLD,&req_list[ireq++]);
-	  // master_printf("Going to receive from rank %d, nreq: %d\n",list_ranks_fr[irank_fr],ireq);
+	  // MASTER_PRINTF("Going to receive from rank %d, nreq: %d\n",list_ranks_fr[irank_fr],ireq);
 	}
       else
 	irank_fr_this=irank_fr;
@@ -301,7 +301,7 @@ namespace nissa
 	{
 	  MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,check_not_above_max_count(nper_rank_to[irank_to]*bps),MPI_CHAR,
 		    list_ranks_to[irank_to],909,MPI_COMM_WORLD,&req_list[ireq++]);
-	  // master_printf("Going to send to rank %d, nreq: %d\n",list_ranks_to[irank_to],ireq);
+	  // MASTER_PRINTF("Going to send to rank %d, nreq: %d\n",list_ranks_to[irank_to],ireq);
 	}
       else
 	irank_to_this=irank_to;
@@ -309,12 +309,12 @@ namespace nissa
     if(irank_fr_this!=nranks_fr and irank_to_this!=nranks_to)
       {
 	if(nper_rank_to[irank_to_this]!=nper_rank_fr[irank_fr_this])
-	  crash("unmatched what to copy locally");
+	  CRASH("unmatched what to copy locally");
 	else
 	  memcpy(in_buf+in_buf_off_per_rank[irank_fr_this]*bps,out_buf+out_buf_off_per_rank[irank_to_this]*bps,nper_rank_to[irank_fr_this]*bps);
       }
     
-    // master_printf("waiting for %d reqs\n",ireq);
+    // MASTER_PRINTF("waiting for %d reqs\n",ireq);
     MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
     
     int *dest=in_buf_dest;

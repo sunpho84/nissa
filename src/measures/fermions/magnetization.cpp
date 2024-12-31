@@ -20,7 +20,7 @@ namespace nissa
   //please note that the conf must hold backfield
   void magnetization(complex* magn,complex* magn_proj_x,eo_ptr<quad_su3> conf,quark_content_t* quark,eo_ptr<color> rnd,eo_ptr<color> chi,complex* point_magn,Coords* arg,int mu,int nu)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // communicate_ev_and_od_color_borders(chi);
     // vector_reset(point_magn);
     
@@ -28,7 +28,7 @@ namespace nissa
     // // complex thr_magn_proj_x[glbSize[1]];
     // // for(int i=0;i<glbSize[1];i++) thr_magn_proj_x[i][RE]=thr_magn_proj_x[i][IM]=0;
     
-    // crash("#warning reimplement");
+    // CRASH("#warning reimplement");
     
     // //summ the results of the derivative
     // for(int par=0;par<2;par++)
@@ -72,7 +72,7 @@ namespace nissa
     
     // //reduce the projected magnetization
     // complex temp_proj_x[glbSize[1]];
-    // crash("#warning reimplement for(int x=0;x<glb_size[1];x++) glb_reduce_complex(temp_proj_x[x],thr_magn_proj_x[x]);");
+    // CRASH("#warning reimplement for(int x=0;x<glb_size[1];x++) glb_reduce_complex(temp_proj_x[x],thr_magn_proj_x[x]);");
     
     // //reduce across all nodes and threads
     // complex temp;
@@ -96,7 +96,7 @@ namespace nissa
   //compute the magnetization
   void magnetization(complex* magn,complex* magn_proj_x,eo_ptr<quad_su3> conf,int quantization,eo_ptr<quad_u1> u1b,quark_content_t* quark,double residue,eo_ptr<color> rnd)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // //fixed to Z magnetization
     // int mu=1,nu=2;
@@ -134,7 +134,7 @@ namespace nissa
   //compute the magnetization
   void magnetization(complex *magn,complex *magn_proj_x,rnd_t rnd_type,eo_ptr<quad_su3> conf,int quantization,eo_ptr<quad_u1> u1b,quark_content_t *quark,double residue)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // //allocate source and generate it
     // eo_ptr<color> rnd={nissa_malloc("rnd_EVN",locVolh+bord_volh,color),nissa_malloc("rnd_ODD",locVolh+bord_volh,color)};
@@ -149,7 +149,7 @@ namespace nissa
   //measure magnetization
   void measure_magnetization(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,magnetization_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     // FILE *file_proj=open_file(meas_pars.path+"%s_proj_x",conf_created?"w":"a");
@@ -162,7 +162,7 @@ namespace nissa
     //     //measure magnetization for each quark
     //     for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
     //       {
-    // 	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
+    // 	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) CRASH("not defined for non-staggered quarks");
 	    
     //         complex magn={0,0};
     //         complex magn_proj_x[glbSize[1]]; //this makes pair and pact with "1" and "2" upstairs
@@ -172,7 +172,7 @@ namespace nissa
     //         int nhits=meas_pars.nhits;
     //         for(int hit=0;hit<nhits;hit++)
     //           {
-    //             verbosity_lv2_master_printf("Evaluating magnetization for flavor %d/%d, ncopies %d/%d nhits %d/%d\n",
+    //             VERBOSITY_LV2_MASTER_PRINTF("Evaluating magnetization for flavor %d/%d, ncopies %d/%d nhits %d/%d\n",
     //                                         iflav+1,theory_pars.nflavs(),icopy+1,ncopies,hit+1,nhits);
             
     //             //compute and summ

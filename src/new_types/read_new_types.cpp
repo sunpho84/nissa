@@ -29,7 +29,7 @@ namespace nissa
 	
 	//only iso implemented
 	if(iso) read_str_double("StoutRho",&stout_pars.rho);
-	else crash("Anisotropic stouting not yet implemented");
+	else CRASH("Anisotropic stouting not yet implemented");
       }
   }
   
@@ -71,7 +71,7 @@ namespace nissa
       case 2:
 	pars.read_pars();
 	break;
-      default: crash("Not implemented yet"); break;
+      default: CRASH("Not implemented yet"); break;
       }
     if(pars.flag) read_stout_pars(pars.stout_pars);
   }

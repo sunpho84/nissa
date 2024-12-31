@@ -16,7 +16,7 @@
 # include <cuda_runtime.h>
 #endif
 
-#define crash(...) ::nissa::internal_crash(__LINE__,__FILE__,__VA_ARGS__)
+#define CRASH(...) ::nissa::internal_crash(__LINE__,__FILE__,__VA_ARGS__)
 #define crash_printing_error(code,...) internal_crash_printing_error(__LINE__,__FILE__,code,__VA_ARGS__)
 #define decript_MPI_error(...) internal_decript_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
 

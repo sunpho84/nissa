@@ -26,11 +26,11 @@ void in_main(int narg,char **arg)
   double nvon=double_vector_glb_norm2(vout,2);
   double nvin=double_vector_glb_norm2(vin,2);
   
-  master_printf("norms: %lg %lg\n",nvon,nvin);
+  MASTER_PRINTF("norms: %lg %lg\n",nvon,nvin);
   // for(int ivol=0;ivol<loc_vol;ivol++)
   //   {
-  //     master_printf("el[%d][RE]: %lg %lg\n",ivol,vin[ivol][RE],vout[ivol][RE]);
-  //     master_printf("el[%d][IM]: %lg %lg\n",ivol,vin[ivol][IM],vout[ivol][IM]);
+  //     MASTER_PRINTF("el[%d][RE]: %lg %lg\n",ivol,vin[ivol][RE],vout[ivol][RE]);
+  //     MASTER_PRINTF("el[%d][IM]: %lg %lg\n",ivol,vin[ivol][IM],vout[ivol][IM]);
   //   }
   nissa_free(vin);
   nissa_free(vout);

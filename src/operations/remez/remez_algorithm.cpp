@@ -146,7 +146,7 @@ namespace nissa
 	    q=abs(A[i*n+j]);
 	    if(row_norm<q) row_norm=q;
 	  }
-	if(row_norm==0.0) crash("num row norm");
+	if(row_norm==0.0) CRASH("num row norm");
 	x[i]=1/row_norm;
       }
     
@@ -167,7 +167,7 @@ namespace nissa
 		ipiv=i;
 	      }
 	  }
-	if(big.get_d()==0.0) crash("null big: %d",ipiv);
+	if(big.get_d()==0.0) CRASH("null big: %d",ipiv);
 	
 	std::swap(exch[ipiv],exch[k]);
 	
@@ -180,7 +180,7 @@ namespace nissa
 	      A[n*exch[i]+j]-=A[n*exch[i]+k]*A[n*exch[k]+j];
 	  }
       }
-    if(A[n*exch[n-1]+n-1]==0.0) crash("last element null");
+    if(A[n*exch[n-1]+n-1]==0.0) CRASH("last element null");
     
     //build solution
     for(int i=0;i<n;i++)
@@ -297,7 +297,7 @@ namespace nissa
 	zero0=zero1;
       }
     
-    verbosity_lv3_master_printf(" iter: %d, eclose: %16.16lg, farther: %16.16lg, spread: %16.16lg, delta: %16.16lg\n",
+    VERBOSITY_LV3_MASTER_PRINTF(" iter: %d, eclose: %16.16lg, farther: %16.16lg, spread: %16.16lg, delta: %16.16lg\n",
 				iter,eclose.get_d(),farther.get_d(),spread.get_d(),delta);
     
     //decrease step size if error spread increased
@@ -411,7 +411,7 @@ namespace nissa
     for(int i=degree-1;i>=0;i--)
       {
 	roots[i]=root_find_Newton(poly,i+1,lower,upper,tol);
-	if(roots[i]==0.0) crash("Failure to converge on root %d/%d",i+1,degree);
+	if(roots[i]==0.0) CRASH("Failure to converge on root %d/%d",i+1,degree);
 	poly[0]/=-roots[i];
 	for(int j=1;j<=i;j++) poly[j]=(poly[j-1]-poly[j])/roots[i];
       }
@@ -423,7 +423,7 @@ namespace nissa
     for(int i=degree-1;i>=0;i--)
       {
 	poles[i]=root_find_Newton(poly,i+1,lower,upper,tol);
-	if(poles[i]==0.0) crash("Failure to converge on pole %d/%d",i+1,degree);
+	if(poles[i]==0.0) CRASH("Failure to converge on pole %d/%d",i+1,degree);
 	poly[0]/=-poles[i];
 	for(int j=1;j<=i;j++) poly[j]=(poly[j-1]-poly[j])/poles[i];
       }
@@ -471,7 +471,7 @@ namespace nissa
       }
     while((iter<nmax_iter)&&(abs(dx)>=acc));
     
-    if(iter==nmax_iter) crash("Maximum number of iterations exceeded in Newton_root");
+    if(iter==nmax_iter) CRASH("Maximum number of iterations exceeded in Newton_root");
     
     return rtn;
   }
@@ -586,11 +586,11 @@ namespace nissa
 	  {
 	      printf("WARNING, reached precision %lg while computing %d terms approximation of x^(%d/%d) with tolerance %lg\n",
 			  spread.get_d(),degree,num,den,approx_tolerance);
-	    master_printf("precision not enough to reach %lg precision requested!!!\n",approx_tolerance);
+	    MASTER_PRINTF("precision not enough to reach %lg precision requested!!!\n",approx_tolerance);
 #if HIGH_PREC_TYPE==NATIVE_HIGH_PREC
-	    master_printf("use GMP if possible!\n");
+	    MASTER_PRINTF("use GMP if possible!\n");
 #else
-	    master_printf("compile with higher precision!\n");
+	    MASTER_PRINTF("compile with higher precision!\n");
 #endif
 	  }
 	iter++;
@@ -599,13 +599,13 @@ namespace nissa
     while(spread>approx_tolerance && delta>=approx_tolerance && ((not consider_err) || (eclose.get_d()<=target_err && farther.get_d()>target_err)));
     
     //write some info
-    if(spread<=approx_tolerance) verbosity_lv3_master_printf("Spread %lg reduced below %lg\n",spread.get_d(),approx_tolerance);
-    if(consider_err && eclose>target_err)  verbosity_lv3_master_printf("Accuracy cannot be better than %lg when %lg asked\n",eclose.get_d(),target_err);
+    if(spread<=approx_tolerance) VERBOSITY_LV3_MASTER_PRINTF("Spread %lg reduced below %lg\n",spread.get_d(),approx_tolerance);
+    if(consider_err && eclose>target_err)  VERBOSITY_LV3_MASTER_PRINTF("Accuracy cannot be better than %lg when %lg asked\n",eclose.get_d(),target_err);
     
     //get err at max and check
     if((consider_err and farther.get_d()<=target_err) or ((not consider_err) and (spread<=approx_tolerance)))
       {
-	verbosity_lv2_master_printf("Converged with %d zeroes in %d iters, maxerr %lg when asked %lg\n",nzero_err_points,iter,farther.get_d(),target_err);
+	VERBOSITY_LV2_MASTER_PRINTF("Converged with %d zeroes in %d iters, maxerr %lg when asked %lg\n",nzero_err_points,iter,farther.get_d(),target_err);
 	
 	//compute the roots
 	float_high_prec_t roots[degree];
@@ -615,10 +615,10 @@ namespace nissa
 	get_partial_fraction_expansion(weights,poles,roots,cons,degree);
 	
 	for(int j=0;j<degree;j++)
-	  verbosity_lv2_master_printf("Weight = %16.16lg, Pole = %16.16lg\n",weights[j].get_d(),poles[j].get_d());
-	verbosity_lv2_master_printf("Const: %16.16lg\n",cons.get_d());
+	  VERBOSITY_LV2_MASTER_PRINTF("Weight = %16.16lg, Pole = %16.16lg\n",weights[j].get_d(),poles[j].get_d());
+	VERBOSITY_LV2_MASTER_PRINTF("Const: %16.16lg\n",cons.get_d());
       }
-    else verbosity_lv2_master_printf("Not converged to %lg prec with %d poles in %d iters (reached: %lg)\n",target_err,degree,iter,farther.get_d());
+    else VERBOSITY_LV2_MASTER_PRINTF("Not converged to %lg prec with %d poles in %d iters (reached: %lg)\n",target_err,degree,iter,farther.get_d());
     
     delete[] step;
     delete[] zero;
@@ -663,10 +663,10 @@ namespace nissa
   {
     
     //perform a few checks
-    if(num==den) crash("cannot work if the numerator has the same power of the denominator!");
+    if(num==den) CRASH("cannot work if the numerator has the same power of the denominator!");
     if(num==-den)
       {
-	verbosity_lv2_master_printf("Creating trivial approx for x^%d/%d\n",num,den);
+	VERBOSITY_LV2_MASTER_PRINTF("Creating trivial approx for x^%d/%d\n",num,den);
 	strncpy(appr.name,name,19);
 	appr.resize(1);
 	appr.num=num;
@@ -684,7 +684,7 @@ namespace nissa
 	
 	//set the name of the approximation and deallocate poles
 	if(name!=NULL) snprintf(appr.name,20,"%s",name);
-	verbosity_lv3_master_printf("Generating approximation of x^(%d/%d) with max error %lg over the interval [%lg,%lg]\n",
+	VERBOSITY_LV3_MASTER_PRINTF("Generating approximation of x^(%d/%d) with max error %lg over the interval [%lg,%lg]\n",
 				    num,den,maxerr,minimum,maximum);
 	
 	//increase iteratively until it converges
@@ -701,7 +701,7 @@ namespace nissa
 	    
 	    //check if found
 	    found=(err<=maxerr);
-	    verbosity_lv3_master_printf("Approx x^(%d/%d) with %d poles can make an error of %lg when %lg required, found: %d\n",
+	    VERBOSITY_LV3_MASTER_PRINTF("Approx x^(%d/%d) with %d poles can make an error of %lg when %lg required, found: %d\n",
 					num,den,degree,err,maxerr,found);
 	    
 	    //if not found increase number of poles
@@ -709,7 +709,7 @@ namespace nissa
 	  }
 	while(!found);
 	
-	master_printf("Needed time: %lg s\n",take_time()-generate_time);
+	MASTER_PRINTF("Needed time: %lg s\n",take_time()-generate_time);
 	
 	//store required maximal error
 	appr.maxerr=maxerr;

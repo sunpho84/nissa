@@ -6,9 +6,9 @@ int main(int narg,char **arg)
 {
   init_nissa(narg,arg);
   
-  if(nranks>1) crash("cannot run in parallel");
+  if(nranks>1) CRASH("cannot run in parallel");
   
-  if(narg<7) crash("use: %s L T file_in file_out parity nspinors",arg[0]);
+  if(narg<7) CRASH("use: %s L T file_in file_out parity nspinors",arg[0]);
   
   int L=atoi(arg[1]);
   int T=atoi(arg[2]);
@@ -28,10 +28,10 @@ int main(int narg,char **arg)
   ILDG_File fout=ILDG_File_open_for_write(pathout);
   do
     {
-      master_printf("Searching for spinor: %d/%d\n",ispinor,nspinors);
+      MASTER_PRINTF("Searching for spinor: %d/%d\n",ispinor,nspinors);
       
       ILDG_header head=ILDG_File_get_next_record_header(fin);
-      master_printf("%s %lld\n",head.type,head.data_length);
+      MASTER_PRINTF("%s %lld\n",head.type,head.data_length);
       
       if(strcasecmp(head.type,"scidac-binary-data")==0)
 	{
@@ -50,7 +50,7 @@ int main(int narg,char **arg)
 	  
 	  //write
 	  mess[head.data_length]='\0';
-	  master_printf("%s\n================================================\n",mess);
+	  MASTER_PRINTF("%s\n================================================\n",mess);
 	  free(mess);
 	}
     }

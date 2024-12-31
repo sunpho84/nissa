@@ -11,8 +11,8 @@ namespace nissa
   //solve using conjugate gradient algorithm
   template <class Fmat> void cg_solve(complex *x,const Fmat& mat_impl,complex *b,int mat_size,int mat_size_to_allocate,double target_residue,int nmax_iters,int print_each)
   {
-    crash("reimplement");
-    // master_printf("Starting cg, target_residue: %lg, niter_max: %d\n",target_residue,nmax_iters);
+    CRASH("reimplement");
+    // MASTER_PRINTF("Starting cg, target_residue: %lg, niter_max: %d\n",target_residue,nmax_iters);
     
     // complex *p=nissa_malloc("p",mat_size_to_allocate,complex);
     // complex *r=nissa_malloc("r",mat_size_to_allocate,complex);
@@ -25,7 +25,7 @@ namespace nissa
     // //compute norm of r and store it for computing relative residual
     // double rr=double_vector_glb_norm2(r,mat_size),rel_res;
     // double source_norm=sqrt(double_vector_glb_norm2(b,mat_size));
-    // if(source_norm==0) crash("invalid norm");
+    // if(source_norm==0) CRASH("invalid norm");
     
     // //count iterations
     // int iter=1;
@@ -53,7 +53,7 @@ namespace nissa
     // 	//compute relative residue
     // 	rel_res=sqrt((double)rr)/source_norm;
 	
-    // 	if(iter%print_each==0) master_printf("it: %d, res: %.16lg\n",iter,rel_res);
+    // 	if(iter%print_each==0) MASTER_PRINTF("it: %d, res: %.16lg\n",iter,rel_res);
 	
     // 	iter++;
     //   }

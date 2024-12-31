@@ -59,8 +59,8 @@ double mom_prod(const Momentum& p,const Momentum& q)
 void bar_transf(complex *co,TmQuarkInfo qu)
 {
   //for(int p=0;p<glb_size[0];p++)
-  //master_printf("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
-  //master_printf("\n");
+  //MASTER_PRINTF("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
+  //MASTER_PRINTF("\n");
   
   TmQuarkInfo ba=qu;
   ba.bc[0]=1*3; //aperiodic
@@ -76,7 +76,7 @@ void bar_transf(complex *co,TmQuarkInfo qu)
 	  if(x<glbSize[0]/2) complex_summ_the_prod(c[x],co[ip0],fact);
 	  else                complex_summ_the_conj1_prod(c[x],co[ip0],fact);
 	}
-      master_printf("%d %.16lg %.16lg\n",x,c[x][0],c[x][1]);
+      MASTER_PRINTF("%d %.16lg %.16lg\n",x,c[x][0],c[x][1]);
     }
 }
 
@@ -143,9 +143,9 @@ void check_fw_vacuum_curr()
 	}
     }
   
-  master_printf("Result of Marcus comparison\n");
+  MASTER_PRINTF("Result of Marcus comparison\n");
   for(int mu=0;mu<NDIM;mu++)
-    master_printf("%16.16lg\n",res[mu]);
+    MASTER_PRINTF("%16.16lg\n",res[mu]);
 }
 
 void check_bar()
@@ -157,7 +157,7 @@ void check_bar()
   qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" -----------------baryon direct -------------------- \n");
+  MASTER_PRINTF(" -----------------baryon direct -------------------- \n");
   
   //compute the propagator traced
   complex *mess=nissa_malloc("mess",glbVol,complex);
@@ -184,7 +184,7 @@ void check_bar2()
   qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" -----------------baryon direct ins on outdiquark -------------------- \n");
+  MASTER_PRINTF(" -----------------baryon direct ins on outdiquark -------------------- \n");
   
   //compute the propagator with self-energy insertion, traced
   complex *mess=nissa_malloc("mess",glbVol,complex);
@@ -245,7 +245,7 @@ void check_bar3()
   qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" -----------------baryon direct cons ins on outdiquark -------------------- \n");
+  MASTER_PRINTF(" -----------------baryon direct cons ins on outdiquark -------------------- \n");
   
   //compute the propagator with self-energy insertion, traced
   complex *mess=nissa_malloc("mess",glbVol,complex);
@@ -314,8 +314,8 @@ void check_bar3()
 void mes_transf(complex *co,TmQuarkInfo qu)
 {
   for(int p=0;p<glbSize[0];p++)
-    master_printf("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
-  master_printf("\n");
+    MASTER_PRINTF("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
+  MASTER_PRINTF("\n");
   
   TmQuarkInfo me=qu;
   me.bc[0]=0;
@@ -330,7 +330,7 @@ void mes_transf(complex *co,TmQuarkInfo qu)
 	  complex fact={cos(p0*x),sin(p0*x)};
 	  complex_summ_the_prod(c[x],co[ip0],fact);
 	}
-      master_printf("%d %.16lg %.16lg\n",x,c[x][0],c[x][1]);
+      MASTER_PRINTF("%d %.16lg %.16lg\n",x,c[x][0],c[x][1]);
     }
 }
 
@@ -343,7 +343,7 @@ void check_mes_2pts()
   qu.mass=0.001;
   qu.r=1;
   
-  master_printf(" ------------------ meson------------------ \n");
+  MASTER_PRINTF(" ------------------ meson------------------ \n");
   
   double mu2=qu.mass*qu.mass;
   complex co[glbSize[0]];
@@ -386,7 +386,7 @@ void check_mes_ins_S_2pts()
   qu.mass=0.001;
   qu.r=1;
   
-  master_printf(" ------------------ meson with S insertion ------------------ \n");
+  MASTER_PRINTF(" ------------------ meson with S insertion ------------------ \n");
   
   complex co[glbSize[0]];
   memset(co,0,sizeof(complex)*glbSize[0]);
@@ -433,7 +433,7 @@ void check_mes_ins_P_2pts()
   qu.mass=0.001;
   qu.r=1;
   
-  master_printf(" ------------------ meson with P insertion ------------------ \n");
+  MASTER_PRINTF(" ------------------ meson with P insertion ------------------ \n");
   
   complex co[glbSize[0]];
   memset(co,0,sizeof(complex)*glbSize[0]);
@@ -479,7 +479,7 @@ void check_mes_V1V1()
   qu.r=1;
   TmQuarkInfo pu=qu;
   pu.r=-1;
-  master_printf(" ------------------ meson_v1v1------------------ \n");
+  MASTER_PRINTF(" ------------------ meson_v1v1------------------ \n");
   
   double mu2=qu.mass*qu.mass;
   complex co[glbSize[0]];
@@ -525,7 +525,7 @@ void check_mes_A1A1()
   qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" ------------------ meson_a1a1------------------ \n");
+  MASTER_PRINTF(" ------------------ meson_a1a1------------------ \n");
   
   double mu2=qu.mass*qu.mass;
   complex co[glbSize[0]];
@@ -570,7 +570,7 @@ void check_mes_self_en()
   qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" ------------------ meson with self energy ------------------ \n");
+  MASTER_PRINTF(" ------------------ meson with self energy ------------------ \n");
   
   spin1prop *pho_pro=nissa_malloc("pho_pro",locVol,spin1prop);
   NISSA_LOC_VOL_LOOP(p)
@@ -637,7 +637,7 @@ void check_mes_cons_self_en()
   qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" ------------------ meson with self energy conservata ------------------ \n");
+  MASTER_PRINTF(" ------------------ meson with self energy conservata ------------------ \n");
   
   spin1prop *pho_pro=nissa_malloc("pho_pro",locVol,spin1prop);
   NISSA_LOC_VOL_LOOP(p)
@@ -719,7 +719,7 @@ void check_handcuffs()
   qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" ------------------ handcuffs ------------------ \n");
+  MASTER_PRINTF(" ------------------ handcuffs ------------------ \n");
   
   double mu2=qu.mass*qu.mass;
   quad_u1 co[glbSize[0]];
@@ -802,7 +802,7 @@ void check_gen()
 	  double ea=sa/n;
 	  double eb=sb/n;
 	  double c=(eab-ea*eb)/sqrt((eaa-ea*ea)*(ebb-eb*eb));
-	  master_printf("%lg\n",c);
+	  MASTER_PRINTF("%lg\n",c);
 	}
     
 }
@@ -810,7 +810,7 @@ void check_gen()
 //print the propagator on a particular momentum
 void print_ref_prop()
 {
-  crash("reimplement");
+  CRASH("reimplement");
   // TmQuarkInfo qu;
   // qu.bc[0]=1;
   // for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
@@ -821,12 +821,12 @@ void print_ref_prop()
   // spinspin p;
   // mom_space_twisted_propagator_of_imom(p,qu,loclx_of_coord_list(5,1,3,2),MAX_TWIST_BASE);
   
-  // master_printf("propagator at site 5,1,3,2:\n");
+  // MASTER_PRINTF("propagator at site 5,1,3,2:\n");
   // spinspin_print(p);
   
   // spinspin *prop=nissa_malloc("prop",locVol,spinspin);
   // compute_x_space_twisted_propagator_by_fft(prop,qu,MAX_TWIST_BASE);
-  // master_printf("x space propagator at site 5,1,3,2:\n");
+  // MASTER_PRINTF("x space propagator at site 5,1,3,2:\n");
   // spinspin_print(prop[loclx_of_coord_list(5,1,3,2)]);
   
   // nissa_free(prop);
@@ -859,7 +859,7 @@ void check_scalar_EU()
     mom_space_tlSym_gauge_propagator_of_imom(pho_pro[p],photon,p);
     tad+=pho_pro[p][0][0][RE];
   }
-  master_printf("Tadpole: %lg\n",tad);
+  MASTER_PRINTF("Tadpole: %lg\n",tad);
   
   double eu4=0;
   NISSA_LOC_VOL_LOOP(imom)
@@ -872,7 +872,7 @@ void check_scalar_EU()
 	c+=3*(-4*Si(imom,imom,qu,mu)*sin_p[mu] + 4*M_of_mom(qu,imom)*Co(imom,imom,qu,mu))*tad/2.0;
     eu4+=c/den_of_mom(imom,qu);
   }
-  master_printf("eu4: %.16lg\n",eu4);
+  MASTER_PRINTF("eu4: %.16lg\n",eu4);
   
   double eu6=0;
   double mu2=qu.mass*qu.mass;
@@ -904,8 +904,8 @@ void check_scalar_EU()
   
   nissa_free(pho_pro);
   
-  master_printf("eu6: %.16lg\n",eu6);
-  crash("ddd");
+  MASTER_PRINTF("eu6: %.16lg\n",eu6);
+  CRASH("ddd");
 }
 
 void in_main(int narg,char **arg)
@@ -916,32 +916,32 @@ void in_main(int narg,char **arg)
   //print_ref_prop();
   
   check_mes_2pts();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_mes_ins_P_2pts();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_mes_V1V1();
   return;
   check_mes_A1A1();
-    master_printf("\n\n");
+    MASTER_PRINTF("\n\n");
 
   check_scalar_EU();
   
   check_fw_vacuum_curr();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_handcuffs();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_mes_2pts();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_mes_self_en();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_mes_cons_self_en();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_bar();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_bar2();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_bar3();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   for(int i=0;i<2000;i++) check_gen();
 }
 

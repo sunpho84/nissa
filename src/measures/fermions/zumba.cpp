@@ -16,7 +16,7 @@ namespace nissa
   // measure the chiral condensate and its derivative w.r.t mu
   void measure_chir_zumba(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,chir_zumba_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // int nflavs=theory_pars.nflavs();
     
     // //open the file, allocate point result and source
@@ -43,7 +43,7 @@ namespace nissa
     // 	//loop over flavors
     // 	for(int iflav=0;iflav<nflavs;iflav++)
     // 	  {
-    // 	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
+    // 	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) CRASH("not defined for non-staggered quarks");
 	    
     // 	    //vectors for output
     // 	    NEW_TRACE_RES(Tr_M);

@@ -73,7 +73,7 @@ namespace nissa
     
     //take final time
     time+=take_time();
-    verbosity_lv2_master_printf("Time elapsed in writing: %f s\n",time);
+    VERBOSITY_LV2_MASTER_PRINTF("Time elapsed in writing: %f s\n",time);
   }
   
   template <typename T,
@@ -154,7 +154,7 @@ namespace nissa
 	  quad_su3_ildg_to_nissa_reord(conf[ivol],conf[ivol]);
 	});
     
-    verbosity_lv2_master_printf("Time elapsed in writing gauge file '%s': %f s\n",path.c_str(),take_time()-startTime);
+    VERBOSITY_LV2_MASTER_PRINTF("Time elapsed in writing gauge file '%s': %f s\n",path.c_str(),take_time()-startTime);
     ILDG_File_close(file);
   }
   
@@ -170,7 +170,7 @@ namespace nissa
   inline   //Write a whole spincolor
   void write_spincolor(std::string path,spincolor *spinor,size_t prec)
   {
-      crash("reimplement");
+      CRASH("reimplement");
 //     //Open the file
 //     ILDG_File file=ILDG_File_open_for_write(path);
     

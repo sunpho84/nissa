@@ -14,7 +14,7 @@ namespace nissa
   void tmLQCD_init()
   {
     //print message
-    verbosity_lv2_master_printf("Calling tmLQCD\n");
+    VERBOSITY_LV2_MASTER_PRINTF("Calling tmLQCD\n");
     
     //parameters
     int argc=0,verbose=1,external_id=0;

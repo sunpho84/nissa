@@ -30,7 +30,7 @@ namespace nissa
   void paths_calculation_structure::move_forward(int mu)
   {
     //check not to have passed the max number of steps
-    if(cur_mov==ntot_mov) crash("exceded (%d) the number of allocated movements, %d",cur_mov,ntot_mov);
+    if(cur_mov==ntot_mov) CRASH("exceded (%d) the number of allocated movements, %d",cur_mov,ntot_mov);
     //find global pos
     const int nx=glblxNeighup(pos,mu);
     //search rank hosting site and loclx
@@ -57,7 +57,7 @@ namespace nissa
     //mark backward move
     link_for_movements[cur_mov]+=DAG_LINK_FLAG;
     //check not to have passed the max number of steps
-    if(cur_mov==ntot_mov) crash("exceeded (%d) the number of allocated movements, %d",cur_mov,ntot_mov);
+    if(cur_mov==ntot_mov) CRASH("exceeded (%d) the number of allocated movements, %d",cur_mov,ntot_mov);
     //find global pos
     int nx=glblxNeighdw(pos,mu);
     //search rank hosting site and loclx
@@ -80,8 +80,8 @@ namespace nissa
   //finish settings the paths, setup the send and receiver
   void paths_calculation_structure::finished_last_path()
   {
-    if(cur_path!=npaths) crash("finished the path list at path %d while it was initialized for %d",cur_path,npaths);
-    if(cur_mov!=ntot_mov) crash("finished the path list at mov %d while it was initialized for %d",cur_mov,ntot_mov);
+    if(cur_path!=npaths) CRASH("finished the path list at path %d while it was initialized for %d",cur_path,npaths);
+    if(cur_mov!=ntot_mov) CRASH("finished the path list at mov %d while it was initialized for %d",cur_mov,ntot_mov);
     
     //sort the list
     qsort(movements_nonloc_links_id_list,nnonloc_links,sizeof(movement_link_id),compare_movement_link_id);
@@ -342,7 +342,7 @@ namespace nissa
     //summ last path
     su3_summassign(paths[npaths-1],cur_path);
     
-    if(ipath!=npaths-1) crash("finished the movements at path %d while expecting %d",ipath,npaths);
+    if(ipath!=npaths-1) CRASH("finished the movements at path %d while expecting %d",ipath,npaths);
     
     nissa_free(nonloc_links);
   }
@@ -413,7 +413,7 @@ namespace nissa
     //summ last path
     su3_summassign(paths[npaths-1],cur_path);
     
-    if(ipath!=npaths-1) crash("finished the movements at path %d while expecting %d",ipath,npaths);
+    if(ipath!=npaths-1) CRASH("finished the movements at path %d while expecting %d",ipath,npaths);
     
     nissa_free(nonloc_links);
   }
@@ -423,7 +423,7 @@ namespace nissa
   //initialise to identity
   void init_su3_path(path_drawing_t* c,su3* out)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // NISSA_PARALLEL_LOOP(ivol,0,locVol)
     //   su3_put_to_id(out[ivol]);
@@ -438,7 +438,7 @@ namespace nissa
   void crash_if_end_diff_from_start(path_drawing_t *c)
   {
     if(c->back()!=c->front())
-      crash("(end point,[%d %d %d %d])!=(start_point,[%d,%d,%d,%d])",
+      CRASH("(end point,[%d %d %d %d])!=(start_point,[%d,%d,%d,%d])",
 	    c->back()[0],c->back()[1],c->back()[2],c->back()[3],
 	    c->front()[0],c->front()[1],c->front()[2],c->front()[3]);
   }
@@ -446,7 +446,7 @@ namespace nissa
   //elong backward
   void elong_su3_path_BW(path_drawing_t* c,su3* out,quad_su3* conf,int mu,bool both_sides)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // if(both_sides) crash_if_end_diff_from_start(c);
     
@@ -478,7 +478,7 @@ namespace nissa
   //elong forward
   void elong_su3_path_FW(path_drawing_t* c,su3* out,quad_su3* conf,int mu,bool both_sides)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // if(both_sides) crash_if_end_diff_from_start(c);
     

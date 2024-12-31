@@ -104,7 +104,7 @@ int main(int narg,char **arg)
 	      }
 	  how*=2;
 	  double glb_d=sqrt(glb_reduce_double(loc_d)/glb_vol);
-	  master_printf("Average norm2 difference between analytic and stochastic gluon propagators with %d sources: %lg\n",isource+1,glb_d);
+	  MASTER_PRINTF("Average norm2 difference between analytic and stochastic gluon propagators with %d sources: %lg\n",isource+1,glb_d);
 	}
     }
   

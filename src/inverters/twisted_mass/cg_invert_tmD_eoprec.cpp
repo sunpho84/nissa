@@ -68,7 +68,7 @@ namespace nissa
   {
     if(use_128_bit_precision)
       {
-	crash("reimplement");
+	CRASH("reimplement");
 	//inv_tmDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,mass,nitermax,residue,source);
       }
     else
@@ -105,7 +105,7 @@ namespace nissa
 				const double& residue,
 				const LxField<spincolor>& source_lx)
   {
-    if(not use_eo_geom) crash("eo geometry needed to use cg_eoprec");
+    if(not use_eo_geom) CRASH("eo geometry needed to use cg_eoprec");
     
     //prepare the e/o split version of the source
     EoField<spincolor> source_eos("source_eos",WITH_HALO);
@@ -164,21 +164,21 @@ namespace nissa
 	
 	double call_time=take_time();
 #ifdef USE_QUDA
-	crash("reimplement");
+	CRASH("reimplement");
 	// solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
 #elif defined(USE_DDALPHAAMG)
-	crash("reimplement the handle with DDalpha");
+	CRASH("reimplement the handle with DDalpha");
 	(void)&cSW;//avoid warning
 	//solved=DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
 #else
-	crash("How possible!");
+	CRASH("How possible!");
 #endif
-	master_printf("calling multigrid to solve took %lg s\n",take_time()-call_time);
+	MASTER_PRINTF("calling multigrid to solve took %lg s\n",take_time()-call_time);
       }
 
 #ifdef USE_TMLQCD
     if(checkIfTmLQCDAvailableAndRequired() and not solved)
-      crash("Not yet implemented");
+      CRASH("Not yet implemented");
 #endif
     
     if(not solved)
@@ -204,7 +204,7 @@ namespace nissa
     /// Residue L2 norm
     const double residueNorm2=residueVec.norm2();
     
-    master_printf("check solution, residue: %lg, target one: %lg checked in %lg s\n",residueNorm2/sourceNorm2,residue,take_time()-check_time);
+    MASTER_PRINTF("check solution, residue: %lg, target one: %lg checked in %lg s\n",residueNorm2/sourceNorm2,residue,take_time()-check_time);
   }
 }
 

@@ -14,7 +14,7 @@ namespace nissa
   inline double Wilson_action(const double& plaq,
 			      const double& beta)
   {
-    verbosity_lv2_master_printf("Computing Wilson gauge action\n");
+    VERBOSITY_LV2_MASTER_PRINTF("Computing Wilson gauge action\n");
     
     return beta*6*(1-plaq)*glbVol;
   }

@@ -142,7 +142,7 @@ namespace nissa
   void global_plaquette_and_rectangles_lx_conf_per_timeslice(double* glb_shapes,
 							     const LxField<quad_su3>& conf)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // //summ squares and rectangles separately
     // LxField<complex> point_shapes("point_shapes");
     // point_plaquette_and_rectangles_lx_conf(point_shapes,conf);

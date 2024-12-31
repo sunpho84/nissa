@@ -50,7 +50,7 @@ struct HitLooper
     if(ord==RECALL)
       {
 	if(propagatorsStatus[name]!=OFFLOADED)
-	  crash("Asking to recall something not offloaded");
+	  CRASH("Asking to recall something not offloaded");
 	
 	offloadIfNeededToAccommodate(1);
 	q.alloc_storage();
@@ -80,17 +80,17 @@ struct HitLooper
 	    }
 	}
     const char tag[3][15]={"Offloading","Recalling","Erasing"};
-    master_printf("%s took: %lg s\n",tag[ord],take_time()-rwBeg);
+    MASTER_PRINTF("%s took: %lg s\n",tag[ord],take_time()-rwBeg);
     
     if(ord==OFFLOAD)
       {
 	if(propagatorsStatus[name]!=IN_MEMORY)
-	  crash("Asking to offload something not in memory");
+	  CRASH("Asking to offload something not in memory");
 	
         const int64_t pre=required_memory;
         q.free_storage();
         const int64_t aft=required_memory;
-	master_printf("Freed after offloading, memory before: %ld bytes, after: %ld bytes\n",pre,aft);
+	MASTER_PRINTF("Freed after offloading, memory before: %ld bytes, after: %ld bytes\n",pre,aft);
 	propagatorsStatus[name]=OFFLOADED;
 	nOffloaded++;
       }
@@ -99,7 +99,7 @@ struct HitLooper
   /// Erase all the propagators which are not needed
   void eraseUnnededProps()
   {
-    master_printf("Checking what can be erased\n");
+    MASTER_PRINTF("Checking what can be erased\n");
     
     /// List of propagators to be erased
     std::set<std::string> toErase;
@@ -107,30 +107,30 @@ struct HitLooper
       {
 	if(propDep[n].empty())
 	  {
-	    master_printf("Erasing %s\n",n.c_str());
+	    MASTER_PRINTF("Erasing %s\n",n.c_str());
 	    toErase.insert(n);
 	  }
 	else
-	  verbosity_lv3_master_printf("keeping %s as it has %zu deps, first is: %s\n",n.c_str(),propDep[n].size(),propDep[n].begin()->c_str());
+	  VERBOSITY_LV3_MASTER_PRINTF("keeping %s as it has %zu deps, first is: %s\n",n.c_str(),propDep[n].size(),propDep[n].begin()->c_str());
       }
     
     for(const auto& e : toErase)
       {
 	propagatorsStatus.erase(e);
 	Q[e].free_storage();
-	master_printf("%s freed\n",e.c_str());
+	MASTER_PRINTF("%s freed\n",e.c_str());
 	
 	// Phyiscally remove from disk
 	if(auto o=offloadedList.find(e);o!=offloadedList.end())
 	  {
-	    master_printf("%s can be deleted from disk\n",e.c_str());
+	    MASTER_PRINTF("%s can be deleted from disk\n",e.c_str());
 	    offloadedList.erase(o);
 	    offloadRecallDelete(e,DELETE);
 	  }
       }
     
-    master_printf("n Live props: %zu\n",propagatorsStatus.size());
-    master_printf("n offloaded props: %zu\n",offloadedList.size());
+    MASTER_PRINTF("n Live props: %zu\n",propagatorsStatus.size());
+    MASTER_PRINTF("n offloaded props: %zu\n",offloadedList.size());
   }
   
   /// Offload some propagators, to accommodate nToAccommodate more
@@ -149,15 +149,15 @@ struct HitLooper
 	    firstUsage++;
 	  
 	  if(firstUsage==orderedDep.size())
-	    crash("At nPassedDep %d unable to find the first usage for %s, why is it allocated?",nPassedDep,s.c_str());
+	    CRASH("At nPassedDep %d unable to find the first usage for %s, why is it allocated?",nPassedDep,s.c_str());
 	  else
 	    futureDeps.emplace_back(firstUsage-nPassedDep,s);
 	}
     
-    verbosity_lv2_master_printf("futureDeps:\n");
+    VERBOSITY_LV2_MASTER_PRINTF("futureDeps:\n");
     for([[maybe_unused]] const auto&  [delay,name] : futureDeps)
       {
-	verbosity_lv2_master_printf(" %d %s\n",delay,name.c_str());
+	VERBOSITY_LV2_MASTER_PRINTF(" %d %s\n",delay,name.c_str());
       }
     
     // \todo simplify
@@ -165,12 +165,12 @@ struct HitLooper
     int nLoaded=0;
     for(const auto& s : propagatorsStatus)
       nLoaded+=(s.second==1);
-    verbosity_lv2_master_printf("n Loaded props: %d\n",nLoaded);
+    VERBOSITY_LV2_MASTER_PRINTF("n Loaded props: %d\n",nLoaded);
     
     if((int)futureDeps.size()!=nLoaded)
-      crash("unmatched loaded and future deps, %d %zu",nLoaded,futureDeps.size());
+      CRASH("unmatched loaded and future deps, %d %zu",nLoaded,futureDeps.size());
     
-    master_printf("Needs to accommodate %d more props, %d are loaded and max is %d, needs to offload %d\n",
+    MASTER_PRINTF("Needs to accommodate %d more props, %d are loaded and max is %d, needs to offload %d\n",
 		  nToAccommodate,nLoaded,nMaxPropsAllocated,nLoaded+nToAccommodate-nMaxPropsAllocated);
     
     std::sort(futureDeps.begin(),futureDeps.end());
@@ -178,8 +178,8 @@ struct HitLooper
       {
 	const auto& [delay,name]=futureDeps[i];
 	if(delay==0)
-	  crash("Unable to offload %s which will be needed immediately!",name.c_str());
-	master_printf("Offloading %s which will be used in %d\n",name.c_str(),delay);
+	  CRASH("Unable to offload %s which will be needed immediately!",name.c_str());
+	MASTER_PRINTF("Offloading %s which will be used in %d\n",name.c_str(),delay);
 	offloadRecallDelete(name,OFFLOAD);
 	offloadedList.insert(name);
       }
@@ -190,7 +190,7 @@ struct HitLooper
   {
     if(propagatorsStatus[name]==OFFLOADED)
       {
-	master_printf("Recalling %s\n",name.c_str());
+	MASTER_PRINTF("Recalling %s\n",name.c_str());
 	offloadRecallDelete(name,RECALL);
       }
   }
@@ -211,7 +211,7 @@ struct HitLooper
       }
     
     //consistency check
-    if(not stoch_source and (not diluted_spi_source or not diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
+    if(not stoch_source and (not diluted_spi_source or not diluted_col_source)) CRASH("for a non-stochastic source, spin and color must be diluted");
     
     //reset all to begin
     for(int i=0;i<nso_spi*nso_col;i++)
@@ -278,7 +278,7 @@ struct HitLooper
 			    case RND_UNIF:
 			    case RND_Z3:
 			    case RND_GAUSS:
-			      crash("not implemented yet");
+			      CRASH("not implemented yet");
 			      break;
 			    }
 		    }
@@ -314,7 +314,7 @@ struct HitLooper
     //   for(int ic_so=0;ic_so<nso_col;ic_so++)
     // 	{
     // 	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
-    // 	  master_printf("eta (0): %lg %lg\n",s[0][0][0][RE],s[0][0][0][IM]);
+    // 	  MASTER_PRINTF("eta (0): %lg %lg\n",s[0][0][0][RE],s[0][0][0][IM]);
     // 	  fft4d((complex*)temp,(complex*)s,NDIRAC*NCOL,FFT_PLUS,FFT_NO_NORMALIZE);
 	  
     // 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
@@ -328,10 +328,10 @@ struct HitLooper
 	  
     // 	  const int64_t nPoints=((tins==-1)?glbVol:glbSpatVol);
 	  
-    // 	  master_printf("eta+ eta (0): %lg , eta+ eta (1): %lg\n",n[0][RE],n[1][RE]);
+    // 	  MASTER_PRINTF("eta+ eta (0): %lg , eta+ eta (1): %lg\n",n[0][RE],n[1][RE]);
     // 	  if(rank==0)
     // 	    n[0][RE]-=(double)NDIRAC*NCOL*nPoints/nso_spi/nso_col;
-    // 	  master_printf("eta+ eta (0) after sub: %lg\n",n[0][RE]);
+    // 	  MASTER_PRINTF("eta+ eta (0) after sub: %lg\n",n[0][RE]);
 	  
     // 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
     // 	    {
@@ -342,14 +342,14 @@ struct HitLooper
     // 	  complex res[1];
     // 	  glb_reduce(res,n,locVol);
 	  
-    // 	  master_printf("Res: %lg\n",res[0][RE]);
+    // 	  MASTER_PRINTF("Res: %lg\n",res[0][RE]);
 	  
     // 	  double exp=(double)NDIRAC*NCOL*sqr(nPoints)/(nso_spi*nso_col);
-    // 	  master_printf("Exp: %lg\n",exp);
+    // 	  MASTER_PRINTF("Exp: %lg\n",exp);
 	  
     // 	  double dev=res[0][RE]/exp-1;
 	  
-    // 	  master_printf("Dev: %lg\n",dev);
+    // 	  MASTER_PRINTF("Dev: %lg\n",dev);
     // 	}
     
     // nissa_free(temp);
@@ -362,7 +362,7 @@ struct HitLooper
     for(size_t i=0;i<ori_source_name_list.size();i++)
       {
 	std::string &name=ori_source_name_list[i];
-	master_printf("Generating source \"%s\"\n",name.c_str());
+	MASTER_PRINTF("Generating source \"%s\"\n",name.c_str());
 	qprop_t *q=&Q[name];
 	q->alloc_storage();
 	generate_original_source(q,skipOnly);
@@ -382,19 +382,19 @@ struct HitLooper
 		//if the prop exists read it
 		if(rw.canLoad())
 		  {
-		    master_printf("  loading the source dirac index %d, color %d\n",id_so,ic_so);
+		    MASTER_PRINTF("  loading the source dirac index %d, color %d\n",id_so,ic_so);
 		    START_TIMING(read_prop_time,nread_prop);
 		    rw.read();
 		    STOP_TIMING(read_prop_time);
 		  }
 		else
 		  {
-		    master_printf("  file %s not available, skipping loading\n",path.c_str());
+		    MASTER_PRINTF("  file %s not available, skipping loading\n",path.c_str());
 		    
 		    //and store if needed
 		    if(q->store)
 		      {
-			master_printf("  writing the source dirac index %d, color %d\n",id_so,ic_so);
+			MASTER_PRINTF("  writing the source dirac index %d, color %d\n",id_so,ic_so);
 			START_TIMING(store_prop_time,nstore_prop);
 			rw.write();
 			STOP_TIMING(store_prop_time);
@@ -406,7 +406,7 @@ struct HitLooper
   
   void start_hit(int ihit,bool skip=false)
   {
-    master_printf("\n=== Hit %d/%d ====\n",ihit+1,nhits);
+    MASTER_PRINTF("\n=== Hit %d/%d ====\n",ihit+1,nhits);
     
     if(doNotAverageHits)
       clearCorrelations();
@@ -424,8 +424,8 @@ struct HitLooper
     else
       source_coord=generate_random_coord();
     
-    if(stoch_source) master_printf(" source time: %d\n",source_coord[0]);
-    else             master_printf(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
+    if(stoch_source) MASTER_PRINTF(" source time: %d\n",source_coord[0]);
+    else             MASTER_PRINTF(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
     if(need_photon)
       {
 	if(skip)
@@ -457,13 +457,13 @@ struct HitLooper
     
     for(size_t i=0;i<qprop_name_list.size();i++)
       if(propDep[qprop_name_list[i]].size()==0)
-	master_printf("Skipping generation of prop %s as it has no dependencies\n",qprop_name_list[i].c_str());
+	MASTER_PRINTF("Skipping generation of prop %s as it has no dependencies\n",qprop_name_list[i].c_str());
       else
 	{
 	  //get names
 	  std::string name=qprop_name_list[i];
 	  if(runStep==2)
-	    master_printf("Computing prop %s\n",name.c_str());
+	    MASTER_PRINTF("Computing prop %s\n",name.c_str());
 	  
 	  qprop_t &q=Q[name];
 	  
@@ -485,9 +485,9 @@ struct HitLooper
 	  // Remove the dependencies from all sources
 	  for(const auto& [s,w] : q.source_terms)
 	    if(propDep[s].erase(name)!=1)
-	      crash("unable to remove the dependency %s of %s!",name.c_str(),s.c_str());
+	      CRASH("unable to remove the dependency %s of %s!",name.c_str(),s.c_str());
 	    else
-	      verbosity_lv2_master_printf("Erased dependency of %s from %s which has still %zu dependencies\n",name.c_str(),s.c_str(),propDep[s].size());
+	      VERBOSITY_LV2_MASTER_PRINTF("Erased dependency of %s from %s which has still %zu dependencies\n",name.c_str(),s.c_str(),propDep[s].size());
 	  
 	  if(runStep==2)
 	    {
@@ -503,7 +503,7 @@ struct HitLooper
 	       computed2ptsList.count(icombo)==0)
 	      {
 		if(runStep==2)
-		  master_printf("Can compute contraction: %s %s -> %s, %zu/%zu\n",
+		  MASTER_PRINTF("Can compute contraction: %s %s -> %s, %zu/%zu\n",
 			      a.c_str(),b.c_str(),mes2pts_contr_map[icombo].name.c_str(),computed2ptsList.size(),mes2pts_contr_map.size());
 		
 		// Insert the correlation in the computed list
@@ -536,8 +536,8 @@ struct HitLooper
     if(runStep==1)
       {
 	for([[maybe_unused]] const auto& s : orderedDep)
-	  verbosity_lv2_master_printf("  %s\n",s.c_str());
-	verbosity_lv2_master_printf("Dependencies end\n");
+	  VERBOSITY_LV2_MASTER_PRINTF("  %s\n",s.c_str());
+	VERBOSITY_LV2_MASTER_PRINTF("Dependencies end\n");
       }
   }
   
@@ -552,7 +552,7 @@ struct HitLooper
 	os<<" not computed corr "<<m.name<<" between "<<m.a<<" and "<<m.b<<std::endl;
     
     if(os.str().size())
-      crash("%s",os.str().c_str());
+      CRASH("%s",os.str().c_str());
   }
   
   /// Constructor

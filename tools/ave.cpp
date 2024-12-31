@@ -16,7 +16,7 @@ void read_file(char *inpath)
   
   //read
   int n=fread((void*)data,sizeof(double),read_size,fin);
-  if(n!=read_size) crash("while reading %s received %d",inpath,n);
+  if(n!=read_size) CRASH("while reading %s received %d",inpath,n);
   
   //change endianess if needed
   if(!little_endian)
@@ -38,7 +38,7 @@ void write_file(char *outpath)
   
   //read
   int n=fwrite((void*)ave_data,sizeof(double),read_size,fout);
-  if(n!=read_size) crash("while writing %s received %d",outpath,n);
+  if(n!=read_size) CRASH("while writing %s received %d",outpath,n);
 }
 
 //get next token
@@ -51,7 +51,7 @@ int read_next(char *tok,char *&line)
       int l=strlen(tok);
       line=strstr(line,tok);
       if(line!=NULL) line+=l;
-      else crash("got null!");
+      else CRASH("got null!");
     }
   else line=NULL;
   
@@ -70,7 +70,7 @@ int get_file_ndouble(char *path)
   fclose(fin);
   
   //convert to ndouble
-  if(end%sizeof(double)) crash("file %s contains wrong data type (size=%d, not multiple of %d)",path,end,sizeof(double));
+  if(end%sizeof(double)) CRASH("file %s contains wrong data type (size=%d, not multiple of %d)",path,end,sizeof(double));
   end/=sizeof(double);
   
   return end;
@@ -81,7 +81,7 @@ void average(char *read_line)
 {
   //get outpath
   char outpath[1024];
-  if(read_next(outpath,read_line)<0) crash("reading output path");
+  if(read_next(outpath,read_line)<0) CRASH("reading output path");
   printf("outpath: %s\n",outpath);
   
   //allocated size
@@ -109,13 +109,13 @@ void average(char *read_line)
 	    }
 	  else
 	    //check agreement of all files
-	    if(read_size!=allo_size) crash("file %s contains %d double, previous ones contains %d",inpath,read_size,allo_size);
+	    if(read_size!=allo_size) CRASH("file %s contains %d double, previous ones contains %d",inpath,read_size,allo_size);
 	  
 	  //read the file and summ it
 	  read_file(inpath);
 	  nin++;
 	}
-      else if(nin==0) crash("while reading first inpath");
+      else if(nin==0) CRASH("while reading first inpath");
     }
   while(read_line!=NULL);
   
@@ -132,7 +132,7 @@ void average(char *read_line)
 
 int main(int narg,char **arg)
 {
-  if(narg<2) crash("use %s file",arg[0]);
+  if(narg<2) CRASH("use %s file",arg[0]);
 
   check_endianess();
   

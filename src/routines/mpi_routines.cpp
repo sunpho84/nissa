@@ -25,7 +25,7 @@ namespace nissa
   {
     int nbytes;
     decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes),"while counting bytes");
-    if(nbytes<0) crash("negative count: %d",nbytes);
+    if(nbytes<0) CRASH("negative count: %d",nbytes);
     
     return (size_t)nbytes;
   }

@@ -21,25 +21,25 @@
  #define EXTERN_IOS extern
 #endif
 
-#define master_printf(...) ::nissa::master_fprintf(stdout,__VA_ARGS__)
+#define MASTER_PRINTF(...) ::nissa::master_fprintf(stdout,__VA_ARGS__)
 
 //wrappers for verbosity_lv?
 #if MAX_VERBOSITY_LV>=1
-# define verbosity_lv1_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV1) master_printf(__VA_ARGS__);)
+# define VERBOSITY_LV1_MASTER_PRINTF(...) MACRO_GUARD(if(VERBOSITY_LV1) MASTER_PRINTF(__VA_ARGS__);)
 #else
-# define verbosity_lv1_master_printf(...) MACRO_GUARD()
+# define VERBOSITY_LV1_MASTER_PRINTF(...) MACRO_GUARD()
 #endif
 
 #if MAX_VERBOSITY_LV>=2
-# define verbosity_lv2_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV2) master_printf(__VA_ARGS__);)
+# define VERBOSITY_LV2_MASTER_PRINTF(...) MACRO_GUARD(if(VERBOSITY_LV2) MASTER_PRINTF(__VA_ARGS__);)
 #else
-# define verbosity_lv2_master_printf(...) MACRO_GUARD()
+# define VERBOSITY_LV2_MASTER_PRINTF(...) MACRO_GUARD()
 #endif
 
 #if MAX_VERBOSITY_LV>=3
-# define verbosity_lv3_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV3) master_printf(__VA_ARGS__);)
+# define VERBOSITY_LV3_MASTER_PRINTF(...) MACRO_GUARD(if(VERBOSITY_LV3) MASTER_PRINTF(__VA_ARGS__);)
 #else
-# define verbosity_lv3_master_printf(...) MACRO_GUARD()
+# define VERBOSITY_LV3_MASTER_PRINTF(...) MACRO_GUARD()
 #endif
 
 namespace nissa
@@ -96,7 +96,7 @@ namespace nissa
     T out=0;
     if(is_master_rank() and thread_id==0)
       if(fscanf(stream,tag,&out)!=1)
-	crash("Unable to read!");
+	CRASH("Unable to read!");
     
     //broadcast
     MPI_Bcast(&out,sizeof(T),MPI_CHAR,master_rank,MPI_COMM_WORLD);
@@ -140,7 +140,7 @@ namespace nissa
     
     void assert_inited()
     {
-      if(not inited) crash("Needs to be inited");
+      if(not inited) CRASH("Needs to be inited");
     }
     
   public:
@@ -148,7 +148,7 @@ namespace nissa
     //create the tag
     void init()
     {
-      master_printf("Initializing the tag for a %zu bytes lock-file\n",sizeof(T));
+      MASTER_PRINTF("Initializing the tag for a %zu bytes lock-file\n",sizeof(T));
       get_system_random(tag);
       
       inited=true;
@@ -174,8 +174,8 @@ namespace nissa
       
       MPI_Bcast(&written,1,MPI_INT,master_rank,MPI_COMM_WORLD);
       
-      if(written) master_printf("Created lock file %s\n",path.c_str());
-      else master_printf("Failed to create the lock file %s\n",path.c_str());
+      if(written) MASTER_PRINTF("Created lock file %s\n",path.c_str());
+      else MASTER_PRINTF("Failed to create the lock file %s\n",path.c_str());
       
       return written;
     }
@@ -203,7 +203,7 @@ namespace nissa
   template <typename...Args>
   void safe_snprintf(char *buf,int n,const char *pattern,const Args&...args)
   {
-    if(snprintf(buf,n,pattern,args...)<0) crash("witing to %d long array",n);
+    if(snprintf(buf,n,pattern,args...)<0) CRASH("witing to %d long array",n);
   }
 }
 

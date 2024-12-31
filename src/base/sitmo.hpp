@@ -333,7 +333,7 @@ namespace nissa
       rng(rng),
       offsetReal(offsetReal)
     {
-      //master_printf("All entries of FieldRng initialized\n");
+      //MASTER_PRINTF("All entries of FieldRng initialized\n");
     }
     
     /// Returns a view on a specific site and real number
@@ -379,7 +379,7 @@ namespace nissa
     void enforce_single_usage()
     {
       if(used)
-	crash("cannot use a rng field twice");
+	CRASH("cannot use a rng field twice");
       used=true;
     }
     
@@ -469,17 +469,17 @@ namespace nissa
 	  benchmarkEndActions.emplace_back([this,
 					    n=nGeneratedDouble]()
 	  {
-	    verbosity_lv3_master_printf("Restoring FieldRngStream\n");
+	    VERBOSITY_LV3_MASTER_PRINTF("Restoring FieldRngStream\n");
 	    this->nGeneratedDouble=n;
 	  });
 	
-	verbosity_lv3_master_printf("Added backup action for FieldRngStream\n");
+	VERBOSITY_LV3_MASTER_PRINTF("Added backup action for FieldRngStream\n");
 	
 	return true;
       }
     else
       {
-	verbosity_lv3_master_printf("Skipping backup actions for FieldRngStream as we are not inside a parallel for\n");
+	VERBOSITY_LV3_MASTER_PRINTF("Skipping backup actions for FieldRngStream as we are not inside a parallel for\n");
 	
 	return false;
       }

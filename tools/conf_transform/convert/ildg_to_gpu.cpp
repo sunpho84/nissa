@@ -12,7 +12,7 @@ int snum(int x,int y,int z,int t)
 {return (x+y*L+z*L*L+t*L*L*L)/2;}
 
 void write_complex(FILE *out,complex in)
-{if(fprintf(out,"(%16.16lg,%16.16lg)\n",in[0],in[1])<0) crash("writing complex");}
+{if(fprintf(out,"(%16.16lg,%16.16lg)\n",in[0],in[1])<0) CRASH("writing complex");}
 
 void write_su3(FILE *out,su3 in)
 {
@@ -26,7 +26,7 @@ int main(int narg,char **arg)
   //basic mpi initialization
   init_nissa(narg,arg);
   
-  if(narg<5) crash("use: %s L T file_in file_out",arg[0]);
+  if(narg<5) CRASH("use: %s L T file_in file_out",arg[0]);
   
   L=atoi(arg[1]);
   T=atoi(arg[2]);
@@ -40,7 +40,7 @@ int main(int narg,char **arg)
   
   //print the plaquette and write the conf
   read_ildg_gauge_conf(in_conf,arg[3]);
-  master_printf("Global plaquette: %16.16lg\n",global_plaquette_lx_conf(in_conf));
+  MASTER_PRINTF("Global plaquette: %16.16lg\n",global_plaquette_lx_conf(in_conf));
   
   //////////////////////////// convert the conf //////////////////////////
   
@@ -49,7 +49,7 @@ int main(int narg,char **arg)
   //add phases
   addrem_stagphases_to_lx_conf(in_conf);
   
-  if(nranks>1) crash("cannot run in parallel");
+  if(nranks>1) CRASH("cannot run in parallel");
   
   //reorder the conf
   int map_mu[4]={1,2,3,0};
@@ -75,13 +75,13 @@ int main(int narg,char **arg)
   
   //open the file
   FILE *fout=fopen(arg[4],"w");
-  if(fout==NULL) crash("while opening %s",arg[4]);
+  if(fout==NULL) CRASH("while opening %s",arg[4]);
 
   //write header
   int nx=L,ny=L,nz=L,nt=T,nflav=2,ntraj=0;
   double beta=1000,mass=1000;
   int rc=fprintf(fout,"%d %d %d %d %lg %lg %d %d",nx,ny,nz,nt,beta,mass,nflav,ntraj);
-  if(rc<0) crash("writing header: %d",rc);
+  if(rc<0) CRASH("writing header: %d",rc);
   
   //write the file
   NISSA_LOC_VOL_LOOP(ivol)

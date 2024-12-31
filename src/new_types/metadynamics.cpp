@@ -107,9 +107,9 @@ namespace nissa
 	{
 	  double xread;
 	  int rc=fscanf(fin,"%lg %lg",&xread,&grid[igrid]);
-	  if(rc!=2) crash("reading line %d of \"%s\"",igrid,path);
+	  if(rc!=2) CRASH("reading line %d of \"%s\"",igrid,path);
 	  int jgrid=floor((xread+barr+width/2)/width);
-	  if(igrid!=jgrid) crash("found %d (%lg) when expecting %d",jgrid,xread,igrid);
+	  if(igrid!=jgrid) CRASH("found %d (%lg) when expecting %d",jgrid,xread,igrid);
 	}
     close_file(fin);
     

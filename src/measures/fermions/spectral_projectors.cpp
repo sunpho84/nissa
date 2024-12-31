@@ -20,7 +20,7 @@ namespace nissa
   //        https://arxiv.org/pdf/0912.2850.pdf for the 2^(d/2) overcounting.
   void measure_iD_spectrum(color** eigvec,eo_ptr<quad_su3> conf,complex* charge_cut,complex* eigval,int neigs,double eig_precision,int wspace_size)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // //parameters of the eigensolver
     // const bool min_max=0;
     
@@ -39,10 +39,10 @@ namespace nissa
     // double eig_time=-take_time();
     // find_eigenvalues_staggered_iD(eigvec,eigval,neigs,min_max,conf,u1b,eig_precision,wspace_size);
     
-    // verbosity_lv1_master_printf("\n\nEigenvalues of staggered iD operator:\n");
+    // VERBOSITY_LV1_MASTER_PRINTF("\n\nEigenvalues of staggered iD operator:\n");
     // for(int ieig=0;ieig<neigs;ieig++)
     //   {
-    // 	verbosity_lv1_master_printf("lam_%d = (%.16lg,%.16lg)\n",ieig,eigval[ieig][RE],eigval[ieig][IM]);
+    // 	VERBOSITY_LV1_MASTER_PRINTF("lam_%d = (%.16lg,%.16lg)\n",ieig,eigval[ieig][RE],eigval[ieig][IM]);
     // 	// compute terms u_j^+ g5 u_i
     // 	// convert 'eigvec[ieig]' in staggered format ('in_tmp_eo'),
     // 	// then multiply it with gamma5 and save the result in
@@ -54,19 +54,19 @@ namespace nissa
     // 	split_lx_vector_into_eo_parts(tmpvec_eo,eigvec[ieig]);
     // 	apply_stag_op(eigvec_g5_eo,conf,u1b,stag::GAMMA_5,stag::IDENTITY,tmpvec_eo);
     // 	//paste_eo_parts_into_lx_vector(eigvec_g5_lx,eigvec_g5_eo);
-    // 	crash("reimplement");
+    // 	CRASH("reimplement");
 	
     // 	//take hermitian products
     // 	for(int jeig=ieig;jeig<neigs;jeig++)
     // 	  {
     // 	    complex_vector_glb_scalar_prod(charge_cut[ieig*neigs+jeig],(complex*)eigvec[jeig],(complex*)eigvec_g5_lx,locVol*sizeof(color)/sizeof(complex));
-    // 	    verbosity_lv2_master_printf("u_%d^+ g5 u_%d = (%.16lg,%.16lg)\n",jeig,ieig,charge_cut[ieig*neigs+jeig][RE],charge_cut[ieig*neigs+jeig][IM]);
+    // 	    VERBOSITY_LV2_MASTER_PRINTF("u_%d^+ g5 u_%d = (%.16lg,%.16lg)\n",jeig,ieig,charge_cut[ieig*neigs+jeig][RE],charge_cut[ieig*neigs+jeig][IM]);
     // 	  }
     //   }
-    // verbosity_lv2_master_printf("\n\n\n");
+    // VERBOSITY_LV2_MASTER_PRINTF("\n\n\n");
     
     // eig_time+=take_time();
-    // verbosity_lv1_master_printf("Eigenvalues time: %lg\n",eig_time);
+    // VERBOSITY_LV1_MASTER_PRINTF("Eigenvalues time: %lg\n",eig_time);
     
     // nissa_free(tmpvec_eo[EVN]);
     // nissa_free(tmpvec_eo[ODD]);
@@ -80,7 +80,7 @@ namespace nissa
   //measure for a single smooth value
   void measure_spectral_proj(FILE *file,spectr_proj_meas_pars_t &meas_pars,quad_su3 *conf_lx,int iconf,int nsmooth)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // int neigs=meas_pars.neigs;
     
     // //smooth is implemented only for lx
@@ -109,7 +109,7 @@ namespace nissa
     // measure_iD_spectrum(eigvec,conf_eo,charge_cut,eigval,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
     
     // //print the result on file
-    // verbosity_lv2_master_printf("\n\nPartial sums for spectral projectors:\n\nk\t\t\teig\t\t\tA_k\t\t\tB_k\n");
+    // VERBOSITY_LV2_MASTER_PRINTF("\n\nPartial sums for spectral projectors:\n\nk\t\t\teig\t\t\tA_k\t\t\tB_k\n");
     
     // //vectors storing A_k and B_k partial sums, offset by 1 for convenience
     // master_fprintf(file,"%d\t%d\t%d\t",iconf,nsmooth,neigs);
@@ -133,8 +133,8 @@ namespace nissa
     // master_fprintf(file,"\n");
     
     // for(int ieig=0;ieig<neigs;ieig++)
-    //   verbosity_lv2_master_printf("%d\t%.16lg\t%.16lg\t%.16lg\n",ieig,eigval[ieig][RE],cum_sumA[1+ieig],cum_sumB[1+ieig]);
-    // verbosity_lv2_master_printf("\n\n");
+    //   VERBOSITY_LV2_MASTER_PRINTF("%d\t%.16lg\t%.16lg\t%.16lg\n",ieig,eigval[ieig][RE],cum_sumA[1+ieig],cum_sumB[1+ieig]);
+    // VERBOSITY_LV2_MASTER_PRINTF("\n\n");
     
     // //deallocate vectors
     // for(int ieig=0;ieig<neigs;ieig++)
@@ -168,19 +168,19 @@ namespace nissa
     
     quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bordVol+edgeVol,quad_su3);
     //paste_eo_parts_into_lx_vector(conf_lx,conf);
-    crash("reimplement");
+    CRASH("reimplement");
     
     //loop on smooth
     int nsmooth=0;
     bool finished=true;
     do
       {
-	verbosity_lv1_master_printf("Measuring spectral projectors for nsmooth %d/%d\n",nsmooth,meas_pars.smooth_pars.nsmooth());
+	VERBOSITY_LV1_MASTER_PRINTF("Measuring spectral projectors for nsmooth %d/%d\n",nsmooth,meas_pars.smooth_pars.nsmooth());
 	
 	measure_spectral_proj(file,meas_pars,conf_lx,iconf,nsmooth);
 	
 	//finished=smooth_lx_conf_until_next_meas(conf_lx,meas_pars.smooth_pars,nsmooth);
-	crash("reimplement");
+	CRASH("reimplement");
       }
     while(not finished);
     

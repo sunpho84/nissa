@@ -130,7 +130,7 @@ smooth_pars_t::method_t smooth_method_name_from_str(const char *name)
   while(imet<nmet_known && strcasecmp(name,name_known[imet])!=0) imet++;
   
   //check
-  if(imet==nmet_known) crash("unknown smoothing method: %s",name);
+  if(imet==nmet_known) CRASH("unknown smoothing method: %s",name);
   
   return met_known[imet];
 }
@@ -148,7 +148,7 @@ void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
 	{
 	case smooth_pars_t::COOLING: read_cool_pars(smooth_pars.cool);break;
 	case smooth_pars_t::WFLOW: read_Wflow_pars(smooth_pars.Wflow);break;
-	default: crash("should not arrive here");break;
+	default: CRASH("should not arrive here");break;
 	}
       read_str_int("MeasEachNSmooth",&smooth_pars.meas_each_nsmooth);
     }
@@ -314,7 +314,7 @@ void meas_x_corr(const char *path,quad_su3 *conf,bool conf_created)
 	    //rotate the sink index
 	    safe_dirac_prod_spincolor(temp_solution,(tau3[r]==-1)?&Pminus:&Pplus,temp_solution);
 	    
-	    master_printf("  finished the inversion r=%d id=%d, ic=%d\n",r,id,ic);
+	    MASTER_PRINTF("  finished the inversion r=%d id=%d, ic=%d\n",r,id,ic);
 	    put_spincolor_into_su3spinspin(P,temp_solution,id,ic);
 	  }
       
@@ -363,7 +363,7 @@ void meas_x_corr_stoch(const char *path,quad_su3 *conf,bool conf_created)
 	      //rotate the sink index
 	      safe_dirac_prod_spincolor(temp_solution,(tau3[r]==-1)?&Pminus:&Pplus,temp_solution);
 	      
-	      master_printf("  finished the inversion r=%d id=%d, ic=%d\n",r,id,ic);
+	      MASTER_PRINTF("  finished the inversion r=%d id=%d, ic=%d\n",r,id,ic);
 	      put_spincolor_into_su3spinspin(phi[iso],temp_solution,id,ic);
 	    }
       
@@ -404,7 +404,7 @@ void read_conf()
   //if message with string not found start from input seed
   if(loc_rnd_gen_inited==0)
     {
-      master_printf("RND_gen status not found inside conf, starting from input passed seed\n");
+      MASTER_PRINTF("RND_gen status not found inside conf, starting from input passed seed\n");
       start_loc_rnd_gen(seed);
     }
   
@@ -469,7 +469,7 @@ void init_simulation(char *path)
   read_str_str("ConfPath",conf_path,1024);
   read_str_str("StoreConfPathTempl",store_conf_path_templ,1024);
   if(count_substrings(store_conf_path_templ,"%")!=1)
-    crash("please provide a template path such as \"conf.%sd\" instead of \"%s\"","%",store_conf_path_templ);
+    CRASH("please provide a template path such as \"conf.%sd\" instead of \"%s\"","%",store_conf_path_templ);
   read_str_int("StoreConfEach",&store_conf_each);
   read_str_int("StoreRunningTempConf",&store_running_temp_conf);
   
@@ -480,7 +480,7 @@ void init_simulation(char *path)
   if(strcasecmp(start_conf_cond_str,"HOT")==0) start_conf_cond=HOT_START_COND;
   if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD_START_COND;
   if(start_conf_cond==UNSPEC_START_COND)
-    crash("unknown starting condition %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
+    CRASH("unknown starting condition %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
   
   //read boundary condition
   char boundary_cond_str[1024];
@@ -489,7 +489,7 @@ void init_simulation(char *path)
   if(strcasecmp(boundary_cond_str,"OPEN")==0)
     boundary_cond=OPEN_BOUNDARY_COND;
   if(boundary_cond==UNSPEC_BOUNDARY_COND)
-    crash("unknown boundary condition %s, expected 'PERIODIC' or 'OPEN'",boundary_cond_str);
+    CRASH("unknown boundary condition %s, expected 'PERIODIC' or 'OPEN'",boundary_cond_str);
   
   //read the topology measures info
   read_top_meas_pars(top_meas_pars);
@@ -530,7 +530,7 @@ void init_simulation(char *path)
       npaths_per_action=2;
       break;
     default:
-      crash("unknown action");
+      CRASH("unknown action");
     }
   
   if(evol_pars.use_hmc) temp_conf=nissa_malloc("temp_conf",locVol+bord_vol+edge_vol,quad_su3);
@@ -553,7 +553,7 @@ void init_simulation(char *path)
   //load conf or generate it
   if(conf_found)
     {
-      master_printf("File %s found, loading\n",conf_path);
+      MASTER_PRINTF("File %s found, loading\n",conf_path);
       read_conf();
     }
   else
@@ -564,12 +564,12 @@ void init_simulation(char *path)
       //generate hot or cold conf
       if(start_conf_cond==HOT_START_COND)
 	{
-	  master_printf("File %s not found, generating hot conf\n",conf_path);
+	  MASTER_PRINTF("File %s not found, generating hot conf\n",conf_path);
 	  generate_hot_lx_conf(conf);
 	}
       else
 	{
-	  master_printf("File %s not found, generating cold conf\n",conf_path);
+	  MASTER_PRINTF("File %s not found, generating cold conf\n",conf_path);
 	  generate_cold_lx_conf(conf);
 	}
       
@@ -603,22 +603,22 @@ void close_simulation()
 {
   close_file(file_obs);
   
-  master_printf("========== Performance report ===========\n");
-  master_printf("Total time: %lg sec for %d confs\n",take_time()-initial_time,nprod_confs);
-  master_printf("Basic initialization time: %lg sec\n",base_init_time);
+  MASTER_PRINTF("========== Performance report ===========\n");
+  MASTER_PRINTF("Total time: %lg sec for %d confs\n",take_time()-initial_time,nprod_confs);
+  MASTER_PRINTF("Basic initialization time: %lg sec\n",base_init_time);
   if(!evol_pars.use_hmc)
     {
-      master_printf("Communicators initialization time: %lg sec\n",sweeper->comm_init_time);
-      master_printf("Communication time: %lg sec\n",sweeper->comm_time);
-      master_printf("Link update time: %lg sec\n",sweeper->comp_time);
+      MASTER_PRINTF("Communicators initialization time: %lg sec\n",sweeper->comm_init_time);
+      MASTER_PRINTF("Communication time: %lg sec\n",sweeper->comm_time);
+      MASTER_PRINTF("Link update time: %lg sec\n",sweeper->comp_time);
     }
-  master_printf("Reunitarization time: %lg sec\n",unitarize_time);
-  master_printf("Measurement time: %lg sec\n",meas_time);
-  master_printf("Topology+cooling time: %lg sec\n",topo_time);
-  master_printf("Read conf time: %lg sec\n",read_time);
-  master_printf("Write conf time: %lg sec\n",write_time);
-  master_printf("=========================================\n");
-  master_printf("\n");
+  MASTER_PRINTF("Reunitarization time: %lg sec\n",unitarize_time);
+  MASTER_PRINTF("Measurement time: %lg sec\n",meas_time);
+  MASTER_PRINTF("Topology+cooling time: %lg sec\n",topo_time);
+  MASTER_PRINTF("Read conf time: %lg sec\n",read_time);
+  MASTER_PRINTF("Write conf time: %lg sec\n",write_time);
+  MASTER_PRINTF("=========================================\n");
+  MASTER_PRINTF("\n");
   
   if(store_running_temp_conf==0||iconf%store_running_temp_conf!=0) write_conf(conf_path);
   nissa_free(conf);
@@ -641,25 +641,25 @@ void generate_new_conf(quad_su3 *conf,int check=0)
       double diff_act=pure_gauge_hmc_step(temp_conf,conf,theory_pars,evol_pars,&rat_exp_H,iconf);
       
       //perform the test in any case
-      master_printf("Diff action: %lg, ",diff_act);
+      MASTER_PRINTF("Diff action: %lg, ",diff_act);
       bool acc=metro_test(diff_act);
       
       //if not needed override
       if(!perform_test)
         {
           acc=1;
-          master_printf("(no test performed) ");
+          MASTER_PRINTF("(no test performed) ");
         }
       
       //copy conf if accepted
       if(acc)
         {
-          master_printf("accepted.\n");
+          MASTER_PRINTF("accepted.\n");
           vector_copy(conf,temp_conf);
         }
       else
 	{
-	  master_printf("rejected.\n");
+	  MASTER_PRINTF("rejected.\n");
 	  if(evol_pars.use_facc)
 	    for(int id=0;id<evol_pars.naux_fields;id++)
 	      {
@@ -682,7 +682,7 @@ void generate_new_conf(quad_su3 *conf,int check=0)
       if(check&&evol_pars.nov_sweeps)
 	{
 	  double action_post=compute_action(paths);
-	  master_printf("Checking: relative difference of action after overrelaxation: %lg\n",
+	  MASTER_PRINTF("Checking: relative difference of action after overrelaxation: %lg\n",
 			2*(action_post-action_pre)/(action_post+action_pre));
 	}
     }
@@ -710,7 +710,7 @@ void measure_gauge_obs()
   double time_action=-take_time();
   double paths[2];
   double action=compute_action(paths);
-  master_printf("Action: %16.16lg measured in %lg sec\n",action,time_action+take_time());
+  MASTER_PRINTF("Action: %16.16lg measured in %lg sec\n",action,time_action+take_time());
   
   master_fprintf(file_obs,"%6d\t%16.16lg",iconf,action);
   for(int ipath=0;ipath<npaths_per_action;ipath++) master_fprintf(file_obs,"\t%015.15lg",paths[ipath]);
@@ -750,10 +750,10 @@ bool enough_time()
   
   //compute the number of trajectory that can be run
   double remaining_time=broadcast(walltime-(take_time()-initial_time));
-  verbosity_lv2_master_printf("Remaining time: %2.2lg s, max time per trajectory, needed so far: %2.2lg s\n",remaining_time,max_traj_time);
+  VERBOSITY_LV2_MASTER_PRINTF("Remaining time: %2.2lg s, max time per trajectory, needed so far: %2.2lg s\n",remaining_time,max_traj_time);
   int ntraj_poss=floor(remaining_time/max_traj_time);
   int nmin_traj_req=2;
-  verbosity_lv2_master_printf("Would allow to produce: %d trajectories in the worst case (stopping when <=%d)\n",ntraj_poss,nmin_traj_req);
+  VERBOSITY_LV2_MASTER_PRINTF("Would allow to produce: %d trajectories in the worst case (stopping when <=%d)\n",ntraj_poss,nmin_traj_req);
   
   //check if we have enough time to make another traj
   return (ntraj_poss>=nmin_traj_req);
@@ -766,7 +766,7 @@ bool check_if_continue()
   bool stop_present=file_exists("stop");
   if(stop_present)
     {
-      verbosity_lv1_master_printf("'Stop' file present, closing\n");
+      VERBOSITY_LV1_MASTER_PRINTF("'Stop' file present, closing\n");
       return false;
     }
   
@@ -774,7 +774,7 @@ bool check_if_continue()
   bool restart_present=file_exists("restart");
   if(restart_present)
     {
-      verbosity_lv1_master_printf("'Restart' file present, closing\n");
+      VERBOSITY_LV1_MASTER_PRINTF("'Restart' file present, closing\n");
       return false;
     }
   
@@ -782,7 +782,7 @@ bool check_if_continue()
   bool have_enough_time=enough_time();
   if(!have_enough_time)
     {
-      verbosity_lv1_master_printf("Running out of time, closing\n");
+      VERBOSITY_LV1_MASTER_PRINTF("Running out of time, closing\n");
       return false;
     }
   
@@ -791,7 +791,7 @@ bool check_if_continue()
   if(max_nconfs>0) produced_all_confs=(nprod_confs>=max_nconfs);
   if(produced_all_confs)
     {
-      verbosity_lv1_master_printf("Produced all %d confs, closing\n",max_nconfs);
+      VERBOSITY_LV1_MASTER_PRINTF("Produced all %d confs, closing\n",max_nconfs);
       return false;
     }
   
@@ -801,7 +801,7 @@ bool check_if_continue()
 void in_main(int narg,char **arg)
 {
   //check argument
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   //init simulation according to input file
   init_simulation(arg[1]);
@@ -816,10 +816,10 @@ void in_main(int narg,char **arg)
   // generate_cold_lx_conf(conf);
   // evol_pars.kappa=1;
   // apply_MFACC(v,conf,evol_pars.kappa,0,u);
-  // master_printf("%lg %lg\n",double_vector_glb_norm2(u,loc_vol),double_vector_glb_norm2(v,loc_vol));
+  // MASTER_PRINTF("%lg %lg\n",double_vector_glb_norm2(u,loc_vol),double_vector_glb_norm2(v,loc_vol));
   // nissa_free(u);
   // nissa_free(v);
-  // crash("ciccio");
+  // CRASH("ciccio");
   
   if(evol_pars.use_facc)
     {
@@ -832,7 +832,7 @@ void in_main(int narg,char **arg)
 	  size_t data_length=get_file_size("H_exp");
 	  data=nissa_malloc("data",data_length,char);
 	  file=open_file("H_exp","r");
-	  if(fread(data,1,data_length,file)!=data_length) crash("reading H_exp");
+	  if(fread(data,1,data_length,file)!=data_length) CRASH("reading H_exp");
 	  buf.write(data,data_length);
 	  buf>>rat_exp_H;
 	}
@@ -845,7 +845,7 @@ void in_main(int narg,char **arg)
 	  data=nissa_malloc("data",data_length,char);
 	  buf.read(data,data_length);
 	  file=open_file("H_exp","w");
-	  if(fwrite(data,1,data_length,file)!=data_length) crash("writing H_exp");
+	  if(fwrite(data,1,data_length,file)!=data_length) CRASH("writing H_exp");
 	}
       close_file(file);
       nissa_free(data);
@@ -855,10 +855,10 @@ void in_main(int narg,char **arg)
   
   //generate the required amount of confs
   nprod_confs=0;
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   do
     {
-      master_printf("--------Configuration %d--------\n",iconf);
+      MASTER_PRINTF("--------Configuration %d--------\n",iconf);
       double init_conf_time=take_time();
       
       // 1) produce new conf
@@ -870,7 +870,7 @@ void in_main(int narg,char **arg)
 	  int check_over_relax=(iconf%100==0);
 	  generate_new_conf(conf,check_over_relax);
 	  gen_time+=take_time();
-	  master_printf("Generate new conf in %lg sec\n",gen_time);
+	  MASTER_PRINTF("Generate new conf in %lg sec\n",gen_time);
 	  nprod_confs++;
 	  iconf++;
 	}
@@ -892,7 +892,7 @@ void in_main(int narg,char **arg)
       
       // 5) spacing between output
       increase_max_time_per_traj(init_conf_time);
-      master_printf("\n");
+      MASTER_PRINTF("\n");
     }
   while(check_if_continue());
   

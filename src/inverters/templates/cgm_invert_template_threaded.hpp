@@ -49,14 +49,14 @@ namespace nissa
       r.norm2();
     
     //writes source norm
-    verbosity_lv2_master_printf(" Source norm: %lg\n",source_norm2);
-    if(source_norm2==0 or std::isnan(source_norm2)) crash("invalid norm: %lg",source_norm2);
+    VERBOSITY_LV2_MASTER_PRINTF(" Source norm: %lg\n",source_norm2);
+    if(source_norm2==0 or std::isnan(source_norm2)) CRASH("invalid norm: %lg",source_norm2);
     
     //writes initial residue
-    verbosity_lv2_master_printf(" cgm iter 0 rel. residues: ");
+    VERBOSITY_LV2_MASTER_PRINTF(" cgm iter 0 rel. residues: ");
     for(size_t iShift=0;iShift<nShift;iShift++)
-      verbosity_lv2_master_printf("%1.4e  ",1.0);
-    verbosity_lv2_master_printf("\n");
+      VERBOSITY_LV2_MASTER_PRINTF("%1.4e  ",1.0);
+    VERBOSITY_LV2_MASTER_PRINTF("\n");
     
     int final_iter;
     double final_res[nShift];
@@ -84,7 +84,7 @@ namespace nissa
     //     -rr=(r,r)=source_norm
     double rr=source_norm2;
 #ifdef CGM_DEBUG
-    verbosity_lv3_master_printf("rr: %16.16lg\n",rr);
+    VERBOSITY_LV3_MASTER_PRINTF("rr: %16.16lg\n",rr);
 #endif
     
     double rfrf,betap;
@@ -98,7 +98,7 @@ namespace nissa
 	
 	//     -s=Ap
 	if(use_async_communications and iter>1)
-	  crash("reimplement");//CGM_FINISH_COMMUNICATING_BORDERS(p);
+	  CRASH("reimplement");//CGM_FINISH_COMMUNICATING_BORDERS(p);
 	
 	cgm_inv_over_time+=take_time();
 	f(s,0.0,p);
@@ -111,13 +111,13 @@ namespace nissa
 	cgm_inv_over_time1+=take_time();
 	
 #ifdef CGM_DEBUG
-	verbosity_lv3_master_printf("pap: %16.16lg, ap[0]: %16.16lg, p[0]: %16.16lg\n",pap,s._data[0],p._data[0]);
+	VERBOSITY_LV3_MASTER_PRINTF("pap: %16.16lg, ap[0]: %16.16lg, p[0]: %16.16lg\n",pap,s._data[0],p._data[0]);
 #endif
 	//     calculate betaa=rr/pap=(r,r)/(p,Ap)
 	betap=betaa;
 	betaa=-rr/pap;
 #ifdef CGM_DEBUG
-	verbosity_lv3_master_printf("betap: %16.16lg, betaa: %16.16lg\n",betap,betaa);
+	VERBOSITY_LV3_MASTER_PRINTF("betap: %16.16lg, betaa: %16.16lg\n",betap,betaa);
 #endif
 	
 	//     calculate
@@ -132,13 +132,13 @@ namespace nissa
 		  betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-shifts[ishift]*betaa));
 		
 		if(std::isnan(ratio))
-		  crash("nanned");
+		  CRASH("nanned");
 		
 		zfs[ishift]=zas[ishift]*ratio;
 		betas[ishift]=betaa*ratio;
 		
 #ifdef CGM_DEBUG
-		verbosity_lv3_master_printf("ishift %ld [%lg] zas: %16.16lg, zps: %16.16lg, "
+		VERBOSITY_LV3_MASTER_PRINTF("ishift %ld [%lg] zas: %16.16lg, zps: %16.16lg, "
 					    "zfs: %16.16lg, betas: %16.16lg\n",
 					    ishift,shifts[ishift],zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
 #endif
@@ -174,7 +174,7 @@ namespace nissa
 	cgm_inv_over_time4+=take_time();
 	
 #ifdef CGM_DEBUG
-	verbosity_lv3_master_printf("rfrf: %16.16lg\n",rfrf);
+	VERBOSITY_LV3_MASTER_PRINTF("rfrf: %16.16lg\n",rfrf);
 #endif
 	
 	//     calculate alpha=rfrf/rr=(r',r')/(r,r)
@@ -194,7 +194,7 @@ namespace nissa
 	
 	//start the communications of the border
 	if(use_async_communications)
-	  crash("reimplement");//CGM_START_COMMUNICATING_BORDERS(p);
+	  CRASH("reimplement");//CGM_START_COMMUNICATING_BORDERS(p);
 	
 	//     calculate
 	//     -alphas=alpha*zfs*betas/zas*beta
@@ -205,7 +205,7 @@ namespace nissa
 	      {
 		alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
 #ifdef CGM_DEBUG
-		verbosity_lv3_master_printf("ishift %ld alpha: %16.16lg\n",ishift,alphas[ishift]);
+		VERBOSITY_LV3_MASTER_PRINTF("ishift %ld alpha: %16.16lg\n",ishift,alphas[ishift]);
 #endif
 		cgm_inv_over_time6-=take_time();
 		FOR_EACH_SITE_DEG_OF_FIELD(r,
@@ -230,7 +230,7 @@ namespace nissa
 	
 	//check over residual
 	if(iter%each==0)
-	  verbosity_lv2_master_printf(" cgm iter %d rel. residues: ",iter);
+	  VERBOSITY_LV2_MASTER_PRINTF(" cgm iter %d rel. residues: ",iter);
 	
 	for(size_t ishift=0;ishift<nShift;ishift++)
 	  if(run_flag[ishift])
@@ -238,8 +238,8 @@ namespace nissa
 	      final_res[ishift]=res[ishift]=rr*zfs[ishift]*zfs[ishift]/source_norm2;
 	      if(iter%each==0)
 		{
-		  verbosity_lv2_master_printf("%1.4e  ",res[ishift]);
-		  verbosity_lv3_master_printf("%16.16lg  ",res[ishift]);
+		  VERBOSITY_LV2_MASTER_PRINTF("%1.4e  ",res[ishift]);
+		  VERBOSITY_LV3_MASTER_PRINTF("%16.16lg  ",res[ishift]);
 		}
 	      
 	      if(res[ishift]<residue[ishift])
@@ -250,15 +250,15 @@ namespace nissa
 	    }
 	  else
 	    if(iter%each==0)
-	      verbosity_lv2_master_printf(" * ");
+	      VERBOSITY_LV2_MASTER_PRINTF(" * ");
 	
 	if(iter%each==0)
-	  verbosity_lv2_master_printf("\n");
+	  VERBOSITY_LV2_MASTER_PRINTF("\n");
       }
     while(nrun_shift>0 and iter<niter_max);
     
     if(use_async_communications)
-      crash("reimplement");//CGM_FINISH_COMMUNICATING_BORDERS(p);
+      CRASH("reimplement");//CGM_FINISH_COMMUNICATING_BORDERS(p);
     
     //print the final true residue
     for(size_t iShift=0;iShift<nShift;iShift++)
@@ -269,26 +269,26 @@ namespace nissa
 	const double res=
 	  s.norm2();
 	
-	verbosity_lv2_master_printf(" ishift %zu, rel residue true=%lg approx=%lg commanded=%lg\n",
+	VERBOSITY_LV2_MASTER_PRINTF(" ishift %zu, rel residue true=%lg approx=%lg commanded=%lg\n",
 				    iShift,res/source_norm2,final_res[iShift],residue[iShift]);
 	if(res/source_norm2>=2*final_res[iShift])
-	  master_printf("WARNING: shift[%zu]=%lg true residue (%lg) much larger than expected one (%lg)\n",
+	  MASTER_PRINTF("WARNING: shift[%zu]=%lg true residue (%lg) much larger than expected one (%lg)\n",
 			iShift,shifts[iShift],res/source_norm2,final_res[iShift]);
       }
     
-    verbosity_lv1_master_printf(" Total cgm iterations: %d\n",final_iter);
+    VERBOSITY_LV1_MASTER_PRINTF(" Total cgm iterations: %d\n",final_iter);
     
     //check if not converged
     if(final_iter==niter_max)
-      crash("exit without converging");
+      CRASH("exit without converging");
     
     cgm_inv_over_time+=take_time();
     
-    master_printf("overhead 1 %lg s\n",cgm_inv_over_time1/ncgm_inv);
-    master_printf("overhead 2 %lg s\n",cgm_inv_over_time2/ncgm_inv);
-    master_printf("overhead 3 %lg s\n",cgm_inv_over_time3/ncgm_inv);
-    master_printf("overhead 4 %lg s\n",cgm_inv_over_time4/ncgm_inv);
-    master_printf("overhead 5 %lg s\n",cgm_inv_over_time5/ncgm_inv);
-    master_printf("overhead 6 %lg s\n",cgm_inv_over_time6/ncgm_inv);
+    MASTER_PRINTF("overhead 1 %lg s\n",cgm_inv_over_time1/ncgm_inv);
+    MASTER_PRINTF("overhead 2 %lg s\n",cgm_inv_over_time2/ncgm_inv);
+    MASTER_PRINTF("overhead 3 %lg s\n",cgm_inv_over_time3/ncgm_inv);
+    MASTER_PRINTF("overhead 4 %lg s\n",cgm_inv_over_time4/ncgm_inv);
+    MASTER_PRINTF("overhead 5 %lg s\n",cgm_inv_over_time5/ncgm_inv);
+    MASTER_PRINTF("overhead 6 %lg s\n",cgm_inv_over_time6/ncgm_inv);
   }
 }

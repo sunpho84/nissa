@@ -12,7 +12,7 @@
 void generate_stochastic_source_eta(spin1field *eta)
 {
   //start (or restart) the random generator with the passed source
-  if(!loc_rnd_gen_inited) crash("random gen not inited");
+  if(!loc_rnd_gen_inited) CRASH("random gen not inited");
   
   //fill with Z4
   NISSA_LOC_VOL_LOOP(ivol)

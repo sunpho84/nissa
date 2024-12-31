@@ -44,7 +44,7 @@ namespace nissa
   //compute the fermionic putpourri for a single conf and hit
   void fermionic_putpourri(fermionic_putpourri_t* putpourri,rnd_t rnd_type,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,quark_content_t* quark,double residue,int comp_susc)
   {
-    crash("#warning toredo");
+    CRASH("#warning toredo");
     
     // THREAD_BARRIER();
     
@@ -191,7 +191,7 @@ namespace nissa
   //measure the above fermionic putpourri
   void measure_fermionic_putpourri(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,fermionic_putpourri_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     // int comp_susc=meas_pars.compute_susc;
@@ -203,7 +203,7 @@ namespace nissa
     // 	master_fprintf(file,"%d",iconf);
     // 	for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
     // 	  {
-    // 	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
+    // 	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) CRASH("not defined for non-staggered quarks");
 	    
     // 	    fermionic_putpourri_t putpourri;
 	    
@@ -211,7 +211,7 @@ namespace nissa
     // 	    int nhits=meas_pars.nhits;
     // 	    for(int hit=0;hit<nhits;hit++)
     // 	      {
-    // 		verbosity_lv2_master_printf("Evaluating fermionic putpourri for flavor %d/%d, ncopy %d/%d, nhits %d/%d\n",
+    // 		VERBOSITY_LV2_MASTER_PRINTF("Evaluating fermionic putpourri for flavor %d/%d, ncopy %d/%d, nhits %d/%d\n",
     // 					    iflav+1,theory_pars.nflavs(),icopy+1,ncopies,hit+1,nhits);
 		
     // 		//compute and summ

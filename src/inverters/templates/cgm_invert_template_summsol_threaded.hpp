@@ -15,7 +15,7 @@ void SUMM_SRC_AND_ALL_INV_CGM(BASETYPE* sol,AT1 A1,AT2 A2,AT3 A3,AT4 A4,rat_appr
 void SUMM_SRC_AND_ALL_INV_CGM(BASETYPE* sol,AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,rat_approx_t* appr,int niter_max,double req_res,BASETYPE* source)
 #endif
 {
-  crash("reimplement");
+  CRASH("reimplement");
   // const int nterms=appr->degree();
   
   // //allocate temporary single solutions

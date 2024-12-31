@@ -52,7 +52,7 @@ namespace nissa
       
       //check
       if(iname==nknown)
-	crash("unknown fermion discretiz action: %s",in);
+	CRASH("unknown fermion discretiz action: %s",in);
       
       return list[iname];
     }

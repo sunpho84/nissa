@@ -289,7 +289,7 @@ namespace nissa
   
   inline void start_hit(int ihit,bool skip=false)
   {
-    master_printf("\n=== Hit %d/%d ====\n",ihit+1,nhits);
+    MASTER_PRINTF("\n=== Hit %d/%d ====\n",ihit+1,nhits);
     if(use_new_generator)
       {
 	for(int mu=0;mu<NDIM;mu++)
@@ -303,8 +303,8 @@ namespace nissa
     else
       source_coord=generate_random_coord();
     
-    if(stoch_source) master_printf(" source time: %d\n",source_coord[0]);
-    else             master_printf(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
+    if(stoch_source) MASTER_PRINTF(" source time: %d\n",source_coord[0]);
+    else             MASTER_PRINTF(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
     if(need_photon)
       {
 	if(skip)
@@ -348,7 +348,7 @@ namespace nissa
     {
       fastFile=fopen(path.c_str(),mode);
       if(fastFile==nullptr)
-	crash("Unable to open path %s with mode %s",path.c_str(),mode);
+	CRASH("Unable to open path %s with mode %s",path.c_str(),mode);
     }
     
     void cleanFiles()
@@ -358,26 +358,26 @@ namespace nissa
     
     void fastRead()
     {
-      crash("reimplement");
+      CRASH("reimplement");
       fastOpen("r");
       
       // if(fread(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
-      // 	crash("Problem reading %s",path.c_str());
+      // 	CRASH("Problem reading %s",path.c_str());
       
       fclose(fastFile);
     }
     
     void read()
     {
-      master_printf("Reading %s\n",path.c_str());
+      MASTER_PRINTF("Reading %s\n",path.c_str());
       
       if(fast_read_write_vectors)
 	{
-	  crash("reimplement");
+	  CRASH("reimplement");
 	  fastOpen("r");
 	  
 	  // if(fread(v,sizeof(T),locVol,fastFile)!=locVol)
-	  //   crash("Problem reading %s",path.c_str());
+	  //   CRASH("Problem reading %s",path.c_str());
 	  
 	  fclose(fastFile);
 	}
@@ -387,11 +387,11 @@ namespace nissa
     
     void fastWrite()
     {
-	  crash("reimplement");
+	  CRASH("reimplement");
       fastOpen("w");
       
       // if(fwrite(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
-      // 	crash("Problem writing %s",path.c_str());
+      // 	CRASH("Problem writing %s",path.c_str());
       
 //       size_t written=0;
 //       bool seekingError=false;
@@ -408,23 +408,23 @@ namespace nissa
 // 	written+=fwrite(v,1,thrData,fastFile);
 //       }
 //       if(written!=totData or seekingError)
-// 	crash("Problem writing %s, total written: %zu when %zu expected, seek worked: %d",path.c_str(),written,totData,(int)seekingError);
+// 	CRASH("Problem writing %s, total written: %zu when %zu expected, seek worked: %d",path.c_str(),written,totData,(int)seekingError);
       
       fclose(fastFile);
     }
     
     void write()
     {
-      master_printf("Writing %s, %zu %p\n",path.c_str(),sizeof(T),&v);
+      MASTER_PRINTF("Writing %s, %zu %p\n",path.c_str(),sizeof(T),&v);
       
       if(fast_read_write_vectors)
 	{
 	  fastOpen("w");
 	  if(std::remove_reference_t<decltype(v)>::fieldLayout!=FieldLayout::CPU)
-	    crash("not supported");
+	    CRASH("not supported");
 	  //hack
 	  if(fwrite(v._data,sizeof(T),locVol,fastFile)!=(size_t)locVol)
-	    crash("Problem writing %s",path.c_str());
+	    CRASH("Problem writing %s",path.c_str());
 	  
 	  fclose(fastFile);
 	}

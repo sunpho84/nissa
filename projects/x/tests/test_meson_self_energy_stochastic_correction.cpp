@@ -79,7 +79,7 @@ int main(int narg,char **arg)
   compute_all_2pts_qdagq_correlations(corr,prop,self_prop);
   write_corr16("self_energy_corr",corr,64);
   
-  master_printf("%lg\n",corr[9][0][0]);
+  MASTER_PRINTF("%lg\n",corr[9][0][0]);
     
   /////////////////////////////////////////////// tough way /////////////////////////////////////////
   
@@ -89,7 +89,7 @@ int main(int narg,char **arg)
   compute_all_2pts_qdagq_correlations(corr,prop,self_prop);
   write_corr16("self_energy_corr_tough",corr,64);
   
-  master_printf("%lg\n",corr[9][0][0]);
+  MASTER_PRINTF("%lg\n",corr[9][0][0]);
   */
   ////////////////////////////////// propagators computed stochastically ////////////////////////////
   
@@ -129,7 +129,7 @@ int main(int narg,char **arg)
       
       if(isource+1==nsources)
 	for(int ig=0;ig<16;ig++)
-	  master_printf("time %d, isource=%d, diff[%d]=(%lg/%lg)=%lg\n",time(0),isource+1,ig,d2[ig],t2[ig],d2[ig]/t2[ig]);
+	  MASTER_PRINTF("time %d, isource=%d, diff[%d]=(%lg/%lg)=%lg\n",time(0),isource+1,ig,d2[ig],t2[ig],d2[ig]/t2[ig]);
     }
   
   //////////////////////////////// compute correlation and write them on disk ////////////////////////

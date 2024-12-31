@@ -109,7 +109,7 @@ namespace nissa
 #ifdef COMPILING_FOR_DEVICE
 	      __trap();
 #else
-	      crash("%lg",rotating_norm);
+	      CRASH("%lg",rotating_norm);
 #endif
 	  }
       }
@@ -125,7 +125,7 @@ namespace nissa
     esu3_t ein=SU3_ECAST(in);
     SU3_ECAST(out)=SelfAdjointEigenSolver<esu3_t>(ein*ein.adjoint()).operatorInverseSqrt()*ein;
 #else
-    crash("need eigen");
+    CRASH("need eigen");
 #endif
   }
   
@@ -199,7 +199,7 @@ namespace nissa
   //return a cooled copy of the passed link
   void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,int par,int ieo,int mu)
     {
-      crash("reimplement");//link failing
+      CRASH("reimplement");//link failing
     //   //compute the staple
     // su3 staple;
     // compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
@@ -210,7 +210,7 @@ namespace nissa
   
   inline void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,int ivol,int mu)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // //compute the staple
     // su3 staple;
     // compute_point_summed_squared_staples_lx_conf_single_dir(staple,lx_conf,ivol,mu);

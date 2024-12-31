@@ -30,7 +30,7 @@ namespace nissa
     //list all dirs
     int list_dirs[NDIM],ndirs=0;
     for(int mu=0;mu<NDIM;mu++) if(dirs[mu]) list_dirs[ndirs++]=mu;
-    verbosity_lv2_master_printf("Going to FFT: %d dimensions in total\n",ndirs);
+    VERBOSITY_LV2_MASTER_PRINTF("Going to FFT: %d dimensions in total\n",ndirs);
     
     if(ndirs)
       {
@@ -46,7 +46,7 @@ namespace nissa
 	for(int idir=0;idir<ndirs;idir++)
 	  {
 	    int mu=list_dirs[idir];
-	    verbosity_lv2_master_printf("FFT-ing dimension %d/%d=%d\n",idir+1,ndirs,mu);
+	    VERBOSITY_LV2_MASTER_PRINTF("FFT-ing dimension %d/%d=%d\n",idir+1,ndirs,mu);
 	    remap_lx_vector_to_locd(buf,out,ncpp*sizeof(complex),mu);
 	    
 	    //makes all the fourier transform

@@ -16,7 +16,7 @@ namespace nissa
 			 const double& beta,
 			 const double& C1)
   {
-    verbosity_lv2_master_printf("Computing Symanzik action\n");
+    VERBOSITY_LV2_MASTER_PRINTF("Computing Symanzik action\n");
     
     return (get_C0(C1)*6*glbVol*(1-glb_shapes[RE])+C1*12*glbVol*(1-glb_shapes[IM]))*beta;
   }

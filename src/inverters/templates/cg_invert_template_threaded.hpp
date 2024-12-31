@@ -20,7 +20,7 @@ namespace nissa
 		 const double& residue,
 		 const T& source)
   {
-    verbosity_lv2_master_printf("\n");
+    VERBOSITY_LV2_MASTER_PRINTF("\n");
     
     T s("s");
     T p("p",WITH_HALO);
@@ -43,11 +43,11 @@ namespace nissa
     r-=s;
     p=r;
     double delta=r.norm2();
-    verbosity_lv3_master_printf("delta: %lg\n",delta);
+    VERBOSITY_LV3_MASTER_PRINTF("delta: %lg\n",delta);
     
-    verbosity_lv2_master_printf("Source norm2: %lg\n",sourceNorm2);
-    if(sourceNorm2==0 or std::isnan(sourceNorm2)) crash("invalid norm: %lg",sourceNorm2);
-    verbosity_lv2_master_printf("iter 0 relative residue: %lg\n",delta/sourceNorm2);
+    VERBOSITY_LV2_MASTER_PRINTF("Source norm2: %lg\n",sourceNorm2);
+    if(sourceNorm2==0 or std::isnan(sourceNorm2)) CRASH("invalid norm: %lg",sourceNorm2);
+    VERBOSITY_LV2_MASTER_PRINTF("iter 0 relative residue: %lg\n",delta/sourceNorm2);
     
     int final_iter;
     
@@ -66,11 +66,11 @@ namespace nissa
 	
 	const double alpha=
 	  s.realPartOfScalarProdWith(p);
-	verbosity_lv3_master_printf("alpha: %lg\n",alpha);
+	VERBOSITY_LV3_MASTER_PRINTF("alpha: %lg\n",alpha);
 	
 	const double omega=
 	  delta/alpha;
-	verbosity_lv3_master_printf("omega: %lg\n",omega);
+	VERBOSITY_LV3_MASTER_PRINTF("omega: %lg\n",omega);
 	
 	//sol_(k+1)=x_k+omega*p_k
 	FOR_EACH_SITE_DEG_OF_FIELD(sol,
@@ -94,17 +94,17 @@ namespace nissa
 	
 	//(r_(k+1),r_(k+1))
 	lambda=r.norm2();
-	verbosity_lv3_master_printf("lambda: %lg\n",lambda);
+	VERBOSITY_LV3_MASTER_PRINTF("lambda: %lg\n",lambda);
 	
 	//(r_(k+1),r_(k+1))/(r_k,r_k)
 	const double gammag=
 	  lambda/delta;
-	verbosity_lv3_master_printf("gammag: %lg\n",gammag);
+	VERBOSITY_LV3_MASTER_PRINTF("gammag: %lg\n",gammag);
 	delta=lambda;
-	verbosity_lv3_master_printf("delta: %lg\n",delta);
+	VERBOSITY_LV3_MASTER_PRINTF("delta: %lg\n",delta);
 	
 	//checks
-	if(std::isnan(gammag)) crash("nanned");
+	if(std::isnan(gammag)) CRASH("nanned");
 	
 	//p_(k+1)=r_(k+1)+gammag*p_k
 	FOR_EACH_SITE_DEG_OF_FIELD(p,
@@ -117,7 +117,7 @@ namespace nissa
 				     d=r(site,iDeg)+d*gammag;
 				   });
 	
-	if(iter%each==0) verbosity_lv2_master_printf("iter %d relative residue: %lg\n",iter,lambda/sourceNorm2);
+	if(iter%each==0) VERBOSITY_LV2_MASTER_PRINTF("iter %d relative residue: %lg\n",iter,lambda/sourceNorm2);
       }
     while(lambda>=(residue*sourceNorm2) and iter<niter);
     
@@ -127,16 +127,16 @@ namespace nissa
     r-=s;
     lambda=r.norm2();
     
-    verbosity_lv2_master_printf("final relative residue (after %d iters): %lg where %lg was required\n",
+    VERBOSITY_LV2_MASTER_PRINTF("final relative residue (after %d iters): %lg where %lg was required\n",
 				final_iter,lambda/sourceNorm2,residue);
     if(lambda/sourceNorm2>=2*residue)
-      master_printf("WARNING: true residue %lg much larger than required and expected one %lg\n",
+      MASTER_PRINTF("WARNING: true residue %lg much larger than required and expected one %lg\n",
 		    lambda/sourceNorm2,residue);
     
-    verbosity_lv1_master_printf(" Total cg iterations: %d\n",final_iter);
+    VERBOSITY_LV1_MASTER_PRINTF(" Total cg iterations: %d\n",final_iter);
     
     //check if not converged
-    if(final_iter==niter) crash("exit without converging");
+    if(final_iter==niter) CRASH("exit without converging");
     
     cg_inv_over_time+=take_time();
   }

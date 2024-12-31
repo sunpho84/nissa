@@ -9,13 +9,13 @@ namespace nissa
 {
   void apply_stD2ee_m2_32(single_color* out,eo_ptr<single_quad_su3> conf,single_color* temp,float mass2,single_color* in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // if(IS_MASTER_THREAD)
     //   {
     // 	//check arguments
-    // 	if(out==in)   crash("out==in!");
-    // 	if(out==temp) crash("out==temp!");
-    // 	if(temp==in)  crash("temp==in!");
+    // 	if(out==in)   CRASH("out==in!");
+    // 	if(out==temp) CRASH("out==temp!");
+    // 	if(temp==in)  CRASH("temp==in!");
     //   }
     
     // START_TIMING(portable_stD_app_time,nportable_stD_app);

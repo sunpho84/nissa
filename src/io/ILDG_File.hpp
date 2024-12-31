@@ -200,7 +200,7 @@ namespace nissa
 	  this->convert_from_text(data);
 	  delete[] data;
 	}
-      else crash("Unable to convert, tag %d while expecting %d",head.type,tag);
+      else CRASH("Unable to convert, tag %d while expecting %d",head.type,tag);
     }
   };
 }

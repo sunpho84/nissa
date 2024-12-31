@@ -16,7 +16,7 @@ using namespace nissa;
 void init_simulation(int narg,char **arg)
 {
   //check argument
-  if(narg<2) crash("Use: %s input_file [stop_path]|periodic/antiperiodic|store/load_photons",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file [stop_path]|periodic/antiperiodic|store/load_photons",arg[0]);
   
   const char *path=arg[1];
   
@@ -24,13 +24,13 @@ void init_simulation(int narg,char **arg)
   for(int iarg=2;iarg<narg;iarg++)
     {
       bool parsed=false;
-      master_printf("parsing argument %d: '%s'\n",iarg,arg[iarg]);
+      MASTER_PRINTF("parsing argument %d: '%s'\n",iarg,arg[iarg]);
       
       //check if we passed "periodic"
       if(not parsed and not strcasecmp(arg[iarg],"periodic"))
 	{
 	  temporal_bc=PERIODIC_BC;
-	  master_printf(" Setting temporal bc to %lg = 'periodic'\n",temporal_bc);
+	  MASTER_PRINTF(" Setting temporal bc to %lg = 'periodic'\n",temporal_bc);
 	  parsed=true;
 	}
       
@@ -38,14 +38,14 @@ void init_simulation(int narg,char **arg)
       if(not parsed and not strcasecmp(arg[iarg],"antiperiodic"))
 	{
 	  temporal_bc=ANTIPERIODIC_BC;
-	  master_printf(" Setting temporal bc to %lg = 'antiperiodic'\n",temporal_bc);
+	  MASTER_PRINTF(" Setting temporal bc to %lg = 'antiperiodic'\n",temporal_bc);
 	  parsed=true;
 	}
       
       //check if we passed "store_photons"
       if(not parsed and not strcasecmp(arg[iarg],"store_photons"))
 	{
-	  master_printf(" Store the photon fields\n");
+	  MASTER_PRINTF(" Store the photon fields\n");
 	  store_photons=true;
 	  parsed=true;
 	}
@@ -53,7 +53,7 @@ void init_simulation(int narg,char **arg)
       //check if we passed "load_photons"
       if(not parsed and not strcasecmp(arg[iarg],"load_photons"))
 	{
-	  master_printf(" Load (if present) the photon fields\n");
+	  MASTER_PRINTF(" Load (if present) the photon fields\n");
 	  load_photons=true;
 	  parsed=true;
 	}
@@ -65,10 +65,10 @@ void init_simulation(int narg,char **arg)
 	  stop_path+="_"+app;
 	  running_filename+="_"+app;
 	  finished_filename+="_"+app;
-	  master_printf("Adding to stop,finished,and running filenames the suffix: '%s'\n",arg[iarg]);
-	  master_printf("Stop filename: '%s'\n",stop_path.c_str());
-	  master_printf("Running filename: '%s'\n",running_filename.c_str());
-	  master_printf("Finished filename: '%s'\n",finished_filename.c_str());
+	  MASTER_PRINTF("Adding to stop,finished,and running filenames the suffix: '%s'\n",arg[iarg]);
+	  MASTER_PRINTF("Stop filename: '%s'\n",stop_path.c_str());
+	  MASTER_PRINTF("Running filename: '%s'\n",running_filename.c_str());
+	  MASTER_PRINTF("Finished filename: '%s'\n",finished_filename.c_str());
 	  parsed=true;
 	}
     }
@@ -155,18 +155,18 @@ void init_simulation(int narg,char **arg)
       //name
       char name[1024];
       read_str(name,1024);
-      master_printf("Read variable 'Name' with value: %s\n",name);
+      MASTER_PRINTF("Read variable 'Name' with value: %s\n",name);
       
       //ins name
       char ins[INS_TAG_MAX_LENGTH+1];
       read_str(ins,INS_TAG_MAX_LENGTH);
-      master_printf("Read variable 'Ins' with value: %s\n",ins);
+      MASTER_PRINTF("Read variable 'Ins' with value: %s\n",ins);
       
       //source_name
       std::vector<source_term_t> source_terms;
       char source_name[1024];
       read_str(source_name,1024);
-      master_printf("Read variable 'SourceName' with value: %s\n",source_name);
+      MASTER_PRINTF("Read variable 'SourceName' with value: %s\n",source_name);
       
       bool multi_source=(strcasecmp(source_name,"LINCOMB")==0);
       
@@ -174,7 +174,7 @@ void init_simulation(int narg,char **arg)
       if(multi_source)
 	{
 	  read_int(&nsources);
-	  master_printf("Read variable 'NSources' with value: %d\n",nsources);
+	  MASTER_PRINTF("Read variable 'NSources' with value: %d\n",nsources);
 	}
       else
 	nsources=1;
@@ -186,7 +186,7 @@ void init_simulation(int narg,char **arg)
 	    {
 	      read_str(source_name,1024);
 	      
-	      master_printf("Read variable 'Sourcename' with value: %s\n",source_name);
+	      MASTER_PRINTF("Read variable 'Sourcename' with value: %s\n",source_name);
 	      
 	      //read weight as string
 	      char sweight[128];
@@ -209,7 +209,7 @@ void init_simulation(int narg,char **arg)
       if(strcasecmp(ins,ins_tag[DEL_POS])!=0)
 	{
 	  read_int(&tins);
-	  master_printf("Read variable 'Tins' with value: %d\n",tins);
+	  MASTER_PRINTF("Read variable 'Tins' with value: %d\n",tins);
 	}
       
       double kappa=0.125,mass=0.0,charge=0,residue=1e-16;
@@ -226,25 +226,25 @@ void init_simulation(int narg,char **arg)
 	  decripted=true;
 	  
 	  read_double(&kappa);
-	  master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
+	  MASTER_PRINTF("Read variable 'Kappa' with value: %lg\n",kappa);
 	  if(twisted_run)
 	    {
 	      read_double(&mass);
-	      master_printf("Read variable 'Mass' with value: %lg\n",mass);
+	      MASTER_PRINTF("Read variable 'Mass' with value: %lg\n",mass);
 	      
 	      read_int(&r);
-	      master_printf("Read variable 'R' with value: %d\n",r);
+	      MASTER_PRINTF("Read variable 'R' with value: %d\n",r);
 	      
 	      //include tau in the mass
 	      mass*=tau3[r];
 	    }
 	  read_double(&charge);
-	  master_printf("Read variable 'Charge' with value: %lg\n",charge);
+	  MASTER_PRINTF("Read variable 'Charge' with value: %lg\n",charge);
 	  read_theta(theta);
 	  if(strcasecmp(ins,ins_tag[DIROP])!=0)
 	    {
 	      read_double(&residue);
-	      master_printf("Read variable 'Residue' with value: %lg\n",residue);
+	      MASTER_PRINTF("Read variable 'Residue' with value: %lg\n",residue);
 	    }
 	}
       
@@ -270,11 +270,11 @@ void init_simulation(int narg,char **arg)
 	  decripted=true;
 	  
 	  read_double(&mass);
-	  master_printf("Read variable 'Mass' with value: %lg\n",mass);
+	  MASTER_PRINTF("Read variable 'Mass' with value: %lg\n",mass);
 	  
 	  
 	  read_int(&r);
-	  master_printf("Read variable 'R' with value: %d\n",r);
+	  MASTER_PRINTF("Read variable 'R' with value: %d\n",r);
 	  
 	  read_theta(theta);
 	}
@@ -285,10 +285,10 @@ void init_simulation(int narg,char **arg)
 	  decripted=true;
 	  
 	  read_double(&kappa);
-	  master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
+	  MASTER_PRINTF("Read variable 'Kappa' with value: %lg\n",kappa);
 	  
 	  read_int(&r);
-	  master_printf("Read variable 'R' with value: %d\n",r);
+	  MASTER_PRINTF("Read variable 'R' with value: %d\n",r);
 	  
 	  read_theta(theta);
 	}
@@ -300,16 +300,16 @@ void init_simulation(int narg,char **arg)
 	  decripted=true;
 	  
 	  read_double(&kappa1);
-	  master_printf("Read variable 'Kappa1' with value: %lg\n",kappa1);
+	  MASTER_PRINTF("Read variable 'Kappa1' with value: %lg\n",kappa1);
 	  
 	  read_double(&kappa2);
-	  master_printf("Read variable 'Kappa2' with value: %lg\n",kappa2);
+	  MASTER_PRINTF("Read variable 'Kappa2' with value: %lg\n",kappa2);
 	  
 	  read_double(&kappa3);
-	  master_printf("Read variable 'Kappa3' with value: %lg\n",kappa3);
+	  MASTER_PRINTF("Read variable 'Kappa3' with value: %lg\n",kappa3);
 	  
 	  read_int(&r);
-	  master_printf("Read variable 'R' with value: %d\n",r);
+	  MASTER_PRINTF("Read variable 'R' with value: %d\n",r);
 	  
 	  read_theta(theta);
 	}
@@ -322,13 +322,13 @@ void init_simulation(int narg,char **arg)
 	    {
 	      read_int(&c[mu]);
 	      if(c[mu]<0)
-		crash("dir %d has been chosen negative value %d",mu,c[mu]);
+		CRASH("dir %d has been chosen negative value %d",mu,c[mu]);
 	      if(c[mu]>=glbSize[mu])
-		crash("dir %d has been chosen larger than glb size %d",mu,glbSize[mu]);
+		CRASH("dir %d has been chosen larger than glb size %d",mu,glbSize[mu]);
 	    }
 	  
 	  r=glblxOfCoord(c);
-	  master_printf("Choosing coords {%d,%d,%d,%d} corresponding to site %d\n",c[0],c[1],c[2],c[3],r);
+	  MASTER_PRINTF("Choosing coords {%d,%d,%d,%d} corresponding to site %d\n",c[0],c[1],c[2],c[3],r);
 	  
 	  decripted=true;
 	}
@@ -336,14 +336,14 @@ void init_simulation(int narg,char **arg)
       if(strcasecmp(ins,ins_tag[DEL_SPIN])==0)
 	{
 	  read_int(&r);
-	  master_printf("Choosing spin %d\n",r);
+	  MASTER_PRINTF("Choosing spin %d\n",r);
 	  decripted=true;
 	}
       
       if(strcasecmp(ins,ins_tag[DEL_COL])==0)
 	{
 	  read_int(&r);
-	  master_printf("Choosing color %d\n",r);
+	  MASTER_PRINTF("Choosing color %d\n",r);
 	  decripted=true;
 	}
       
@@ -354,23 +354,23 @@ void init_simulation(int narg,char **arg)
 	  if(strcasecmp(ins,ins_tag[EXT_FIELD])==0)
 	    {
 	      read_str(ext_field_path,32);
-	      master_printf("Read variable 'ext_field_path' with value: %s\n",ext_field_path);
+	      MASTER_PRINTF("Read variable 'ext_field_path' with value: %s\n",ext_field_path);
 	    }
 	  
 	  if(twisted_run)
 	    {
 	      read_int(&r);
-	      master_printf("Read variable 'R' with value: %d\n",r);
+	      MASTER_PRINTF("Read variable 'R' with value: %d\n",r);
 	    }
 	  read_double(&charge);
-	  master_printf("Read variable 'Charge' with value: %lg\n",charge);
+	  MASTER_PRINTF("Read variable 'Charge' with value: %lg\n",charge);
 	  
 	  if(ph)
 	    read_theta(theta);
 	}
       
       read_int(&store_prop);
-      master_printf("Read variable 'Store' with value: %d\n",store_prop);
+      MASTER_PRINTF("Read variable 'Store' with value: %d\n",store_prop);
       
       for(int icopy=0;icopy<ncopies;icopy++)
 	{
@@ -381,12 +381,12 @@ void init_simulation(int narg,char **arg)
 	  for(auto& [name,weight] : source_full_terms)
 	    {
 	      name+=suffix;
-	      if(Q.find(name)==Q.end()) crash("unable to find source %s",name.c_str());
+	      if(Q.find(name)==Q.end()) CRASH("unable to find source %s",name.c_str());
 	    }
 	  
 	  char fullName[1024+129];
 	  sprintf(fullName,"%s%s",name,suffix);
-	  if(Q.find(fullName)!=Q.end()) crash("name \'%s\' already included",fullName);
+	  if(Q.find(fullName)!=Q.end()) CRASH("name \'%s\' already included",fullName);
 	  
 	  Q[fullName].init_as_propagator(ins_from_tag(ins),source_full_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
 	  qprop_name_list[icopy+ncopies*iq]=fullName;
@@ -450,7 +450,7 @@ void init_simulation(int narg,char **arg)
 	    line+="     ";
 	    bwOrder++;
 	  }
-	master_printf("Decrypting %s = %s\n",name.c_str(),line.c_str());
+	MASTER_PRINTF("Decrypting %s = %s\n",name.c_str(),line.c_str());
       }
   
   //meslept
@@ -547,20 +547,20 @@ void in_main(int narg,char **arg)
   if(const char* nMaxAllocatedStr=getenv(NMAX_PROPS_ALLOCATED_STR))
     {
       nMaxPropsAllocated=atoi(nMaxAllocatedStr);
-      master_printf("NMAX_PROPS_ALLOCATED=%d\n",nMaxPropsAllocated);
+      MASTER_PRINTF("NMAX_PROPS_ALLOCATED=%d\n",nMaxPropsAllocated);
     }
   else
     {
-      master_printf("No maximum number of propagators to be allocated passed\n");
-      master_printf("Optionally specify the maximal number of propagators to be allocated by exporting %s\n",NMAX_PROPS_ALLOCATED_STR);
+      MASTER_PRINTF("No maximum number of propagators to be allocated passed\n");
+      MASTER_PRINTF("Optionally specify the maximal number of propagators to be allocated by exporting %s\n",NMAX_PROPS_ALLOCATED_STR);
     }
   
   constexpr char DO_NOT_AVERAGE_HITS_STR[]="DO_NOT_AVERAGE_HITS";
   doNotAverageHits=getenv(DO_NOT_AVERAGE_HITS_STR)!=nullptr;
   if(doNotAverageHits)
-    master_printf("%s exported, not averaging hits\n",DO_NOT_AVERAGE_HITS_STR);
+    MASTER_PRINTF("%s exported, not averaging hits\n",DO_NOT_AVERAGE_HITS_STR);
   else
-    master_printf("Averaging hits, export %s if needed otherwise\n",DO_NOT_AVERAGE_HITS_STR);
+    MASTER_PRINTF("Averaging hits, export %s if needed otherwise\n",DO_NOT_AVERAGE_HITS_STR);
   
   //loop over the configs
   int iconf=0;
@@ -580,8 +580,8 @@ void in_main(int narg,char **arg)
 	    print_contractions();
 	}
       
-      master_printf("NOffloaded: %d\n",hitLooper.nOffloaded);
-      master_printf("NRecalled: %d\n",hitLooper.nRecalled);
+      MASTER_PRINTF("NOffloaded: %d\n",hitLooper.nOffloaded);
+      MASTER_PRINTF("NRecalled: %d\n",hitLooper.nRecalled);
       
       free_confs();
       

@@ -81,7 +81,7 @@ namespace nissa
     START_TIMING(sto_time,nsto);
     
     if(out==in)
-      crash("cannot be used with same input and output");
+      CRASH("cannot be used with same input and output");
     
     in.updateEdges();
     
@@ -115,7 +115,7 @@ namespace nissa
     
     if(niter<1)
       {
-	verbosity_lv2_master_printf("Skipping smearing (0 iter required)\n");
+	VERBOSITY_LV2_MASTER_PRINTF("Skipping smearing (0 iter required)\n");
 	out=in;
       }
     else
@@ -125,7 +125,7 @@ namespace nissa
 	  {
 	    temp=(iter==0)?in:out;
 	    stout_smear_single_level(out,temp,stout_pars.rho,dirs);
-	    verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",iter+1,global_plaquette_lx_conf(out));
+	    VERBOSITY_LV2_MASTER_PRINTF("sme_step %d, plaquette: %16.16lg\n",iter+1,global_plaquette_lx_conf(out));
 	  }
     }
   }
@@ -154,11 +154,11 @@ namespace nissa
 			       const stout_pars_t* stout_pars,
 			       const WhichDirs& dirs)
   {
-    verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_lx_conf(*out[0]));
+    VERBOSITY_LV2_MASTER_PRINTF("sme_step 0, plaquette: %16.16lg\n",global_plaquette_lx_conf(*out[0]));
     for(int i=1;i<=stout_pars->nlevels;i++)
       {
 	stout_smear_single_level(*(out[i]),*(out[i-1]),stout_pars->rho,dirs);
-	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_lx_conf(*out[i]));
+	VERBOSITY_LV2_MASTER_PRINTF("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_lx_conf(*out[i]));
       }
   }
   
@@ -278,7 +278,7 @@ namespace nissa
     
     for(int i=stout_pars->nlevels-1;i>=0;i--)
       {
-	verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i+1,stout_pars->nlevels);
+	VERBOSITY_LV2_MASTER_PRINTF("Remapping the force, step: %d/%d\n",i+1,stout_pars->nlevels);
 	stouted_force_remap_step(F,*sme_conf[i],stout_pars->rho);
       }
     

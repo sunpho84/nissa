@@ -48,26 +48,26 @@ void read_conf(const char *path,int &iconf)
   
   //iconf
   header=ILDG_File_get_next_record_header(file);
-  if(strcasecmp(header.type,"ConfID")) crash("expecting ConfID record, found %s",header.type);
+  if(strcasecmp(header.type,"ConfID")) CRASH("expecting ConfID record, found %s",header.type);
   char data_iconf[30];
   ILDG_File_read_all(data_iconf,file,header.data_length);
   sscanf(data_iconf,"%d",&iconf);
   
   //rnd
   header=ILDG_File_get_next_record_header(file);
-  if(strcasecmp(header.type,"RND_gen_status")) crash("expecting RND_gen_status record, found %s",header.type);
+  if(strcasecmp(header.type,"RND_gen_status")) CRASH("expecting RND_gen_status record, found %s",header.type);
   char data_rnd[1000];
   ILDG_File_read_all(data_rnd,file,header.data_length);
   start_loc_rnd_gen(data_rnd);
   
   //lambda
   header=ILDG_File_get_next_record_header(file);
-  if(strcasecmp(header.type,"lambda")) crash("expecting lambda record, found %s",header.type);
+  if(strcasecmp(header.type,"lambda")) CRASH("expecting lambda record, found %s",header.type);
   read_real_vector((double*)lambda,file,header,sizeof(quad_u1)/sizeof(double));
 
   //zeta
   header=ILDG_File_get_next_record_header(file);
-  if(strcasecmp(header.type,"zeta")) crash("expecting zeta record, found %s",header.type);
+  if(strcasecmp(header.type,"zeta")) CRASH("expecting zeta record, found %s",header.type);
   read_real_vector((double*)zeta,file,header,sizeof(ON_t)/sizeof(double));
   
   ILDG_File_close(file);
@@ -158,7 +158,7 @@ void close_cpn(int isweep)
 {
   write_conf("conf",isweep);
   
-  master_printf("Closing CPN\n");
+  MASTER_PRINTF("Closing CPN\n");
   
   nissa_free(zeta);
   nissa_free(lambda);
@@ -330,7 +330,7 @@ void compute_lambda_forces()
       lambda[site][mu][IM]=sin(pre_val);
       
       double f=-(post_act-pre_act)/eps;
-      master_printf("mu: %d f: %lg %lg\n",mu,f,f/fomega[site][mu]);
+      MASTER_PRINTF("mu: %d f: %lg %lg\n",mu,f,f/fomega[site][mu]);
     }
 #endif
 }
@@ -379,7 +379,7 @@ void compute_zeta_forces()
       
       double f=-(post_act-pre_act)/eps;
       
-      master_printf("n: %d f: %lg %lg\n",n,f,f/fpi[site][n][IM]);
+      MASTER_PRINTF("n: %d f: %lg %lg\n",n,f,f/fpi[site][n][IM]);
       for(int m=0;m<N;m++) complex_copy(zeta[site][m],pre_val[m]);
     }
 #endif
@@ -518,7 +518,7 @@ void hmc_update(bool skip_test=false)
   double start_mom_action=momenta_action();
   double start_theo_action=action(zeta,lambda);
   double start_action=start_mom_action+start_theo_action;
-  verbosity_lv2_master_printf(" action: mom=%lg, coord=%lg\n",start_mom_action,start_theo_action);
+  VERBOSITY_LV2_MASTER_PRINTF(" action: mom=%lg, coord=%lg\n",start_mom_action,start_theo_action);
   
   //integrate for unitary length
   hmc_integrate(1.0);
@@ -527,7 +527,7 @@ void hmc_update(bool skip_test=false)
   double final_mom_action=momenta_action();
   double final_theo_action=action(zeta,lambda);
   double final_action=final_mom_action+final_theo_action;
-  master_printf(" action: mom=%lg, coord=%lg\n",final_mom_action,final_theo_action);
+  MASTER_PRINTF(" action: mom=%lg, coord=%lg\n",final_mom_action,final_theo_action);
 
   //compute difference of action and print it
   double diff_action=final_action-start_action;
@@ -543,7 +543,7 @@ void hmc_update(bool skip_test=false)
     }
   
   const char acc_flag[2][4]={"rej","acc"};
-  master_printf("diff_action: %lg-%lg=%lg, %s %s\n",final_action,start_action,diff_action,acc_flag[acc],(skip_test?" (skip)":""));
+  MASTER_PRINTF("diff_action: %lg-%lg=%lg, %s %s\n",final_action,start_action,diff_action,acc_flag[acc],(skip_test?" (skip)":""));
   
   if(acc) nacc++;
 }
@@ -590,7 +590,7 @@ double geometric_topology_simplified(ON_t *z)
 void in_main(int narg,char **arg)
 {
   //init
-  if(narg<2) crash("Use %s input",arg[0]);
+  if(narg<2) CRASH("Use %s input",arg[0]);
   int seed;
   read_input(seed,arg[1]);
   int base_isweep;

@@ -64,7 +64,7 @@ namespace nissa
       {
 	LxField<T,FieldLayout::CPU> tmp("tmp");
 	tmp=f;
-	master_printf("Making a temporary copy of the field to be 4D-fourier-transformed\n");
+	MASTER_PRINTF("Making a temporary copy of the field to be 4D-fourier-transformed\n");
 	
 	fft4d(tmp,sign,normalize);
 	

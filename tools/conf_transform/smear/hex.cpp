@@ -5,7 +5,7 @@ using namespace nissa;
 int L,T;
 void in_main(int narg,char **arg)
 {
-  if(narg<9) crash("use: %s L T filein nlev alpha1 alpha2 alpha3 fileout",arg[0]);
+  if(narg<9) CRASH("use: %s L T filein nlev alpha1 alpha2 alpha3 fileout",arg[0]);
   
   int L=atoi(arg[1]);
   int T=atoi(arg[2]);
@@ -35,7 +35,7 @@ void in_main(int narg,char **arg)
   if(arg[9])
     {
       start_loc_rnd_gen(atoi(arg[9]));
-      crash("reimplement");
+      CRASH("reimplement");
       //perform_random_gauge_transform(conf,conf);
     }
   
@@ -50,12 +50,12 @@ void in_main(int narg,char **arg)
       double charge;
       topo_time-=take_time();
       
-      crash("reimplement");charge=0.0;
+      CRASH("reimplement");charge=0.0;
       
       // total_topological_charge_lx_conf(&charge,conf);
       topo_time+=take_time();
       
-      master_printf("Smearing level: %d plaq: %16.16lg charge: %16.16lg\n",ilev,global_plaquette_lx_conf(conf),charge);
+      MASTER_PRINTF("Smearing level: %d plaq: %16.16lg charge: %16.16lg\n",ilev,global_plaquette_lx_conf(conf),charge);
       
       if(ilev!=nlev)
 	{
@@ -66,8 +66,8 @@ void in_main(int narg,char **arg)
 	}
     }
   
-  master_printf("Topological computation time: %lg\n",topo_time);
-  master_printf("Cooling time: %lg\n",cool_time);
+  MASTER_PRINTF("Topological computation time: %lg\n",topo_time);
+  MASTER_PRINTF("Cooling time: %lg\n",cool_time);
   
   //write the conf
   write_ildg_gauge_conf(pathout,conf,64);

@@ -20,7 +20,7 @@ namespace nissa
   //warning, the input conf needs to have edges allocate!
   void hyp_smear_conf(quad_su3* sm_conf,quad_su3* conf,double alpha0,double alpha1,double alpha2,const WhichDirs& dirs)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // #if NDIM == 4
     
@@ -40,7 +40,7 @@ namespace nissa
     
 //     /////////////////////////////////////// second level decoration /////////////////////////////////
     
-//     verbosity_lv2_master_printf("Second level decoration\n");
+//     VERBOSITY_LV2_MASTER_PRINTF("Second level decoration\n");
     
 //     //allocate dec2 conf
 //     su3 **dec2_conf=new su3*[idec2_remap];
@@ -95,7 +95,7 @@ namespace nissa
     
 //     /////////////////////////////////////// first level decoration /////////////////////////////////
     
-//     verbosity_lv2_master_printf("First level decoration\n");
+//     VERBOSITY_LV2_MASTER_PRINTF("First level decoration\n");
     
 //     //allocate dec1 conf
 //     su3 **dec1_conf=new su3*[idec1_remap];
@@ -162,7 +162,7 @@ namespace nissa
     
 //     /////////////////////////////////////// zero level decoration /////////////////////////////////
     
-//     verbosity_lv2_master_printf("Zero level decoration\n");
+//     VERBOSITY_LV2_MASTER_PRINTF("Zero level decoration\n");
     
 //     //loop over external index
 //     for(int mu=0;mu<4;mu++)
@@ -226,7 +226,7 @@ namespace nissa
 //     delete[] dec2_conf;
     
 // #else
-//     crash("Ndim=%d cannot use HYP",NDIM);
+//     CRASH("Ndim=%d cannot use HYP",NDIM);
 // #endif
   }
 }

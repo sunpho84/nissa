@@ -160,11 +160,11 @@ namespace nissa
 	      buf[iout].set(temp);
 	    }
 	
-	master_printf("Preparing transfer\n");
+	MASTER_PRINTF("Preparing transfer\n");
 	
 	cpu_to_gpu(data,&buf[0],n);
 	
-	master_printf("Transferred color\n");
+	MASTER_PRINTF("Transferred color\n");
       }
       
       /// Export to the passed cpu vector
@@ -253,11 +253,11 @@ namespace nissa
 		    buf[iout].set(temp);
 		  }
 	
-	master_printf("Preparing transfer\n");
+	MASTER_PRINTF("Preparing transfer\n");
 	
 	cpu_to_gpu(data,&buf[0],n);
 	
-	master_printf("Transferred conf\n");
+	MASTER_PRINTF("Transferred conf\n");
       }
       
       /// Copy to the passed cpu vector
@@ -334,7 +334,7 @@ namespace nissa
       
       for(int ngpu_threads=2;ngpu_threads<1024;ngpu_threads*=2)
 	{
-	  master_printf("nthreads: %d\n",ngpu_threads);
+	  MASTER_PRINTF("nthreads: %d\n",ngpu_threads);
       const dim3 block_dimension(ngpu_threads);
       const dim3 grid_dimension((locVolh+ngpu_threads)/ngpu_threads);
       
@@ -353,7 +353,7 @@ namespace nissa
       
       double each=(end-init)/n;
       const int nflops_per_site=8*8*9*2;
-      master_printf("Time for the improved operator: %lg s, per site: %lg s, Gflops: %lg\n",each,each/locVolh,nflops_per_site/each*locVolh*1e-9);
+      MASTER_PRINTF("Time for the improved operator: %lg s, per site: %lg s, Gflops: %lg\n",each,each/locVolh,nflops_per_site/each*locVolh*1e-9);
 	}
       out.export_to_cpu(_out);
       

@@ -26,7 +26,7 @@
 #define nissa_malloc(a,b,c) (c*)internal_nissa_malloc(a,b,sizeof(c),#c,__FILE__,__LINE__)
 #define nissa_free(a) do{static_assert(std::is_pointer_v<std::remove_reference_t<decltype((a))>>,"What are you deallocating?");internal_nissa_free((char**)&(a),__FILE__,__LINE__);}while(0)
 
-#define CRASH_IF_NOT_ALIGNED(a,b) MACRO_GUARD(if((long long int)(void*)a%b!=0) crash("alignement problem");)
+#define CRASH_IF_NOT_ALIGNED(a,b) MACRO_GUARD(if((long long int)(void*)a%b!=0) CRASH("alignement problem");)
 #define IF_MAIN_VECT_NOT_INITIALIZED() if(main_arr!=((char*)&main_vect)+sizeof(nissa_vect))
 
 namespace nissa
@@ -71,7 +71,7 @@ namespace nissa
 	};
       
       if(not (check(tag) and check(type)))
-	crash("not a nissa_vector");
+	CRASH("not a nissa_vector");
     }
   };
   

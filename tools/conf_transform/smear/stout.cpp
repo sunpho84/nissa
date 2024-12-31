@@ -43,7 +43,7 @@ void unitarize_conf_max(EoField<quad_su3>& conf)
 
 void in_main(int narg,char **arg)
 {
-  if(narg<7) crash("use: %s L T filein rho nlev fileout",arg[0]);
+  if(narg<7) CRASH("use: %s L T filein rho nlev fileout",arg[0]);
   
   stout_pars_t stout_pars;
   int L=atoi(arg[1]);
@@ -75,14 +75,14 @@ void in_main(int narg,char **arg)
   
   for(int ilev=0;ilev<=stout_pars.nlevels;ilev++)
     {
-      crash("reimplement");
+      CRASH("reimplement");
       // //compute topocharge
       // double charge;
       // topo_time-=take_time();
       // total_topological_charge_eo_conf(&charge,conf);
       // topo_time+=take_time();
       
-      // master_printf("Smearing level: %d plaq: %16.16lg charge: %16.16lg\n",ilev,global_plaquette_eo_conf(conf),charge);
+      // MASTER_PRINTF("Smearing level: %d plaq: %16.16lg charge: %16.16lg\n",ilev,global_plaquette_eo_conf(conf),charge);
       
       // if(ilev!=stout_pars.nlevels)
       // 	{
@@ -93,8 +93,8 @@ void in_main(int narg,char **arg)
       // 	}
     }
   
-  master_printf("Topological computation time: %lg\n",topo_time);
-  master_printf("Cooling time: %lg\n",cool_time);
+  MASTER_PRINTF("Topological computation time: %lg\n",topo_time);
+  MASTER_PRINTF("Cooling time: %lg\n",cool_time);
   
   //write the conf
   paste_eo_parts_and_write_ildg_gauge_conf(pathout,conf,64);

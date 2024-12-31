@@ -36,13 +36,13 @@ void in_main(int narg,char **arg)
   pars.gauge=LC_gauge_fixing_pars_t::Landau;
   pars.target_precision=precision;
   
-  crash("reimplement");
+  CRASH("reimplement");
   //Landau_or_Coulomb_gauge_fix(fix_conf,&pars,conf);
   
   write_ildg_gauge_conf(conf_out_path,fix_conf,64);
   
-  master_printf("plaq before: %16.16lg\n",global_plaquette_lx_conf(conf));
-  master_printf("plaq after: %16.16lg\n",global_plaquette_lx_conf(fix_conf));
+  MASTER_PRINTF("plaq before: %16.16lg\n",global_plaquette_lx_conf(conf));
+  MASTER_PRINTF("plaq after: %16.16lg\n",global_plaquette_lx_conf(fix_conf));
   
   ///////////////////////////////////////////
   
@@ -53,7 +53,7 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   //basic mpi initialization
   init_nissa_threaded(narg,arg,in_main);

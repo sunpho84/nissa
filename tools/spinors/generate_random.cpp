@@ -7,9 +7,9 @@ int main(int narg,char **arg)
   //basic mpi initialization
   init_nissa();
   
-  if(nissa_nranks>1) crash("cannot run in parallel");
+  if(nissa_nranks>1) CRASH("cannot run in parallel");
   
-  if(narg<4) crash("use: %s L T seed file_out",arg[0]);
+  if(narg<4) CRASH("use: %s L T seed file_out",arg[0]);
 
   int L=atoi(arg[1]);
   int T=atoi(arg[2]);

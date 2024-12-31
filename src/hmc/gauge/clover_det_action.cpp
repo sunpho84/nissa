@@ -27,7 +27,7 @@ namespace nissa
       res=0.0;
     else
       {
-	crash("reimplement");
+	CRASH("reimplement");
     // 	double *loc_act=nissa_malloc("loc_act",locVolh,double);
 	
     // 	eo_ptr<clover_term_t> Cl={NULL,NULL};

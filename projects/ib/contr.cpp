@@ -67,7 +67,7 @@ namespace nissa
 			     const std::string& pr_dag,
 			     const std::string& pr)
   {
-    master_printf("Computing the scalar product between %s and %s\n",pr_dag.c_str(),pr.c_str());
+    MASTER_PRINTF("Computing the scalar product between %s and %s\n",pr_dag.c_str(),pr.c_str());
     
     LxField<complex> loc("loc");
     loc.reset();
@@ -115,7 +115,7 @@ namespace nissa
 	int ig_so=mes_gamma_list[ihadr_contr].so;
 	int ig_si=mes_gamma_list[ihadr_contr].si;
 	if(nso_spi==1 and ig_so!=5)
-	  crash("implemented only g5 contraction on the source for non-diluted source");
+	  CRASH("implemented only g5 contraction on the source for non-diluted source");
 	
 	loc_contr->reset();
 	
@@ -290,9 +290,9 @@ namespace nissa
   // O^\dagger_ga = eps_{a,b,c}} q3^*_{ga,c}q2^*_{be,b}(CG)^\dag_{al,be}q3_{ga,c}
   void compute_bar2pts_alt_contr()
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
-    //     master_printf("Computing barion 2pts contractions alternative\n");
+    //     MASTER_PRINTF("Computing barion 2pts contractions alternative\n");
     
 //     const int nWicks=2;
     
@@ -347,7 +347,7 @@ namespace nissa
   // void compute_bar2pts_contr_free_theory()
   // {
     
-  //   master_printf("Computing barion contractions\n");
+  //   MASTER_PRINTF("Computing barion contractions\n");
     
   //   //local thread/node contractions
   //   complex *loc_contr=new complex[bar2pts_contr_size];
@@ -363,7 +363,7 @@ namespace nissa
   //   for(int i=0;i<3;i++)
   //     for(int j=0;j<3;j++)
   // 	for(int k=0;k<3;k++)
-  // 	  master_printf("%d %d %d %d\n",i,j,k,eps[i][j][k]);
+  // 	  MASTER_PRINTF("%d %d %d %d\n",i,j,k,eps[i][j][k]);
     
   //   std::vector<std::array<int,3>> list({{{5,5,0},
   // 	  {1,1,1},{2,2,1},{3,3,1},
@@ -476,10 +476,10 @@ namespace nissa
   //compute all contractions
   void compute_bar2pts_contr()
   {
-    crash("reimplement");
-    // master_printf("Computing barion 2pts contractions\n");
+    CRASH("reimplement");
+    // MASTER_PRINTF("Computing barion 2pts contractions\n");
     
-    // crash("#warning reimplement");
+    // CRASH("#warning reimplement");
     // //allocate loc storage
     // complex *loc_contr=new complex[bar2pts_contr_size];
     // memset(loc_contr,0,sizeof(complex)*bar2pts_contr_size);
@@ -546,7 +546,7 @@ namespace nissa
     // STOP_TIMING(bar2pts_contr_time);
     
     // //reduce
-    // crash("#warning");
+    // CRASH("#warning");
     // // complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_contr_size);
     // // NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size)
     // //   {
@@ -571,7 +571,7 @@ namespace nissa
     open_or_append_t list;
     
     //reduce
-    crash("#warning reimplement");
+    CRASH("#warning reimplement");
     //glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
     
     const double norm=doNotAverageHits?0.5:(1.0/(2*nhits));
@@ -780,7 +780,7 @@ namespace nissa
   
   void compute_handcuffs_contr()
   {
-    master_printf("Computing handcuffs contractions\n");
+    MASTER_PRINTF("Computing handcuffs contractions\n");
     
     //allocate all sides
     std::map<std::string,LxField<spin1field>*> sides;
@@ -791,7 +791,7 @@ namespace nissa
     //loop over sides
     for(size_t iside=0;iside<handcuffs_side_map.size();iside++)
       {
-	crash("dependencies are broken");
+	CRASH("dependencies are broken");
 	//allocate
 	handcuffs_side_map_t &h=handcuffs_side_map[iside];
 	std::string side_name=h.name;
@@ -805,7 +805,7 @@ namespace nissa
 	//check r are the same (that is, opposite!)
 	if(twisted_run and (not loc_hadr_curr)) {
 	  if(Q[h.fw].r==Q[h.bw].r and (not Q[h.bw].is_source))
-	    crash("conserved current needs opposite r (before reverting), but quarks %s and %s have the same",h.fw.c_str(),h.bw.c_str());
+	    CRASH("conserved current needs opposite r (before reverting), but quarks %s and %s have the same",h.fw.c_str(),h.bw.c_str());
 	}
 	
 	//compute dirac combo
@@ -813,7 +813,7 @@ namespace nissa
 	const int ig=::abs(handcuffs_side_map[iside].igamma);
 	const int revert=(handcuffs_side_map[iside].igamma>=0); //reverting only if positive ig asked
 	if(ig!=5 and not diluted_spi_source)
-	  crash("ig %d not available if not diluting in spin",ig);
+	  CRASH("ig %d not available if not diluting in spin",ig);
 	//dirac_prod(&g,base_gamma+5,base_gamma+ig);
 	g=base_gamma[ig];
 	
@@ -828,7 +828,7 @@ namespace nissa
       {
 	handcuffs_map_t &h=handcuffs_map[ihand];
 	std::string right_with_photon=h.right+"_photon";
-	master_printf("Inserting photon to compute %s\n",right_with_photon.c_str());
+	MASTER_PRINTF("Inserting photon to compute %s\n",right_with_photon.c_str());
 	
 	if(sides.find(right_with_photon)==sides.end())
 	  {
@@ -841,7 +841,7 @@ namespace nissa
     for(size_t ihand=0;ihand<handcuffs_map.size();ihand++)
       if(sides.find(handcuffs_map[ihand].left)==sides.end() or
 	 sides.find(handcuffs_map[ihand].right)==sides.end())
-	crash("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
+	CRASH("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
       else
 	{
 	  const auto& left=*sides[handcuffs_map[ihand].left];

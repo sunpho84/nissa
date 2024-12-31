@@ -76,8 +76,8 @@ namespace nissa
 	  out.pos[ig]=in1.pos[ig];
 	  complex_summ(out.entr[ig],in1.entr[ig],in2.entr[ig]);
 	}
-      else 
-	crash("The two matrix passed to sum have different positions");
+      else
+	CRASH("The two matrix passed to sum have different positions");
     
     return out;
   }
@@ -93,7 +93,7 @@ namespace nissa
 	  complex_subt(out.entr[ig],in1.entr[ig],in2.entr[ig]);
 	}
       else
-	crash("The two matrix passed to sum have different positions");
+	CRASH("The two matrix passed to sum have different positions");
     
     return out;
   }
@@ -179,7 +179,7 @@ namespace nissa
       {
 	UNROLL_FOR(jd,id+1,NDIRAC)
 	  if(in.pos[id]==in.pos[jd])
-	    crash("pos[%d]=%d==pos[%d]",id,in.pos[id],jd);
+	    CRASH("pos[%d]=%d==pos[%d]",id,in.pos[id],jd);
 	int od=in.pos[id];
 	out.pos[od]=id;
 	complex_conj(out.entr[od],in.entr[id]);

@@ -47,7 +47,7 @@ void in_main(int narg,char **arg)
   tot_prog_time-=take_time();
   
   //check argument
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   //init simulation according to input file
   init_simulation(arg[1]);
@@ -61,7 +61,7 @@ void in_main(int narg,char **arg)
       
       for(int isource=0;isource<nsources;isource++)
 	{
-	  master_printf("\n=== Source %d/%d ====\n",isource+1,nsources);
+	  MASTER_PRINTF("\n=== Source %d/%d ====\n",isource+1,nsources);
 	  
 	  //init
 	  random_shift_gauge_conf(conf,old_theta,put_theta);

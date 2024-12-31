@@ -90,7 +90,7 @@ two_pts_parser_driver::two_pts_parser_driver(const char *path)
 {
   //open file                                                                                                            
   fin=fopen(path,"r");
-  if(fin==NULL) crash("opening %s",path);
+  if(fin==NULL) CRASH("opening %s",path);
 
   //reset corr
   ncorr=0;

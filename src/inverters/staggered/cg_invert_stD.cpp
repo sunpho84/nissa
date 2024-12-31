@@ -57,7 +57,7 @@ namespace nissa
     //   {
     inv_evn_stD_cg(sol.evenPart,guess,conf,m,niter,residue,source);
     apply_st2Doe(sol.oddPart,conf,sol.evenPart);
-    crash("reimplement");
+    CRASH("reimplement");
     // double_vector_linear_comb((double*)(sol[ODD].data),(double*)(source[ODD].data),1/m,(double*)(sol[ODD].data),-0.5/m,locVolh*6);
       // }
     
@@ -79,7 +79,7 @@ namespace nissa
     //     residueNorm2+=double_vector_glb_norm2(residueVec[eo],locVolh);
     //   }
     
-    // master_printf("check solution, residue: %lg/%lg=%lg, target one: %lg\n",residueNorm2,sourceNorm2,residueNorm2/sourceNorm2,residue);
+    // MASTER_PRINTF("check solution, residue: %lg/%lg=%lg, target one: %lg\n",residueNorm2,sourceNorm2,residueNorm2/sourceNorm2,residue);
     
     // for(int eo=0;eo<2;eo++)
     //   nissa_free(residueVec[eo]);

@@ -31,14 +31,14 @@ namespace nissa
   {
     if(not conf_allocated)
       {
-	master_printf("Allocating confs\n");
+	MASTER_PRINTF("Allocating confs\n");
 	
 	glb_conf=new LxField<quad_su3>("glb_conf",WITH_HALO_EDGES);
 	inner_conf=new LxField<quad_su3>("inner_conf",WITH_HALO_EDGES);
 	ape_smeared_conf=new LxField<quad_su3>("ape_smeared_conf",WITH_HALO_EDGES);
       }
     else
-      master_printf("Skipping allocating confs\n");
+      MASTER_PRINTF("Skipping allocating confs\n");
     
     conf_allocated=true;
   }
@@ -48,14 +48,14 @@ namespace nissa
   {
     if(conf_allocated)
       {
-	master_printf("Freeing confs\n");
+	MASTER_PRINTF("Freeing confs\n");
 	
 	delete glb_conf;
 	delete inner_conf;
 	delete ape_smeared_conf;
       }
     else
-      master_printf("Skipping freeing confs\n");
+      MASTER_PRINTF("Skipping freeing confs\n");
     
     conf_allocated=false;
   }
@@ -70,7 +70,7 @@ namespace nissa
 #ifdef QUDASETUPSTORE
     if(const size_t n=quda_iface::qudaSetups.size();n)
       {
-	master_printf("Clearing %zu stored multigrid setups\n",n);
+	MASTER_PRINTF("Clearing %zu stored multigrid setups\n",n);
 	quda_iface::qudaSetups.clear();
       }
 #endif
@@ -81,10 +81,10 @@ namespace nissa
 	START_TIMING(conf_load_time,nconf_load);
 	const double beg=take_time();
 	read_ildg_gauge_conf(conf,conf_path);
-	master_printf("Full loading took %lg s\n",take_time()-beg);
+	MASTER_PRINTF("Full loading took %lg s\n",take_time()-beg);
 	STOP_TIMING(conf_load_time);
 	
-	master_printf("plaq: %+16.16g\n",global_plaquette_lx_conf(conf));
+	MASTER_PRINTF("plaq: %+16.16g\n",global_plaquette_lx_conf(conf));
       }
     else generate_cold_lx_conf(conf);
     
@@ -106,7 +106,7 @@ namespace nissa
 	START_TIMING(ape_time,nape_tot);
 	ape_spatial_smear_conf(*ape_smeared_conf,*conf,ape_smearing_alpha,ape_smearing_niters);
 	STOP_TIMING(ape_time);
-	master_printf("Smeared plaquette: %+16.16lg\n",global_plaquette_lx_conf(*ape_smeared_conf));
+	MASTER_PRINTF("Smeared plaquette: %+16.16lg\n",global_plaquette_lx_conf(*ape_smeared_conf));
       }
     
     //invalidate internal conf
@@ -118,26 +118,26 @@ namespace nissa
 				      const Momentum& theta,
 				      const LxField<quad_su3>& in_conf)
   {
-    master_printf("Checking if conf needs to be updated\n");
+    MASTER_PRINTF("Checking if conf needs to be updated\n");
     
     //check if the inner conf is valid or not
     static const LxField<quad_su3>* stored_conf=nullptr;
     static double stored_charge=0,stored_theta[NDIM];
     
     if(not inner_conf_valid)
-      master_printf("Inner conf is invalid (loaded new conf, or new photon generated)\n");
+      MASTER_PRINTF("Inner conf is invalid (loaded new conf, or new photon generated)\n");
     
     //check ref conf
     if(stored_conf!=&in_conf)
       {
-	master_printf("Inner conf is invalid (ref conf from %p to %p)\n",stored_conf,&in_conf);
+	MASTER_PRINTF("Inner conf is invalid (ref conf from %p to %p)\n",stored_conf,&in_conf);
 	inner_conf_valid=false;
       }
     
     //check charge
     if(charge!=stored_charge)
       {
-	master_printf("Inner conf is invalid (charge changed from %lg to %lg)\n",stored_charge,charge);
+	MASTER_PRINTF("Inner conf is invalid (charge changed from %lg to %lg)\n",stored_charge,charge);
 	inner_conf_valid=false;
       }
     
@@ -148,14 +148,14 @@ namespace nissa
     
     if(not same_theta)
       {
-	master_printf("Inner conf is invalid (theta changed from {%lg,%lg,%lg,%lg} to {%lg,%lg,%lg,%lg}\n",
+	MASTER_PRINTF("Inner conf is invalid (theta changed from {%lg,%lg,%lg,%lg} to {%lg,%lg,%lg,%lg}\n",
 		      stored_theta[0],stored_theta[1],stored_theta[2],stored_theta[3],theta[0],theta[1],theta[2],theta[3]);
 	inner_conf_valid=false;
       }
     
     if(not inner_conf_valid)
       {
-	master_printf("Inner conf not valid: updating it\n");
+	MASTER_PRINTF("Inner conf not valid: updating it\n");
 	
 	//copy
 	*inner_conf=in_conf;
@@ -170,7 +170,7 @@ namespace nissa
 	  add_photon_field_to_conf(*inner_conf,charge);
       }
     else
-      master_printf("Inner conf valid, no need to update\n");
+      MASTER_PRINTF("Inner conf valid, no need to update\n");
     
     //update value and set valid
     stored_conf=&in_conf;
@@ -178,7 +178,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++) stored_theta[mu]=theta[mu];
     inner_conf_valid=true;
     
-    // master_printf("inner_conf pointer: %p\n",inner_conf);
+    // MASTER_PRINTF("inner_conf pointer: %p\n",inner_conf);
     
     return inner_conf;
   }
@@ -194,10 +194,10 @@ namespace nissa
 	double left_time=wall_time-temp_time;
 	int enough_time=left_time>(ave_time*1.1);
 	
-	master_printf("\nRemaining time: %lg sec\n",left_time);
-	master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
-	if(enough_time) master_printf("Time is enough to go on!\n");
-	else master_printf("Not enough time, exiting!\n");
+	MASTER_PRINTF("\nRemaining time: %lg sec\n",left_time);
+	MASTER_PRINTF("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
+	if(enough_time) MASTER_PRINTF("Time is enough to go on!\n");
+	else MASTER_PRINTF("Not enough time, exiting!\n");
 	
 	return enough_time;
       }
@@ -225,18 +225,18 @@ namespace nissa
   {
     //Check if asked to stop or restart
     const int asked_stop=file_exists(stop_path);
-    verbosity_lv2_master_printf("Asked to stop: %d\n",asked_stop);
+    VERBOSITY_LV2_MASTER_PRINTF("Asked to stop: %d\n",asked_stop);
     
     const int asked_restart=file_exists("restart");
-    verbosity_lv2_master_printf("Asked to restart: %d\n",asked_restart);
+    VERBOSITY_LV2_MASTER_PRINTF("Asked to restart: %d\n",asked_restart);
     
     //check if enough time
     const int enough_time=check_remaining_time();
-    verbosity_lv2_master_printf("Enough time: %d\n",enough_time);
+    VERBOSITY_LV2_MASTER_PRINTF("Enough time: %d\n",enough_time);
     
     //check that there are still conf to go
     int still_conf=iconf<ngauge_conf;
-    verbosity_lv2_master_printf("Still conf: %d\n",still_conf);
+    VERBOSITY_LV2_MASTER_PRINTF("Still conf: %d\n",still_conf);
     
     allocate_confs();
     
@@ -251,23 +251,23 @@ namespace nissa
 	  read_str(outfolder,1024);
 	  
 	  //Check if the conf has been finished or is already running
-	  master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+	  MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
 	  char run_file[1024];
 	  if(snprintf(run_file,1024,"%s/%s",outfolder,running_filename.c_str())<0)
-	    crash("witing %s",run_file);
+	    CRASH("witing %s",run_file);
 	  ok_conf=not (file_exists(run_file)) and external_condition();
 	  
 	  //if not finished
 	  if(ok_conf)
 	    {
-	      master_printf(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
+	      MASTER_PRINTF(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
 	      if(not dir_exists(outfolder))
 		{
 		  int ris=create_dir(outfolder);
-		  if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
+		  if(ris==0) MASTER_PRINTF(" Output path \"%s\" not present, created.\n",outfolder);
 		  else
 		    {
-		      master_printf(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+		      MASTER_PRINTF(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
 		      ok_conf=0;
 		      skip_conf();
 		    }
@@ -284,7 +284,7 @@ namespace nissa
 		  if(not lock_file.check_lock())
 		    {
 		      ok_conf=false;
-		      master_printf("Somebody acquired the lock on %s\n",run_file);
+		      MASTER_PRINTF("Somebody acquired the lock on %s\n",run_file);
 		      skip_conf();
 		    }
 		}
@@ -292,7 +292,7 @@ namespace nissa
 	  else
 	    {
 	      //skipping conf
-	      master_printf("\"%s\" finished or running, skipping configuration \"%s\"\n",outfolder,conf_path);
+	      MASTER_PRINTF("\"%s\" finished or running, skipping configuration \"%s\"\n",outfolder,conf_path);
 	      skip_conf();
 	    }
 	  iconf++;
@@ -301,19 +301,19 @@ namespace nissa
 	}
       while((not ok_conf) and still_conf);
     
-    master_printf("\n");
+    MASTER_PRINTF("\n");
     
     //write if it was asked to stop or restart
     if(asked_stop)
-      master_printf("Asked to stop\n");
+      MASTER_PRINTF("Asked to stop\n");
     
     if(asked_restart)
-      master_printf("Asked to restart\n");
+      MASTER_PRINTF("Asked to restart\n");
     
     //writing that all confs have been measured and write it
     if((not ok_conf) and iconf>=ngauge_conf)
       {
-	master_printf("Analyzed all confs, exiting\n\n");
+	MASTER_PRINTF("Analyzed all confs, exiting\n\n");
 	file_touch(stop_path);
       }
     
@@ -325,7 +325,7 @@ namespace nissa
   {
     char fin_file[1024];
     if(snprintf(fin_file,1024,"%s/%s",outfolder,finished_filename.c_str())<0)
-      crash("writing %s",fin_file);
+      CRASH("writing %s",fin_file);
     file_touch(fin_file);
     nanalyzed_conf++;
   }
@@ -335,7 +335,7 @@ namespace nissa
 				     const int& niter,
 				     const char *tag)
   {
-    if(niter) master_printf(" - %02.2f%% for %d %s (%2.2gs avg)\n",frac_time/tot_time*100,niter,tag,frac_time/niter);
+    if(niter) MASTER_PRINTF(" - %02.2f%% for %d %s (%2.2gs avg)\n",frac_time/tot_time*100,niter,tag,frac_time/niter);
   }
   
   //print all statisticd
@@ -343,15 +343,15 @@ namespace nissa
   {
     if(nanalyzed_conf)
       {
-	master_printf("\n");
-	master_printf("Inverted %d configurations.\n",nanalyzed_conf);
-	master_printf("Total time: %g, of which:\n",tot_prog_time);
+	MASTER_PRINTF("\n");
+	MASTER_PRINTF("Inverted %d configurations.\n",nanalyzed_conf);
+	MASTER_PRINTF("Total time: %g, of which:\n",tot_prog_time);
 	print_single_statistic(conf_load_time,tot_prog_time,nconf_load,"loading conf");
 	print_single_statistic(smear_oper_time,tot_prog_time,nsmear_oper,"smearing");
 	print_single_statistic(lepton_prop_time,tot_prog_time,nlprop,"preparation of lepton propagators");
 	print_single_statistic(source_time,tot_prog_time,nsource_tot,"preparation of generalized sources");
 	print_single_statistic(inv_time,tot_prog_time,ninv_tot,"calculation of quark propagator");
-	if(ninv_tot) master_printf("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",
+	if(ninv_tot) MASTER_PRINTF("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",
 				   cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
 	print_single_statistic(store_prop_time,tot_prog_time,nstore_prop,"storing propagators");
 	print_single_statistic(read_prop_time,tot_prog_time,nread_prop,"reading propagators");

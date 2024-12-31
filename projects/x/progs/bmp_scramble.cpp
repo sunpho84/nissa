@@ -15,7 +15,7 @@ void init_prog(int narg,char **arg)
   //Basic mpi initialization
   init_nissa(narg,arg);
   
-  if(narg<3) crash("use %s filein fileout",arg[0]);
+  if(narg<3) CRASH("use %s filein fileout",arg[0]);
   
   //read the file
   read_bmpfile(bmp,arg[1]);

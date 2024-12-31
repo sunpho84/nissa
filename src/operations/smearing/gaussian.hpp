@@ -54,7 +54,7 @@ namespace nissa
   {									\
     if(niter<1)								\
       {									\
-	verbosity_lv2_master_printf("Skipping smearing (0 iter required)\n"); \
+	VERBOSITY_LV2_MASTER_PRINTF("Skipping smearing (0 iter required)\n"); \
 	if(smear_sc!=origi_sc) smear_sc=origi_sc;			\
       }									\
     else								\
@@ -69,7 +69,7 @@ namespace nissa
   									\
 	const double norm_fact=1/(1+2*(kappa[1]+kappa[2]+kappa[3]));	\
 									\
-	verbosity_lv2_master_printf("GAUSSIAN smearing with kappa={%g,%g,%g}, %d iterations\n",kappa[1],kappa[2],kappa[3],niter); \
+	VERBOSITY_LV2_MASTER_PRINTF("GAUSSIAN smearing with kappa={%g,%g,%g}, %d iterations\n",kappa[1],kappa[2],kappa[3],niter); \
 									\
 	/*iter 0*/							\
 	temp=origi_sc;							\
@@ -77,7 +77,7 @@ namespace nissa
 	/*loop over gaussian iterations*/				\
 	for(int iter=0;iter<niter;iter++)				\
 	  {								\
-	    verbosity_lv3_master_printf("GAUSSIAN smearing with kappa={%g,%g,%g} iteration %d of %d\n",kappa[1],kappa[2],kappa[3],iter,niter); \
+	    VERBOSITY_LV3_MASTER_PRINTF("GAUSSIAN smearing with kappa={%g,%g,%g} iteration %d of %d\n",kappa[1],kappa[2],kappa[3],iter,niter); \
 									\
 	    /*apply kappa*H*/						\
 	    NAME2(gaussian_smearing_apply_kappa_H,TYPE)(H,kappa,conf,temp); \

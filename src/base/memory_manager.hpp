@@ -79,7 +79,7 @@ namespace nissa
       
       usedSize+=size;
       
-      verbosity_lv3_master_printf("Pushing to used %p %zu, used: %zu\n",ptr,size,used.size());
+      VERBOSITY_LV3_MASTER_PRINTF("Pushing to used %p %zu, used: %zu\n",ptr,size,used.size());
     }
     
     /// Removes a pointer from the used list, without actually freeing associated memory
@@ -87,13 +87,13 @@ namespace nissa
     /// Returns the size of the memory pointed
     Size popFromUsed(void* ptr) ///< Pointer to the memory to move to cache
     {
-      verbosity_lv3_master_printf("Popping from used %p\n",ptr);
+      VERBOSITY_LV3_MASTER_PRINTF("Popping from used %p\n",ptr);
       
       /// Iterator to search result
       auto el=used.find(ptr);
       
       if(el==used.end())
-	crash("Unable to find dinamically allocated memory %p",ptr);
+	CRASH("Unable to find dinamically allocated memory %p",ptr);
       
       /// Size of memory
       const Size size=el->second;
@@ -113,7 +113,7 @@ namespace nissa
       
       cachedSize+=size;
       
-      verbosity_lv3_master_printf("Pushing to cache %zu %p, cache size: %zu\n",size,ptr,cached.size());
+      VERBOSITY_LV3_MASTER_PRINTF("Pushing to cache %zu %p, cache size: %zu\n",size,ptr,cached.size());
     }
     
     /// Check if a pointer is suitably aligned
@@ -127,7 +127,7 @@ namespace nissa
     void* popFromCache(const Size& size,
 		       const Size& alignment)
     {
-      verbosity_lv3_master_printf("Try to popping from cache %zu\n",size);
+      VERBOSITY_LV3_MASTER_PRINTF("Try to popping from cache %zu\n",size);
       
       /// List of memory with searched size
       auto cachedIt=cached.find(size);
@@ -167,7 +167,7 @@ namespace nissa
     /// Move the allocated memory to cache
     void moveToCache(void* ptr) ///< Pointer to the memory to move to cache
     {
-      verbosity_lv3_master_printf("Moving to cache %p\n",ptr);
+      VERBOSITY_LV3_MASTER_PRINTF("Moving to cache %p\n",ptr);
       
       /// Size of pointed memory
       const Size size=popFromUsed(ptr);
@@ -244,7 +244,7 @@ namespace nissa
       
       while(el!=used.end())
 	{
-	  verbosity_lv3_master_printf("Releasing %p size %zu\n",el->first,el->second);
+	  VERBOSITY_LV3_MASTER_PRINTF("Releasing %p size %zu\n",el->first,el->second);
 	  
 	  /// Pointer to memory to release
 	  void* ptr=el->first;
@@ -259,7 +259,7 @@ namespace nissa
     /// Release all memory from cache
     void clearCache()
     {
-      verbosity_lv3_master_printf("Clearing cache\n");
+      VERBOSITY_LV3_MASTER_PRINTF("Clearing cache\n");
       
       /// Iterator to elements of the cached memory list
       auto el=cached.begin();
@@ -277,12 +277,12 @@ namespace nissa
 	  
 	  for(Size i=0;i<n;i++)
 	    {
-	      verbosity_lv3_master_printf("Removing from cache size %zu ",el->first);
+	      VERBOSITY_LV3_MASTER_PRINTF("Removing from cache size %zu ",el->first);
 	      
 	      /// Memory to free
 	      void* ptr=popFromCache(size,DEFAULT_ALIGNMENT);
 	      
-	      verbosity_lv3_master_printf("ptr: %p\n",ptr);
+	      VERBOSITY_LV3_MASTER_PRINTF("ptr: %p\n",ptr);
 	      deAllocateRaw(ptr);
 	    }
 	}
@@ -291,7 +291,7 @@ namespace nissa
     /// Print to a stream
     void printStatistics()
     {
-      master_printf("Maximal memory cached: %ld bytes, currently used: %ld bytes, number of reused: %ld\n",
+      MASTER_PRINTF("Maximal memory cached: %ld bytes, currently used: %ld bytes, number of reused: %ld\n",
 		    cachedSize.extreme(),(Size)cachedSize,nCachedReused);
     }
     
@@ -300,13 +300,13 @@ namespace nissa
       usedSize(0),
       cachedSize(0)
     {
-      master_printf("Starting the memory manager\n");
+      MASTER_PRINTF("Starting the memory manager\n");
     }
     
     /// Destruct the memory manager
     virtual ~MemoryManager()
     {
-      master_printf("Stopping the memory manager\n");
+      MASTER_PRINTF("Stopping the memory manager\n");
       
       printStatistics();
       
@@ -330,10 +330,10 @@ namespace nissa
       void* ptr=nullptr;
       
       /// Returned condition
-      verbosity_lv3_master_printf("Allocating size %zu on CPU, ",size);
+      VERBOSITY_LV3_MASTER_PRINTF("Allocating size %zu on CPU, ",size);
       int rc=posix_memalign(&ptr,alignment,size);
-      if(rc) crash("Failed to allocate %ld CPU memory with alignement %ld",size,alignment);
-      verbosity_lv3_master_printf("ptr: %p\n",ptr);
+      if(rc) CRASH("Failed to allocate %ld CPU memory with alignement %ld",size,alignment);
+      VERBOSITY_LV3_MASTER_PRINTF("ptr: %p\n",ptr);
       
       nAlloc++;
       
@@ -343,7 +343,7 @@ namespace nissa
     /// Properly free
     void deAllocateRaw(void* ptr)
     {
-      verbosity_lv3_master_printf("Freeing from CPU memory %p\n",ptr);
+      VERBOSITY_LV3_MASTER_PRINTF("Freeing from CPU memory %p\n",ptr);
       free(ptr);
     }
   };
@@ -365,9 +365,9 @@ namespace nissa
       /// Result
       void* ptr=nullptr;
       
-      verbosity_lv3_master_printf("Allocating size %zu on GPU, ",size);
+      VERBOSITY_LV3_MASTER_PRINTF("Allocating size %zu on GPU, ",size);
       decript_cuda_error(cudaMalloc(&ptr,size),"Allocating on Gpu");
-      verbosity_lv3_master_printf("ptr: %p\n",ptr);
+      VERBOSITY_LV3_MASTER_PRINTF("ptr: %p\n",ptr);
       
       nAlloc++;
       
@@ -377,7 +377,7 @@ namespace nissa
     /// Properly free
     void deAllocateRaw(void* ptr)
     {
-      master_printf("Freeing from GPU memory %p\n",ptr);
+      MASTER_PRINTF("Freeing from GPU memory %p\n",ptr);
       decript_cuda_error(cudaFree(ptr),"Freeing from GPU");
     }
   };

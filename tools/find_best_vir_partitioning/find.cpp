@@ -16,7 +16,7 @@
 #endif
 
 //crash reporting the expanded error message
-void crash(const char *templ,...)
+void CRASH(const char *templ,...)
 {
   //expand error message
   char mess[1024];
@@ -215,8 +215,8 @@ struct valid_partition_lister_t
     
     //check that the global lattice is a multiple of the number of ranks
     //and that all directions can be made even, and one direction virtually parallelized
-    if(V%NR) crash("global volume must be a multiple of ranks number");
-    if((V/NR)%32!=0) crash("local size must be a multiple of 32");
+    if(V%NR) CRASH("global volume must be a multiple of ranks number");
+    if((V/NR)%32!=0) CRASH("local size must be a multiple of 32");
     
     //factorize the local volume and the number of ranks
     std::vector<int> list_fact_LV,list_fact_NR;
@@ -301,7 +301,7 @@ struct valid_partition_lister_t
 assignement_t find_torus_assignement(torus_grid_t torus,rank_grid_t rank,int &iway)
 {
   //check that grid and torus have the same size
-  if(torus.get_N()!=rank.get_N()) crash("torus has %d elements, rank %d",torus.get_N(),rank.get_N());
+  if(torus.get_N()!=rank.get_N()) CRASH("torus has %d elements, rank %d",torus.get_N(),rank.get_N());
   
   //there exist 4^5 way we can distribute torus into grid
   const int nways=4*4*4*4*4;
@@ -336,7 +336,7 @@ torus_grid_t find_torus(int &torus_size)
       case 512: return N512; break;
       case 1024: return N1024; break;
       case 2048: return N2048; break;
-      default: crash("unknown partition to use for %d ranks",torus_size); return N64;break;
+      default: CRASH("unknown partition to use for %d ranks",torus_size); return N64;break;
       }
   else
     {
@@ -386,17 +386,17 @@ int main(int narg,char **arg)
   if(narg==2)
     {
       FILE *fin=fopen(arg[1],"r");
-      if(fin==NULL) crash("error opening %s",arg[1]);
+      if(fin==NULL) CRASH("error opening %s",arg[1]);
       
       size_t len=0;
       char *line=NULL;
-      if(getline(&line,&len,fin)==-1) crash("reading");
+      if(getline(&line,&len,fin)==-1) CRASH("reading");
       int L;
       sscanf(line,"L %d",&L);
       if(L>0)
 	{
 	  int T;
-	  if(getline(&line,&len,fin)==-1) crash("reading");
+	  if(getline(&line,&len,fin)==-1) CRASH("reading");
 	  sscanf(line,"T %d",&T);
 	  sides[0]=T;
 	  sides[1]=L;
@@ -405,14 +405,14 @@ int main(int narg,char **arg)
 	}
       else
 	{
-	  if(getline(&line,&len,fin)==-1) crash("reading");
-	  if(sscanf(line,"LT %d",&(sides[0]))<=0) crash("reading LT");
-	  if(getline(&line,&len,fin)==-1) crash("reading");
-	  if(sscanf(line,"LX %d",&(sides[1]))<=0) crash("reading LX");
-	  if(getline(&line,&len,fin)==-1) crash("reading");
-	  if(sscanf(line,"LY %d",&(sides[2]))<=0) crash("reading LY");
-	  if(getline(&line,&len,fin)==-1) crash("reading");
-	  if(sscanf(line,"LZ %d",&(sides[3]))<=0) crash("reading LZ");
+	  if(getline(&line,&len,fin)==-1) CRASH("reading");
+	  if(sscanf(line,"LT %d",&(sides[0]))<=0) CRASH("reading LT");
+	  if(getline(&line,&len,fin)==-1) CRASH("reading");
+	  if(sscanf(line,"LX %d",&(sides[1]))<=0) CRASH("reading LX");
+	  if(getline(&line,&len,fin)==-1) CRASH("reading");
+	  if(sscanf(line,"LY %d",&(sides[2]))<=0) CRASH("reading LY");
+	  if(getline(&line,&len,fin)==-1) CRASH("reading");
+	  if(sscanf(line,"LZ %d",&(sides[3]))<=0) CRASH("reading LZ");
 	}
       fclose(fin);
       free(line);
@@ -540,7 +540,7 @@ int main(int narg,char **arg)
   char path[50];
   sprintf(path,"mapping_file_%s",path_suffix);
   FILE *fout=fopen(path,"w");
-  if(fout==NULL) crash("opening file %s",path);
+  if(fout==NULL) CRASH("opening file %s",path);
   
   //print the mapping
   mapping_t mapping=assignement.create_mapping(torus,rank);
@@ -559,7 +559,7 @@ int main(int narg,char **arg)
   //create name file for nissa_config
   sprintf(path,"nissa_config_%s",path_suffix);
   fout=fopen(path,"w");
-  if(fout==NULL) crash("opening file %s",path);
+  if(fout==NULL) CRASH("opening file %s",path);
   
   //create nissa_config file
   fprintf(fout,"vnode_paral_dir %d\n",v);

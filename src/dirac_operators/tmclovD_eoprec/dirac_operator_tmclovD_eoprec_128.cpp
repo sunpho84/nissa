@@ -20,11 +20,11 @@ namespace nissa
   //implement ee or oo part of Dirac operator, equation(3)
   void tmclovDee_or_oo_eos_128(spincolor_128* out,double kappa,clover_term_t* Cl,bool dag,double mu,spincolor_128* in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // if(dag) mu=-mu;
     
-    // if(in==out) crash("in==out!");
+    // if(in==out) CRASH("in==out!");
     
     // NISSA_PARALLEL_LOOP(X,0,locVolh)
     //   {
@@ -39,9 +39,9 @@ namespace nissa
   //inverse
   void inv_tmclovDee_or_oo_eos_128(spincolor_128* out,inv_clover_term_t* invCl,bool dag,spincolor_128* in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
-    // if(in==out) crash("in==out!");
+    // if(in==out) CRASH("in==out!");
     
     // //if dagger, swaps the sign of mu, which means taking the hermitian of the inverse
     // int high=0,low=1;
@@ -61,7 +61,7 @@ namespace nissa
   //implement Koo defined in equation (7)
   void tmclovDkern_eoprec_eos_128(spincolor_128* out,spincolor_128* temp,eo_ptr<quad_su3> conf,double kappa,clover_term_t* Cl_odd,inv_clover_term_t* invCl_evn,bool dag,double mu,spincolor_128* in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // tmn2Deo_eos_128(out,conf,in);
     // inv_tmclovDee_or_oo_eos_128(temp,invCl_evn,dag,out);
@@ -75,7 +75,7 @@ namespace nissa
   //square of Koo
   void tmclovDkern_eoprec_square_eos_128(spincolor_128 *out,spincolor_128 *temp1,spincolor_128 *temp2,eo_ptr<quad_su3> conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,spincolor_128 *in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // tmclovDkern_eoprec_eos_128(temp1,temp2,conf,kappa,Cl_odd,invCl_evn,true,  mu,in   );
     // tmclovDkern_eoprec_eos_128(out,  temp2,conf,kappa,Cl_odd,invCl_evn,false, mu,temp1);

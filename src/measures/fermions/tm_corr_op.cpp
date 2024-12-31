@@ -10,7 +10,7 @@ namespace nissa
 {
   void tm_corr_op::ins(spincolor *out,const int igamma,spincolor *in)
   {
-    crash("Reimplement");
+    CRASH("Reimplement");
   //   NISSA_PARALLEL_LOOP(ivol,0,locVol)
   //     {
   // 	unsafe_dirac_prod_spincolor(out[ivol],base_gamma[igamma],in[ivol]);

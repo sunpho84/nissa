@@ -34,7 +34,7 @@ namespace nissa
   //compute the flux tube
   void measure_watusso(watusso_meas_pars_t* pars,eo_ptr<quad_su3> eo_conf,int iconf,int create_output_file)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // //open output file
     // FILE *fout=NULL;
@@ -62,7 +62,7 @@ namespace nissa
     // do
     //   {
     // 	finished=smooth_lx_conf_until_next_meas(lx_conf,pars->spat_smear_pars,nsmooth,all_other_dirs[nu]);
-    // 	verbosity_lv1_master_printf("Plaquette after %d perp to dir nsmooth %d: %16.16lg\n",
+    // 	VERBOSITY_LV1_MASTER_PRINTF("Plaquette after %d perp to dir nsmooth %d: %16.16lg\n",
     // 					imeas,nu,nsmooth,global_plaquette_lx_conf(lx_conf));
 	
     // 	//compute the watusso

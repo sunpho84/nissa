@@ -38,18 +38,18 @@ namespace nissa
       Wflower(Wflower)
     {
       int ns=Wflower.nrecu;
-      master_printf("ns: %d\n",ns);
+      MASTER_PRINTF("ns: %d\n",ns);
       
       //take the number of Wflow levels
       int m=Wflower.nflows;
-      master_printf("m: %d\n",m);
+      MASTER_PRINTF("m: %d\n",m);
       //check
-      if(ns<0 or ns>m) crash("ns=%d must be in the range [%d,%d]",ns,0,m);
+      if(ns<0 or ns>m) CRASH("ns=%d must be in the range [%d,%d]",ns,0,m);
       
       //set the optimal number of blocks
       double nb=pow(m,1.0/ns);
       //verbosity_lv3_
-	master_printf("nb: %lg\n",nb);
+	MASTER_PRINTF("nb: %lg\n",nb);
       
       //resize
       levs.resize(ns+1);
@@ -60,9 +60,9 @@ namespace nissa
 	{
 	  levs[il].units=std::max(1.0,m/pow(nb,il)+1e-10);
 	  // verbosity_lv3_
-	    master_printf("unit %d: %d\n",il,levs[il].units);
+	    MASTER_PRINTF("unit %d: %d\n",il,levs[il].units);
 	}
-      if(levs.back().units!=1) crash("units of the lowest level has to be 1, instead it is %d",levs.back().units);
+      if(levs.back().units!=1) CRASH("units of the lowest level has to be 1, instead it is %d",levs.back().units);
       
       bind_conf(ori_conf);
     }
@@ -74,14 +74,14 @@ namespace nissa
     //set the external conf
     void bind_conf(LxField<quad_su3>& ori_conf)
     {
-      master_printf("binding\n");
+      MASTER_PRINTF("binding\n");
       //set the pointer of the lowest level to the external (to be evolved) conf
       levs.back().conf=&ori_conf;
       //set units of toppest to a very large number so it's never evolved
       levs.front().units=200000;
       for(int i=0;i<nl();i++)
 	{
-	  master_printf("copying i %d\n",i);
+	  MASTER_PRINTF("copying i %d\n",i);
 	  (*levs[i].conf)=ori_conf;
 	  levs[i].nWflow=0;
 	}
@@ -91,7 +91,7 @@ namespace nissa
     int find_closest_smaller_nWflow(int nWflow)
     {
       //verbosity_lv3_
-	master_printf(" searching the level closest to %d\n",nWflow);
+	MASTER_PRINTF(" searching the level closest to %d\n",nWflow);
       
       int iclosest_Wflow=0;
       for(int is=0;is<nl();is++)
@@ -99,7 +99,7 @@ namespace nissa
 	  int nclosest_Wflow=levs[iclosest_Wflow].nWflow;
 	  int lev_ncur_Wflow=levs[is].nWflow;
 	  //verbosity_lv3_
-	    master_printf(" level %d: %d, current closest: %d, nclosest_Wflow: %d\n",is,lev_ncur_Wflow,iclosest_Wflow,nclosest_Wflow);
+	    MASTER_PRINTF(" level %d: %d, current closest: %d, nclosest_Wflow: %d\n",is,lev_ncur_Wflow,iclosest_Wflow,nclosest_Wflow);
 	  if(lev_ncur_Wflow<=nWflow and lev_ncur_Wflow>nclosest_Wflow) iclosest_Wflow=is;
 	}
       
@@ -119,7 +119,7 @@ namespace nissa
       int nevol=0;
       
       //verbosity_lv3_
-	master_printf("levs[%d].nWflow: %d nWflow: %d\n",is,levs[is].nWflow,nWflow);
+	MASTER_PRINTF("levs[%d].nWflow: %d nWflow: %d\n",is,levs[is].nWflow,nWflow);
       while(levs[is].nWflow<nWflow)
 	{
 	  Wflow_lx_conf(*(levs[is].conf),Wflower.dt,dirs);
@@ -156,7 +156,7 @@ namespace nissa
 	  int lev_ntarg_Wflow=get_smallest_nWflow_rounded(nWflow,is);
 	  int units=levs[is].units;
 	  //verbosity_lv3_
-	    master_printf("Targeting at nWflow=%d, current Wflow at level %d units of %d: %d, this should be %d\n",nWflow,is,units,lev_ncur_Wflow,lev_ntarg_Wflow);
+	    MASTER_PRINTF("Targeting at nWflow=%d, current Wflow at level %d units of %d: %d, this should be %d\n",nWflow,is,units,lev_ncur_Wflow,lev_ntarg_Wflow);
 	    
 	    //store in the path the current level, using the target nWflow for current level as a key
 	    if(lev_ncur_Wflow!=lev_ntarg_Wflow and lev_ntarg_Wflow>=0 and lev_ntarg_Wflow<=nWflow)
@@ -165,7 +165,7 @@ namespace nissa
       
       //sort the path
       std::sort(order_path.begin(),order_path.end());
-      for(int ip=0;ip<(int)order_path.size();ip++) verbosity_lv3_master_printf("ip=%d targ=%d is=%d\n",ip,order_path[ip].first,order_path[ip].second);
+      for(int ip=0;ip<(int)order_path.size();ip++) VERBOSITY_LV3_MASTER_PRINTF("ip=%d targ=%d is=%d\n",ip,order_path[ip].first,order_path[ip].second);
       
       //if not on correct number of Wflow, search for the closest and extend it
       for(int ip=0;ip<(int)order_path.size();ip++)
@@ -175,17 +175,17 @@ namespace nissa
 	  
 	  int iclosest_Wflow=find_closest_smaller_nWflow(lev_ntarg_Wflow);
 	  //verbosity_lv3_
-	  master_printf("Targetting %d for lev %d, closest level: %d, nWflow: %d\n",lev_ntarg_Wflow,il,iclosest_Wflow,levs[iclosest_Wflow].nWflow);
+	  MASTER_PRINTF("Targetting %d for lev %d, closest level: %d, nWflow: %d\n",lev_ntarg_Wflow,il,iclosest_Wflow,levs[iclosest_Wflow].nWflow);
 	  
 	  if(iclosest_Wflow!=il)
 	    {
-	      master_printf("Copying from %d\n",iclosest_Wflow);
+	      MASTER_PRINTF("Copying from %d\n",iclosest_Wflow);
        	      copy_level(il,iclosest_Wflow);
 	    }
 	  
 	  //extend if needed
 	  if(levs[il].nWflow!=lev_ntarg_Wflow) nevol+=update_level(il,lev_ntarg_Wflow,dirs);
-	  else master_printf("Level %d alright\n",il);
+	  else MASTER_PRINTF("Level %d alright\n",il);
        	}
       
       return nevol;

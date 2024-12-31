@@ -34,7 +34,7 @@ namespace nissa
   //make the complex-double product
   void compute_tens_dens_topo_correlation(complex *spinpol_dens,complex *tens_dens,double *topo_dens)
   {
-    crash("Reimplement");
+    CRASH("Reimplement");
     // NISSA_PARALLEL_LOOP(ivol,0,locVol)
     //   complex_prod_double(spinpol_dens[ivol],tens_dens[ivol],topo_dens[ivol]);
     // NISSA_PARALLEL_LOOP_END;
@@ -44,12 +44,12 @@ namespace nissa
   //compute the spin-polarization for all flavors
   void measure_spinpol(theory_pars_t* tp,spinpol_meas_pars_t* mp,int iconf,int conf_created,eo_ptr<quad_su3> glu_conf)
   {
-    crash("reimplement");
-    // verbosity_lv1_master_printf("Evaluating spinpol\n");
+    CRASH("reimplement");
+    // VERBOSITY_LV1_MASTER_PRINTF("Evaluating spinpol\n");
     
     // //set-up the smoother
     // smooth_pars_t &sp=mp->smooth_pars;
-    // if(sp.method!=smooth_pars_t::WFLOW) crash("spinpol makes sense only with Wflow");
+    // if(sp.method!=smooth_pars_t::WFLOW) CRASH("spinpol makes sense only with Wflow");
     // Wflow_pars_t &Wf=sp.Wflow;
     // int nflows=Wf.nflows;
     // double dt=Wf.dt;
@@ -84,13 +84,13 @@ namespace nissa
     // 	int taste=mp->operators[iop].second;
     // 	shift[iop]=(spin^taste);
     // 	mask[iop]=form_stag_op_pattern(spin,taste);
-    // 	verbosity_lv3_master_printf(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift[iop]);
+    // 	VERBOSITY_LV3_MASTER_PRINTF(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift[iop]);
     //   }
     
     // //allocate the smoothed conf
     // quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",locVol+bord_vol+edge_vol,quad_su3);
     // //paste_eo_parts_into_lx_vector(smoothed_conf,glu_conf);
-    // crash("reimplement");
+    // CRASH("reimplement");
     // //allocate the fermion (possibly stouted) conf
     // eo_ptr<quad_su3> ferm_conf;
     // for(int eo=0;eo<2;eo++) ferm_conf[eo]=nissa_malloc("ferm_conf",locVolh+bord_volh+edge_volh,quad_su3);
@@ -126,7 +126,7 @@ namespace nissa
 	
     // 	//the reecursive flower, need to cache backward integration
     // 	//paste_eo_parts_into_lx_vector(smoothed_conf,glu_conf);
-    // 	crash("reimplement");
+    // 	CRASH("reimplement");
     // 	recursive_Wflower_t recu(Wf,smoothed_conf);
     // 	//the adjoint flower needed for fermionic source
     // 	fermion_adjoint_flower_t<> adj_ferm_flower(dt,all_dirs);
@@ -134,10 +134,10 @@ namespace nissa
     // 	// int nevol=0;
     // 	// for(int i=sp.nsmooth();i>=0;i--)
     // 	//   {
-    // 	// 	master_printf("\n");
+    // 	// 	MASTER_PRINTF("\n");
     // 	// 	nevol+=recu.update(i);
     // 	//   }
-    // 	// master_printf("nevol: %d\n",nevol);
+    // 	// MASTER_PRINTF("nevol: %d\n",nevol);
 	
     // 	//compute the topological charge and the product of topological and tensorial density
 	
@@ -152,7 +152,7 @@ namespace nissa
     // 	  {
     // 	    //update conf to iflow
     // 	    double t=dt*iflow;
-    // 	    verbosity_lv2_master_printf(" flow back to %d/%d, t %lg\n",iflow,nflows,t);
+    // 	    VERBOSITY_LV2_MASTER_PRINTF(" flow back to %d/%d, t %lg\n",iflow,nflows,t);
     // 	    recu.update(iflow);
 	    
     // 	    //make the flower generate the intermediate step between iflow and iflow+1
@@ -269,7 +269,7 @@ namespace nissa
     // 	    //update conf to iflow
     // 	    double t=dt*iflow;
     // 	    //verbosity_lv2_
-    // 	    master_printf(" flow forward to %d/%d, t %lg, initial plaquette: %.16lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
+    // 	    MASTER_PRINTF(" flow forward to %d/%d, t %lg, initial plaquette: %.16lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
 	    
     // 	    //make the flower generate the intermediate step between iflow-1 and iflow
     // 	    ferm_flower.generate_intermediate_steps(smoothed_conf);
@@ -414,7 +414,7 @@ namespace nissa
     // 	    //update conf to iflow
     // 	    double t=dt*iflow;
     // 	    //verbosity_lv2_
-    // 	    master_printf(" flow forward to %d/%d, t %lg, initial plaquette: %.16lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
+    // 	    MASTER_PRINTF(" flow forward to %d/%d, t %lg, initial plaquette: %.16lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
 	    
     // 	    //make the flower generate the intermediate step between iflow-1 and iflow
     // 	    ferm_flower.generate_intermediate_steps(smoothed_conf);

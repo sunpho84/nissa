@@ -24,7 +24,7 @@ void compare_spincolor(char *a_path,char *b_path)
   nissa_free(a);
   nissa_free(b);
   
-  master_printf("Diff: %lg\n",l);
+  MASTER_PRINTF("Diff: %lg\n",l);
 }
 
 int main(int narg,char **arg)
@@ -32,9 +32,9 @@ int main(int narg,char **arg)
   //basic mpi initialization
   init_nissa();
   
-  //if(nissa_nranks>1) crash("Cannot run in parallel");
+  //if(nissa_nranks>1) CRASH("Cannot run in parallel");
   
-  if(narg<2) crash("Use: %s input",arg[0]);
+  if(narg<2) CRASH("Use: %s input",arg[0]);
   
   open_input(arg[1]);
   

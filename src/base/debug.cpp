@@ -129,7 +129,7 @@ namespace nissa
   //called when signal received
   void signal_handler(int sig)
   {
-    master_printf("maximal memory used: %ld\n",max_required_memory);
+    MASTER_PRINTF("maximal memory used: %ld\n",max_required_memory);
     verbosity_lv=3;
     char name[100];
     switch(sig)
@@ -144,7 +144,7 @@ namespace nissa
       }
     print_backtrace_list();
     print_all_vect_content();
-    crash("signal %d (%s) detected, exiting",sig,name);
+    CRASH("signal %d (%s) detected, exiting",sig,name);
   }
   
 #ifdef USE_MPI
@@ -193,8 +193,8 @@ namespace nissa
     float_128_summassign_64(a,-1);
     
     double res=a[0]+a[1];
-    if(fabs(res-1e-20)>1e-30) crash("float_128, 1+1e-20-1=%lg, difference with 1e-20: %lg",res,res-1e-20);
-    verbosity_lv2_master_printf("128 bit precision is working, 1+1e-20-1=%lg where %lg expected in double prec\n",res,1+1e-20-1);
+    if(fabs(res-1e-20)>1e-30) CRASH("float_128, 1+1e-20-1=%lg, difference with 1e-20: %lg",res,res-1e-20);
+    VERBOSITY_LV2_MASTER_PRINTF("128 bit precision is working, 1+1e-20-1=%lg where %lg expected in double prec\n",res,1+1e-20-1);
   }
   
   std::string siteAsString(const int& n)
@@ -256,7 +256,7 @@ namespace nissa
 	      const int neighVal=test[ln];
 	      
 	      if(neighVal!=gn)
-		master_printf("site %s ori %d dir %d has neigh %s with val %s\n",
+		MASTER_PRINTF("site %s ori %d dir %d has neigh %s with val %s\n",
 			      siteAsString(glblxOfLoclx[site]).c_str(),
 			      ori,mu,
 			      siteAsString(gn).c_str(),
@@ -264,7 +264,7 @@ namespace nissa
 	    }
       }
     
-    master_printf("lx halo communicates consistently\n");
+    MASTER_PRINTF("lx halo communicates consistently\n");
   }
   
   void testEoHaloExchange()
@@ -297,7 +297,7 @@ namespace nissa
 			      const int neighVal=test[!par][ln];
 			      
 			      if(neighVal!=gn)
-				master_printf("site %s ori %d dir %d has neigh %s with val %s\n",
+				MASTER_PRINTF("site %s ori %d dir %d has neigh %s with val %s\n",
 					      siteAsString(glblxOfLoclx[loclx_of_loceo[!par][eoSite]]).c_str(),
 					      ori,mu,
 					      siteAsString(gn).c_str(),
@@ -305,7 +305,7 @@ namespace nissa
 			    }
 		      });
   
-    master_printf("eo edges communicates consistently\n");
+    MASTER_PRINTF("eo edges communicates consistently\n");
   }
   
   void testLxEdgesExchange()
@@ -351,14 +351,14 @@ namespace nissa
 		const int neighVal=test[ln];
 		
 		if(neighVal!=gn)
-		  master_printf("site %s ori (%d,%d) dir (%d,%d) has edgelx neigh %s with val %s\n",
+		  MASTER_PRINTF("site %s ori (%d,%d) dir (%d,%d) has edgelx neigh %s with val %s\n",
 				siteAsString(glblxOfLoclx[site]).c_str(),
 				ori1,ori2,mu,nu,
 				siteAsString(gn).c_str(),
 				siteAsString(neighVal).c_str());
 	      }
       }
-    master_printf("lx edges communicates consistently\n");
+    MASTER_PRINTF("lx edges communicates consistently\n");
   }
   
   void testEoEdgesExchange()
@@ -416,7 +416,7 @@ namespace nissa
 				const int neighVal=test[par][ln];
 				
 				if(neighVal!=gn)
-				  master_printf("par %d site %s ori (%d,%d) dir (%d,%d) neigh %s with val %s\n",
+				  MASTER_PRINTF("par %d site %s ori (%d,%d) dir (%d,%d) neigh %s with val %s\n",
 						par(),
 						siteAsString(glblxOfLoclx[loclx_of_loceo[par][ieo]]).c_str(),
 						ori1,ori2,mu,nu,
@@ -426,6 +426,6 @@ namespace nissa
 		      }
 		      );
     
-    master_printf("eo edges communicates consistently\n");
+    MASTER_PRINTF("eo edges communicates consistently\n");
   }
 }

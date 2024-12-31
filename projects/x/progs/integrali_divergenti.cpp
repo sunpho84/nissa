@@ -18,7 +18,7 @@ void init_calc(int narg,char **arg)
   //Basic mpi initialization
   init_nissa(narg,arg);
   
-  if(narg<3) crash("use %s L T",arg[0]);
+  if(narg<3) CRASH("use %s L T",arg[0]);
   int T=atoi(arg[1]);
   int L=atoi(arg[2]);
   

@@ -22,42 +22,42 @@ namespace nissa
   {
     START_TIMING(sto_time,nsto);
     
-    if(in==out) crash("in==out");
+    if(in==out) CRASH("in==out");
     
     in.updateEdges();
     
-    verbosity_lv2_master_printf("Stouting dirs: %d %d %d %d with rho=%lg\n",dirs[0],dirs[1],dirs[2],dirs[3],rho);
+    VERBOSITY_LV2_MASTER_PRINTF("Stouting dirs: %d %d %d %d with rho=%lg\n",dirs[0],dirs[1],dirs[2],dirs[3],rho);
     
-    // master_printf("Test, in 1:\n");
+    // MASTER_PRINTF("Test, in 1:\n");
     // for(int par=0;par<1;par++)
     //   for(int mu=0;mu<1;mu++)
     // 	{
-    // 	  master_printf("par %d mu %d\n",par,mu);
+    // 	  MASTER_PRINTF("par %d mu %d\n",par,mu);
 	  
     // 	  //compute the staples needed to smear
-    // 	  master_printf("in\n");
+    // 	  MASTER_PRINTF("in\n");
     // 	  if(is_master_rank())
     // 	    su3_print(in[par][1][mu]);
     // 	  stout_link_staples sto_ste;
     // 	  stout_smear_compute_staples(sto_ste,in,par,1,mu,rho);
-    // 	  master_printf("C\n");
+    // 	  MASTER_PRINTF("C\n");
     // 	  if(is_master_rank())
     // 	    su3_print(sto_ste.C);
-    // 	  master_printf("omeg\n");
+    // 	  MASTER_PRINTF("omeg\n");
     // 	  if(is_master_rank())
     // 	    su3_print(sto_ste.Omega);
-    // 	  master_printf("Q\n");
+    // 	  MASTER_PRINTF("Q\n");
     // 	  if(is_master_rank())
     // 	    su3_print(sto_ste.Q);
 	  
     // 	  su3 expiQ;
     // 	  safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
-    // 	  master_printf("expiQ\n");
+    // 	  MASTER_PRINTF("expiQ\n");
     // 	  if(is_master_rank())
     // 	    su3_print(expiQ);
     // 	  su3 t;
     // 	  unsafe_su3_prod_su3(t,expiQ,in[par][1][mu]);
-    // 	  master_printf("t\n");
+    // 	  MASTER_PRINTF("t\n");
     // 	  if(is_master_rank())
     // 	    su3_print(t);
     // 	}
@@ -95,54 +95,54 @@ namespace nissa
 	      su3_copy(out[par][A][mu],in[par][A][mu]);
 	    });
     
-    // master_printf("Test, links in 1 (%p %p):\n",&(out[0][0][0][0][0][0]),&(in[0][0][0][0][0][0]));
+    // MASTER_PRINTF("Test, links in 1 (%p %p):\n",&(out[0][0][0][0][0][0]),&(in[0][0][0][0][0][0]));
     // for(int par=0;par<1;par++)
     //   for(int mu=0;mu<1;mu++)
     // 	{
-    // 	  master_printf("par %d mu %d\n",par,mu);
-    // 	  master_printf("in\n");
+    // 	  MASTER_PRINTF("par %d mu %d\n",par,mu);
+    // 	  MASTER_PRINTF("in\n");
     // 	  if(is_master_rank())
     // 	    su3_print(in[par][1][mu]);
-    // 	  master_printf("out\n");
+    // 	  MASTER_PRINTF("out\n");
     // 	  if(is_master_rank())
     // 	    su3_print(out[par][1][mu]);
     // 	}
     
-    // master_printf("Test again, in 1:\n");
+    // MASTER_PRINTF("Test again, in 1:\n");
     // for(int par=0;par<1;par++)
     //   for(int mu=0;mu<1;mu++)
     // 	{
-    // 	  master_printf("par %d mu %d\n",par,mu);
+    // 	  MASTER_PRINTF("par %d mu %d\n",par,mu);
 	  
     // 	  //compute the staples needed to smear
-    // 	  master_printf("in\n");
+    // 	  MASTER_PRINTF("in\n");
     // 	  if(is_master_rank())
     // 	    su3_print(in[par][1][mu]);
     // 	  stout_link_staples sto_ste;
     // 	  stout_smear_compute_staples(sto_ste,in,par,1,mu,rho);
-    // 	  master_printf("C\n");
+    // 	  MASTER_PRINTF("C\n");
     // 	  if(is_master_rank())
     // 	    su3_print(sto_ste.C);
-    // 	  master_printf("omeg\n");
+    // 	  MASTER_PRINTF("omeg\n");
     // 	  if(is_master_rank())
     // 	    su3_print(sto_ste.Omega);
-    // 	  master_printf("Q\n");
+    // 	  MASTER_PRINTF("Q\n");
     // 	  if(is_master_rank())
     // 	    su3_print(sto_ste.Q);
 	  
     // 	  su3 expiQ;
     // 	  safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
-    // 	  master_printf("expiQ\n");
+    // 	  MASTER_PRINTF("expiQ\n");
     // 	  if(is_master_rank())
     // 	    su3_print(expiQ);
     // 	  su3 t;
     // 	  unsafe_su3_prod_su3(t,expiQ,in[par][1][mu]);
-    // 	  master_printf("t\n");
+    // 	  MASTER_PRINTF("t\n");
     // 	  if(is_master_rank())
     // 	    su3_print(t);
     // 	}
     
-    // crash("w");
+    // CRASH("w");
     STOP_TIMING(sto_time);
   }
   
@@ -154,14 +154,14 @@ namespace nissa
   {
     const int nlevels=stout_pars.nlevels;
     
-    verbosity_lv1_master_printf("sme_step 0/%d, plaquette: %16.16lg\n",nlevels,global_plaquette_eo_conf(in));
+    VERBOSITY_LV1_MASTER_PRINTF("sme_step 0/%d, plaquette: %16.16lg\n",nlevels,global_plaquette_eo_conf(in));
     
     if(nlevels==0)
       out=in;
     else
       {
 	stout_smear_single_level(out,in,stout_pars.rho,dirs);
-	verbosity_lv1_master_printf("sme_step 1/%d, plaquette: %16.16lg\n",nlevels,global_plaquette_eo_conf(out));
+	VERBOSITY_LV1_MASTER_PRINTF("sme_step 1/%d, plaquette: %16.16lg\n",nlevels,global_plaquette_eo_conf(out));
 	
 	if(stout_pars.nlevels>1)
 	  {
@@ -172,7 +172,7 @@ namespace nissa
 	      {
 		tmp=out;
 		stout_smear_single_level(out,tmp,stout_pars.rho,dirs);
-		verbosity_lv1_master_printf("sme_step %d/%d, plaquette: %16.16lg\n",i+1,nlevels,global_plaquette_eo_conf(out));
+		VERBOSITY_LV1_MASTER_PRINTF("sme_step %d/%d, plaquette: %16.16lg\n",i+1,nlevels,global_plaquette_eo_conf(out));
 	      }
 	  }
       }
@@ -203,11 +203,11 @@ namespace nissa
 			       const stout_pars_t& stout_pars,
 			       const WhichDirs& dirs)
   {
-    verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(*(out[0])));
+    VERBOSITY_LV2_MASTER_PRINTF("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(*(out[0])));
     for(int i=1;i<=stout_pars.nlevels;i++)
       {
 	stout_smear_single_level(*(out[i]),*(out[i-1]),stout_pars.rho,dirs);
-	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(*(out[i])));
+	VERBOSITY_LV2_MASTER_PRINTF("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(*(out[i])));
       }
   }
   
@@ -333,7 +333,7 @@ namespace nissa
     
     for(int i=stout_pars.nlevels-1;i>=0;i--)
       {
-	verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i+1,stout_pars.nlevels);
+	VERBOSITY_LV2_MASTER_PRINTF("Remapping the force, step: %d/%d\n",i+1,stout_pars.nlevels);
 	stouted_force_remap_step(F,*(sme_conf[i]),stout_pars.rho);
       }
     

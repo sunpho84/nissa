@@ -53,7 +53,7 @@ namespace nissa
   {vect_content_fprintf(stdout,vec);}
   void last_vect_content_printf()
   {
-    master_printf("Last vect content: ");
+    MASTER_PRINTF("Last vect content: ");
     vect_content_printf(last_vect);
   }
   
@@ -135,7 +135,7 @@ namespace nissa
 	main_vect.line=__LINE__;
 	main_arr=(char*)last_vect+sizeof(nissa_vect);
 	
-	master_printf("Vector memory manager started\n");
+	MASTER_PRINTF("Vector memory manager started\n");
       }
   }
   
@@ -156,7 +156,7 @@ namespace nissa
 #else
     nv=(nissa_vect*)malloc(tot_size);
     if(nv==NULL)
-      crash(ALLOCATING_ERROR);
+      CRASH(ALLOCATING_ERROR);
 #endif
 #undef ALLOCATING_ERROR
     
@@ -180,7 +180,7 @@ namespace nissa
     return_malloc_ptr=(void*)(last_vect+1);
     int64_t offset=((int64_t)(return_malloc_ptr))%NISSA_VECT_ALIGNMENT;
     if(offset!=0)
-      crash("memory alignment problem, vector %s has %ld offset",tag,offset);
+      CRASH("memory alignment problem, vector %s has %ld offset",tag,offset);
     
     //Update the amount of required memory
     required_memory+=size;
@@ -208,12 +208,12 @@ namespace nissa
 	int64_t size_per_el_b=nissa_b->size_per_el;
 	
 	//check size agreement
-	if(nel_a!=nel_b) crash("while copying, vector %s allocated at line %d of file %s contains %ld and vector %s allocated at line %d of file %s contains %ld",
+	if(nel_a!=nel_b) CRASH("while copying, vector %s allocated at line %d of file %s contains %ld and vector %s allocated at line %d of file %s contains %ld",
 			       nissa_a->tag,nissa_a->line,nissa_a->file,nel_a,nissa_b->tag,nissa_b->line,nissa_b->file,nel_b);
 	
 	//check type agreement
 	if(size_per_el_a!=size_per_el_b)
-	  crash("while copying, vector %s contains %ld bytes per el and vector %s contains %ld",
+	  CRASH("while copying, vector %s contains %ld bytes per el and vector %s contains %ld",
 		nissa_a->tag,size_per_el_a,nissa_b->tag,size_per_el_b);
 	
 	//perform the copy
@@ -251,7 +251,7 @@ namespace nissa
 	
 	if(VERBOSITY_LV3)
 	  {
-	    master_printf("At line %d of file %s freeing vector ",line,file);
+	    MASTER_PRINTF("At line %d of file %s freeing vector ",line,file);
 	    vect_content_printf(vect);
 	  }
 	
@@ -272,7 +272,7 @@ namespace nissa
 	free(vect);
 #endif
       }
-    else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
+    else CRASH("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
     
     *arr=NULL;
   }

@@ -14,7 +14,7 @@ namespace nissa
     const double e2=4*M_PI*alpha_em;
     const double e=sqrt(e2);
     
-    verbosity_lv2_master_printf("Adding backfield, for a quark of charge q=e*%lg/3\n",charge);
+    VERBOSITY_LV2_MASTER_PRINTF("Adding backfield, for a quark of charge q=e*%lg/3\n",charge);
     
     PAR(0,locVol,
 	CAPTURE(charge,e,
@@ -66,7 +66,7 @@ namespace nissa
     
     if(free_theory and charge==0)
       {
-	master_printf("   working in FT\n");
+	MASTER_PRINTF("   working in FT\n");
 	
 	const TmQuarkInfo qu(kappa,fabs(mass),r,theta);
 	const tm_basis_t basis=WILSON_BASE;
@@ -74,7 +74,7 @@ namespace nissa
       }
     else
       {
-	master_printf("   inverting explicitly\n");
+	MASTER_PRINTF("   inverting explicitly\n");
 	
 #ifdef USE_EXTERNAL_SOLVER
 	
@@ -95,7 +95,7 @@ namespace nissa
 	  inv_tmD_cg_eoprec(out,std::nullopt,*conf,kappa,mass,1000000,residue,in);
       }
     
-    verbosity_lv1_master_printf("Solving time: %lg s\n",take_time()-tin);
+    VERBOSITY_LV1_MASTER_PRINTF("Solving time: %lg s\n",take_time()-tin);
     
     STOP_TIMING(inv_time);
     
@@ -118,7 +118,7 @@ namespace nissa
 				  const WhichDirs& dirs)
   {
     
-    if(in==out) crash("in==out");
+    if(in==out) CRASH("in==out");
     
     out.reset();
     
@@ -148,7 +148,7 @@ namespace nissa
 				  const LxField<spincolor>& in,
 				  const int& t)
   {
-    if(in==out) crash("in==out");
+    if(in==out) CRASH("in==out");
     
     out.reset();
     
@@ -259,7 +259,7 @@ namespace nissa
     
     for(int mu=1;mu<NDIM;mu++)
       if(fabs((int)(th[mu]/2)-th[mu]/2)>1e-10)
-	crash("Error: phase %lg must be an even integer",th[mu]);
+	CRASH("Error: phase %lg must be an even integer",th[mu]);
     
     out.reset();
     PAR(0,locVol,
@@ -313,7 +313,7 @@ namespace nissa
       {
 	//update conf to iflow
 	double t=dt*iflow;
-	master_printf(" flow back to %d/%d, t %lg\n",iflow,nflows,t);
+	MASTER_PRINTF(" flow back to %d/%d, t %lg\n",iflow,nflows,t);
 	recu.update(iflow);
 	
 	//make the flower generate the intermediate step between iflow and iflow+1
@@ -348,7 +348,7 @@ namespace nissa
       {
 	//update conf to iflow
 	double t=dt*iflow;
-	master_printf(" flow forward to %d/%d, t %lg, initial plaquette: %.16lg\n",iflow,nflows,t,global_plaquette_lx_conf(flown_conf));
+	MASTER_PRINTF(" flow forward to %d/%d, t %lg, initial plaquette: %.16lg\n",iflow,nflows,t,global_plaquette_lx_conf(flown_conf));
 	
 	//make the flower generate the intermediate step between iflow-1 and iflow
 	ferm_flower.generate_intermediate_steps(flown_conf);
@@ -363,7 +363,7 @@ namespace nissa
 		    const std::vector<source_term_t>& source_terms,
 		    const int& isou)
   {
-    master_printf("Creating the source\n");
+    MASTER_PRINTF("Creating the source\n");
     
     out.reset();
     
@@ -382,7 +382,7 @@ namespace nissa
 	    });
       }
     
-    master_printf("Source created\n");
+    MASTER_PRINTF("Source created\n");
   }
   
   void generate_photon_source(LxField<spin1field>& photon_eta)
@@ -591,7 +591,7 @@ namespace nissa
       };
     };
     
-    master_printf("Inserting r: %d\n",r);
+    MASTER_PRINTF("Inserting r: %d\n",r);
     LxField<spincolor>& loop_source=
       *nissa::loop_source;
     
@@ -656,12 +656,12 @@ namespace nissa
       {
    	double this_source_norm2=Q[n.first].ori_source_norm2;
 	if(ori_source_norm2!=this_source_norm2)
-	  crash("first source %s has different norm2 %lg than %s, %lg",first_source.c_str(),ori_source_norm2,n.first.c_str(),this_source_norm2);
+	  CRASH("first source %s has different norm2 %lg than %s, %lg",first_source.c_str(),ori_source_norm2,n.first.c_str(),this_source_norm2);
       }
     
     //write info on mass and r
-    if(twisted_run) master_printf(" mass=%lg, r=%d, theta={%lg,%lg,%lg}\n",q.mass,q.r,q.theta[1],q.theta[2],q.theta[3]);
-    else            master_printf(" kappa=%lg, theta={%lg,%lg,%lg}\n",q.kappa,q.theta[1],q.theta[2],q.theta[3]);
+    if(twisted_run) MASTER_PRINTF(" mass=%lg, r=%d, theta={%lg,%lg,%lg}\n",q.mass,q.r,q.theta[1],q.theta[2],q.theta[3]);
+    else            MASTER_PRINTF(" kappa=%lg, theta={%lg,%lg,%lg}\n",q.kappa,q.theta[1],q.theta[2],q.theta[3]);
     
     //compute the inverse clover term, if needed
     if(clover_run and q.insertion==PROP)
@@ -672,9 +672,9 @@ namespace nissa
 	    m=q.mass;
 	    k=q.kappa;
 	    const double init_time=take_time();
-	    master_printf("Inverting clover\n");
+	    MASTER_PRINTF("Inverting clover\n");
 	    invert_twisted_clover_term(*invCl,q.mass,q.kappa,*Cl);
-	    master_printf("Clover inverted in %lg s\n",take_time()-init_time);
+	    MASTER_PRINTF("Clover inverted in %lg s\n",take_time()-init_time);
 	  }
       }
     
@@ -696,7 +696,7 @@ namespace nissa
       }
     
     insertion_t insertion=q.insertion;
-    master_printf("Generating propagator %s inserting %s on source %s\n",name.c_str(),ins_name[insertion],source_descr.c_str());
+    MASTER_PRINTF("Generating propagator %s inserting %s on source %s\n",name.c_str(),ins_name[insertion],source_descr.c_str());
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
@@ -712,7 +712,7 @@ namespace nissa
 	  //if the prop exists read it
 	  if(rw.canLoad())
 	    {
-	      master_printf("  loading the solution, dirac index %d, color %d\n",id_so,ic_so);
+	      MASTER_PRINTF("  loading the solution, dirac index %d, color %d\n",id_so,ic_so);
 	      START_TIMING(read_prop_time,nread_prop);
 	      rw.read();
 	      STOP_TIMING(read_prop_time);
@@ -730,7 +730,7 @@ namespace nissa
 		  rw.write();
 		  STOP_TIMING(store_prop_time);
 		}
-	      master_printf("  finished the calculation of dirac index %d, color %d\n",id_so,ic_so);
+	      MASTER_PRINTF("  finished the calculation of dirac index %d, color %d\n",id_so,ic_so);
 	    }
 	}
   }
@@ -761,7 +761,7 @@ namespace nissa
     generate_photon_source(*photon_eta);
     
     //generate source and stochastich propagator
-    master_printf("Generating photon stochastic propagator\n");
+    MASTER_PRINTF("Generating photon stochastic propagator\n");
     multiply_by_tlSym_gauge_propagator(*photon_phi,*photon_eta,photon);
     multiply_by_sqrt_tlSym_gauge_propagator(*photon_field,*photon_eta,photon);
     
@@ -785,18 +785,18 @@ namespace nissa
 	  {
 	    if(rw.canLoad())
 	      {
-		master_printf("  loading the photon field %s\n",name.c_str());
+		MASTER_PRINTF("  loading the photon field %s\n",name.c_str());
 		START_TIMING(read_prop_time,nread_prop);
 		rw.read();
 		STOP_TIMING(read_prop_time);
 	      }
-	    else master_printf("  file %s not available, skipping loading\n",path.c_str());
+	    else MASTER_PRINTF("  file %s not available, skipping loading\n",path.c_str());
 	  }
 	
 	//if asked, write it
 	if(store_photons)
 	  {
-	    master_printf("  storing the photon field %s\n",name.c_str());
+	    MASTER_PRINTF("  storing the photon field %s\n",name.c_str());
 	    START_TIMING(store_prop_time,nstore_prop);
 	    rw.write();
 	    STOP_TIMING(store_prop_time);
@@ -835,7 +835,7 @@ namespace nissa
   //initialize the fft filter, once forever
   void init_fft_filter_from_range(std::vector<std::pair<fft_mom_range_t,double>>& fft_mom_range_list)
   {
-    master_printf("Initializing fft filter\n");
+    MASTER_PRINTF("Initializing fft filter\n");
     
     //file where to store output
     FILE *fout=NULL;
@@ -990,9 +990,9 @@ namespace nissa
     double fft_sign=-1;
     for(size_t iprop=0;iprop<fft_prop_list.size();iprop++)
       {
-	crash("dependencies are broken");
+	CRASH("dependencies are broken");
 	const std::string tag=fft_prop_list[iprop];
-	master_printf("Fourier transforming propagator %s\n",tag.c_str());
+	MASTER_PRINTF("Fourier transforming propagator %s\n",tag.c_str());
 	
 	//loop on dirac and color source index
 	for(int id_so=0;id_so<nso_spi;id_so++)
@@ -1003,16 +1003,16 @@ namespace nissa
 	      //perform fft
 	      // LxField<spincolor>& q=Q[tag][so_sp_col_ind(id_so,ic_so)];
 	      
-	      crash("reimplement");
+	      CRASH("reimplement");
 	      //fft4d((complex*)qtilde,(complex*)q,sizeof(spincolor)/sizeof(complex),fft_sign,1);
 	      put_fft_source_phase(qtilde,fft_sign);
 	      
 	      //gather - check the rewriting pattern above!
 	      for(int i=0;i<nf;i++)
 		{
-		  master_printf("Filtering %d/%d\n",i,nf);
+		  MASTER_PRINTF("Filtering %d/%d\n",i,nf);
 		  //fft_filterer[i].fft_filter_remap.communicate(qfilt_temp[i],qtilde,sizeof(spincolor));
-		  crash("#warning reimplement");
+		  CRASH("#warning reimplement");
 		  // NISSA_PARALLEL_LOOP(imom,0,fft_filterer[i].nfft_filtered)
 		  //   spincolor_copy(qfilt[i][imom*nso_spi*nso_col+so_sp_col_ind(id_so,ic_so)],qfilt_temp[i][imom]);
 		  // NISSA_PARALLEL_LOOP_END;

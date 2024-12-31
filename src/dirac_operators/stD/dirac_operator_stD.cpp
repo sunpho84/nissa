@@ -82,7 +82,7 @@ namespace nissa
   //Adams operator https://arxiv.org/pdf/1103.6191.pdf
   void apply_Adams(eo_ptr<color> out,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double m_Adams,eo_ptr<color> temp,eo_ptr<color> in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // // out = g5 X id * in
     // apply_stag_op(out,conf,u1b,stag::GAMMA_5,stag::IDENTITY,in);
@@ -109,7 +109,7 @@ namespace nissa
   //AdamsII operator https://arxiv.org/pdf/1008.2833.pdf
   void apply_AdamsII(eo_ptr<color> out,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double m_Adams,eo_ptr<color> temp,eo_ptr<color> in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // // out = D * in
     // add_backfield_with_stagphases_to_conf(conf,u1b);

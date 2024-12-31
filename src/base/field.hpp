@@ -58,7 +58,7 @@ namespace nissa
   /// Wait for communications to finish
   inline void waitAsyncCommsFinish(std::vector<MPI_Request> requests)
   {
-    verbosity_lv3_master_printf("Entering MPI comm wait\n");
+    VERBOSITY_LV3_MASTER_PRINTF("Entering MPI comm wait\n");
     
     MPI_Waitall(requests.size(),&requests[0],MPI_STATUS_IGNORE);
   }
@@ -305,7 +305,7 @@ namespace nissa
     void setFrom(F& f)
     {
       if(fptr!=nullptr)
-	crash("Unable to set an already set ref");
+	CRASH("Unable to set an already set ref");
       
       fptr=&f;
       externalSize=f.externalSize;
@@ -330,7 +330,7 @@ namespace nissa
       _data(oth._data)
     {
       if(fptr!=nullptr)
-	crash("Unable to set an already set ref");
+	CRASH("Unable to set an already set ref");
       
 #ifndef COMPILING_FOR_DEVICE
       fptr->nRef++;
@@ -342,7 +342,7 @@ namespace nissa
     void unset()
     {
       if(fptr==nullptr)
-	crash("Unable to unset a non set ref");
+	CRASH("Unable to unset a non set ref");
       
 #ifndef COMPILING_FOR_DEVICE
       fptr->nRef--;
@@ -721,7 +721,7 @@ namespace nissa
       haloIsValid(false),
       edgesAreValid(false)
     {
-      verbosity_lv3_master_printf("Allocating field %s\n",name);
+      VERBOSITY_LV3_MASTER_PRINTF("Allocating field %s\n",name);
       _data=nissa_malloc(name,externalSize*nInternalDegs,Fund);
     }
     
@@ -760,13 +760,13 @@ namespace nissa
     ~Field()
     {
 #ifndef COMPILING_FOR_DEVICE
-      verbosity_lv3_master_printf("Deallocating field %s\n",name);
+      VERBOSITY_LV3_MASTER_PRINTF("Deallocating field %s\n",name);
       if(_data)
 	{
 	  if(nRef==0)
 	    nissa_free(_data);
 	  else
-	    crash("Trying to destroying field %s with dangling references",name);
+	    CRASH("Trying to destroying field %s with dangling references",name);
 	}
 #endif
     }
@@ -802,7 +802,7 @@ namespace nissa
 	{
 	  benchmarkBeginActions.emplace_back([this]()
 	  {
-	    verbosity_lv3_master_printf("Backing up field %s\n",name);
+	    VERBOSITY_LV3_MASTER_PRINTF("Backing up field %s\n",name);
 	    backup=new Field("backup",haloEdgesPresence);
 	    *backup=*this;
 	  });
@@ -811,12 +811,12 @@ namespace nissa
 	  {
 	    *this=*backup;
 	    delete backup;
-	    verbosity_lv3_master_printf("Restored field %s\n",name);
+	    VERBOSITY_LV3_MASTER_PRINTF("Restored field %s\n",name);
 	  });
-	  verbosity_lv3_master_printf("Added backup actions for field %s\n",name);
+	  VERBOSITY_LV3_MASTER_PRINTF("Added backup actions for field %s\n",name);
 	}
       else
-	verbosity_lv3_master_printf("Skipping backup actions for field %s as we are not inside a parallel for\n",name);
+	VERBOSITY_LV3_MASTER_PRINTF("Skipping backup actions for field %s as we are not inside a parallel for\n",name);
 #endif
       
       return *this;
@@ -998,7 +998,7 @@ namespace nissa
 	std::min(send_buf_size,recv_buf_size);
       
       if(neededBufSize>maxBufSize)
-	crash("asking to create a communicator that needs %ld large buffer (%ld allocated)",
+	CRASH("asking to create a communicator that needs %ld large buffer (%ld allocated)",
 		  neededBufSize,maxBufSize);
     }
     
@@ -1014,7 +1014,7 @@ namespace nissa
       
       //take time and write some debug output
       START_TIMING(tot_comm_time,ntot_comm);
-      verbosity_lv3_master_printf("Start communication of borders of %s\n",name);
+      VERBOSITY_LV3_MASTER_PRINTF("Start communication of borders of %s\n",name);
       
       //fill the communicator buffer, start the communication and take time
       fillSendingBufWithSurface();
@@ -1029,7 +1029,7 @@ namespace nissa
     {
       //take note of passed time and write some debug info
       START_TIMING(tot_comm_time,ntot_comm);
-      verbosity_lv3_master_printf("Finish communication of halo of %s\n",name);
+      VERBOSITY_LV3_MASTER_PRINTF("Finish communication of halo of %s\n",name);
       
       //wait communication to finish, fill back the vector and take time
       waitAsyncCommsFinish(requests);
@@ -1043,7 +1043,7 @@ namespace nissa
     void assertHasHalo() const
     {
       if(not (haloEdgesPresence>=WITH_HALO))
-	crash("needs halo allocated for %s!",name);
+	CRASH("needs halo allocated for %s!",name);
     }
     
     /////////////////////////////////////////////////////////////////
@@ -1058,7 +1058,7 @@ namespace nissa
       
       //take time and write some debug output
       START_TIMING(tot_comm_time,ntot_comm);
-      verbosity_lv3_master_printf("Start communication of edges of %s\n",name);
+      VERBOSITY_LV3_MASTER_PRINTF("Start communication of edges of %s\n",name);
       
       //fill the communicator buffer, start the communication and take time
       fillSendingBufWithEdgesSurface();
@@ -1073,7 +1073,7 @@ namespace nissa
     {
       //take note of passed time and write some debug info
       START_TIMING(tot_comm_time,ntot_comm);
-      verbosity_lv3_master_printf("Finish communication of edges of %s\n",name);
+      VERBOSITY_LV3_MASTER_PRINTF("Finish communication of edges of %s\n",name);
       
       //wait communication to finish, fill back the vector and take time
       waitAsyncCommsFinish(requests);
@@ -1087,7 +1087,7 @@ namespace nissa
     void assertHasEdges() const
     {
       if(not (haloEdgesPresence>=WITH_HALO_EDGES))
-	crash("needs edges allocated on field %s!",name);
+	CRASH("needs edges allocated on field %s!",name);
     }
     
     /////////////////////////////////////////////////////////////////
@@ -1097,7 +1097,7 @@ namespace nissa
     {
       if(force or not haloIsValid)
 	{
-	  verbosity_lv3_master_printf("Sync communication of halo of %s\n",name);
+	  VERBOSITY_LV3_MASTER_PRINTF("Sync communication of halo of %s\n",name);
 	  
 	  const std::vector<MPI_Request> requests=
 	    startCommunicatingHalo();
@@ -1112,7 +1112,7 @@ namespace nissa
       
       if(force or not edgesAreValid)
 	{
-	  verbosity_lv3_master_printf("Sync communication of edges of %s\n",name);
+	  VERBOSITY_LV3_MASTER_PRINTF("Sync communication of edges of %s\n",name);
 	  
 	  const std::vector<MPI_Request> requests=
 	    startCommunicatingEdges();

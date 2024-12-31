@@ -140,7 +140,7 @@ namespace quda_iface
 //     /// Reset the setup
 //     void reset()
 //     {
-//       master_printf("Resetting stored setup\n");
+//       MASTER_PRINTF("Resetting stored setup\n");
 //       for(auto& Bl : B)
 // 	for(auto& Bli : Bl)
 // 	nissa::nissa_free(Bli);
@@ -271,11 +271,11 @@ namespace quda_iface
   template <typename T>
   double load_conf(const T& nissa_conf)
   {
-    master_printf("freeing the QUDA gauge conf\n");
+    MASTER_PRINTF("freeing the QUDA gauge conf\n");
     freeGaugeQuda();
     
     remap_nissa_to_quda(quda_conf,nissa_conf);
-    master_printf("loading to QUDA the gauge conf\n");
+    MASTER_PRINTF("loading to QUDA the gauge conf\n");
 #ifdef USE_QUDA
     loadGaugeQuda((void*)&quda_conf[0],&gauge_param);
 #endif

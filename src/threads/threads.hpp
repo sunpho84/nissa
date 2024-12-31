@@ -161,7 +161,7 @@ namespace nissa
     
     if(loopLength>0)
       {
-	verbosity_lv3_master_printf("/////////////////////////////////////////////////////////////////\n");
+	VERBOSITY_LV3_MASTER_PRINTF("/////////////////////////////////////////////////////////////////\n");
 	
 	/// Attributes of the function
 	static const cudaFuncAttributes attr=
@@ -181,7 +181,7 @@ namespace nissa
 	    return kernelInfoLaunchParsStats[id].info;
 	  };
 	
-	verbosity_lv3_master_printf("Going to launch kernel %s for loop size [%ld;%ld) = %ld\n",
+	VERBOSITY_LV3_MASTER_PRINTF("Going to launch kernel %s for loop size [%ld;%ld) = %ld\n",
 		      k().name.c_str(),
 		      (int64_t)min,
 		      (int64_t)max,
@@ -222,7 +222,7 @@ namespace nissa
 	  attr.maxThreadsPerBlock;
 	
 	if(nMaxThreads<=0)
-	  crash("kernel %s file %s line %d has max threads per block=%d",func,file,line,nMaxThreads);
+	  CRASH("kernel %s file %s line %d has max threads per block=%d",func,file,line,nMaxThreads);
 	
 	const int optimalBlockSize=
 	  getOptimalBlockSize(id,loopLength,1,nMaxThreads,launch);
@@ -235,7 +235,7 @@ namespace nissa
 	const double initTime=
 	  take_time();
 	
-	verbosity_lv3_master_printf("Launching with optimal blocksize %d\n",optimalBlockSize);
+	VERBOSITY_LV3_MASTER_PRINTF("Launching with optimal blocksize %d\n",optimalBlockSize);
 	launch(optimalBlockSize);
 	
 	/// Compute runtime
@@ -247,7 +247,7 @@ namespace nissa
 	launchParsStat.totalTime+=runTime;
 	launchParsStat.nInvoke++;
 	
-	verbosity_lv3_master_printf(" finished in %lg s\n",runTime);
+	VERBOSITY_LV3_MASTER_PRINTF(" finished in %lg s\n",runTime);
       }
   }
   

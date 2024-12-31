@@ -54,7 +54,7 @@ namespace nissa
 						      const OddField<spincolor>& source)
   {
 #if defined USE_DDALPHAAMG
-    crash("reimplement");//move upward, reorder everything
+    CRASH("reimplement");//move upward, reorder everything
     
     // if(use_DD and fabs(mu)<=DD::max_mass)
     // 	{
@@ -67,13 +67,13 @@ namespace nissa
     // 	  DD::solve(tmp_out,lx_conf,kappa,cSW,mu,residue,tmp_in,true);
     // 	  nissa_free(lx_conf);
     // 	  inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,eo_conf,kappa,Cl_odd,invCl_evn,mu,niter,residue,source);
-    // 	  master_printf("%lg %lg\n",tmp_out[0][0][0][0],sol[0][0][0][0]);
-    // 	  master_printf("%lg %lg\n",tmp_out[0][0][0][1],sol[0][0][0][1]);
+    // 	  MASTER_PRINTF("%lg %lg\n",tmp_out[0][0][0][0],sol[0][0][0][0]);
+    // 	  MASTER_PRINTF("%lg %lg\n",tmp_out[0][0][0][1],sol[0][0][0][1]);
     // 	  nissa_free(tmp_out);
     // 	  nissa_free(tmp_in);
     // 	}
     // else
-    master_printf("DDalpha not yet working, probably expecting a different layout\n");
+    MASTER_PRINTF("DDalpha not yet working, probably expecting a different layout\n");
 #endif
     inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,conf,kappa,Cl_odd,invCl_evn,mu,niter,residue,source);
   }

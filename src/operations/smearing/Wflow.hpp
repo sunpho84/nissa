@@ -230,7 +230,7 @@ namespace nissa
 	}
       
       // for(int iter=0;iter<nint_steps;iter++)
-      // 	master_printf("plaquette internal steo %d: %.16lg\n",iter,global_plaquette_lx_conf(conf[iter]));
+      // 	MASTER_PRINTF("plaquette internal steo %d: %.16lg\n",iter,global_plaquette_lx_conf(conf[iter]));
     }
     
     //destroyer
@@ -285,7 +285,7 @@ namespace nissa
 				   f1(site,deg)=f0(site,deg)+df0(site,deg)*dt/4;
 				 });
       
-      crash("reimplement"); (void)nd;
+      CRASH("reimplement"); (void)nd;
       
       // //first step: phi2 = phi0 + de1*8/9 - df0*2/9
       // Wflow::Laplace_operator_switch(df1,conf[1],this->dirs,f1);
@@ -299,7 +299,7 @@ namespace nissa
     //make the tail of the flow the head for next step
     void prepare_for_next_flow(LxField<quad_su3>& ext_conf)
     {
-      if(nint_steps!=4) crash("not flown to last step!");
+      if(nint_steps!=4) CRASH("not flown to last step!");
       ext_conf=this->conf[3];
     }
   };
@@ -324,7 +324,7 @@ namespace nissa
     //flow a field
     void flow_fermion(LxField<T>& field)
     {
-      crash("reimplement");
+      CRASH("reimplement");
       
       // LxField<quad_su3> *conf=this->conf;
       // const double &dt=this->dt;

@@ -13,8 +13,8 @@ namespace nissa
 			       const WhichDirs& dirs,
 			       const int& staple_min_dir)
   {
-    crash("reimplement"); //reimplement
-    // verbosity_lv3_master_printf("smoothing one step\n");
+    CRASH("reimplement"); //reimplement
+    // VERBOSITY_LV3_MASTER_PRINTF("smoothing one step\n");
     // switch(sp.method)
     //   {
     //   case smooth_pars_t::COOLING: cool_lx_conf(smoothed_conf,get_sweeper(sp.cool.gauge_action));break;
@@ -36,7 +36,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       diff|=dirs[mu]!=allDirs[mu];
     
-    if(sp.method==smooth_pars_t::COOLING and diff) crash("not implemented");
+    if(sp.method==smooth_pars_t::COOLING and diff) CRASH("not implemented");
     
     const int next_nsmooth_meas=sp.next_nsmooth_meas(nsmooth);
     const bool finished=(next_nsmooth_meas>sp.nsmooth());
@@ -44,7 +44,7 @@ namespace nissa
     if(not finished)
       while(nsmooth<next_nsmooth_meas)
 	{
-	  verbosity_lv3_master_printf("smoothing %d to %d\n",nsmooth,next_nsmooth_meas);
+	  VERBOSITY_LV3_MASTER_PRINTF("smoothing %d to %d\n",nsmooth,next_nsmooth_meas);
 	  smooth_lx_conf_one_step(smoothed_conf,sp,dirs,staple_min_dir);
 	  nsmooth++;
 	}
@@ -55,7 +55,7 @@ namespace nissa
   //smooth a configuration as imposed
   void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,const WhichDirs& dirs,int staple_min_dir)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // for(int ismooth=0;ismooth<sp.nsmooth();ismooth++)
     //   smooth_lx_conf_one_step(smoothed_conf,sp,dirs,staple_min_dir);

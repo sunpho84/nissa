@@ -183,7 +183,7 @@ namespace nissa
   void generate_hot_lx_conf(C& conf)
   {
     if(loc_rnd_gen_inited==0)
-      crash("random number generator not inited");
+      CRASH("random number generator not inited");
     
     PAR(0,locVol,
 	CAPTURE(b=maybeBackupLocRndGenForBenchmark(),

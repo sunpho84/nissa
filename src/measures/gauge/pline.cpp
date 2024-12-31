@@ -27,7 +27,7 @@ namespace nissa
 					    const LxField<quad_su3>& conf,
 					    const int& mu)
   {
-    crash("Reimplement");
+    CRASH("Reimplement");
     // conf.updateHalo();
     
     // //reset the link product
@@ -53,7 +53,7 @@ namespace nissa
 					  const LxField<quad_su3>& conf,
 					  const int& mu)
   {
-    crash("Reimplement");
+    CRASH("Reimplement");
     // //compute untraced loops
     // LxField<su3> u("u",WITH_HALO);
     // field_untraced_polyakov_loop_lx_conf(u,conf,mu);
@@ -73,7 +73,7 @@ namespace nissa
 						       const LxField<quad_su3>& conf,
 						       const int& mu)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // //compute the traced loop
     // LxField<complex> point_loop("point_loop")// ,*point_loop_dag=NULL
     //   ;
@@ -96,7 +96,7 @@ namespace nissa
     // if(ll_dag_corr!=NULL)
     //   {
     // 	//take fftw in the perp plane
-    // 	crash("reimplement");
+    // 	CRASH("reimplement");
     // 	//fft4d(point_loop,point_loop,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
 	
     // 	//multiply to build correlators
@@ -139,8 +139,8 @@ namespace nissa
   //remap and save - "loop" is destroyed!
   void save_poly_loop_correlator(FILE *file,complex *loop,int mu,double *tra,int itraj)
   {
-    crash("Reimplement");
-    // if(IS_PARALLEL) crash("cannot work threaded!");
+    CRASH("Reimplement");
+    // if(IS_PARALLEL) CRASH("cannot work threaded!");
     
     // const auto index_to_poly_corr_remapping=
     //   [mu](const int& iloc_lx)
@@ -199,19 +199,19 @@ namespace nissa
     //   }
     
     // //offset to mantain 16 byte alignement
-    // if(fseek(file,3*sizeof(int),SEEK_CUR)) crash("seeking to align");
+    // if(fseek(file,3*sizeof(int),SEEK_CUR)) CRASH("seeking to align");
     // MPI_Barrier(MPI_COMM_WORLD);
     
     // //write conf id and polyakov
     // if(rank==0)
     //   {
     // 	off_t nwr=fwrite(&itraj,sizeof(int),1,file);
-    // 	if(nwr!=1) crash("wrote %ld int instead of 1",nwr);
+    // 	if(nwr!=1) CRASH("wrote %ld int instead of 1",nwr);
     // 	nwr=fwrite(tra,sizeof(double),2,file);
-    // 	if(nwr!=2) crash("wrote %ld doubles instead of 2",nwr);
+    // 	if(nwr!=2) CRASH("wrote %ld doubles instead of 2",nwr);
     //   }
     // else
-    //   if(fseek(file,sizeof(int)+sizeof(complex),SEEK_CUR)) crash("seeking");
+    //   if(fseek(file,sizeof(int)+sizeof(complex),SEEK_CUR)) CRASH("seeking");
     // MPI_Barrier(MPI_COMM_WORLD);
     
     // //find which piece has to write data
@@ -232,7 +232,7 @@ namespace nissa
     // off_t ori=ftell(file);
     
     // //jump to the correct point in the file
-    // if(fseek(file,ori+istart*sizeof(complex),SEEK_SET)) crash("seeking");
+    // if(fseek(file,ori+istart*sizeof(complex),SEEK_SET)) CRASH("seeking");
     // MPI_Barrier(MPI_COMM_WORLD);
     
     // //write if something has to be written
@@ -240,7 +240,7 @@ namespace nissa
     //   {
     // 	int nbytes_to_write=loc_data*sizeof(complex);
     // 	off_t nbytes_wrote=fwrite(loop,1,nbytes_to_write,file);
-    // 	if(nbytes_wrote!=nbytes_to_write) crash("wrote %ld bytes instead of %d",nbytes_wrote,nbytes_to_write);
+    // 	if(nbytes_wrote!=nbytes_to_write) CRASH("wrote %ld bytes instead of %d",nbytes_wrote,nbytes_to_write);
     //   }
     
     // //point to after the data
@@ -258,7 +258,7 @@ namespace nissa
     complex *loop=NULL,*loop_dag=NULL;
     if(corr_file!=NULL)
       {
-	crash("reimplement, maybe");
+	CRASH("reimplement, maybe");
 	// loop=nissa_malloc("loop",locVol,complex);
 	// loop_dag=nissa_malloc("loop_dag",locVol,complex);
       }
@@ -270,7 +270,7 @@ namespace nissa
     //write and free
     if(corr_file!=NULL)
       {
-	crash("reimplement");
+	CRASH("reimplement");
 	// save_poly_loop_correlator(corr_file,loop,mu,tra,itraj);
 	// save_poly_loop_correlator(corr_file,loop_dag,mu,tra_dag,itraj);
       }
@@ -287,7 +287,7 @@ namespace nissa
   //definition in case of eo conf
   void average_polyakov_loop_eo_conf(complex tra,eo_ptr<quad_su3> eo_conf,int mu)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // quad_su3 *lx_conf=nissa_malloc("lx_conf",locVol+bord_vol,quad_su3);
     // paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     
@@ -303,7 +303,7 @@ namespace nissa
   //Actually since what is needed for Wprop is the revert, it is dag
   void compute_Pline_dag_internal(su3 *pline,quad_su3 *conf,int mu,int xmu_start)
   {
-    crash("Reimplement");
+    CRASH("Reimplement");
     // communicate_lx_quad_su3_borders(conf);
     
     // //Loop simultaneously forward and backward
@@ -353,7 +353,7 @@ namespace nissa
   //Compute the stochastic Pline, using a color as source
   void compute_stoch_Pline_dag(color *pline,quad_su3 *conf,int mu,int xmu_start,color *source)
   {
-    crash("Reimplement");
+    CRASH("Reimplement");
     // communicate_lx_quad_su3_borders(conf);
     
     // //Reset the link product, putting id at xmu_start
@@ -385,7 +385,7 @@ namespace nissa
   //compute the static propagator, putting the 1+gamma_mu in place
   void compute_Wstat_prop_finalize(su3spinspin *prop,quad_su3 *conf,int mu,int xmu_start,su3 *pline)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // //reset the output
     // vector_reset(prop);
@@ -444,7 +444,7 @@ namespace nissa
   //compute the stochastic static propagator, putting the 1+gamma_mu in place
   void compute_Wstat_stoch_prop(colorspinspin *prop,quad_su3 *conf,int mu,int xmu_start,color *source)
   {
-    crash("reimplemnt");
+    CRASH("reimplemnt");
     // color *pline=nissa_malloc("pline",locVol+bord_vol,color);
     
     // //compute stocasthic pline

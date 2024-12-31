@@ -56,7 +56,7 @@ namespace nissa
 	  res=allDirs;
 	  break;
 	default:
-	  crash("Unknown type");
+	  CRASH("Unknown type");
 	}
       
       return res;
@@ -80,7 +80,7 @@ namespace nissa
 	  break;
 	default:
 	  res=0;
-	  crash("Unknown type");
+	  CRASH("Unknown type");
 	}
       
       return res;
@@ -104,7 +104,7 @@ namespace nissa
 	break;
       default:
 	res="Boh";
-	crash("Unknown type");
+	CRASH("Unknown type");
       }
       
       return res;
@@ -127,12 +127,24 @@ namespace nissa
       
       switch(method)
 	{
-	case COOLING: res="Cooling";break;
-	case STOUT: res="Stout";break;
-	case WFLOW: res="WFlow";break;
-	case APE: res="Ape";break;
-	case HYP: res="Hyp";break;
-	default: crash("not meant to be reached");res="";
+	case COOLING:
+	  res="Cooling";
+	  break;
+	case STOUT:
+	  res="Stout";
+	  break;
+	case WFLOW:
+	  res="WFlow";
+	  break;
+	case APE:
+	  res="Ape";
+	  break;
+	case HYP:
+	  res="Hyp";
+	  break;
+	default:
+	  CRASH("not meant to be reached");
+	  res="";
 	}
       
       return res;
@@ -151,12 +163,24 @@ namespace nissa
       
       switch(method)
 	{
-	case COOLING:res=cool.nsteps;break;
-	case STOUT:res=stout.nlevels;break;
-	case WFLOW:res=Wflow.nflows;break;
-	case APE:res=ape.nlevels;break;
-	case HYP:res=hyp.nlevels;break;
-	default:crash("not meant to be reached");res=0;
+	case COOLING:
+	  res=cool.nsteps;
+	  break;
+	case STOUT:
+	  res=stout.nlevels;
+	  break;
+	case WFLOW:
+	  res=Wflow.nflows;
+	  break;
+	case APE:
+	  res=ape.nlevels;
+	  break;
+	case HYP:
+	  res=hyp.nlevels;
+	  break;
+	default:
+	  CRASH("not meant to be reached");
+	  res=0;
 	}
       
       return res;

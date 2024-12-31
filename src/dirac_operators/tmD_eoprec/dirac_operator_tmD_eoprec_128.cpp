@@ -19,7 +19,7 @@ namespace nissa
   //apply even-odd or odd-even part of tmD, multiplied by -2
   void tmn2Deo_or_tmn2Doe_eos_128(spincolor_128* out,eo_ptr<quad_su3> conf,int eooe,spincolor_128* in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // communicate_ev_and_od_quad_su3_borders(conf);
     
     // if(eooe==0) communicate_od_spincolor_128_borders(in);
@@ -124,8 +124,8 @@ namespace nissa
   //implement ee or oo part of Dirac operator, equation(3)
   void tmDee_or_oo_eos_128(spincolor_128* out,double kappa,double mu,spincolor_128* in)
   {
-    crash("reimplement");
-    // if(in==out) crash("in==out!");
+    CRASH("reimplement");
+    // if(in==out) CRASH("in==out!");
     
     // NISSA_PARALLEL_LOOP(X,0,locVolh)
     //   for(int ic=0;ic<3;ic++)
@@ -144,8 +144,8 @@ namespace nissa
   //inverse
   void inv_tmDee_or_oo_eos_128(spincolor_128* out,double kappa,double mu,spincolor_128* in)
   {
-    crash("reimplement");
-    // if(in==out) crash("in==out!");
+    CRASH("reimplement");
+    // if(in==out) CRASH("in==out!");
     
     // const double a=1/(2*kappa),b=mu,nrm=1/(a*a+b*b);
     
@@ -166,7 +166,7 @@ namespace nissa
   //put g5
   void tmDkern_eoprec_eos_put_together_and_include_gamma5_128(spincolor_128* out,spincolor_128* temp)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // NISSA_PARALLEL_LOOP(ivol,0,locVolh)
     //   for(int id=0;id<2;id++)
     // 	for(int ic=0;ic<3;ic++)

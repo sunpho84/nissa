@@ -15,7 +15,7 @@ void read_complex(complex out,FILE *in)
 {
   char temp[100];
   int rc=fscanf(in,"%s",temp);
-  if(sscanf(temp,"(%lg,%lg)",out+0,out+1)!=2) crash("reading complex");
+  if(sscanf(temp,"(%lg,%lg)",out+0,out+1)!=2) CRASH("reading complex");
 }
 
 void read_su3(su3 out,FILE *in)
@@ -30,9 +30,9 @@ int main(int narg,char **arg)
   //basic mpi initialization
   init_nissa(narg,arg);
   
-  if(nranks>1) crash("cannot run in parallel");
+  if(nranks>1) CRASH("cannot run in parallel");
   
-  if(narg<5) crash("use: %s L T file_in file_out",arg[0]);
+  if(narg<5) CRASH("use: %s L T file_in file_out",arg[0]);
 
   L=atoi(arg[1]);
   T=atoi(arg[2]);
@@ -46,12 +46,12 @@ int main(int narg,char **arg)
   
   //open the file
   FILE *fin=fopen(arg[3],"r");
-  if(fin==NULL) crash("while opening %s",arg[3]);
+  if(fin==NULL) CRASH("while opening %s",arg[3]);
 
   //read header
   int nx,ny,nz,nt,nflav,ntraj;
   double beta,mass;
-  if(fscanf(fin,"%d %d %d %d %lg %lg %d %d",&nx,&ny,&nz,&nt,&beta,&mass,&nflav,&ntraj)!=8) crash("reading header");
+  if(fscanf(fin,"%d %d %d %d %lg %lg %d %d",&nx,&ny,&nz,&nt,&beta,&mass,&nflav,&ntraj)!=8) CRASH("reading header");
   
   //read the data
   NISSA_LOC_VOL_LOOP(ivol)
@@ -112,7 +112,7 @@ int main(int narg,char **arg)
       }
   
   //print the plaquette and write the conf
-  master_printf("Global plaquette: %16.16lg\n",global_plaquette_lx_conf(out_conf));
+  MASTER_PRINTF("Global plaquette: %16.16lg\n",global_plaquette_lx_conf(out_conf));
   write_ildg_gauge_conf(arg[4],out_conf,64);
 
   nissa_free(out_conf);

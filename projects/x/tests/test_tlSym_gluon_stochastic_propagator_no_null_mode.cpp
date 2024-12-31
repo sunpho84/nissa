@@ -86,7 +86,7 @@ int main(int narg,char **arg)
   NISSA_LOC_VOL_LOOP(ivol)
     spin_summassign(loc_ave,eta[ivol]);
   MPI_Allreduce(loc_ave,glb_ave,sizeof(spin1field)/sizeof(double),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-  master_printf("null mode of the out: %lg\n",glb_ave[0][0]);
+  MASTER_PRINTF("null mode of the out: %lg\n",glb_ave[0][0]);
   
   
   //take the squared norm of the difference between the two computed propagators  
@@ -100,7 +100,7 @@ int main(int narg,char **arg)
 	loc_d+=t*t;
       }
   double glb_d=sqrt(glb_reduce_double(loc_d)/glb_vol);
-  master_printf("Difference between fft with explicit null mode and inversion: %lg\n",glb_d);
+  MASTER_PRINTF("Difference between fft with explicit null mode and inversion: %lg\n",glb_d);
     
   close_test();
   

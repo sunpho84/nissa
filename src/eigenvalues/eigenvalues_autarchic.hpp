@@ -26,11 +26,11 @@ namespace nissa
 					     const double target_precision,const int niter_max,
 					     const Filler &filler)
   {
-    crash("reimplement");
+    CRASH("reimplement");
 
     // using namespace internal_eigenvalues;
     
-    // if(neig>mat_size) crash("Asking to find %d eigenvectors for a matrix of rank %d",neig,mat_size);
+    // if(neig>mat_size) CRASH("Asking to find %d eigenvectors for a matrix of rank %d",neig,mat_size);
     
     // //set pars
     // const double tau_list[2]={0.0,50.0};
@@ -73,7 +73,7 @@ namespace nissa
     // 	  {
     // 	    complex_vector_glb_scalar_prod(M[j+wspace_max_size*i],V[i],temp,mat_size);
     // 	    complex_conj(M[i+wspace_max_size*j],M[j+wspace_max_size*i]);
-    // 	    verbosity_lv3_master_printf("M_(%d,%d)=%lg,%lg\n",j,i,M[i+wspace_max_size*j][RE],M[i+wspace_max_size*j][IM]);
+    // 	    VERBOSITY_LV3_MASTER_PRINTF("M_(%d,%d)=%lg,%lg\n",j,i,M[i+wspace_max_size*j][RE],M[i+wspace_max_size*j][IM]);
     // 	  }
     //   }
     
@@ -83,7 +83,7 @@ namespace nissa
     // int neig_conv=0;
     // do
     //   {
-    // 	master_printf("Iteration %d, wspace size: %d [%d:%d]\n",iter,wspace_size,wspace_min_size,wspace_max_size);
+    // 	MASTER_PRINTF("Iteration %d, wspace size: %d [%d:%d]\n",iter,wspace_size,wspace_min_size,wspace_max_size);
 	
     // 	//reset residue norm
     // 	double residue_norm=0.0;
@@ -102,7 +102,7 @@ namespace nissa
     // 	imp_mat(residue,e);
     // 	double_vector_summassign_double_vector_prod_double((double*)residue,(double*)e,-red_eig_val[0],mat_size*2);
     // 	residue_norm=sqrt(double_vector_glb_norm2(residue,mat_size));
-    // 	master_printf("eig: %.16lg, res: %.16lg\n",red_eig_val[0],residue_norm);
+    // 	MASTER_PRINTF("eig: %.16lg, res: %.16lg\n",red_eig_val[0],residue_norm);
 	
     // 	//if converged
     // 	bool this_converged=(residue_norm<target_precision);
@@ -111,7 +111,7 @@ namespace nissa
     // 	  {
     // 	    //store eigenvalue
     // 	    complex_put_to_real(eig_val[neig_conv],red_eig_val[0]);
-    // 	    master_printf("Eigenvalue %d/%d, %lg converged!\n",neig_conv,neig,eig_val[neig_conv][RE]);
+    // 	    MASTER_PRINTF("Eigenvalue %d/%d, %lg converged!\n",neig_conv,neig,eig_val[neig_conv][RE]);
 	    
     // 	    //shift the others back
     // 	    for(int i=0;i<wspace_size-1;i++)
@@ -147,7 +147,7 @@ namespace nissa
     // 	//reset if exceeded the workspace size
     // 	if(wspace_size==wspace_max_size)
     // 	  {
-    // 	    master_printf("Resetting\n");
+    // 	    MASTER_PRINTF("Resetting\n");
 	    
     // 	    //combine the basis vector to get the best eigenvectors approximations
     // 	    wspace_size=wspace_min_size;
@@ -203,7 +203,7 @@ namespace nissa
     // 	    //orthogonalize v to V
     // 	    double alpha=iterated_classical_GS(v,mat_size,wspace_size,V,max_cgs_it);
     // 	    double_vector_prodassign_double((double*)v,1.0/alpha,2*mat_size);
-    // 	    master_printf("alpha: %.16lg\n",alpha);
+    // 	    MASTER_PRINTF("alpha: %.16lg\n",alpha);
 	    
     // 	    //update interaction matrix
     // 	    imp_mat(temp,v);

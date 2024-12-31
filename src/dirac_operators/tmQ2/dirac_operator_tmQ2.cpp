@@ -16,7 +16,7 @@ namespace nissa
   //Apply the Q+Q- operator to a spincolor
   void apply_tmQ2(spincolor* out,quad_su3* conf,double kappa,spincolor* ext_temp,double mu,spincolor* in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // spincolor *temp=ext_temp;
     // if(temp==NULL) temp=nissa_malloc("tempQ",locVol+bord_vol,spincolor);
     

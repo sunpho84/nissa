@@ -130,7 +130,7 @@ namespace nissa
     const double phase=2*em_str*quark_content.charge*M_PI/glbSize[mu]/glbSize[nu];
     
     if(quantization==2 and glbSize[mu]%4!=0)
-      crash("for half-half quantization global size in %d direction must be multiple of 4, it is %d",mu,glbSize[mu]);
+      CRASH("for half-half quantization global size in %d direction must be multiple of 4, it is %d",mu,glbSize[mu]);
     
     for(int par=0;par<2;par++)
       {
@@ -250,7 +250,7 @@ namespace nissa
 							       const EoField<quad_u1>& u1,
 							       const bool& with_without)
   {
-    verbosity_lv2_master_printf("%s backfield, %s stagphases\n",
+    VERBOSITY_LV2_MASTER_PRINTF("%s backfield, %s stagphases\n",
 				(add_rem==0)?"add":"rem",(with_without==0)?"with":"without");
     
     for(int par=0;par<2;par++)
@@ -288,7 +288,7 @@ namespace nissa
 							       const EoField<quad_u1>& u1,
 							       const bool& with_without)
   {
-    verbosity_lv2_master_printf("%s backfield, %s stagphases\n",
+    VERBOSITY_LV2_MASTER_PRINTF("%s backfield, %s stagphases\n",
 				(add_rem==0)?"add":"rem",(with_without==0)?"with":"without");
     
     for(int par=0;par<2;par++)

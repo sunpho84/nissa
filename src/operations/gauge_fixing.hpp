@@ -28,7 +28,7 @@ namespace nissa
 	  res="Coulomb";
 	  break;
 	default:
-	  crash("unknown gauge %d",gauge);
+	  CRASH("unknown gauge %d",gauge);
 	}
       
       return res;
@@ -42,7 +42,7 @@ namespace nissa
       if(strcasecmp(tag,"Coulomb")==0)
 	return Coulomb;
       
-      crash("Unknown gauge %s, use \"Landau\" or \"Coulomb\"",tag);
+      CRASH("Unknown gauge %s, use \"Landau\" or \"Coulomb\"",tag);
       
       return Landau;
     }
@@ -94,7 +94,7 @@ namespace nissa
 	  res="Exponentiate";
 	  break;
 	default:
-	  crash("unknwon method %d",method);
+	  CRASH("unknwon method %d",method);
 	}
       
       return res;
@@ -108,7 +108,7 @@ namespace nissa
       if(strcasecmp(tag,"Exponentiate")==0)
 	return exponentiate;
       
-      crash("Unknown method %s, use \"Overrelax\" or \"Exponentiate\"",tag);
+      CRASH("Unknown method %s, use \"Overrelax\" or \"Exponentiate\"",tag);
       
       return overrelax;
     }
@@ -238,7 +238,7 @@ namespace nissa
 	read_str_int("UseFFTacc",&pars.use_fft_acc);
 	break;
       default:
-	crash("unkown method %d",pars.method);
+	CRASH("unkown method %d",pars.method);
       }
   }
   

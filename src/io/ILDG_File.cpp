@@ -105,10 +105,10 @@ namespace nissa
   {
     char path_str[1024];
     snprintf(path_str,1024,"%s",path.c_str());
-    master_printf("Opening file: %s\n",path_str);
+    MASTER_PRINTF("Opening file: %s\n",path_str);
     
     ILDG_File file=fopen(path_str,mode);
-    if(file==nullptr) crash("while opening file %s",path_str);
+    if(file==nullptr) CRASH("while opening file %s",path_str);
     
     return file;
   }
@@ -215,12 +215,12 @@ namespace nissa
     const size_t nbytes_read=fread(data,1,nbytes_req,file);
     
     if(nbytes_read!=nbytes_req)
-      crash("read %zu bytes instead of %zu required",nbytes_read,nbytes_req);
+      CRASH("read %zu bytes instead of %zu required",nbytes_read,nbytes_req);
     
     //padding
     ILDG_File_seek_to_next_eight_multiple(file);
     
-    verbosity_lv3_master_printf("record read: %zu bytes\n",nbytes_req);
+    VERBOSITY_LV3_MASTER_PRINTF("record read: %zu bytes\n",nbytes_req);
   }
   
   //search next record
@@ -233,7 +233,7 @@ namespace nissa
     ILDG_header header;
     ILDG_File_read_all((void*)&header,file,sizeof(header));
     fixToNativeEndianness<BigEndian>(header.data_length);
-    verbosity_lv3_master_printf("record %s contains: %lu bytes\n",header.type,header.data_length);
+    VERBOSITY_LV3_MASTER_PRINTF("record %s contains: %lu bytes\n",header.type,header.data_length);
     fixToNativeEndianness<BigEndian>(header.magic_no);
     fixToNativeEndianness<BigEndian>(header.version);
     
@@ -242,8 +242,8 @@ namespace nissa
       {
 	char buf[1024];
 	snprintf(buf,1024,"wrong magic number, expected %x and obtained %x",ILDG_MAGIC_NO,header.magic_no);
-	if(ignore_ILDG_magic_number) master_printf("Warning, %s\n",buf);
-	else crash("%s",buf);
+	if(ignore_ILDG_magic_number) MASTER_PRINTF("Warning, %s\n",buf);
+	else CRASH("%s",buf);
       }
     
     return header;
@@ -273,7 +273,7 @@ namespace nissa
 #else
 	const size_t nbytes_written=fwrite(data,1,nbytes_req,file);
 #endif
-	if(nbytes_written!=nbytes_req) crash("wrote %zu bytes instead of %zu required",nbytes_written,nbytes_req);
+	if(nbytes_written!=nbytes_req) CRASH("wrote %zu bytes instead of %zu required",nbytes_written,nbytes_req);
 	
 	//this is a blocking routine
 	ILDG_File_skip_nbytes(file,0);
@@ -327,7 +327,7 @@ namespace nissa
       {
 	header=ILDG_File_get_next_record_header(file);
 	
-	verbosity_lv3_master_printf("found record: %s\n",header.type);
+	VERBOSITY_LV3_MASTER_PRINTF("found record: %s\n",header.type);
 	
 	if(strcmp(record_name,header.type)==0) found=1;
 	else
@@ -364,8 +364,8 @@ namespace nissa
     //read
     const double beg=take_time();
     ILDG_Offset nbytes_read=fread(buf,1,nbytes_per_rank_exp,file);
-    master_printf("Bare reading %zu bytes took %lg s\n",nbytes_per_rank_exp,take_time()-beg);
-    if(nbytes_read!=nbytes_per_rank_exp) crash("read %zu bytes instead of %ld",nbytes_read,nbytes_per_rank_exp);
+    MASTER_PRINTF("Bare reading %zu bytes took %lg s\n",nbytes_per_rank_exp,take_time()-beg);
+    if(nbytes_read!=nbytes_per_rank_exp) CRASH("read %zu bytes instead of %ld",nbytes_read,nbytes_per_rank_exp);
     
     //place at the end of the record, including padding
     ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
@@ -377,7 +377,7 @@ namespace nissa
     
     nissa_free(buf);
     
-    verbosity_lv3_master_printf("ildg data record read: %lu bytes\n",header.data_length);
+    VERBOSITY_LV3_MASTER_PRINTF("ildg data record read: %lu bytes\n",header.data_length);
   }
   
   //read the checksum
@@ -401,7 +401,7 @@ namespace nissa
 	char *handlea=strstr(mess,"<suma>"),*handleb=strstr(mess,"<sumb>");
 	//if found read it
 	if(!(handlea && handleb && sscanf(handlea+6,"%x",&check_read[0]) && sscanf(handleb+6,"%x",&check_read[1])))
-	  master_printf("WARNING: Broken checksum\n");
+	  MASTER_PRINTF("WARNING: Broken checksum\n");
 	nissa_free(mess);
       }
     
@@ -413,7 +413,7 @@ namespace nissa
   //remap to ildg
   void remap_to_write_ildg_data(char* buf,char* data,int nbytes_per_site)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // PAR(0,locVol,
     // 	CAPTURE(),
     // 	ivol,
@@ -452,7 +452,7 @@ namespace nissa
     //write
     ILDG_Offset nbytes_wrote=fwrite(buf,1,nbytes_per_rank,file);
     if(nbytes_wrote!=nbytes_per_rank)
-      crash("wrote %ld bytes instead of %ld",nbytes_wrote,nbytes_per_rank);
+      CRASH("wrote %ld bytes instead of %ld",nbytes_wrote,nbytes_per_rank);
     
     //place at the end of the record, including padding
     ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(data_length),SEEK_SET);

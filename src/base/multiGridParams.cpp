@@ -54,7 +54,7 @@ namespace nissa
 		if(strcasecmp(tag,#NAME)==0)				\
 		  {							\
 		    nissa::read_ ## TYPE(&NAME);			\
-		    master_printf("DD: read " #NAME "=" SHORT "\n",NAME); \
+		    MASTER_PRINTF("DD: read " #NAME "=" SHORT "\n",NAME); \
 		  }
 		
 #define READ_ARR(TYPE,SHORT,NAME)					\
@@ -62,7 +62,7 @@ namespace nissa
 		  for(int ilev=0;ilev<nlevels;ilev++)			\
 		    {							\
 		      nissa::read_ ## TYPE(&NAME[ilev]);		\
-		      master_printf("DD: read " #NAME "[%d]=" SHORT "\n",ilev,NAME[ilev]); \
+		      MASTER_PRINTF("DD: read " #NAME "[%d]=" SHORT "\n",ilev,NAME[ilev]); \
 		    }
 		
 		READ_VAR(int,"%d",nlevels);
@@ -82,7 +82,7 @@ namespace nissa
 			{
 			  int jdir=nissa::scidacMapping[idir];
 			  nissa::read_int(&block_size[ilev][jdir]);
-			  master_printf("DD: block_size[%d][%d*]=%d\n",ilev,jdir,block_size[ilev][jdir]);
+			  MASTER_PRINTF("DD: block_size[%d][%d*]=%d\n",ilev,jdir,block_size[ilev][jdir]);
 			}
 		    }
 #ifdef USE_QUDA
@@ -102,13 +102,13 @@ namespace nissa
 		READ_ARR(int,"%d",nu_post);
 #endif
 	      }
-	    else master_printf("Finished reading the file '%s'\n",path);
+	    else MASTER_PRINTF("Finished reading the file '%s'\n",path);
 	  }
 	while(nr==1);
 	
 	nissa::close_input();
       }
-    else master_printf("No '%s' file present, using standard configuration\n",path);
+    else MASTER_PRINTF("No '%s' file present, using standard configuration\n",path);
   }
   
   #undef READ_ARR

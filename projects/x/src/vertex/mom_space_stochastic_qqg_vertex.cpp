@@ -18,8 +18,8 @@
 
 void stochastic_mom_space_qqg_vertex(spin *q_out,spin *q_in,quark_info qu,spin1field *g_in,gluon_info gl)
 {
-  if(nranks>1) crash("implemented only in scalar");
-  if(q_out==q_in) crash("q_in==q_out");
+  if(nranks>1) CRASH("implemented only in scalar");
+  if(q_out==q_in) CRASH("q_in==q_out");
   
   spin *shift_q_in=nissa_malloc("shift_q_in",loc_vol+bord_vol,spin);
   spin1field *shift_g_in=nissa_malloc("shift_g_in",loc_vol+bord_vol,spin1field);

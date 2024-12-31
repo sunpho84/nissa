@@ -25,7 +25,7 @@ namespace nissa
   double compute_topodynamical_potential_der(const topotential_pars_t *pars,
 					     const LxField<quad_su3>& conf)
   {
-    crash("reimplement");//topological_charge.cpp not compiled
+    CRASH("reimplement");//topological_charge.cpp not compiled
     // const double Q=total_topological_charge_lx_conf(conf);
     
     // return pars->compute_pot_der(Q);
@@ -37,7 +37,7 @@ namespace nissa
 						  const LxField<quad_su3>& conf,
 						  const topotential_pars_t *pars)
   {
-    crash("reimplement");//topological_charge.cpp not compiled
+    CRASH("reimplement");//topological_charge.cpp not compiled
     //compute the staples
     // topological_staples(F,conf);
     
@@ -52,7 +52,7 @@ namespace nissa
     // 	pot=compute_topodynamical_potential_der(pars,conf);
     // 	break;
     //   default:
-    // 	crash("unknown way to compute topological potential %d",pars->flag);
+    // 	CRASH("unknown way to compute topological potential %d",pars->flag);
     //   }
     
     // //normalize
@@ -65,8 +65,8 @@ namespace nissa
 					 LxField<quad_su3>& conf,
 					 const topotential_pars_t* pars)
   {
-    crash("reimplement");
-//     verbosity_lv1_master_printf("Computing topological force\n");
+    CRASH("reimplement");
+//     VERBOSITY_LV1_MASTER_PRINTF("Computing topological force\n");
     
 //     //compute the staples
 //     if(pars->stout_pars.nlevels==0) compute_topological_force_lx_conf_internal(F,conf,pars);
@@ -137,16 +137,16 @@ namespace nissa
 //     su3_summ(nu,nu_plus,nu_minus);
 //     su3_prodassign_double(nu,0.5);
     
-//     master_printf("Comparing topotential force\n");
-//     master_printf("an\n");
+//     MASTER_PRINTF("Comparing topotential force\n");
+//     MASTER_PRINTF("an\n");
 //     su3_print(F[0][0]);
-//     master_printf("nu\n");
+//     MASTER_PRINTF("nu\n");
 //     su3_print(nu);
-//     master_printf("nu_plus\n");
+//     MASTER_PRINTF("nu_plus\n");
 //     su3_print(nu_plus);
-//     master_printf("nu_minus\n");
+//     MASTER_PRINTF("nu_minus\n");
 //     su3_print(nu_minus);
-//     crash("anna");
+//     CRASH("anna");
 // #endif
   }
 }

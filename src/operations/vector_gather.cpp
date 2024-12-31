@@ -13,7 +13,7 @@ namespace nissa
   //gather the whole field on a single rank, reordering data
   void vector_gather(char *glb,char *loc,size_t bps,int dest_rank)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // if(dest_rank==rank)
     //   {
@@ -87,7 +87,7 @@ namespace nissa
   //ipercubicly mirrorize an already gathered vector
   void gathered_vector_mirrorize(double *vec,int dps)
   {
-    if(glbSize[0]%2 || glbSize[1]%2) crash("Error, impossible to mirrorize if sites are odds");
+    if(glbSize[0]%2 || glbSize[1]%2) CRASH("Error, impossible to mirrorize if sites are odds");
     
     int TH=glbSize[0]/2;
     int LH=glbSize[1]/2;
@@ -116,7 +116,7 @@ namespace nissa
   //symmetrize an already gathered vector
   void gathered_vector_cubic_symmetrize(double *vec,int dps)
   {
-    if(glbSize[0]%2 || glbSize[1]%2) crash("Error, impossible to symmetrize if sites are odds");
+    if(glbSize[0]%2 || glbSize[1]%2) CRASH("Error, impossible to symmetrize if sites are odds");
     
     int TH=glbSize[0]/2;
     int LH=glbSize[1]/2;

@@ -6,7 +6,7 @@ using namespace nissa;
 
 void compute_gaussianity_pars(double* x,color* source,int maxpow,coords_t* source_pos)
 {
-  crash("reimplement");
+  CRASH("reimplement");
   // //reset local pows
   // double locx[glb_size[0]][maxpow];
   // for(int t=0;t<glb_size[0];t++)
@@ -147,7 +147,7 @@ void compute_density(FILE *fout,
       dens_t& d=density[dist];
       master_fprintf(fout," NDists %d\n",(int)density[0].size());
       
-      crash("");
+      CRASH("");
       // for(int t=0;t<glb_size[0];t++)
       //   {
       //     master_fprintf(fout," t %d\n",t);
@@ -169,7 +169,7 @@ void compute_density(FILE *fout,
 void in_main(int narg,char **arg)
 {
   //check argument
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   //open input file
   open_input(arg[1]);
@@ -184,7 +184,7 @@ void in_main(int narg,char **arg)
   char conf_path[1024];
   read_str_str("Conf",conf_path,1024);
   quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
-  crash("");
+  CRASH("");
   // read_ildg_gauge_conf(conf,conf_path);
   
   //read APE smearing pars
@@ -192,7 +192,7 @@ void in_main(int narg,char **arg)
   double ape_smearing_alpha;
   read_str_double("ApeSmearingAlpha",&ape_smearing_alpha);
   read_str_int("ApeSmearingNiters",&ape_smearing_niters);
-  crash("reimplement");
+  CRASH("reimplement");
   //ape_spatial_smear_conf(conf,conf,ape_smearing_alpha,ape_smearing_niters);
   
   //read Gaussian smearing pars
@@ -239,8 +239,8 @@ void in_main(int narg,char **arg)
   //print spatial plaquette
   // double plaqs[2];
   // global_plaquette_lx_conf(plaqs,conf);
-  // master_printf("TimePlaquette %16.16lg\n",plaqs[0]);
-  // master_printf("SpatPlaquette %16.16lg\n",plaqs[1]);
+  // MASTER_PRINTF("TimePlaquette %16.16lg\n",plaqs[0]);
+  // MASTER_PRINTF("SpatPlaquette %16.16lg\n",plaqs[1]);
   
   //set the source
   color *source=nissa_malloc("source",locVol+bord_vol,color);
@@ -270,24 +270,24 @@ void in_main(int narg,char **arg)
   // 	if(const auto nw=coeffs[iPoly].find(n);nw!=coeffs[iPoly].end())
   // 	  {
   // 	    const auto& [n,w]=*nw;
-  // 	    master_printf("Adding %lg*H^%zu (computed with %zu new steps) to poly %zu\n",w,n,n-p,iPoly);
+  // 	    MASTER_PRINTF("Adding %lg*H^%zu (computed with %zu new steps) to poly %zu\n",w,n,n-p,iPoly);
 	    
   // 	    double_vector_summassign_double_vector_prod_double(&tot[iPoly][0][0][0],&source[0][0][0],w,locVol*sizeof(color)/sizeof(double));
   // 	  }
       
       // p=n;
       // //write
-      // master_printf("Smearing level %d\n",ilev);
-      // master_printf(" - average norm:   %lg +- %lg\n",a[0],e[0]);
-      // master_printf(" - average radius: %lg +- %lg\n",a[1],e[1]);
-      // master_printf("   expected:       %lg\n",expected_radius(kappa,ilev,plaqs[1]));
-      // master_printf("\n");
+      // MASTER_PRINTF("Smearing level %d\n",ilev);
+      // MASTER_PRINTF(" - average norm:   %lg +- %lg\n",a[0],e[0]);
+      // MASTER_PRINTF(" - average radius: %lg +- %lg\n",a[1],e[1]);
+      // MASTER_PRINTF("   expected:       %lg\n",expected_radius(kappa,ilev,plaqs[1]));
+      // MASTER_PRINTF("\n");
       
       // master_fprintf(fout," Smearlevel %d\n",ilev);
       // compute_density(fout,source,source_pos);
       
       // //smear
-      // crash("reimplement");
+      // CRASH("reimplement");
       // // if(ilev<nlevels) gaussian_smearing(source,source,conf,kappa,meas_each);
   // }
   
@@ -301,10 +301,10 @@ void in_main(int narg,char **arg)
   // process_gaussianity(a,e,x,maxpow);
   
   // //write
-  // master_printf(" - average norm:   %lg +- %lg\n",a[0],e[0]);
-  // master_printf(" - average radius: %lg +- %lg\n",a[1],e[1]);
-  // master_printf("   expected:       %lg\n",expected_radius(kappa,ilev,plaqs[1]));
-  // master_printf("\n");
+  // MASTER_PRINTF(" - average norm:   %lg +- %lg\n",a[0],e[0]);
+  // MASTER_PRINTF(" - average radius: %lg +- %lg\n",a[1],e[1]);
+  // MASTER_PRINTF("   expected:       %lg\n",expected_radius(kappa,ilev,plaqs[1]));
+  // MASTER_PRINTF("\n");
       
   //     master_fprintf(fout," Smearlevel %d\n",ilev);
   //output file

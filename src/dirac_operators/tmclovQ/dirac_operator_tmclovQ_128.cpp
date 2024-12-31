@@ -15,7 +15,7 @@ namespace nissa
 {
   void apply_tmclovQ_128(spincolor_128* out,quad_su3* conf,double kappa,clover_term_t* Cl,double mu,spincolor_128* in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // communicate_lx_spincolor_128_borders(in);
     // communicate_lx_quad_su3_borders(conf);

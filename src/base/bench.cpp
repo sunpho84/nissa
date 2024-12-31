@@ -41,7 +41,7 @@ namespace nissa
     nissa_free(a);
     nissa_free(b);
     
-    master_printf("time to copy %d Mbytes: %lg, %lg Mbs\n",mem_size/1024/1024,
+    MASTER_PRINTF("time to copy %d Mbytes: %lg, %lg Mbs\n",mem_size/1024/1024,
 		  bench_time,mem_size/1024.0/1024/bench_time);
   }
   
@@ -94,7 +94,7 @@ namespace nissa
 	  nissa_free(in);
 	  nissa_free(out);
 	  
-	  master_printf("Communication benchmark, packet size %d (%lg, stddev %lg) Mb/s (%lg s total)\n",size,speed_ave,speed_stddev,tot_time);
+	  MASTER_PRINTF("Communication benchmark, packet size %d (%lg, stddev %lg) Mb/s (%lg s total)\n",size,speed_ave,speed_stddev,tot_time);
 	}
   }
 }

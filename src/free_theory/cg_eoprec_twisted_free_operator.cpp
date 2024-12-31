@@ -26,7 +26,7 @@ namespace nissa
 				     const double& residue,
 				     const OddField<spin>& source)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // int niter=nMaxIter;
     // int riter=0;
@@ -61,8 +61,8 @@ namespace nissa
 	
     // 	if(riter==0)
     // 	  {
-    // 	    master_printf("\nSource norm: %lg\n",sourceNorm2);
-    // 	    master_printf("iter 0 relative residue: %lg\n",delta/sourceNorm2);
+    // 	    MASTER_PRINTF("\nSource norm: %lg\n",sourceNorm2);
+    // 	    MASTER_PRINTF("iter 0 relative residue: %lg\n",delta/sourceNorm2);
     // 	  }
 	
     // 	//main loop
@@ -98,7 +98,7 @@ namespace nissa
     // 	    iter++;
 	    
     // 	    if(iter%10==0)
-    // 	      master_printf("iter %d relative residue: %lg\n",iter,lambda/sourceNorm2);
+    // 	      MASTER_PRINTF("iter %d relative residue: %lg\n",iter,lambda/sourceNorm2);
     // 	  }
     // 	while(lambda>(residue*sourceNorm2) and iter<niter);
 	
@@ -110,7 +110,7 @@ namespace nissa
     // 	});
     // 	lambda=r.norm2();
 	
-    // 	master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",iter,lambda/sourceNorm2,residue);
+    // 	MASTER_PRINTF("\nfinal relative residue (after %d iters): %lg where %lg was required\n",iter,lambda/sourceNorm2,residue);
 	
     // 	riter++;
     //   }
@@ -125,7 +125,7 @@ namespace nissa
 			     const double& residue,
 			     const LxField<spin>& source_lx)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // //prepare the e/o split version of the source
     // EoField<spin> source_eos("source_eos",WITH_HALO);

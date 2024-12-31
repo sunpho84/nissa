@@ -194,8 +194,8 @@ namespace nissa
   {
     compute_handcuffs_contr();
     //compute_meslep_contr();
-    if(compute_octet) crash("dependencies are broken");//compute_bar2pts_contr();
-    if(compute_decuplet) crash("dependencies are broken");//compute_bar2pts_alt_contr();
+    if(compute_octet) CRASH("dependencies are broken");//compute_bar2pts_contr();
+    if(compute_decuplet) CRASH("dependencies are broken");//compute_bar2pts_alt_contr();
   }
   
   //print out all contractions

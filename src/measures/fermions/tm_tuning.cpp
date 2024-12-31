@@ -19,7 +19,7 @@ namespace nissa
   /// Compute and print tm tuning
   void measure_tm_tuning(eo_ptr<quad_su3> ext_conf,theory_pars_t &tp,tm_tuning_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     //     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
@@ -44,7 +44,7 @@ namespace nissa
 // 	  master_fprintf(file," # conf %d ; flv = %d , m = %.16lg , k = %.16lg , cSW = %.16lg\n",
 // 			 iconf,iflav,tp.quarks[iflav].mass,tp.quarks[iflav].kappa,tp.quarks[iflav].cSW);
 	  
-// 	  verbosity_lv2_master_printf("Evaluating tm tuning for flavor %d/%d, ncopies %d/%d\n",
+// 	  VERBOSITY_LV2_MASTER_PRINTF("Evaluating tm tuning for flavor %d/%d, ncopies %d/%d\n",
 // 					  iflav+1,tp.nflavs(),icopy+1,ncopies);
 	  
 // 	  //Source time

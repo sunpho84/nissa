@@ -73,7 +73,7 @@ int main(int narg,char **arg)
       unsafe_spinspin_prod_spinspin(pr,prop[P],t);
       complex c;
       trace_spinspin(c,pr);
-      master_printf("%d %d %d %d %lg %lg\n",glb_coord_of_loclx[P][0],glb_coord_of_loclx[P][1],glb_coord_of_loclx[P][2],glb_coord_of_loclx[P][3],corr[P][0][0],c[0]);
+      MASTER_PRINTF("%d %d %d %d %lg %lg\n",glb_coord_of_loclx[P][0],glb_coord_of_loclx[P][1],glb_coord_of_loclx[P][2],glb_coord_of_loclx[P][3],corr[P][0][0],c[0]);
     }
   
   write_corr16("tree_level_corr",corr,64);

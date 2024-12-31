@@ -140,7 +140,7 @@ namespace nissa
 	      os<<" StartCond\t=\t";
 	      if(start_cond==HOT_START_COND) os<<"HOT";
 	      if(start_cond==COLD_START_COND) os<<"COLD";
-	      if(start_cond==UNSPEC_START_COND) crash("unspecified start cond");
+	      if(start_cond==UNSPEC_START_COND) CRASH("unspecified start cond");
 	      os<<"\n";
 	    }
 	}

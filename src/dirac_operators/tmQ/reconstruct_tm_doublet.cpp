@@ -13,7 +13,7 @@ namespace nissa
   //Apply the Q+ and Q- operator to a spincolor,so that we have Q-^-1 (r==0) and Q+^-1 (r==1) as output
   void reconstruct_tm_doublet(spincolor* outminus,spincolor* outplus,quad_su3* conf,double kappa,double mu,spincolor* in)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // apply_tmQ(outminus,conf,kappa,tau3[1]*mu,in);
     // NISSA_PARALLEL_LOOP(ivol,0,locVol)
     //   {

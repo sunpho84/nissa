@@ -54,7 +54,7 @@ namespace nissa
       case IWASAKI_GAUGE_ACTION:
 	Symanzik_force_lx_conf(F,conf,physics.beta,C1_IWASAKI);
 	break;
-      default: crash("Unknown action");
+      default: CRASH("Unknown action");
       }
   }
   
@@ -123,20 +123,20 @@ namespace nissa
     gluonic_force_finish_computation(F,conf);
     
 #ifdef DEBUG
-    master_printf("checking pure gauge force\n");
-    master_printf("an\n");
+    MASTER_PRINTF("checking pure gauge force\n");
+    MASTER_PRINTF("an\n");
     su3_print(F[0][0]);
-    master_printf("nu\n");
+    MASTER_PRINTF("nu\n");
     su3_print(nu);
-    master_printf("nu_plus\n");
+    MASTER_PRINTF("nu_plus\n");
     su3_print(nu_plus);
-    master_printf("nu_minus\n");
+    MASTER_PRINTF("nu_minus\n");
     su3_print(nu_minus);
     //crash("anna");
 #endif
     
     //print the intensity of the force
-    verbosity_lv2_master_printf("  Gluonic force average norm: %lg\n",sqrt(F.norm2()/glbVol));
+    VERBOSITY_LV2_MASTER_PRINTF("  Gluonic force average norm: %lg\n",sqrt(F.norm2()/glbVol));
     
     STOP_TIMING(gluon_force_time);
   }

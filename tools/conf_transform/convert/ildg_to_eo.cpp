@@ -45,9 +45,9 @@ void conf_convert(char *outpath,char *inpath)
     {
       int nw;
       nw=fwrite(&temp[0],sizeof(coords_t),1,fout);
-      if(nw!=1) crash("did not success in writing");
+      if(nw!=1) CRASH("did not success in writing");
       nw=fwrite(&plaq,sizeof(double),1,fout);
-      if(nw!=1) crash("did not success in writing");
+      if(nw!=1) CRASH("did not success in writing");
     }
   MPI_Barrier(MPI_COMM_WORLD);
   
@@ -64,7 +64,7 @@ void conf_convert(char *outpath,char *inpath)
   
   //write
   int nw=fwrite(buf,sizeof(quad_su3),locVol,fout);
-  if(nw!=locVol) crash("did not success in writing");
+  if(nw!=locVol) CRASH("did not success in writing");
   MPI_Barrier(MPI_COMM_WORLD);
   
   //flush
@@ -81,7 +81,7 @@ void conf_convert(char *outpath,char *inpath)
 
 void in_main(int narg,char **arg)
 {
-  if(narg<2) crash("Use: %s input",arg[0]);
+  if(narg<2) CRASH("Use: %s input",arg[0]);
   
   open_input(arg[1]);
   
@@ -112,7 +112,7 @@ void in_main(int narg,char **arg)
       if(not file_exists(out))
 	 conf_convert(out,in);
       else
-	master_printf("Skipping conf %s\n",in);
+	MASTER_PRINTF("Skipping conf %s\n",in);
   }
   
   close_input();

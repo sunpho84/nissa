@@ -45,11 +45,11 @@ namespace nissa
 	
 	//set initial value of bc and check kinematic
 	for(int i=1;i<NDIM;i++) leps[il].bc[i]=0;
-	if(tm_quark_energy(leps[il],0)>=mes_mass) crash("initial state is lighter (%lg) than final state at rest (%lg)!",mes_mass,tm_quark_energy(leps[il],0));
+	if(tm_quark_energy(leps[il],0)>=mes_mass) CRASH("initial state is lighter (%lg) than final state at rest (%lg)!",mes_mass,tm_quark_energy(leps[il],0));
 	
 	//compute meson momentum and bc
 	double err;
-	master_printf("Resolving kinematical condition for combination of quarks %d/%d\n",il+1,nquark_lep_combos);
+	MASTER_PRINTF("Resolving kinematical condition for combination of quarks %d/%d\n",il+1,nquark_lep_combos);
 	do
 	  {
 	    //compute the error
@@ -62,16 +62,16 @@ namespace nissa
 	    double der=(tm_quark_energy(leps[il],0)+naive_massless_quark_energy(leps[il].bc,0)-mes_mass-err)/eps;
 	    for(int i=1;i<NDIM;i++) leps[il].bc[i]-=eps+err/der;
 	    
-	    master_printf("  lep_e: %+10.10lg, neu_e: %+10.10lg, mes_mass: %lg, error: %lg, der: %lg\n",lep_energy,neu_energy,mes_mass,err,der);
+	    MASTER_PRINTF("  lep_e: %+10.10lg, neu_e: %+10.10lg, mes_mass: %lg, error: %lg, der: %lg\n",lep_energy,neu_energy,mes_mass,err,der);
 	  }
 	while(fabs(err)>1e-14);
 	
 	//write down energy
 	lep_energy[il]=tm_quark_energy(leps[il],0);
 	neu_energy[il]=naive_massless_quark_energy(leps[il].bc,0);
-	master_printf(" ilepton %d, lepton energy: %lg, neutrino energy: %lg\n",il,lep_energy[il],neu_energy[il]);
-	master_printf(" lep+neut energy: %lg\n",lep_energy[il]+neu_energy[il]);
-	master_printf(" bc: %+16.16lg\n\n",leps[il].bc[1]);
+	MASTER_PRINTF(" ilepton %d, lepton energy: %lg, neutrino energy: %lg\n",il,lep_energy[il],neu_energy[il]);
+	MASTER_PRINTF(" lep+neut energy: %lg\n",lep_energy[il]+neu_energy[il]);
+	MASTER_PRINTF(" bc: %+16.16lg\n\n",leps[il].bc[1]);
       }
   }
   
@@ -146,7 +146,7 @@ namespace nissa
   //set everything to a phase factor
   void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,TmQuarkInfo &le)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // vector_reset(prop);
     // NISSA_PARALLEL_LOOP(ivol,0,locVol)
     //   {
@@ -161,7 +161,7 @@ namespace nissa
   //insert the photon on the source side
   void insert_photon_on_the_source(spinspin* prop,spin1field* A,int* dirs,TmQuarkInfo le,int twall)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // //select A
     // communicate_lx_spin1field_borders(A);
@@ -399,7 +399,7 @@ namespace nissa
 	//     spinspin_summ_the_complex_prod(mesolep_loc_contr[t],l,h);
 	//   }
 	// NISSA_PARALLEL_LOOP_END;
-	crash("#warning glb_threads_reduce_double_vect((double*)mesolep_loc_contr,loc_size[0]*sizeof(spinspin)/sizeof(double));");
+	CRASH("#warning glb_threads_reduce_double_vect((double*)mesolep_loc_contr,loc_size[0]*sizeof(spinspin)/sizeof(double));");
 	
 	//save projection on LO
 	// for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
@@ -430,8 +430,8 @@ namespace nissa
   //compute the total meslep contraction functions
   void compute_meslep_contr()
   {
-    crash("to be reviewed");
-    // master_printf("Computing leptonic contraction functions\n");
+    CRASH("to be reviewed");
+    // MASTER_PRINTF("Computing leptonic contraction functions\n");
     // meslep_contr_time-=take_time();
     
     // for(int ilepton=0;ilepton<nquark_lep_combos;ilepton++)
@@ -467,7 +467,7 @@ namespace nissa
   //print out contractions
   void print_meslep_contr()
   {
-    crash("to be reviewd");
+    CRASH("to be reviewd");
     // contr_print_time-=take_time();
     
     // //open file and reduce

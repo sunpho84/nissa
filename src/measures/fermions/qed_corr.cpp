@@ -21,7 +21,7 @@ namespace nissa
     //return directly a eosplit photon field
     void get_eo_photon(eo_ptr<spin1field> out,gauge_info photon)
     {
-      crash("reimplement");
+      CRASH("reimplement");
       // //allocate lx version of photon field
       // spin1field *photon_eta=nissa_malloc("photon_eta",locVol+bord_vol,spin1field);
       // spin1field *photon_field=nissa_malloc("photon_field",locVol+bord_vol,spin1field);
@@ -90,7 +90,7 @@ namespace nissa
   //compute and print
   void measure_qed_corr(eo_ptr<quad_su3> conf,theory_pars_t theory_pars,qed_corr_meas_pars_t meas_pars,int iconf,int conf_created)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // //open the file, allocate point result and source
     // FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
@@ -103,7 +103,7 @@ namespace nissa
     // for(int mu=0;mu<NDIM;mu++) photon.bc[mu]=0;
     // photon.c1=C1_WILSON;
     // photon.zms=UNNO_ALEMANNA;
-    crash(" ");
+    CRASH(" ");
     
     // //compute tadpole
     // Momentum tadpole=compute_tadpole(photon);
@@ -137,7 +137,7 @@ namespace nissa
     // //init the contr
     // //int ncontr_tot=contr_map.size()*nflavs*nflavs,contr_tot_size=ncontr_tot*glb_size[0];
     // complex *glb_contr=nullptr;
-    // crash("#warning reimplement nissa_malloc(\"glb_contr\",contr_tot_size*nthreads,complex);");
+    // CRASH("#warning reimplement nissa_malloc(\"glb_contr\",contr_tot_size*nthreads,complex);");
     // // complex *loc_contr=glb_contr+THREAD_ID*contr_tot_size;
     
     // for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
@@ -146,11 +146,11 @@ namespace nissa
 	
     // 	for(int ihit=0;ihit<meas_pars.nhits;ihit++)
     // 	  {
-    // 	    verbosity_lv1_master_printf("Computing hit %d/%d\n",ihit,meas_pars.nhits);
+    // 	    VERBOSITY_LV1_MASTER_PRINTF("Computing hit %d/%d\n",ihit,meas_pars.nhits);
 	    
     // 	    //get global time
     // 	    int tso=rnd_get_unif(&glb_rnd_gen,0,glbSize[0]);
-    // 	    verbosity_lv1_master_printf("tsource: %d\n",tso);
+    // 	    VERBOSITY_LV1_MASTER_PRINTF("tsource: %d\n",tso);
 	    
     // 	    //generate sources
     // 	    get_eo_photon(photon_field,photon);
@@ -170,7 +170,7 @@ namespace nissa
     // 		  else so=M[prop_build[iprop].sou+nprop_t*iflav];
 		  
     // 		  //make the insertion
-    // 		  verbosity_lv1_master_printf("Producing prop for flav %d, type %s, inserting operator %s on top of %s\n",
+    // 		  VERBOSITY_LV1_MASTER_PRINTF("Producing prop for flav %d, type %s, inserting operator %s on top of %s\n",
     // 					      iflav,prop_name[iprop],op_name[prop_build[iprop].op],
     // 					      (prop_build[iprop].sou==-1)?"so":prop_name[prop_build[iprop].sou]);
 		  
@@ -195,7 +195,7 @@ namespace nissa
     // 		    // eo_ptr<color> A=(contr_map[icontr].first==-1)?ori_source:M[contr_map[icontr].first+nprop_t*iflav];
     // 		    // eo_ptr<color> B=(contr_map[icontr].second==-1)?ori_source:M[contr_map[icontr].second+nprop_t*jflav];
 		    
-    // 			  crash("#warning reimplement");
+    // 			  CRASH("#warning reimplement");
     // 		    for(int par=0;par<2;par++)
     // 		      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
     // 			{
@@ -210,8 +210,8 @@ namespace nissa
     // 	  }
 	
     // 	//reduce
-    // 	crash("#warning reimplement glb_threads_reduce_complex_vect(loc_contr,contr_tot_size);");
-    // 	crash("#warning if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,contr_tot_size);");
+    // 	CRASH("#warning reimplement glb_threads_reduce_complex_vect(loc_contr,contr_tot_size);");
+    // 	CRASH("#warning if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,contr_tot_size);");
 	
     // 	//print
     // 	double norm=1.0/(meas_pars.nhits*glbSpatVol);
@@ -276,7 +276,7 @@ namespace nissa
     // // rem_backfield_from_conf(conf,theory_pars.backfield[0]);
     
     // // for(int t=0;t<glb_size[0];t++)
-    // //   master_printf("%d %lg %lg\n",t,loc_contr[t][RE],loc_contr[t][IM]);
+    // //   MASTER_PRINTF("%d %lg %lg\n",t,loc_contr[t][RE],loc_contr[t][IM]);
     
     // //free
     // for(int par=0;par<2;par++)

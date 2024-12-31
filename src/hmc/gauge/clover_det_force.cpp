@@ -14,7 +14,7 @@ namespace nissa
 {
   void clover_det_force(eo_ptr<quad_su3> F,std::vector<quark_content_t> quark_content,eo_ptr<quad_su3> eo_conf)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     // bool need=false;
     // for(auto& q : quark_content)
     //   need|=(q.cSW!=0);

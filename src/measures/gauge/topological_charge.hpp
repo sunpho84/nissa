@@ -130,7 +130,7 @@ namespace nissa
 			 const U& conf,
 			 const int& X)
   {
-    // if(conf.edgesAreValid) crash("communicate edges externally");
+    // if(conf.edgesAreValid) CRASH("communicate edges externally");
     
     for(int mu=0;mu<NDIM;mu++)
       {

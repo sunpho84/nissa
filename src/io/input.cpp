@@ -47,11 +47,11 @@ namespace nissa
 	FILE *f=fopen(path.c_str(),"w");
 	if(f!=NULL)
 	  {
-	    master_printf("File %s created\n",path.c_str());
+	    MASTER_PRINTF("File %s created\n",path.c_str());
 	    fclose(f);
 	  }
 	else
-	  crash("Unable to touch file: %s",path.c_str());
+	  CRASH("Unable to touch file: %s",path.c_str());
       }
   }
   
@@ -63,7 +63,7 @@ namespace nissa
       {
 	//open the file descriptor
 	f=open(path.c_str(),O_RDWR);
-	if(f) master_printf("File %s opened\n",path.c_str());
+	if(f) MASTER_PRINTF("File %s opened\n",path.c_str());
 	
 	//set a lock and check it
 	int status=lockf(f,F_TLOCK,0);
@@ -71,7 +71,7 @@ namespace nissa
 	  {
 	    close(f);
 	    f=0;
-	    master_printf("Unable to set the lock on %s\n",path.c_str());
+	    MASTER_PRINTF("Unable to set the lock on %s\n",path.c_str());
 	  }
       }
     
@@ -87,7 +87,7 @@ namespace nissa
     if(rank==0)
       {
 	int status=lockf(f,F_ULOCK,0);
-	if(not status) master_printf("Unable to unset the lock on file descriptor %d\n",f);
+	if(not status) MASTER_PRINTF("Unable to unset the lock on file descriptor %d\n",f);
 	else close(f);
       }
     
@@ -107,13 +107,13 @@ namespace nissa
 	FILE *f=fopen(path.c_str(),"r");
 	if(f!=NULL)
 	  {
-	    verbosity_lv3_master_printf("File '%s' exists!\n",path.c_str());
+	    VERBOSITY_LV3_MASTER_PRINTF("File '%s' exists!\n",path.c_str());
 	    status=1;
 	    fclose(f);
 	  }
 	else
 	  {
-	    verbosity_lv3_master_printf("File '%s' do not exist!\n",path.c_str());
+	    VERBOSITY_LV3_MASTER_PRINTF("File '%s' do not exist!\n",path.c_str());
 	    status=0;
 	  }
       }
@@ -136,10 +136,10 @@ namespace nissa
 	
 	if(exists)
 	  {
-	    verbosity_lv2_master_printf("Directory \"%s\" is present\n",path.c_str());
+	    VERBOSITY_LV2_MASTER_PRINTF("Directory \"%s\" is present\n",path.c_str());
 	    closedir(d);
 	  }
-	else verbosity_lv2_master_printf("Directory \"%s\" is not present\n",path.c_str());
+	else VERBOSITY_LV2_MASTER_PRINTF("Directory \"%s\" is not present\n",path.c_str());
       }
     
     MPI_Bcast(&exists,1,MPI_INT,0,MPI_COMM_WORLD);
@@ -160,7 +160,7 @@ namespace nissa
   {
     if(rank==0)
       {
-	if(input_global_stack.size()==0 and input_global==NULL) crash("No input file open");
+	if(input_global_stack.size()==0 and input_global==NULL) CRASH("No input file open");
 	fclose(input_global);
       }
     
@@ -181,7 +181,7 @@ namespace nissa
     
     if(rank==0)
       {
-	if(feof(input_global)) crash("reached EOF while scanning input file");
+	if(feof(input_global)) CRASH("reached EOF while scanning input file");
 	ok=fscanf(input_global,"%s",tok);
 	len=strlen(tok)+1;
       }
@@ -207,7 +207,7 @@ namespace nissa
     do
       {
 	int ok=read_next_token(tok);
-	if(ok!=1) crash("reached end of file without finding end of comment");
+	if(ok!=1) CRASH("reached end of file without finding end of comment");
       }
     while(check_tok_ends_comment(tok)==0);
   }
@@ -242,7 +242,7 @@ namespace nissa
   }
   
   void read_var(char *out,const char *par,int size_of)
-  {if(!read_var_catcherr(out,par,size_of)) crash("Couldn't read type %s from input file!!!",par);}
+  {if(!read_var_catcherr(out,par,size_of)) CRASH("Couldn't read type %s from input file!!!",par);}
   
   //Read an integer from the file
   void read_int(int *out)
@@ -267,7 +267,7 @@ namespace nissa
     
     read_str(obt_str,1024);
     
-    if(strcasecmp(exp_str,obt_str)!=0) crash("Error, expected '%s' in input file, obtained: '%s'",exp_str,obt_str);
+    if(strcasecmp(exp_str,obt_str)!=0) CRASH("Error, expected '%s' in input file, obtained: '%s'",exp_str,obt_str);
   }
   
   //Read an integer checking the tag
@@ -276,7 +276,7 @@ namespace nissa
     expect_str(exp_str);
     read_int(in);
     
-    verbosity_lv1_master_printf("Read variable '%s' with value: %d\n",exp_str,(*in));
+    VERBOSITY_LV1_MASTER_PRINTF("Read variable '%s' with value: %d\n",exp_str,(*in));
   }
   
   //Read 4 doubles checking the tag
@@ -287,7 +287,7 @@ namespace nissa
     for(int i=0;i<4;i++)
       read_double(&in[i]);
     
-    verbosity_lv1_master_printf("Read variable '%s' with value: %.16lg %.16lg %.16lg %.16lg\n",exp_str,in[0],in[1],in[2],in[3]);
+    VERBOSITY_LV1_MASTER_PRINTF("Read variable '%s' with value: %.16lg %.16lg %.16lg %.16lg\n",exp_str,in[0],in[1],in[2],in[3]);
   }
   
   //Read a double checking the tag
@@ -296,7 +296,7 @@ namespace nissa
     expect_str(exp_str);
     read_double(in);
     
-    verbosity_lv1_master_printf("Read variable '%s' with value: %.16lg\n",exp_str,(*in));
+    VERBOSITY_LV1_MASTER_PRINTF("Read variable '%s' with value: %.16lg\n",exp_str,(*in));
   }
   
   //Read a string checking the tag
@@ -305,7 +305,7 @@ namespace nissa
     expect_str(exp_str);
     read_str(in,length);
     
-    verbosity_lv1_master_printf("Read variable '%s' with value: %s\n",exp_str,in);
+    VERBOSITY_LV1_MASTER_PRINTF("Read variable '%s' with value: %s\n",exp_str,in);
   }
   
   //Read a list of var, allocating the list
@@ -358,26 +358,26 @@ namespace nissa
   {
     read_list_of_var(tag,nentries,(char**)list,sizeof(double),"%lg");
     
-    verbosity_lv1_master_printf("List of %s:\t",tag);
-    for(int ientr=0;ientr<(*nentries);ientr++) verbosity_lv1_master_printf("%.16lg\t",(*list)[ientr]);
-    verbosity_lv1_master_printf("\n");
+    VERBOSITY_LV1_MASTER_PRINTF("List of %s:\t",tag);
+    for(int ientr=0;ientr<(*nentries);ientr++) VERBOSITY_LV1_MASTER_PRINTF("%.16lg\t",(*list)[ientr]);
+    VERBOSITY_LV1_MASTER_PRINTF("\n");
   }
   void read_list_of_double_pairs(const char *tag,int *nentries,double **list1,double **list2)
   {
     read_list_of_var_pairs(tag,nentries,(char**)list1,(char**)list2,sizeof(double),"%lg");
     
-    verbosity_lv1_master_printf("List of pairs of %s:\t",tag);
-    for(int ientr=0;ientr<(*nentries);ientr++) verbosity_lv1_master_printf("%.16lg %.16lg\t",(*list1)[ientr],(*list2)[ientr]);
-    verbosity_lv1_master_printf("\n");
+    VERBOSITY_LV1_MASTER_PRINTF("List of pairs of %s:\t",tag);
+    for(int ientr=0;ientr<(*nentries);ientr++) VERBOSITY_LV1_MASTER_PRINTF("%.16lg %.16lg\t",(*list1)[ientr],(*list2)[ientr]);
+    VERBOSITY_LV1_MASTER_PRINTF("\n");
   }
   void read_list_of_double_triples(const char *tag,int *nentries,double **list1,double **list2,double **list3)
   {
     read_list_of_var_triples(tag,nentries,(char**)list1,(char**)list2,(char**)list3,sizeof(double),"%lg");
     
-    verbosity_lv1_master_printf("List of triples of %s:\t",tag);
+    VERBOSITY_LV1_MASTER_PRINTF("List of triples of %s:\t",tag);
     for(int ientr=0;ientr<(*nentries);ientr++)
-      verbosity_lv1_master_printf("%.16lg %.16lg %.16lg\t",(*list1)[ientr],(*list2)[ientr],(*list3)[ientr]);
-    verbosity_lv1_master_printf("\n");
+      VERBOSITY_LV1_MASTER_PRINTF("%.16lg %.16lg %.16lg\t",(*list1)[ientr],(*list2)[ientr],(*list3)[ientr]);
+    VERBOSITY_LV1_MASTER_PRINTF("\n");
   }
   
   //read a list of int
@@ -385,9 +385,9 @@ namespace nissa
   {
     read_list_of_var(tag,nentries,(char**)list,sizeof(int),"%d");
     
-    verbosity_lv1_master_printf("List of %s:\t",tag);
-    for(int ientr=0;ientr<(*nentries);ientr++) verbosity_lv1_master_printf("%d\t",(*list)[ientr]);
-    verbosity_lv1_master_printf("\n");
+    VERBOSITY_LV1_MASTER_PRINTF("List of %s:\t",tag);
+    for(int ientr=0;ientr<(*nentries);ientr++) VERBOSITY_LV1_MASTER_PRINTF("%d\t",(*list)[ientr]);
+    VERBOSITY_LV1_MASTER_PRINTF("\n");
   }
   
   //read a list of chars
@@ -401,9 +401,9 @@ namespace nissa
 	read_str((*list)[ientr],nchar_per_entry);
       }
     
-    verbosity_lv1_master_printf("List of %s:\t",tag);
-    for(int ientr=0;ientr<(*nentries);ientr++) verbosity_lv1_master_printf("%s\t",(*list)[ientr]);
-    verbosity_lv1_master_printf("\n");
+    VERBOSITY_LV1_MASTER_PRINTF("List of %s:\t",tag);
+    for(int ientr=0;ientr<(*nentries);ientr++) VERBOSITY_LV1_MASTER_PRINTF("%s\t",(*list)[ientr]);
+    VERBOSITY_LV1_MASTER_PRINTF("\n");
   }
   
   namespace
@@ -419,8 +419,8 @@ namespace nissa
       void read(){read_var((char*)pointer,type.c_str(),size);}
       void write()
       {
-	if(type=="%d"){verbosity_lv1_master_printf("%d",*((int*)pointer));return;}
-	crash("unkwnon how to print %s",type.c_str());
+	if(type=="%d"){VERBOSITY_LV1_MASTER_PRINTF("%d",*((int*)pointer));return;}
+	CRASH("unkwnon how to print %s",type.c_str());
       }
       const std::string get_tag(int &a){return "%d";}
       
@@ -485,33 +485,33 @@ namespace nissa
 		//check if tag found
 		if(itag==tags.size())
 		  {
-		    master_printf("Available parameters:\n");
+		    MASTER_PRINTF("Available parameters:\n");
 		    for(size_t itag=0;itag<tags.size();itag++)
-		      master_printf(" %s\n",tags[itag].name.c_str());
+		      MASTER_PRINTF(" %s\n",tags[itag].name.c_str());
 		    
-		    crash("unkwnown parameter '%s'",tag);
+		    CRASH("unkwnown parameter '%s'",tag);
 		  }
 		
 		//read the tag
 		tags[itag].read();
-		verbosity_lv1_master_printf("Read parameter '%s' with value ",tag);
+		VERBOSITY_LV1_MASTER_PRINTF("Read parameter '%s' with value ",tag);
 		tags[itag].write();
-		verbosity_lv1_master_printf("\n");
+		VERBOSITY_LV1_MASTER_PRINTF("\n");
 	      }
-	    else master_printf("Finished reading the file '%s'\n",path);
+	    else MASTER_PRINTF("Finished reading the file '%s'\n",path);
 	  }
 	while(nr==1);
 	
 	close_input();
       }
-    else master_printf("No 'nissa_config' file present, using standard configuration\n");
+    else MASTER_PRINTF("No 'nissa_config' file present, using standard configuration\n");
     
-    verbosity_lv1_master_printf("Configuration:\n");
+    VERBOSITY_LV1_MASTER_PRINTF("Configuration:\n");
     for(size_t itag=0;itag<tags.size();itag++)
       {
-	verbosity_lv1_master_printf(" %s=",tags[itag].name.c_str());
+	VERBOSITY_LV1_MASTER_PRINTF(" %s=",tags[itag].name.c_str());
 	tags[itag].write();
-	verbosity_lv1_master_printf("\n");
+	VERBOSITY_LV1_MASTER_PRINTF("\n");
       }
   }
 }

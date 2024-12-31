@@ -76,7 +76,7 @@ namespace nissa
     irank_transp=glb_dest_site/prp_vol;
     iloc_transp=glb_dest_site-irank_transp*prp_vol;
 #else
-    crash("not implemented");
+    CRASH("not implemented");
 #endif
   }
   
@@ -86,11 +86,11 @@ namespace nissa
 				     const int& iconf,
 				     const int& create_output_file)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
 // #if NDIM>=3
     
-//     verbosity_lv1_master_printf("Computing all rectangular paths\n");
+//     VERBOSITY_LV1_MASTER_PRINTF("Computing all rectangular paths\n");
     
 //     //remapping
 //     int nspat_sme=pars->spat_smear_pars.nmeas_nonzero(),ntot_sme=1+nspat_sme;
@@ -117,7 +117,7 @@ namespace nissa
 // 	  //define the six remapper
 // 	  int pars[3]={mu0,imu1,prp_vol[imu01]};
 // 	  remap[imu01]=new vector_remap_t(locVol,index_transp,pars);
-// 	  if(remap[imu01]->nel_in!=cmp_vol[imu01]) crash("expected %d obtained %d",cmp_vol[imu01],remap[imu01]->nel_in);
+// 	  if(remap[imu01]->nel_in!=cmp_vol[imu01]) CRASH("expected %d obtained %d",cmp_vol[imu01],remap[imu01]->nel_in);
 	  
 // 	  //allocate transp conf
 // 	  transp_conf[imu01]=nissa_malloc("transp_conf",cmp_vol[imu01]*ntot_sme,su3);
@@ -134,7 +134,7 @@ namespace nissa
 //       {
 // 	vector_copy(sme_conf,ori_conf);
 // 	smooth_lx_conf(sme_conf,pars->temp_smear_pars,only_dir[mu0]);
-// 	verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %.16lg\n",mu0,global_plaquette_lx_conf(sme_conf));
+// 	VERBOSITY_LV1_MASTER_PRINTF("Plaquette after \"temp\" (%d) smear: %.16lg\n",mu0,global_plaquette_lx_conf(sme_conf));
 	
 // 	//store temporal links and send them
 // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
@@ -157,9 +157,9 @@ namespace nissa
 // 	int imeas=0;
 // 	do
 // 	  {
-	    // crash("Pensaci giacomino, lo spazio smeara col tempo?");
+	    // CRASH("Pensaci giacomino, lo spazio smeara col tempo?");
 	    // finished=smooth_lx_conf_until_next_meas(sme_conf,pars->spat_smear_pars,nsmooth,all_other_dirs[mu0]);
-	    // verbosity_lv1_master_printf("Plaquette after %d perp to dir nsmooth %d: %16.16lg\n",
+	    // VERBOSITY_LV1_MASTER_PRINTF("Plaquette after %d perp to dir nsmooth %d: %16.16lg\n",
 	    // 				imeas,mu0,nsmooth,global_plaquette_lx_conf(sme_conf));
 	    
 	    // //store "spatial" links and send them
@@ -178,7 +178,7 @@ namespace nissa
 	    // 	THREAD_BARRIER();
 	      // }
 	    // imeas++;
-	    // if(imeas>nspat_sme) crash("imeas %d while max expected %d",imeas,nspat_sme);
+	    // if(imeas>nspat_sme) CRASH("imeas %d while max expected %d",imeas,nspat_sme);
 // 	  }
 // 	while(!finished);
 //       }
@@ -210,7 +210,7 @@ namespace nissa
 // 	// 	       glb_size[mu1_l[imu01]]};
 	
 // 	//create all Tline
-// 	    crash("#warning reimplement");
+// 	    CRASH("#warning reimplement");
 // 	NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 // 	  {
 // 	    // //take initial link
@@ -232,7 +232,7 @@ namespace nissa
 	
 // 	for(int ispat_sme=0;ispat_sme<nspat_sme;ispat_sme++)
 // 	  {
-// 		crash("#warning reimplement");
+// 		CRASH("#warning reimplement");
 // 	    //create Dlines up to Dmin
 // 	    NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 // 	      {
@@ -253,7 +253,7 @@ namespace nissa
 // 		//tak true d
 // 		// int d=dd+pars->Dmin;
 		
-// 		      crash("#warning reimplement");
+// 		      CRASH("#warning reimplement");
 // 		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 // 		  for(int dt=0;dt<dT;dt++)
 // 		    {
@@ -275,7 +275,7 @@ namespace nissa
 // 		THREAD_BARRIER();
 		
 // 		//prolong
-// 		  crash("#warning reimplement");
+// 		  CRASH("#warning reimplement");
 // 		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 //   {
 //     // safe_su3_prod_su3(Dline[icmp],Dline[icmp],
@@ -286,7 +286,7 @@ namespace nissa
 // 	      }
 // 	  }
 //       }
-//     if(nrect!=irect) crash("expected %d rects, obtained %d",nrect,irect);
+//     if(nrect!=irect) CRASH("expected %d rects, obtained %d",nrect,irect);
 //     for(int imu01=0;imu01<12;imu01++) nissa_free(transp_conf[imu01]);
     
 // #if THREADS_TYPE == OPENMP_THREADS
@@ -333,14 +333,14 @@ namespace nissa
 //     nissa_free(Tline);
 //     nissa_free(Dline);
 // #else
-//     crash("not implemented");
+//     CRASH("not implemented");
 // #endif
   }
   
   //compute all possible rectangular paths among a defined interval
   void measure_all_rectangular_paths_old(all_rects_meas_pars_t* pars,quad_su3* ori_conf,int iconf,int create_output_file)
   {
-    crash("to be fixed");
+    CRASH("to be fixed");
     /*
     
     gauge_obs_temp_spat_smear_pars_t *smear_pars=&pars->smear_pars;
@@ -489,23 +489,23 @@ namespace nissa
   
   void measure_all_rectangular_paths(all_rects_meas_pars_t *pars,eo_ptr<quad_su3> conf_eo,int iconf,int create_output_file)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     
     // quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol+edge_vol,quad_su3);
     // paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
     // //check that we do not exceed geometry
-    // for(int i=1;i<NDIM;i++) if(pars->Dmin>=glbSize[i]) crash("minimal spatial %d size exceeds global size[%d]=%d",pars->Dmin,i,glbSize[i]);
+    // for(int i=1;i<NDIM;i++) if(pars->Dmin>=glbSize[i]) CRASH("minimal spatial %d size exceeds global size[%d]=%d",pars->Dmin,i,glbSize[i]);
     // for(int i=1;i<NDIM;i++)
     //   if(pars->Dmax>=glbSize[i])
     // 	{
-    // 	  master_printf("maximal spatial %d size exceeds global size[%d]=%d, reducing it\n",pars->Dmax,i,glbSize[i]);
+    // 	  MASTER_PRINTF("maximal spatial %d size exceeds global size[%d]=%d, reducing it\n",pars->Dmax,i,glbSize[i]);
     // 	  pars->Dmax=glbSize[i];
     // 	}
-    // if(pars->Tmin>=glbSize[0]) crash("minimal temporal %d size exceeds global size[0]=%d",pars->Tmin,glbSize[0]);
+    // if(pars->Tmin>=glbSize[0]) CRASH("minimal temporal %d size exceeds global size[0]=%d",pars->Tmin,glbSize[0]);
     // if(pars->Tmax>=glbSize[0])
     //   {
-    // 	master_printf("maximal temporal %d size exceeds global size[0]=%d, reducing it\n",pars->Tmax,glbSize[0]);
+    // 	MASTER_PRINTF("maximal temporal %d size exceeds global size[0]=%d, reducing it\n",pars->Tmax,glbSize[0]);
     // 	pars->Tmax=glbSize[0];
     //   }
     

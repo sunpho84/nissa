@@ -36,7 +36,7 @@ namespace nissa
 #endif
   {
 
-    verbosity_lv2_master_printf("\n");
+    VERBOSITY_LV2_MASTER_PRINTF("\n");
 
     int riter=0;
     BASETYPE *t=nissa_malloc("s",BULK_VOL,BASETYPE);
@@ -71,9 +71,9 @@ namespace nissa
     double_vector_glb_scalar_prod(&delta,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
     
     //print source info and check it
-    if(riter==0) verbosity_lv2_master_printf("Source norm: %lg\n",source_norm);
-    if(source_norm==0 || std::isnan(source_norm)) crash("invalid norm: %lg",source_norm);
-    verbosity_lv2_master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
+    if(riter==0) VERBOSITY_LV2_MASTER_PRINTF("Source norm: %lg\n",source_norm);
+    if(source_norm==0 || std::isnan(source_norm)) CRASH("invalid norm: %lg",source_norm);
+    VERBOSITY_LV2_MASTER_PRINTF("iter 0 relative residue: %lg\n",delta/source_norm);
     
     int final_iter;
     
@@ -128,7 +128,7 @@ namespace nissa
 	//lambda=(r,r)
 	double_vector_glb_scalar_prod(&lambda,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
 	
-	if(iter%each==0) verbosity_lv2_master_printf("iter %d relative residue: %lg\n",iter,lambda/source_norm);
+	if(iter%each==0) VERBOSITY_LV2_MASTER_PRINTF("iter %d relative residue: %lg\n",iter,lambda/source_norm);
       }
     while(lambda>=(residue*source_norm) && iter<niter);
     
@@ -137,11 +137,11 @@ namespace nissa
     double_vector_subt((double*)r,(double*)source,(double*)s,BULK_VOL*NDOUBLES_PER_SITE);
     double_vector_glb_scalar_prod(&lambda,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
     
-    verbosity_lv2_master_printf("final relative residue (after %d iters): %lg where %lg was required\n",
+    VERBOSITY_LV2_MASTER_PRINTF("final relative residue (after %d iters): %lg where %lg was required\n",
 				final_iter,lambda/source_norm,residue);
 
     //check if not converged
-    if(final_iter==niter) crash("exit without converging");
+    if(final_iter==niter) CRASH("exit without converging");
     
     if(IS_MASTER_THREAD) bicgstab_inv_over_time+=take_time();
     

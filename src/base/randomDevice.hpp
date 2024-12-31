@@ -20,11 +20,11 @@ namespace nissa
       {
 	const char path[]="/dev/urandom";
 	const int fd=open(path,O_RDONLY);
-	if(fd==-1) crash("Opening %s",path);
+	if(fd==-1) CRASH("Opening %s",path);
 	
 	const int rc=read(fd,&t,size);
-        if(rc!=size) crash("reading %zu bytes from %s, obtained: %d",size,path,rc);
-	if(close(fd)==-1) crash("Closing %s",path);
+        if(rc!=size) CRASH("reading %zu bytes from %s, obtained: %d",size,path,rc);
+	if(close(fd)==-1) CRASH("Closing %s",path);
     }
     
     MPI_Bcast(&t,size,MPI_CHAR,master_rank,MPI_COMM_WORLD);

@@ -100,25 +100,25 @@ namespace nissa
     //read name and degree
     int degree;
     if(not (s>>degree))
-      crash("reading degree");
+      CRASH("reading degree");
     appr.resize(degree);
     
     s.read(appr.name,20);
     
     //create the appr and read it
-    if(not (s>>appr.minimum)) crash("reading minimum");
-    if(not (s>>appr.maximum)) crash("reading maximum");
-    if(not (s>>appr.maxerr)) crash("reading maxerr");
-    if(not (s>>appr.num)) crash("reading num");
-    if(not (s>>appr.den)) crash("reading den");
-    if(not (s>>appr.cons)) crash("reading cons");
+    if(not (s>>appr.minimum)) CRASH("reading minimum");
+    if(not (s>>appr.maximum)) CRASH("reading maximum");
+    if(not (s>>appr.maxerr)) CRASH("reading maxerr");
+    if(not (s>>appr.num)) CRASH("reading num");
+    if(not (s>>appr.den)) CRASH("reading den");
+    if(not (s>>appr.cons)) CRASH("reading cons");
     
     for(int j=0;j<degree;j++)
       {
 	if(not (s>>appr.poles[j]))
-	  crash("reading pole %d",j);
+	  CRASH("reading pole %d",j);
 	if(not (s>>appr.weights[j]))
-	  crash("reading weight %d",j);
+	  CRASH("reading weight %d",j);
       }
     
     return s;
@@ -154,8 +154,8 @@ namespace nissa
     
     //read nflav
     int nflav;
-    if(not (s>>nflav)) crash("reading nflav");
-    verbosity_lv3_master_printf("NFlav read: %d\n",nflav);
+    if(not (s>>nflav)) CRASH("reading nflav");
+    VERBOSITY_LV3_MASTER_PRINTF("NFlav read: %d\n",nflav);
     
     //create the approximations
     for(int i=0;i<nflav*3;i++)
@@ -164,7 +164,7 @@ namespace nissa
 	s>>appr;
 	
 	out.push_back(appr);
-	if(VERBOSITY_LV3) master_printf("%s",appr.get_str().c_str());
+	if(VERBOSITY_LV3) MASTER_PRINTF("%s",appr.get_str().c_str());
       }
     
     return out;

@@ -21,7 +21,7 @@ namespace nissa
   //lx version
   double momenta_action(quad_su3 *H)
   {
-    crash("Reimplement");
+    CRASH("Reimplement");
     // //summ the square of H
     // double glb_action_lx;
     // double_vector_glb_scalar_prod(&(glb_action_lx),(double*)(H),(double*)(H),sizeof(quad_su3)/sizeof(double)*locVol);

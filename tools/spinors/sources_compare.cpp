@@ -24,7 +24,7 @@ double integrate_corr(const std::vector<double> &c,const std::vector<double> &d,
 void in_main(int narg,char **arg)
 {
   
-  if(narg<6) crash("use: %s L T file_in file_out output_path tag",arg[0]);
+  if(narg<6) CRASH("use: %s L T file_in file_out output_path tag",arg[0]);
   
   int L=atoi(arg[1]);
   int T=atoi(arg[2]);
@@ -43,8 +43,8 @@ void in_main(int narg,char **arg)
   // read_real_vector(source,source_path,tag);
   // read_real_vector(smeared_source,smeared_source_path,tag);
   
-  crash(" ");
-  crash("reimplement");
+  CRASH(" ");
+  CRASH("reimplement");
   // int iglb_max=0;
   // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
   //   if(spincolor_norm2(source[ivol])>1e-10)
@@ -53,12 +53,12 @@ void in_main(int narg,char **arg)
   // MPI_Allreduce(MPI_IN_PLACE,&iglb_max,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
   coords_t g;
   // glb_coord_of_glblx(g,iglb_max);
-  // master_printf("Source location: %d %d %d %d\n",g[0],g[1],g[2],g[3]);
+  // MASTER_PRINTF("Source location: %d %d %d %d\n",g[0],g[1],g[2],g[3]);
   
   //check the norm
   // double source_norm=double_vector_glb_norm2(source,locVol);
   // if(fabs(source_norm-1.0)>1e-10)
-  //   crash("Norm %lg, needs to be 1, excess of %lg",source_norm,source_norm-1.0);
+  //   CRASH("Norm %lg, needs to be 1, excess of %lg",source_norm,source_norm-1.0);
   
   std::map<int,std::pair<double,int>> rho;
   
@@ -94,15 +94,15 @@ void in_main(int narg,char **arg)
       
       if(rank==0)
 	{
-	  verbosity_lv2_master_printf("Communicating with %d\n",i);
+	  VERBOSITY_LV2_MASTER_PRINTF("Communicating with %d\n",i);
 	  
 	  int nel;
 	  MPI_Recv(&nel,1,MPI_INT,i,909,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 	  
-	  verbosity_lv2_master_printf("Needs to receive %d elements from %d\n",nel,i);
+	  VERBOSITY_LV2_MASTER_PRINTF("Needs to receive %d elements from %d\n",nel,i);
 	  for(int iel=0;iel<nel;iel++)
 	    {
-	      verbosity_lv2_master_printf("Receiving element %d from %d\n",iel,i);
+	      VERBOSITY_LV2_MASTER_PRINTF("Receiving element %d from %d\n",iel,i);
 	      
 	      int r2;
 	      double p;
@@ -136,7 +136,7 @@ void in_main(int narg,char **arg)
       
       double x2=integrate_corr(c,d,2);
       double n=integrate_corr(c,d,0.0);
-      master_printf("Radius: %lg\n",sqrt(x2/n));
+      MASTER_PRINTF("Radius: %lg\n",sqrt(x2/n));
       
       close_file(fout);
     }

@@ -23,7 +23,7 @@ namespace nissa
 					 const int& source_or_sink,
 					 const bool& include_phases)
   {
-    crash("reimplement");
+    CRASH("reimplement");
     //compute the main part of the fft
     //+1 if sink, -1 if source
     // constexpr std::array<int,2> sign={-1,+1};
@@ -90,7 +90,7 @@ namespace nissa
     // set_borders_invalid(out);
     
     //compute the main part of the fft
-    crash("reimplement");
+    CRASH("reimplement");
     //fft4d((complex*)out,(complex*)out,dirs,sizeof(spinspin)/sizeof(complex),sign[source_or_sink],1);
   }
   
@@ -129,7 +129,7 @@ namespace nissa
     // set_borders_invalid(out);
     
     //compute the main part of the fft
-    crash("reimplement");
+    CRASH("reimplement");
     //fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1prop)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
@@ -195,7 +195,7 @@ namespace nissa
     // set_borders_invalid(out);
     
     //compute the main part of the fft
-    crash("reimplement");
+    CRASH("reimplement");
     // fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1prop)/sizeof(complex),sign[source_or_sink],1);
     
     //multiply by exp(i -(p_mu-p_nu)/2) and put 1/vol
@@ -352,7 +352,7 @@ namespace nissa
     const int s=sign[source_or_sink]*include_phases;
     
     //compute the main part of the fft
-    crash("reimplement");
+    CRASH("reimplement");
     // fft4d((complex*)out,(complex*)in,dirs,sizeof(spin)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
@@ -416,7 +416,7 @@ namespace nissa
       });
     
     //compute the main part of the fft
-    crash("reimplement");
+    CRASH("reimplement");
     // fft4d((complex*)out,(complex*)out,dirs,sizeof(spin)/sizeof(complex),sign[source_or_sink],1);
   }
   
@@ -431,7 +431,7 @@ namespace nissa
     // const int s=sign[source_or_sink]*include_phases;
     
     //compute the main part of the fft
-    crash("reimplement");
+    CRASH("reimplement");
     //fft4d((complex*)out,(complex*)in,dirs,sizeof(spincolor)/sizeof(complex),sign[source_or_sink],0);
     
     // //compute steps
@@ -496,7 +496,7 @@ namespace nissa
     // set_borders_invalid(out);
     
     //compute the main part of the fft
-    crash("reimplement");
+    CRASH("reimplement");
     //fft4d((complex*)out,(complex*)out,dirs,sizeof(spincolor)/sizeof(complex),sign[source_or_sink],1);
   }
 }
