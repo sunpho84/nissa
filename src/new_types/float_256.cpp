@@ -536,6 +536,7 @@ namespace nissa
     //master_printf(" d=%d, 1/d: (%lg,%lg,%lg,%lg)\n",d,recd[0],recd[1],recd[2],recd[3]);
 
     //(out+err)^d=in^n -> err=out*rel_err, rel_err=(ref/out^d-1)/d
+    [[maybe_unused]]
     int iter=0;
     float_256 rel_err;
     do

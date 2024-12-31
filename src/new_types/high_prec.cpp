@@ -76,7 +76,7 @@ namespace nissa
     float_high_prec_t out=pow(in.get_d(),(double)n/d);
     
     //(out+err)^d=in^n -> err=out*rel_err, rel_err=(ref/out^d-1)/d
-    int iter=0;
+    [[maybe_unused]] int iter=0;
     float_high_prec_t rel_residue;
     double tol=32*pow(2.0,-high_prec_nbits());
     do
