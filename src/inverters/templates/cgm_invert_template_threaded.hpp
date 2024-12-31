@@ -146,8 +146,7 @@ namespace nissa
 		FOR_EACH_SITE_DEG_OF_FIELD(r,
 					   CAPTURE(sol=sol[ishift].getWritable(),
 						   psi=ps[ishift].getReadable(),
-						   beta=betas[ishift],
-						   zfs=zfs[ishift]),
+						   beta=betas[ishift]),
 					   i,iD,
 					   {
 					     sol(i,iD)-=beta*psi(i,iD);
