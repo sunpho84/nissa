@@ -248,9 +248,9 @@ namespace nissa
     static constexpr int nInternalDegs=
       F::nInternalDegs;
     
-    F& f;
+    F* fptr;
     
-    const int64_t externalSize;
+    int64_t externalSize;
     
     Fund* _data;
     
@@ -291,6 +291,7 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    /// Member method to call the static index function
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     int64_t index(const int64_t& site,
 		  const int& internalDeg) const
@@ -300,37 +301,65 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
-    /// Construct from field
-    FieldRef(F& f) :
-      f(f),
-      externalSize(f.externalSize),
-      _data(f._data)
+    /// Set from f
+    void setFrom(F& f)
     {
-      f.nRef++;
+      if(fptr!=nullptr)
+	crash("Unable to set an already set ref");
+      
+      fptr=&f;
+      externalSize=f.externalSize;
+      _data=f._data;
+      fptr->nRef++;
+    }
+    
+    /// Default constructor
+    FieldRef()=default;
+    
+    /// Construct from field
+    FieldRef(F& f)
+    {
+      setFrom(f);
     }
     
     /// Copy constructor
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     FieldRef(const FieldRef& oth) :
-      f(oth.f),
+      fptr(oth.fptr),
       externalSize(oth.externalSize),
       _data(oth._data)
     {
+      if(fptr!=nullptr)
+	crash("Unable to set an already set ref");
+      
 #ifndef COMPILING_FOR_DEVICE
-      f.nRef++;
+      fptr->nRef++;
 #endif
+    }
+    
+    /// Removes the reference
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    void unset()
+    {
+      if(fptr==nullptr)
+	crash("Unable to unset a non set ref");
+      
+#ifndef COMPILING_FOR_DEVICE
+      fptr->nRef--;
+      if(fptr->nRef==0)
+	if constexpr(not std::is_const_v<F>)
+	  fptr->invalidateHalo();
+#endif
+      fptr=nullptr;
+      _data=nullptr;
+      externalSize=0;
     }
     
     /// Destructor
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     ~FieldRef()
     {
-#ifndef COMPILING_FOR_DEVICE
-      f.nRef--;
-      if(f.nRef==0)
-	if constexpr(not std::is_const_v<F>)
-	  f.invalidateHalo();
-#endif
+      unset();
     }
   };
   
