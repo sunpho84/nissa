@@ -24,7 +24,7 @@ namespace DD
   
   //remap swapping x and z
   void remap_coord(int* out,const int* in)
-  {for(int mu=0;mu<NDIM;mu++) out[mu]=in[nissa::scidac_mapping[mu]];}
+  {for(int mu=0;mu<NDIM;mu++) out[mu]=in[nissa::scidacMapping[mu]];}
   
   //return the coordinate transposed
   static int cart_coords(MPI_Comm comm,int ext_rank,int maxdims,int c[])
@@ -45,11 +45,11 @@ namespace DD
   
   //return the index of the configuration
   static int conf_index_fct(int t,int z,int y,int x,int mu)
-  {return sizeof(nissa::su3)/sizeof(double)*(nissa::scidac_mapping[mu]+NDIM*nissa::loclx_of_coord_list(t,x,y,z));}
+  {return sizeof(nissa::su3)/sizeof(double)*(nissa::scidacMapping[mu]+NDIM*nissa::loclxOfCoordList(t,x,y,z));}
   
   //return the index inside a spincolor
   static int vector_index_fct(int t,int z,int y,int x)
-  {return sizeof(nissa::spincolor)/sizeof(double)*nissa::loclx_of_coord_list(t,x,y,z);}
+  {return sizeof(nissa::spincolor)/sizeof(double)*nissa::loclxOfCoordList(t,x,y,z);}
   
   /// Check if cSW is changed
   bool check_cSW_changed(const double& cSW)
@@ -97,16 +97,16 @@ namespace DD
 	
 	//sizes and coord
 	remap_coord(init_params.global_lattice,&nissa::glbSize[0]);
-	remap_coord(init_params.procs,&nissa::nrank_dir[0]);
+	remap_coord(init_params.procs,&nissa::nRanksDir[0]);
 	
 	//block size and theta
 	for(int dir=0;dir<NDIM;dir++)
 	  {
-	    int jdir=nissa::scidac_mapping[dir];
+	    int jdir=nissa::scidacMapping[dir];
 	    init_params.block_lattice[dir]=
-	      (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%2==0)?
-	       (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%4==0)?4:2):
-	       (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%3==0)?3:1));
+	      (((nissa::glbSize[jdir]/nissa::nRanksDir[jdir])%2==0)?
+	       (((nissa::glbSize[jdir]/nissa::nRanksDir[jdir])%4==0)?4:2):
+	       (((nissa::glbSize[jdir]/nissa::nRanksDir[jdir])%3==0)?3:1));
 	    if(nissa::multiGrid::block_size_set)
 	      init_params.block_lattice[dir]=nissa::multiGrid::block_size[0][dir];
 	    master_printf("Dir %d block size: %d\n",dir,init_params.block_lattice[dir]);
