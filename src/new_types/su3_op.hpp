@@ -1197,7 +1197,13 @@ namespace nissa
       color_prod_idouble(a[ic],b[ic],r);
   }
   
-  inline void su3_prodassign_idouble(su3 a,const double r) {su3_prod_idouble(a,a,r);}
+  template <typename A>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_prodassign_idouble(A&& a,
+			      const double& r)
+  {
+    su3_prod_idouble(std::forward<A>(a),std::forward<A>(a),r);
+  }
   
   /// a+=b*i*r
   template <typename A,
