@@ -1155,7 +1155,7 @@ namespace quda_iface
 	  
 	  /// Check if tolerance is satisfied, such that only the coarsest level is afjusted
 	  const bool tolSatisfiedMu=
-	    fabs(storedMu/(inv_param.mu+1e-300)-1)<setup_refresh_tol;
+	    fabs(fabs(storedMu/(inv_param.mu+1e-300))-1)<setup_refresh_tol;
 	  const bool tolSatisfiedKappa=
 	    fabs(storedKappa/(inv_param.kappa+1e-300)-1)<setup_refresh_tol;
 	  const bool tolSatisfiedCsw=
