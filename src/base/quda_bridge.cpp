@@ -1,12 +1,9 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #define EXTERN_QUDA_BRIDGE
 # include "quda_bridge.hpp"
-
-#include <cuda_fp16.h>
-#include <quda_fp16.cuh>
 
 #include "base/cuda.hpp"
 #include "io/checksum.hpp"
@@ -71,6 +68,13 @@ namespace nissa
 namespace nissa
 {
   PROVIDE_HAS_MEMBER(cl_pad);
+  PROVIDE_HAS_MEMBER(sp_pad);
+  PROVIDE_HAS_MEMBER(gflops);
+  PROVIDE_HAS_MEMBER(n_vec_batch);
+  PROVIDE_HAS_MEMBER(secs);
+  PROVIDE_HAS_MEMBER(true_res);
+  PROVIDE_HAS_MEMBER(true_res_hq);
+  PROVIDE_HAS_MEMBER(tune);
 }
 
 namespace quda_iface
@@ -101,7 +105,8 @@ namespace quda_iface
     int out;
     MPI_Cart_rank(cart_comm,c,&out);
     
-    printf("rank %d, {%d %d %d %d}->%d\n",rank,c[0],c[1],c[2],c[3],out);
+    if(VERBOSITY_LV2)
+      printf("rank %d, {%d %d %d %d}->%d\n",rank,c[0],c[1],c[2],c[3],out);
     
     return out;
   }
@@ -690,11 +695,8 @@ namespace quda_iface
     
     //inv_param.tune=QUDA_TUNE_YES;
     
-    if constexpr(hasMember_cl_pad<decltype(inv_param)>)
-      {
-	inv_param.sp_pad=0;
-	inv_param.cl_pad=0;
-      }
+    maybe_set_sp_pad(inv_param,0);
+    maybe_set_cl_pad(inv_param,0);
     
     inv_param.Ls=1;
     
@@ -750,6 +752,13 @@ namespace quda_iface
     remap_nissa_to_quda(spincolor_in,in);
     MatQuda(spincolor_out,spincolor_in,&inv_param);
     remap_quda_to_nissa(out,spincolor_out);
+  
+  template <typename T>
+  void set_n_vec_batch(T& quda_mg_param)
+  {
+    if constexpr(hasMember_n_vec_batch<T>)
+      for(int level=0;level<multiGrid::nlevels;level++)
+	quda_mg_param.n_vec_batch[level]=1;
   }
   
   void set_inverter_pars(const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,const bool& exported)
@@ -800,6 +809,9 @@ namespace quda_iface
     
     inv_param.omega=1.0;
     
+#ifndef DYNAMIC_CLOVER
+# warning Please compile quda with DYNAMIC_CLOVER switched on
+#endif
     if(exported and csw)
       load_clover_term(&inv_param);
     
@@ -822,9 +834,6 @@ namespace quda_iface
 	inv_param.maxiter_precondition=1;
 	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
 	inv_param.solve_type=QUDA_DIRECT_PC_SOLVE;
-#ifndef DYNAMIC_CLOVER
-# warning Please compile quda with DYNAMIC_CLOVER switched on
-#endif
 	
 	inv_param.omega=1.0;
 	
@@ -853,6 +862,8 @@ namespace quda_iface
 	
 	for(int level=0;level<nlevels;level++)
 	  {
+	    set_n_vec_batch(quda_mg_param);
+	    
 	    // set file i/o parameters
 	    strcpy(quda_mg_param.vec_infile[level],"");
 	    strcpy(quda_mg_param.vec_outfile[level],"");
@@ -1118,8 +1129,52 @@ namespace quda_iface
 	 storedKappa!=inv_param.kappa or
 	 storedCloverCoeff!=inv_param.clover_coeff)
 	{
-	  master_printf("Updating mg\n");
+	  const int& nlevels=
+	    multiGrid::nlevels;
+	  const double& setup_refresh_tol=
+	    multiGrid::setup_refresh_tol;
+	  
+	  /// Check if tolerance is satisfied, such that only the coarsest level is afjusted
+	  const bool tolSatisfied=
+	    (fabs(storedMu/(inv_param.mu+1e-300)-1)<setup_refresh_tol) and
+	    (fabs(storedKappa/(inv_param.kappa+1e-300)-1)<setup_refresh_tol) and
+	    (fabs(storedCloverCoeff/(inv_param.clover_coeff+1e-300)-1)<setup_refresh_tol);
+	  MASTER_PRINTF("Tolerance to avoid deep update on csw, mu and kappa change is %lg satisfied: %d\n",setup_refresh_tol,tolSatisfied);
+	  
+	  int stored_setup_maxiter_refresh[QUDA_MAX_MG_LEVEL];
+	  QudaBoolean stored_preserve_deflation;
+	  
+	  /// Access the quda_mg_param.setup_maxiter_refresh for the asked level
+	  auto iR=
+	    [](const int& level)->int&
+	    {
+	      return quda_mg_param.setup_maxiter_refresh[level];
+	    };
+	  
+	  /// Store the parameters, and possibly set it to zero
+	  for(int level=0;level<nlevels-1;level++)
+	    {
+	      stored_setup_maxiter_refresh[level]=iR(level);
+	      stored_preserve_deflation=quda_mg_param.preserve_deflation;
+	      if(tolSatisfied)
+		{
+		  iR(level)=0;
+		  quda_mg_param.preserve_deflation=QUDA_BOOLEAN_TRUE;
+		}
+	    }
+	  
 	  updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+	  
+	  /// Restore them no matter what
+	  for(int level=0;level<nlevels-1;level++)
+	    iR(level)=stored_setup_maxiter_refresh[level];
+	  quda_mg_param.preserve_deflation=stored_preserve_deflation;
+	  
+	  // QudaBoolean& p=quda_mg_param.preserve_deflation; //thin_update_only
+	  // const QudaBoolean oldP=p;
+	  // p=QUDA_BOOLEAN_TRUE;
+	  // updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+	  // p=oldP;
 	}
       else
 	master_printf("No need to update the multigrid\n");
@@ -1229,16 +1284,37 @@ namespace quda_iface
       printf("vec_outfile: %s\n",i.vec_outfile[ilev]);
     printf("coarse_guess: %d\n",i.coarse_guess);
     printf("preserve_deflation: %d\n",i.preserve_deflation);
-    printf("gflops: %lg\n",i.gflops);
-    printf("secs: %lg\n",i.secs);
-    for(int ilev=0;ilev<nlev;ilev++)
-      printf("mu_factor: %lg\n",i.mu_factor[ilev]);
     for(int ilev=0;ilev<nlev;ilev++)
       printf("transfer_type: %d\n",i.transfer_type[ilev]);
     // printf("use_mma: %d\n",i.use_mma);
     printf("thin_update_only: %d\n",i.thin_update_only);
   }
-
+  
+#define PROVIDE_MAYBE_PRINT(X,F)					\
+  template <typename T>							\
+  void maybe_print_ ## X(const T& i)					\
+  {									\
+    if constexpr(hasMember_ ## X<T>)					\
+      printf(#X": " F "\n",i.X);					\
+  }
+  
+#define PROVIDE_MAYBE_PRINT2(X,F)					\
+  template <typename T>							\
+  void maybe_print_ ## X(const T& i)					\
+  {									\
+    if constexpr(hasMember_ ## X<T>)					\
+      if constexpr(std::is_array_v<decltype(i.X)>)			\
+	printf(#X": " F "\n",i.X[0]);					\
+      else								\
+	printf(#X": " F "\n",i.X);					\
+  }
+  
+  PROVIDE_MAYBE_PRINT(cl_pad,"%d");
+  PROVIDE_MAYBE_PRINT(sp_pad,"%d");
+  PROVIDE_MAYBE_PRINT2(true_res,"%lg");
+  PROVIDE_MAYBE_PRINT2(true_res_hq,"%lg");
+  PROVIDE_MAYBE_PRINT(tune,"%d");
+  
   void sanfoPrint(QudaInvertParam& i)
   {
     printf("input_location: %d\n",i.input_location);
@@ -1262,8 +1338,8 @@ namespace quda_iface
     printf("tol_restart: %lg\n",i.tol_restart);
     printf("tol_hq: %lg\n",i.tol_hq);
     printf("compute_true_res: %d\n",i.compute_true_res);
-    printf("true_res: %lg\n",i.true_res);
-    printf("true_res_hq: %lg\n",i.true_res_hq);
+    maybe_print_true_res(i);
+    maybe_print_true_res_hq(i);
     printf("maxiter: %d\n",i.maxiter);
     printf("reliable_delta: %lg\n",i.reliable_delta);
     printf("reliable_delta_refinement: %lg\n",i.reliable_delta_refinement);
@@ -1315,15 +1391,12 @@ namespace quda_iface
     printf("return_clover: %d\n",i.return_clover);
     printf("return_clover_inverse: %d\n",i.return_clover_inverse);
     printf("verbosity: %d\n",i.verbosity);
-    if constexpr(hasMember_cl_pad<decltype(i)>)
-      {
-	printf("sp_pad: %d\n",i.sp_pad);
-	printf("cl_pad: %d\n",i.cl_pad);
-      }
+    maybe_print_cl_pad(i);
+    maybe_print_sp_pad(i);
     printf("iter: %d\n",i.iter);
     printf("gflops: %lg\n",i.gflops);
     printf("secs: %lg\n",i.secs);
-    printf("tune: %d\n",i.tune);
+    maybe_print_tune(i);
     printf("Nsteps: %d\n",i.Nsteps);
     printf("gcrNkrylov: %d\n",i.gcrNkrylov);
     printf("inv_type_precondition: %d\n",i.inv_type_precondition);
@@ -1361,6 +1434,9 @@ namespace quda_iface
   }
   
   bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,spincolor *source)
+#undef PROVIDE_MAYBE_PRINT
+  
+#undef PROVIDE_MAYBE_PRINT2
   {
     const double export_time=take_time();
     const bool exported=

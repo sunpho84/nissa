@@ -86,6 +86,7 @@ namespace nissa
 			}
 		    }
 #ifdef USE_QUDA
+		READ_VAR(double,"%lg",setup_refresh_tol);
 		READ_VAR(double,"%lg",reliable_delta);
 		READ_VAR(double,"%lg",reliable_delta_refinement);
 		READ_VAR(int,"%d",nEigenvectors);
