@@ -1165,9 +1165,9 @@ namespace quda_iface
 	    tolSatisfiedMu and
 	    tolSatisfiedKappa and
 	    tolSatisfiedCsw;
-	  master_printf("Tolerance to avoid deep update %lg\n",setup_refresh_tol);
-	  master_printf(" on csw %lg -> %lg: %d\n",storedCloverCoeff,inv_param.clover_coeff,tolSatisfiedCsw);
+	  master_printf("Tolerance to avoid deep update: %lg up to a sign change for mu\n",setup_refresh_tol);
 	  master_printf(" on mu %lg -> %lg: %d\n",storedMu,inv_param.mu,tolSatisfiedMu);
+	  master_printf(" on csw %lg -> %lg: %d\n",storedCloverCoeff,inv_param.clover_coeff,tolSatisfiedCsw);
 	  master_printf(" on kappa %lg %lg %d\n",storedKappa,inv_param.kappa,tolSatisfiedKappa);
 	  master_printf(" overall satisfied: %d\n",tolSatisfied);
 	  

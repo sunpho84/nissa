@@ -93,7 +93,6 @@ namespace nissa
 		READ_VAR(int,"%d",gcrNkrylov);
 		READ_VAR(double,"%lg",eig_min);
 		READ_VAR(double,"%lg",eig_max);
-		READ_VAR(double,"%lg",setup_refresh_tol);
 		
 		READ_ARR(double,"%lg",omega);
 		READ_ARR(double,"%lg",coarse_solver_tol);
