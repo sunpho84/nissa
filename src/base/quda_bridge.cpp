@@ -1158,7 +1158,7 @@ namespace quda_iface
 	    (fabs(storedMu/(inv_param.mu+1e-300)-1)<setup_refresh_tol) and
 	    (fabs(storedKappa/(inv_param.kappa+1e-300)-1)<setup_refresh_tol) and
 	    (fabs(storedCloverCoeff/(inv_param.clover_coeff+1e-300)-1)<setup_refresh_tol);
-	  MASTER_PRINTF("Tolerance to avoid deep update on csw, mu and kappa change is %lg satisfied: %d\n",setup_refresh_tol,tolSatisfied);
+	  master_printf("Tolerance to avoid deep update on csw, mu and kappa change is %lg satisfied: %d\n",setup_refresh_tol,tolSatisfied);
 	  
 	  int stored_setup_maxiter_refresh[QUDA_MAX_MG_LEVEL];
 	  QudaBoolean stored_preserve_deflation;
