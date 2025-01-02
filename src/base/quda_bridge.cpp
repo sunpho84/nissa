@@ -2,11 +2,11 @@
 # include "config.hpp"
 #endif
 
-#include <cuda_fp16.h>
-#include <quda_fp16.cuh>
-
 #define EXTERN_QUDA_BRIDGE
 # include "quda_bridge.hpp"
+
+#include <cuda_fp16.h>
+#include <quda_fp16.cuh>
 
 #include "base/cuda.hpp"
 #include "io/checksum.hpp"
@@ -770,6 +770,7 @@ namespace quda_iface
     remap_nissa_to_quda(spincolor_in,in);
     MatQuda(spincolor_out,spincolor_in,&inv_param);
     remap_quda_to_nissa(out,spincolor_out);
+  }
   
   template <typename T>
   void set_n_vec_batch(T& quda_mg_param)
