@@ -357,12 +357,6 @@ namespace quda_iface
 	MG* cur=mgs->mg;
 	MASTER_PRINTF("Let us verify\n");
 	cur->verify();
-	
-	// QudaBoolean& p=quda_mg_param.preserve_deflation; //thin_update_only
-	// const QudaBoolean oldP=p;
-	// p=QUDA_BOOLEAN_TRUE;
-	// updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
-	// p=oldP;
       }
   }
 #endif
@@ -1250,6 +1244,12 @@ namespace quda_iface
 	  for(int level=0;level<nlevels-1;level++)
 	    iR(level)=stored_setup_maxiter_refresh[level];
 	  quda_mg_param.preserve_deflation=stored_preserve_deflation;
+	  
+	  // QudaBoolean& p=quda_mg_param.preserve_deflation; //thin_update_only
+	  // const QudaBoolean oldP=p;
+	  // p=QUDA_BOOLEAN_TRUE;
+	  // updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+	  // p=oldP;
 	}
       else
 	MASTER_PRINTF("No need to update the multigrid\n");
