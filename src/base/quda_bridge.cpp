@@ -2,6 +2,9 @@
 # include "config.hpp"
 #endif
 
+#include <cuda_fp16.h>
+#include <quda_fp16.cuh>
+
 #define EXTERN_QUDA_BRIDGE
 # include "quda_bridge.hpp"
 
@@ -655,6 +658,21 @@ namespace quda_iface
   //   inv_param.clover_cuda_prec_refinement_sloppy=
   //   sloppy_prec;
   // }
+
+#define PROVIDE_MAYBE_SET(X)					\
+  template <typename T,						\
+	    typename V>						\
+  void maybe_set_ ## X(T& i,					\
+		       V&& v)					\
+  {								\
+    if constexpr(hasMember_ ## X<T>)				\
+      i.X=v;							\
+  }
+  
+  PROVIDE_MAYBE_SET(cl_pad);
+  PROVIDE_MAYBE_SET(sp_pad);
+  
+#undef PROVIDE_MAYBE_SET
   
   void set_base_inverter_pars()
   {
