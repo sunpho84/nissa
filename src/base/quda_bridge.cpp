@@ -1154,11 +1154,22 @@ namespace quda_iface
 	    multiGrid::setup_refresh_tol;
 	  
 	  /// Check if tolerance is satisfied, such that only the coarsest level is afjusted
+	  const bool tolSatisfiedMu=
+	    fabs(storedMu/(inv_param.mu+1e-300)-1)<setup_refresh_tol;
+	  const bool tolSatisfiedKappa=
+	    fabs(storedKappa/(inv_param.kappa+1e-300)-1)<setup_refresh_tol;
+	  const bool tolSatisfiedCsw=
+	    fabs(storedCloverCoeff/(inv_param.clover_coeff+1e-300)-1)<setup_refresh_tol;
+	  
 	  const bool tolSatisfied=
-	    (fabs(storedMu/(inv_param.mu+1e-300)-1)<setup_refresh_tol) and
-	    (fabs(storedKappa/(inv_param.kappa+1e-300)-1)<setup_refresh_tol) and
-	    (fabs(storedCloverCoeff/(inv_param.clover_coeff+1e-300)-1)<setup_refresh_tol);
-	  master_printf("Tolerance to avoid deep update on csw, mu and kappa change is %lg satisfied: %d\n",setup_refresh_tol,tolSatisfied);
+	    tolSatisfiedMu and
+	    tolSatisfiedKappa and
+	    tolSatisfiedCsw;
+	  master_printf("Tolerance to avoid deep update %lg\n",setup_refresh_tol);
+	  master_printf(" on csw %lg -> %lg: %d\n",storedCloverCoeff,inv_param.clover_coeff,tolSatisfiedCsw);
+	  master_printf(" on mu %lg -> %lg: %d\n",storedMu,inv_param.mu,tolSatisfiedMu);
+	  master_printf(" on kappa %lg %lg %d\n",storedKappa,inv_param.kappa,tolSatisfiedKappa);
+	  master_printf(" overall satisfied: %d\n",tolSatisfied);
 	  
 	  int stored_setup_maxiter_refresh[QUDA_MAX_MG_LEVEL];
 	  QudaBoolean stored_preserve_deflation;
