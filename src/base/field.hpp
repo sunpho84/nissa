@@ -317,7 +317,8 @@ namespace nissa
     FieldRef()=default;
     
     /// Construct from field
-    FieldRef(F& f)
+    FieldRef(F& f) :
+      fptr{nullptr}
     {
       setFrom(f);
     }
@@ -329,9 +330,6 @@ namespace nissa
       externalSize(oth.externalSize),
       _data(oth._data)
     {
-      if(fptr!=nullptr)
-	CRASH("Unable to set an already set ref");
-      
 #ifndef COMPILING_FOR_DEVICE
       fptr->nRef++;
 #endif
