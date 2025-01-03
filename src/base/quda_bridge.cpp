@@ -611,6 +611,50 @@ namespace quda_iface
 	quda_mg_param.n_vec_batch[level]=1;
   }
   
+  /// Set the parameters of the multigrid to use the delated solver at the coarsest scale
+  void configureMultigridSolversToUseDeflationOnLevel(const int& level)
+  {
+    quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_YES;
+    mg_eig_param[level].eig_type=QUDA_EIG_TR_LANCZOS;
+    mg_eig_param[level].spectrum=QUDA_SPECTRUM_SR_EIG;
+    
+    if((mg_eig_param[level].eig_type==QUDA_EIG_TR_LANCZOS or
+	mg_eig_param[level].eig_type==QUDA_EIG_IR_ARNOLDI)
+       and not(mg_eig_param[level].spectrum==QUDA_SPECTRUM_LR_EIG or
+	       mg_eig_param[level].spectrum==QUDA_SPECTRUM_SR_EIG))
+      CRASH("ERROR: MG level %d: Only real spectrum type (LR or SR)"
+	    "can be passed to the a Lanczos type solver!\n",
+	    level);
+    
+    using nissa::multiGrid::nEigenvectors;
+    
+    mg_eig_param[level].n_ev=nEigenvectors;
+    mg_eig_param[level].n_kr=nEigenvectors*1.5;
+    mg_eig_param[level].n_conv=nEigenvectors;
+    mg_eig_param[level].require_convergence=QUDA_BOOLEAN_TRUE;
+    
+    mg_eig_param[level].tol=1e-4;
+    mg_eig_param[level].check_interval=5;
+    mg_eig_param[level].max_restarts=10;
+    mg_eig_param[level].cuda_prec_ritz=QUDA_DOUBLE_PRECISION;
+    
+    mg_eig_param[level].compute_svd=QUDA_BOOLEAN_FALSE;
+    mg_eig_param[level].use_norm_op=QUDA_BOOLEAN_TRUE;
+    mg_eig_param[level].use_dagger=QUDA_BOOLEAN_FALSE;
+    mg_eig_param[level].use_poly_acc=QUDA_BOOLEAN_TRUE;
+    mg_eig_param[level].poly_deg=100;
+    mg_eig_param[level].a_min=multiGrid::eig_min;
+    mg_eig_param[level].a_max=multiGrid::eig_max;
+    
+    // set file i/o parameters
+    // Give empty strings, Multigrid will handle IO.
+    strcpy(mg_eig_param[level].vec_infile, "");
+    strcpy(mg_eig_param[level].vec_outfile, "");
+    strncpy(mg_eig_param[level].QUDA_logfile, "quda_eig.log", 512);
+    
+    quda_mg_param.eig_param[level]=&(mg_eig_param[level]);
+  }
+  
   void set_inverter_pars(const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,const bool& exported)
   {
     inv_param.kappa=kappa;
@@ -855,47 +899,7 @@ namespace quda_iface
 	    // setEigParam from QUDA's multigrid_invert_test, except
 	    // for cuda_prec_ritz (on 20190822)
 	    if(level+1==nlevels and multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation)
-	      {
-		quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_YES;
-		mg_eig_param[level].eig_type=QUDA_EIG_TR_LANCZOS;
-		mg_eig_param[level].spectrum=QUDA_SPECTRUM_SR_EIG;
-		
-		if((mg_eig_param[level].eig_type==QUDA_EIG_TR_LANCZOS or
-		    mg_eig_param[level].eig_type==QUDA_EIG_IR_ARNOLDI)
-		   and not(mg_eig_param[level].spectrum==QUDA_SPECTRUM_LR_EIG or
-			   mg_eig_param[level].spectrum==QUDA_SPECTRUM_SR_EIG))
-		  CRASH("ERROR: MG level %d: Only real spectrum type (LR or SR)"
-			"can be passed to the a Lanczos type solver!\n",
-			level);
-		
-		using nissa::multiGrid::nEigenvectors;
-		
-		mg_eig_param[level].n_ev=nEigenvectors;
-		mg_eig_param[level].n_kr=nEigenvectors*1.5;
-		mg_eig_param[level].n_conv=nEigenvectors;
-		mg_eig_param[level].require_convergence=QUDA_BOOLEAN_TRUE;
-		
-		mg_eig_param[level].tol=1e-4;
-		mg_eig_param[level].check_interval=5;
-		mg_eig_param[level].max_restarts=10;
-		mg_eig_param[level].cuda_prec_ritz=QUDA_DOUBLE_PRECISION;
-		
-		mg_eig_param[level].compute_svd=QUDA_BOOLEAN_FALSE;
-		mg_eig_param[level].use_norm_op=QUDA_BOOLEAN_TRUE;
-		mg_eig_param[level].use_dagger=QUDA_BOOLEAN_FALSE;
-		mg_eig_param[level].use_poly_acc=QUDA_BOOLEAN_TRUE;
-		mg_eig_param[level].poly_deg=100;
-		mg_eig_param[level].a_min=multiGrid::eig_min;
-		mg_eig_param[level].a_max=multiGrid::eig_max;
-		
-		// set file i/o parameters
-		// Give empty strings, Multigrid will handle IO.
-		strcpy(mg_eig_param[level].vec_infile, "");
-		strcpy(mg_eig_param[level].vec_outfile, "");
-		strncpy(mg_eig_param[level].QUDA_logfile, "quda_eig.log", 512);
-		
-		quda_mg_param.eig_param[level]=&(mg_eig_param[level]);
-	      }
+	      configureMultigridSolversToUseDeflationOnLevel(level);
 	    else
 	      {
 		quda_mg_param.eig_param[level]=nullptr;
@@ -916,6 +920,24 @@ namespace quda_iface
       }
   }
   
+  /// Keep note of whether we have create the eigenvectors
+  int hasCreatedEigenvectors;
+  
+  /// Store whether we have create the eigenvectors
+  void takeNoteIfHasCreatedEigenvectors()
+  {
+    MASTER_PRINTF("Eigenvectors created: %d\n",hasCreatedEigenvectors);
+    
+    multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation;
+  }
+  
+  void maybeFlagTheMultigridEigenVectorsForDeletion()
+  {
+    if(hasCreatedEigenvectors)
+      configureMultigridSolversToUseDeflationOnLevel(multiGrid::nlevels-1);
+  }
+  
+  /// Setup the multigrid
   void setup_quda_multigrid()
   {
     static double storedMu=0;
@@ -931,6 +953,8 @@ namespace quda_iface
 	  destroyMultigridQuda(quda_mg_preconditioner);
 	
 	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
+	
+	takeNoteIfHasCreatedEigenvectors();
 	
 	MASTER_PRINTF("mg setup done!\n");
 	
@@ -980,6 +1004,8 @@ namespace quda_iface
 		  iR(level)=0;
 		  quda_mg_param.preserve_deflation=QUDA_BOOLEAN_TRUE;
 		}
+	      else
+		takeNoteIfHasCreatedEigenvectors();
 	    }
 	  
 	  updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);

@@ -36,7 +36,11 @@ namespace nissa
       }
     
 #ifdef USE_QUDA
-    if(use_quda) quda_iface::finalize();
+    if(use_quda)
+      {
+	quda_iface::maybeFlagTheMultigridEigenVectorsForDeletion();
+	quda_iface::finalize();
+      }
 #endif
      
     //unset lx geometry
