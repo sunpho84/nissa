@@ -39,7 +39,7 @@ namespace nissa
     EXTERN_MULTIGRID nissa::Coords block_size[MAX_MG_LEVELS];
     
     EXTERN_MULTIGRID bool setup_valid INIT_TO(false);
-    EXTERN_MULTIGRID double setup_refresh_tol INIT_TO(1e-2);
+    EXTERN_MULTIGRID double setup_refresh_tol INIT_TO(1e3);
     EXTERN_MULTIGRID int use_multiGrid INIT_TO(1);
     EXTERN_MULTIGRID int use_deflated_solver INIT_TO(0);
     EXTERN_MULTIGRID int nEigenvectors INIT_TO(100);
