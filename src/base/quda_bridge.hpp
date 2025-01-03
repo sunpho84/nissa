@@ -113,6 +113,9 @@ namespace quda_iface
     
     return plaq[0];
   }
+  
+  /// Since the solver might have not deleted the eigenvectors, try to flag them so maybe they will be deleted
+  void maybeFlagTheMultigridEigenVectorsForDeletion();
 }
 
 #undef QUDA_API
