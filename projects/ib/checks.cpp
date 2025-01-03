@@ -904,7 +904,7 @@ void check_scalar_EU()
   nissa_free(pho_pro);
   
   master_printf("eu6: %.16lg\n",eu6);
-  crash("");
+  crash(" ");
 }
 
 void in_main(int narg,char **arg)

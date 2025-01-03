@@ -132,234 +132,6 @@ namespace quda_iface
 	}
     }
   
-  namespace internal
-  {
-    template <QudaPrecision>
-    struct _CustomRealOfQudaPrecision;
-
-#define PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION(QUDA_ENUM,TYPE)	\
-    template <>							\
-    struct _CustomRealOfQudaPrecision<QUDA_ENUM>		\
-    {								\
-      using type=TYPE;						\
-    }
-    
-    PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION(QUDA_DOUBLE_PRECISION,CustomDouble);
-    PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION(QUDA_SINGLE_PRECISION,CustomFloat);
-    PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION(QUDA_HALF_PRECISION,CustomHalf);
-    
-#undef PROVIDE_CUSTOM_REAL_OF_QUDA_PRECISION
-  }
-  
-  /// Custom type corresponding to quda precision
-  template <QudaPrecision Prec>
-  using CustomRealOfQudaPrecision=
-    typename internal::_CustomRealOfQudaPrecision<Prec>::type;
-  
-  /// Gets the i-th entry of an array v, interpeting entries as Prec type 
-  double getFromCustomPrecArray(const void* v,
-				const size_t& i,
-				const size_t prec)
-  {
-    if(prec==8)
-      return (double)((CustomRealOfQudaPrecision<QUDA_DOUBLE_PRECISION>*)v)[i];
-    else if(prec==4)
-      return (double)((CustomRealOfQudaPrecision<QUDA_SINGLE_PRECISION>*)v)[i];
-    else if(prec==QUDA_HALF_PRECISION)
-      return __half2float(((__half*)v)[i]);
-    else
-      crash("Unknown precision %d",prec);
-    
-    return 0;
-  }
-  
-  void QudaSetup::restoreOrTakeCopyOfB(const bool takeCopy,
-				       std::vector<quda::ColorSpinorField*>& Bdev,
-				       const size_t lev)
-  {
-    using namespace nissa::Robbery;
-    
-    const size_t nB=Bdev.size();
-    const int prec=Bdev[0]->Precision();
-    const size_t byteSize=nB?(Bdev[0]->Bytes()):0;
-    const size_t ghostSize=nB?Bdev[0]->GhostBytes():0;
-    master_printf("B size: %zu bytes, precision %d (%s) for each of the %zu vectors, corresponding to %zu complex, ghost size: %zu\n",byteSize,prec,getPrecTag(prec),nB,byteSize/(2*prec),ghostSize);
-    
-    if(takeCopy)
-      {
-	B[lev].resize(nB);
-	for(size_t iB=0;iB<nB;iB++)
-	  B[lev][iB]=nissa_malloc(("Bi"+std::to_string(iB)).c_str(),byteSize,char);
-	allocatedMemory+=nB*byteSize;
-      }
-    else
-      if(const size_t nBHost=B[lev].size();nBHost!=nB)
-	crash("B size not matching, this is %zu and device setup is %zu",nBHost,nB);
-    
-    for(size_t iB=0;iB<nB;iB++)
-      {
-	restoreOrTakeCopyOfData(B[lev][iB],Bdev[iB]->V(),byteSize,takeCopy);
-	
-	master_printf("B[%zu] vec of lev %zu %s, first entries: ",iB,lev,takeCopy?"stored":"restored");
-	for(int i=0;i<2;i++)
-	  master_printf("%lg ",getFromCustomPrecArray((B[lev])[iB],i,prec));
-	
-	master_printf("\n");
-      }
-  }
-  
-  void QudaSetup::restoreOrTakeCopyOfEig(const bool takeCopy,
-					 quda::Solver* csv)
-  {
-    using namespace nissa::Robbery;
-    
-    quda::Solver* nestedSolver=rob<solver>((quda::PreconditionedSolver*)csv);
-    master_printf("nested solver: %p\n",nestedSolver);
-    
-    auto& eVecsDev=rob<evecs>(nestedSolver);
-    const size_t nEig=eVecsDev.size();
-    master_printf("nEig: %zu\n",nEig);
-    const size_t byteSize=nEig?(eVecsDev[0]->Bytes()):0;
-    
-    if(takeCopy)
-      {
-	eVecs.resize(nEig);
-	for(size_t iEig=0;iEig<nEig;iEig++)
-	  eVecs[iEig]=nissa_malloc(("ei"+std::to_string(iEig)).c_str(),byteSize,char);
-	allocatedMemory+=byteSize*nEig;
-      }
-    else
-      if(nEig!=eVecs.size())
-	crash("eig size not matching, this is %zu and device setup is %zu",eVecs.size(),nEig);
-    
-    for(size_t iEig=0;iEig<nEig;iEig++)
-      restoreOrTakeCopyOfData(eVecs[iEig],
-			      eVecsDev[iEig]->V(),
-			      byteSize,
-			      takeCopy);
-    
-    auto& eValsDev=rob<evals>(nestedSolver);
-    if(takeCopy)
-      eVals=eValsDev;
-    else
-      eValsDev=eVals;
-    
-    master_printf("eigenvecs %s, first entries of evals: (%lg,%lg) (%lg,%lg), of eVecs of prec %d: ",takeCopy?"stored":"restored",
-		  eVals[0].real(),eVals[0].imag(),
-		  eVals[1].real(),eVals[1].imag(),
-		  eVecsDev[0]->Precision());
-    for(int i=0;i<2;i++)
-      master_printf("(%lg,%lg) ",
-		    getFromCustomPrecArray(eVecs[i],0+2*i,eVecsDev[0]->Precision()),
-		    getFromCustomPrecArray(eVecs[i],1+2*i,eVecsDev[0]->Precision()));
-    master_printf("\n");
-  }
-  
-  void QudaSetup::restoreOrTakeCopyOfAllY(const bool takeCopy)
-  {
-    using namespace nissa::Robbery;
-    using namespace quda;
-    
-    MG* cur=static_cast<multigrid_solver*>(quda_mg_preconditioner)->mg;
-    int lev=0;
-    
-    while(lev<multiGrid::nlevels-1)
-      {
-	DiracCoarse* dc=static_cast<DiracCoarse*>(rob<diracCoarseSmoother>(cur));
-	cudaGaugeField* yd=rob<Y_d>(dc);
-	cudaGaugeField* yhat_d=rob<Yhat_d>(dc);
-
-	if(takeCopy)
-	  {
-	    Y[lev]=nissa_malloc("Y",yd->Bytes(),char);
-	    Yhat[lev]=nissa_malloc("Yhat",yhat_d->Bytes(),char);
-	    allocatedMemory+=yd->Bytes()+yhat_d->Bytes();
-	  }
-	
-	restoreOrTakeCopyOfData(Y[lev],yd->Gauge_p(),yd->Bytes(),takeCopy);
-	restoreOrTakeCopyOfData(Yhat[lev],yhat_d->Gauge_p(),yhat_d->Bytes(),takeCopy);
-	
-	master_printf("%s Y and Yhat, lev %d, size %d\n",takeCopy?"stored":"restored",lev,(int)yd->Bytes());
-	for(int i=0;i<10;i++)
-	  master_printf("y[%zu]: %.16lg\n",i,getFromCustomPrecArray(Y[lev],i,yd->Precision()));
-	cur=rob<coarse>(cur);
-	
-	lev++;
-      }
-  }
-  
-  void QudaSetup::restoreOrTakeCopy(const bool takeCopy)
-  {
-    using namespace nissa::Robbery;
-    using namespace quda;
-    
-    multigrid_solver* mgs=static_cast<multigrid_solver*>(quda_mg_preconditioner);
-    MG* cur=mgs->mg;
-    master_printf("/////////////////////////////////////////////////////////////////\n");
-    master_printf("/////////////////////////// preverify //////////////////////////////////////\n");
-    cur->verify();
-    master_printf("/////////////////////////////////////////////////////////////////\n");
-    int lev=0;
-    
-    allocatedMemory=0;
-    
-    if(takeCopy)
-      {
-	if(not (B.empty() and Y.empty() and Yhat.empty())) crash("setup already in use!");
-	B.resize(multiGrid::nlevels);
-	for(auto& p : {&Y,&Yhat})
-	  p->resize(multiGrid::nlevels);
-      }
-    else
-      if(B.empty() or Y.empty() or Yhat.empty()) crash("setup not in use!");
-    
-    restoreOrTakeCopyOfAllY(takeCopy);
-    
-    master_printf("&mgs->B %p , &mgs->mgParam.B %p\n",&mgs->B,&mgs->mgParam->B);
-    restoreOrTakeCopyOfB(takeCopy,mgs->mgParam->B,lev);
-    
-    lev=1;
-    while(lev<multiGrid::nlevels)
-      {
-	MGParam* mgLevParam=rob<param_coarse>(cur);
-	std::vector<ColorSpinorField*>& Bdev=mgLevParam->B;
-	restoreOrTakeCopyOfB(takeCopy,Bdev,lev);
-	
-	//Dirac* dc=rob<diracCoarseSmoother>(cur);
-	Solver* csv=rob<coarse_solver>(cur);
-	master_printf("csv: %p\n",csv);
-	if(csv and quda_mg_param.use_eig_solver[lev]==QUDA_BOOLEAN_YES)
-	  {
-	    master_printf("Going to to the eig part\n");
-	    restoreOrTakeCopyOfEig(takeCopy,csv);
-	  }
-	
-	cur=rob<coarse>(cur);
-	
-	master_printf("Done with lev %d\n",lev);
-	
-	lev++;
-      }
-    
-    if(takeCopy)
-      master_printf("we have used %zu bytes to store the setup\n",allocatedMemory);
-    else
-      {
-	master_printf("Everything recycled in the mg\n");
-	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
-	multigrid_solver* mgs=static_cast<multigrid_solver*>(quda_mg_preconditioner);
-	MG* cur=mgs->mg;
-	master_printf("Let us verify\n");
-	cur->verify();
-	
-	// QudaBoolean& p=quda_mg_param.preserve_deflation; //thin_update_only
-	// const QudaBoolean oldP=p;
-	// p=QUDA_BOOLEAN_TRUE;
-	// updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
-	// p=oldP;
-      }
-  }
-  
   /// Set the verbosity
   QudaVerbosity get_verbosity_for_quda()
   {
@@ -408,7 +180,7 @@ namespace quda_iface
 	    const int quda=loclx_parity[ivol]*locVolh+itmp/2;
 	    
 	    if(quda<0 or quda>=locVol)
-	      crash("quda %d remapping to ivol %d not in range [0,%d]",quda,ivol,locVol);
+	      crash("quda %d remapping to ivol %d not in range [0,%ld]",quda,ivol,locVol);
 	    
 	    quda_of_loclx[ivol]=quda;
 	    loclx_of_quda[quda]=ivol;
@@ -501,8 +273,6 @@ namespace quda_iface
 	
 	nissa_free(color_in);
 	nissa_free(color_out);
-	
-	quda_iface::qudaSetups.clear();
 	
 	//free the clover and gauge conf
 	freeGaugeQuda();
@@ -1091,53 +861,15 @@ namespace quda_iface
     static double storedKappa=0;
     static double storedCloverCoeff=0;
     
-    const char QUDA_DEBUG_EV[]="QUDA_DEBUG_EV";
-    const bool doTheStorage=getenv(QUDA_DEBUG_EV)!=nullptr;
-    
-    SetupID setupId=
-      std::make_tuple(export_conf::confTag,export_conf::check_old);
-    
     bool& setup_valid=multiGrid::setup_valid;
     if(not setup_valid)
       {
 	master_printf("QUDA multigrid setup not valid\n");
 	
-	const bool canReuseStoredSetup=(qudaSetups.find(setupId)!=qudaSetups.end());
-	const auto [tag,fs]=setupId;
-	master_printf("CanReuseStoredSetup (%s,%zu,%zu): %s\n",tag.c_str(),fs[0],fs[1],canReuseStoredSetup?"true":"false");
+	if(quda_mg_preconditioner!=nullptr)
+	  destroyMultigridQuda(quda_mg_preconditioner);
 	
-	setVerbosity(QUDA_VERBOSE);
-	master_printf("VERBOSITY OF QUDA: %d should be %d it might be %d\n",getVerbosity(),QUDA_VERBOSE,QUDA_SUMMARIZE);
-	
-	if(canReuseStoredSetup)
-	  {
-	    destroyMultigridQuda(quda_mg_preconditioner);
-	    
-	    master_printf("mg setup redue:\n");
-	    
-	    const int& nlevels=multiGrid::nlevels;
-	    int b[nlevels];
-	    for(int level=0;level<nlevels;level++)
-	      {
-		int& v=quda_mg_param.num_setup_iter[level];
-		b[level]=v;
-		v=0;
-	      }
-	    quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
-	    for(int level=0;level<nlevels;level++)
-	      quda_mg_param.num_setup_iter[level]=b[level];
-	    qudaSetups[setupId].restore();
-	  }
-	else
-	  {
-	    if(quda_mg_preconditioner!=nullptr)
-	      destroyMultigridQuda(quda_mg_preconditioner);
-	    
-	    quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
-	    
-	    if(doTheStorage)
-	      qudaSetups[setupId].takeCopy();
-	  }
+	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
 	
 	master_printf("mg setup done!\n");
 	

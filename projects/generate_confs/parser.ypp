@@ -598,8 +598,8 @@ operators: TK_OPERATORS '=' int_pair_list {
 	{
 	    int f=(*$3)[i].first;
 	    int s=(*$3)[i].second;
-	    if((f<0)||(f>15)) crash("first part of entry %d is %d, should be in the range [0,15]",i,f);
-	    if((s<0)||(s>15)) crash("second part of entry %d is %d, should be in the range [0,15]",i,s);
+	    if((f<0)||(f>15)) crash("first part of entry %zu is %d, should be in the range [0,15]",i,f);
+	    if((s<0)||(s>15)) crash("second part of entry %zu is %d, should be in the range [0,15]",i,s);
 	}
 	$$=$3;}
 ;

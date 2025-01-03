@@ -65,7 +65,7 @@ namespace nissa
 	      export_needed=true;
 	    }
 	  else
-	    master_printf(" -> tag not changed, avoiding export\n",confTag.c_str());
+	    master_printf(" -> tag %s not changed, avoiding export\n",confTag.c_str());
 	}
       else
 	{

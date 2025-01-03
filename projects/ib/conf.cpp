@@ -63,14 +63,6 @@ namespace nissa
   //read the conf and setup it
   void setup_conf(quad_su3 *conf,const char *conf_path,int rnd_gauge_transform,int free_theory)
   {
-#ifdef USE_QUDA
-    if(const size_t n=quda_iface::qudaSetups.size();n)
-      {
-	master_printf("Clearing %zu stored multigrid setups\n",n);
-	quda_iface::qudaSetups.clear();
-      }
-#endif
-    
     if(not free_theory)
       {
 	START_TIMING(conf_load_time,nconf_load);

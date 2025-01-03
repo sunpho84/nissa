@@ -118,7 +118,7 @@ namespace nissa
     
     ILDG_File file;
 #ifdef USE_MPI_IO
-    decript_MPI_error(MPI_File_open(MPI_COMM_WORLD,path_str,amode,MPI_INFO_NULL,&file),combine("while opening file %s",path_str).c_str());
+    decript_MPI_error(MPI_File_open(MPI_COMM_WORLD,path_str,amode,MPI_INFO_NULL,&file),"while opening file %s",path_str);
 #else
     file=fopen(path_str,mode);
     if(file==NULL) crash("while opening file %s",path_str);
@@ -170,7 +170,7 @@ namespace nissa
     if(nbytes)
       {
 #ifdef USE_MPI_IO
-	decript_MPI_error(MPI_File_seek(file,ILDG_File_get_position(file)+nbytes,MPI_SEEK_SET),"while seeking ahead %d bytes from current position",nbytes);
+	decript_MPI_error(MPI_File_seek(file,ILDG_File_get_position(file)+nbytes,MPI_SEEK_SET),"while seeking ahead %lld bytes from current position",nbytes);
 #else
 	crash_printing_error(fseeko64(file,nbytes,SEEK_CUR),"while seeking ahead %ld bytes from current position",nbytes);
 #endif
@@ -510,7 +510,7 @@ namespace nissa
     
     //count read bytes
     size_t nbytes_read=MPI_Get_count_size_t(status);
-    if((uint64_t)nbytes_read!=header.data_length/nranks) crash("read %u bytes instead than %u",nbytes_read,header.data_length/nranks);
+    if((uint64_t)nbytes_read!=header.data_length/nranks) crash("read %zu bytes instead than %zu",nbytes_read,header.data_length/nranks);
     
     //put the view to original state and place at the end of the record, including padding
     normal_view.pos+=ceil_to_next_eight_multiple(header.data_length);
