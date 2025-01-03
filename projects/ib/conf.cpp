@@ -66,16 +66,6 @@ namespace nissa
 		  const int& rnd_gauge_transform,
 		  const int& free_theory)
   {
-#ifdef USE_QUDA
-#ifdef QUDASETUPSTORE
-    if(const size_t n=quda_iface::qudaSetups.size();n)
-      {
-	MASTER_PRINTF("Clearing %zu stored multigrid setups\n",n);
-	quda_iface::qudaSetups.clear();
-      }
-#endif
-#endif
-    
     if(not free_theory)
       {
 	START_TIMING(conf_load_time,nconf_load);
