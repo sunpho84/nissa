@@ -1153,7 +1153,7 @@ namespace quda_iface
 	  const double& setup_refresh_tol=
 	    multiGrid::setup_refresh_tol;
 	  
-	  /// Check if tolerance is satisfied, such that only the coarsest level is afjusted
+	  /// Check if tolerance is satisfied, such that only the coarsest level is adjusted
 	  const bool tolSatisfiedMu=
 	    fabs(fabs(storedMu/(inv_param.mu+1e-300))-1)<setup_refresh_tol;
 	  const bool tolSatisfiedKappa=
