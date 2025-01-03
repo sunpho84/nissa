@@ -873,7 +873,13 @@ namespace quda_iface
   void maybeFlagTheMultigridEigenVectorsForDeletion()
   {
     if(hasCreatedEigenvectors)
-      configureMultigridSolversToUseDeflationOnLevel(multiGrid::nlevels-1);
+      {
+	configureMultigridSolversToUseDeflationOnLevel(multiGrid::nlevels-1);
+	for(int level=0;level<multiGrid::nlevels-1;level++)
+	  quda_mg_param.setup_maxiter_refresh[level]=0;
+	quda_mg_param.preserve_deflation=QUDA_BOOLEAN_TRUE;
+	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+      }
   }
   
   /// Setup the multigrid
