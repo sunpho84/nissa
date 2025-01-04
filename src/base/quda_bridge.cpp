@@ -695,6 +695,7 @@ namespace quda_iface
 	const int& nlevels=multiGrid::nlevels;
 	quda_mg_param.n_level=nlevels;
 	
+	usedDeflation=false; // then possibly set to true later
 	for(int level=0;level<nlevels;level++)
 	  {
 	    set_n_vec_batch(quda_mg_param);
@@ -840,7 +841,10 @@ namespace quda_iface
 	    // setEigParam from QUDA's multigrid_invert_test, except
 	    // for cuda_prec_ritz (on 20190822)
 	    if(level+1==nlevels and multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation)
-	      configureMultigridSolversToUseDeflationOnLevel(level);
+	      {
+		configureMultigridSolversToUseDeflationOnLevel(level);
+		usedDeflation=true;
+	      }
 	    else
 	      {
 		quda_mg_param.eig_param[level]=nullptr;
@@ -864,6 +868,9 @@ namespace quda_iface
   /// Keep note of whether we have create the eigenvectors
   int hasCreatedEigenvectors;
   
+  /// Take not of whether we are using eigenvectors
+  int usedDeflation;
+  
   /// Store whether we have create the eigenvectors
   void takeNoteIfHasCreatedEigenvectors()
   {
@@ -874,9 +881,9 @@ namespace quda_iface
   
   void maybeFlagTheMultigridEigenVectorsForDeletion()
   {
-    master_printf("Check flagging eigenvectors for deletion: %d\n",hasCreatedEigenvectors);
+    master_printf("Check flagging eigenvectors for deletion: hasCreatedEigenvectors=%d usedDeflation=%d\n",hasCreatedEigenvectors);
     
-    if(hasCreatedEigenvectors)
+    if(hasCreatedEigenvectors and not usedDeflation)
       {
 	configureMultigridSolversToUseDeflationOnLevel(multiGrid::nlevels-1);
 	for(int level=0;level<multiGrid::nlevels-1;level++)
