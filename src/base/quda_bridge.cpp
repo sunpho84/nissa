@@ -554,6 +554,7 @@ namespace quda_iface
   void configureMultigridSolversToUseDeflationOnLevel(const int& level)
   {
     master_printf("Configuring quda to use the deflation on level %d\n",level);
+    
     quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_YES;
     mg_eig_param[level].eig_type=QUDA_EIG_TR_LANCZOS;
     mg_eig_param[level].spectrum=QUDA_SPECTRUM_SR_EIG;
@@ -866,13 +867,15 @@ namespace quda_iface
   /// Store whether we have create the eigenvectors
   void takeNoteIfHasCreatedEigenvectors()
   {
+    hasCreatedEigenvectors=
+      multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation;
     master_printf("Eigenvectors created: %d\n",hasCreatedEigenvectors);
-    
-    multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation;
   }
   
   void maybeFlagTheMultigridEigenVectorsForDeletion()
   {
+    master_printf("Check flagging eigenvectors for deletion: %d\n",hasCreatedEigenvectors);
+    
     if(hasCreatedEigenvectors)
       {
 	configureMultigridSolversToUseDeflationOnLevel(multiGrid::nlevels-1);
