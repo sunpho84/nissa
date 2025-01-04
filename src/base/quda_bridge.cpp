@@ -883,7 +883,7 @@ namespace quda_iface
   {
     master_printf("Check flagging eigenvectors for deletion: hasCreatedEigenvectors=%d usedDeflation=%d\n",hasCreatedEigenvectors,usedDeflation);
     
-    if(hasCreatedEigenvectors and not usedDeflation)
+    if(hasCreatedEigenvectors and not usedDeflation and false)
       {
 	configureMultigridSolversToUseDeflationOnLevel(multiGrid::nlevels-1);
 	for(int level=0;level<multiGrid::nlevels-1;level++)
