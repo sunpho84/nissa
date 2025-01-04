@@ -888,8 +888,8 @@ namespace quda_iface
 	configureMultigridSolversToUseDeflationOnLevel(multiGrid::nlevels-1);
 	for(int level=0;level<multiGrid::nlevels-1;level++)
 	  quda_mg_param.setup_maxiter_refresh[level]=0;
-	quda_mg_param.preserve_deflation=QUDA_BOOLEAN_TRUE;
-	master_printf("The next mg updare is needed to avoid the warning on deletion (so far)\n");
+	//AAAA quda_mg_param.preserve_deflation=QUDA_BOOLEAN_TRUE;
+	master_printf("The next mg update is needed to avoid the warning on deletion (so far)\n");
 	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
       }
   }
@@ -959,11 +959,11 @@ namespace quda_iface
 	  for(int level=0;level<nlevels-1;level++)
 	    {
 	      stored_setup_maxiter_refresh[level]=iR(level);
-	      stored_preserve_deflation=quda_mg_param.preserve_deflation;
+	      ///AAA	      stored_preserve_deflation=quda_mg_param.preserve_deflation;
 	      if(tolSatisfied)
 		{
 		  iR(level)=0;
-		  quda_mg_param.preserve_deflation=QUDA_BOOLEAN_TRUE;
+		  /// AAA quda_mg_param.preserve_deflation=QUDA_BOOLEAN_TRUE;
 		}
 	      else
 		takeNoteIfHasCreatedEigenvectors();
@@ -974,13 +974,7 @@ namespace quda_iface
 	  /// Restore them no matter what
 	  for(int level=0;level<nlevels-1;level++)
 	    iR(level)=stored_setup_maxiter_refresh[level];
-	  quda_mg_param.preserve_deflation=stored_preserve_deflation;
-	  
-	  // QudaBoolean& p=quda_mg_param.preserve_deflation; //thin_update_only
-	  // const QudaBoolean oldP=p;
-	  // p=QUDA_BOOLEAN_TRUE;
-	  // updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
-	  // p=oldP;
+	  ///AAA quda_mg_param.preserve_deflation=stored_preserve_deflation;
 	}
       else
 	master_printf("No need to update the multigrid\n");
