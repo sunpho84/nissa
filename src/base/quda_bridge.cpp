@@ -553,6 +553,7 @@ namespace quda_iface
   /// Set the parameters of the multigrid to use the delated solver at the coarsest scale
   void configureMultigridSolversToUseDeflationOnLevel(const int& level)
   {
+    master_printf("Configuring quda to use the deflation on level %d\n",level);
     quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_YES;
     mg_eig_param[level].eig_type=QUDA_EIG_TR_LANCZOS;
     mg_eig_param[level].spectrum=QUDA_SPECTRUM_SR_EIG;
