@@ -596,6 +596,9 @@ namespace quda_iface
     quda_mg_param.eig_param[level]=&(mg_eig_param[level]);
   }
   
+  /// Take not of whether we are using Eigenvectors
+  int usedDeflation;
+  
   void set_inverter_pars(const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,const bool& exported)
   {
     inv_param.kappa=kappa;
@@ -868,9 +871,6 @@ namespace quda_iface
   /// Keep note of whether we have create the eigenvectors
   int hasCreatedEigenvectors;
   
-  /// Take not of whether we are using eigenvectors
-  int usedDeflation;
-  
   /// Store whether we have create the eigenvectors
   void takeNoteIfHasCreatedEigenvectors()
   {
@@ -881,7 +881,7 @@ namespace quda_iface
   
   void maybeFlagTheMultigridEigenVectorsForDeletion()
   {
-    master_printf("Check flagging eigenvectors for deletion: hasCreatedEigenvectors=%d usedDeflation=%d\n",hasCreatedEigenvectors);
+    master_printf("Check flagging eigenvectors for deletion: hasCreatedEigenvectors=%d usedDeflation=%d\n",hasCreatedEigenvectors,usedDeflation);
     
     if(hasCreatedEigenvectors and not usedDeflation)
       {
@@ -889,6 +889,7 @@ namespace quda_iface
 	for(int level=0;level<multiGrid::nlevels-1;level++)
 	  quda_mg_param.setup_maxiter_refresh[level]=0;
 	quda_mg_param.preserve_deflation=QUDA_BOOLEAN_TRUE;
+	master_printf("The next mg updare is needed to avoid the warning on deletion (so far)\n");
 	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
       }
   }
