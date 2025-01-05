@@ -655,6 +655,9 @@ namespace quda_iface
     quda_mg_param.eig_param[level]=&(mg_eig_param[level]);
   }
   
+  /// Take not of whether we are using Eigenvectors
+  int usedDeflation;
+  
   void set_inverter_pars(const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,const bool& exported)
   {
     inv_param.kappa=kappa;
@@ -754,6 +757,7 @@ namespace quda_iface
 	const int& nlevels=multiGrid::nlevels;
 	quda_mg_param.n_level=nlevels;
 	
+	usedDeflation=false; // then possibly set to true later
 	for(int level=0;level<nlevels;level++)
 	  {
 	    set_n_vec_batch(quda_mg_param);
@@ -818,7 +822,7 @@ namespace quda_iface
 		VERBOSITY_LV1_MASTER_PRINTF("# QUDA: MG aggregation size set to: %d\n",geo_block_size_mu);
 		
 		//check that all lattice extents are even after blocking on all levels
-		if(level < nlevels-1 and (extent/geo_block_size_mu%2))
+		if(level<nlevels-1 and (extent/geo_block_size_mu%2))
 		  CRASH("MG level %d, dim %d (xyzt) has extent %d. Block size of %d would result "
 			"in odd extent on level %d, aborting!\n"
 			"Adjust your block sizes or parallelisation, all local lattice extents on all levels must be even!\n",
@@ -899,7 +903,10 @@ namespace quda_iface
 	    // setEigParam from QUDA's multigrid_invert_test, except
 	    // for cuda_prec_ritz (on 20190822)
 	    if(level+1==nlevels and multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation)
-	      configureMultigridSolversToUseDeflationOnLevel(level);
+	      {
+		configureMultigridSolversToUseDeflationOnLevel(level);
+		usedDeflation=true;
+	      }
 	    else
 	      {
 		quda_mg_param.eig_param[level]=nullptr;
@@ -933,7 +940,7 @@ namespace quda_iface
   
   void maybeFlagTheMultigridEigenVectorsForDeletion()
   {
-    master_printf("Check flagging eigenvectors for deletion: hasCreatedEigenvectors=%d usedDeflation=%d\n",hasCreatedEigenvectors,usedDeflation);
+    MASTER_PRINTF("Check flagging eigenvectors for deletion: hasCreatedEigenvectors=%d usedDeflation=%d\n",hasCreatedEigenvectors,usedDeflation);
     
     if(hasCreatedEigenvectors and not usedDeflation and false)
       {
@@ -941,7 +948,7 @@ namespace quda_iface
 	for(int level=0;level<multiGrid::nlevels-1;level++)
 	  quda_mg_param.setup_maxiter_refresh[level]=0;
 	quda_mg_param.preserve_deflation=QUDA_BOOLEAN_TRUE;
-	master_printf("The next mg update is needed to avoid the warning on deletion (so far)\n");
+	MASTER_PRINTF("The next mg update is needed to avoid the warning on deletion (so far)\n");
 	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
       }
   }
