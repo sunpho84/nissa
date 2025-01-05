@@ -88,8 +88,11 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  /// Memory layout
+  /// Arrangement of internal DOF w.r.t spacetime: AoS or SoA
   enum class FieldLayout{CPU,GPU};
+  
+  /// Memory type
+  enum class MemorySpace{CPU,GPU};
   
   /// Coverage of the field
   enum FieldCoverage{EVEN_SITES,ODD_SITES,FULL_SPACE,EVEN_OR_ODD_SITES};
@@ -97,9 +100,19 @@ namespace nissa
   /// Has or not the halo and the edges
   enum HaloEdgesPresence{WITHOUT_HALO,WITH_HALO,WITH_HALO_EDGES};
   
-  /// Predefinite memory layout
+  /// Predefinite arrangement of internal DOF
   constexpr FieldLayout defaultFieldLayout=
 	      FieldLayout::
+#ifdef USE_CUDA
+	      GPU
+#else
+	      CPU
+#endif
+	      ;
+  
+  /// Predefinite space of memory
+  constexpr MemorySpace defaultMemorySpace=
+	      MemorySpace::
 #ifdef USE_CUDA
 	      GPU
 #else
@@ -239,19 +252,25 @@ namespace nissa
   template <typename F>
   struct FieldRef
   {
+    /// Type describing the components
     using Comps=
       typename F::Comps;
     
+    /// Type of the fundamental data
     using Fund=
       ConstIf<std::is_const_v<F>,typename F::Fund>;
     
+    /// Number of internal degrees of freedom
     static constexpr int nInternalDegs=
       F::nInternalDegs;
     
+    /// Pointer to the original field
     F* fptr;
     
+    /// Size of the external nominal index
     int64_t externalSize;
     
+    /// Pointer to the data
     Fund* _data;
     
 #define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
@@ -368,12 +387,13 @@ namespace nissa
   /// Field
   template <typename T,
 	    FieldCoverage FC,
-	    FieldLayout FL=defaultFieldLayout>
+	    FieldLayout FL=defaultFieldLayout,
+	    MemorySpace MS=defaultMemorySpace>
   struct Field :
-    FieldFeat<Field<T,FC,FL>>,
+    FieldFeat<Field<T,FC,FL,MS>>,
     FieldSizes<FC>
   {
-    /// Coefficient which divides the space time, if the field is covering only half the space
+    /// Coefficent which divides the space time, if the field is covering only half the space
     static constexpr const int divCoeff=
       (FC==FULL_SPACE)?1:2;
     
