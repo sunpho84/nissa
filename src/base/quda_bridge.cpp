@@ -933,8 +933,17 @@ namespace quda_iface
   
   void maybeFlagTheMultigridEigenVectorsForDeletion()
   {
-    if(hasCreatedEigenvectors)
-      configureMultigridSolversToUseDeflationOnLevel(multiGrid::nlevels-1);
+    master_printf("Check flagging eigenvectors for deletion: hasCreatedEigenvectors=%d usedDeflation=%d\n",hasCreatedEigenvectors,usedDeflation);
+    
+    if(hasCreatedEigenvectors and not usedDeflation and false)
+      {
+	configureMultigridSolversToUseDeflationOnLevel(multiGrid::nlevels-1);
+	for(int level=0;level<multiGrid::nlevels-1;level++)
+	  quda_mg_param.setup_maxiter_refresh[level]=0;
+	quda_mg_param.preserve_deflation=QUDA_BOOLEAN_TRUE;
+	master_printf("The next mg update is needed to avoid the warning on deletion (so far)\n");
+	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+      }
   }
   
   /// Setup the multigrid
@@ -1014,12 +1023,6 @@ namespace quda_iface
 	  for(int level=0;level<nlevels-1;level++)
 	    iR(level)=stored_setup_maxiter_refresh[level];
 	  quda_mg_param.preserve_deflation=stored_preserve_deflation;
-	  
-	  // QudaBoolean& p=quda_mg_param.preserve_deflation; //thin_update_only
-	  // const QudaBoolean oldP=p;
-	  // p=QUDA_BOOLEAN_TRUE;
-	  // updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
-	  // p=oldP;
 	}
       else
 	MASTER_PRINTF("No need to update the multigrid\n");
