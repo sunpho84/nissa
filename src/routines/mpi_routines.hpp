@@ -3,6 +3,7 @@
 
 #include <mpi.h>
 #include <algorithm>
+#include <string>
 
 #include "geometry/geometry_lx.hpp"
 #include "math_routines.hpp"
@@ -55,6 +56,7 @@ namespace nissa
     return MPI_T;				\
   }
   
+  DEFINE_MPI_DATATYPE_OF(int,MPI_INT)
   DEFINE_MPI_DATATYPE_OF(int64_t,MPI_LONG)
   DEFINE_MPI_DATATYPE_OF(double,MPI_DOUBLE)
   DEFINE_MPI_DATATYPE_OF(complex,MPI_DOUBLE_COMPLEX)
@@ -109,6 +111,7 @@ namespace nissa
   void init_MPI_thread(int narg,char **arg);
   void define_MPI_types();
   void create_MPI_cartesian_grid();
+  __attribute__((noreturn))
   void ranks_abort(int err);
   void ranks_barrier();
   int broadcast(int in,int rank_from=0);

@@ -6,7 +6,7 @@
 #include <string.h>
 
 #define EXTERN_GEOMETRY_LX
- #include "geometry_lx.hpp"
+# include "geometry_lx.hpp"
 
 #include "base/debug.hpp"
 #include "base/vectors.hpp"

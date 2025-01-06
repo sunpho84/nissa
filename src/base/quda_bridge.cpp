@@ -1,16 +1,21 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #define EXTERN_QUDA_BRIDGE
 # include "quda_bridge.hpp"
 
+#include <cuda_fp16.h>
+#include <quda_fp16.cuh>
+
 #include "base/cuda.hpp"
+#include "io/checksum.hpp"
 #include "base/export_conf_to_external_solver.hpp"
 #include "base/multiGridParams.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3_op.hpp"
+#include "new_types/custom_real_numb.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
@@ -63,6 +68,18 @@ namespace nissa
 }
 #endif
 
+namespace nissa
+{
+  PROVIDE_HAS_MEMBER(cl_pad);
+  PROVIDE_HAS_MEMBER(sp_pad);
+  PROVIDE_HAS_MEMBER(gflops);
+  PROVIDE_HAS_MEMBER(n_vec_batch);
+  PROVIDE_HAS_MEMBER(secs);
+  PROVIDE_HAS_MEMBER(true_res);
+  PROVIDE_HAS_MEMBER(true_res_hq);
+  PROVIDE_HAS_MEMBER(tune);
+}
+
 namespace quda_iface
 {
   using namespace nissa;
@@ -91,13 +108,32 @@ namespace quda_iface
     int out;
     MPI_Cart_rank(cart_comm,c,&out);
     
-    printf("rank %d, {%d %d %d %d}->%d\n",rank,c[0],c[1],c[2],c[3],out);
+    if(VERBOSITY_LV2)
+      printf("rank %d, {%d %d %d %d}->%d\n",rank,c[0],c[1],c[2],c[3],out);
     
     return out;
   }
   
+  const char* getPrecTag(const int precision)
+    {
+      switch (precision)
+	{
+	case QUDA_DOUBLE_PRECISION:
+	  return "QUDA_DOUBLE_PRECISION";
+	case QUDA_SINGLE_PRECISION:
+	  return "QUDA_SINGLE_PRECISION";
+	case QUDA_HALF_PRECISION:
+	  return "QUDA_HALF_PRECISION";
+	case QUDA_QUARTER_PRECISION:
+	  return "QUDA_QUARTER_PRECISION";
+	  break;
+	default:
+	  return "";
+	}
+    }
+  
   /// Set the verbosity
-  QudaVerbosity get_quda_verbosity()
+  QudaVerbosity get_verbosity_for_quda()
   {
     switch(verbosity_lv)
       {
@@ -144,7 +180,7 @@ namespace quda_iface
 	    const int quda=loclx_parity[ivol]*locVolh+itmp/2;
 	    
 	    if(quda<0 or quda>=locVol)
-	      crash("quda %d remapping to ivol %d not in range [0,%d]",quda,ivol,locVol);
+	      crash("quda %d remapping to ivol %d not in range [0,%ld]",quda,ivol,locVol);
 	    
 	    quda_of_loclx[ivol]=quda;
 	    loclx_of_quda[quda]=ivol;
@@ -160,7 +196,7 @@ namespace quda_iface
 	color_in=nissa_malloc("color_in",locVol,color);
 	color_out=nissa_malloc("color_out",locVol,color);
 	
-	setVerbosityQuda(QUDA_SUMMARIZE,"# QUDA: ",stdout);
+	setVerbosityQuda(QUDA_VERBOSE,"# QUDA: ",stdout);
 	
 	/////////////////////////// gauge params ////////////////////////////////
 	
@@ -204,8 +240,10 @@ namespace quda_iface
 	
 	initCommsGridQuda(NDIM,grid,get_rank_of_quda_coords,NULL);
 	
-	initQuda(iCudaDevice);
+	// initQuda(iCudaDevice);
+	initQuda(-1);
 	
+	setVerbosityQuda(QUDA_VERBOSE,"# QUDA: ",stdout);
 	inited=1;
       }
   }
@@ -390,12 +428,27 @@ namespace quda_iface
   //   inv_param.clover_cuda_prec_refinement_sloppy=
   //   sloppy_prec;
   // }
+
+#define PROVIDE_MAYBE_SET(X)					\
+  template <typename T,						\
+	    typename V>						\
+  void maybe_set_ ## X(T& i,					\
+		       V&& v)					\
+  {								\
+    if constexpr(hasMember_ ## X<T>)				\
+      i.X=v;							\
+  }
+  
+  PROVIDE_MAYBE_SET(cl_pad);
+  PROVIDE_MAYBE_SET(sp_pad);
+  
+#undef PROVIDE_MAYBE_SET
   
   void set_base_inverter_pars()
   {
     inv_param=newQudaInvertParam();
     
-    inv_param.verbosity=get_quda_verbosity();
+    inv_param.verbosity=get_verbosity_for_quda();
     
     inv_mg_param=newQudaInvertParam();
     quda_mg_param=newQudaMultigridParam();
@@ -430,17 +483,18 @@ namespace quda_iface
     
     //inv_param.tune=QUDA_TUNE_YES;
     
-    inv_param.sp_pad=0;
-    inv_param.cl_pad=0;
+    maybe_set_sp_pad(inv_param,0);
+    maybe_set_cl_pad(inv_param,0);
     
     inv_param.Ls=1;
     
-    inv_param.verbosity=get_quda_verbosity();
+    inv_param.verbosity=get_verbosity_for_quda();
     
     inv_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
     inv_param.tol_hq=0.1;
-    inv_param.reliable_delta=1e-4;
+    inv_param.reliable_delta=nissa::multiGrid::reliable_delta;
     inv_param.use_sloppy_partial_accumulator=0;
+    inv_param.chrono_precision=QUDA_SINGLE_PRECISION;
   }
   
   /// Apply the dirac operator
@@ -462,7 +516,9 @@ namespace quda_iface
 	inv_param.clover_coeff=csw*kappa;
 	// inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
 	// inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
-	// inv_param.cl_pad=0;
+	
+	if constexpr(hasMember_cl_pad<decltype(inv_param)>)
+	  inv_param.cl_pad=0;
 	// inv_param.dirac_order=QUDA_DIRAC_ORDER;
 	
 	loadCloverQuda(NULL,NULL,&inv_param);
@@ -485,6 +541,63 @@ namespace quda_iface
     MatQuda(spincolor_out,spincolor_in,&inv_param);
     remap_quda_to_nissa(out,spincolor_out);
   }
+  
+  template <typename T>
+  void set_n_vec_batch(T& quda_mg_param)
+  {
+    if constexpr(hasMember_n_vec_batch<T>)
+      for(int level=0;level<multiGrid::nlevels;level++)
+	quda_mg_param.n_vec_batch[level]=1;
+  }
+  
+  /// Set the parameters of the multigrid to use the delated solver at the coarsest scale
+  void configureMultigridSolversToUseDeflationOnLevel(const int& level)
+  {
+    master_printf("Configuring quda to use the deflation on level %d\n",level);
+    
+    quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_YES;
+    mg_eig_param[level].eig_type=QUDA_EIG_TR_LANCZOS;
+    mg_eig_param[level].spectrum=QUDA_SPECTRUM_SR_EIG;
+    
+    if((mg_eig_param[level].eig_type==QUDA_EIG_TR_LANCZOS or
+	mg_eig_param[level].eig_type==QUDA_EIG_IR_ARNOLDI)
+       and not(mg_eig_param[level].spectrum==QUDA_SPECTRUM_LR_EIG or
+	       mg_eig_param[level].spectrum==QUDA_SPECTRUM_SR_EIG))
+      crash("ERROR: MG level %d: Only real spectrum type (LR or SR)"
+	    "can be passed to the a Lanczos type solver!\n",
+	    level);
+    
+    using nissa::multiGrid::nEigenvectors;
+    
+    mg_eig_param[level].n_ev=nEigenvectors;
+    mg_eig_param[level].n_kr=nEigenvectors*1.5;
+    mg_eig_param[level].n_conv=nEigenvectors;
+    mg_eig_param[level].require_convergence=QUDA_BOOLEAN_TRUE;
+    
+    mg_eig_param[level].tol=1e-4;
+    mg_eig_param[level].check_interval=5;
+    mg_eig_param[level].max_restarts=10;
+    mg_eig_param[level].cuda_prec_ritz=QUDA_DOUBLE_PRECISION;
+    
+    mg_eig_param[level].compute_svd=QUDA_BOOLEAN_FALSE;
+    mg_eig_param[level].use_norm_op=QUDA_BOOLEAN_TRUE;
+    mg_eig_param[level].use_dagger=QUDA_BOOLEAN_FALSE;
+    mg_eig_param[level].use_poly_acc=QUDA_BOOLEAN_TRUE;
+    mg_eig_param[level].poly_deg=100;
+    mg_eig_param[level].a_min=multiGrid::eig_min;
+    mg_eig_param[level].a_max=multiGrid::eig_max;
+    
+    // set file i/o parameters
+    // Give empty strings, Multigrid will handle IO.
+    strcpy(mg_eig_param[level].vec_infile, "");
+    strcpy(mg_eig_param[level].vec_outfile, "");
+    strncpy(mg_eig_param[level].QUDA_logfile, "quda_eig.log", 512);
+    
+    quda_mg_param.eig_param[level]=&(mg_eig_param[level]);
+  }
+  
+  /// Take not of whether we are using Eigenvectors
+  int usedDeflation;
   
   void set_inverter_pars(const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,const bool& exported)
   {
@@ -522,7 +635,7 @@ namespace quda_iface
     inv_param.tol=sqrt(residue);
     inv_param.maxiter=niter;
     inv_param.pipeline=0;
-    inv_param.gcrNkrylov=24;
+    inv_param.gcrNkrylov=nissa::multiGrid::gcrNkrylov;
     
     // domain decomposition preconditioner parameters
     inv_param.inv_type_precondition=QUDA_CG_INVERTER;
@@ -530,32 +643,35 @@ namespace quda_iface
     inv_param.precondition_cycle=1;
     inv_param.tol_precondition=0.1;
     inv_param.maxiter_precondition=10;
-    inv_param.verbosity_precondition=get_quda_verbosity();
+    inv_param.verbosity_precondition=get_verbosity_for_quda();
     
     inv_param.omega=1.0;
     
+#ifndef DYNAMIC_CLOVER
+# warning Please compile quda with DYNAMIC_CLOVER switched on
+#endif
     if(exported and csw)
       load_clover_term(&inv_param);
     
     if(multiGrid::checkIfMultiGridAvailableAndRequired(mu))
       {
-	inv_param.verbosity=QUDA_SUMMARIZE;//VERBOSE;
+	inv_param.verbosity=get_verbosity_for_quda();
 	
 	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
 	if(inv_param.matpc_type==QUDA_MATPC_EVEN_EVEN_ASYMMETRIC)
 	  inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
 	
 	inv_param.inv_type=QUDA_GCR_INVERTER;
-	inv_param.gcrNkrylov=10; //from default in read_input.l
+	inv_param.gcrNkrylov=nissa::multiGrid::gcrNkrylov;
 	inv_param.inv_type_precondition=QUDA_MG_INVERTER;
 	inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
-	inv_param.reliable_delta=1e-10;
-	inv_param.reliable_delta_refinement=1e-10;
+	inv_param.reliable_delta=nissa::multiGrid::reliable_delta;
+	inv_param.reliable_delta_refinement=nissa::multiGrid::reliable_delta_refinement;
 	inv_param.precondition_cycle=1;
 	inv_param.tol_precondition=1e-1;
 	inv_param.maxiter_precondition=1;
 	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
-	inv_param.solve_type=QUDA_DIRECT_SOLVE;
+	inv_param.solve_type=QUDA_DIRECT_PC_SOLVE;
 	
 	inv_param.omega=1.0;
 	
@@ -565,7 +681,7 @@ namespace quda_iface
 	inv_mg_param.inv_type_precondition=QUDA_INVALID_INVERTER;
 	inv_mg_param.maxiter=1000;
 	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
-	inv_mg_param.verbosity=QUDA_SUMMARIZE;//VERBOSE;
+	inv_mg_param.verbosity=get_verbosity_for_quda();
 	inv_mg_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
 	inv_mg_param.preserve_source=QUDA_PRESERVE_SOURCE_NO;
 	inv_mg_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;
@@ -582,8 +698,11 @@ namespace quda_iface
 	const int& nlevels=multiGrid::nlevels;
 	quda_mg_param.n_level=nlevels;
 	
+	usedDeflation=false; // then possibly set to true later
 	for(int level=0;level<nlevels;level++)
 	  {
+	    set_n_vec_batch(quda_mg_param);
+	    
 	    // set file i/o parameters
 	    strcpy(quda_mg_param.vec_infile[level],"");
 	    strcpy(quda_mg_param.vec_outfile[level],"");
@@ -654,7 +773,7 @@ namespace quda_iface
 	    
 	    /// Default value from: https://github.com/lattice/quda/wiki/Multigrid-Solver
 	    
-	    quda_mg_param.verbosity[level]=get_quda_verbosity();
+	    quda_mg_param.verbosity[level]=get_verbosity_for_quda();
 	    quda_mg_param.precision_null[level]=QUDA_HALF_PRECISION;
 	    quda_mg_param.setup_inv_type[level]=QUDA_CG_INVERTER;//QUDA_BICGSTAB_INVERTER or QUDA_CG_INVERTER generally preferred
 	    
@@ -674,11 +793,10 @@ namespace quda_iface
 	    
 	    //Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
 	    quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
-	    constexpr double t[3]={0.25,0.22,0.46};
-	    quda_mg_param.coarse_solver_tol[level]=t[level];          //Suggest setting each level to 0.25
-	    quda_mg_param.coarse_solver_maxiter[level]=100;//(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
+	    quda_mg_param.coarse_solver_tol[level]=nissa::multiGrid::coarse_solver_tol[level];          //Suggest setting each level to 0.25
+	    quda_mg_param.coarse_solver_maxiter[level]=nissa::multiGrid::coarse_solver_maxiter[level];//(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
 	    quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
-	    quda_mg_param.n_vec[level]=(level==1)?32:24;          //24 or 32 is supported presently
+	    quda_mg_param.n_vec[level]=(level>=1)?32:24;          //24 or 32 is supported presently
 	    quda_mg_param.nu_pre[level]=nissa::multiGrid::nu_pre[level];            //Suggest setting to 0
 	    quda_mg_param.nu_post[level]=nissa::multiGrid::nu_post[level];          //Suggest setting to 8
 	    
@@ -690,13 +808,13 @@ namespace quda_iface
 	    
 	    quda_mg_param.preserve_deflation=QUDA_BOOLEAN_FALSE;
 	    quda_mg_param.smoother[level]=(level+1==nlevels)?QUDA_MR_INVERTER:QUDA_CA_GCR_INVERTER;
-	    quda_mg_param.smoother_tol[level]=(level+1==nlevels)?0.25:0.22;                 //Suggest setting each level to 0.25
+	    quda_mg_param.smoother_tol[level]=nissa::multiGrid::smoother_tol[level];                 //Suggest setting each level to 0.25
 	    quda_mg_param.smoother_schwarz_cycle[level]=1;          //Experimental, set to 1 for each level
 	    //Suggest setting to QUDA_DIRECT_PC_SOLVE for all levels
 	    quda_mg_param.smoother_solve_type[level]=QUDA_DIRECT_PC_SOLVE;
 	    //Experimental, set to QUDA_INVALID_SCHWARZ for each level unless you know what you're doing
 	    quda_mg_param.smoother_schwarz_type[level]=QUDA_INVALID_SCHWARZ;
-	    //quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
+	    quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
 	    
 	    // when the Schwarz-alternating smoother is used, this can be set to NO, otherwise it must be YES
 	    quda_mg_param.global_reduction[level]=QUDA_BOOLEAN_YES;
@@ -708,7 +826,7 @@ namespace quda_iface
 	    quda_mg_param.coarse_grid_solution_type[level]=
 	      QUDA_MATPC_SOLUTION;
 	    //(inv_param.solve_type==QUDA_DIRECT_PC_SOLVE?QUDA_MATPC_SOLUTION:QUDA_MAT_SOLUTION);
-	    quda_mg_param.omega[level]=0.85;  //Set to 0.8-1.0
+	    quda_mg_param.omega[level]=nissa::multiGrid::omega[level];  //Set to 0.8-1.0
 	    
 	    quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    
@@ -727,45 +845,8 @@ namespace quda_iface
 	    // for cuda_prec_ritz (on 20190822)
 	    if(level+1==nlevels and multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation)
 	      {
-		quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_YES;
-		mg_eig_param[level].eig_type=QUDA_EIG_TR_LANCZOS;
-		mg_eig_param[level].spectrum=QUDA_SPECTRUM_SR_EIG;
-		
-		if((mg_eig_param[level].eig_type==QUDA_EIG_TR_LANCZOS or
-		    mg_eig_param[level].eig_type==QUDA_EIG_IR_ARNOLDI)
-		   and not(mg_eig_param[level].spectrum==QUDA_SPECTRUM_LR_EIG or
-			   mg_eig_param[level].spectrum==QUDA_SPECTRUM_SR_EIG))
-		  crash("ERROR: MG level %d: Only real spectrum type (LR or SR)"
-			"can be passed to the a Lanczos type solver!\n",
-			level);
-		
-		using nissa::multiGrid::nEigenvectors;
-		
-		mg_eig_param[level].n_ev=nEigenvectors;
-		mg_eig_param[level].n_kr=nEigenvectors*1.5;
-		mg_eig_param[level].n_conv=nEigenvectors;
-		mg_eig_param[level].require_convergence=QUDA_BOOLEAN_TRUE;
-		
-		mg_eig_param[level].tol=1e-4;
-		mg_eig_param[level].check_interval=5;
-		mg_eig_param[level].max_restarts=10;
-		mg_eig_param[level].cuda_prec_ritz=QUDA_DOUBLE_PRECISION;
-		
-		mg_eig_param[level].compute_svd=QUDA_BOOLEAN_FALSE;
-		mg_eig_param[level].use_norm_op=QUDA_BOOLEAN_TRUE;
-		mg_eig_param[level].use_dagger=QUDA_BOOLEAN_FALSE;
-		mg_eig_param[level].use_poly_acc=QUDA_BOOLEAN_TRUE;
-		mg_eig_param[level].poly_deg=100;
-		mg_eig_param[level].a_min=multiGrid::eig_min;
-		mg_eig_param[level].a_max=multiGrid::eig_max;
-		
-		// set file i/o parameters
-		// Give empty strings, Multigrid will handle IO.
-		strcpy(mg_eig_param[level].vec_infile, "");
-		strcpy(mg_eig_param[level].vec_outfile, "");
-		strncpy(mg_eig_param[level].QUDA_logfile, "quda_eig.log", 512);
-		
-		quda_mg_param.eig_param[level]=&(mg_eig_param[level]);
+		configureMultigridSolversToUseDeflationOnLevel(level);
+		usedDeflation=true;
 	      }
 	    else
 	      {
@@ -787,6 +868,33 @@ namespace quda_iface
       }
   }
   
+  /// Keep note of whether we have create the eigenvectors
+  int hasCreatedEigenvectors;
+  
+  /// Store whether we have create the eigenvectors
+  void takeNoteIfHasCreatedEigenvectors()
+  {
+    hasCreatedEigenvectors=
+      multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation;
+    master_printf("Eigenvectors created: %d\n",hasCreatedEigenvectors);
+  }
+  
+  void maybeFlagTheMultigridEigenVectorsForDeletion()
+  {
+    master_printf("Check flagging eigenvectors for deletion: hasCreatedEigenvectors=%d usedDeflation=%d\n",hasCreatedEigenvectors,usedDeflation);
+    
+    if(hasCreatedEigenvectors and not usedDeflation and false)
+      {
+	configureMultigridSolversToUseDeflationOnLevel(multiGrid::nlevels-1);
+	for(int level=0;level<multiGrid::nlevels-1;level++)
+	  quda_mg_param.setup_maxiter_refresh[level]=0;
+	quda_mg_param.preserve_deflation=QUDA_BOOLEAN_TRUE;
+	master_printf("The next mg update is needed to avoid the warning on deletion (so far)\n");
+	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+      }
+  }
+  
+  /// Setup the multigrid
   void setup_quda_multigrid()
   {
     static double storedMu=0;
@@ -801,8 +909,10 @@ namespace quda_iface
 	if(quda_mg_preconditioner!=nullptr)
 	  destroyMultigridQuda(quda_mg_preconditioner);
 	
-	master_printf("mg setup due:\n");
 	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
+	
+	takeNoteIfHasCreatedEigenvectors();
+	
 	master_printf("mg setup done!\n");
 	
 	setup_valid=true;
@@ -812,8 +922,59 @@ namespace quda_iface
 	 storedKappa!=inv_param.kappa or
 	 storedCloverCoeff!=inv_param.clover_coeff)
 	{
-	  master_printf("Updating mg\n");
+	  const int& nlevels=
+	    multiGrid::nlevels;
+	  const double& setup_refresh_tol=
+	    multiGrid::setup_refresh_tol;
+	  
+	  /// Check if tolerance is satisfied, such that only the coarsest level is adjusted
+	  const bool tolSatisfiedMu=
+	    fabs(fabs(storedMu/(inv_param.mu+1e-300))-1)<setup_refresh_tol;
+	  const bool tolSatisfiedKappa=
+	    fabs(storedKappa/(inv_param.kappa+1e-300)-1)<setup_refresh_tol;
+	  const bool tolSatisfiedCsw=
+	    fabs(storedCloverCoeff/(inv_param.clover_coeff+1e-300)-1)<setup_refresh_tol;
+	  
+	  const bool tolSatisfied=
+	    tolSatisfiedMu and
+	    tolSatisfiedKappa and
+	    tolSatisfiedCsw;
+	  master_printf("Tolerance to avoid deep update: %lg up to a sign change for mu\n",setup_refresh_tol);
+	  master_printf(" on mu %lg -> %lg: %d\n",storedMu,inv_param.mu,tolSatisfiedMu);
+	  master_printf(" on csw %lg -> %lg: %d\n",storedCloverCoeff,inv_param.clover_coeff,tolSatisfiedCsw);
+	  master_printf(" on kappa %lg %lg %d\n",storedKappa,inv_param.kappa,tolSatisfiedKappa);
+	  master_printf(" overall satisfied: %d\n",tolSatisfied);
+	  
+	  int stored_setup_maxiter_refresh[QUDA_MAX_MG_LEVEL];
+	  QudaBoolean stored_preserve_deflation;
+	  
+	  /// Access the quda_mg_param.setup_maxiter_refresh for the asked level
+	  auto iR=
+	    [](const int& level)->int&
+	    {
+	      return quda_mg_param.setup_maxiter_refresh[level];
+	    };
+	  
+	  /// Store the parameters, and possibly set it to zero
+	  for(int level=0;level<nlevels-1;level++)
+	    {
+	      stored_setup_maxiter_refresh[level]=iR(level);
+	      stored_preserve_deflation=quda_mg_param.preserve_deflation;
+	      if(tolSatisfied)
+		{
+		  iR(level)=0;
+		  quda_mg_param.preserve_deflation=QUDA_BOOLEAN_TRUE;
+		}
+	      else
+		takeNoteIfHasCreatedEigenvectors();
+	    }
+	  
 	  updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+	  
+	  /// Restore them no matter what
+	  for(int level=0;level<nlevels-1;level++)
+	    iR(level)=stored_setup_maxiter_refresh[level];
+	  quda_mg_param.preserve_deflation=stored_preserve_deflation;
 	}
       else
 	master_printf("No need to update the multigrid\n");
@@ -923,16 +1084,37 @@ namespace quda_iface
       printf("vec_outfile: %s\n",i.vec_outfile[ilev]);
     printf("coarse_guess: %d\n",i.coarse_guess);
     printf("preserve_deflation: %d\n",i.preserve_deflation);
-    printf("gflops: %lg\n",i.gflops);
-    printf("secs: %lg\n",i.secs);
-    for(int ilev=0;ilev<nlev;ilev++)
-      printf("mu_factor: %lg\n",i.mu_factor[ilev]);
     for(int ilev=0;ilev<nlev;ilev++)
       printf("transfer_type: %d\n",i.transfer_type[ilev]);
-    printf("use_mma: %d\n",i.use_mma);
+    // printf("use_mma: %d\n",i.use_mma);
     printf("thin_update_only: %d\n",i.thin_update_only);
   }
-
+  
+#define PROVIDE_MAYBE_PRINT(X,F)					\
+  template <typename T>							\
+  void maybe_print_ ## X(const T& i)					\
+  {									\
+    if constexpr(hasMember_ ## X<T>)					\
+      printf(#X": " F "\n",i.X);					\
+  }
+  
+#define PROVIDE_MAYBE_PRINT2(X,F)					\
+  template <typename T>							\
+  void maybe_print_ ## X(const T& i)					\
+  {									\
+    if constexpr(hasMember_ ## X<T>)					\
+      if constexpr(std::is_array_v<decltype(i.X)>)			\
+	printf(#X": " F "\n",i.X[0]);					\
+      else								\
+	printf(#X": " F "\n",i.X);					\
+  }
+  
+  PROVIDE_MAYBE_PRINT(cl_pad,"%d");
+  PROVIDE_MAYBE_PRINT(sp_pad,"%d");
+  PROVIDE_MAYBE_PRINT2(true_res,"%lg");
+  PROVIDE_MAYBE_PRINT2(true_res_hq,"%lg");
+  PROVIDE_MAYBE_PRINT(tune,"%d");
+  
   void sanfoPrint(QudaInvertParam& i)
   {
     printf("input_location: %d\n",i.input_location);
@@ -956,8 +1138,8 @@ namespace quda_iface
     printf("tol_restart: %lg\n",i.tol_restart);
     printf("tol_hq: %lg\n",i.tol_hq);
     printf("compute_true_res: %d\n",i.compute_true_res);
-    printf("true_res: %lg\n",i.true_res);
-    printf("true_res_hq: %lg\n",i.true_res_hq);
+    maybe_print_true_res(i);
+    maybe_print_true_res_hq(i);
     printf("maxiter: %d\n",i.maxiter);
     printf("reliable_delta: %lg\n",i.reliable_delta);
     printf("reliable_delta_refinement: %lg\n",i.reliable_delta_refinement);
@@ -1009,12 +1191,12 @@ namespace quda_iface
     printf("return_clover: %d\n",i.return_clover);
     printf("return_clover_inverse: %d\n",i.return_clover_inverse);
     printf("verbosity: %d\n",i.verbosity);
-    printf("sp_pad: %d\n",i.sp_pad);
-    printf("cl_pad: %d\n",i.cl_pad);
+    maybe_print_cl_pad(i);
+    maybe_print_sp_pad(i);
     printf("iter: %d\n",i.iter);
     printf("gflops: %lg\n",i.gflops);
     printf("secs: %lg\n",i.secs);
-    printf("tune: %d\n",i.tune);
+    maybe_print_tune(i);
     printf("Nsteps: %d\n",i.Nsteps);
     printf("gcrNkrylov: %d\n",i.gcrNkrylov);
     printf("inv_type_precondition: %d\n",i.inv_type_precondition);
@@ -1052,6 +1234,9 @@ namespace quda_iface
   }
   
   bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,spincolor *source)
+#undef PROVIDE_MAYBE_PRINT
+  
+#undef PROVIDE_MAYBE_PRINT2
   {
     const double export_time=take_time();
     const bool exported=
@@ -1143,7 +1328,7 @@ namespace quda_iface
     inv_param.maxiter=niter;
     inv_param.Ls=1;
     
-    inv_param.verbosity=get_quda_verbosity();
+    inv_param.verbosity=get_verbosity_for_quda();
     
     remap_nissa_to_quda(color_in,source);
     

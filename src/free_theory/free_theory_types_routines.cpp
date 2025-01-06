@@ -8,19 +8,19 @@
 
 namespace nissa
 {
-  gauge_info create_tlSym_gauge_info(double alpha,const momentum_t& bc,double c1=-1.0/12)
+  gauge_info create_tlSym_gauge_info(gauge_info::which_gauge_t gauge,const momentum_t& bc,double c1=-1.0/12)
   {
     gauge_info out;
     out.bc=bc;
-    out.alpha=alpha;
+    out.which_gauge=gauge;
     out.c1=c1;
     
     return out;
   }
   
-  gauge_info create_Wilson_gauge_info(double alpha,const momentum_t& bc)
+  gauge_info create_Wilson_gauge_info(gauge_info::which_gauge_t gauge,const momentum_t& bc)
   {
-    return create_tlSym_gauge_info(alpha,bc,0);
+    return create_tlSym_gauge_info(gauge,bc,0);
   }
   
   tm_quark_info create_twisted_quark_info(double kappa,double mass,const momentum_t& bc,int r,double zmp=0)

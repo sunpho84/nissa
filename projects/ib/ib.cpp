@@ -1,6 +1,7 @@
 #include <nissa.hpp>
 
 #include "conf.hpp"
+#include "hit.hpp"
 #include "contr.hpp"
 #include "pars.hpp"
 #include "prop.hpp"
@@ -18,11 +19,6 @@ void init_simulation(int narg,char **arg)
   if(narg<2) crash("Use: %s input_file [stop_path]|periodic/antiperiodic|store/load_photons",arg[0]);
   
   const char *path=arg[1];
-  
-  const char ALLOW_PROP_REUSAGE_STRING[]="ALLOW_PROP_REUSAGE";
-  allowPropReusage=(getenv(ALLOW_PROP_REUSAGE_STRING)!=nullptr);
-  if(not allowPropReusage)
-    master_printf("To allow prop reusage please export: %s\n",ALLOW_PROP_REUSAGE_STRING);
   
   //parse the rest of the args
   for(int iarg=2;iarg<narg;iarg++)
@@ -93,7 +89,7 @@ void init_simulation(int narg,char **arg)
   read_nhits();
   int nsources;
   read_str_int("NSources",&nsources);
-  ori_source_name_list.resize(nsources);
+  ori_source_name_list.resize(nsources*ncopies);
   //discard header
   expect_str("Name");
   if(stoch_source) expect_str("NoiseType");
@@ -118,9 +114,18 @@ void init_simulation(int narg,char **arg)
       //store
       int store_source;
       read_int(&store_source);
+      
       //add
-      ori_source_name_list[isource]=name;
-      Q[name].init_as_source(noise_type,tins,0,store_source);
+      for(int icopy=0;icopy<ncopies;icopy++)
+	{
+	  char suffix[128]="";
+	  if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+	  
+	  char fullName[1024+129];
+	  sprintf(fullName,"%s%s",name,suffix);
+	  ori_source_name_list[isource+nsources*icopy]=fullName;
+	  Q[fullName].init_as_source(noise_type,tins,0,store_source);
+	}
     }
   
   read_twisted_run();
@@ -129,7 +134,7 @@ void init_simulation(int narg,char **arg)
   //NProps
   int nprops;
   read_str_int("NProps",&nprops);
-  qprop_name_list.resize(nprops);
+  qprop_name_list.resize(nprops*ncopies);
   //Discard header
   expect_str("Name");
   expect_str("Ins");
@@ -151,7 +156,6 @@ void init_simulation(int narg,char **arg)
       char name[1024];
       read_str(name,1024);
       master_printf("Read variable 'Name' with value: %s\n",name);
-      if(Q.find(name)!=Q.end() and not allowPropReusage) crash("name \'%s\' already included",name);
       
       //ins name
       char ins[INS_TAG_MAX_LENGTH+1];
@@ -181,7 +185,6 @@ void init_simulation(int narg,char **arg)
 	  if(multi_source)
 	    {
 	      read_str(source_name,1024);
-	      if(Q.find(source_name)==Q.end()) crash("unable to find source %s",source_name);
 	      
 	      master_printf("Read variable 'Sourcename' with value: %s\n",source_name);
 	      
@@ -197,16 +200,17 @@ void init_simulation(int narg,char **arg)
 	      weight.first=cweight.real();
 	      weight.second=cweight.imag();
 	    }
-	  else
-	    if(Q.find(source_name)==Q.end()) crash("unable to find source %s",source_name);
 	  
 	  source_terms.push_back(std::make_pair(source_name,weight));
 	}
       
       //insertion time
-      int tins;
-      read_int(&tins);
-      master_printf("Read variable 'Tins' with value: %d\n",tins);
+      int tins=-1;
+      if(strcasecmp(ins,ins_tag[DEL_POS])!=0)
+	{
+	  read_int(&tins);
+	  master_printf("Read variable 'Tins' with value: %d\n",tins);
+	}
       
       double kappa=0.125,mass=0.0,charge=0,residue=1e-16;
       momentum_t theta;
@@ -217,7 +221,7 @@ void init_simulation(int narg,char **arg)
       
       bool decripted=false;
       
-      if(strcasecmp(ins,ins_tag[PROP])==0)
+      if(strcasecmp(ins,ins_tag[PROP])==0 or strcasecmp(ins,ins_tag[DIROP])==0)
 	{
 	  decripted=true;
 	  
@@ -227,6 +231,7 @@ void init_simulation(int narg,char **arg)
 	    {
 	      read_double(&mass);
 	      master_printf("Read variable 'Mass' with value: %lg\n",mass);
+	      
 	      read_int(&r);
 	      master_printf("Read variable 'R' with value: %d\n",r);
 	      
@@ -236,8 +241,11 @@ void init_simulation(int narg,char **arg)
 	  read_double(&charge);
 	  master_printf("Read variable 'Charge' with value: %lg\n",charge);
 	  read_theta(theta);
-	  read_double(&residue);
-	  master_printf("Read variable 'Residue' with value: %lg\n",residue);
+	  if(strcasecmp(ins,ins_tag[DIROP])!=0)
+	    {
+	      read_double(&residue);
+	      master_printf("Read variable 'Residue' with value: %lg\n",residue);
+	    }
 	}
       
       //read phasing
@@ -252,6 +260,10 @@ void init_simulation(int narg,char **arg)
       for(const auto& possIns : {VPHOTON0,VPHOTON1,VPHOTON2,VPHOTON3,
 				 VBHOTON0,VBHOTON1,VBHOTON2,VBHOTON3})
 	vph|=(strcasecmp(ins,ins_tag[possIns])==0);
+      
+      bool ph=false;
+      for(const auto& possIns : {CVEC0,CVEC1,CVEC2,CVEC3})
+	ph|=(strcasecmp(ins,ins_tag[possIns])==0);
       
       if(vph)
 	{
@@ -303,6 +315,38 @@ void init_simulation(int narg,char **arg)
 	}
       double kappa_asymm[4]={0.0,kappa1,kappa2,kappa3};
       
+      if(strcasecmp(ins,ins_tag[DEL_POS])==0)
+	{
+	  coords_t c;
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      read_int(&c[mu]);
+	      if(c[mu]<0)
+		crash("dir %d has been chosen negative value %d",mu,c[mu]);
+	      if(c[mu]>=glbSize[mu])
+		crash("dir %d has been chosen larger than glb size %d",mu,glbSize[mu]);
+	    }
+	  
+	  r=glblx_of_coord(c);
+	  master_printf("Choosing coords {%d,%d,%d,%d} corresponding to site %d\n",c[0],c[1],c[2],c[3],r);
+	  
+	  decripted=true;
+	}
+      
+      if(strcasecmp(ins,ins_tag[DEL_SPIN])==0)
+	{
+	  read_int(&r);
+	  master_printf("Choosing spin %d\n",r);
+	  decripted=true;
+	}
+      
+      if(strcasecmp(ins,ins_tag[DEL_COL])==0)
+	{
+	  read_int(&r);
+	  master_printf("Choosing color %d\n",r);
+	  decripted=true;
+	}
+      
       //everything else
       if(not decripted)
 	{
@@ -320,13 +364,33 @@ void init_simulation(int narg,char **arg)
 	    }
 	  read_double(&charge);
 	  master_printf("Read variable 'Charge' with value: %lg\n",charge);
+	  
+	  if(ph)
+	    read_theta(theta);
 	}
       
       read_int(&store_prop);
       master_printf("Read variable 'Store' with value: %d\n",store_prop);
       
-      Q[name].init_as_propagator(ins_from_tag(ins),source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
-      qprop_name_list[iq]=name;
+      for(int icopy=0;icopy<ncopies;icopy++)
+	{
+	  char suffix[128]="";
+	  if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+	  
+	  std::vector<source_term_t> source_full_terms=source_terms;
+	  for(auto& [name,weight] : source_full_terms)
+	    {
+	      name+=suffix;
+	      if(Q.find(name)==Q.end()) crash("unable to find source %s",name.c_str());
+	    }
+	  
+	  char fullName[1024+129];
+	  sprintf(fullName,"%s%s",name,suffix);
+	  if(Q.find(fullName)!=Q.end()) crash("name \'%s\' already included",fullName);
+	  
+	  Q[fullName].init_as_propagator(ins_from_tag(ins),source_full_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
+	  qprop_name_list[icopy+ncopies*iq]=fullName;
+	}
     }
   
   read_photon_pars();
@@ -341,6 +405,53 @@ void init_simulation(int narg,char **arg)
   
   //mesons
   read_mes2pts_contr_pars();
+  
+  constexpr bool decryptNameTest=false;
+  if(decryptNameTest)
+    for(const auto& [name,bw,fw] : mes2pts_contr_map)
+      {
+	int bwOrder=0;
+	std::string line;
+	for(const std::string& u : {bw,fw})
+	  {
+	    std::string cur=u;
+	    while(not Q[cur].is_source)
+	      {
+		std::string wh;
+		switch(Q[cur].insertion)
+		  {
+		  case PROP:
+		    wh="-";
+		    break;
+		  case SCALAR:
+		    wh="G[0]";
+		    break;
+		  case PSEUDO:
+		    wh="G[5]";
+		    break;
+		  case GAMMA:
+		    wh="G["+std::to_string(Q[cur].r)+"]";
+		    break;
+		  default:
+		    break;
+		  }
+		
+		if(const int t=Q[cur].tins;t!=-1)
+		  wh+="|t="+std::to_string(t)+"|";
+		
+		if(bwOrder==0)
+		  line=wh+line;
+		else
+		  line=line+wh;
+		
+		cur=Q[cur].source_terms.front().first;
+	      }
+	    
+	    line+="     ";
+	    bwOrder++;
+	  }
+	master_printf("Decrypting %s = %s\n",name.c_str(),line.c_str());
+      }
   
   //meslept
   read_meslep_contr_pars();
@@ -432,20 +543,50 @@ void in_main(int narg,char **arg)
   //init simulation according to input file
   init_simulation(narg,arg);
   
+  constexpr char NMAX_PROPS_ALLOCATED_STR[]="NMAX_PROPS_ALLOCATED";
+  if(const char* nMaxAllocatedStr=getenv(NMAX_PROPS_ALLOCATED_STR))
+    {
+      nMaxPropsAllocated=atoi(nMaxAllocatedStr);
+      master_printf("NMAX_PROPS_ALLOCATED=%d\n",nMaxPropsAllocated);
+    }
+  else
+    {
+      master_printf("No maximum number of propagators to be allocated passed\n");
+      master_printf("Optionally specify the maximal number of propagators to be allocated by exporting %s\n",NMAX_PROPS_ALLOCATED_STR);
+    }
+  
+  constexpr char DO_NOT_AVERAGE_HITS_STR[]="DO_NOT_AVERAGE_HITS";
+  doNotAverageHits=getenv(DO_NOT_AVERAGE_HITS_STR)!=nullptr;
+  if(doNotAverageHits)
+    master_printf("%s exported, not averaging hits\n",DO_NOT_AVERAGE_HITS_STR);
+  else
+    master_printf("Averaging hits, export %s if needed otherwise\n",DO_NOT_AVERAGE_HITS_STR);
+  
   //loop over the configs
   int iconf=0;
   while(read_conf_parameters(iconf,finish_file_present))
     {
-      for(int ihit=0;ihit<nhits;ihit++)
+      HitLooper hitLooper;
+      
+      for(int iHit=0;iHit<nhits;iHit++)
 	{
-	  start_hit(ihit);
-	  generate_propagators(ihit);
-	  compute_contractions();
-	  propagators_fft(ihit);
+	  hitLooper.start_hit(iHit);
+	  hitLooper.run(iHit);
+	  
+	  compute_contractions(); //not working, here only to emit errors
+	  propagators_fft(iHit); // same
+	  
+	  if(doNotAverageHits)
+	    print_contractions();
 	}
       
+      master_printf("NOffloaded: %d\n",hitLooper.nOffloaded);
+      master_printf("NRecalled: %d\n",hitLooper.nRecalled);
+      
       free_confs();
-      print_contractions();
+      
+      if(not doNotAverageHits)
+	print_contractions();
       
       mark_finished();
     }

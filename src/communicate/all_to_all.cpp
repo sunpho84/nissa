@@ -8,6 +8,7 @@
 #include "base/vectors.hpp"
 #include "communicate.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "linalgs/linalgs.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
@@ -273,17 +274,51 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
+    /// Returns the argument after checking that does not exceed the max count
+    auto check_not_above_max_count=
+      [](const size_t n)
+      {
+	if(n>std::numeric_limits<int>::max())
+	  crash("trying to send or receive %zu elements, max value is %d",n,std::numeric_limits<int>::max());
+	
+	return n;
+      };
+    
     if(IS_MASTER_THREAD)
       {
 	MPI_Request req_list[nranks_to+nranks_fr];
 	int ireq=0;
+	int irank_fr_this=nranks_fr;
 	for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
-	  MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,nper_rank_fr[irank_fr]*bps,MPI_CHAR,
-		    list_ranks_fr[irank_fr],909,cart_comm,&req_list[ireq++]);
+	  if(list_ranks_fr[irank_fr]!=rank)
+	    {
+	      MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,check_not_above_max_count(nper_rank_fr[irank_fr]*bps),MPI_CHAR,
+			list_ranks_fr[irank_fr],909,cart_comm,&req_list[ireq++]);
+	      // master_printf("Going to receive from rank %d, nreq: %d\n",list_ranks_fr[irank_fr],ireq);
+	    }
+	  else
+	    irank_fr_this=irank_fr;
+	
+	int irank_to_this=nranks_to;
 	for(int irank_to=0;irank_to<nranks_to;irank_to++)
-	  MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,nper_rank_to[irank_to]*bps,MPI_CHAR,
-		    list_ranks_to[irank_to],909,cart_comm,&req_list[ireq++]);
-      	if(ireq!=nranks_to+nranks_fr) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
+	  if(list_ranks_to[irank_to]!=rank)
+	    {
+	      MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,check_not_above_max_count(nper_rank_to[irank_to]*bps),MPI_CHAR,
+			list_ranks_to[irank_to],909,cart_comm,&req_list[ireq++]);
+	      // master_printf("Going to send to rank %d, nreq: %d\n",list_ranks_to[irank_to],ireq);
+	    }
+	  else
+	    irank_to_this=irank_to;
+	
+	if(irank_fr_this!=nranks_fr and irank_to_this!=nranks_to)
+	  {
+	    if(nper_rank_to[irank_to_this]!=nper_rank_fr[irank_fr_this])
+	      crash("unmatched what to copy locally");
+	    else
+	      parallel_memcpy(in_buf+in_buf_off_per_rank[irank_fr_this]*bps,out_buf+out_buf_off_per_rank[irank_to_this]*bps,nper_rank_to[irank_fr_this]*bps);
+	  }
+	
+	// master_printf("waiting for %d reqs\n",ireq);
 	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
       }
     THREAD_BARRIER();

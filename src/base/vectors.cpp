@@ -72,10 +72,10 @@ namespace nissa
     //update atomically
     if((get_vect(v)->flag & flag)!=flag)
       {
-	THREAD_BARRIER();
+	//THREAD_BARRIER();
 	get_vect(v)->flag|=flag;
       }
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
   }
   
   //unset a flag (idem)
@@ -90,10 +90,10 @@ namespace nissa
     //update atomically
     if(((~get_vect(v)->flag)&flag)!=flag)
       {
-	THREAD_BARRIER();
+	//THREAD_BARRIER();
 	get_vect(v)->flag&=~flag;
       }
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
   }
   
   //get a flag
@@ -237,7 +237,7 @@ namespace nissa
 	nissa_vect *nv;
 	int64_t tot_size=size+sizeof(nissa_vect);
 #define ALLOCATING_ERROR \
-	"could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) "\
+	"could not allocate vector named \"%s\" of %ld elements of type %s (total size: %ld bytes) "\
 		"request on line %d of file %s",tag,nel,type,size,line,file
 #if THREADS_TYPE==CUDA_THREADS
 	decript_cuda_error(cudaMallocManaged(&nv,tot_size),ALLOCATING_ERROR);
@@ -268,7 +268,7 @@ namespace nissa
 	return_malloc_ptr=(void*)(last_vect+1);
 	int64_t offset=((int64_t)(return_malloc_ptr))%NISSA_VECT_ALIGNMENT;
 	if(offset!=0)
-	  crash("memory alignment problem, vector %s has %d offset",tag,offset);
+	  crash("memory alignment problem, vector %s has %ld offset",tag,offset);
 	
 	//if borders or edges are allocated, set appropriate flag
 	if(nel==(locVol+bord_vol) || nel==(locVolh+bord_volh))
@@ -280,15 +280,15 @@ namespace nissa
 	required_memory+=size;
 	max_required_memory=std::max(max_required_memory,required_memory);
 	
-	cache_flush();
+	//cache_flush();
       }
     
     //sync so we are sure that master thread allocated
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
     void *res=return_malloc_ptr;
     
     //resync so all threads return the same pointer
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
     
     return res;
   }
@@ -298,7 +298,7 @@ namespace nissa
   {
     
     //sync so we are sure that all threads are here
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
     
     //control that a!=b
     if(a!=b)
@@ -316,12 +316,12 @@ namespace nissa
 	int64_t size_per_el_b=nissa_b->size_per_el;
 	
 	//check size agreement
-	if(nel_a!=nel_b) crash("while copying, vector %s allocated at line %d of file %s contains %d and vector %s allocated at line %d of file %s contains %d",
+	if(nel_a!=nel_b) crash("while copying, vector %s allocated at line %d of file %s contains %ld and vector %s allocated at line %d of file %s contains %ld",
 			       nissa_a->tag,nissa_a->line,nissa_a->file,nel_a,nissa_b->tag,nissa_b->line,nissa_b->file,nel_b);
 	
 	//check type agreement
 	if(size_per_el_a!=size_per_el_b)
-	  crash("while copying, vector %s contains %d bytes per el and vector %s contains %d",
+	  crash("while copying, vector %s contains %ld bytes per el and vector %s contains %ld",
 		nissa_a->tag,size_per_el_a,nissa_b->tag,size_per_el_b);
 	
 	//perform the copy
@@ -333,7 +333,7 @@ namespace nissa
 	nissa_a->flag=nissa_b->flag;
 	
 	//sync so we are sure that all threads are here
-	THREAD_BARRIER();
+	//THREAD_BARRIER();
       }
   }
   
@@ -341,7 +341,7 @@ namespace nissa
   void vector_reset(void *a)
   {
     //sync so all thread are not using the vector
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
     
     if(IS_MASTER_THREAD)
       {
@@ -352,14 +352,14 @@ namespace nissa
       }
     
     //sync so all thread see that have been reset
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
   }
   
   //release a vector
   void internal_nissa_free(char **arr,const char *file,int line)
   {
     //sync so all thread are not using the vector
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
     
     if(IS_MASTER_THREAD)
       {
@@ -403,7 +403,7 @@ namespace nissa
       }
     
     //sync so all thread see that have deallocated
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
   }
   
   //reorder a vector according to the specified order
@@ -416,7 +416,7 @@ namespace nissa
       memcpy(buf+order[sour]*sel,vect+sour*sel,sel);
     NISSA_PARALLEL_LOOP_END;
     
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
     
     NISSA_PARALLEL_LOOP(sour,0,nel)
       memcpy(vect+sour*sel,buf+sour*sel,sel);

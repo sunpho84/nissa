@@ -68,7 +68,7 @@ namespace nissa
 	
 	for(size_t ipf=0;ipf<(*pf)[iflav].size();ipf++)
 	  {
-	    verbosity_lv2_master_printf("Computing quark force for flavour %d/%d, pseudofermion %d/%d\n",iflav+1,tp->nflavs(),ipf+1,(*pf)[iflav].size());
+	    verbosity_lv2_master_printf("Computing quark force for flavour %d/%d, pseudofermion %zu/%zu\n",iflav+1,tp->nflavs(),ipf+1,(*pf)[iflav].size());
 	    
 	    switch(q.discretiz)
 	      {

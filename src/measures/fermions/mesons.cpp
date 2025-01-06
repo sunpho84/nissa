@@ -155,6 +155,8 @@ namespace
     nflavs=tp.nflavs();
     ncombo=icombo(nflavs-1,nop-1,nop-1,glbSize[0]-1)+1;
     double norm=1.0/(meas_pars.nhits*glbSpatVol);
+    
+    FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     complex *corr=nissa_malloc("corr",ncombo,complex);
     
     //measure the meson corrs for each quark
@@ -166,7 +168,6 @@ namespace
 	compute_meson_corr(corr,ext_conf,&tp,&meas_pars);
 	
 	//open the file, allocate point result and source
-	FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
 	for(int iop_so=0;iop_so<nop;iop_so++)
 	  for(int iop_si=0;iop_si<nop;iop_si++)
 	    for(int iflav=0;iflav<nflavs;iflav++)
@@ -187,10 +188,11 @@ namespace
 		  }
 		master_fprintf(file,"\n");
 	      }
-	close_file(file);
-	
-	nissa_free(corr);
       }
+    
+    close_file(file);
+    
+    nissa_free(corr);
   }
   
   //nucleon correlators

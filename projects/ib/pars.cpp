@@ -4,7 +4,6 @@
 #include "pars.hpp"
 
 #include "prop.hpp"
-#include "conf.hpp"
 #include "contr.hpp"
 
 namespace nissa
@@ -26,11 +25,11 @@ namespace nissa
     //gauge for photon propagator
     char photon_gauge_str[100];
     read_str_str("PhotonGauge",photon_gauge_str,100);
-    if(strncasecmp(photon_gauge_str,"FEYNMAN",100)==0) photon.alpha=FEYNMAN_ALPHA;
+    if(strncasecmp(photon_gauge_str,"FEYNMAN",100)==0) photon.which_gauge=gauge_info::FEYNMAN;
     else
-      if(strncasecmp(photon_gauge_str,"LANDAU",100)==0) photon.alpha=LANDAU_ALPHA;
+      if(strncasecmp(photon_gauge_str,"LANDAU",100)==0) photon.which_gauge=gauge_info::LANDAU;
       else
-	if(strncasecmp(photon_gauge_str,"LANDAU",100)==0) read_str_double("Alpha",&photon.alpha);
+	if(strncasecmp(photon_gauge_str,"COULOMB",100)==0) photon.which_gauge=gauge_info::COULOMB;
 	else crash("Unkwnown photon gauge: %s",photon_gauge_str);
     
     //discretization for photon propagator
@@ -56,11 +55,26 @@ namespace nissa
 	read_str(name,1024);
 	char q_name[2][1024];
 	for(int iq=0;iq<2;iq++)
+	  read_str(q_name[iq],1024);
+	
+	for(int icopy=0;icopy<ncopies;icopy++)
 	  {
-	    read_str(q_name[iq],1024);
-	    if(Q.find(q_name[iq])==Q.end()) crash("unable to find q%d %s",iq,q_name[iq]);
+	    char suffix[128]="";
+	    if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+	    
+	    char full_name[1024+129];
+	    sprintf(full_name,"%s%s",name,suffix);
+	    
+	    char q_full_name[2][1024+129];
+	    for(int iq=0;iq<2;iq++)
+	      sprintf(q_full_name[iq],"%s%s",q_name[iq],suffix);
+	    for(int iq=0;iq<2;iq++)
+	      if(Q.find(q_full_name[iq])==Q.end()) crash("unable to find q%d %s",iq,q_full_name[iq]);
+	    
+	    mes2pts_contr_map.push_back(mes_contr_map_t(full_name,q_full_name[0],q_full_name[1]));
+	    for(int iq=0;iq<2;iq++)
+	      propsNeededToContr.insert(q_full_name[iq]);
 	  }
-	mes2pts_contr_map.push_back(mes_contr_map_t(name,q_name[0],q_name[1]));
       }
     
     if(nmes2pts_contr) read_mes2pts_contr_gamma_list();
@@ -95,15 +109,6 @@ namespace nissa
   static std::vector<int> getList(const char& g,
 				  const char& letter)
     {
-      static const std::vector<int> numeric[7]={
-	{0},
-	{4,1,2,3},
-	{5},
-	{9,6,7,8},
-	{10,11,12},
-	{13,14,15},
-	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
-      
       static const std::vector<int> literal[7]={
 	{0},
 	{1,2,3},
@@ -123,11 +128,24 @@ namespace nissa
 	return
 	  literal[c];
       
+      static const int minNumeric[7]={0,0,0,0,1,1,0};
+      
+      const int m=minNumeric[c];
+      
       const int i=
-	letter-'0';
-    
-      if(i<0 or i>=4)
-	crash("Error, letter %c converts to int %d not in range [0:3]",letter,i);
+	letter-'0'-m;
+      
+      static const std::vector<int> numeric[7]={
+	{0},
+	{4,1,2,3},
+	{5},
+	{9,6,7,8},
+	{10,11,12},
+	{13,14,15},
+	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
+      
+      if(i<0 or i>=(int)numeric[c].size())
+	crash("Error, letter %c converts to int %d not in range [%d:%zu]",letter,i,m,numeric[c].size()+m);
       
       return
 	{numeric[c][i]};
@@ -159,7 +177,7 @@ namespace nissa
 	if(source.letter!=sink.letter)
 	  for(const int& iSink : sink.list)
 	    for(const int& iSource : source.list)
-	    mes_gamma_list.push_back({iSink,iSource});
+	      mes_gamma_list.push_back({iSink,iSource});
 	else
 	  {
 	    if(source.list.size()!=sink.list.size())
@@ -188,11 +206,24 @@ namespace nissa
 	read_str(name,1024);
 	char q_name[3][1024];
 	for(int iq=0;iq<3;iq++)
+	  read_str(q_name[iq],1024);
+	
+	for(int icopy=0;icopy<ncopies;icopy++)
 	  {
-	    read_str(q_name[iq],1024);
-	    if(Q.find(q_name[iq])==Q.end()) crash("unable to find q%d %s",iq,q_name[iq]);
+	    char suffix[128]="";
+	    if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+	    
+	    char full_name[1024+129];
+	    sprintf(full_name,"%s%s",name,suffix);
+	    char q_full_name[3][1024+129];
+	    for(int iq=0;iq<3;iq++)
+	      sprintf(q_full_name[iq],"%s%s",q_name[iq],suffix);
+	    for(int iq=0;iq<3;iq++)
+	      if(Q.find(q_full_name[iq])==Q.end()) crash("unable to find q%d %s",iq,q_full_name[iq]);
+	    bar2pts_contr_map.push_back(bar_triplet_t(full_name,q_full_name[0],q_full_name[1],q_full_name[2]));
+	    for(int iq=0;iq<3;iq++)
+	      propsNeededToContr.insert(q_full_name[iq]);
 	  }
-	bar2pts_contr_map.push_back(bar_triplet_t(name,q_name[0],q_name[1],q_name[2]));
       }
   }
   
@@ -221,12 +252,24 @@ namespace nissa
 	    int store;
 	    read_int(&store);
 	    
-	    handcuffs_side_map.push_back(handcuffs_side_map_t(name,igamma,bw,fw,store));
-	    if(Q.find(bw)==Q.end()) crash("for bubble \'%s\' the first propagator \'%s\' is not present",name,bw);
-	    if(Q.find(fw)==Q.end()) crash("for bubble \'%s\' the second propagator \'%s\' is not present",name,fw);
+	    for(int icopy=0;icopy<ncopies;icopy++)
+	      {
+		char suffix[128]="";
+		if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+		
+		char full_name[1024+129];
+		char bw_full[1024+129];
+		char fw_full[1024+129];
+		sprintf(full_name,"%s%s",name,suffix);
+		sprintf(bw_full,"%s%s",bw,suffix);
+		sprintf(fw_full,"%s%s",fw,suffix);
+		if(Q.find(bw_full)==Q.end()) crash("for bubble \'%s\' the first propagator \'%s\' is not present",name,bw_full);
+		if(Q.find(fw_full)==Q.end()) crash("for bubble \'%s\' the second propagator \'%s\' is not present",name,fw_full);
+		handcuffs_side_map.push_back(handcuffs_side_map_t(full_name,igamma,bw_full,fw_full,store));
+		for(auto& q : {bw_full,fw_full})
+		  propsNeededToContr.insert(q);
+	      }
 	  }
-	
-	
 	
 	//read the sides combo
 	for(int i=0;i<nhand_contr;i++)
@@ -237,20 +280,34 @@ namespace nissa
 	    char right[1024];
 	    read_str(left,1024);
 	    read_str(right,1024);
-	    //check if left and right is present in handcuffs_size_map
-	    bool left_hand_found=false;
-	    bool right_hand_found=false;
-	    for(auto &hand : handcuffs_side_map)
+	    
+	    for(int icopy=0;icopy<ncopies;icopy++)
 	      {
-		if(hand.name==left) left_hand_found=true;
-		if(hand.name==right) right_hand_found=true;
-		if(left_hand_found && right_hand_found) break;
+		char suffix[128]="";
+		if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+		
+		char full_name[1024+129];
+		char left_full[1024+129];
+		char right_full[1024+129];
+		sprintf(full_name,"%s%s",name,suffix);
+		sprintf(left_full,"%s%s",left,suffix);
+		sprintf(right_full,"%s%s",right,suffix);
+		
+		//check if left and right is present in handcuffs_size_map
+		bool left_hand_found=false;
+		bool right_hand_found=false;
+		for(auto &hand : handcuffs_side_map)
+		  {
+		    if(hand.name==left_full) left_hand_found=true;
+		    if(hand.name==right_full) right_hand_found=true;
+		    if(left_hand_found && right_hand_found) break;
+		  }
+		
+		if(!left_hand_found)   crash("for handcuffs \'%s\' the left bubble \'%s\' is not present",name,left_full);
+		if(!right_hand_found)  crash("for handcuffs \'%s\' the right bubble \'%s\' is not present",name,right_full);
+		
+		handcuffs_map.push_back(handcuffs_map_t(full_name,left_full,right_full));
 	      }
-	    
-	    if(!left_hand_found)   crash("for handcuffs \'%s\' the left bubble \'%s\' is not present",name,left);
-	    if(!right_hand_found)  crash("for handcuffs \'%s\' the right bubble \'%s\' is not present",name,right);
-	    
-	    handcuffs_map.push_back(handcuffs_map_t(name,left,right));
 	  }
       }
   }
@@ -270,10 +327,20 @@ namespace nissa
 	    char tag[1024];
 	    read_str(tag,1024);
 	    
-	    if(Q.find(tag)==Q.end()) crash("unable to find %s",tag);
-	    fft_prop_list.push_back(tag);
+	    for(int icopy=0;icopy<ncopies;icopy++)
+	      {
+		char suffix[128]="";
+		if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+		
+		char tag_full[1024+129];
+		sprintf(tag_full,"%s%s",tag,suffix);
+		
+		if(Q.find(tag_full)==Q.end()) crash("unable to find %s",tag_full);
+		fft_prop_list.push_back(tag_full);
+		propsNeededToContr.insert(tag_full);
+	      }
 	  }
-	
+	    
 	//read the number of ranges
 	int nfft_ranges;
 	read_str_int("NFftRanges",&nfft_ranges);

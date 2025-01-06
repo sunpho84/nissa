@@ -3,9 +3,10 @@
 #define EXTERN_CONF
  #include "conf.hpp"
 
-#include "contr.hpp"
-#include "pars.hpp"
-#include "prop.hpp"
+#include "ib/contr.hpp"
+#include "ib/hit.hpp"
+#include "ib/pars.hpp"
+#include "ib/prop.hpp"
 
 namespace nissa
 {
@@ -22,7 +23,7 @@ namespace nissa
   //needed to avoid any check
   bool finish_file_present()
   {
-    return not file_exists(combine("%s/finished",outfolder).c_str());
+    return not file_exists(combine("%s/%s",outfolder,finished_filename.c_str()).c_str());
   }
   
   //allocate confs needed by the program
@@ -62,11 +63,12 @@ namespace nissa
   //read the conf and setup it
   void setup_conf(quad_su3 *conf,const char *conf_path,int rnd_gauge_transform,int free_theory)
   {
-    //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
     if(not free_theory)
       {
 	START_TIMING(conf_load_time,nconf_load);
+	const double beg=take_time();
 	read_ildg_gauge_conf(conf,conf_path);
+	master_printf("Full loading took %lg s\n",take_time()-beg);
 	STOP_TIMING(conf_load_time);
 	master_printf("plaq: %+16.16g\n",global_plaquette_lx_conf(conf));
       }
@@ -94,6 +96,8 @@ namespace nissa
   //take a set of theta, charge and photon field, and update the conf
   quad_su3* get_updated_conf(double charge,const momentum_t& theta,quad_su3 *in_conf)
   {
+    master_printf("Checking if conf needs to be updated\n");
+    
     //check if the inner conf is valid or not
     static quad_su3 *stored_conf=NULL;
     static double stored_charge=0,stored_theta[NDIM];
@@ -137,6 +141,8 @@ namespace nissa
 	//include the photon field, with correct charge
 	if(charge) add_photon_field_to_conf(inner_conf,charge);
       }
+    else
+      master_printf("Inner conf valid, no need to update\n");
     
     //update value and set valid
     stored_conf=in_conf;
@@ -175,19 +181,15 @@ namespace nissa
   {
     setup_conf(glb_conf,conf_path,rnd_gauge_transform,free_theory);
     
-    //reset contractions
-    if(mes2pts_contr_size) vector_reset(mes2pts_contr);
-    if(handcuffs_contr_size) vector_reset(handcuffs_contr);
-    if(bar2pts_contr_size) vector_reset(bar2pts_contr);
-    if(bar2pts_alt_contr_size) vector_reset(bar2pts_alt_contr);
-    if(nmeslep_corr) vector_reset(meslep_contr);
+    clearCorrelations();
   }
   
   //handle to discard the source
   void skip_conf()
   {
+    HitLooper hitLooper;
     for(int ihit=0;ihit<nhits;ihit++)
-      start_hit(ihit,true);
+      hitLooper.start_hit(ihit,true);
   }
   
   //find a new conf

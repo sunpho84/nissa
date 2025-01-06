@@ -2,9 +2,9 @@
 
 using namespace nissa;
 
-int T=24,L=12;
-double qkappa=0.125;
-double qmass=.340264;
+int T=8,L=4;
+// double qkappa=0.125;
+// double qmass=.340264;
 double qr=0;
 
 gauge_info photon;
@@ -153,8 +153,8 @@ void check_bar()
   tm_quark_info qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
   master_printf(" -----------------baryon direct -------------------- \n");
@@ -180,8 +180,8 @@ void check_bar2()
   tm_quark_info qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
   master_printf(" -----------------baryon direct ins on outdiquark -------------------- \n");
@@ -241,8 +241,8 @@ void check_bar3()
   tm_quark_info qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
   master_printf(" -----------------baryon direct cons ins on outdiquark -------------------- \n");
@@ -339,8 +339,8 @@ void check_mes_2pts()
   tm_quark_info qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.14;
+  qu.mass=0.001;
   qu.r=1;
   
   master_printf(" ------------------ meson------------------ \n");
@@ -369,7 +369,7 @@ void check_mes_2pts()
 	  double pq=mom_prod(sin_p,sin_q);
 	
 	int pmq0=(glbSize[0]+glbCoordOfLoclx[p][0]-glbCoordOfLoclx[q][0])%glbSize[0];
-	double contr=4*(mu2+pq+Mp*Mq);
+	double contr=4*(mu2+pq-Mp*Mq);
 	co[pmq0][RE]+=NCOL*contr/(glbSize[0]*glbVol*dp*dq);
       }
     }
@@ -377,18 +377,17 @@ void check_mes_2pts()
   mes_transf(co,qu);
 }
 
-void check_mes_V1V1()
+void check_mes_ins_S_2pts()
 {
   tm_quark_info qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
-  qu.r=qr;
+  qu.kappa=0.14;
+  qu.mass=0.001;
+  qu.r=1;
   
-  master_printf(" ------------------ meson_v1v1------------------ \n");
+  master_printf(" ------------------ meson with S insertion ------------------ \n");
   
-  double mu2=qu.mass*qu.mass;
   complex co[glbSize[0]];
   memset(co,0,sizeof(complex)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
@@ -410,10 +409,106 @@ void check_mes_V1V1()
 	  double dq=den_of_mom(q,qu);
 	  double Mq=M_of_mom(qu,q);
 	  double pq=mom_prod(sin_p,sin_q);
+	  // double Mpp=Mp*Mp;
+	  // double pp=mom_prod(sin_p,sin_p);
+	  double qq=mom_prod(sin_q,sin_q);
+	  double m=qu.mass;
+	  
+	int pmq0=(glbSize[0]+glbCoordOfLoclx[p][0]-glbCoordOfLoclx[q][0])%glbSize[0];
+	double contr=4*cube(m) + 8*m*Mp*Mq + 8*m*pq - 4*m*qq - 4*m*sqr(Mq);
+	 // double contr=4*cube(m) - 4*m*Mpp + 8*m*Mp*Mq - 4*m*pp + 8*m*pq;
+	co[pmq0][RE]+=NCOL*contr/(glbSize[0]*glbVol*dp*dp*dq);
+      }
+    }
+  
+  mes_transf(co,qu);
+}
+
+void check_mes_ins_P_2pts()
+{
+  tm_quark_info qu;
+  qu.bc[0]=1;
+  for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
+  qu.kappa=0.14;
+  qu.mass=0.001;
+  qu.r=1;
+  
+  master_printf(" ------------------ meson with P insertion ------------------ \n");
+  
+  complex co[glbSize[0]];
+  memset(co,0,sizeof(complex)*glbSize[0]);
+  NISSA_LOC_VOL_LOOP(p)
+    {
+      momentum_t sin_p;
+      sin_mom(sin_p,p,qu);
+      double dp=den_of_mom(p,qu);
+      double Mp=M_of_mom(qu,p);
+      
+      for(int q0=0;q0<glbSize[0];q0++)
+	{
+	  coords_t cq;
+	  cq[0]=q0;
+	  for(int mu=1;mu<NDIM;mu++) cq[mu]=glbCoordOfLoclx[p][mu];
+	  int q=loclx_of_coord(cq);
+	  
+	  momentum_t sin_q;
+	  sin_mom(sin_q,q,qu);
+	  double dq=den_of_mom(q,qu);
+	  double Mq=M_of_mom(qu,q);
+	  double pq=mom_prod(sin_p,sin_q);
+	  double Mpp=Mp*Mp;
+	  double pp=mom_prod(sin_p,sin_p);
+	  double mu2=sqr(qu.mass);
+	  
+	int pmq0=(glbSize[0]+glbCoordOfLoclx[p][0]-glbCoordOfLoclx[q][0])%glbSize[0];
+	double contr=4*Mpp*Mq + 8*Mp*mu2 - 4*Mq*mu2 - 4*Mq*pp + 8*Mp*pq;
+	co[pmq0][IM]+=NCOL*contr/(glbSize[0]*glbVol*dp*dp*dq);
+      }
+    }
+  
+  mes_transf(co,qu);
+}
+
+void check_mes_V1V1()
+{
+  tm_quark_info qu;
+  qu.bc[0]=1;
+  for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
+  qu.kappa=0.14;
+  qu.mass=0.001;
+  qu.r=1;
+  tm_quark_info pu=qu;
+  pu.r=-1;
+  master_printf(" ------------------ meson_v1v1------------------ \n");
+  
+  double mu2=qu.mass*qu.mass;
+  complex co[glbSize[0]];
+  memset(co,0,sizeof(complex)*glbSize[0]);
+  NISSA_LOC_VOL_LOOP(p)
+    {
+      momentum_t sin_p;
+      sin_mom(sin_p,p,pu);
+      double dp=den_of_mom(p,pu);
+      double Mp=M_of_mom(pu,p);
+      
+      for(int q0=0;q0<glbSize[0];q0++)
+	{
+	  coords_t cq;
+	  cq[0]=q0;
+	  for(int mu=1;mu<NDIM;mu++) cq[mu]=glbCoordOfLoclx[p][mu];
+	  int q=loclx_of_coord(cq);
+	  
+	  momentum_t sin_q;
+	  sin_mom(sin_q,q,qu);
+	  double dq=den_of_mom(q,qu);
+	  double Mq=M_of_mom(qu,q);
+	  double pq=mom_prod(sin_p,sin_q);
 	
 	int pmq0=(glbSize[0]+glbCoordOfLoclx[p][0]-glbCoordOfLoclx[q][0])%glbSize[0];
-	double contr=4*(mu2+pq-Mp*Mq-2*sin_p[1]*sin_q[1]);
-	
+	//double contr=4*(mu2+pq-Mp*Mq-2*sin_p[1]*sin_q[1]);
+	double contr=-4*Mp*Mq - 4*mu2 - 4*pq - 8*sin_p[1]*sin_q[1];
+	//double contr=-4*Mp*Mq - 4*mu2 - 4*pq - 8*sin_p[1]*sin_q[1];
+
 	co[pmq0][RE]+=NCOL*contr/(glbSize[0]*glbVol*dp*dq);
       }
     }
@@ -426,11 +521,11 @@ void check_mes_A1A1()
   tm_quark_info qu;
   qu.bc[0]=0;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" ------------------ meson_v1v1------------------ \n");
+  master_printf(" ------------------ meson_a1a1------------------ \n");
   
   double mu2=qu.mass*qu.mass;
   complex co[glbSize[0]];
@@ -471,8 +566,8 @@ void check_mes_self_en()
   tm_quark_info qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
   master_printf(" ------------------ meson with self energy ------------------ \n");
@@ -538,8 +633,8 @@ void check_mes_cons_self_en()
   tm_quark_info qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
   master_printf(" ------------------ meson with self energy conservata ------------------ \n");
@@ -620,8 +715,8 @@ void check_handcuffs()
   tm_quark_info qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
   master_printf(" ------------------ handcuffs ------------------ \n");
@@ -718,8 +813,8 @@ void print_ref_prop()
   tm_quark_info qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
   spinspin p;
@@ -741,7 +836,7 @@ void init_simulation()
 {
   init_grid(T,L);
   
-  photon.alpha=FEYNMAN_ALPHA;
+  photon.which_gauge=gauge_info::FEYNMAN;
   photon.bc[0]=photon.bc[1]=photon.bc[2]=photon.bc[3]=0;
   photon.c1=WILSON_C1;
   photon.zms=UNNO_ALEMANNA;
@@ -752,8 +847,8 @@ void check_scalar_EU()
    tm_quark_info qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
   spin1prop *pho_pro=nissa_malloc("pho_pro",locVol,spin1prop);
@@ -809,7 +904,7 @@ void check_scalar_EU()
   nissa_free(pho_pro);
   
   master_printf("eu6: %.16lg\n",eu6);
-  crash("");
+  crash(" ");
 }
 
 void in_main(int narg,char **arg)
@@ -820,9 +915,12 @@ void in_main(int narg,char **arg)
   //print_ref_prop();
   
   check_mes_2pts();
+  master_printf("\n\n");
+  check_mes_ins_P_2pts();
+  master_printf("\n\n");
   check_mes_V1V1();
-  check_mes_A1A1();
   return;
+  check_mes_A1A1();
     master_printf("\n\n");
 
   check_scalar_EU();

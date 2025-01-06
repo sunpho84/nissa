@@ -137,6 +137,7 @@ namespace nissa
     
     if(multiGrid::checkIfMultiGridAvailableAndRequired(mass) and not solved)
       {
+	[[maybe_unused]]
 	const double cSW=0;
 	double call_time=take_time();
 #ifdef USE_QUDA

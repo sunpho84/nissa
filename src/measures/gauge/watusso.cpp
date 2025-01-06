@@ -61,7 +61,7 @@ namespace nissa
     do
       {
 	finished=smooth_lx_conf_until_next_meas(lx_conf,pars->spat_smear_pars,nsmooth,all_other_dirs[nu]);
-	verbosity_lv1_master_printf("Plaquette after %d perp to dir nsmooth %d: %16.16lg\n",
+	verbosity_lv1_master_printf("Plaquette after %d perp to dir %d nsmooth %d: %16.16f\n",
 					imeas,nu,nsmooth,global_plaquette_lx_conf(lx_conf));
 	
 	//compute the watusso
@@ -126,6 +126,7 @@ namespace nissa
 		master_fprintf(fout," ## size = %d , 1/3<trW> = %+16.16lg %+16.16lg\n\n",size,big_trace[RE]/glbVol/3,big_trace[IM]/glbVol/3);
 		
 		//compute the periscope
+		[[maybe_unused]]
 		int irho=0;
 		for(int rho=0;rho<NDIM;rho++) //orthogonal dir
 		  if(rho!=mu&&rho!=nu)

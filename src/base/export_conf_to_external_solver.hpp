@@ -28,9 +28,12 @@ namespace nissa
 {
   namespace export_conf
   {
-    enum ExportBypass{NO_BYPASS,AVOID_EXPORT,FORCE_EXPORT};
-    EXTERN_EXPORT_CONF ExportBypass export_bypass INIT_EXPORT_CONF_TO(=NO_BYPASS);
+    enum ExportRule{DO_THE_CHECK,FORCE_EXPORT,AVOID_EXPORT};
+    EXTERN_EXPORT_CONF ExportRule export_rule INIT_EXPORT_CONF_TO(=DO_THE_CHECK);
+    EXTERN_EXPORT_CONF bool relyOnTag INIT_EXPORT_CONF_TO(=false);
     EXTERN_EXPORT_CONF checksum check_old INIT_EXPORT_CONF_TO(={0,0});
+    EXTERN_EXPORT_CONF std::string confTagOld INIT_EXPORT_CONF_TO(="");
+    EXTERN_EXPORT_CONF std::string confTag INIT_EXPORT_CONF_TO(="");
   }
   
   /// Keep track of the exported conf
@@ -39,16 +42,35 @@ namespace nissa
   {
     using namespace export_conf;
     
-    if(export_bypass==AVOID_EXPORT)
+    if(export_rule==AVOID_EXPORT)
       return false;
-	
+    
     //verify if export needed
     bool export_needed=false;
-    
-    if(export_bypass==FORCE_EXPORT)
-      export_needed=true;
+    if(export_rule==FORCE_EXPORT)
+      {
+	master_printf("Forcing export of the conf to external library\n");
+	export_needed=true;
+      }
     else
+      if(relyOnTag)
 	{
+	  master_printf("Relying on tag to check,\n old tag: \"%s\"\n",confTagOld.c_str());
+	  
+	  if(confTag!=confTagOld)
+	    {
+	      master_printf(" new tag: \"%s\"\n -> export needed\n",confTag.c_str());
+	      
+	      confTagOld=confTag;
+	      export_needed=true;
+	    }
+	  else
+	    master_printf(" -> tag %s not changed, avoiding export\n",confTag.c_str());
+	}
+      else
+	{
+	  master_printf("Relying on checksum to check\n");
+	  
 	  checksum check_cur{};
 	  
 	  //compute checksum
@@ -58,11 +80,11 @@ namespace nissa
 	    {
 	      //check inited
 	      bool export_since_new=(check_old[i]==0);
-	      if(not export_needed and export_since_new) master_printf("external library: Old checksum 0, need to export the conf\n");
+	      if(export_since_new) master_printf("external library: Old checksum 0, need to export the conf\n");
 	      export_needed|=export_since_new;
 	      //check diff
 	      bool export_since_diff=(check_old[i]!=check_cur[i]);
-	      if(not export_needed and export_since_diff) master_printf("external library Old checksum %d is %x, new is %x, need to import\n",i,check_old[i],check_cur[i]);
+	      if(export_since_diff) master_printf("external library Old checksum %d is %x, new is %x, need to import\n",i,check_old[i],check_cur[i]);
 	      export_needed|=export_since_diff;
 	      //save
 	      check_old[i]=check_cur[i];

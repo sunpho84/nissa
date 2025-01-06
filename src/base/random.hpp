@@ -85,7 +85,7 @@ namespace nissa
   template <typename T>
   void get_system_random(T &t)
   {
-    const int size=sizeof(T);
+    const size_t size=sizeof(T);
     
     if(is_master_rank())
       {
