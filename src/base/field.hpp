@@ -94,6 +94,32 @@ namespace nissa
   /// Memory type
   enum class MemorySpace{CPU,GPU};
   
+  /// Returns a name given the memory space
+  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  const char* memorySpaceName(const MemorySpace& ms)
+  {
+    return ((const char*[]){"CPU","GPU"})[(int)ms];
+  }
+  
+  /// Gives the current memory space: GPU if compiling for device, CPU otherwise
+  constexpr MemorySpace currentMemorySpace=
+	      MemorySpace::
+#ifdef COMPILING_FOR_DEVICE
+	      GPU
+#else
+	      CPU
+#endif
+	      ;
+  
+  /// Crashes if not running on the given memory space
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  void assertRunningOnMemorySpace(const MemorySpace& ms)
+  {
+    if(ms!=currentMemorySpace)
+      CRASH("should be running on memory space %s, is running on %s",
+	    memorySpaceName(ms),memorySpaceName(currentMemorySpace));
+  }
+  
   /// Coverage of the field
   enum FieldCoverage{EVEN_SITES,ODD_SITES,FULL_SPACE,EVEN_OR_ODD_SITES};
   
@@ -277,6 +303,8 @@ namespace nissa
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
     decltype(auto) operator[](const int64_t& site) CONST		\
     {									\
+      F::assertRunningOnDeclaredMemorySpace();				\
+    									\
       if constexpr(not std::is_array_v<Comps>)				\
 	return								\
 	  _data[site];							\
@@ -299,6 +327,8 @@ namespace nissa
     CONST Fund& operator()(const int64_t& site,				\
 			   const int& internalDeg) CONST		\
     {									\
+      F::assertRunningOnDeclaredMemorySpace();				\
+    									\
       return _data[index(site,internalDeg)];				\
     }
     
@@ -412,8 +442,11 @@ namespace nissa
     /// Coverage of sites
     static constexpr FieldCoverage fieldCoverage=FC;
     
-    /// Memory layout of the field
+    /// Arrangement of internal DOF w.r.t spacetime
     static constexpr FieldLayout fieldLayout=FL;
+    
+    /// Memory space where the data is stored
+    static constexpr MemorySpace memorySpace=MS;
     
     /// Number of degrees of freedom
     static constexpr int nInternalDegs=
@@ -571,6 +604,7 @@ namespace nissa
       return 1/f;
     }
     
+    /// Put the field to the given norm
     double normalize(const Field& oth,
 		     const double& newNorm=1.0)
     {

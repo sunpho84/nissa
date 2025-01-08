@@ -25,16 +25,28 @@
 
 namespace nissa
 {
-  enum class MemoryType{CPU ///< Memory allocated on CPU side
+  /// Memory type
+  enum class MemorySpace{CPU
 #ifdef USE_CUDA
-			,GPU ///< Memory allocated on GPU side
+			 ,GPU
 #endif
   };
   
-  /// Default memory to be used
-  constexpr MemoryType defaultMemoryType=
-	      MemoryType::
+  /// Returns a name given the memory space
+  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  const char* memorySpaceName(const MemorySpace& ms)
+  {
+    return ((const char*[]){"CPU"
 #ifdef USE_CUDA
+			    ,"GPU"
+#endif
+      })[(int)ms];
+  }
+  
+  /// Gives the current memory space: GPU if compiling for device, CPU otherwise
+  constexpr MemorySpace currentMemorySpace=
+	      MemorySpace::
+#ifdef COMPILING_FOR_DEVICE
 	      GPU
 #else
 	      CPU

@@ -5,6 +5,7 @@
 # include "config.hpp"
 #endif
 
+#include <base/memory_manager.hpp>
 #include <routines/mpi_routines.hpp>
 
 #include <geometry/geometry_lx.hpp>
@@ -39,6 +40,31 @@ namespace nissa
 	decript_cuda_error(cudaSetDevice(iCudaDevice),"Unable to set device %d",iCudaDevice);
       }
   }
+  
+  /// Returns the cudaMemcpyKind corresponding to the required copy from/to
+  template <MemorySpace TO,
+	    MemorySpace FROM>
+  inline cudaMemcpyKind memcpyKindForCopy;
+  
+  /// Returns the cudaMemcpyKind corresponding to the CPU-CPU copy
+  template <>
+  inline cudaMemcpyKind memcpyKindForCopy<MemorySpace::CPU,MemorySpace::CPU> =
+    cudaMemcpyHostToHost;
+  
+  /// Returns the cudaMemcpyKind corresponding to the CPU-GPU copy
+  template <>
+  inline cudaMemcpyKind memcpyKindForCopy<MemorySpace::GPU,MemorySpace::CPU> =
+    cudaMemcpyHostToDevice;
+  
+  /// Returns the cudaMemcpyKind corresponding to the GPU-CPU copy
+  template <>
+  inline cudaMemcpyKind memcpyKindForCopy<MemorySpace::CPU,MemorySpace::GPU> =
+    cudaMemcpyDeviceToHost;
+  
+  /// Returns the cudaMemcpyKind corresponding to the GPU-GPU copy
+  template <>
+  inline cudaMemcpyKind memcpyKindForCopy<MemorySpace::GPU,MemorySpace::GPU> =
+    cudaMemcpyDeviceToDevice;
 }
 
 #endif
