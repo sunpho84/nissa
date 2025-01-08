@@ -65,7 +65,7 @@ namespace nissa
     /// Number of allocation performed
     Size nAlloc{0};
     
-    /// List of dynamical allocated memory
+    /// List of dynamically allocated memory
     std::map<void*,Size> used;
     
     /// List of cached allocated memory
@@ -210,7 +210,8 @@ namespace nissa
 	       const Size alignment=DEFAULT_ALIGNMENT)
     {
       /// Total size to allocate
-      const Size size=sizeof(T)*nel;
+      const Size size=
+	sizeof(T)*nel;
       
       /// Allocated memory
       void* ptr;
