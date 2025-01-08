@@ -235,11 +235,11 @@ namespace nissa
 	  locNbroken[ivol]=n;
 	});
     
-    glb_reduce(&result.average_diff,locAvg,locVol);
+    locAvg.reduce(result.average_diff);
     result.average_diff/=glbVol*NDIM;
     
-    glbReduce(&result.max_diff,locMax,locVol,GlbReduceMaxFunctor());
-    glb_reduce(&result.nbroken_links,locNbroken,locVol);
+    locMax.reduce(result.max_diff,GlbReduceMaxFunctor(),MPI_MAX);
+    locNbroken.reduce(result.nbroken_links);
   }
   
   void unitarize_lx_conf_orthonormalizing(quad_su3 *conf);

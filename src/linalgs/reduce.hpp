@@ -93,13 +93,22 @@ namespace nissa
   
   template <typename A,
 	    typename B>
-  CUDA_HOST_AND_DEVICE
-  void reduceAssigner(A&& out,const B& in)
+  void reduceAssigner(A&& out,
+		      const B& in)
   {
     if constexpr(std::is_pod_v<B> and not std::is_array_v<B>)
+#ifdef USE_CUDA
+      cudaMemcpy(&out,&in,sizeof(B),cudaMemcpyDeviceToHost);
+#else
       out=in;
+#endif
     else //hack
+#ifdef USE_CUDA
+      for(int ri=0;ri<2;ri++)
+	cudaMemcpy(&(out[ri]),&(in[ri]),sizeof(in[ri]),cudaMemcpyDeviceToHost);
+#else
       complex_copy(out,in);
+#endif
   }
   
   /////////////////////////////////////////////////////////////////
@@ -160,7 +169,7 @@ namespace nissa
 	      typename F2>
     CUDA_DEVICE INLINE_FUNCTION
     void operator()(F1&& res,
-		    const F2& acc)
+		    const F2& acc) const
     {
       reduceSummer(res,acc);
     }
@@ -174,7 +183,7 @@ namespace nissa
 	      typename F2>
     CUDA_DEVICE INLINE_FUNCTION
     void operator()(F1&& res,
-		    const F2& acc)
+		    const F2& acc) const
     {
       if(acc>res)
 	res=acc;

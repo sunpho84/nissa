@@ -630,7 +630,10 @@ namespace nissa
     }
     
     /// Reduce the field summing all elements and storing the result inside 'out'
-    void reduce(T& out) const
+    template <typename F=GlbReduceSumFunctor>
+    void reduce(T& out,
+		const F& f=GlbReduceSumFunctor(),
+		const MPI_Op& mpiOp=MPI_SUM) const
     {
       /// Copy to a temporary to avoid destroying the field
       Field tmp("tmp");
@@ -646,22 +649,31 @@ namespace nissa
 	  
 	  PAR(0,nReductions,
 	      CAPTURE(stride,
-		      TO_WRITE(tmp)),
+		      TO_WRITE(tmp),
+		      f),
 		      ireduction,
 	      {
 		const int64_t first=ireduction;
 		const int64_t second=first+stride;
 		
 		UNROLL_FOR(iDeg,0,nInternalDegs)
-		  tmp(first,iDeg)+=tmp(second,iDeg);
+		  f(tmp(first,iDeg),tmp(second,iDeg));
 	      });
 	  n=stride;
 	};
       
       UNROLL_FOR(iDeg,0,nInternalDegs)
-	((Fund*)out)[iDeg]=tmp(0,iDeg);
+#if defined(USE_CUDA)
+ 	if constexpr(memorySpace==MemorySpace::GPU)
+	  cudaMemcpy((Fund*)&out+iDeg,
+		     tmp._data+index(0,iDeg),
+		     sizeof(Fund),
+		     cudaMemcpyDeviceToHost);
+	else
+#endif
+	  ((Fund*)&out)[iDeg]=tmp(0,iDeg);
       
-      MPI_Allreduce(MPI_IN_PLACE,out,nInternalDegs,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+      MPI_Allreduce(MPI_IN_PLACE,&out,nInternalDegs,MPI_Datatype_of<Fund>(),mpiOp,MPI_COMM_WORLD);
     }
     
     /// (*this,out)
@@ -774,7 +786,7 @@ namespace nissa
       edgesAreValid(false)
     {
       VERBOSITY_LV3_MASTER_PRINTF("Allocating field %s\n",name);
-      _data=nissa_malloc(name,externalSize*nInternalDegs,Fund);
+      _data=memoryManager<MS>()->template provide<Fund>(externalSize*nInternalDegs);
     }
     
     /// Construct from other layout
