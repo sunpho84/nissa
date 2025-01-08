@@ -31,12 +31,12 @@ namespace nissa
   /// Pairwise reduce the checksum
   struct ChecksumReduceFunctor
   {
+    /// Called on value by value basis
     CUDA_DEVICE INLINE_FUNCTION
-    void operator()(Checksum& res,
-		    const Checksum& acc)
+    void operator()(uint32_t& res,
+		    const uint32_t& acc) const
     {
-      for(int i=0;i<2;i++)
-	res[i]^=acc[i];
+	res^=acc;
     }
   };
   
@@ -45,7 +45,10 @@ namespace nissa
 	    FieldLayout FL>
   Checksum ildgChecksum(const LxField<T,FL>& field)
   {
-    LxField<Checksum> buff("buff");
+    using ChecksumCArr=
+      uint32_t[2];
+    
+    LxField<ChecksumCArr> buff("buff");
     
     PAR(0,locVol,
 	CAPTURE(TO_WRITE(buff),
@@ -83,13 +86,10 @@ namespace nissa
 	      crc<<crc_rank[i]|crc>>(32-crc_rank[i]);
 	});
     
-    Checksum loc_check;
-    locReduce(&loc_check,buff,locVol,1,ChecksumReduceFunctor());
+    ChecksumCArr check;
+    buff.reduce(check,ChecksumReduceFunctor(),MPI_BXOR);
     
-    Checksum check;
-    MPI_Allreduce(&loc_check,&check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
-    
-    return check;
+    return {check[0],check[1]};
   }
 }
 

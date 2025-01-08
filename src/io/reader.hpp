@@ -12,27 +12,6 @@
 
 namespace nissa
 {
-  template <typename T,
-	    FieldLayout FL>
-  void read_real_vector_internal(LxField<T,FL>& out,
-				 ILDG_File file,
-				 ILDG_header header)
-  {
-    LxField<T,FieldLayout::CPU> buf("buf");
-    read_real_vector_internal(buf,file,header);
-    
-    out=buf;
-  }
-  
-  template <typename T>
-  void read_real_vector_internal(LxField<T,FieldLayout::CPU>& out,
-				 ILDG_File file,
-				 ILDG_header header)
-  {
-    ILDG_File_read_ildg_data_all(out._data,file,header);
-    out.invalidateHalo();
-  }
-  
   template <typename T>
   void read_real_vector(LxField<T>& out,
 			ILDG_File file,
@@ -48,8 +27,8 @@ namespace nissa
       CRASH("Opsss! The file contain %lu bytes per site and it is supposed to contain not more than %lu!",
 	    nbytes_per_site_read,nreals_per_site*sizeof(double));
     
-    //read
-    read_real_vector_internal(out,file,header);
+    ILDG_File_read_ildg_data_all(out,file,header);
+    out.invalidateHalo();
     
     //check read size
     const uint64_t nbytes_per_site_float=nreals_per_site*sizeof(float);
@@ -84,7 +63,8 @@ namespace nissa
 	MASTER_PRINTF("Checksums read:      %#010x %#010x\n",read_check[0],read_check[1]);
 	
 	//compute checksum
-	const Checksum comp_check=ildgChecksum(out);
+	const Checksum comp_check=
+	  ildgChecksum(out);
 	
 	//print the comparison between checksums
 	MASTER_PRINTF("Checksums computed:  %#010x %#010x\n",comp_check[0],comp_check[1]);
@@ -99,6 +79,7 @@ namespace nissa
     
     out.invalidateHalo();
   }
+  
   template <typename T>
   void read_real_vector(LxField<T>& out,
 			const std::string& path,
