@@ -15,12 +15,13 @@
 #include "checksum.hpp"
 #include "base/debug.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "operations/remap_vector.hpp"
 
 #ifndef EXTERN_ILDG
- #define EXTERN_ILDG extern
- #define INIT_TO(A)
+# define EXTERN_ILDG extern
+# define INIT_TO(A)
 #else
- #define INIT_TO(A) =A
+# define INIT_TO(A) =A
 #endif
 
 #define ILDG_MAGIC_NO                   0x456789ab
@@ -93,10 +94,6 @@ namespace nissa
   void ILDG_File_master_write(ILDG_File &file,void *data,int nbytes_req);
   void ILDG_File_read_all(void *data,ILDG_File &file,size_t nbytes_req);
   Checksum ILDG_File_read_checksum(ILDG_File &file);
-  
-  void ILDG_File_read_ildg_data_all(void* data,
-				    ILDG_File& file,
-				    const ILDG_header& header);
   
   void ILDG_File_seek_to_next_eight_multiple(ILDG_File &file);
   void ILDG_File_set_position(ILDG_File &file,ILDG_Offset pos,int amode);
@@ -203,6 +200,66 @@ namespace nissa
       else CRASH("Unable to convert, tag %d while expecting %d",head.type,tag);
     }
   };
+  
+  /// Read the data according to ILDG mapping
+  template <typename T>
+  void ILDG_File_read_ildg_data_all(LxField<T>& out,
+				    ILDG_File &file,
+				    const ILDG_header &header)
+  {
+    //allocate a buffer
+    ILDG_Offset nbytes_per_rank_exp=header.data_length/nranks;
+    LxField<T,FieldLayout::CPU,MemorySpace::CPU> buf("buf");
+    
+    //take original position
+    ILDG_Offset ori_pos=ILDG_File_get_position(file);
+    
+    //find starting point
+    ILDG_Offset new_pos=ori_pos+rank*nbytes_per_rank_exp;
+    ILDG_File_set_position(file,new_pos,SEEK_SET);
+    
+    //read
+    const double beg=take_time();
+    ILDG_Offset nbytes_read=fread(buf._data,1,nbytes_per_rank_exp,file);
+    MASTER_PRINTF("Bare reading %zu bytes took %lg s\n",nbytes_per_rank_exp,take_time()-beg);
+    if(nbytes_read!=nbytes_per_rank_exp) CRASH("read %zu bytes instead of %ld",nbytes_read,nbytes_per_rank_exp);
+    
+    //place at the end of the record, including padding
+    ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
+    
+    /// Reorder data to the appropriate place
+    decltype(auto) bufOnDefaultMemorySpace=
+      [&buf](auto& in) -> decltype(auto)
+      {
+	if constexpr(defaultMemorySpace!=MemorySpace::CPU)
+	  {
+	    LxField<T,FieldLayout::CPU> out("out");
+	    out=in;
+	    return out;
+	  }
+	else
+	  return in;
+      }(buf);
+    
+    auto act=
+      [bufOnDefaultMemorySpace,
+       rem=vector_remap_t(locVol,index_from_ILDG_remapping),
+       &header](char* data)
+      {
+	rem.remap(data,bufOnDefaultMemorySpace._data,header.data_length/glbVol);
+      };
+    
+    if constexpr(defaultFieldLayout==FieldLayout::CPU)
+      act((char*)out._data);
+    else
+      {
+	LxField<T,FieldLayout::CPU> tmp("tmp");
+	act((char*)tmp._data);
+	out=tmp;
+      }
+      
+    VERBOSITY_LV3_MASTER_PRINTF("ildg data record read: %lu bytes\n",header.data_length);
+  }
 }
 
 #undef EXTERN_ILDG

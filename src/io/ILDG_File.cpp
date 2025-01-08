@@ -345,41 +345,6 @@ namespace nissa
     return found;
   }
   
-  //read the data according to ILDG mapping
-  void ILDG_File_read_ildg_data_all(void *data,
-				    ILDG_File &file,
-				    const ILDG_header &header)
-  {
-    //allocate a buffer
-    ILDG_Offset nbytes_per_rank_exp=header.data_length/nranks;
-    char *buf=nissa_malloc("buf",nbytes_per_rank_exp,char);
-    
-    //take original position
-    ILDG_Offset ori_pos=ILDG_File_get_position(file);
-    
-    //find starting point
-    ILDG_Offset new_pos=ori_pos+rank*nbytes_per_rank_exp;
-    ILDG_File_set_position(file,new_pos,SEEK_SET);
-    
-    //read
-    const double beg=take_time();
-    ILDG_Offset nbytes_read=fread(buf,1,nbytes_per_rank_exp,file);
-    MASTER_PRINTF("Bare reading %zu bytes took %lg s\n",nbytes_per_rank_exp,take_time()-beg);
-    if(nbytes_read!=nbytes_per_rank_exp) CRASH("read %zu bytes instead of %ld",nbytes_read,nbytes_per_rank_exp);
-    
-    //place at the end of the record, including padding
-    ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
-    
-    //reorder data to the appropriate place
-    vector_remap_t *rem=new vector_remap_t(locVol,index_from_ILDG_remapping);
-    rem->remap(data,buf,header.data_length/glbVol);
-    delete rem;
-    
-    nissa_free(buf);
-    
-    VERBOSITY_LV3_MASTER_PRINTF("ildg data record read: %lu bytes\n",header.data_length);
-  }
-  
   //read the checksum
   Checksum ILDG_File_read_checksum(ILDG_File &file)
   {

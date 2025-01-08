@@ -160,6 +160,8 @@ namespace nissa
 #endif
 #undef ALLOCATING_ERROR
     
+    VERBOSITY_LV3_MASTER_PRINTF("Allocated vector \"%s\" of %ld elements of size %ld in ptr %p\n",tag,nel,size_per_el,nv);
+    
     //fill the vector with information supplied
     nv->line=line;
     nv->nel=nel;
