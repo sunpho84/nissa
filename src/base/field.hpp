@@ -18,6 +18,7 @@
 #include <type_traits>
 
 #include <base/bench.hpp>
+#include <base/memory_manager.hpp>
 #include <base/vectors.hpp>
 #include <communicate/communicate.hpp>
 #include <geometry/geometry_eo.hpp>
@@ -90,26 +91,6 @@ namespace nissa
   
   /// Arrangement of internal DOF w.r.t spacetime: AoS or SoA
   enum class FieldLayout{CPU,GPU};
-  
-  /// Memory type
-  enum class MemorySpace{CPU,GPU};
-  
-  /// Returns a name given the memory space
-  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-  const char* memorySpaceName(const MemorySpace& ms)
-  {
-    return ((const char*[]){"CPU","GPU"})[(int)ms];
-  }
-  
-  /// Gives the current memory space: GPU if compiling for device, CPU otherwise
-  constexpr MemorySpace currentMemorySpace=
-	      MemorySpace::
-#ifdef COMPILING_FOR_DEVICE
-	      GPU
-#else
-	      CPU
-#endif
-	      ;
   
   /// Crashes if not running on the given memory space
   INLINE_FUNCTION CUDA_HOST_AND_DEVICE
@@ -828,17 +809,25 @@ namespace nissa
       if(_data)
 	{
 	  if(nRef==0)
-	    nissa_free(_data);
+	    memoryManager<MS>()->release(_data);
 	  else
 	    CRASH("Trying to destroying field %s with dangling references",name);
 	}
 #endif
     }
     
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  static void assertRunningOnDeclaredMemorySpace()
+  {
+    assertRunningOnMemorySpace(MS);
+  }
+  
 #define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
     decltype(auto) operator[](const int& site) CONST			\
     {									\
+      assertRunningOnDeclaredMemorySpace();				\
+    									\
       if constexpr(not std::is_array_v<T>)				\
 	return								\
 	  _data[site];							\
@@ -899,6 +888,8 @@ namespace nissa
     CONST Fund& operator()(const int64_t& site,				\
 			   const int& internalDeg) CONST		\
     {									\
+      assertRunningOnDeclaredMemorySpace();				\
+    									\
       return _data[index(site,internalDeg,externalSize)];		\
     }
     
@@ -992,6 +983,8 @@ namespace nissa
 	  CAPTURE(_data=this->_data,offset,externalSize=this->externalSize),
 	  i,
 	  {
+	    assertRunningOnDeclaredMemorySpace();
+	    
 	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
 	      _data[index(offset+i,internalDeg,externalSize)]=
 		((Fund*)recv_buf)[internalDeg+nInternalDegs*i];
@@ -1231,6 +1224,26 @@ namespace nissa
       return *this;
     }
     
+    /// Assigns from the same layout but a different memory space
+    template <MemorySpace OMS>
+    INLINE_FUNCTION
+    Field& operator=(const Field<T,FC,FL,OMS>& oth)
+    {
+      if(oth.haloEdgesPresence!=haloEdgesPresence)
+	CRASH("can copy across memory spaces only if the edges/halo are present equally on source and destination");
+
+#ifdef USE_CUDA
+      cudaMemcpy(_data,
+		 oth._data,
+		 externalSize*nInternalDegs*sizeof(Fund),
+		 memcpyKindForCopy<MS,OMS>);
+#else
+      CRASH("Not compiled with cuda");
+#endif
+      
+      return *this;
+    }
+    
     /// Assign the same layout
     INLINE_FUNCTION
     Field& operator=(const Field& oth)
@@ -1255,23 +1268,27 @@ namespace nissa
   
   /// Lexicographic field
   template <typename T,
-	    FieldLayout FL=defaultFieldLayout>
-  using LxField=Field<T,FULL_SPACE,FL>;
+	    FieldLayout FL=defaultFieldLayout,
+	    MemorySpace MS=defaultMemorySpace>
+  using LxField=Field<T,FULL_SPACE,FL,MS>;
   
   /// Field over even sites
   template <typename T,
-	    FieldLayout FL=defaultFieldLayout>
-  using EvnField=Field<T,EVEN_SITES,FL>;
+	    FieldLayout FL=defaultFieldLayout,
+	    MemorySpace MS=defaultMemorySpace>
+  using EvnField=Field<T,EVEN_SITES,FL,MS>;
   
   /// Field over odd sites
   template <typename T,
-	    FieldLayout FL=defaultFieldLayout>
-  using OddField=Field<T,ODD_SITES,FL>;
+	    FieldLayout FL=defaultFieldLayout,
+	    MemorySpace MS=defaultMemorySpace>
+  using OddField=Field<T,ODD_SITES,FL,MS>;
   
   /// Field over even or odd sites
   template <typename T,
-	    FieldLayout FL=defaultFieldLayout>
-  using EvenOrOddField=Field<T,EVEN_OR_ODD_SITES,FL>;
+	    FieldLayout FL=defaultFieldLayout,
+	    MemorySpace MS=defaultMemorySpace>
+  using EvenOrOddField=Field<T,EVEN_OR_ODD_SITES,FL,MS>;
   
   /////////////////////////////////////////////////////////////////
   
@@ -1300,9 +1317,10 @@ namespace nissa
   /// Structure to hold an even/old field
   template <typename T,
 	    FieldLayout FL=defaultFieldLayout,
-	    typename Fevn=Field<T,EVEN_SITES,FL>,
-	    typename Fodd=Field<T,ODD_SITES,FL>,
-	    typename FevnOrOdd=Field<T,EVEN_OR_ODD_SITES,FL>>
+	    MemorySpace MS=defaultMemorySpace,
+	    typename Fevn=Field<T,EVEN_SITES,FL,MS>,
+	    typename Fodd=Field<T,ODD_SITES,FL,MS>,
+	    typename FevnOrOdd=Field<T,EVEN_OR_ODD_SITES,FL,MS>>
   struct EoField
   {
     /// Type representing a pointer to type T
@@ -1357,20 +1375,20 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     constexpr INLINE_FUNCTION
-    EoField<T,FL,
-	    FieldRef<Field<T,EVEN_SITES,FL>>,
-	    FieldRef<Field<T,ODD_SITES,FL>>,
-	    FieldRef<Field<T,EVEN_OR_ODD_SITES,FL>>>
+    EoField<T,FL,MS,
+	    FieldRef<Field<T,EVEN_SITES,FL,MS>>,
+	    FieldRef<Field<T,ODD_SITES,FL,MS>>,
+	    FieldRef<Field<T,EVEN_OR_ODD_SITES,FL,MS>>>
     getWritable()
     {
       return {evenPart,oddPart};
     }
     
     constexpr INLINE_FUNCTION
-    EoField<T,FL,
-	    FieldRef<const Field<T,EVEN_SITES,FL>>,
-	    FieldRef<const Field<T,ODD_SITES,FL>>,
-	    FieldRef<const Field<T,EVEN_OR_ODD_SITES,FL>>>
+    EoField<T,FL,MS,
+	    FieldRef<const Field<T,EVEN_SITES,FL,MS>>,
+	    FieldRef<const Field<T,ODD_SITES,FL,MS>>,
+	    FieldRef<const Field<T,EVEN_OR_ODD_SITES,FL,MS>>>
     getReadable() const
     {
       return {evenPart,oddPart};
