@@ -317,7 +317,7 @@ namespace nissa
     }
     
     /// Destruct the memory manager
-    virtual ~MemoryManager()
+    void destroy()
     {
       MASTER_PRINTF("Stopping the memory manager\n");
       
@@ -326,6 +326,11 @@ namespace nissa
       releaseAllUsedMemory();
       
       clearCache();
+    }
+    
+    /// Destructor of the basis class
+    virtual ~MemoryManager()
+    {
     }
   };
   
@@ -358,6 +363,12 @@ namespace nissa
     {
       VERBOSITY_LV3_MASTER_PRINTF("Freeing from CPU memory %p\n",ptr);
       free(ptr);
+    }
+    
+    /// Destructor
+    virtual ~CPUMemoryManager()
+    {
+      destroy();
     }
   };
   
@@ -393,22 +404,29 @@ namespace nissa
       MASTER_PRINTF("Freeing from GPU memory %p\n",ptr);
       decript_cuda_error(cudaFree(ptr),"Freeing from GPU");
     }
+    
+    /// Destructor
+    virtual ~GPUMemoryManager()
+    {
+      destroy();
+    }
   };
   
   EXTERN_MEMORY_MANAGER MemoryManager* gpuMemoryManager;
   
 #endif
   
-  template <MemoryType MT>
+  /// Passes the memory manager for the given memory space0
+  template <MemorySpace MS>
   inline MemoryManager* memoryManager()
   {
-    switch (MT)
+    switch(MS)
       {
-      case MemoryType::CPU:
+      case nissa::MemorySpace::CPU:
 	return cpuMemoryManager;
 	break;
 #ifdef USE_CUDA
-      case MemoryType::GPU:
+      case MemorySpace::GPU:
 	return gpuMemoryManager;
 	break;
 #endif
