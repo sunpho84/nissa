@@ -255,9 +255,147 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  /// Reference to field
+  template <typename F>
+  struct FieldRef;
+  
+  /// Hosts all the data and provides low-level access
+  template <typename D,
+	    typename Comps,
+	    MemorySpace MS>
+  struct FieldData
+  {
+    /// Fundamental type
+    using Fund=
+      std::remove_all_extents_t<Comps>;
+    
+    /// Number of degrees of freedom
+    static constexpr int nInternalDegs=
+      sizeof(Comps)/sizeof(Fund);
+    
+    /// Size of the external nominal index
+    int64_t externalSize;
+    
+    /// Pointer to the data
+    Fund* _data;
+    
+    /// Calls the asserter to prove that we are running on the proper memory space
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    void assertMemorySpaceIs(const MemorySpace& DMS) const
+    {
+      if(DMS!=MS)
+	CRASH("asked a pointer to be valid on memory space %s, but field is defined on %s",
+	      memorySpaceName(DMS),memorySpaceName(MS));
+    }
+    
+    /// Computes the index of the data
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    static int64_t index(const int64_t& site,
+			 const int& internalDeg,
+			 const int& externalSize)
+    {
+      if constexpr(D::spaceTimeLayout==SpaceTimeLayout::CPU)
+	return internalDeg+nInternalDegs*site;
+      else
+	return site+externalSize*internalDeg;
+    }
+    
+    /// Gets the pointer to the given combo of site/internalDeg
+#define PROVIDE_GET_PTR(CONST)				\
+    template <MemorySpace DMS>				\
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION	\
+    Fund* CONST& getPtr() CONST				\
+    {							\
+      assertMemorySpaceIs(DMS);				\
+      							\
+      return _data;					\
+    }
+    
+    PROVIDE_GET_PTR(const);
+    
+    PROVIDE_GET_PTR(/* not const */);
+    
+#undef PROVIDE_GET_PTR
+    
+    /// Gets the pointer to the given combo of site/internalDeg
+#define PROVIDE_GET_PTR_TO(CONST)			\
+    template <MemorySpace DMS>				\
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr	\
+    CONST Fund* getPtrTo(const int64_t& site,		\
+			 const int& internalDeg) CONST	\
+    {							\
+      return getPtr<DMS>()+index(site,internalDeg);	\
+    }
+    
+    PROVIDE_GET_PTR_TO(const);
+    
+    PROVIDE_GET_PTR_TO(/* not const */);
+    
+    /// Nonstatic index
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    int64_t index(const int64_t& site,
+		  const int& internalDeg) const
+    {
+      return index(site,internalDeg,externalSize);
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+#define PROVIDE_FLATTENED_CALLER(CONST)					\
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
+    CONST Fund& operator()(const int64_t& site,				\
+			   const int& internalDeg) CONST		\
+    {									\
+      return *getPtrTo<currentMemorySpace>(site,internalDeg);		\
+    }
+    
+    PROVIDE_FLATTENED_CALLER(const);
+    
+    PROVIDE_FLATTENED_CALLER(/* not const */);
+    
+#undef PROVIDE_FLATTENED_CALLER
+    
+#define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
+    decltype(auto) operator[](const int64_t& site) CONST		\
+    {									\
+      if constexpr(not std::is_array_v<Comps>)				\
+	return								\
+	  (*this)(site,0);						\
+      else								\
+	{								\
+	  CONST D& self=						\
+	    *static_cast<CONST D*>(this);				\
+	  								\
+	  if constexpr(D::spaceTimeLayout==SpaceTimeLayout::CPU)	\
+	    return							\
+	      ((CONST Comps*)self.template getPtr<currentMemorySpace>())[site]; \
+	  else								\
+	    return							\
+	      SubscribedField<CONST D,					\
+			      std::remove_extent_t<Comps>>(self,site,nullptr); \
+	}								\
+    }
+    
+    PROVIDE_SUBSCRIBE_OPERATOR(const);
+    
+    PROVIDE_SUBSCRIBE_OPERATOR(/* not const */);
+    
+#undef PROVIDE_SUBSCRIBE_OPERATOR
+    
+    /// Default Constructor
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    FieldData() :
+      externalSize(0),
+      _data(nullptr)
+    {
+    }
+  };
+  
   /// Field
   template <typename F>
-  struct FieldRef
+  struct FieldRef :
+    FieldData<FieldRef<F>,typename F::Comps,F::memorySpace>
   {
     /// Type describing the components
     using Comps=
@@ -267,69 +405,18 @@ namespace nissa
     using Fund=
       ConstIf<std::is_const_v<F>,typename F::Fund>;
     
-    /// Number of internal degrees of freedom
-    static constexpr int nInternalDegs=
-      F::nInternalDegs;
+    /// Memory space of the field
+    static constexpr MemorySpace memorySpace=
+      F::memorySpace;
+    
+    /// Spacetime layout of the field
+    static constexpr SpaceTimeLayout spaceTimeLayout=
+      F::spaceTimeLayout;
+    
+    /////////////////////////////////////////////////////////////////
     
     /// Pointer to the original field
     F* fptr;
-    
-    /// Size of the external nominal index
-    int64_t externalSize;
-    
-    /// Pointer to the data
-    Fund* _data;
-    
-#define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
-    decltype(auto) operator[](const int64_t& site) CONST		\
-    {									\
-      F::assertRunningOnDeclaredMemorySpace();				\
-    									\
-      if constexpr(not std::is_array_v<Comps>)				\
-	return								\
-	  _data[site];							\
-      else								\
-	return								\
-	  SubscribedField<CONST FieldRef,				\
-	  std::remove_extent_t<Comps>>(*this,site,nullptr);		\
-    }
-    
-    PROVIDE_SUBSCRIBE_OPERATOR(const);
-    
-    PROVIDE_SUBSCRIBE_OPERATOR(/* not const */);
-    
-#undef PROVIDE_SUBSCRIBE_OPERATOR
-    
-    /////////////////////////////////////////////////////////////////
-    
-#define PROVIDE_FLATTENED_CALLER(CONST)					\
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
-    CONST Fund& operator()(const int64_t& site,				\
-			   const int& internalDeg) CONST		\
-    {									\
-      F::assertRunningOnDeclaredMemorySpace();				\
-    									\
-      return _data[index(site,internalDeg)];				\
-    }
-    
-    PROVIDE_FLATTENED_CALLER(const);
-    
-    PROVIDE_FLATTENED_CALLER(/* not const */);
-    
-#undef PROVIDE_FLATTENED_CALLER
-    
-    /////////////////////////////////////////////////////////////////
-    
-    /// Member method to call the static index function
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    int64_t index(const int64_t& site,
-		  const int& internalDeg) const
-    {
-      return F::index(site,internalDeg,externalSize);
-    }
-    
-    /////////////////////////////////////////////////////////////////
     
     /// Set from f
     void setFrom(F& f)
@@ -338,8 +425,8 @@ namespace nissa
 	CRASH("Unable to set an already set ref");
       
       fptr=&f;
-      externalSize=f.externalSize;
-      _data=f._data;
+      this->externalSize=f.externalSize;
+      this->template getPtr<F::memorySpace>()=f.template getPtr<F::memorySpace>();
       fptr->nRef++;
     }
     
@@ -356,10 +443,11 @@ namespace nissa
     /// Copy constructor
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     FieldRef(const FieldRef& oth) :
-      fptr(oth.fptr),
-      externalSize(oth.externalSize),
-      _data(oth._data)
+      fptr(oth.fptr)
     {
+      this->externalSize=oth.externalSize;
+      this->_data=oth._data;
+      
 #ifndef COMPILING_FOR_DEVICE
       fptr->nRef++;
 #endif
@@ -379,8 +467,8 @@ namespace nissa
 	  fptr->invalidateHalo();
 #endif
       fptr=nullptr;
-      _data=nullptr;
-      externalSize=0;
+      this->_data=nullptr;
+      this->externalSize=0;
     }
     
     /// Destructor
@@ -398,12 +486,15 @@ namespace nissa
   /// Field
   template <typename T,
 	    FieldCoverage FC,
-	    FieldLayout FL=defaultFieldLayout,
+	    SpaceTimeLayout STL=defaultSpaceTimeLayout,
 	    MemorySpace MS=defaultMemorySpace>
   struct Field :
-    FieldFeat<Field<T,FC,FL,MS>>,
+    FieldData<Field<T,FC,STL,MS>,T,MS>,
+    FieldFeat<Field<T,FC,STL,MS>>,
     FieldSizes<FC>
   {
+    using FD=FieldData<Field<T,FC,STL,MS>,T,MS>;
+    
     /// Coefficent which divides the space time, if the field is covering only half the space
     static constexpr const int divCoeff=
       (FC==FULL_SPACE)?1:2;
@@ -413,10 +504,6 @@ namespace nissa
     /// Name of the field
     const char* name;
     
-    /// Fundamental type
-    using Fund=
-      std::remove_all_extents_t<T>;
-    
     /// Components
     using Comps=T;
     
@@ -424,23 +511,20 @@ namespace nissa
     static constexpr FieldCoverage fieldCoverage=FC;
     
     /// Arrangement of internal DOF w.r.t spacetime
-    static constexpr FieldLayout fieldLayout=FL;
+    static constexpr SpaceTimeLayout spaceTimeLayout=STL;
     
     /// Memory space where the data is stored
     static constexpr MemorySpace memorySpace=MS;
     
-    /// Number of degrees of freedom
-    static constexpr int nInternalDegs=
-      sizeof(Comps)/sizeof(Fund);
-    
     /// Presence of halo and edges
     const HaloEdgesPresence haloEdgesPresence;
     
-    /// Total allocated sites
-    const int64_t externalSize;
+    /// Import from FieldData
+    static constexpr int nInternalDegs=
+      FD::nInternalDegs;
     
-    /// Container for actual data
-    Fund* _data;
+    /// Import Fund from FieldData
+    using typename FD::Fund;
     
     /// Store the data in case of a backup
     Field* backup;
@@ -450,26 +534,6 @@ namespace nissa
     
     /// States whether the edges are updated
     mutable bool edgesAreValid;
-    
-    /// Computes the index of the data
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    static int64_t index(const int64_t& site,
-			 const int& internalDeg,
-			 const int& externalSize)
-    {
-      if constexpr(FL==FieldLayout::CPU)
-	return internalDeg+nInternalDegs*site;
-      else
-	return site+externalSize*internalDeg;
-    }
-    
-    /// Nonstatic index
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    int64_t index(const int64_t& site,
-		  const int& internalDeg) const
-    {
-      return Field::index(site,internalDeg,externalSize);
-    }
     
     // /// Exec the operation f on each site and degree of freedom
     // template <typename F>
