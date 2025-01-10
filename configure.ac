@@ -158,6 +158,8 @@ then
 	fi
 	
 	CUDA_CPPFLAGS="-dc $LTO --expt-relaxed-constexpr --extended-lambda -x cu"
+	
+	AX_SUBPACKAGE(cufft,cufft.h,cufft,cufftDestroy,CUFFT)
 fi
 
 #threads
