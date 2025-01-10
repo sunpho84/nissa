@@ -111,7 +111,8 @@ namespace nissa
 	cgm_inv_over_time1+=take_time();
 	
 #ifdef CGM_DEBUG
-	VERBOSITY_LV3_MASTER_PRINTF("pap: %16.16lg, ap[0]: %16.16lg, p[0]: %16.16lg\n",pap,s._data[0],p._data[0]);
+	if constexpr(decltype(buf)::memorySpace==MemorySpace::CPU)
+	  VERBOSITY_LV3_MASTER_PRINTF("pap: %16.16lg, ap[0]: %16.16lg, p[0]: %16.16lg\n",pap,s.template getPtr<MemorySpace::CPU>()[0],p.template getPtr<MemorySpace::CPU>()[0]);
 #endif
 	//     calculate betaa=rr/pap=(r,r)/(p,Ap)
 	betap=betaa;

@@ -441,9 +441,9 @@ namespace nissa
       {
 	auto s=source.getWritable();
 	
-	for(int id=0;id<4;id++)
+	for(int id=0;id<NDIRAC;id++)
 	  for(int ic=0;ic<NCOL;ic++)
-	  s[loclxOfCoord(lx)][ic][ic][id][id][0]=1;
+	    s[loclxOfCoord(lx)][ic][ic][id][id][0]=1;
       }
   }
   

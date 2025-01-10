@@ -2,8 +2,7 @@
 #define _DIRAC_OPERATOR_TMCLOVD_EOPREC_HPP
 
 #include "base/field.hpp"
-#include "geometry/geometry_eo.hpp"
-#include "new_types/su3.hpp"
+#include "new_types/su3_op.hpp"
 
 namespace nissa
 {

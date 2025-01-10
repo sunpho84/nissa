@@ -209,7 +209,7 @@ namespace nissa
   {
     //allocate a buffer
     ILDG_Offset nbytes_per_rank_exp=header.data_length/nranks;
-    LxField<T,FieldLayout::CPU,MemorySpace::CPU> buf("buf");
+    LxField<T,SpaceTimeLayout::CPU,MemorySpace::CPU> buf("buf");
     
     //take original position
     ILDG_Offset ori_pos=ILDG_File_get_position(file);
@@ -220,20 +220,21 @@ namespace nissa
     
     //read
     const double beg=take_time();
-    ILDG_Offset nbytes_read=fread(buf._data,1,nbytes_per_rank_exp,file);
+    ILDG_Offset nbytes_read=fread(buf.template getPtr<MemorySpace::CPU>(),1,nbytes_per_rank_exp,file);
     MASTER_PRINTF("Bare reading %zu bytes took %lg s\n",nbytes_per_rank_exp,take_time()-beg);
-    if(nbytes_read!=nbytes_per_rank_exp) CRASH("read %zu bytes instead of %ld",nbytes_read,nbytes_per_rank_exp);
+    if(nbytes_read!=nbytes_per_rank_exp)
+      CRASH("read %zu bytes instead of %ld",nbytes_read,nbytes_per_rank_exp);
     
     //place at the end of the record, including padding
     ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
     
     /// Reorder data to the appropriate place
     decltype(auto) bufOnDefaultMemorySpace=
-      [&buf](auto& in) -> decltype(auto)
+      [](auto& in) -> decltype(auto)
       {
 	if constexpr(defaultMemorySpace!=MemorySpace::CPU)
 	  {
-	    LxField<T,FieldLayout::CPU> out("out");
+	    LxField<T,SpaceTimeLayout::CPU> out("out");
 	    out=in;
 	    return out;
 	  }
@@ -244,17 +245,19 @@ namespace nissa
     auto act=
       [bufOnDefaultMemorySpace,
        rem=vector_remap_t(locVol,index_from_ILDG_remapping),
-       &header](char* data)
+       &header](auto& f)
       {
-	rem.remap(data,bufOnDefaultMemorySpace._data,header.data_length/glbVol);
+	rem.remap(f.template getPtr<defaultMemorySpace>(),
+		  bufOnDefaultMemorySpace.template getPtr<defaultMemorySpace>(),
+		  header.data_length/glbVol);
       };
     
-    if constexpr(defaultFieldLayout==FieldLayout::CPU)
-      act((char*)out._data);
+    if constexpr(defaultSpaceTimeLayout==SpaceTimeLayout::CPU)
+      act(out);
     else
       {
-	LxField<T,FieldLayout::CPU> tmp("tmp");
-	act((char*)tmp._data);
+	LxField<T,SpaceTimeLayout::CPU> tmp("tmp");
+	act(tmp);
 	out=tmp;
       }
       

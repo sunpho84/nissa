@@ -219,11 +219,11 @@ namespace nissa
 #ifdef USE_DDALPHAAMG
     if(multiGrid::checkIfMultiGridAvailableAndRequired(mass) and not solved)
       {
-	if(source_lx.fieldLayout!=FieldLayout::CPU)
+	if(source_lx.spaceTimeLayout!=SpaceTimeLayout::CPU)
 	  CRASH("wrong layout");
 	
 	const double call_time=take_time();
-	solved=DD::solve((spincolor*)solution_lx._data,(quad_su3*)conf_lx._data,kappa,cSW,mass,residue,(spincolor*)source_lx._data);
+	solved=DD::solve((spincolor*)solution_lx.data,(quad_su3*)conf_lx.data,kappa,cSW,mass,residue,(spincolor*)source_lx.data);
 	MASTER_PRINTF("calling DDalphaAMG to solve took %lg s\n",take_time()-call_time);
       }
 #endif

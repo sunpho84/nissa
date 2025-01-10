@@ -139,37 +139,20 @@ namespace nissa
   void ILDG_File_skip_nbytes(ILDG_File &file,ILDG_Offset nbytes)
   {
     if(nbytes)
-      {
-#ifdef USE_MPI_IO
-	decript_MPI_error(MPI_File_seek(file,ILDG_File_get_position(file)+nbytes,MPI_SEEK_SET),"while seeking ahead %d bytes from current position",nbytes);
-#else
-	crash_printing_error(fseeko64(file,nbytes,SEEK_CUR),"while seeking ahead %ld bytes from current position",nbytes);
-#endif
-      }
+      CRASH_PRINTING_ERROR(fseeko64(file,nbytes,SEEK_CUR),"while seeking ahead %ld bytes from current position",nbytes);
     MPI_Barrier(MPI_COMM_WORLD);
   }
   
   //get current position
   ILDG_Offset ILDG_File_get_position(ILDG_File &file)
   {
-    ILDG_Offset pos;
-    
-#ifdef USE_MPI_IO
-    decript_MPI_error(MPI_File_get_position(file,&pos),"while getting position");
-#else
-    pos=ftello64(file);
-#endif
-    return pos;
+    return ftello64(file);
   }
   
   //set position
   void ILDG_File_set_position(ILDG_File &file,ILDG_Offset pos,int amode)
   {
-#ifdef USE_MPI_IO
-    decript_MPI_error(MPI_File_seek(file,pos,amode),"while seeking");
-#else
-    crash_printing_error(fseeko64(file,pos,amode),"while seeking");
-#endif
+    CRASH_PRINTING_ERROR(fseeko64(file,pos,amode),"while seeking");
     MPI_Barrier(MPI_COMM_WORLD);
   }
   
@@ -263,16 +246,9 @@ namespace nissa
   {
     if(is_master_rank())
       {
-#ifdef USE_MPI_IO
-	//write data
-	MPI_Status status;
-	decript_MPI_error(MPI_File_write(file,data,nbytes_req,MPI_BYTE,&status),"while writing from first node");
+	const size_t nbytes_written=
+	  fwrite(data,1,nbytes_req,file);
 	
-	//check to have written
-	const size_t nbytes_written=MPI_Get_count_size_t(status);
-#else
-	const size_t nbytes_written=fwrite(data,1,nbytes_req,file);
-#endif
 	if(nbytes_written!=nbytes_req) CRASH("wrote %zu bytes instead of %zu required",nbytes_written,nbytes_req);
 	
 	//this is a blocking routine

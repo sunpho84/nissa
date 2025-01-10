@@ -42,8 +42,8 @@ namespace nissa
   
   /// Computes the ildg checksum
   template <typename T,
-	    FieldLayout FL>
-  Checksum ildgChecksum(const LxField<T,FL>& field)
+	    SpaceTimeLayout STL>
+  Checksum ildgChecksum(const LxField<T,STL>& field)
   {
     using ChecksumCArr=
       uint32_t[2];

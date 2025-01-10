@@ -15,12 +15,12 @@
 namespace nissa
 {
   template <typename T,
-	    FieldLayout FL>
+	    SpaceTimeLayout STL>
   void write_real_vector_internal(ILDG_File file,
-				  const LxField<T,FL>& in,
+				  const LxField<T,STL>& in,
 				  const char* headerMessage)
   {
-    LxField<T,FieldLayout::CPU> buf("buf");
+    LxField<T,SpaceTimeLayout::CPU> buf("buf");
     buf=in;
     
     write_real_vector_internal(file,buf,headerMessage);
@@ -28,7 +28,7 @@ namespace nissa
   
   template <typename T>
   void write_real_vector_internal(ILDG_File file,
-				  const LxField<T,FieldLayout::CPU>& in,
+				  const LxField<T,SpaceTimeLayout::CPU>& in,
 				  const char* headerMessage)
   {
     constexpr int nrealsPerSite=
@@ -36,12 +36,12 @@ namespace nissa
     constexpr uint64_t nBytesPerSite=
       nrealsPerSite*sizeof(typename LxField<T>::Fund);
     
-    ILDG_File_write_ildg_data_all(file,in._data,nBytesPerSite,headerMessage);
+    ILDG_File_write_ildg_data_all(file,in.template getPtr<MemorySpace::CPU>(),nBytesPerSite,headerMessage);
   }
   
   template <typename T>
   void write_real_vector(ILDG_File &file,
-			 const LxField<T,FieldLayout::CPU>& in,
+			 const LxField<T,SpaceTimeLayout::CPU>& in,
 			 const char *header_message,
 			 const ILDG_message* mess=nullptr)
   {
@@ -56,7 +56,7 @@ namespace nissa
     //compute the checksum
     const Checksum check=ildgChecksum(in);
 
-    LxField<T,FieldLayout::CPU> temp=in;
+    LxField<T,SpaceTimeLayout::CPU> temp=in;
     FOR_EACH_SITE_DEG_OF_FIELD(temp,
 			       CAPTURE(TO_WRITE(temp)),
 			       site,
@@ -77,14 +77,14 @@ namespace nissa
   }
   
   template <typename T,
-	    FieldLayout FL,
-	    ENABLE_THIS_TEMPLATE_IF(FL!=FieldLayout::CPU)>
+	    SpaceTimeLayout STL,
+	    ENABLE_THIS_TEMPLATE_IF(STL!=SpaceTimeLayout::CPU)>
   void write_real_vector(ILDG_File &file,
-			 const LxField<T,FL>& in,
+			 const LxField<T,STL>& in,
 			 const char* header_message,
 			 const ILDG_message* mess=nullptr)
   {
-    write_real_vector(file,(LxField<T,FieldLayout::CPU>)in,header_message,mess);
+    write_real_vector(file,(LxField<T,SpaceTimeLayout::CPU>)in,header_message,mess);
   }
   
   //wrapper opening the file

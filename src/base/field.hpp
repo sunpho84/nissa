@@ -711,7 +711,7 @@ namespace nissa
 #if defined(USE_CUDA)
  	if constexpr(memorySpace==MemorySpace::GPU)
 	  cudaMemcpy((Fund*)&out+iDeg,
-		     tmp._data+index(0,iDeg),
+		     tmp.template getPtrTo<MemorySpace::GPU>(0,iDeg),
 		     sizeof(Fund),
 		     cudaMemcpyDeviceToHost);
 	else
@@ -754,7 +754,7 @@ namespace nissa
       double res;
       
 // #ifdef USE_CUDA
-//       if(fieldLayout==FieldLayout::CPU or bord_vol==0 or haloEdgesPresence==WITHOUT_HALO)
+//       if(spaceTimeLayout==SpaceTimeLayout::CPU or bord_vol==0 or haloEdgesPresence==WITHOUT_HALO)
 // 	{
 // 	  res=
 // 	    thrust::inner_product(thrust::device,
@@ -794,24 +794,24 @@ namespace nissa
     /* Cast to a different fieldCoverage */				\
     template <FieldCoverage NFC,					\
 	      bool Force=false>						\
-    CONST Field<T,NFC,FL>& castFieldCoverage() CONST			\
+    CONST Field<T,NFC,STL>& castFieldCoverage() CONST			\
     {									\
       if constexpr(not (Force or FC== EVEN_OR_ODD_SITES))	\
 	static_assert(NFC==EVEN_SITES or NFC==ODD_SITES, \
 		      "incompatible fieldCoverage! Force the change if needed"); \
 									\
-      return *(CONST Field<T,NFC,FL>*)this;				\
+      return *(CONST Field<T,NFC,STL>*)this;				\
     }									\
 									\
     /* Cast to a different comps */					\
     template <typename NT,						\
 	      bool Force=false>						\
-    CONST Field<NT,FC,FL>& castComponents() CONST			\
+    CONST Field<NT,FC,STL>& castComponents() CONST			\
     {									\
       static_assert(Force or sizeof(T)==sizeof(NT),			\
 		    "incompatible components! Force the change if needed"); \
       									\
-      return *(CONST Field<NT,FC,FL>*)this;				\
+      return *(CONST Field<NT,FC,STL>*)this;				\
     }
     
     PROVIDE_CASTS(const);
@@ -826,17 +826,17 @@ namespace nissa
       nRef(0),
       name(name),
       haloEdgesPresence(haloEdgesPresence),
-      externalSize(FieldSizes<fieldCoverage>::nSitesToAllocate(haloEdgesPresence)),
       haloIsValid(false),
       edgesAreValid(false)
     {
+      this->externalSize=FieldSizes<fieldCoverage>::nSitesToAllocate(haloEdgesPresence);
       VERBOSITY_LV3_MASTER_PRINTF("Allocating field %s\n",name);
-      _data=memoryManager<MS>()->template provide<Fund>(externalSize*nInternalDegs);
+      this->_data=memoryManager<MS>()->template provide<Fund>(this->externalSize*nInternalDegs);
     }
     
     /// Construct from other layout
-    template <FieldLayout OFL,
-	      ENABLE_THIS_TEMPLATE_IF(OFL!=FL)>
+    template <SpaceTimeLayout OFL,
+	      ENABLE_THIS_TEMPLATE_IF(OFL!=STL)>
     Field(const Field<T,FC,OFL>& oth) :
       Field(oth.name,oth.haloEdgesPresence)
     {
@@ -848,11 +848,11 @@ namespace nissa
       nRef(oth.nRef),
       name(oth.name),
       haloEdgesPresence(oth.haloEdgesPresence),
-      externalSize(oth.externalSize),
-      _data(oth._data),
       haloIsValid(oth.haloIsValid),
       edgesAreValid(oth.edgesAreValid)
     {
+      this->externalSize=oth.externalSize;
+      this->_data=oth._data;
       oth.nRef=0;
       oth._data=nullptr;
     }
@@ -870,45 +870,15 @@ namespace nissa
     {
 #ifndef COMPILING_FOR_DEVICE
       VERBOSITY_LV3_MASTER_PRINTF("Deallocating field %s\n",name);
-      if(_data)
+      if(this->_data)
 	{
 	  if(nRef==0)
-	    memoryManager<MS>()->release(_data);
+	    memoryManager<MS>()->release(this->_data);
 	  else
 	    CRASH("Trying to destroying field %s with dangling references",name);
 	}
 #endif
     }
-    
-  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-  static void assertRunningOnDeclaredMemorySpace()
-  {
-    assertRunningOnMemorySpace(MS);
-  }
-  
-#define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
-    decltype(auto) operator[](const int& site) CONST			\
-    {									\
-      assertRunningOnDeclaredMemorySpace();				\
-    									\
-      if constexpr(not std::is_array_v<T>)				\
-	return								\
-	  _data[site];							\
-      else								\
-	if constexpr(FL==FieldLayout::CPU)				\
-	  return ((CONST T*)_data)[site];				\
-	else								\
-	  return							\
-	    SubscribedField<CONST Field,				\
-	    std::remove_extent_t<T>>(*this,site,nullptr);		\
-    }
-    
-    PROVIDE_SUBSCRIBE_OPERATOR(const);
-    
-    PROVIDE_SUBSCRIBE_OPERATOR(/* not const */);
-    
-#undef PROVIDE_SUBSCRIBE_OPERATOR
     
     /// Register the actions to backup and restore the field
     constexpr INLINE_FUNCTION
@@ -944,24 +914,6 @@ namespace nissa
     {
       return *this;
     }
-    
-    /////////////////////////////////////////////////////////////////
-    
-#define PROVIDE_FLATTENED_CALLER(CONST)					\
-    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
-    CONST Fund& operator()(const int64_t& site,				\
-			   const int& internalDeg) CONST		\
-    {									\
-      assertRunningOnDeclaredMemorySpace();				\
-    									\
-      return _data[index(site,internalDeg,externalSize)];		\
-    }
-    
-    PROVIDE_FLATTENED_CALLER(const);
-    
-    PROVIDE_FLATTENED_CALLER(/* not const */);
-    
-#undef PROVIDE_FLATTENED_CALLER
     
     /////////////////////////////////////////////////////////////////
     
@@ -1044,13 +996,16 @@ namespace nissa
 					 const int& n) const
     {
       PAR(0,n,
-	  CAPTURE(_data=this->_data,offset,externalSize=this->externalSize),
+	  CAPTURE(data=this->template getPtr<defaultMemorySpace>(),
+		  offset,
+		  defaultMemorySpace=defaultMemorySpace,
+		  externalSize=this->externalSize),
 	  i,
 	  {
-	    assertRunningOnDeclaredMemorySpace();
+	    assertRunningOnMemorySpace(defaultMemorySpace);
 	    
 	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	      _data[index(offset+i,internalDeg,externalSize)]=
+	      data[FD::index(offset+i,internalDeg,externalSize)]=
 		((Fund*)recv_buf)[internalDeg+nInternalDegs*i];
 	  });
     }
@@ -1247,7 +1202,7 @@ namespace nissa
     INLINE_FUNCTION
     bool operator==(const Field& oth) const
     {
-      return _data==oth._data;
+      return this->_data==oth._data;
     }
     
     /// Negate comparison
@@ -1279,9 +1234,9 @@ namespace nissa
     }
     
     /// Assigns from a different layout
-    template <FieldLayout OFl>
+    template <SpaceTimeLayout OFl>
     INLINE_FUNCTION
-    Field& operator=(const Field<T,FC,OFl>& oth)
+    Field& operator=(const Field<T,FC,OFl,MS>& oth)
     {
       assign(oth);
       
@@ -1291,15 +1246,15 @@ namespace nissa
     /// Assigns from the same layout but a different memory space
     template <MemorySpace OMS>
     INLINE_FUNCTION
-    Field& operator=(const Field<T,FC,FL,OMS>& oth)
+    Field& operator=(const Field<T,FC,STL,OMS>& oth)
     {
       if(oth.haloEdgesPresence!=haloEdgesPresence)
 	CRASH("can copy across memory spaces only if the edges/halo are present equally on source and destination");
-
+      
 #ifdef USE_CUDA
-      cudaMemcpy(_data,
-		 oth._data,
-		 externalSize*nInternalDegs*sizeof(Fund),
+      cudaMemcpy(this->template getPtr<MS>(),
+		 oth.template getPtr<OMS>(),
+		 this->externalSize*nInternalDegs*sizeof(Fund),
 		 memcpyKindForCopy<MS,OMS>);
 #else
       CRASH("Not compiled with cuda");
@@ -1332,27 +1287,27 @@ namespace nissa
   
   /// Lexicographic field
   template <typename T,
-	    FieldLayout FL=defaultFieldLayout,
+	    SpaceTimeLayout STL=defaultSpaceTimeLayout,
 	    MemorySpace MS=defaultMemorySpace>
-  using LxField=Field<T,FULL_SPACE,FL,MS>;
+  using LxField=Field<T,FULL_SPACE,STL,MS>;
   
   /// Field over even sites
   template <typename T,
-	    FieldLayout FL=defaultFieldLayout,
+	    SpaceTimeLayout STL=defaultSpaceTimeLayout,
 	    MemorySpace MS=defaultMemorySpace>
-  using EvnField=Field<T,EVEN_SITES,FL,MS>;
+  using EvnField=Field<T,EVEN_SITES,STL,MS>;
   
   /// Field over odd sites
   template <typename T,
-	    FieldLayout FL=defaultFieldLayout,
+	    SpaceTimeLayout STL=defaultSpaceTimeLayout,
 	    MemorySpace MS=defaultMemorySpace>
-  using OddField=Field<T,ODD_SITES,FL,MS>;
+  using OddField=Field<T,ODD_SITES,STL,MS>;
   
   /// Field over even or odd sites
   template <typename T,
-	    FieldLayout FL=defaultFieldLayout,
+	    SpaceTimeLayout STL=defaultSpaceTimeLayout,
 	    MemorySpace MS=defaultMemorySpace>
-  using EvenOrOddField=Field<T,EVEN_OR_ODD_SITES,FL,MS>;
+  using EvenOrOddField=Field<T,EVEN_OR_ODD_SITES,STL,MS>;
   
   /////////////////////////////////////////////////////////////////
   
@@ -1380,11 +1335,11 @@ namespace nissa
   
   /// Structure to hold an even/old field
   template <typename T,
-	    FieldLayout FL=defaultFieldLayout,
+	    SpaceTimeLayout STL=defaultSpaceTimeLayout,
 	    MemorySpace MS=defaultMemorySpace,
-	    typename Fevn=Field<T,EVEN_SITES,FL,MS>,
-	    typename Fodd=Field<T,ODD_SITES,FL,MS>,
-	    typename FevnOrOdd=Field<T,EVEN_OR_ODD_SITES,FL,MS>>
+	    typename Fevn=Field<T,EVEN_SITES,STL,MS>,
+	    typename Fodd=Field<T,ODD_SITES,STL,MS>,
+	    typename FevnOrOdd=Field<T,EVEN_OR_ODD_SITES,STL,MS>>
   struct EoField
   {
     /// Type representing a pointer to type T
@@ -1439,20 +1394,20 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     constexpr INLINE_FUNCTION
-    EoField<T,FL,MS,
-	    FieldRef<Field<T,EVEN_SITES,FL,MS>>,
-	    FieldRef<Field<T,ODD_SITES,FL,MS>>,
-	    FieldRef<Field<T,EVEN_OR_ODD_SITES,FL,MS>>>
+    EoField<T,STL,MS,
+	    FieldRef<Field<T,EVEN_SITES,STL,MS>>,
+	    FieldRef<Field<T,ODD_SITES,STL,MS>>,
+	    FieldRef<Field<T,EVEN_OR_ODD_SITES,STL,MS>>>
     getWritable()
     {
       return {evenPart,oddPart};
     }
     
     constexpr INLINE_FUNCTION
-    EoField<T,FL,MS,
-	    FieldRef<const Field<T,EVEN_SITES,FL,MS>>,
-	    FieldRef<const Field<T,ODD_SITES,FL,MS>>,
-	    FieldRef<const Field<T,EVEN_OR_ODD_SITES,FL,MS>>>
+    EoField<T,STL,MS,
+	    FieldRef<const Field<T,EVEN_SITES,STL,MS>>,
+	    FieldRef<const Field<T,ODD_SITES,STL,MS>>,
+	    FieldRef<const Field<T,EVEN_OR_ODD_SITES,STL,MS>>>
     getReadable() const
     {
       return {evenPart,oddPart};
