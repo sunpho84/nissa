@@ -351,6 +351,19 @@ High prec type      : $with_high_prec_type"
 
 #################### ####################
 
+#loop unrolling
+AC_ARG_ENABLE(loop-unrolling,
+	AS_HELP_STRING([--enable-loop-unrolling],[Enable loop unrolling]),
+	enable_loop_unrolling="${enableval}",
+	enable_loop_unrolling="yes")
+if test "$enable_loop_unrolling" == "yes"
+then
+	AC_DEFINE([LOOP_UNROLLING],1,[Enable loop unrolling])
+fi
+AC_MSG_RESULT([enabling loop unrolling... $enable_loop_unrolling])
+SUMMARY_RESULT="$SUMMARY_RESULT
+loop unrolling         : $enable_loop-unrolling"
+
 #cgm-debug
 AC_ARG_ENABLE(cgm-debug,
 	AS_HELP_STRING([--enable-cgm-debug],[Enable extremely verbose cgm inverter]),
