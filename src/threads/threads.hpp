@@ -227,6 +227,9 @@ namespace nissa
 	const int optimalBlockSize=
 	  getOptimalBlockSize(id,loopLength,1,nMaxThreads,launch);
 	
+	if(optimalBlockSize<=0 or optimalBlockSize>nMaxThreads)
+	  CRASH("Optimal number of threads %d is outside the allowed interval [0:%d]",optimalBlockSize,nMaxThreads);
+	
 	if(print)
 	  printf("at line %d of file %s launching kernel on loop [%d,%d) using blocks of size %d\n",
 		 line,file,(int)min,(int)max,optimalBlockSize);
