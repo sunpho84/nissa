@@ -420,10 +420,13 @@ namespace nissa
       if(fast_read_write_vectors)
 	{
 	  fastOpen("w");
-	  if(std::remove_reference_t<decltype(v)>::fieldLayout!=FieldLayout::CPU)
+	  if(std::remove_reference_t<decltype(v)>::spaceTimeLayout!=SpaceTimeLayout::CPU)
 	    CRASH("not supported");
 	  //hack
-	  if(fwrite(v._data,sizeof(T),locVol,fastFile)!=(size_t)locVol)
+	  if(fwrite(v.template getPtr<MemorySpace::CPU>(),
+		    sizeof(T),
+		    locVol,
+		    fastFile)!=(size_t)locVol)
 	    CRASH("Problem writing %s",path.c_str());
 	  
 	  fclose(fastFile);

@@ -90,7 +90,7 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   /// Arrangement of internal DOF w.r.t spacetime: AoS or SoA
-  enum class FieldLayout{CPU,GPU};
+  enum class SpaceTimeLayout{CPU,GPU};
   
   /// Crashes if not running on the given memory space
   INLINE_FUNCTION CUDA_HOST_AND_DEVICE
@@ -108,8 +108,8 @@ namespace nissa
   enum HaloEdgesPresence{WITHOUT_HALO,WITH_HALO,WITH_HALO_EDGES};
   
   /// Predefinite arrangement of internal DOF
-  constexpr FieldLayout defaultFieldLayout=
-	      FieldLayout::
+  constexpr SpaceTimeLayout defaultSpaceTimeLayout=
+	      SpaceTimeLayout::
 #ifdef USE_CUDA
 	      GPU
 #else

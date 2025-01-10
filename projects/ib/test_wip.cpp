@@ -16,8 +16,8 @@ using namespace nissa;
 
 void testPar()
 {
-  LxField<spincolor,nissa::FieldLayout::CPU> a("a");
-  LxField<spincolor,nissa::FieldLayout::CPU> b("b");
+  LxField<spincolor,nissa::SpaceTimeLayout::CPU> a("a");
+  LxField<spincolor,nissa::SpaceTimeLayout::CPU> b("b");
   
   FOR_EACH_SITE_DEG_OF_FIELD(a,
 			     CAPTURE(TO_WRITE(a),
