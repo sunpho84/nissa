@@ -304,7 +304,7 @@ namespace nissa
 //     double *all_rectangles_glb=nissa_malloc("all_rectangles",nrect,double);
 //     if(IS_MASTER_THREAD)
 //       {
-// 	decript_MPI_error(MPI_Reduce(all_rectangles,all_rectangles_glb,nrect,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD),"red.");
+// 	DECRYPT_MPI_ERROR(MPI_Reduce(all_rectangles,all_rectangles_glb,nrect,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD),"red.");
 	
 // 	//open file
 // 	if(rank==0)

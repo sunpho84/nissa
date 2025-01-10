@@ -149,7 +149,7 @@ namespace nissa
   
 #ifdef USE_MPI
   //decript the MPI error
-  void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...)
+  void internal_decrypt_MPI_error(int line,const char *file,int rc,const char *templ,...)
   {
     if(rc!=MPI_SUCCESS and is_master_rank())
       {
@@ -169,7 +169,7 @@ namespace nissa
 #endif
   
 #if USE_CUDA
-  void internal_decript_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...)
+  void internal_decrypt_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...)
   {
     if(rc!=cudaSuccess and rank==0)
       {

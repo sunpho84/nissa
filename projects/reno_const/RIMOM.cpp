@@ -472,7 +472,7 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 	    
 	    //open oputput file for concurent access from different ranks
 	    int rc=MPI_File_open(MPI_COMM_WORLD,outfile_fft,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,&(fout[r]));
-	    if(rc) decript_MPI_error(rc,"Unable to open file: %s",outfile_fft);
+	    if(rc) DECRYPT_MPI_ERROR(rc,"Unable to open file: %s",outfile_fft);
 	  }
 	
 	//deciding sign for parities

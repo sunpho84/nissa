@@ -390,7 +390,7 @@ namespace nissa
       void* ptr=nullptr;
       
       VERBOSITY_LV3_MASTER_PRINTF("Allocating size %zu on GPU, ",size);
-      decript_cuda_error(cudaMalloc(&ptr,size),"Allocating on Gpu");
+      DECRYPT_CUDA_ERROR(cudaMalloc(&ptr,size),"Allocating on Gpu");
       VERBOSITY_LV3_MASTER_PRINTF("ptr: %p\n",ptr);
       
       nAlloc++;
@@ -402,7 +402,7 @@ namespace nissa
     void deAllocateRaw(void* ptr)
     {
       MASTER_PRINTF("Freeing from GPU memory %p\n",ptr);
-      decript_cuda_error(cudaFree(ptr),"Freeing from GPU");
+      DECRYPT_CUDA_ERROR(cudaFree(ptr),"Freeing from GPU");
     }
     
     /// Destructor

@@ -37,7 +37,7 @@ namespace nissa
     if(nCudaDevices!=1)
       {
 	iCudaDevice=rank%nCudaDevices;
-	decript_cuda_error(cudaSetDevice(iCudaDevice),"Unable to set device %d",iCudaDevice);
+	DECRYPT_CUDA_ERROR(cudaSetDevice(iCudaDevice),"Unable to set device %d",iCudaDevice);
       }
   }
   

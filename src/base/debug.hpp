@@ -17,10 +17,10 @@
 #endif
 
 #define CRASH(...) ::nissa::internal_crash(__LINE__,__FILE__,__VA_ARGS__)
-#define crash_printing_error(code,...) internal_crash_printing_error(__LINE__,__FILE__,code,__VA_ARGS__)
-#define decript_MPI_error(...) internal_decript_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
+#define CRASH_PRINTING_ERROR(code,...) internal_crash_printing_error(__LINE__,__FILE__,code,__VA_ARGS__)
+#define DECRYPT_MPI_ERROR(...) internal_decrypt_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
 
-#define decript_cuda_error(...)  internal_decript_cuda_error(__LINE__,__FILE__,__VA_ARGS__)
+#define DECRYPT_CUDA_ERROR(...)  internal_decrypt_cuda_error(__LINE__,__FILE__,__VA_ARGS__)
 
 //add verbosity macro
 #if MAX_VERBOSITY_LV>=1
@@ -57,10 +57,10 @@ namespace nissa
   __attribute__((format (printf,4,5)))
   void internal_crash_printing_error(int line,const char *file,int err_code,const char *templ,...);
   __attribute__((format (printf,4,5)))
-  void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...);
+  void internal_decrypt_MPI_error(int line,const char *file,int rc,const char *templ,...);
 #ifdef USE_CUDA
   __attribute__((format (printf,4,5)))
-  void internal_decript_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...);
+  void internal_decrypt_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...);
 #endif
   void print_backtrace_list(int which_rank=0);
   void signal_handler(int);

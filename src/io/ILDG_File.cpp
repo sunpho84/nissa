@@ -126,7 +126,7 @@ namespace nissa
   //close an open file
   void ILDG_File_close(ILDG_File &file)
   {
-    crash_printing_error(fclose(file),"while closing file");
+    CRASH_PRINTING_ERROR(fclose(file),"while closing file");
     
     MPI_Barrier(MPI_COMM_WORLD);
     
