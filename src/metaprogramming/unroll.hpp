@@ -5,11 +5,15 @@
 # include "config.hpp"
 #endif
 
-#if defined(__NVCC__)||defined(__CLANG__)
-# define UNROLL_PREFIX \
-  _Pragma("unroll")
-#else
-# define UNROLL_PREFIX
+#ifdef LOOP_UNROLLING
+# if (defined(__NVCC__)||defined(__CLANG__))
+#  define UNROLL_PREFIX				\
+   _Pragma("unroll")
+# endif
+#endif
+
+#ifndef UNROLL_PREFIX
+#  define UNROLL_PREFIX
 #endif
 
 #define UNROLL_FOR(I,MIN,MAX)			\
