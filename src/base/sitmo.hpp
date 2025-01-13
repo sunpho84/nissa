@@ -2,7 +2,6 @@
 #define _SITMO_HPP
 
 #include <cstdint>
-#include <random>
 
 #include <base/field.hpp>
 #include <geometry/geometry_lx.hpp>
@@ -316,9 +315,6 @@ namespace nissa
     //Reference to the Sitmo
     Sitmo::Rng& rng;
     
-    //Distribution [0,1)
-    std::uniform_real_distribution<> distr;
-    
     //Number of reals to be shifted, in units of global volume
     const uint64_t offsetReal;
     
@@ -352,8 +348,22 @@ namespace nissa
       return RngView(rng,irnd_uint32_t);
     }
     
+    
+    /// Gets a number between [0;1)
+    template <typename G>
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    double getUniformDistributed(G&& g)
+    {
+      constexpr double F=4294967296.0;
+      
+      if(const double res=(g()/F+g())/F;res>=1)
+	return 0.999999999999999889;
+      else
+	return res;
+    }
+    
     /// Fill a specific site
-    //CUDA_HOST_AND_DEVICE
+    CUDA_HOST_AND_DEVICE
     void fillGlbSite(T& out,
 		     const uint64_t& glblx)
     {
@@ -362,18 +372,16 @@ namespace nissa
 	  auto view=
 	    getRngViewOnGlbSiteIRndReal(glblx,irnd_real);
 	  
-	  ((double*)out)[irnd_real]=distr(view);
+	  ((double*)out)[irnd_real]=getUniformDistributed(view);
 	}
     }
     
     /// Fill a specific site given its local index
-    //CUDA_HOST_AND_DEVICE
+    CUDA_HOST_AND_DEVICE
     void fillLocSite(T& out,
 		     const uint64_t& loclx)
     {
-      //Finds the global site of local one
-      const int& glblx=glblxOfLoclx[loclx];
-      fillGlbSite(out,glblx);
+      fillGlbSite(out,glblxOfLoclx[loclx]);
     }
     
     void enforce_single_usage()
@@ -396,9 +404,11 @@ namespace nissa
     {
       enforce_single_usage();
       
-      // FOR_EACH_SITE_DEG_OF_FIELD(out,
-    // 				 CAPTURE(*this,
-      NISSA_LOC_VOL_LOOP(site)
+      PAR(0,
+	  locVol,
+	  CAPTURE(this,
+		  TO_WRITE(out)),
+	  site,
 	{
 	  for(int iDeg=0;
               iDeg<std::remove_reference_t<decltype(out)>::nInternalDegs;
@@ -406,9 +416,9 @@ namespace nissa
 	    {
               auto view=
 		getRngViewOnGlbSiteIRndReal(site,iDeg);
-              out(site,iDeg)=distr(view);
+              out(site,iDeg)=getUniformDistributed(view);
             }
-	}
+	});
     }
   };
   
