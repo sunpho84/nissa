@@ -158,9 +158,8 @@ then
 	fi
 	
 	CUDA_CPPFLAGS="-dc $LTO --expt-relaxed-constexpr --extended-lambda -x cu"
-	
-	AX_SUBPACKAGE(cufft,cufft.h,cufft,cufftDestroy,CUFFT)
 fi
+AX_SUBPACKAGE(cufft,cufft.h,cufft,cufftDestroy,CUFFT)
 
 #threads
 AC_DEFINE([NO_THREADS],[0],["No thread parallelization used"])
