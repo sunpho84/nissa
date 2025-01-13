@@ -21,9 +21,16 @@ namespace nissa
   EXTERN_PROP int need_photon INIT_TO(0);
   
   CUDA_HOST_AND_DEVICE
-  inline int so_sp_col_ind(const int& sp,const int& col)
+  inline int so_sp_col_ind(const int& sp,
+			   const int& col)
   {
     return col+nso_col*sp;
+  }
+  
+  CUDA_HOST_AND_DEVICE
+  inline std::pair<int,int> sp_col_of_so_ind(const int& i)
+  {
+    return {i/nso_col,i%nso_col};
   }
   
   typedef std::pair<std::string,std::pair<double,double>> source_term_t;
