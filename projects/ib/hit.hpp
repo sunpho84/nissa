@@ -197,112 +197,99 @@ struct HitLooper
   
   //generate a source, wither a wall or a point in the origin
   void generate_original_source(qprop_t* sou,
-				const bool& skipOnly)
+				    const bool& skipOnly)
   {
-    const rnd_t noise_type=sou->noise_type;
-    
-    std::unique_ptr<FieldRngOf<spincolor>> drawer;
-    if(stoch_source and use_new_generator)
-      {
-	drawer=std::make_unique<FieldRngOf<spincolor>>(field_rng_stream.getDrawer<spincolor>());
-	
-	if(skipOnly)
-	  return;
-      }
+    FieldRngOf<spincolor> drawer(field_rng_stream.getDrawer<spincolor>());
+    if(stoch_source and skipOnly)
+      return;
     
     //consistency check
-    if(not stoch_source and (not diluted_spi_source or not diluted_col_source)) CRASH("for a non-stochastic source, spin and color must be diluted");
+    if(not stoch_source and (not diluted_spi_source or not diluted_col_source))
+      CRASH("for a non-stochastic source, spin and color must be diluted");
     
-    //reset all to begin
-    for(int i=0;i<nso_spi*nso_col;i++)
-      sou->sp[i]->reset();
-    
-    auto sou_proxy=
-      [&sou](const int& id_so,
-	     const int& ic_so) -> LxField<spincolor>&
-    {
-      return *sou->sp[so_sp_col_ind(id_so,ic_so)];
-    };
-    
-    const int tins=sou->tins;
-    
-    //NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    HOST_PARALLEL_LOOP(0,locVol,
-		       CAPTURE(tins,
-			       &drawer,
-			       noise_type,
-			       sou_proxy),
-		       ivol,
-      {
-	spincolor c;
-	spincolor_put_to_zero(c);
-	
-	//compute relative coords
-	bool is_spat_orig=true;
-	Coords rel_c;
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    rel_c[mu]=rel_coord_of_loclx(ivol,mu);
-	    if(mu) is_spat_orig&=(rel_c[mu]==0);
-	  }
-	
-	//dilute in space
-	int mask=1;
-	for(int mu=0;mu<NDIM;mu++) mask&=(rel_c[mu]%diluted_spat_source==0);
-	
-	//fill colour and spin index 0
-	for(int id_si=0;id_si<(diluted_spi_source?1:NDIRAC);id_si++)
-	  for(int ic_si=0;ic_si<(diluted_col_source?1:NCOL);ic_si++)
+    PAR(0,locVol,
+	CAPTURE(tins=sou->tins,
+		drawer,
+		noise_type=sou->noise_type,
+		s=sou->sp[0]->getWritable()),
+	ivol,
+	{
+	  spincolor b{};
+	  
+	  if(stoch_source)
 	    {
-	      if(stoch_source and mask and (tins==-1 or rel_c[0]==tins))
+	      if(tins==-1 or rel_coord_of_loclx(ivol,0)==0)
 		{
-		  if(use_new_generator)
-		    {
-		      drawer->fillLocSite(c,ivol);
-		      for(int id=0;id<NDIRAC;id++)
-			for(int ic=0;ic<NCOL;ic++)
-			  switch(noise_type)
-			    {
-			    case RND_ALL_PLUS_ONE:
-			      complex_put_to_real(c[id][ic],1);
-			      break;
-			    case RND_ALL_MINUS_ONE:
-			      complex_put_to_real(c[id][ic],-1);
-			      break;
-			    case RND_Z2:
-			      z2Transform(c[id][ic]);
-			      break;
-			    case RND_Z4:
-			      z4Transform(c[id][ic]);
-			      break;
-			    case RND_UNIF:
-			    case RND_Z3:
-			    case RND_GAUSS:
-			      CRASH("not implemented yet");
-			      break;
-			    }
-		    }
-		  else
-		    comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),noise_type);
+ 		  spincolor drawn;
+		  drawer.fillLocSite(drawn,ivol);
+		  
+		  for(int id=0;id<(diluted_spi_source?1:NDIRAC);id++)
+		    for(int ic=0;ic<(diluted_col_source?1:NCOL);ic++)
+		      {
+			complex bi;
+			
+			complex_copy(bi,drawn[id][ic]);
+			
+			switch(noise_type)
+			  {
+			  case RND_ALL_PLUS_ONE:
+			    complex_put_to_real(bi,1);
+			    break;
+			  case RND_ALL_MINUS_ONE:
+			    complex_put_to_real(bi,-1);
+			    break;
+			  case RND_Z2:
+			    z2Transform(bi);
+			    break;
+			  case RND_Z4:
+			    z4Transform(bi);
+			    break;
+			  case RND_UNIF:
+			  case RND_Z3:
+			  case RND_GAUSS:
+			    CRASH("not implemented yet");
+			break;
+			  }
+			
+			complex_copy(b[id][ic],bi);
+		      }
 		}
-	      if(not stoch_source and is_spat_orig and (tins==-1 or rel_c[0]==tins)) complex_put_to_real(c[id_si][ic_si],1);
 	    }
-	
-	//fill other spin indices
-	for(int id_so=0;id_so<nso_spi;id_so++)
-	  for(int ic_so=0;ic_so<nso_col;ic_so++)
-	    for(int id_si=0;id_si<NDIRAC;id_si++)
-	      for(int ic_si=0;ic_si<NCOL;ic_si++)
-		if((not diluted_spi_source or (id_so==id_si)) and (not diluted_col_source or (ic_so==ic_si)))
-		      complex_copy(sou_proxy(id_so,ic_so)[ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
-      });
+	  else
+	    {
+	      bool is_ori=true;
+	      for(int mu=0;mu<NDIM;mu++)
+		rel_coord_of_loclx(ivol,mu);
+	      
+	      if(is_ori)
+		b[0][0][RE]=1.0;
+	    }
+	  
+	  spincolor_copy(s[ivol],b);
+	});
+    
+    for(int i=1;i<nso_spi*nso_col;i++)
+      {
+	PAR(0,locVol,
+	  CAPTURE(s=sou->sp[0]->getReadable(),
+		  d=sou->sp[i]->getWritable(),
+		  i),
+	  ivol,
+	  {
+	    const auto [sp_so,co_so]=sp_col_of_so_ind(i);
+	    
+	    const int sp_si=diluted_spi_source?0:sp_so;
+	    const int co_si=diluted_col_source?0:co_so;
+	    complex_copy(d[ivol][sp_so][co_so],s[ivol][sp_si][co_si]);
+	  });
+      }
     
     //compute the norm2, set borders invalid
     double ori_source_norm2=0;
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
-	  LxField<spincolor>& s=sou_proxy(id_so,ic_so);
+	  LxField<spincolor>& s=*sou->sp[so_sp_col_ind(id_so,ic_so)];
 	  s.invalidateHalo();
 	  ori_source_norm2+=s.norm2();
 	}
@@ -411,18 +398,13 @@ struct HitLooper
     if(doNotAverageHits)
       clearCorrelations();
     
-    if(use_new_generator)
+    for(int mu=0;mu<NDIM;mu++)
       {
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    using C=double[1];
-	    C c;
-	    field_rng_stream.drawScalar(c);
-	    source_coord[mu]=c[0]*glbSize[mu];
-	  }
+	using C=double[1];
+	C c;
+	field_rng_stream.drawScalar(c);
+	source_coord[mu]=c[0]*glbSize[mu];
       }
-    else
-      source_coord=generate_random_coord();
     
     if(stoch_source) MASTER_PRINTF(" source time: %d\n",source_coord[0]);
     else             MASTER_PRINTF(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
