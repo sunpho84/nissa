@@ -297,21 +297,18 @@ namespace nissa
   inline void start_hit(int ihit,bool skip=false)
   {
     MASTER_PRINTF("\n=== Hit %d/%d ====\n",ihit+1,nhits);
-    if(use_new_generator)
+    for(int mu=0;mu<NDIM;mu++)
       {
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    using C=double[1];
-	    C c;
-	    field_rng_stream.drawScalar(c);
-	    source_coord[mu]=c[0]*glbSize[mu];
-	  }
+	using C=double[1];
+	C c;
+	field_rng_stream.drawScalar(c);
+	source_coord[mu]=c[0]*glbSize[mu];
       }
-    else
-      source_coord=generate_random_coord();
     
-    if(stoch_source) MASTER_PRINTF(" source time: %d\n",source_coord[0]);
-    else             MASTER_PRINTF(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
+    if(stoch_source)
+      MASTER_PRINTF(" source time: %d\n",source_coord[0]);
+    else
+      MASTER_PRINTF(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
     if(need_photon)
       {
 	if(skip)

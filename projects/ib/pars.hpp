@@ -18,7 +18,6 @@ namespace nissa
 #define ANTIPERIODIC_BC 1
   
   /// New generator
-  EXTERN_PARS int use_new_generator;
   EXTERN_PARS FieldRngStream field_rng_stream;
   
   //Twisted run
@@ -157,39 +156,39 @@ namespace nissa
   {
     int seed;
     read_str_int("Seed",&seed);
-
+    
     if(seed<0)
-      {
-	seed=-seed;
-	use_new_generator=false;
-	MASTER_PRINTF("Reverting to the old rng\n");
-	start_loc_rnd_gen(seed);
-      }
-    else
-      {
-	use_new_generator=true;
-	field_rng_stream.init(seed);
-      }
+      CRASH("Old generator not supported, please use a positive seed");
+    
+    field_rng_stream.init(seed);
   }
   
   //flag to simulate in the free theory
   EXTERN_PARS int free_theory INIT_TO(false);
   inline void read_free_theory_flag()
-  {read_str_int("FreeTheory",&free_theory);}
+  {
+    read_str_int("FreeTheory",&free_theory);
+  }
   
   //flag to make the muon with or without the external line
   CUDA_MANAGED EXTERN_PARS int follow_chris_or_nazario INIT_TO(follow_nazario);
   inline void read_gospel_convention()
-  {read_str_int("FollowChrisOrNazario",&follow_chris_or_nazario);}
+  {
+    read_str_int("FollowChrisOrNazario",&follow_chris_or_nazario);
+  }
   
   //perform a random gauge transformation
   EXTERN_PARS int rnd_gauge_transform INIT_TO(0);
   inline void read_random_gauge_transform()
-  {read_str_int("RandomGaugeTransform",&rnd_gauge_transform);}
+  {
+    read_str_int("RandomGaugeTransform",&rnd_gauge_transform);
+  }
   
   //perform a Landau gauge fixing
   EXTERN_PARS int Landau_gauge_fix_flag INIT_TO(0);
+  
   EXTERN_PARS LC_gauge_fixing_pars_t gauge_fixing_pars;
+  
   inline void read_Landau_gauge_fix()
   {
     read_str_int("LandauGaugeFix",&Landau_gauge_fix_flag);
@@ -199,20 +198,29 @@ namespace nissa
   //store the conf?
   EXTERN_PARS int store_conf INIT_TO(0);
   inline void read_store_conf()
-  {read_str_int("StoreConf",&store_conf);}
+  {
+    read_str_int("StoreConf",&store_conf);
+  }
   
   //local pion or muon current?
   EXTERN_PARS int loc_hadr_curr INIT_TO(false);
   inline void read_loc_hadr_curr()
-  {read_str_int("LocHadrCurr",&loc_hadr_curr);}
+  {
+    read_str_int("LocHadrCurr",&loc_hadr_curr);
+  }
+  
   EXTERN_PARS int loc_muon_curr INIT_TO(false);
   inline void read_loc_muon_curr()
-  {read_str_int("LocMuonCurr",&loc_muon_curr);}
+  {
+    read_str_int("LocMuonCurr",&loc_muon_curr);
+  }
   
   //stochastic sources
   CUDA_MANAGED EXTERN_PARS int stoch_source INIT_TO(0);
   inline void read_stoch_source()
-  {read_str_int("StochSource",&stoch_source);}
+  {
+    read_str_int("StochSource",&stoch_source);
+  }
   
   //number of hits
   EXTERN_PARS int nhits INIT_TO(1);

@@ -387,21 +387,16 @@ namespace nissa
   
   void generate_photon_source(LxField<spin1field>& photon_eta)
   {
-    if(use_new_generator)
-      {
-	auto source_filler=field_rng_stream.getDrawer<spin1field>();
-	source_filler.fillField(photon_eta);
-	
-	PAR(0,locVol,
-	    CAPTURE(TO_WRITE(photon_eta)),
-	    ivol,
-	    {
-	      for(int mu=0;mu<NDIM;mu++)
-		z4Transform(photon_eta[ivol][mu]);
-	    });
-      }
-    else
-      generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
+    auto source_filler=field_rng_stream.getDrawer<spin1field>();
+    source_filler.fillField(photon_eta);
+    
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(photon_eta)),
+	ivol,
+	{
+	  for(int mu=0;mu<NDIM;mu++)
+	    z4Transform(photon_eta[ivol][mu]);
+	});
   }
   
   //multiply for the Dirac operator

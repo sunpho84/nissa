@@ -517,14 +517,14 @@ namespace nissa
   CUDA_HOST_AND_DEVICE
   inline void z2Transform(double& out)
   {
-    out=(out>0.5)?M_SQRT1_2:-M_SQRT1_2;
+    out=(int(out*2.0)-1)*M_SQRT1_2;
   }
   
   template <typename C>
   CUDA_HOST_AND_DEVICE
   inline void z2Transform(C&& out)
   {
-    out[RE]=(out[RE]>0.5)?+1:-1;
+    out[RE]=(int(out[RE]*2.0)-1);
     out[IM]=0.0;
   }
   
