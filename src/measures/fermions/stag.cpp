@@ -256,7 +256,7 @@ namespace nissa
 		
 		complex_summassign(point_result[loclx_of_loceo[par][ieo]],t);
 	      });
-	  glb_reduce(&res_fw_bw[fw_bw],point_result,locVol);
+	  point_result.reduce(res_fw_bw[fw_bw]);
 	  
 	  //DEB_STAG("fw_bw=%d mu=%d, RE=%lg IM=%lg\n",fw_bw,mu,res_fw_bw[fw_bw][RE],res_fw_bw[fw_bw][IM]);
 	}
@@ -295,10 +295,11 @@ namespace nissa
 			const EoField<color>& A,
 			const EoField<color>& B)
     {
+      //compute results for single points
+      local_trace(point_result,A,B);
+      
       //final reduction
-      complex temp;
-      glb_reduce(&temp,point_result,locVol);
-      complex_summassign(out,temp);
+      point_result.reduce(out);
     }
     
     //take the trace between A^dag and B, keeping individual times

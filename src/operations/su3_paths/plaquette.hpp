@@ -136,7 +136,7 @@ namespace nissa
     
     //reduce as complex and normalize
     complex temp;
-    glb_reduce(&temp,point_plaq,locVol);
+    point_plaq.reduce(temp);
     
     for(int ts=0;ts<2;ts++)
       totplaq[ts]=temp[ts]/(glbVol*NCOL*NCOL);
