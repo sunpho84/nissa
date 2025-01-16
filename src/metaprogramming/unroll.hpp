@@ -18,7 +18,7 @@
 
 #define UNROLL_FOR(I,MIN,MAX)			\
   UNROLL_PREFIX					\
-  for(auto I=MIN;I<MAX;I++)
+  for(std::common_type_t<decltype(MIN),decltype(MAX)> I=MIN;I<MAX;I++)
 
 #define UNROLL_FOR_ALL_DIRS(MU)			\
   UNROLL_FOR(MU,0,NDIM)
