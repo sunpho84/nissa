@@ -272,7 +272,7 @@ namespace nissa
   struct RngView
   {
     /// Field random number generator
-    Sitmo::Rng& ref;
+    Sitmo::Rng ref;
     
     //Number of uint32_t generated so far
     uint64_t irng;
@@ -313,7 +313,7 @@ namespace nissa
     bool used;
     
     //Reference to the Sitmo
-    Sitmo::Rng& rng;
+    Sitmo::Rng rng;
     
     //Number of reals to be shifted, in units of global volume
     const uint64_t offsetReal;
@@ -323,7 +323,7 @@ namespace nissa
       sizeof(T)/sizeof(double);
     
     //Constructor
-    FieldRngOf(Sitmo::Rng& rng,
+    FieldRngOf(const Sitmo::Rng& rng,
 	       const uint64_t& offsetReal) :
       used(false),
       rng(rng),
@@ -350,6 +350,8 @@ namespace nissa
     
     
     /// Gets a number between [0;1)
+    ///
+    /// This routine returns precisely the same than std::uniform_distribution
     template <typename G>
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     double getUniformDistributed(G&& g)
@@ -384,6 +386,7 @@ namespace nissa
       fillGlbSite(out,glblxOfLoclx[loclx]);
     }
     
+    /// Claims that the generator must be used only once
     void enforce_single_usage()
     {
       if(used)
@@ -406,7 +409,7 @@ namespace nissa
       
       PAR(0,
 	  locVol,
-	  CAPTURE(this,
+	  CAPTURE(self=*this,
 		  TO_WRITE(out)),
 	  site,
 	{
@@ -415,36 +418,38 @@ namespace nissa
 	      iDeg++)
 	    {
               auto view=
-		getRngViewOnGlbSiteIRndReal(site,iDeg);
-              out(site,iDeg)=getUniformDistributed(view);
+		self.getRngViewOnGlbSiteIRndReal(site,iDeg);
+              out(site,iDeg)=self.getUniformDistributed(view);
             }
 	});
     }
   };
   
   /// Stream of numbers for all lattice sites
+  ///
+  /// This is the object that is accessed from external routines
   struct FieldRngStream
   {
-    //Embeds the random number generator
+    /// Embeds the random number generator
     Sitmo::Rng rng;
     
     //Number of double precision numbers generated per site
     uint64_t nGeneratedDouble;
     
-    //Skip n drawers
+    /// Skip n drawers
     template <typename T>
     void skipDrawers(const uint64_t& nDrawers)
     {
       nGeneratedDouble+=FieldRngOf<T>::nRealsPerSite*nDrawers;
     }
     
-    //Return a proxy from which to fetch the random numbers
+    /// Return a proxy from which to fetch the random numbers
     template <typename T>
     auto getDrawer()
     {
       static_assert(sizeof(T)%sizeof(double)==0,"Type not multiple in size of double");
       
-      //Result
+      /// Result
       FieldRngOf<T> res(rng,nGeneratedDouble);
       
       skipDrawers<T>(1);
@@ -452,7 +457,7 @@ namespace nissa
       return res;
     }
     
-    //Draw a single instance of T
+    /// Draw a single instance of T
     template <typename T>
     void drawScalar(T& out)
     {
@@ -463,14 +468,14 @@ namespace nissa
       drawer.fillWithOrigin(out);
     }
     
-    //Initializes with a seed
+    /// Initializes with a seed
     void init(const uint32_t& seed)
     {
       rng.seed(seed);
       nGeneratedDouble=0;
     }
     
-    /// Returns the commands to exec
+    /// Returns the commands to exec hen starting/ending the benchmark
     bool maybeBackupForBenchmark()
     {
 #ifdef USE_CUDA
@@ -503,7 +508,8 @@ namespace nissa
   static constexpr complex sqrt_2_half_complex{M_SQRT1_2,M_SQRT1_2};
   
   template <typename C>
-  inline void BoxMullerTransform(C&& out,
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  void BoxMullerTransform(C&& out,
 				 const complex& ave=zero_complex,
 				 const complex& sig=sqrt_2_half_complex)
   {
@@ -514,23 +520,23 @@ namespace nissa
     out[IM]=r*sin(q)*sig[IM]+ave[IM];
   }
   
-  CUDA_HOST_AND_DEVICE
-  inline void z2Transform(double& out)
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  void z2Transform(double& out)
   {
     out=(int(out*2.0)-1)*M_SQRT1_2;
   }
   
   template <typename C>
-  CUDA_HOST_AND_DEVICE
-  inline void z2Transform(C&& out)
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  void z2Transform(C&& out)
   {
     out[RE]=(int(out[RE]*2.0)-1);
     out[IM]=0.0;
   }
   
   template <typename C>
-  CUDA_HOST_AND_DEVICE
-  inline void z4Transform(C&& out)
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  void z4Transform(C&& out)
   {
     for(int ri=0;ri<2;ri++)
       z2Transform(out[ri]);
