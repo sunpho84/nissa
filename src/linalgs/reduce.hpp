@@ -13,6 +13,7 @@
 # include <thrust/reduce.h>
 #endif
 
+#include "base/memory_manager.hpp"
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
 
@@ -20,7 +21,7 @@
 # define EXTERN_REDUCE extern
 # define INIT_REDUCE_TO(...)
 #else
-# efine INIT_REDUCE_TO(...) __VA_ARGS__
+# define INIT_REDUCE_TO(...) __VA_ARGS__
 #endif
 
 namespace nissa
@@ -80,37 +81,6 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  template <typename A,
-	    typename B>
-  CUDA_HOST_AND_DEVICE
-  void reduceSummer(A&& out,const B& in)
-  {
-    if constexpr(std::is_pod_v<B> and not std::is_array_v<B>)
-      out+=in;
-    else //hack
-      complex_summassign(out,in);
-  }
-  
-  template <typename A,
-	    typename B>
-  void reduceAssigner(A&& out,
-		      const B& in)
-  {
-    if constexpr(std::is_pod_v<B> and not std::is_array_v<B>)
-#ifdef USE_CUDA
-      cudaMemcpy(&out,&in,sizeof(B),cudaMemcpyDeviceToHost);
-#else
-      out=in;
-#endif
-    else //hack
-#ifdef USE_CUDA
-      for(int ri=0;ri<2;ri++)
-	cudaMemcpy(&(out[ri]),&(in[ri]),sizeof(in[ri]),cudaMemcpyDeviceToHost);
-#else
-      complex_copy(out,in);
-#endif
-  }
-  
   /////////////////////////////////////////////////////////////////
   
   template <typename T,
@@ -139,8 +109,14 @@ namespace nissa
 	const int64_t nreductions=nreductions_per_slice*nslices;
 	VERBOSITY_LV3_MASTER_PRINTF("nper_slice: %ld, stride: %ld, nreductions_per_slice: %ld, nreductions: %ld \n",nper_slice,stride,nreductions_per_slice,nreductions);
 	
-	PAR(0,nreductions,
-	    CAPTURE(nslices,stride,nori_per_slice,op,TO_WRITE(buf)),ireduction,
+	PAR(0,
+	    nreductions,
+	    CAPTURE(nslices,
+		    stride,
+		    nori_per_slice,
+		    op,
+		    TO_WRITE(buf)),
+	    ireduction,
 	  {
 	    const int64_t islice=ireduction%nslices;
 	    const int64_t ireduction_in_slice=ireduction/nslices;
@@ -156,7 +132,25 @@ namespace nissa
     // MASTER_PRINTF("reduction ended, took %lg s\n",take_time()-init_time);
     
     for(int islice=0;islice<nslices;islice++)
-      reduceAssigner(loc_res[islice],buf[islice*nori_per_slice]);
+      {
+	if constexpr(std::is_pod_v<T> and not std::is_array_v<T>)
+	  {
+#ifdef USE_CUDA
+	    cudaMemcpy(&loc_res[islice],buf.template getPtrTo<defaultMemorySpace>(islice*nori_per_slice,0),sizeof(T),cudaMemcpyDeviceToHost);
+#else
+	    loc_res=buf;
+#endif
+	  }
+	else
+	  for(size_t idof=0;idof<std::extent_v<T>;idof++)
+	    {
+#ifdef USE_CUDA
+	      cudaMemcpy(&loc_res[islice][idof],buf.template getPtrTo<defaultMemorySpace>(islice*nori_per_slice,idof),sizeof(std::remove_extent_t<T>),cudaMemcpyDeviceToHost);
+#else
+	      loc_res[islice][idof]=buf(islice*nori_per_slice,idof);
+#endif
+	    }
+      }
   }
   
   /////////////////////////////////////////////////////////////////
@@ -171,7 +165,11 @@ namespace nissa
     void operator()(F1&& res,
 		    const F2& acc) const
     {
-      reduceSummer(res,acc);
+      if constexpr(not std::is_array_v<F1>)
+	res+=acc;
+      else
+	for(size_t i=0;i<std::extent_v<F1>;i++)
+	  GlbReduceSumFunctor::operator()(res[i],acc[i]);
     }
   };
   
