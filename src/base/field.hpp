@@ -771,7 +771,7 @@ namespace nissa
 		buf[site]=r;
 	      });
 	  
-	  glb_reduce(&res,buf,this->nSites());
+	  buf.reduce(res);
 	  
 // #ifdef USE_CUDA
 // 	}
@@ -1253,6 +1253,34 @@ namespace nissa
       return *this;
     }
     
+    /// Returns the same or a copy if not on the given memory space
+    template <MemorySpace Dest>
+    decltype(auto) getSurelyReadableOn() const
+    {
+      if constexpr(Dest!=MS)
+	{
+	  Field<T,FC,STL,Dest> out("out",haloEdgesPresence);
+	  out=*this;
+	  return out;
+	}
+      else
+	return *this;
+    }
+    
+    /// Returns the same or a copy if not with the given spacetime layout
+    template <SpaceTimeLayout Dest>
+    decltype(auto) getSurelyWithSpaceTimeLayout() const
+    {
+      if constexpr(Dest!=STL)
+	{
+	  Field<T,FC,Dest,MS> out("out",haloEdgesPresence);
+	  out=*this;
+	  return out;
+	}
+      else
+	return *this;
+    }
+    
     /// Assign the same layout
     INLINE_FUNCTION
     Field& operator=(const Field& oth)
@@ -1554,6 +1582,21 @@ namespace nissa
     
 #undef PROVIDE_EVAL
     
+#define PROVIDE_SELFOP(OP)						\
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr			\
+    SubscribedField& operator OP ## =(const SubscribedField& oth)	\
+      {									\
+	UNROLL_FOR(internalDeg,0,F::nInternalDegs)			\
+	eval(internalDeg) OP ## =oth.eval(internalDeg);			\
+									\
+	return *this;							\
+      }
+    
+    PROVIDE_SELFOP(+);
+    PROVIDE_SELFOP(-);
+    
+#undef PROVIDE_SELFOP
+    
 #define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
     decltype(auto) operator[](const int& i) CONST			\
@@ -1575,7 +1618,9 @@ namespace nissa
     SubscribedField(F& f,
 		    const int64_t& site,
 		    const P* ptr) :
-      f(f),site(site),ptr(ptr)
+      f(f),
+      site(site),
+      ptr(ptr)
     {
     }
   };
