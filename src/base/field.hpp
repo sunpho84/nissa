@@ -117,16 +117,6 @@ namespace nissa
 #endif
 	      ;
   
-  /// Predefinite space of memory
-  constexpr MemorySpace defaultMemorySpace=
-	      MemorySpace::
-#ifdef USE_CUDA
-	      GPU
-#else
-	      CPU
-#endif
-	      ;
-  
   /////////////////////////////////////////////////////////////////
   
   /// Number of sites contained in the field

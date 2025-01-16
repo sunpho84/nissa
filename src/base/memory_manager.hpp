@@ -53,6 +53,16 @@ namespace nissa
 #endif
 	      ;
   
+  /// Predefinite space of memory
+  constexpr MemorySpace defaultMemorySpace=
+	      MemorySpace::
+#ifdef USE_CUDA
+	      GPU
+#else
+	      CPU
+#endif
+	      ;
+  
   /// Type used for size
   using Size=int64_t;
   
