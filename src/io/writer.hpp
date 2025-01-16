@@ -14,80 +14,33 @@
 
 namespace nissa
 {
-  template <typename T,
-	    SpaceTimeLayout STL>
-  void write_real_vector_internal(ILDG_File file,
-				  const LxField<T,STL>& in,
-				  const char* headerMessage)
-  {
-    LxField<T,SpaceTimeLayout::CPU> buf("buf");
-    buf=in;
-    
-    write_real_vector_internal(file,buf,headerMessage);
-  }
-  
-  template <typename T>
-  void write_real_vector_internal(ILDG_File file,
-				  const LxField<T,SpaceTimeLayout::CPU>& in,
-				  const char* headerMessage)
-  {
-    constexpr int nrealsPerSite=
-      LxField<T>::nInternalDegs;
-    constexpr uint64_t nBytesPerSite=
-      nrealsPerSite*sizeof(typename LxField<T>::Fund);
-    
-    ILDG_File_write_ildg_data_all(file,in.template getPtr<MemorySpace::CPU>(),nBytesPerSite,headerMessage);
-  }
-  
   template <typename T>
   void write_real_vector(ILDG_File &file,
-			 const LxField<T,SpaceTimeLayout::CPU>& in,
-			 const char *header_message,
-			 const ILDG_message* mess=nullptr)
-  {
-    //take initial time
-    double time=
-      -take_time();
-    
-    //write all the messages
-    if(mess!=nullptr)
-      ILDG_File_write_all_messages(file,mess);
-    
-    //compute the checksum
-    const Checksum check=ildgChecksum(in);
-
-    LxField<T,SpaceTimeLayout::CPU> temp=in;
-    FOR_EACH_SITE_DEG_OF_FIELD(temp,
-			       CAPTURE(TO_WRITE(temp)),
-			       site,
-			       iDeg,
-			       {
-				 fixFromNativeEndianness<BigEndian>(temp(site,iDeg));
-			       });
-    
-    //write
-    write_real_vector_internal(file,temp,header_message);
-    
-    //append the checksum
-    ILDG_File_write_checksum(file,check);
-    
-    //take final time
-    time+=take_time();
-    VERBOSITY_LV2_MASTER_PRINTF("Time elapsed in writing: %f s\n",time);
-  }
-  
-  template <typename T,
-	    SpaceTimeLayout STL,
-	    ENABLE_THIS_TEMPLATE_IF(STL!=SpaceTimeLayout::CPU)>
-  void write_real_vector(ILDG_File &file,
-			 const LxField<T,STL>& in,
+			 const LxField<T>& in,
 			 const char* header_message,
 			 const ILDG_message* mess=nullptr)
   {
-    write_real_vector(file,(LxField<T,SpaceTimeLayout::CPU>)in,header_message,mess);
+    /// Take initial time
+    const double time=
+      take_time();
+    
+    // Write all the messages
+    if(mess!=nullptr)
+      ILDG_File_write_all_messages(file,mess);
+    
+    /// Compute the checksum
+    const Checksum check=
+      ildgChecksum(in);
+    
+    ILDG_File_write_ildg_data_all(file,in,header_message);
+    
+    // Append the checksum
+    ILDG_File_write_checksum(file,check);
+    
+    VERBOSITY_LV2_MASTER_PRINTF("Time elapsed in writing: %f s\n",take_time()-time);
   }
   
-  //wrapper opening the file
+  /// Wrapper opening the file
   template <typename T>
   void write_real_vector(const std::string& path,
 			 const T& data,

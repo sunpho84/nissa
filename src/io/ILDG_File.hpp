@@ -91,7 +91,7 @@ namespace nissa
   bool get_ME_flag(ILDG_header &header);
   int ILDG_File_search_record(ILDG_header &header,ILDG_File &file,const char *record_name,ILDG_message *mess=NULL);
   void ILDG_File_close(ILDG_File &file);
-  void ILDG_File_master_write(ILDG_File &file,void *data,int nbytes_req);
+  void ILDG_File_master_write(ILDG_File &file,void *data,size_t nbytes_req);
   void ILDG_File_read_all(void *data,ILDG_File &file,size_t nbytes_req);
   Checksum ILDG_File_read_checksum(ILDG_File &file);
   
@@ -101,11 +101,9 @@ namespace nissa
   void ILDG_File_skip_nbytes(ILDG_File &file,ILDG_Offset nbytes);
   void ILDG_File_skip_record(ILDG_File &file,ILDG_header header);
   void ILDG_File_write_checksum(ILDG_File &file,const Checksum& check);
-  void ILDG_File_write_ildg_data_all_raw(ILDG_File &file,void *data,uint64_t data_length);
-  void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,ILDG_Offset nbytes_per_site,const char *type);
-  void ILDG_File_write_record_header(ILDG_File &file,ILDG_header &header_to_write);
-  void ILDG_File_write_record(ILDG_File &file,const char *type,const char *buf,uint64_t len);
-  void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text);
+  
+  void ILDG_File_write_record_header(ILDG_File &file,
+				     const ILDG_header &header_to_write);
   
   /// Define the remapping from the layout having in each rank a
   /// consecutive block of data holding a consecutive piece of ildg
@@ -144,6 +142,82 @@ namespace nissa
     
     return {irank_ILDG,iloc_ILDG};
   }
+  
+  /// Write the data according to the ILDG mapping
+  template <typename T>
+  void ILDG_File_write_ildg_data_all(ILDG_File &file,
+				     LxField<T> in,
+				     const char* header_message)
+  {
+    /// Take note the number of reals per site
+    constexpr int nrealsPerSite=
+      LxField<T>::nInternalDegs;
+    
+    /// Take notes of the number of bytes per site
+    constexpr uint64_t nBytesPerSite=
+      nrealsPerSite*sizeof(typename LxField<T>::Fund);
+    
+    /// Computes the length of the data to be written
+    const uint64_t data_length=
+      nBytesPerSite*glbVol;
+    
+    /// Temporary buffer with CPU spacetime layout
+    LxField<T,SpaceTimeLayout::CPU> temp("temp");
+    
+    //reorder data to the appropriate place
+    vector_remap_t(locVol,index_to_ILDG_remapping).
+      remap(temp.template getPtr<defaultMemorySpace>(),
+	    in.template getSurelyWithSpaceTimeLayout<SpaceTimeLayout::CPU>().template getPtr<defaultMemorySpace>(),
+	    data_length/glbVol);
+    
+    FOR_EACH_SITE_DEG_OF_FIELD(temp,
+			       CAPTURE(TO_WRITE(temp)),
+			       site,
+			       iDeg,
+			       {
+				 fixFromNativeEndianness<BigEndian>(temp(site,iDeg));
+			       });
+    
+    /// Prepare the header
+    const ILDG_header header=
+      ILDG_File_build_record_header(0,0,header_message,data_length);
+    
+    ILDG_File_write_record_header(file,header);
+    
+    //allocate the buffer
+    ILDG_Offset nbytes_per_rank=
+      header.data_length/nranks;
+    
+    // Take note of the original position
+    const ILDG_Offset ori_pos=
+      ILDG_File_get_position(file);
+    
+    /// Find the starting point
+    const ILDG_Offset new_pos=
+      ori_pos+rank*nbytes_per_rank;
+    ILDG_File_set_position(file,new_pos,SEEK_SET);
+    
+    /// Writes
+    const ILDG_Offset nbytes_wrote=
+      fwrite(temp.template getSurelyReadableOn<MemorySpace::CPU>().template getPtr<MemorySpace::CPU>(),1,nbytes_per_rank,file);
+    if(nbytes_wrote!=nbytes_per_rank)
+      CRASH("wrote %ld bytes instead of %ld",nbytes_wrote,nbytes_per_rank);
+    
+    // Place at the end of the record, including padding
+    ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
+    
+    // Pad if necessary
+    if(const size_t pad_diff=
+       header.data_length%8;pad_diff!=0)
+      {
+	char buf[8];
+	memset(buf,0,8);
+	ILDG_File_master_write(file,(void*)buf,8-pad_diff);
+      }
+  }
+  
+  void ILDG_File_write_record(ILDG_File &file,const char *type,const char *buf,uint64_t len);
+  void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text);
   
   //Writes a field to a file (data is a vector of loc_vol) with no frill
   template <typename T>
@@ -207,43 +281,45 @@ namespace nissa
 				    ILDG_File &file,
 				    const ILDG_header &header)
   {
-    //allocate a buffer
-    ILDG_Offset nbytes_per_rank_exp=header.data_length/nranks;
-    LxField<T,SpaceTimeLayout::CPU,MemorySpace::CPU> buf("buf");
+    // Take note of the original position
+    const ILDG_Offset ori_pos=
+      ILDG_File_get_position(file);
     
-    //take original position
-    ILDG_Offset ori_pos=ILDG_File_get_position(file);
+    /// Number of bytes expected per rank
+    const ILDG_Offset nbytes_per_rank_exp=
+      header.data_length/nranks;
     
-    //find starting point
-    ILDG_Offset new_pos=ori_pos+rank*nbytes_per_rank_exp;
+    // Find the starting point and moves there
+    const ILDG_Offset new_pos=
+      ori_pos+rank*nbytes_per_rank_exp;
     ILDG_File_set_position(file,new_pos,SEEK_SET);
     
-    //read
-    const double beg=take_time();
-    ILDG_Offset nbytes_read=fread(buf.template getPtr<MemorySpace::CPU>(),1,nbytes_per_rank_exp,file);
+    // Allocated buffer on CPU with the CPU layout
+    LxField<T,SpaceTimeLayout::CPU,MemorySpace::CPU> buf("buf");
+    
+    // Take not of the initial read time
+    const double beg=
+      take_time();
+    
+    /// Reads taking note of the number of read bytes
+    const ILDG_Offset nbytes_read=
+      fread(buf.template getPtr<MemorySpace::CPU>(),1,nbytes_per_rank_exp,file);
+    
+    // Report and verify full reading
     MASTER_PRINTF("Bare reading %zu bytes took %lg s\n",nbytes_per_rank_exp,take_time()-beg);
     if(nbytes_read!=nbytes_per_rank_exp)
       CRASH("read %zu bytes instead of %ld",nbytes_read,nbytes_per_rank_exp);
     
-    //place at the end of the record, including padding
+    // Place at the end of the record, including padding
     ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
     
-    /// Reorder data to the appropriate place
+    /// Ensures that the buffer is on the default memory space
     decltype(auto) bufOnDefaultMemorySpace=
-      [](auto& in) -> decltype(auto)
-      {
-	if constexpr(defaultMemorySpace!=MemorySpace::CPU)
-	  {
-	    LxField<T,SpaceTimeLayout::CPU> out("out");
-	    out=in;
-	    return out;
-	  }
-	else
-	  return in;
-      }(buf);
+      buf.template getSurelyReadableOn<defaultMemorySpace>();
     
+    /// Incapsulates the action of remapping, which is carried out on the default memory space
     auto act=
-      [bufOnDefaultMemorySpace,
+      [&bufOnDefaultMemorySpace,
        rem=vector_remap_t(locVol,index_from_ILDG_remapping),
        &header](auto& f)
       {
@@ -261,7 +337,15 @@ namespace nissa
 	out=tmp;
       }
       
-    VERBOSITY_LV3_MASTER_PRINTF("ildg data record read: %lu bytes\n",header.data_length);
+      FOR_EACH_SITE_DEG_OF_FIELD(out,
+				 CAPTURE(TO_WRITE(out)),
+				 site,
+				 iDeg,
+				 {
+				   fixToNativeEndianness<BigEndian>(out(site,iDeg));
+				 });
+      
+      VERBOSITY_LV3_MASTER_PRINTF("ildg data record read: %lu bytes\n",header.data_length);
   }
 }
 

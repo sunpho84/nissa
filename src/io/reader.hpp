@@ -19,43 +19,19 @@ namespace nissa
 			ILDG_message* mess=nullptr)
   {
     //check the size of the data block
-    const int nreals_per_site=LxField<T>::nInternalDegs;
-    //const int loc_nreals_tot=nreals_per_site*locVol;
-    const uint64_t nbytes=header.data_length;
-    const uint64_t nbytes_per_site_read=nbytes/glbVol;
-    if(nbytes_per_site_read>nreals_per_site*sizeof(double))
+    constexpr int nreals_per_site=
+      LxField<T>::nInternalDegs;
+    
+    if(const uint64_t nbytes_per_site_read=header.data_length/glbVol;
+       nbytes_per_site_read>nreals_per_site*sizeof(double))
       CRASH("Opsss! The file contain %lu bytes per site and it is supposed to contain not more than %lu!",
 	    nbytes_per_site_read,nreals_per_site*sizeof(double));
     
     ILDG_File_read_ildg_data_all(out,file,header);
-    out.invalidateHalo();
     
-    //check read size
-    const uint64_t nbytes_per_site_float=nreals_per_site*sizeof(float);
-    const uint64_t nbytes_per_site_double=nreals_per_site*sizeof(double);
-    
-    //read the checksum
-    const Checksum read_check=ILDG_File_read_checksum(file);
-    
-    //check precision
-    int single_double_flag=-1;
-    [[maybe_unused]]
-    const char single_double_str[2][10]={"single","double"};
-    if(nbytes_per_site_read==nbytes_per_site_float) single_double_flag=0;
-    if(nbytes_per_site_read==nbytes_per_site_double) single_double_flag=1;
-    if(single_double_flag==-1)
-      CRASH("Opsss! The file contain %lu bytes per site and it is supposed to contain: %lu (single) or %lu (double)",
-	    nbytes_per_site_read,nbytes_per_site_float,nbytes_per_site_double);
-    VERBOSITY_LV3_MASTER_PRINTF("Vector is stored in %s precision\n",single_double_str[single_double_flag]);
-    
-    //change endianess
-    if(single_double_flag==0)
-      CRASH("reimplement");//change_endianness((float*)out.d,(float*)out,loc_nreals_tot);
-    else
-      FOR_EACH_SITE_DEG_OF_FIELD(out,CAPTURE(TO_WRITE(out)),site,iDeg,
-				 {
-				   fixToNativeEndianness<BigEndian>(out(site,iDeg));
-				 });
+    /// Read the checksum
+    const Checksum read_check=
+      ILDG_File_read_checksum(file);
     
     //check the checksum
     if(read_check[0]!=0 or read_check[1]!=0)
@@ -71,13 +47,8 @@ namespace nissa
 	if((read_check[0]!=comp_check[0]) or (read_check[1]!=comp_check[1]))
 	  MASTER_PRINTF("Warning, checksums do not agree!\n");
       }
-    else MASTER_PRINTF("Data checksum not found.\n");
-    
-    //cast to double if needed
-    if(single_double_flag==0) //floats_to_doubles_same_endianness(out,(float*)out,loc_nreals_tot);
-      CRASH("reimplement");
-    
-    out.invalidateHalo();
+    else
+      MASTER_PRINTF("Data checksum not found.\n");
   }
   
   template <typename T>
