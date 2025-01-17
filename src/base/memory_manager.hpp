@@ -112,13 +112,15 @@ namespace nissa
       VERBOSITY_LV3_MASTER_PRINTF("Popping from used %p\n",ptr);
       
       /// Iterator to search result
-      auto el=used.find(ptr);
+      auto el=
+	used.find(ptr);
       
       if(el==used.end())
 	CRASH("Unable to find dinamically allocated memory %p",ptr);
       
       /// Size of memory
-      const Size size=el->second;
+      const Size size=
+	el->second;
       
       usedSize-=size;
       
@@ -282,7 +284,7 @@ namespace nissa
     /// Release all memory from cache
     void clearCache()
     {
-      VERBOSITY_LV3_MASTER_PRINTF("Clearing cache\n");
+      VERBOSITY_LV1_MASTER_PRINTF("Clearing cache\n");
       
       /// Iterator to elements of the cached memory list
       auto el=cached.begin();
@@ -305,7 +307,6 @@ namespace nissa
 	      /// Memory to free
 	      void* ptr=popFromCache(size,DEFAULT_ALIGNMENT);
 	      
-	      VERBOSITY_LV3_MASTER_PRINTF("ptr: %p\n",ptr);
 	      deAllocateRaw(ptr);
 	    }
 	}

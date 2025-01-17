@@ -195,9 +195,9 @@ struct HitLooper
       }
   }
   
-  //generate a source, wither a wall or a point in the origin
+  /// Generate a source, either a wall or a point in the origin
   void generate_original_source(qprop_t* sou,
-				    const bool& skipOnly)
+				const bool& skipOnly)
   {
     FieldRngOf<spincolor> drawer(field_rng_stream.getDrawer<spincolor>());
     if(stoch_source and skipOnly)
@@ -348,8 +348,10 @@ struct HitLooper
   {
     for(size_t i=0;i<ori_source_name_list.size();i++)
       {
-	std::string &name=ori_source_name_list[i];
+	const std::string &name=
+	  ori_source_name_list[i];
 	MASTER_PRINTF("Generating source \"%s\"\n",name.c_str());
+	
 	qprop_t *q=&Q[name];
 	q->alloc_storage();
 	generate_original_source(q,skipOnly);
@@ -359,10 +361,14 @@ struct HitLooper
 	    for(int ic_so=0;ic_so<nso_col;ic_so++)
 	      {
 		//combine the filename
-		const std::string path=combine("%s/hit%d_source%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+		const std::string path=
+		  combine("%s/hit%d_source%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
 		
-		int isou=so_sp_col_ind(id_so,ic_so);
-		LxField<spincolor>& sou=(*q)[isou];
+		const int isou=
+		  so_sp_col_ind(id_so,ic_so);
+		
+		LxField<spincolor>& sou=
+		  (*q)[isou];
 		
 		ReadWriteRealVector<spincolor> rw(sou,path);
 		

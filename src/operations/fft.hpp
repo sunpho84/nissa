@@ -52,7 +52,8 @@ namespace nissa
 	    {
 	      VERBOSITY_LV2_MASTER_PRINTF("FFT-ing dimension %d\n",mu);
 	      
-	      auto* fptr=f.template getPtr<defaultMemorySpace>();
+	      auto* fptr=
+		f.template getPtr<defaultMemorySpace>();
 	      
 	      remap_lx_vector_to_locd(buf,fptr,ncpp*sizeof(complex),mu);
 	      
@@ -80,7 +81,7 @@ namespace nissa
 	      
 	      cufftHandle plan;
 	      
-	      /// Number of complexes
+	      /// Number of complexes, needs to be non-const
 	      int n=
 		glbSize[mu];
 	      
@@ -98,11 +99,13 @@ namespace nissa
 		fftw_plan_many_dft(1,&glbSize[mu],ncpp,buf,nullptr,ncpp,1,buf,nullptr,ncpp,1,sign,FFTW_ESTIMATE);
 	      
 	      //makes all the fourier transform
-	      HOST_PARALLEL_LOOP(0,locd_perp_size_per_dir[mu],
-				 CAPTURE(plan,buf,mu,ncpp),ioff,
-				 {
-				   fftw_execute_dft(plan,buf+ioff*glbSize[mu]*ncpp,buf+ioff*glbSize[mu]*ncpp);
-				 });
+	      PAR(0,
+		  locd_perp_size_per_dir[mu],
+		  CAPTURE(plan,buf,mu,ncpp),
+		  ioff,
+		  {
+		    fftw_execute_dft(plan,buf+ioff*glbSize[mu]*ncpp,buf+ioff*glbSize[mu]*ncpp);
+		  });
 	      
 	      fftw_destroy_plan(plan);
 #endif

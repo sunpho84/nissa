@@ -329,8 +329,8 @@ namespace nissa
 	complex ph[NDIM];
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    double pmu=dirs[mu]*si*M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu]*include_phases)/glbSize[mu];
-	    double pmuh=pmu*0.5;
+	    const double pmu=dirs[mu]*si*M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu]*include_phases)/glbSize[mu];
+	    const double pmuh=pmu*0.5;
 	    ph[mu][RE]=cos(pmuh);
 	    ph[mu][IM]=sin(pmuh);
 	  }

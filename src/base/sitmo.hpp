@@ -520,17 +520,18 @@ namespace nissa
     out[IM]=r*sin(q)*sig[IM]+ave[IM];
   }
   
+  /// Remap a number in the range [0;1) to {-1;+1}
   INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-  void z2Transform(double& out)
+  double remapUniformToSign(const double& in)
   {
-    out=(int(out*2.0)-1)*M_SQRT1_2;
+    return int(in*2.0)*2-1;
   }
   
   template <typename C>
   INLINE_FUNCTION CUDA_HOST_AND_DEVICE
   void z2Transform(C&& out)
   {
-    out[RE]=(int(out[RE]*2.0)-1);
+    out[RE]=remapUniformToSign(out[RE]);
     out[IM]=0.0;
   }
   
@@ -538,8 +539,8 @@ namespace nissa
   INLINE_FUNCTION CUDA_HOST_AND_DEVICE
   void z4Transform(C&& out)
   {
-    for(int ri=0;ri<2;ri++)
-      z2Transform(out[ri]);
+    UNROLL_FOR_RI(ri)
+      out[ri]=remapUniformToSign(out[ri])*M_SQRT1_2;
   }
 }
 
