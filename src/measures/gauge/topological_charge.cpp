@@ -89,7 +89,7 @@ namespace nissa
     local_topological_charge(charge,conf);
     
     double totCharge;
-    glb_reduce(&totCharge,charge,locVol);
+    charge.reduce(totCharge);
     
     return totCharge;
   }

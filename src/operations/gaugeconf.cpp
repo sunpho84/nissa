@@ -343,7 +343,7 @@ namespace nissa
 	loc_energy[ivol]/=glbVol;
       });
     
-    glb_reduce(&energy,loc_energy,locVol);
+    loc_energy.reduce(energy);
     
     return energy;
   }

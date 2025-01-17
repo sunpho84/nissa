@@ -115,7 +115,8 @@ namespace nissa
 	      norm*=glbSize[mu];
 	    }
 	  
-	  f/=norm;
+	  if(normalize)
+	    f/=norm;
 	  
 	  memoryManager<defaultMemorySpace>()->release(buf);
       }

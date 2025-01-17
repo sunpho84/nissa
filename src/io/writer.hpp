@@ -21,6 +21,7 @@ namespace nissa
 			 const ILDG_message* mess=nullptr)
   {
     /// Take initial time
+    [[maybe_unused]]
     const double time=
       take_time();
     

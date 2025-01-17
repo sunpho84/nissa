@@ -138,7 +138,7 @@ namespace nissa
 #ifdef USE_CUDA
 	    cudaMemcpy(&loc_res[islice],buf.template getPtrTo<defaultMemorySpace>(islice*nori_per_slice,0),sizeof(T),cudaMemcpyDeviceToHost);
 #else
-	    loc_res=buf;
+	    loc_res[islice]=buf[islice*nori_per_slice];
 #endif
 	  }
 	else
@@ -165,7 +165,7 @@ namespace nissa
     void operator()(F1&& res,
 		    const F2& acc) const
     {
-      if constexpr(not std::is_array_v<F1>)
+      if constexpr(not std::is_array_v<std::remove_reference_t<F1>>)
 	res+=acc;
       else
 	for(size_t i=0;i<std::extent_v<F1>;i++)

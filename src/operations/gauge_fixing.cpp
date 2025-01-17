@@ -224,7 +224,7 @@ namespace nissa
     
     //collapse
     double F;
-    glb_reduce(&F,loc_F,locVol);
+    loc_F.reduce(F);
     
     if(ext_loc_F==nullptr)
       delete _loc_F;
@@ -263,7 +263,7 @@ namespace nissa
     
     //global reduction
     double omega;
-    glb_reduce(&omega,loc_omega,locVol);
+    loc_omega.reduce(omega);
     
     return omega/glbVol/NCOL;
   }
@@ -571,7 +571,7 @@ namespace nissa
 	    });
 	
 	double den;
-	glb_reduce(&den,accum,locVol);
+	accum.reduce(den);
 	VERBOSITY_MASTER_PRINTF("den: %lg\n",den);
 	
 	//numerator
@@ -592,7 +592,7 @@ namespace nissa
 	    });
 	
 	double num;
-	glb_reduce(&num,accum,locVol);
+	accum.reduce(num);
 	VERBOSITY_MASTER_PRINTF("num: %lg\n",num);
 	
 	//compute beta
