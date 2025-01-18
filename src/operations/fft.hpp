@@ -18,9 +18,8 @@ namespace nissa
   
   /// Fourier transform of the field
   template <typename T,
-	    SpaceTimeLayout STL,
-	    MemorySpace MS>
-  void fft4d(LxField<T,STL,MS>& f,
+	    SpaceTimeLayout STL>
+  void fft4d(LxField<T,STL>& f,
 	     const double& sign,
 	     const bool& normalize)
   {
@@ -38,7 +37,7 @@ namespace nissa
       }
     else
       {
-	const int ncpp=
+	constexpr int ncpp=
 	  LxField<T>::nInternalDegs/2;
 	
 	double norm=1;
@@ -58,9 +57,6 @@ namespace nissa
 	      remap_lx_vector_to_locd(buf,fptr,ncpp*sizeof(complex),mu);
 	      
 #ifdef USE_CUDA
-	      auto b=
-		(cufftDoubleComplex*)buf;
-	      
 	      auto decryptFftError=
 		[](const cufftResult& res,
 		   const char* stage)
@@ -79,21 +75,49 @@ namespace nissa
 		  CRASH("fft crashed at stage %s with unknown error %d %d",stage,res,CUFFT_SUCCESS);
 		};
 	      
-	      cufftHandle plan;
-	      
 	      /// Number of complexes, needs to be non-const
 	      int n=
 		glbSize[mu];
 	      
-	      /// Extension of the fft
-	      const int64_t nFft=
-		locd_perp_size_per_dir[mu]/ncpp;
+	      /// Temporary hack, we need to fuse this step with the previous remap
+	      complex *tmp=
+		memoryManager<defaultMemorySpace>()->provide<complex>(locVol*ncpp);
+	      PAR(0,
+		  locd_perp_size_per_dir[mu],
+		  CAPTURE(tmp,
+			  ncpp,
+			  mu,
+			  buf),
+		  iPerp,
+		  {
+		    for(int t=0;t<glbSize[mu];t++)
+		      for(int icpp=0;icpp<ncpp;icpp++)
+			complex_copy(tmp[t+glbSize[mu]*(icpp+ncpp*iPerp)],buf[icpp+ncpp*(t+glbSize[mu]*iPerp)]);
+		  });
 	      
-	      decryptFftError(cufftPlanMany(&plan,1,&n,&n,1,n,&n,1,n,CUFFT_Z2Z,nFft),"creating the plan");
-	      decryptFftError(cufftExecZ2Z(plan,b,b,sign),"executing the transform");
+	      cufftHandle plan;
+	      const int stride=1;
+	      const int dist=n;
+	      decryptFftError(cufftPlanMany(&plan,1,&n,nullptr,stride,dist,nullptr,stride,dist,CUFFT_Z2Z,locd_perp_size_per_dir[mu]*ncpp),"creating the plan");
+	      decryptFftError(cufftExecZ2Z(plan,(cufftDoubleComplex*)tmp,(cufftDoubleComplex*)tmp,sign),"executing the transform");
 	      DECRYPT_CUDA_ERROR(cudaDeviceSynchronize(),"synchronizing at the end of fft");
 	      
 	      decryptFftError(cufftDestroy(plan),"destroying the plan");
+	      
+	      PAR(0,
+		  locd_perp_size_per_dir[mu],
+		  CAPTURE(tmp,
+			  ncpp,
+			  mu,
+			  buf),
+		  iPerp,
+		  {
+		    for(int t=0;t<glbSize[mu];t++)
+		      for(int icpp=0;icpp<ncpp;icpp++)
+			complex_copy(buf[icpp+ncpp*(t+glbSize[mu]*iPerp)],tmp[t+glbSize[mu]*(icpp+ncpp*iPerp)]);
+		  });
+	      
+	      memoryManager<defaultMemorySpace>()->release(tmp);
 #else
 	      fftw_plan plan=
 		fftw_plan_many_dft(1,&glbSize[mu],ncpp,buf,nullptr,ncpp,1,buf,nullptr,ncpp,1,sign,FFTW_ESTIMATE);
