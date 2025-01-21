@@ -92,8 +92,6 @@ namespace nissa
 		 const int nslices,
 		 Op&& op)
   {
-    // MASTER_PRINTF("%s function\n",__PRETTY_FUNCTION__);
-    
     if(n%nslices)
       CRASH("number of elements %ld not divisible by number of slices %d",n,nslices);
     
@@ -168,7 +166,7 @@ namespace nissa
       if constexpr(not std::is_array_v<std::remove_reference_t<F1>>)
 	res+=acc;
       else
-	for(size_t i=0;i<std::extent_v<F1>;i++)
+	for(size_t i=0;i<std::extent_v<std::remove_reference_t<F1>>;i++)
 	  GlbReduceSumFunctor::operator()(res[i],acc[i]);
     }
   };
@@ -207,7 +205,7 @@ namespace nissa
 	      nloc,
 	      nloc_slices,
 	      GlbReduceSumFunctor());
-    // printf("rank %d local reduction %lg\n",rank,loc_res[0]);
+    
     non_loc_reduce(glb_res,loc_res,nslices);
   }
   
@@ -227,7 +225,7 @@ namespace nissa
     memset(loc_res,0,sizeof(T)*nslices);
     
     locReduce(loc_res+loc_offset,buf,nloc,nloc_slices,f);
-    // printf("rank %d local reduction %lg\n",rank,loc_res[0]);
+    
     non_loc_reduce(glb_res,loc_res,nslices);
   }
 }
