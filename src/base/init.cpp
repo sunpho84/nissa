@@ -163,6 +163,9 @@ namespace nissa
     gpuMemoryManager=new GPUMemoryManager;
 #endif
     
+    MASTER_PRINTF("Default memory space: %s\n",memorySpaceName(defaultMemorySpace));
+    MASTER_PRINTF("Default spacetime layout: %s\n",spaceTimeLayoutName(defaultSpaceTimeLayout));
+    
     //initialize global variables
     lxGeomInited=0;
     eo_geom_inited=0;

@@ -117,6 +117,21 @@ namespace nissa
 #endif
 	      ;
   
+  /// Returns the name of the spacetime layout sl
+  INLINE_FUNCTION
+  constexpr const char* spaceTimeLayoutName(const SpaceTimeLayout& sl)
+  {
+    switch(sl)
+      {
+      case SpaceTimeLayout::CPU:
+	return "CPU";
+	break;
+      case SpaceTimeLayout::GPU:
+	return "GPU";
+	break;
+      }
+  }
+  
   /////////////////////////////////////////////////////////////////
   
   /// Number of sites contained in the field

@@ -122,7 +122,7 @@ namespace nissa
 	      fftw_plan plan=
 		fftw_plan_many_dft(1,&glbSize[mu],ncpp,buf,nullptr,ncpp,1,buf,nullptr,ncpp,1,sign,FFTW_ESTIMATE);
 	      
-	      //makes all the fourier transform
+	      //makes all the fourier transforms
 	      PAR(0,
 		  locd_perp_size_per_dir[mu],
 		  CAPTURE(plan,buf,mu,ncpp),
