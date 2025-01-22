@@ -418,7 +418,7 @@ namespace nissa
 	      iDeg++)
 	    {
               auto view=
-		self.getRngViewOnGlbSiteIRndReal(site,iDeg);
+		self.getRngViewOnGlbSiteIRndReal(glblxOfLoclx[site],iDeg);
               out(site,iDeg)=self.getUniformDistributed(view);
             }
 	});
