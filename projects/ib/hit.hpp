@@ -248,7 +248,7 @@ struct HitLooper
 			  case RND_Z3:
 			  case RND_GAUSS:
 			    CRASH("not implemented yet");
-			break;
+			    break;
 			  }
 			
 			complex_copy(b[id][ic],bi);

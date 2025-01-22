@@ -314,7 +314,9 @@ namespace nissa
   {									\
     /*call with source insertion, minus between fw and bw, and a global -i*0.5 - the minus comes from definition in eq.11 of 1303.4896*/ \
     const complex fw_factor={0,-0.5},bw_factor={0,+0.5};		\
-									\
+    									\
+    curr.updateHalo();							\
+    									\
     insert_vector_vertex(out,conf,in,fw_factor,bw_factor,GAMMA,		\
 			 [dirs,						\
 			  TO_READ(curr)] CUDA_DEVICE(complex& out,	\
