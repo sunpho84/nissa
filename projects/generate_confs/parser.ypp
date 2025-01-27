@@ -289,6 +289,7 @@
 %token TK_TASTE_CHANNEL
 %token TK_GAMMA_ID TK_GAMMA_5 TK_GAMMA_1 TK_GAMMA_2 TK_GAMMA_3
 %token TK_AX_1 TK_AX_2 TK_AX_3
+%token TK_SIGMA_0_1 TK_SIGMA_0_2 TK_SIGMA_1_2 TK_SIGMA_0_3 TK_SIGMA_1_3 TK_SIGMA_2_3
 %type <gamma_int> gamma taste_channel
 //gauge measures
 %token TK_USE_SMOOTH
@@ -451,6 +452,12 @@ gamma: TK_GAMMA_ID {$$ = GAMMA_INT::IDENTITY;}
      | TK_AX_1 {$$ = GAMMA_INT::GAMMA_5_GAMMA_1;}
      | TK_AX_2 {$$ = GAMMA_INT::GAMMA_5_GAMMA_2;}
      | TK_AX_3 {$$ = GAMMA_INT::GAMMA_5_GAMMA_3;}
+     | TK_SIGMA_0_1 {$$ = GAMMA_INT::SIGMA_0_1;}
+     | TK_SIGMA_0_2 {$$ = GAMMA_INT::SIGMA_0_2;}
+     | TK_SIGMA_1_2 {$$ = GAMMA_INT::SIGMA_1_2;}
+     | TK_SIGMA_0_3 {$$ = GAMMA_INT::SIGMA_0_3;}
+     | TK_SIGMA_1_3 {$$ = GAMMA_INT::SIGMA_1_3;}
+     | TK_SIGMA_2_3 {$$ = GAMMA_INT::SIGMA_2_3;}
 ;
 
 taste_channel: TK_TASTE_CHANNEL '=' gamma {$$ = $3;}

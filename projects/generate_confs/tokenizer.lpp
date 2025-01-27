@@ -292,6 +292,12 @@ Gamma3 DEBUG_PRINTF("Found Gamma3\n");return TK_GAMMA_3;
 Ax1 DEBUG_PRINTF("Found Ax1\n");return TK_AX_1;
 Ax2 DEBUG_PRINTF("Found Ax2\n");return TK_AX_2;
 Ax3 DEBUG_PRINTF("Found Ax3\n");return TK_AX_3;
+Sigma01 DEBUG_PRINTF("Found Sigma01\n"); return TK_SIGMA_0_1;
+Sigma02 DEBUG_PRINTF("Found Sigma02\n"); return TK_SIGMA_0_2;
+Sigma12 DEBUG_PRINTF("Found Sigma12\n"); return TK_SIGMA_1_2;
+Sigma03 DEBUG_PRINTF("Found Sigma03\n"); return TK_SIGMA_0_3;
+Sigma13 DEBUG_PRINTF("Found Sigma13\n"); return TK_SIGMA_1_3;
+Sigma23 DEBUG_PRINTF("Found Sigma23\n"); return TK_SIGMA_2_3;
 
  /* gauge measures */
 UseSmooth DEBUG_PRINTF("Found UseSmooth\n");return TK_USE_SMOOTH;
