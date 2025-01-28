@@ -5,6 +5,8 @@
 # include "config.hpp"
 #endif
 
+#include "new_types/su3.hpp"
+
 #ifndef EXTERN_BENCH
 # define EXTERN_BENCH extern
 # define EQUAL_ZERO

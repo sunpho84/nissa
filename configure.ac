@@ -459,18 +459,6 @@ else
 fi
 AM_CONDITIONAL([USE_EXTERNAL_SOLVER],[test "$use_external_solver" == "yes"])
 
-#number of colors
-AC_ARG_ENABLE(ncol,
-        AS_HELP_STRING([--enable-ncol=n],[Set number of colors [Default: 3]]),
-        ncol="${enableval}",
-        ncol=3)
-if ! printf "%f" "$col" >/dev/null 2>&1; then AC_MSG_ERROR([String $ncol is not a number]); fi
-AM_CONDITIONAL([NCOL3], [test x$ncol = x3])
-AC_DEFINE_UNQUOTED([NCOL],$ncol,[Number of colors])
-AC_MSG_RESULT([enabling number of colors... $ncol])
-SUMMARY_RESULT="$SUMMARY_RESULT
-Number of colors    : $ncol"
-
 #adding cuda flags before, makes a mess
 CPPFLAGS="$CUDA_CPPFLAGS $CPPFLAGS"
 

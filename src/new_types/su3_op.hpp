@@ -500,8 +500,6 @@ namespace nissa
   //comput third row according to other 2
   inline void su3_build_third_row(su3 o)
   {
-    CRASH_IF_NOT_3COL();
-    
     unsafe_complex_conj_conj_prod(o[2][0],o[0][1],o[1][2]);
     complex_subt_the_conj_conj_prod(o[2][0],o[0][2],o[1][1]);
     unsafe_complex_conj_conj_prod(o[2][1],o[0][2],o[1][0]);
@@ -1250,8 +1248,6 @@ namespace nissa
   //calculate explicitely the inverse
   CUDA_HOST_AND_DEVICE inline void unsafe_su3_explicit_inverse(su3 invU,const su3 U)
   {
-    CRASH_IF_NOT_3COL();
-    
     complex det,rec_det;
     su3_det(det,U);
     complex_reciprocal(rec_det,det);
@@ -1350,8 +1346,6 @@ namespace nissa
   void su3_unitarize_orthonormalizing(A&& o,
 				      const B& i)
   {
-    CRASH_IF_NOT_3COL();
-    
     //compute the squared norm of row 0
     const double row0_norm2=color_norm2(i[0]);
     

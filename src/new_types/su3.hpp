@@ -1,15 +1,15 @@
 #ifndef _SU3_HPP
 #define _SU3_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include "complex.hpp"
 #include "dirac.hpp"
 #include "spin.hpp"
 
-#if NCOL == 3
- #define CRASH_IF_NOT_3COL()
-#else
- #define CRASH_IF_NOT_3COL() CRASH("ncol == %d, expected 3",NCOL)
-#endif
+#define NCOL 3
 
 #define UNROLL_FOR_ALL_COLS(IC)			\
   UNROLL_FOR(IC,0,NCOL)
