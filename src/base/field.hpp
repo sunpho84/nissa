@@ -109,13 +109,7 @@ namespace nissa
   
   /// Predefinite arrangement of internal DOF
   constexpr SpaceTimeLayout defaultSpaceTimeLayout=
-	      SpaceTimeLayout::
-#ifdef USE_CUDA
-	      GPU
-#else
-	      CPU
-#endif
-	      ;
+	      SpaceTimeLayout::DEFAULT_MEMORY_LAYOUT;
   
   /// Returns the name of the spacetime layout sl
   INLINE_FUNCTION
