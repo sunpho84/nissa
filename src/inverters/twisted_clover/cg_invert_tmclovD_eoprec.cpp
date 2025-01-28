@@ -223,7 +223,9 @@ namespace nissa
 	  CRASH("wrong layout");
 	
 	const double call_time=take_time();
-	solved=DD::solve((spincolor*)solution_lx.data,(quad_su3*)conf_lx.data,kappa,cSW,mass,residue,(spincolor*)source_lx.data);
+	solved=DD::solve((spincolor*)solution_lx.getPtr<MemorySpace::CPU>(),
+			 (quad_su3*)conf_lx.getPtr<MemorySpace::CPU>(),
+			 kappa,cSW,mass,residue,(spincolor*)source_lx.getPtr<MemorySpace::CPU>());
 	MASTER_PRINTF("calling DDalphaAMG to solve took %lg s\n",take_time()-call_time);
       }
 #endif

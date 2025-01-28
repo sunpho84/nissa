@@ -11,14 +11,14 @@ namespace nissa
 {
 #if defined(USE_CUDA) && defined(__CUDA_ARCH__)
 # define PROVIDE_CONST_ACCESSOR_FOR_GLOBAL_VAR(TYPE,NAME)	\
-  inline __device__ const TYPE& NAME=hidden::_## NAME ## Gpu
+  inline __device__ const TYPE& NAME=hidden::_ ## NAME ## Gpu
 #else
 # define PROVIDE_CONST_ACCESSOR_FOR_GLOBAL_VAR(TYPE,NAME)	\
-  inline const TYPE& NAME=hidden::_## NAME ## Cpu
+  inline const TYPE& NAME=hidden::_ ## NAME ## Cpu
 #endif
 
 #ifdef USE_CUDA
-# define MAYBE_PROVIDE_DEVICE_GLOBAL_VAR(TYPE,NAME)		\
+# define MAYBE_PROVIDE_DEVICE_GLOBAL_VAR(TYPE,NAME)	\
   __device__ __constant__ inline TYPE _ ## NAME ## Gpu
 # define MAYBE_COPY_GLOBAL_VAR_TO_DEVICE(TYPE,NAME)		\
   cudaMemcpyToSymbol(hidden::_ ## NAME ## Gpu,			\
