@@ -161,26 +161,6 @@ then
 fi
 AX_SUBPACKAGE(cufft,cufft.h,cufft,cufftDestroy,CUFFT)
 
-#memory layout
-AC_ARG_WITH(memory-layout,
-	AS_HELP_STRING([--with-memory-layout],[Select the default memory layout (cpu, gpu)]),
-	with_memory_layout="${withval}",
-	if test "$have_cuda" == "yes"
-	then
-		with_memory_layout="gpu"
-	else
-		with_memory_layout="cpu"
-	fi)
-case "$with_memory_layout" in
-     cpu) MEMORY_LAYOUT=CPU ;;
-     gpu) MEMORY_LAYOUT=GPU ;;
-     *) AC_MSG_ERROR(["Unkwnown memory layout ${withval}"])
-esac
-AC_DEFINE_UNQUOTED([DEFAULT_MEMORY_LAYOUT],${MEMORY_LAYOUT},["Default memory layout for field"])
-AC_MSG_RESULT([with memory layout... ${with_memory_layout}])
-SUMMARY_RESULT="$SUMMARY_RESULT
-memory layout            : $with_memory_layout"
-
 #threads
 AC_DEFINE([NO_THREADS],[0],["No thread parallelization used"])
 AC_DEFINE([OPENMP_THREADS],[1],["OpenMP parallelization"])
@@ -236,6 +216,26 @@ AH_VERBATIM([COMPILING_FOR_DEVICE],
 AC_MSG_RESULT([with threads type... ${with_threads_type}])
 SUMMARY_RESULT="$SUMMARY_RESULT
 threads type            : $with_threads_type"
+
+#memory layout
+AC_ARG_WITH(memory-layout,
+	AS_HELP_STRING([--with-memory-layout],[Select the default memory layout (cpu, gpu)]),
+	with_memory_layout="${withval}",
+	if test "$THREADS_TYPE" == "CUDA_THREADS"
+	then
+		with_memory_layout="gpu"
+	else
+		with_memory_layout="cpu"
+	fi)
+case "$with_memory_layout" in
+     cpu) MEMORY_LAYOUT=CPU ;;
+     gpu) MEMORY_LAYOUT=GPU ;;
+     *) AC_MSG_ERROR(["Unkwnown memory layout ${withval}"])
+esac
+AC_DEFINE_UNQUOTED([DEFAULT_MEMORY_LAYOUT],${MEMORY_LAYOUT},["Default memory layout for field"])
+AC_MSG_RESULT([with memory layout... ${with_memory_layout}])
+SUMMARY_RESULT="$SUMMARY_RESULT
+memory layout            : $with_memory_layout"
 
 ####################################
 
