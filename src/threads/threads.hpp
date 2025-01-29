@@ -63,11 +63,13 @@ namespace nissa
   }
 }
 
-# define THREADS_PARALLEL_LOOP(ARGS...) openmpParallelFor(__LINE__,__FILE__,ARGS)
+# define THREADS_PARALLEL_LOOP(ARGS...)		\
+  openmpParallelFor(__LINE__,__FILE__,ARGS)
 
 #else
 
-# define THREADS_PARALLEL_LOOP(ARGS...) SERIAL_LOOP(ARGS)
+# define THREADS_PARALLEL_LOOP(ARGS...) \
+  SERIAL_LOOP(ARGS)
 
 #endif
 
@@ -280,27 +282,73 @@ namespace nissa
 
 #endif
 
+#define _LAMBDA_FUNCTION_WITH_DECORATION_SUFFIX(DECORATION,		\
+						SUFFIX,			\
+						CAPTURES,		\
+						INDEX,			\
+						ARGS...)		\
+  [CAPTURES] DECORATION (const auto& INDEX) SUFFIX			\
+  ARGS
+  
+#define LAMBDA_FUNCTION_FOR_HOST(SUFFIX,				\
+				 CAPTURES,				\
+				 INDEX,					\
+				 ARGS...)				\
+  _LAMBDA_FUNCTION_WITH_DECORATION_SUFFIX(/* host */,			\
+					  SUFFIX,			\
+					  CAPTURE(CAPTURES),		\
+					  INDEX,ARGS)
+
+#define LAMBDA_FUNCTION_FOR_DEVICE(SUFFIX,				\
+				   CAPTURES,				\
+				   INDEX,				\
+				   ARGS...)				\
+  _LAMBDA_FUNCTION_WITH_DECORATION_SUFFIX(CUDA_DEVICE INLINE_ATTRIBUTE,	\
+					  SUFFIX,			\
+					  CAPTURE(CAPTURES),		\
+					  INDEX,			\
+					  ARGS)
+
 #define HOST_PARALLEL_LOOP(MIN,						\
 			   MAX,						\
 			   CAPTURES,					\
 			   INDEX,					\
-			   A...)					\
+			   ARGS...)					\
   THREADS_PARALLEL_LOOP(MIN,						\
 			MAX,						\
-			[CAPTURES] (const auto& INDEX) mutable A)
+			LAMBDA_FUNCTION_FOR_HOST(MUTABLE_INLINE_ATTRIBUTE, \
+						 CAPTURE(CAPTURES),	\
+						 INDEX,			\
+						 ARGS))
 
-#define DEVICE_PARALLEL_LOOP(MIN,MAX,CAPTURES,INDEX,ARGS...)		\
+#define DEVICE_PARALLEL_LOOP(MIN,					\
+			     MAX,					\
+			     CAPTURES,					\
+			     INDEX,					\
+			     ARGS...)					\
   CUDA_PARALLEL_LOOP(MIN,						\
 		     MAX,						\
-		     [CAPTURES] CUDA_DEVICE INLINE_ATTRIBUTE (const auto& INDEX) mutable \
-		     ARGS)
+		     LAMBDA_FUNCTION_FOR_DEVICE(MUTABLE_INLINE_ATTRIBUTE, \
+						CAPTURE(CAPTURES),	\
+						INDEX,			\
+						ARGS))
 
 #if THREADS_TYPE == CUDA_THREADS
+
 # define DEFAULT_PARALLEL_LOOP			\
   DEVICE_PARALLEL_LOOP
+
+# define LAMBDA_FUNCTION_FOR_DEFAULT_THREADS	\
+  LAMBDA_FUNCTION_FOR_DEVICE
+
 #else
+
 # define DEFAULT_PARALLEL_LOOP			\
   HOST_PARALLEL_LOOP
+
+# define LAMBDA_FUNCTION_FOR_DEFAULT_THREADS	\
+  LAMBDA_FUNCTION_FOR_HOST
+
 #endif
 
 #define PAR(MIN,					\

@@ -949,19 +949,24 @@ namespace nissa
     /// Fill the sending buf using the data on the surface of a field
     void fillSendingBufWithSurface() const
     {
-      fillSendingBufWith([] CUDA_DEVICE(const int& i) INLINE_ATTRIBUTE
-      {
-	return Field::surfSiteOfHaloSite(i);
-      },bordVol/divCoeff);
+      fillSendingBufWith(LAMBDA_FUNCTION_FOR_DEFAULT_THREADS(INLINE_ATTRIBUTE,
+							     CAPTURE(),
+							     i,
+							     {
+							       return Field::surfSiteOfHaloSite(i);
+							     }),
+			 bordVol/divCoeff);
     }
     
     /// Fill the sending buf using the data on the surface edge
     void fillSendingBufWithEdgesSurface() const
     {
-      fillSendingBufWith([] CUDA_DEVICE(const int& i) INLINE_ATTRIBUTE
-      {
-	return Field::surfSiteOfEdgeSite(i);
-      },edgeVol/divCoeff);
+      fillSendingBufWith(LAMBDA_FUNCTION_FOR_DEFAULT_THREADS(INLINE_ATTRIBUTE,
+							     CAPTURE(),
+							     i,
+							     {
+							       return Field::surfSiteOfEdgeSite(i);
+							     }),edgeVol/divCoeff);
     }
     
     /// Fill the surface using the data from the buffer
