@@ -1,10 +1,16 @@
 #ifndef _FFT_HPP
 #define _FFT_HPP
 
-#include <fftw3.h>
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
 
 #ifdef USE_CUDA
 # include <cufft.h>
+#endif
+
+#ifdef USE_FFTW
+# include <fftw3.h>
 #endif
 
 #include "base/field.hpp"
@@ -119,6 +125,8 @@ namespace nissa
 	      
 	      memoryManager<defaultMemorySpace>()->release(tmp);
 #else
+	      
+#ifdef USE_FFTW
 	      fftw_plan plan=
 		fftw_plan_many_dft(1,&glbSize[mu],ncpp,buf,nullptr,ncpp,1,buf,nullptr,ncpp,1,sign,FFTW_ESTIMATE);
 	      
@@ -132,6 +140,10 @@ namespace nissa
 		  });
 	      
 	      fftw_destroy_plan(plan);
+#else
+	      CRASH("FFTW needed, not found");
+#endif 
+	      
 #endif
 	      
 	      remap_locd_vector_to_lx(fptr,buf,ncpp*sizeof(complex),mu);

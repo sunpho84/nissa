@@ -277,12 +277,6 @@ AX_SUBPACKAGE(ssl,openssl/ssl.h,crypto ssl,MD5_Final,SSL)
 
 AX_SUBPACKAGE(fftw,fftw3.h,fftw3,fftw_plan_dft_r2c_2d,FFTW)
 
-#fast fourier type
-if test "$fftw_found" == "no"
-then
-	AC_MSG_ERROR(["Unable to find fftw3 lib"])
-fi
-
 #################### eigen ####################
 
 AX_SUBPACKAGE(eigen,Eigen/Dense,,,EIGEN,".",".")

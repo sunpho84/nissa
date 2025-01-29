@@ -2,7 +2,6 @@
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/covariant_derivative.cpp \
-	%D%/fft.cpp \
 	%D%/fourier_transform.cpp \
 	%D%/gauge_fixing.cpp \
 	%D%/gaugeconf.cpp \
