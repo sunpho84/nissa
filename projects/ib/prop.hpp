@@ -126,8 +126,6 @@ namespace nissa
       
       if(is_photon_ins(insertion))
 	need_photon=true;
-      
-      alloc_storage();
     }
     
     //initialize as a source
