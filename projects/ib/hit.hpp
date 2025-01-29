@@ -259,7 +259,7 @@ struct HitLooper
 	    {
 	      bool is_ori=true;
 	      for(int mu=0;mu<NDIM;mu++)
-		rel_coord_of_loclx(ivol,mu);
+		is_ori&=(rel_coord_of_loclx(ivol,mu)==0);
 	      
 	      if(is_ori)
 		b[0][0][RE]=1.0;
