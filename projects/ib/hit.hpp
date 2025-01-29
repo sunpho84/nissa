@@ -134,7 +134,7 @@ struct HitLooper
   }
   
   /// Offload some propagators, to accommodate nToAccommodate more
-  void offloadIfNeededToAccommodate(const int nToAccommodate)
+  void offloadIfNeededToAccommodate(const int& nToAccommodate)
   {
     if(nMaxPropsAllocated==0)
       return;

@@ -377,7 +377,7 @@ then
 fi
 AC_MSG_RESULT([enabling loop unrolling... $enable_loop_unrolling])
 SUMMARY_RESULT="$SUMMARY_RESULT
-loop unrolling         : $enable_loop-unrolling"
+loop unrolling         : $enable_loop_unrolling"
 
 #cgm-debug
 AC_ARG_ENABLE(cgm-debug,
