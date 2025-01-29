@@ -274,9 +274,9 @@ namespace nissa
     const complex fw_factor={-0.25,0},bw_factor={-0.25,0};	/* see below for hte minus convention*/ \
     									\
     insert_vector_vertex(out,conf,in,fw_factor,bw_factor,GAMMA,		\
-			 [tad] CUDA_DEVICE(complex& out,		\
-					   const int& ivol,		\
-					   const int& mu)		\
+			 [tad] LAMBDA_FUNCTION_DECORATION_FOR_DEFAULT_THREADS(complex& out, \
+									      const int& ivol, \
+									      const int& mu) \
 			 {						\
 			   out[RE]=tad[mu];				\
 			   out[IM]=0;					\
@@ -319,9 +319,11 @@ namespace nissa
     									\
     insert_vector_vertex(out,conf,in,fw_factor,bw_factor,GAMMA,		\
 			 [dirs,						\
-			  TO_READ(curr)] CUDA_DEVICE(complex& out,	\
-						     const int& ivol,	\
-						     const int& mu)	\
+			  TO_READ(curr)]				\
+			 LAMBDA_FUNCTION_DECORATION_FOR_DEFAULT_THREADS	\
+			 (complex& out,					\
+			  const int& ivol,				\
+			  const int& mu)				\
 			 {						\
 			   if(dirs[mu]==0)				\
 			     complex_put_to_zero(out);			\
@@ -375,16 +377,18 @@ namespace nissa
 				const LxField<quad_su3>& conf,		\
 				const LxField<TYPE>& in,		\
 				const dirac_matr& GAMMA,		\
-				const WhichDirs& dirs,		\
+				const WhichDirs& dirs,			\
 				const int& t)				\
   {									\
     /*call with no source insertion, minus between fw and bw, and a global 0.5*/ \
     const complex fw_factor={-0.5,0},bw_factor={+0.5,0}; /* follow eq.11.43 of Gattringer*/		\
 									\
     insert_vector_vertex(out,conf,in,fw_factor,bw_factor,GAMMA,		\
-			 [dirs] CUDA_DEVICE(complex& out,		\
-					    const int& ivol,		\
-					    const int& mu)		\
+			 [dirs]						\
+			 LAMBDA_FUNCTION_DECORATION_FOR_DEFAULT_THREADS	\
+			 (complex& out,					\
+			  const int& ivol,				\
+			  const int& mu)				\
 			 {						\
 			   out[RE]=dirs[mu];				\
 			   out[IM]=0;					\
