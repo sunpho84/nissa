@@ -1224,7 +1224,11 @@ namespace nissa
       const bool b=doNotBackupDuringBenchmark;
       doNotBackupDuringBenchmark=true;
       
-      FOR_EACH_SITE_DEG_OF_FIELD(*this,
+      /// Parsing is a bit failing in some version of cuda
+      auto& self=
+	*this;
+      
+      FOR_EACH_SITE_DEG_OF_FIELD(self,
 				 CAPTURE(TO_READ(oth),
 					 t=this->getWritable()),
 				 site,
