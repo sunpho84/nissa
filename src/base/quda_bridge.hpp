@@ -29,6 +29,13 @@
 # define INIT_QUDA_BRIDGE_TO(cond) cond
 #endif
 
+#ifdef USE_QUDA
+namespace quda::clover
+{
+  bool dynamic_inverse();
+}
+#endif
+
 namespace quda_iface
 {
   using su3_ptr=nissa::su3*;

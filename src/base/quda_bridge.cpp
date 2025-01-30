@@ -709,6 +709,9 @@ namespace quda_iface
 #ifndef DYNAMIC_CLOVER
 # warning Please compile quda with DYNAMIC_CLOVER switched on
 #endif
+    if(not quda::clover::dynamic_inverse())
+      CRASH("Please run a version of quda with DYNAMIC CLOVER switched on");
+    
     if(exported and csw)
       load_clover_term(&inv_param);
     
