@@ -29,13 +29,6 @@
 # define INIT_QUDA_BRIDGE_TO(cond) cond
 #endif
 
-#ifdef USE_QUDA
-namespace quda::clover
-{
-  bool dynamic_inverse();
-}
-#endif
-
 namespace quda_iface
 {
   using su3_ptr=nissa::su3*;
@@ -50,7 +43,7 @@ namespace quda_iface
   EXTERN_QUDA_BRIDGE QudaEigParam mg_eig_param[QUDA_MAX_MG_LEVEL];
   
   EXTERN_QUDA_BRIDGE MPI_Comm cart_comm;
-
+  
 # ifdef READY_TO_DEL
   EXTERN_QUDA_BRIDGE quda::Dirac* D;
   EXTERN_QUDA_BRIDGE quda::Dirac* DSloppy;
