@@ -43,7 +43,7 @@
 
 namespace nissa
 {
-  EXTERN_DEBUG int check_inversion_residue INIT_DEBUG_TO(0);
+  EXTERN_DEBUG int check_inversion_residue INIT_DEBUG_TO(1);
   
   EXTERN_DEBUG int verbosity_lv;
 
