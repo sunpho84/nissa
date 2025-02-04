@@ -217,19 +217,19 @@ namespace nissa
 	const double residue=
 	  residueNorm2/sourceNorm2;
 	
-	MASTER_PRINTF("check solution, source norm2: %lg, residue: %lg, target one: %lg checked in %lg s\n",
+	MASTER_PRINTF(" Check solution, source norm2: %lg, residue: %lg, target one: %lg checked in %lg s\n",
 		      sourceNorm2,residue,targResidue,take_time()-check_time);
 	
 	double ref;
 	if(targResidue<1e-30)
 	  {
 	    ref=pow(10,-inversion_residue_heavy_qualify_odg);
-	    MASTER_PRINTF("Heavy-quark residue, comparing with absolute threshold %lg\n",ref);
+	    MASTER_PRINTF("  Heavy-quark residue, comparing with absolute threshold %lg\n",ref);
 	  }
 	else
 	  {
 	    ref=targResidue*pow(10,inversion_residue_threshold_odg);
-	    MASTER_PRINTF("Comparing with %d orders larger residue %lg\n",inversion_residue_threshold_odg,ref);
+	    MASTER_PRINTF("  Comparing with %d orders larger residue: %lg\n",inversion_residue_threshold_odg,ref);
 	  }
 	
 	if(residue>ref)
@@ -240,8 +240,10 @@ namespace nissa
 	    if(check_inversion_residue>1)
 	      CRASH("%s",txt);
 	    else
-	      MASTER_PRINTF("WARNING, %s",txt);
+	      WARNING("%s",txt);
 	  }
+	else
+	  MASTER_PRINTF("    Residue passed the check ✅\n");
       }
   }
 }
