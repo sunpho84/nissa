@@ -584,7 +584,7 @@ namespace nissa
 	
 	if(delta<approx_tolerance)
 	  {
-	      printf("WARNING, reached precision %lg while computing %d terms approximation of x^(%d/%d) with tolerance %lg\n",
+	      WARNING("reached precision %lg while computing %d terms approximation of x^(%d/%d) with tolerance %lg\n",
 			  spread.get_d(),degree,num,den,approx_tolerance);
 	    MASTER_PRINTF("precision not enough to reach %lg precision requested!!!\n",approx_tolerance);
 #if HIGH_PREC_TYPE==NATIVE_HIGH_PREC

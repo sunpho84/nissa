@@ -42,7 +42,7 @@ namespace nissa
     p4*=4;
     
     double four_sinh2_Eh=(m2+p2*(1+m0)+p2*p2/4-p4)/(1+m0+p2/2);
-    if(four_sinh2_Eh<0) MASTER_PRINTF("WARNING, negative squared energy %lg\n",four_sinh2_Eh);
+    if(four_sinh2_Eh<0) WARNING("negative squared energy %lg\n",four_sinh2_Eh);
     
     return 2*asinh(sqrt(four_sinh2_Eh/4));
   }

@@ -265,7 +265,7 @@ namespace nissa
 // 	VERBOSITY_LV2_MASTER_PRINTF(" ishift %d, rel residue true=%lg approx=%lg commanded=%lg\n",
 // 				    ishift,res/source_norm,final_res[ishift],inn_req_res[ishift]);
 // 	if(res/source_norm>=2*final_res[ishift])
-// 	  MASTER_PRINTF("WARNING: shift[%d]=%lg true residue (%lg) much larger than expected one (%lg)\n",
+// 	  WARNING("shift[%d]=%lg true residue (%lg) much larger than expected one (%lg)\n",
 // 			ishift,IN_SHIFT[ishift],res/source_norm,final_res[ishift]);
 //       }
     

@@ -453,7 +453,7 @@ namespace nissa
       }
     
     const double four_sinh2_Eh=sqr(2.0*asinh(sqrt(p2)/2))+sqr(virt);
-    if(four_sinh2_Eh<0) MASTER_PRINTF("WARNING, negative squared energy %lg\n",four_sinh2_Eh);
+    if(four_sinh2_Eh<0) WARNING("negative squared energy %lg\n",four_sinh2_Eh);
     
     return sqrt(four_sinh2_Eh);
   }

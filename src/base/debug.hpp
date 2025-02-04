@@ -16,11 +16,20 @@
 # include <cuda_runtime.h>
 #endif
 
-#define CRASH(...) ::nissa::internal_crash(__LINE__,__FILE__,__VA_ARGS__)
-#define CRASH_PRINTING_ERROR(code,...) internal_crash_printing_error(__LINE__,__FILE__,code,__VA_ARGS__)
-#define DECRYPT_MPI_ERROR(...) internal_decrypt_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
+#define WARNING(FMT,...)						\
+  MASTER_PRINTF(YELLOW_HIGHLIGHT "WARNING, " FMT DO_NOT_HIGHLIGHT,__VA_ARGS__)
 
-#define DECRYPT_CUDA_ERROR(...)  internal_decrypt_cuda_error(__LINE__,__FILE__,__VA_ARGS__)
+#define CRASH(...) \
+  ::nissa::internal_crash(__LINE__,__FILE__,__VA_ARGS__)
+
+#define CRASH_PRINTING_ERROR(code,...)					\
+  internal_crash_printing_error(__LINE__,__FILE__,code,__VA_ARGS__)
+
+#define DECRYPT_MPI_ERROR(...) \
+  internal_decrypt_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
+
+#define DECRYPT_CUDA_ERROR(...)  \
+  internal_decrypt_cuda_error(__LINE__,__FILE__,__VA_ARGS__)
 
 //add verbosity macro
 #if MAX_VERBOSITY_LV>=1
@@ -43,12 +52,14 @@
 
 namespace nissa
 {
-  EXTERN_DEBUG int check_inversion_residue INIT_DEBUG_TO(1);
+  EXTERN_DEBUG int check_inversion_residue INIT_DEBUG_TO(2);
   
-  EXTERN_DEBUG int inversion_residue_threshold_odg INIT_DEBUG_TO(5);
+  EXTERN_DEBUG int inversion_residue_threshold_odg INIT_DEBUG_TO(2);
+  
+  EXTERN_DEBUG int inversion_residue_heavy_qualify_odg INIT_DEBUG_TO(30);
   
   EXTERN_DEBUG int verbosity_lv;
-
+  
   void debug_loop();
   void check_128_bit_prec();
   

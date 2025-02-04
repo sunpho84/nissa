@@ -273,7 +273,7 @@ namespace nissa
 	VERBOSITY_LV2_MASTER_PRINTF(" ishift %zu, rel residue true=%lg approx=%lg commanded=%lg\n",
 				    iShift,res/source_norm2,final_res[iShift],residue[iShift]);
 	if(res/source_norm2>=2*final_res[iShift])
-	  MASTER_PRINTF("WARNING: shift[%zu]=%lg true residue (%lg) much larger than expected one (%lg)\n",
+	  WARNING("shift[%zu]=%lg true residue (%lg) much larger than expected one (%lg)\n",
 			iShift,shifts[iShift],res/source_norm2,final_res[iShift]);
       }
     

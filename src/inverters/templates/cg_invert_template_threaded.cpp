@@ -114,7 +114,7 @@ namespace nissa
     VERBOSITY_LV2_MASTER_PRINTF("final relative residue (after %d iters): %lg where %lg was required\n",
 				final_iter,lambda/source_norm,residue);
     if(lambda/source_norm>=2*residue)
-      MASTER_PRINTF("WARNING: true residue %lg much larger than required and expected one %lg\n",
+      WARNING("true residue %lg much larger than required and expected one %lg\n",
 		    lambda/source_norm,residue);
     
     VERBOSITY_LV1_MASTER_PRINTF(" Total cg iterations: %d\n",final_iter);

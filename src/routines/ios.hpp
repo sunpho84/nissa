@@ -1,6 +1,10 @@
 #ifndef _IOS_HPP
 #define _IOS_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <mpi.h>
 #include <fstream>
 #include <stdint.h>
@@ -14,14 +18,24 @@
 #include "routines/mpi_routines.hpp"
 
 #if THREADS_TYPE == OPENMP_THREADS
- #include <omp.h>
+# include <omp.h>
 #endif
 
 #ifndef EXTERN_IOS
- #define EXTERN_IOS extern
+# define EXTERN_IOS extern
 #endif
 
-#define MASTER_PRINTF(...) ::nissa::master_fprintf(stdout,__VA_ARGS__)
+#define RED_HIGHLIGHT				\
+  "\x1b[31m"
+
+#define YELLOW_HIGHLIGHT			\
+  "\x1b[33m"
+
+#define DO_NOT_HIGHLIGHT			\
+  "\x1b[0m"
+
+#define MASTER_PRINTF(ARGS...)			\
+  ::nissa::master_fprintf(stdout,ARGS)
 
 //wrappers for verbosity_lv?
 #if MAX_VERBOSITY_LV>=1

@@ -145,7 +145,7 @@ namespace nissa
     // //compute residual and print
     // const double real_residue=check_res.norm2();
     // if(real_residue>residue*1.1)
-    //   MASTER_PRINTF("WARNING preconditioned tmclovD solver, asked for residual: %lg, obtained %lg\n\n",residue,real_residue);
+    //   WARNING("preconditioned tmclovD solver, asked for residual: %lg, obtained %lg\n\n",residue,real_residue);
     
     if(ext_invCl_lx==nullptr)
       delete _invCl_lx;
@@ -163,47 +163,6 @@ namespace nissa
 			     const double& targResidue,
 			     const LxField<spincolor>& source_lx)
   {
-    //memset(send_buf,0,send_buf_size);
-    //memset(recv_buf,0,recv_buf_size);
-    
-  //   {
-  //   int ivolIncr,rankIncr;
-  //   get_loclx_and_rank_of_coord(ivolIncr,rankIncr,{glbSize[0]-1,8,23,7});
-  //   if(rank==rankIncr)
-  //     {
-  // 	printf("at the beginning of the solver, the bulk of the conf on rank %d is:\n",rank);
-  // 	su3_print(conf_lx[ivolIncr][0]);
-  //     }
-    
-  // }
-    
-  //   const int incrSite=533223;
-    
-  //   MASTER_PRINTF("conf_lx pointer: %p\n",conf_lx);
-    
-  //   if(rank==0)
-  //     {
-  // 	printf("at the beginning there was\n");
-  // 	su3_print(conf_lx[incrSite][0]);
-  // 	su3_put_to_id(conf_lx[incrSite][0]);
-  // 	printf("darkness\n");
-  // 	su3_print(conf_lx[incrSite][0]);
-  //     }
-  //   set_borders_invalid(conf_lx);
-  //   communicate_lx_quad_su3_borders(conf_lx);
-    
-  //   if(rank==0)
-  //     {
-  // 	printf("then, light came\n");
-  // 	su3_print(conf_lx[incrSite][0]);
-  //     }
-    
-  //   {
-  //     checksum check;
-  //     checksum_compute_nissa_data(check,Cl_lx,64,sizeof(clover_term_t));
-  //     MASTER_PRINTF("initial checksum of the clover %x %x\n",check[0],check[1]);
-  //   }
-    
     /// Keep track of convergence
     bool solved=false;
     
@@ -229,63 +188,6 @@ namespace nissa
 	MASTER_PRINTF("calling DDalphaAMG to solve took %lg s\n",take_time()-call_time);
       }
 #endif
-    
-    // if(checkIfTmLQCDAvailableAndRequired() and not solved)
-    //   {
-    // 	// //open the file
-    // 	// std::string temp_path="temp_input";
-    // 	// FILE *ftemp;
-    // 	// master_get_temp_file(ftemp,temp_path);
-	
-    // 	// //preprare the parameters
-    // 	// int argc=3,verbose=1,external_id=0;
-    // 	// char *argv[3]={(char*)malloc(10),(char*)malloc(10),(char*)malloc(temp_path.length()+1)};
-    // 	// sprintf(argv[0],"-");
-    // 	// sprintf(argv[1],"-f");
-    // 	// sprintf(argv[2],"%s",temp_path.c_str());
-	
-    // 	//prepare the input file
-	
-    // 	//initializing
-    // 	FILE *ftemp=open_prepare_input_file_for_tmLQCD();
-    // 	master_fprintf(ftemp,"\n");
-    // 	master_fprintf(ftemp,"2kappamu = %lg\n",2*kappa*mass);
-    // 	master_fprintf(ftemp,"kappa = %lg\n",kappa);
-    // 	master_fprintf(ftemp,"DebugLevel = 3\n");
-    // 	master_fprintf(ftemp,"csw = %lg\n",cSW);
-    // 	master_fprintf(ftemp,"\n");
-    // 	//master_fprintf(ftemp,"BeginOperator TMWILSON\n");
-    // 	master_fprintf(ftemp,"BeginOperator CLOVER\n");
-    // 	master_fprintf(ftemp,"  2kappamu = %lg\n",2*kappa*mass);
-    // 	master_fprintf(ftemp,"  kappa = %lg\n",kappa);
-    // 	master_fprintf(ftemp,"  cSW = %lg\n",cSW);
-    // 	master_fprintf(ftemp,"  UseEvenOdd = yes\n");
-    // 	master_fprintf(ftemp,"  Solver = CG\n");
-    // 	master_fprintf(ftemp,"  SolverPrecision = %lg\n",residue);
-    // 	master_fprintf(ftemp,"  MaxSolverIterations = %d\n",nitermax);
-    // 	master_fprintf(ftemp,"  AddDownPropagator = no\n");
-    // 	master_fprintf(ftemp,"EndOperator\n");
-	
-    // 	close_file(ftemp);
-	
-    // 	tmLQCD_init();
-    // 	export_gauge_conf_to_tmLQCD(conf_lx);
-    // 	tmLQCD::tmLQCD_invert((double*)solution_lx,(double*)(source_lx),0,0);
-	
-    // 	tmLQCD_finalise();
-	
-    // 	// for(int i=0;i<argc;i++) free(argv[i]);
-	
-    // 	//if(rank==0) unlink("invert.input");
-	
-    // 	// //close the temporary file and remove it
-    // 	// if(rank==0)
-    // 	//   {
-    // 	// 	fclose(ftemp);
-    // 	// 	unlink(temp_path.c_str());
-    // 	//   }
-    // 	CRASH("Not yet implemented");
-    //   }
     
     if(not solved)
       inv_tmclovD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,cSW,Cl_lx,ext_invCl_lx,mass,nitermax,targResidue,source_lx);
