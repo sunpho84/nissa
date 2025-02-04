@@ -408,23 +408,49 @@ namespace nissa
   
   namespace
   {
-    //hold the type tag
+    /// Ignore unknwon parameters
+    int ignoreUnknownParameters;
+    
+    /// Hold the type tag
     struct triple_tag
     {
       std::string name;
+      
       std::string type;
+      
       size_t size;
+      
       void *pointer;
       
-      void read(){read_var((char*)pointer,type.c_str(),size);}
+      void read()
+      {
+	read_var((char*)pointer,type.c_str(),size);
+      }
+      
       void write()
       {
-	if(type=="%d"){VERBOSITY_LV1_MASTER_PRINTF("%d",*((int*)pointer));return;}
+	if(type=="%d")
+	  {
+	    VERBOSITY_LV1_MASTER_PRINTF("%d",*((int*)pointer));
+	    return;
+	  }
 	CRASH("unkwnon how to print %s",type.c_str());
       }
-      const std::string get_tag(int &a){return "%d";}
       
-      template <class T> triple_tag(std::string name,T &val) : name(name),type(get_tag(val)),size(sizeof(T)),pointer(&val) {}
+      const std::string get_tag(int &a)
+      {
+	return "%d";
+      }
+      
+      template <class T>
+      triple_tag(const std::string& name,
+		 T &val) :
+	name(name),
+	type(get_tag(val)),
+	size(sizeof(T)),
+	pointer(&val)
+      {
+      }
     };
   }
   
@@ -434,6 +460,7 @@ namespace nissa
     char path[1024]="nissa_config";
     
     std::vector<triple_tag> tags;
+    tags.push_back(triple_tag("ignore_unknown_parameters",      ignoreUnknownParameters));
     tags.push_back(triple_tag("prepend_time",                   prepend_time));
     tags.push_back(triple_tag("verbosity_lv",                   verbosity_lv));
     tags.push_back(triple_tag("use_128_bit_precision",          use_128_bit_precision));
@@ -485,19 +512,29 @@ namespace nissa
 		
 		//check if tag found
 		if(itag==tags.size())
+		  if(ignoreUnknownParameters)
+		    {
+		      WARNING("unkwnown parameter '%s'",tag);
+		      char tmp[100];
+		      read_var_catcherr(tmp,"%s",100);
+		      MASTER_PRINTF("skipped value '%s'",tmp);
+		    }
+		  else
+		    {
+		      MASTER_PRINTF("Available parameters:\n");
+		      for(size_t itag=0;itag<tags.size();itag++)
+			MASTER_PRINTF(" %s\n",tags[itag].name.c_str());
+		      
+		      CRASH("unkwnown parameter '%s', set \"ignore_unknown_parameters to 1\" to bypass",tag);
+		    }
+		else
 		  {
-		    MASTER_PRINTF("Available parameters:\n");
-		    for(size_t itag=0;itag<tags.size();itag++)
-		      MASTER_PRINTF(" %s\n",tags[itag].name.c_str());
-		    
-		    CRASH("unkwnown parameter '%s'",tag);
+		    //read the tag
+		    tags[itag].read();
+		    VERBOSITY_LV1_MASTER_PRINTF("Read parameter '%s' with value ",tag);
+		    tags[itag].write();
+		    VERBOSITY_LV1_MASTER_PRINTF("\n");
 		  }
-		
-		//read the tag
-		tags[itag].read();
-		VERBOSITY_LV1_MASTER_PRINTF("Read parameter '%s' with value ",tag);
-		tags[itag].write();
-		VERBOSITY_LV1_MASTER_PRINTF("\n");
 	      }
 	    else MASTER_PRINTF("Finished reading the file '%s'\n",path);
 	  }
