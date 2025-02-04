@@ -243,7 +243,7 @@ namespace nissa
 	      WARNING("%s",txt);
 	  }
 	else
-	  MASTER_PRINTF("    Residue passed the check ✅\n");
+ 	  MASTER_PRINTF(GREEN_HIGHLIGHT "    Inversion passed the residue check " DO_NOT_HIGHLIGHT "\n");
       }
   }
 }

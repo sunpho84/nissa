@@ -31,6 +31,9 @@
 #define YELLOW_HIGHLIGHT			\
   "\x1b[33m"
 
+#define GREEN_HIGHLIGHT				\
+  "\x1b[32m"
+
 #define DO_NOT_HIGHLIGHT			\
   "\x1b[0m"
 
