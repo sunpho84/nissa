@@ -1285,6 +1285,35 @@ namespace nissa
 	return *this;
     }
     
+    /// Make it possible to write to the field, and pass it to the function f
+    template <MemorySpace Dest,
+	      typename F>
+    void passSurelyWritableOn(F f,
+			      const bool& clearing)
+    {
+      if constexpr(Dest!=MS)
+	{
+	  Field<T,FC,STL,Dest> tmp("tmp",haloEdgesPresence);
+	  
+	  if(not clearing)
+	    tmp=*this;
+	  
+	  f(tmp);
+	  
+	  *this=tmp;;
+	}
+      else
+	return f(*this);
+    }
+    
+    /// Make it possible to write to the field, and pass it to the function f, ignoring original status
+    template <MemorySpace Dest,
+	      typename F>
+    void passSurelyWritableAfterClearing(F f)
+    {
+      passSurelyWritableOn<Dest>(f,true);
+    }
+    
     /// Returns the same or a copy if not with the given spacetime layout
     template <SpaceTimeLayout Dest>
     decltype(auto) getSurelyWithSpaceTimeLayout() const

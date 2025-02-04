@@ -64,7 +64,7 @@ struct HitLooper
 	{
 	  int isou=so_sp_col_ind(id_so,ic_so);
 	  const std::string path=combine("%s/prop%s_idso%d_icso%d",outfolder,name.c_str(),id_so,ic_so);
-	  ReadWriteRealVector<spincolor> rwTest(q[isou],path);
+	  ReadWriteRealVector<spincolor,defaultSpaceTimeLayout,MemorySpace::CPU> rwTest(q[isou],path);
 	  
 	  switch(ord)
 	    {
@@ -207,81 +207,90 @@ struct HitLooper
     if(not stoch_source and (not diluted_spi_source or not diluted_col_source))
       CRASH("for a non-stochastic source, spin and color must be diluted");
     
-    PAR(0,locVol,
-	CAPTURE(tins=sou->tins,
-		drawer,
-		noise_type=sou->noise_type,
-		s=sou->sp[0]->getWritable()),
-	ivol,
-	{
-	  spincolor b{};
-	  
-	  if(stoch_source)
-	    {
-	      if(tins==-1 or rel_coord_of_loclx(ivol,0)==0)
-		{
- 		  spincolor drawn;
-		  drawer.fillLocSite(drawn,ivol);
-		  
-		  for(int id=0;id<(diluted_spi_source?1:NDIRAC);id++)
-		    for(int ic=0;ic<(diluted_col_source?1:NCOL);ic++)
-		      {
-			complex bi;
-			
-			complex_copy(bi,drawn[id][ic]);
-			
-			switch(noise_type)
-			  {
-			  case RND_ALL_PLUS_ONE:
-			    complex_put_to_real(bi,1);
-			    break;
-			  case RND_ALL_MINUS_ONE:
-			    complex_put_to_real(bi,-1);
-			    break;
-			  case RND_Z2:
-			    z2Transform(bi);
-			    break;
-			  case RND_Z4:
-			    z4Transform(bi);
-			    break;
-			  case RND_UNIF:
-			  case RND_Z3:
-			  case RND_GAUSS:
-			    CRASH("not implemented yet");
-			    break;
-			  }
-			
-			complex_copy(b[id][ic],bi);
-		      }
-		}
-	    }
-	  else
-	    {
-	      bool is_ori=true;
-	      for(int mu=0;mu<NDIM;mu++)
-		is_ori&=(rel_coord_of_loclx(ivol,mu)==0);
-	      
-	      if(is_ori)
-		b[0][0][RE]=1.0;
-	    }
-	  
-	  spincolor_copy(s[ivol],b);
-	});
-    
-    for(int i=1;i<nso_spi*nso_col;i++)
-      {
-	PAR(0,locVol,
-	  CAPTURE(s=sou->sp[0]->getReadable(),
-		  d=sou->sp[i]->getWritable(),
-		  i),
+    sou->sp[0]->passSurelyWritableAfterClearing<defaultMemorySpace>([drawer,
+								     sou](LxField<spincolor>& s)
+    {
+      PAR(0,locVol,
+	  CAPTURE(tins=sou->tins,
+		  drawer,
+		  noise_type=sou->noise_type,
+		  s=s.getWritable()),
 	  ivol,
 	  {
-	    const auto [sp_so,co_so]=sp_col_of_so_ind(i);
+	    spincolor b{};
 	    
-	    const int sp_si=diluted_spi_source?0:sp_so;
-	    const int co_si=diluted_col_source?0:co_so;
-	    complex_copy(d[ivol][sp_so][co_so],s[ivol][sp_si][co_si]);
+	    if(stoch_source)
+	      {
+		if(tins==-1 or rel_coord_of_loclx(ivol,0)==0)
+		  {
+		    spincolor drawn;
+		    drawer.fillLocSite(drawn,ivol);
+		    
+		    for(int id=0;id<(diluted_spi_source?1:NDIRAC);id++)
+		      for(int ic=0;ic<(diluted_col_source?1:NCOL);ic++)
+			{
+			  complex bi;
+			  
+			  complex_copy(bi,drawn[id][ic]);
+			  
+			  switch(noise_type)
+			    {
+			    case RND_ALL_PLUS_ONE:
+			      complex_put_to_real(bi,1);
+			      break;
+			    case RND_ALL_MINUS_ONE:
+			      complex_put_to_real(bi,-1);
+			      break;
+			    case RND_Z2:
+			      z2Transform(bi);
+			      break;
+			    case RND_Z4:
+			      z4Transform(bi);
+			      break;
+			    case RND_UNIF:
+			    case RND_Z3:
+			    case RND_GAUSS:
+			      CRASH("not implemented yet");
+			      break;
+			    }
+			  
+			  complex_copy(b[id][ic],bi);
+			}
+		  }
+	      }
+	    else
+	      {
+		bool is_ori=true;
+		for(int mu=0;mu<NDIM;mu++)
+		  is_ori&=(rel_coord_of_loclx(ivol,mu)==0);
+		
+		if(is_ori)
+		  b[0][0][RE]=1.0;
+	      }
+	    
+	    spincolor_copy(s[ivol],b);
 	  });
+    });
+      
+    for(int i=1;i<nso_spi*nso_col;i++)
+      {
+	sou->sp[i]->passSurelyWritableAfterClearing<defaultMemorySpace>([i,&sou](LxField<spincolor>& d)
+	{
+	  d.reset();
+	  
+	  PAR(0,locVol,
+	      CAPTURE(s=sou->sp[0]->getSurelyReadableOn<defaultMemorySpace>().getReadable(),
+		      d=d.getWritable(),
+		      i),
+	      ivol,
+	      {
+		const auto [sp_so,co_so]=sp_col_of_so_ind(i);
+		
+		const int sp_si=diluted_spi_source?0:sp_so;
+		const int co_si=diluted_col_source?0:co_so;
+		complex_copy(d[ivol][sp_so][co_so],s[ivol][sp_si][co_si]);
+	      });
+	});
       }
     
     //compute the norm2, set borders invalid
@@ -289,8 +298,8 @@ struct HitLooper
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
-	  LxField<spincolor>& s=*sou->sp[so_sp_col_ind(id_so,ic_so)];
-	  s.invalidateHalo();
+	  decltype(auto) s=
+	    sou->sp[so_sp_col_ind(id_so,ic_so)]->getSurelyReadableOn<defaultMemorySpace>();
 	  ori_source_norm2+=s.norm2();
 	}
     sou->ori_source_norm2=ori_source_norm2;
@@ -367,10 +376,10 @@ struct HitLooper
 		const int isou=
 		  so_sp_col_ind(id_so,ic_so);
 		
-		LxField<spincolor>& sou=
+		HostProp& sou=
 		  (*q)[isou];
 		
-		ReadWriteRealVector<spincolor> rw(sou,path);
+		ReadWriteRealVector<spincolor,defaultSpaceTimeLayout,MemorySpace::CPU> rw(sou,path);
 		
 		//if the prop exists read it
 		if(rw.canLoad())

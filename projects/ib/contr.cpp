@@ -22,7 +22,7 @@ namespace nissa
   //class to open or append a path, depending if it was already used
   class open_or_append_t
   {
-    //list of already opened file
+    /// List of already opened file
     std::set<std::string> opened;
     
   public:
@@ -74,8 +74,8 @@ namespace nissa
     
     for(int idc_so=0;idc_so<nso_spi*nso_col;idc_so++)
       {
-	LxField<spincolor>& q_dag=Q[pr_dag][idc_so];
-	LxField<spincolor>& q=Q[pr][idc_so];
+	decltype(auto) q_dag=Q[pr_dag][idc_so].getSurelyReadableOn<defaultMemorySpace>();
+	decltype(auto) q=Q[pr][idc_so].getSurelyReadableOn<defaultMemorySpace>();
 	
 	PAR(0,locVol,
 	    CAPTURE(TO_WRITE(loc),
@@ -136,12 +136,12 @@ namespace nissa
 		complex_prodassign_double(AB[k],norm);
 	      }
 	    
-	    auto& loc_contr=*nissa::loc_contr;
+	    LxField<complex>& loc_contr=*nissa::loc_contr;
 	    
 	    for(int b=0;b<nso_col;b++)
 	      {
-		const LxField<spincolor>& q1=Q1[so_sp_col_ind(j,b)];
-		const LxField<spincolor>& q2=Q2[so_sp_col_ind(i,b)];
+		decltype(auto) q1=Q1[so_sp_col_ind(j,b)].getSurelyReadableOn<defaultMemorySpace>();
+		decltype(auto) q2=Q2[so_sp_col_ind(i,b)].getSurelyReadableOn<defaultMemorySpace>();
 		
 		PAR(0,locVol,
 			CAPTURE(ig_si,AB,
@@ -665,8 +665,8 @@ namespace nissa
 	  int idc_bw=so_sp_col_ind(iso_spi_bw,iso_col);
 	  
 	  //get componentes
-	  LxField<spincolor>& Qfw=Q[name_fw][idc_fw];
-	  LxField<spincolor>& Qbw=Q[name_bw][idc_bw];
+	  decltype(auto) Qfw=Q[name_fw][idc_fw].getSurelyReadableOn<defaultMemorySpace>();
+	  decltype(auto) Qbw=Q[name_bw][idc_bw].getSurelyReadableOn<defaultMemorySpace>();
 	  
 	  Qfw.updateHalo();
 	  Qbw.updateHalo();
@@ -731,8 +731,8 @@ namespace nissa
 	  int iso_spi_bw=g.pos[iso_spi_fw];
 	  
 	  //get componentes
-	  LxField<spincolor>& Qbw=Q[id_Qbw][so_sp_col_ind(iso_spi_bw,iso_col)];
-	  LxField<spincolor>& Qfw=Q[id_Qfw][so_sp_col_ind(iso_spi_fw,iso_col)];
+	  decltype(auto) Qbw=Q[id_Qbw][so_sp_col_ind(iso_spi_bw,iso_col)].getSurelyReadableOn<defaultMemorySpace>();
+	  decltype(auto) Qfw=Q[id_Qfw][so_sp_col_ind(iso_spi_fw,iso_col)].getSurelyReadableOn<defaultMemorySpace>();
 	  
 	  PAR(0,locVol,
 	      CAPTURE(g,GAMMA,iso_spi_fw,

@@ -370,7 +370,8 @@ namespace nissa
     for(auto& c : source_terms)
       {
 	complex coef={c.second.first,c.second.second};
-	const LxField<spincolor>& p=Q[c.first][isou];
+	decltype(auto) p=Q[c.first][isou].getSurelyReadableOn<defaultMemorySpace>();
+	
 	
 	PAR(0,locVol,
 	    CAPTURE(coef,
@@ -537,7 +538,7 @@ namespace nissa
       {
 	const std::string path=combine("%s/%s",outfolder,ext_field_path);
 	ext_field=new LxField<spin1field>("ext_field",WITH_HALO);
-	ReadWriteRealVector<spin1field> r(*ext_field,ext_field_path);
+	ReadWriteRealVector<spin1field,defaultSpaceTimeLayout,defaultMemorySpace> r(*ext_field,ext_field_path);
 	r.read();
       }
     
@@ -697,36 +698,41 @@ namespace nissa
 	{
 	  int isou=so_sp_col_ind(id_so,ic_so);
 	  generate_source(insertion,q.ext_field_path,q.mass,q.r,q.charge,q.kappa,q.kappa_asymm,q.theta,q.source_terms,isou,q.tins);
-	  LxField<spincolor>& sol=q[isou];
-	  
-	  //combine the filename
-	  const std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
-	  
-	  ReadWriteRealVector<spincolor> rw(sol,path);
-	  
-	  //if the prop exists read it
-	  if(rw.canLoad())
-	    {
-	      MASTER_PRINTF("  loading the solution, dirac index %d, color %d\n",id_so,ic_so);
-	      START_TIMING(read_prop_time,nread_prop);
-	      rw.read();
-	      STOP_TIMING(read_prop_time);
-	    }
-	  else
-	    {
-	      //otherwise compute it
-	      if(q.insertion==PROP) get_qprop(sol,*loop_source,q.kappa,q.mass,q.r,q.charge,q.residue,q.theta);
-	      else    *sol=*loop_source;
-	      
-	      //and store if needed
-	      if(q.store)
-		{
-		  START_TIMING(store_prop_time,nstore_prop);
-		  rw.write();
-		  STOP_TIMING(store_prop_time);
-		}
-	      MASTER_PRINTF("  finished the calculation of dirac index %d, color %d\n",id_so,ic_so);
-	    }
+	  q[isou].passSurelyWritableAfterClearing<defaultMemorySpace>([&name,
+								       ihit,
+								       id_so,
+								       ic_so,
+								       &q](LxField<spincolor>& sol)
+	  {
+	    //combine the filename
+	    const std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+	    
+	    ReadWriteRealVector<spincolor,defaultSpaceTimeLayout,defaultMemorySpace> rw(sol,path);
+	    
+	    //if the prop exists read it
+	    if(rw.canLoad())
+	      {
+		MASTER_PRINTF("  loading the solution, dirac index %d, color %d\n",id_so,ic_so);
+		START_TIMING(read_prop_time,nread_prop);
+		rw.read();
+		STOP_TIMING(read_prop_time);
+	      }
+	    else
+	      {
+		//otherwise compute it
+		if(q.insertion==PROP) get_qprop(sol,*loop_source,q.kappa,q.mass,q.r,q.charge,q.residue,q.theta);
+		else    *sol=*loop_source;
+		
+		//and store if needed
+		if(q.store)
+		  {
+		    START_TIMING(store_prop_time,nstore_prop);
+		    rw.write();
+		    STOP_TIMING(store_prop_time);
+		  }
+		MASTER_PRINTF("  finished the calculation of dirac index %d, color %d\n",id_so,ic_so);
+	      }
+	  });
 	}
   }
   
@@ -773,7 +779,7 @@ namespace nissa
 	const std::string path=
 	  combine("%s/hit%d_field%s",outfolder,ihit,name.c_str());
 	
-	ReadWriteRealVector<spin1field> rw(*ph,path);
+	ReadWriteRealVector<spin1field,defaultSpaceTimeLayout,defaultMemorySpace> rw(*ph,path);
 	
 	//if asked and the file exists read it
 	if(load_photons)

@@ -35,6 +35,10 @@ namespace nissa
   
   typedef std::pair<std::string,std::pair<double,double>> source_term_t;
   
+  /// Format of the propagator on the host
+  using HostProp=
+    LxField<spincolor,defaultSpaceTimeLayout,MemorySpace::CPU>;
+  
   //hold name and information on how to build a propagator
   struct qprop_t
   {
@@ -59,16 +63,16 @@ namespace nissa
     double ori_source_norm2{};
     
     //spincolor data
-    LxField<spincolor>** sp{};
+    HostProp** sp{};
     
-    CUDA_HOST_AND_DEVICE
-    const LxField<spincolor>& operator[](const int& i) const
-    {
-      return *(sp[i]);
-    }
+    // CUDA_HOST_AND_DEVICE
+    // const LxField<spincolor>& operator[](const int& i) const
+    // {
+    //   return *(sp[i]);
+    // }
     
-    CUDA_HOST_AND_DEVICE
-    LxField<spincolor>& operator[](const int& i)
+    // CUDA_HOST_AND_DEVICE
+    HostProp& operator[](const int& i)
     {
       return *(sp[i]);
     }
@@ -77,9 +81,9 @@ namespace nissa
     {
       if(sp==nullptr)
 	{
-	  sp=new LxField<spincolor>*[nso_spi*nso_col];
+	  sp=new HostProp*[nso_spi*nso_col];
 	  for(int i=0;i<nso_spi*nso_col;i++)
-	    sp[i]=new LxField<spincolor>("sp",WITH_HALO);
+	    sp[i]=new HostProp("sp",WITH_HALO);
 	}
     }
     
@@ -323,16 +327,18 @@ namespace nissa
     generate_quark_propagators(ihit);
   }
   
-  template <typename T>
+  template <typename T,
+	    SpaceTimeLayout STL,
+	    MemorySpace MS>
   struct ReadWriteRealVector
   {
-    LxField<T>& v;
+    LxField<T,STL,MS>& v;
     
     std::string path;
     
     FILE* fastFile;
     
-    ReadWriteRealVector(LxField<T>& v,
+    ReadWriteRealVector(LxField<T,STL,MS>& v,
 			const std::string& _path) :
       v(v),
       path(_path)
@@ -373,23 +379,26 @@ namespace nissa
     {
       MASTER_PRINTF("Reading %s\n",path.c_str());
       
-      if(fast_read_write_vectors)
-	{
-	  CRASH("reimplement");
-	  fastOpen("r");
-	  
-	  // if(fread(v,sizeof(T),locVol,fastFile)!=locVol)
-	  //   CRASH("Problem reading %s",path.c_str());
-	  
-	  fclose(fastFile);
-	}
-      else
-	read_real_vector(v,path,"scidac-binary-data");
+      v.template passSurelyWritableAfterClearing<defaultMemorySpace>([this](LxField<T>& v)
+      {
+	if(fast_read_write_vectors)
+	  {
+	    CRASH("reimplement");
+	    fastOpen("r");
+	    
+	    // if(fread(v,sizeof(T),locVol,fastFile)!=locVol)
+	    //   CRASH("Problem reading %s",path.c_str());
+	    
+	    fclose(fastFile);
+	  }
+	else
+	  read_real_vector(v,path,"scidac-binary-data");
+      });
     }
     
     void fastWrite()
     {
-	  CRASH("reimplement");
+      CRASH("reimplement");
       fastOpen("w");
       
       // if(fwrite(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
@@ -417,7 +426,7 @@ namespace nissa
     
     void write()
     {
-      MASTER_PRINTF("Writing %s, %zu %p\n",path.c_str(),sizeof(T),&v);
+      MASTER_PRINTF("Writing %s, %zu %p\n",path.c_str(),sizeof(spincolor),&v);
       
       if(fast_read_write_vectors)
 	{
@@ -426,7 +435,7 @@ namespace nissa
 	    CRASH("not supported");
 	  //hack
 	  if(fwrite(v.template getPtr<MemorySpace::CPU>(),
-		    sizeof(T),
+		    sizeof(spincolor),
 		    locVol,
 		    fastFile)!=(size_t)locVol)
 	    CRASH("Problem writing %s",path.c_str());
@@ -434,7 +443,7 @@ namespace nissa
 	  fclose(fastFile);
 	}
       else
-	write_real_vector(path,v,"scidac-binary-data");
+	write_real_vector(path,v.template getSurelyReadableOn<defaultMemorySpace>(),"scidac-binary-data");
     }
   };
 }
