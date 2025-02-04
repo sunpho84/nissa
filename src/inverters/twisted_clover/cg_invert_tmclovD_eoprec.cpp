@@ -125,27 +125,27 @@ namespace nissa
     
     paste_eo_parts_into_lx_vector(solution_lx,solution_eos);
     
-    //check for residual
-    LxField<spincolor> check_res("check_res",WITH_HALO);
+    // //check for residual
+    // LxField<spincolor> check_res("check_res",WITH_HALO);
     
-    //multiply by g5*D
-    apply_tmclovQ(check_res,conf_lx,kappa,Cl_lx,mass,solution_lx);
+    // //multiply by g5*D
+    // apply_tmclovQ(check_res,conf_lx,kappa,Cl_lx,mass,solution_lx);
     
-    //remove g5 and take the difference with source
-    PAR(0,locVol,
-	CAPTURE(TO_WRITE(check_res),
-		TO_READ(source_lx)),ivol,
-      {
-	const double mg5[2]={-1,1};
-	for(int high_low=0;high_low<2;high_low++)
-	  for(int id=high_low*NDIRAC/2;id<(high_low+1)*NDIRAC/2;id++)
-	    color_summ_the_prod_double(check_res[ivol][id],source_lx[ivol][id],mg5[high_low]);
-      });
+    // //remove g5 and take the difference with source
+    // PAR(0,locVol,
+    // 	CAPTURE(TO_WRITE(check_res),
+    // 		TO_READ(source_lx)),ivol,
+    //   {
+    // 	const double mg5[2]={-1,1};
+    // 	for(int high_low=0;high_low<2;high_low++)
+    // 	  for(int id=high_low*NDIRAC/2;id<(high_low+1)*NDIRAC/2;id++)
+    // 	    color_summ_the_prod_double(check_res[ivol][id],source_lx[ivol][id],mg5[high_low]);
+    //   });
     
-    //compute residual and print
-    const double real_residue=check_res.norm2();
-    if(real_residue>residue*1.1)
-      MASTER_PRINTF("WARNING preconditioned tmclovD solver, asked for residual: %lg, obtained %lg\n\n",residue,real_residue);
+    // //compute residual and print
+    // const double real_residue=check_res.norm2();
+    // if(real_residue>residue*1.1)
+    //   MASTER_PRINTF("WARNING preconditioned tmclovD solver, asked for residual: %lg, obtained %lg\n\n",residue,real_residue);
     
     if(ext_invCl_lx==nullptr)
       delete _invCl_lx;
@@ -160,7 +160,7 @@ namespace nissa
 			     const double& cSW,
 			     const double& mass,
 			     const int& nitermax,
-			     const double& residue,
+			     const double& targResidue,
 			     const LxField<spincolor>& source_lx)
   {
     //memset(send_buf,0,send_buf_size);
@@ -211,7 +211,7 @@ namespace nissa
     if(use_quda and not solved)
       {
 	const double call_time=take_time();
-	solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
+	solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,targResidue,source_lx);
 	MASTER_PRINTF("calling quda to solve took %lg s\n",take_time()-call_time);
       }
 #endif
@@ -225,7 +225,7 @@ namespace nissa
 	const double call_time=take_time();
 	solved=DD::solve((spincolor*)solution_lx.getPtr<MemorySpace::CPU>(),
 			 (quad_su3*)conf_lx.getPtr<MemorySpace::CPU>(),
-			 kappa,cSW,mass,residue,(spincolor*)source_lx.getPtr<MemorySpace::CPU>());
+			 kappa,cSW,mass,targResidue,(spincolor*)source_lx.getPtr<MemorySpace::CPU>());
 	MASTER_PRINTF("calling DDalphaAMG to solve took %lg s\n",take_time()-call_time);
       }
 #endif
@@ -288,81 +288,58 @@ namespace nissa
     //   }
     
     if(not solved)
-      inv_tmclovD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,cSW,Cl_lx,ext_invCl_lx,mass,nitermax,residue,source_lx);
+      inv_tmclovD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,cSW,Cl_lx,ext_invCl_lx,mass,nitermax,targResidue,source_lx);
     
     if(check_inversion_residue)
       {
-    // THREAD_BARRIER();
-	//check solution
 	double check_time=take_time();
 	LxField<spincolor> residueVec("residueVec");
-	// checksum check;
-	// checksum_compute_nissa_data(check,solution_lx,64,sizeof(spincolor));
-	// MASTER_PRINTF("checksum of the solution %x %x\n",check[0],check[1]);
-	// checksum_compute_nissa_data(check,conf_lx,64,sizeof(quad_su3));
-	// MASTER_PRINTF("checksum of the conf %x %x\n",check[0],check[1]);
-	
-	// const double sou=source_lx[0][0][0][0];
-	// const double sol=solution_lx[0][0][0][0];
-	// set_borders_invalid(solution_lx);
 	apply_tmclovQ(residueVec,conf_lx,kappa,Cl_lx,mass,solution_lx);
-	// const double sola=solution_lx[0][0][0][0];
-	// const double soll=solution_lx[locVol][0][0][0];
-	// checksum_compute_nissa_data(check,Cl_lx,64,sizeof(clover_term_t));
-	// MASTER_PRINTF("checksum of the clover %x %x\n",check[0],check[1]);
-	// checksum_compute_nissa_data(check,residueVec,64,sizeof(spincolor));
-	// MASTER_PRINTF("checksum of the residue %x %x\n",check[0],check[1]);
-	// checksum_compute_nissa_data(check,solution_lx+bord_vol,64,sizeof(spincolor));
-	// MASTER_PRINTF("checksum of the solution shifted by bord %x %x\n",check[0],check[1]);
-	// const double res=residueVec[0][0][0][0];
-	// const double res1=residueVec[loclx_of_coord_list(0,8,23,7)][0][0][0];
+	
 	PAR(0,locVol,
 	    CAPTURE(TO_WRITE(residueVec)),ivol,
 	    {
 	      unsafe_dirac_prod_spincolor(residueVec[ivol],base_gamma[5],residueVec[ivol]);
 	    });
 	
-	// const double res5=residueVec[0][0][0][0];
 	residueVec-=source_lx;
-	// const double ress=residueVec[0][0][0][0];
-	// const double resn=spincolor_norm2(residueVec[0]);
-	// double resnt=0;
-	// bool found=false;
-	// for(int ivol=0;ivol<locVol;ivol++)
-	//   {
-	//     const double contr=spincolor_norm2(residueVec[ivol]);
-	//     if(found==false and contr>1e-4)
-	//       {
-	// 	found=true;
-	// 	const Coords c=locCoordOfLoclx[ivol];
-	// 	// master_
-	// 	printf("rank %d found first exceeding, %lg at %d %d %d %d\n",rank,contr,c[0],c[1],c[2],c[3]);
-	//       }
-	//     // resnt+=contr;
-	//   }
-	// // double resntg;
-	// // MPI_Allreduce(&resnt,&resntg,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	
 	/// Residue L2 norm
-	const double residueNorm2=residueVec.norm2();
+	const double residueNorm2=
+	  residueVec.norm2();
 	
 	/// Source L2 norm
-	const double sourceNorm2=source_lx.norm2();
+	const double sourceNorm2=
+	  source_lx.norm2();
+	
+	const double residue=
+	  residueNorm2/sourceNorm2;
 	
 	MASTER_PRINTF("check solution, source norm2: %lg, residue: %lg, target one: %lg checked in %lg s\n",
-		      sourceNorm2,residueNorm2/sourceNorm2,residue,take_time()-check_time);
-	const double nodg=
-	  log10(residue)-log10(residueNorm2/sourceNorm2);
-	if(nodg>inversion_residue_threshold_odg)
-	  CRASH("residue is %lg orders of magnitude larger than expected, larger than threshold %d",nodg,inversion_residue_threshold_odg);
-	// printf("check rank %d %lg %lg %lg %lg %lg %lg %lg %lg     %lg %lg %lg\n",rank,sou,sol,sola,soll,res,res1,res5,ress,resn,resnt,resntg);
+		      sourceNorm2,residue,targResidue,take_time()-check_time);
 	
-    // if(rank==0)
-    //   {
-    // 	printf("now\n");
-    // 	su3_print(conf_lx[incrSite][0]);
-    //   }
+	double ref;
+	if(targResidue<1e-30)
+	  {
+	    ref=pow(10,-inversion_residue_heavy_qualify_odg);
+	    MASTER_PRINTF("Heavy-quark residue, comparing with absolute threshold %lg\n",ref);
+	  }
+	else
+	  {
+	    ref=targResidue*pow(10,inversion_residue_threshold_odg);
+	    MASTER_PRINTF("Comparing with %d orders larger residue %lg\n",inversion_residue_threshold_odg,ref);
+	  }
 	
+	if(residue>ref)
+	  {
+	    const char* txt=
+	      "residue is larger than threshold";
+	    
+	    if(check_inversion_residue>1)
+	      CRASH("%s",txt);
+	    else
+	      MASTER_PRINTF("WARNING, %s",txt);
+	  }
       }
   }
 }

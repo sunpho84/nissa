@@ -322,28 +322,43 @@ namespace nissa
     return found;
   }
   
-  //read the checksum
+  // Read the checksum
   Checksum ILDG_File_read_checksum(ILDG_File &file)
   {
     Checksum check_read;
     
-  //search the field
-    char record_name[]="scidac-checksum";
+    //search the field
+    const char record_name[]="scidac-checksum";
+    
     ILDG_header header;
-    int found=ILDG_File_search_record(header,file,record_name);
+    
+    const int found=
+      ILDG_File_search_record(header,file,record_name);
+    
     if(found)
       {
-	uint64_t nbytes=header.data_length;
-	char *mess=nissa_malloc("mess",nbytes+1,char);
+	const uint64_t& nbytes=
+	  header.data_length;
+	
+	char *mess=
+	  nissa_malloc("mess",nbytes+1,char);
+	
 	ILDG_File_read_all((void*)mess,file,nbytes);
 	mess[nbytes]='\0';
 	
 	//setup as non found as search it
 	check_read[0]=check_read[1]=0;
-	char *handlea=strstr(mess,"<suma>"),*handleb=strstr(mess,"<sumb>");
+	
+	const char *handlea=
+	  strstr(mess,"<suma>");
+	
+	const char *handleb=
+	  strstr(mess,"<sumb>");
+	
 	//if found read it
-	if(!(handlea && handleb && sscanf(handlea+6,"%x",&check_read[0]) && sscanf(handleb+6,"%x",&check_read[1])))
-	  MASTER_PRINTF("WARNING: Broken checksum\n");
+	if(not (handlea and handleb and sscanf(handlea+6,"%x",&check_read[0]) and sscanf(handleb+6,"%x",&check_read[1])))
+	  WARNING("Broken checksum %s\n",mess);
+	
 	nissa_free(mess);
       }
     

@@ -16,7 +16,7 @@ namespace nissa
 			     const double& cSW,
 			     const double& mass,
 			     const int& nitermax,
-			     const double& residue,
+			     const double& targResidue,
 			     const LxField<spincolor>& source_lx);
 }
 
