@@ -514,10 +514,10 @@ namespace nissa
 		if(itag==tags.size())
 		  if(ignoreUnknownParameters)
 		    {
-		      WARNING("unkwnown parameter '%s'",tag);
+		      WARNING("unkwnown parameter '%s'\n",tag);
 		      char tmp[100];
 		      read_var_catcherr(tmp,"%s",100);
-		      MASTER_PRINTF("skipped value '%s'",tmp);
+		      WARNING(" skipped value '%s' for unknown parameter \'%s\'\n",tmp,tag);
 		    }
 		  else
 		    {
@@ -536,7 +536,8 @@ namespace nissa
 		    VERBOSITY_LV1_MASTER_PRINTF("\n");
 		  }
 	      }
-	    else MASTER_PRINTF("Finished reading the file '%s'\n",path);
+	    else
+	      MASTER_PRINTF("Finished reading the file '%s'\n",path);
 	  }
 	while(nr==1);
 	
