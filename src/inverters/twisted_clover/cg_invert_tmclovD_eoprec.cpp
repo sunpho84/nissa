@@ -351,6 +351,10 @@ namespace nissa
 	
 	MASTER_PRINTF("check solution, source norm2: %lg, residue: %lg, target one: %lg checked in %lg s\n",
 		      sourceNorm2,residueNorm2/sourceNorm2,residue,take_time()-check_time);
+	const double nodg=
+	  log10(residue)-log10(residueNorm2/sourceNorm2);
+	if(nodg>inversion_residue_threshold_odg)
+	  CRASH("residue is %lg orders of magnitude larger than expected, larger than threshold %d",nodg,inversion_residue_threshold_odg);
 	// printf("check rank %d %lg %lg %lg %lg %lg %lg %lg %lg     %lg %lg %lg\n",rank,sou,sol,sola,soll,res,res1,res5,ress,resn,resnt,resntg);
 	
     // if(rank==0)

@@ -434,36 +434,37 @@ namespace nissa
     char path[1024]="nissa_config";
     
     std::vector<triple_tag> tags;
-    tags.push_back(triple_tag("prepend_time",                  prepend_time));
-    tags.push_back(triple_tag("verbosity_lv",                  verbosity_lv));
-    tags.push_back(triple_tag("use_128_bit_precision",         use_128_bit_precision));
-    tags.push_back(triple_tag("check_inversion_residue",       check_inversion_residue));
-    tags.push_back(triple_tag("use_eo_geom",		       use_eo_geom));
-    tags.push_back(triple_tag("use_async_communications",      use_async_communications));
-    tags.push_back(triple_tag("warn_if_not_disallocated",      warn_if_not_disallocated));
-    tags.push_back(triple_tag("set_t_nranks",		       fix_nranks[0]));
-    tags.push_back(triple_tag("set_x_nranks",		       fix_nranks[1]));
-    tags.push_back(triple_tag("set_y_nranks",		       fix_nranks[2]));
-    tags.push_back(triple_tag("set_z_nranks",		       fix_nranks[3]));
-    tags.push_back(triple_tag("ignore_ILDG_magic_number",      ignore_ILDG_magic_number));
-    tags.push_back(triple_tag("fast_read_write_vectors",       fast_read_write_vectors));
-    tags.push_back(triple_tag("perform_benchmark",             perform_benchmark));
+    tags.push_back(triple_tag("prepend_time",                   prepend_time));
+    tags.push_back(triple_tag("verbosity_lv",                   verbosity_lv));
+    tags.push_back(triple_tag("use_128_bit_precision",          use_128_bit_precision));
+    tags.push_back(triple_tag("check_inversion_residue",        check_inversion_residue));
+    tags.push_back(triple_tag("inversion_residue_threshold_odg",inversion_residue_threshold_odg));
+    tags.push_back(triple_tag("use_eo_geom",                    use_eo_geom));
+    tags.push_back(triple_tag("use_async_communications",       use_async_communications));
+    tags.push_back(triple_tag("warn_if_not_disallocated",       warn_if_not_disallocated));
+    tags.push_back(triple_tag("set_t_nranks",                   fix_nranks[0]));
+    tags.push_back(triple_tag("set_x_nranks",                   fix_nranks[1]));
+    tags.push_back(triple_tag("set_y_nranks",                   fix_nranks[2]));
+    tags.push_back(triple_tag("set_z_nranks",                   fix_nranks[3]));
+    tags.push_back(triple_tag("ignore_ILDG_magic_number",       ignore_ILDG_magic_number));
+    tags.push_back(triple_tag("fast_read_write_vectors",        fast_read_write_vectors));
+    tags.push_back(triple_tag("perform_benchmark",              perform_benchmark));
 #if HIGH_PREC_TYPE==GMP_HIGH_PREC
-    tags.push_back(triple_tag("mpf_precision",                 mpf_precision));
+    tags.push_back(triple_tag("mpf_precision",                  mpf_precision));
 #endif
 #ifdef USE_TMLQCD
-    tags.push_back(triple_tag("use_tmLQCD",		       use_tmLQCD));
+    tags.push_back(triple_tag("use_tmLQCD",                     use_tmLQCD));
 #endif
 #if defined USE_DDALPHAAMG or defined USE_QUDA
-    tags.push_back(triple_tag("use_DDalphaAMG",		       multiGrid::use_multiGrid));
-    tags.push_back(triple_tag("use_multigrid",		       multiGrid::use_multiGrid));
-    tags.push_back(triple_tag("use_deflated_solver",	       multiGrid::use_deflated_solver));
+    tags.push_back(triple_tag("use_DDalphaAMG",                 multiGrid::use_multiGrid));
+    tags.push_back(triple_tag("use_multigrid",                  multiGrid::use_multiGrid));
+    tags.push_back(triple_tag("use_deflated_solver",            multiGrid::use_deflated_solver));
 #endif
 #ifdef USE_QUDA
-    tags.push_back(triple_tag("use_QUDA",		       use_quda));
+    tags.push_back(triple_tag("use_QUDA",                       use_quda));
 #endif
 #ifdef USE_PARPACK
-    tags.push_back(triple_tag("use_parpack",		       use_parpack));
+    tags.push_back(triple_tag("use_parpack",                    use_parpack));
 #endif
     
     if(file_exists(path))
