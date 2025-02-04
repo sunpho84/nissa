@@ -707,7 +707,7 @@ namespace quda_iface
     inv_param.omega=1.0;
     
 #ifndef DYNAMIC_CLOVER
-# warning Please compile quda with DYNAMIC_CLOVER switched on
+# error Please compile quda with DYNAMIC_CLOVER switched on
 #endif
     
     if(exported and csw)
