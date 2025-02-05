@@ -56,7 +56,7 @@ namespace nissa
   
   EXTERN_DEBUG int inversion_residue_threshold_odg INIT_DEBUG_TO(2);
   
-  EXTERN_DEBUG int inversion_residue_heavy_qualify_odg INIT_DEBUG_TO(30);
+  EXTERN_DEBUG int inversion_residue_heavy_qualify_odg INIT_DEBUG_TO(32);
   
   EXTERN_DEBUG int verbosity_lv;
   

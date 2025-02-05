@@ -221,9 +221,9 @@ namespace nissa
 		      sourceNorm2,residue,targResidue,take_time()-check_time);
 	
 	double ref;
-	if(targResidue<1e-30)
+	if(targResidue<1e-29)
 	  {
-	    ref=pow(10,-inversion_residue_heavy_qualify_odg);
+	    ref=pow(10,-inversion_residue_heavy_qualify_odg)*sqrt(glbVol);
 	    MASTER_PRINTF("  Heavy-quark residue, comparing with absolute threshold %lg\n",ref);
 	  }
 	else
