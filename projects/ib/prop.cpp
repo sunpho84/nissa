@@ -698,11 +698,11 @@ namespace nissa
 	{
 	  int isou=so_sp_col_ind(id_so,ic_so);
 	  generate_source(insertion,q.ext_field_path,q.mass,q.r,q.charge,q.kappa,q.kappa_asymm,q.theta,q.source_terms,isou,q.tins);
-	  q[isou].passSurelyWritableAfterClearing<defaultMemorySpace>([&name,
-								       ihit,
-								       id_so,
-								       ic_so,
-								       &q](LxField<spincolor>& sol)
+	  q[isou].initOn<defaultMemorySpace>([&name,
+					      ihit,
+					      id_so,
+					      ic_so,
+					      &q](LxField<spincolor>& sol)
 	  {
 	    //combine the filename
 	    const std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
