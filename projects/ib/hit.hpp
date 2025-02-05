@@ -276,8 +276,6 @@ struct HitLooper
       {
 	sou->sp[i]->initOn<defaultMemorySpace>([i,&sou](LxField<spincolor>& d)
 	{
-	  d.reset();
-	  
 	  PAR(0,locVol,
 	      CAPTURE(s=sou->sp[0]->getSurelyReadableOn<defaultMemorySpace>().getReadable(),
 		      d=d.getWritable(),
@@ -286,9 +284,17 @@ struct HitLooper
 	      {
 		const auto [sp_so,co_so]=sp_col_of_so_ind(i);
 		
-		const int sp_si=diluted_spi_source?0:sp_so;
-		const int co_si=diluted_col_source?0:co_so;
-		complex_copy(d[ivol][sp_so][co_so],s[ivol][sp_si][co_si]);
+		UNROLL_FOR_ALL_SPIN(sp_si)
+		  UNROLL_FOR_ALL_COLS(co_si)
+		    {
+		      decltype(auto) c=
+			d[ivol][sp_si][co_si];
+		      
+		      if((sp_si==sp_so or not diluted_spi_source) and (co_si==co_so or not diluted_col_source))
+			complex_copy(c,s[ivol][diluted_spi_source?0:sp_so][diluted_col_source?0:co_so]);
+		      else
+			complex_put_to_zero(c);
+		    }
 	      });
 	});
       }
