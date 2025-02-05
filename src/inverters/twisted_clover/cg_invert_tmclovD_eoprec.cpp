@@ -223,7 +223,7 @@ namespace nissa
 	double ref;
 	if(targResidue<1e-29)
 	  {
-	    ref=pow(10,-inversion_residue_heavy_qualify_odg)*sqrt(glbVol);
+	    ref=pow(10,-inversion_residue_heavy_qualify_odg)*sqrt(10*glbVol*sizeof(spincolor)/sizeof(double));
 	    MASTER_PRINTF("  Heavy-quark residue, comparing with absolute threshold %lg\n",ref);
 	  }
 	else
