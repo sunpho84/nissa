@@ -379,7 +379,7 @@ namespace nissa
     {
       MASTER_PRINTF("Reading %s\n",path.c_str());
       
-      v.template passSurelyWritableAfterClearing<defaultMemorySpace>([this](LxField<T>& v)
+      v.template initOn<defaultMemorySpace>([this](LxField<T>& v)
       {
 	if(fast_read_write_vectors)
 	  {

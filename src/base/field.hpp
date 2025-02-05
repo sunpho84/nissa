@@ -1289,13 +1289,13 @@ namespace nissa
     template <MemorySpace Dest,
 	      typename F>
     void passSurelyWritableOn(F f,
-			      const bool& clearing)
+			      const bool& uninited)
     {
       if constexpr(Dest!=MS)
 	{
 	  Field<T,FC,STL,Dest> tmp("tmp",haloEdgesPresence);
 	  
-	  if(not clearing)
+	  if(not uninited)
 	    tmp=*this;
 	  
 	  f(tmp);
@@ -1309,7 +1309,7 @@ namespace nissa
     /// Make it possible to write to the field, and pass it to the function f, ignoring original status
     template <MemorySpace Dest,
 	      typename F>
-    void passSurelyWritableAfterClearing(F f)
+    void initOn(F f)
     {
       passSurelyWritableOn<Dest>(f,true);
     }

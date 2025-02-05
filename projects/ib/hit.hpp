@@ -207,8 +207,8 @@ struct HitLooper
     if(not stoch_source and (not diluted_spi_source or not diluted_col_source))
       CRASH("for a non-stochastic source, spin and color must be diluted");
     
-    sou->sp[0]->passSurelyWritableAfterClearing<defaultMemorySpace>([drawer,
-								     sou](LxField<spincolor>& s)
+    sou->sp[0]->initOn<defaultMemorySpace>([drawer,
+					    sou](LxField<spincolor>& s)
     {
       PAR(0,locVol,
 	  CAPTURE(tins=sou->tins,
@@ -274,7 +274,7 @@ struct HitLooper
       
     for(int i=1;i<nso_spi*nso_col;i++)
       {
-	sou->sp[i]->passSurelyWritableAfterClearing<defaultMemorySpace>([i,&sou](LxField<spincolor>& d)
+	sou->sp[i]->initOn<defaultMemorySpace>([i,&sou](LxField<spincolor>& d)
 	{
 	  d.reset();
 	  
