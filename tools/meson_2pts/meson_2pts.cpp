@@ -171,7 +171,7 @@ int main(int narg,char **arg)
   double tot_contract_time=0;
 
   //Basic mpi initialization
-  init_nissa();
+  initNissa();
   
   //Init timinig
   double tot_time=-take_time();
@@ -184,7 +184,7 @@ int main(int narg,char **arg)
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
-  init_grid(T,L);
+  initGrid(T,L);
   
   //Read the time location of the source
   int twall;
@@ -449,7 +449,7 @@ int main(int narg,char **arg)
   
   MASTER_PRINTF("\nEverything ok, exiting!\n");
   
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

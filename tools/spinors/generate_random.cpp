@@ -5,7 +5,7 @@
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_nissa();
+  initNissa();
   
   if(nissa_nranks>1) CRASH("cannot run in parallel");
   
@@ -16,7 +16,7 @@ int main(int narg,char **arg)
   int seed=atoi(arg[3]);
 
   //Init the MPI grid 
-  init_grid(T,L);
+  initGrid(T,L);
 
   ///////////////////////////////////////////
 
@@ -35,7 +35,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

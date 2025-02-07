@@ -5,7 +5,7 @@ using namespace nissa;
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   
   if(narg<5) CRASH("use: %s L T seed file_out",arg[0]);
   
@@ -14,7 +14,7 @@ int main(int narg,char **arg)
   const int seed=atoi(arg[3]);
   
   //Init the MPI grid
-  init_grid(T,L);
+  initGrid(T,L);
   start_loc_rnd_gen(seed);
   
   //crete and write
@@ -26,7 +26,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

@@ -111,7 +111,7 @@ void init(const char *input_path)
   read_str_int("NConfs",&nconfs); //read the number of configurations
   
   //start grid and loc rnd gen
-  init_grid(T,L);  
+  initGrid(T,L);  
   start_loc_rnd_gen(seed);
   
   //allocate
@@ -168,8 +168,8 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa_threaded(narg,arg,in_main);
-  close_nissa();
+  initNissa_threaded(narg,arg,in_main);
+  closeNissa();
   
   return 0;
 }

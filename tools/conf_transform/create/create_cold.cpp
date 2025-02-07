@@ -5,7 +5,7 @@ using namespace nissa;
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   
   if(narg<4) CRASH("use: %s L T file_out",arg[0]);
   
@@ -13,7 +13,7 @@ int main(int narg,char **arg)
   const int T=atoi(arg[2]);
   
   //Init the MPI grid
-  init_grid(T,L);
+  initGrid(T,L);
   
   //crete and write
   LxField<quad_su3> conf("conf");
@@ -22,7 +22,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

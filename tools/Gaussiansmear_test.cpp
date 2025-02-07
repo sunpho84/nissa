@@ -4,7 +4,7 @@
 
 using namespace nissa;
 
-void compute_gaussianity_pars(double* x,color* source,int maxpow,coords_t* source_pos)
+void compute_gaussianity_pars(double* x,color* source,int maxpow,Coords* source_pos)
 {
   CRASH("reimplement");
   // //reset local pows
@@ -104,7 +104,7 @@ void compute_density(FILE *fout,
   if(dists.size()==0)
     for(int64_t gvol=0;gvol<glbVol/glbSize[0];gvol++)
       {
-	coords_t g=glb_coord_of_glblx(gvol);
+	Coords g=glb_coord_of_glblx(gvol);
 	int rho=0;
 	for(int mu=1;mu<NDIM;mu++)
 	  {
@@ -178,7 +178,7 @@ void in_main(int narg,char **arg)
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
-  init_grid(T,L);
+  initGrid(T,L);
   
   //read conf
   char conf_path[1024];
@@ -246,7 +246,7 @@ void in_main(int narg,char **arg)
   color *source=nissa_malloc("source",locVol+bord_vol,color);
   vector_reset(source);
   
-  // for(coords_t c{};c[0]<glbSize[0];c[0]++)
+  // for(Coords c{};c[0]<glbSize[0];c[0]++)
   //   {
   //     int ivol;
   //     int r;
@@ -333,8 +333,8 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  // init_nissa_threaded(narg,arg,in_main);
-  close_nissa();
+  // initNissa_threaded(narg,arg,in_main);
+  closeNissa();
   
   return 0;
 }

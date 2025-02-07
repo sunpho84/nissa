@@ -29,7 +29,7 @@ void write_to_binary_file(FILE *fp,su3 A)
 
 std::pair<int,int> indrem(const int& iel_fr)
 {
-  const coords_t& c=glbCoordOfLoclx[iel_fr];
+  const Coords& c=glbCoordOfLoclx[iel_fr];
   
   const int num=snum(c[1],c[2],c[3],c[0]);
   
@@ -47,7 +47,7 @@ int main(int narg,char **arg)
   //   char *in_conf_name,*out_conf_name;
   
 //   //basic mpi initialization
-//   init_nissa(narg,arg);
+//   initNissa(narg,arg);
   
 //   // if(nranks>1)
 //   //   CRASH("cannot run in parallel");
@@ -62,7 +62,7 @@ int main(int narg,char **arg)
 //   out_conf_name=arg[6];
   
 //   //Init the MPI grid
-//   init_grid(0,0);
+//   initGrid(0,0);
   
 //   //////////////////////////////// read the file /////////////////////////
   
@@ -185,7 +185,7 @@ int main(int narg,char **arg)
   
 //   ///////////////////////////////////////////
   
-//   close_nissa();
+//   closeNissa();
   
   return 0;
 }

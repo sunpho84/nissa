@@ -48,7 +48,7 @@ int main(int narg,char **arg)
   char *in_conf_name,*out_conf_name;
   
   //basic mpi initialization
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   
   if(nranks>1)
     CRASH("cannot run in parallel");
@@ -63,7 +63,7 @@ int main(int narg,char **arg)
   out_conf_name=arg[6];
   
   //Init the MPI grid
-  init_grid(0,0);
+  initGrid(0,0);
   
   //////////////////////////////// read the file /////////////////////////
   
@@ -163,8 +163,8 @@ int main(int narg,char **arg)
 	  {
 	    int num=snum(x,y,z,t);
 	    
-	    coords_t c={t,x,y,z};
-	    int ivol=loclx_of_coord(c);
+	    Coords c={t,x,y,z};
+	    int ivol=loclxOfCoord(c);
 	    
 	    for(int mu=0;mu<NDIM;mu++) su3_copy(out_conf[ivol][mu],in_conf[num][mu]);
 	  }
@@ -220,7 +220,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

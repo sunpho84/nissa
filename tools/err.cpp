@@ -39,7 +39,7 @@ void load_file(double *in,char *path,int nel_exp)
 
 int main(int narg,char **arg)
 {
-  init_nissa();
+  initNissa();
   
   if(narg<2) CRASH("Use %s file",arg[0]);
   char *path=arg[1];
@@ -56,7 +56,7 @@ int main(int narg,char **arg)
   
   //init the grid
   nissa_use_eo_geom=false;
-  init_grid(buf_nel,1);
+  initGrid(buf_nel,1);
   
   //load the file
   double *in=nissa_malloc("in",nline,double);
@@ -99,7 +99,7 @@ int main(int narg,char **arg)
   nissa_free(buf);
   nissa_free(in);
   
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

@@ -5,7 +5,7 @@ int main(int narg,char **arg)
   int TWall;
 
   //basic initialization
-  init_nissa();
+  initNissa();
 
   open_input("input");
 
@@ -13,7 +13,7 @@ int main(int narg,char **arg)
   read_str_int("L",&L);
   read_str_int("T",&T);
   //Init the MPI grid
-  init_grid(T,L);  
+  initGrid(T,L);  
 
   read_str_int("TWall",&TWall);
 
@@ -46,7 +46,7 @@ int main(int narg,char **arg)
   
   //////////////////////////////////////////////////////
 
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

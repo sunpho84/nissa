@@ -31,7 +31,7 @@ void test_unitarity(quad_su3 *conf)
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_nissa();
+  initNissa();
 
   if(narg<2 && rank==0)
     {
@@ -47,7 +47,7 @@ int main(int narg,char **arg)
   read_str_int("T",&T);
   
   //Init the MPI grid 
-  init_grid(T,L);
+  initGrid(T,L);
 
   close_input();
 
@@ -76,7 +76,7 @@ int main(int narg,char **arg)
   spincolor *t=nissa_malloc("t",loc_vol,spincolor);
   read_spincolor(s,"/home/francesco/Prace/Programs/src/ahmidas-rw/test/point_src.48");
   jacobi_smearing(t,s,smear_conf,0.5,5);
-  int l=loclx_of_coord_list(0,1,0,2);
+  int l=loclxOfCoord_list(0,1,0,2);
   
   for(int d=0;d<4;d++)
     for(int c=0;c<3;c++)
@@ -87,7 +87,7 @@ int main(int narg,char **arg)
   nissa_free(smear_conf);
   nissa_free(origi_conf);
   
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

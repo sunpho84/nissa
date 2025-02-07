@@ -7,7 +7,7 @@ char *file_pattern=NULL;
 
 int main(int narg,char **arg)
 {
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   
   //check arguments
   if(narg<2) CRASH("Use %s file [max_size_to_print=%d] [file_pattern]",arg[0],max_length);

@@ -6,7 +6,7 @@ int main(int narg,char **arg)
   char filename[1024];
   
   //basic mpi initialization
-  init_nissa();
+  initNissa();
 
   if(narg<2) CRASH("Use: %s input_file",arg[0]);
 
@@ -17,7 +17,7 @@ int main(int narg,char **arg)
   read_str_int("T",&T);
   
   //Init the MPI grid 
-  init_grid(T,L);
+  initGrid(T,L);
   
   //Smearing parameters
   double ape_alpha;
@@ -53,7 +53,7 @@ int main(int narg,char **arg)
       lx[mu]=or_pos[mu]-rank_coord[mu]*loc_size[mu];
       local=local && lx[mu]>=0 && lx[mu]<loc_size[mu];
     }
-  if(local==1) sp[loclx_of_coord(lx)][0][0][0]=1;
+  if(local==1) sp[loclxOfCoord(lx)][0][0][0]=1;
   
   //read the output base
   char base_out[1024];
@@ -88,7 +88,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

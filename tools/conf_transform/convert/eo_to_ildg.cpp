@@ -22,7 +22,7 @@ using namespace nissa;
 //   if(glb_site_sour>=glbVol) CRASH("%d>=%d impossible!",glb_site_sour,glbVol);
   
 //   //get coords
-//   const coords_t g=glb_coord_of_glblx(glb_site_sour);
+//   const Coords g=glb_coord_of_glblx(glb_site_sour);
 //   std::swap(g[1],g[3]); //only 1 and 3 must be switched
 //   if(shift_comp) g[mu]=(g[mu]+glbSize[mu]-1)%glbSize[mu];
   
@@ -87,8 +87,9 @@ using namespace nissa;
 //   nissa_free(conf);
 // }
 
-void in_main(int narg,char **arg)
+int main(int narg,char **arg)
 {
+  initNissa(narg,arg);
   CRASH(" ");
   
   // if(narg<2) CRASH("Use: %s input",arg[0]);
@@ -102,7 +103,7 @@ void in_main(int narg,char **arg)
   // read_str_int("T",&T);
   
   // //Init the MPI grid 
-  // init_grid(T,L);
+  // initGrid(T,L);
   
   // //init the remapper
   // remapper=new vector_remap_t(4*locVol,index_from_Neo_to_lx,NULL);
@@ -127,13 +128,8 @@ void in_main(int narg,char **arg)
   // ///////////////////////////////////////////
   
   // delete remapper;
-}
-
-int main(int narg,char **arg)
-{
-  init_nissa(narg,arg);
-  in_main(narg,arg);
-  close_nissa();
+  
+  closeNissa();
   
   return 0;
 }

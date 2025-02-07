@@ -34,7 +34,7 @@ void in_main(int narg,char **arg)
   char *tag=arg[6];
   
   //Init the MPI grid
-  init_grid(T,L);
+  initGrid(T,L);
   
   ///////////////////////////////////////////
   
@@ -51,7 +51,7 @@ void in_main(int narg,char **arg)
   //     iglb_max=glblx_of_loclx[ivol];
   // NISSA_PARALLEL_LOOP_END;
   // MPI_Allreduce(MPI_IN_PLACE,&iglb_max,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-  coords_t g;
+  Coords g;
   // glb_coord_of_glblx(g,iglb_max);
   // MASTER_PRINTF("Source location: %d %d %d %d\n",g[0],g[1],g[2],g[3]);
   
@@ -147,9 +147,9 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  // init_nissa_threaded(narg,arg,in_main);
+  // initNissa_threaded(narg,arg,in_main);
   
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

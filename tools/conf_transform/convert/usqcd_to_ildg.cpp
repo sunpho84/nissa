@@ -5,10 +5,10 @@ int L=24,T=48;
 
 int main(int narg,char **arg)
 {
-  init_nissa();
+  initNissa();
   if(narg<3) CRASH("Use: %s file_out file_in",arg[0]);
   
-  init_grid(T,L);
+  initGrid(T,L);
   
   //open the file and allocate the conf
   FILE *fin=open_file(arg[2],"r");
@@ -51,7 +51,7 @@ int main(int narg,char **arg)
   
   fclose(fin);
   
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

@@ -7,7 +7,7 @@ void in_main(int narg,char **arg)
 {
   int L=atoi(arg[1]);
   int T=atoi(arg[2]);
-  init_grid(T,L);
+  initGrid(T,L);
   
   start_loc_rnd_gen(atoi(arg[4]));
   
@@ -39,8 +39,8 @@ int main(int narg,char **arg)
   if(narg<6) CRASH("Use: %s L T path_in seed path_out",arg[0]);
   
   //basic mpi initialization
-  init_nissa_threaded(narg,arg,in_main);
-  close_nissa();
+  initNissa_threaded(narg,arg,in_main);
+  closeNissa();
   
   return 0;
 }

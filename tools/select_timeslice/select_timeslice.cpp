@@ -18,7 +18,7 @@ int main(int narg,char **arg)
   int tslice=atoi(arg[3]);
 
   //Init the MPI grid 
-  init_grid();
+  initGrid();
   
   ///////////////////////////////////////////
   

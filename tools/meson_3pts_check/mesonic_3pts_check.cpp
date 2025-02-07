@@ -66,7 +66,7 @@ void contract_with_source(complex **corr,colorspinspin *S1,int *list_op,colorspi
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  initNissa();
 
   //take initial time
   double tic;
@@ -91,7 +91,7 @@ int main(int narg,char **arg)
   read_str_int("T",&T);
 
   //Init the MPI grid 
-  init_grid(T,L);
+  initGrid(T,L);
 
   //allocate the source and the prop
   colorspinspin *source=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
@@ -212,7 +212,7 @@ int main(int narg,char **arg)
   free(contr[0]);
   free(contr);
 
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

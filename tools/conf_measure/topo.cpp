@@ -89,8 +89,10 @@ void unitarize_conf_max(LxField<quad_su3>& conf)
       });
 }
 
-void in_main(int narg,char **arg)
+int main(int narg,char **arg)
 {
+  initNissa(narg,arg);
+  
   if(narg<2) CRASH("use: %s input",arg[0]);
   
   //open input file
@@ -100,7 +102,7 @@ void in_main(int narg,char **arg)
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
-  init_grid(T,L);
+  initGrid(T,L);
   
   //read in and out conf path
   char conf_path[1024];
@@ -124,13 +126,8 @@ void in_main(int narg,char **arg)
   //measure_topology_lx_conf(top_meas_pars,conf,0,0,false);
   
   ILDG_message_free_all(&mess);
-}
-
-int main(int narg,char **arg)
-{
-  init_nissa(narg,arg);
-  in_main(narg,arg);
-  close_nissa();
+  
+  closeNissa();
   
   return 0;
 }

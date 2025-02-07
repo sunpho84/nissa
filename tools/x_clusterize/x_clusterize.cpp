@@ -21,7 +21,7 @@ void init_clusterize(const char *path)
   read_str_int("L",&L);
   read_str_int("T",&T);
   //Init the MPI grid 
-  init_grid(T,L); 
+  initGrid(T,L); 
   //Pars
   read_str_int("Nr",&nr);
   //Input and output paths
@@ -176,8 +176,8 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa_threaded(narg,arg,in_main);
-  close_nissa();
+  initNissa_threaded(narg,arg,in_main);
+  closeNissa();
     
   return 0;
 }

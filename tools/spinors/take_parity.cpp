@@ -4,7 +4,7 @@ using namespace nissa;
 
 int main(int narg,char **arg)
 {
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   
   if(nranks>1) CRASH("cannot run in parallel");
   
@@ -18,7 +18,7 @@ int main(int narg,char **arg)
   int nspinors=atoi(arg[6]);
   
   //Init the MPI grid
-  init_grid(T,L);
+  initGrid(T,L);
   
   ///////////////////////////////////////////
   

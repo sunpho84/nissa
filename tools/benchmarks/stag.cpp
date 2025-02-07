@@ -150,7 +150,7 @@ void in_main(int narg,char **arg)
   
   //grid
   int L=atoi(arg[1]),T=atoi(arg[2]);
-  init_grid(T,L);
+  initGrid(T,L);
   start_loc_rnd_gen(1234);
   
   bench_stag();
@@ -159,8 +159,8 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa_threaded(narg,arg,in_main);
-  close_nissa();
+  initNissa_threaded(narg,arg,in_main);
+  closeNissa();
   
   return 0;
 }

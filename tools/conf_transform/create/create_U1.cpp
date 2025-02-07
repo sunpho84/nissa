@@ -35,7 +35,7 @@ void inMain(int narg,char **arg)
   const char* su3Path=(narg>8)?arg[8]:nullptr;
   const char* u3Path=(narg>9)?arg[9]:nullptr;
   
-  init_grid(T,L);
+  initGrid(T,L);
   
   FieldRngStream fieldRngStream;
   fieldRngStream.init(seed);
@@ -243,8 +243,8 @@ void inMain(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa_threaded(narg,arg,inMain);
-  close_nissa();
+  initNissa_threaded(narg,arg,inMain);
+  closeNissa();
   
   return 0;
 }

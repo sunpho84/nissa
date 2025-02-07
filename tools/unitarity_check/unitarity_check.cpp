@@ -235,7 +235,7 @@ int main(int narg,char **arg)
   char filename[1024];
   
   //basic mpi initialization
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   
   {
     if(narg<2) CRASH("Use: %s input_file",arg[0]);
@@ -248,7 +248,7 @@ int main(int narg,char **arg)
     read_str_int("T",&T);
     
     //init the MPI grid
-    init_grid(T,L);
+    initGrid(T,L);
     
     testLxHaloExchange();
     testEoHaloExchange();
@@ -279,7 +279,7 @@ int main(int narg,char **arg)
     if(rank==0) fclose(fout);
   }
   
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

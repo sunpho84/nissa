@@ -3,7 +3,7 @@
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_nissa();
+  initNissa();
   
   if(nissa_nranks>1) CRASH("cannot run in parallel");
   
@@ -13,7 +13,7 @@ int main(int narg,char **arg)
   int T=atoi(arg[2]);
 
   //Init the MPI grid 
-  init_grid(T,L);
+  initGrid(T,L);
 
   ///////////////////////////////////////////
 
@@ -30,7 +30,7 @@ int main(int narg,char **arg)
 	  if((x+y+z+t)%2==EVN)
 	    for(int ic=0;ic<3;ic++)
 	      {
-		int ivol=loclx_of_coord_list(t,x,y,z);
+		int ivol=loclxOfCoord_list(t,x,y,z);
 		
 		for(int ri=0;ri<2;ri++)
 		  {
@@ -49,7 +49,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

@@ -30,7 +30,7 @@ void compare_spincolor(char *a_path,char *b_path)
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_nissa();
+  initNissa();
   
   //if(nissa_nranks>1) CRASH("Cannot run in parallel");
   
@@ -46,7 +46,7 @@ int main(int narg,char **arg)
   read_str_int("T",&T);
   
   //Init the MPI grid 
-  init_grid(T,L);
+  initGrid(T,L);
   
   char path1[1024],path2[1024];
   read_str_str("Spincolor1",path1,1024);
@@ -60,7 +60,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

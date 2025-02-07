@@ -52,7 +52,7 @@ int main(int narg,char **arg)
   double old_theta[4]={0,0,0,0};
   
   //Basic mpi initialization
-  init_nissa();
+  initNissa();
 
   if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
@@ -160,7 +160,7 @@ int main(int narg,char **arg)
   close_input();
   
   //Init the MPI grid 
-  init_grid(T,L);
+  initGrid(T,L);
   
   //Calculate the number of blocks for the first list
   int nprop_per_block=compute_allocable_propagators(nprop_list1,nch_contr,5);
@@ -411,7 +411,7 @@ int main(int narg,char **arg)
   free(op1);
   free(op2);
 
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

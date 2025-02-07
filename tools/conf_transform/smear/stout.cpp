@@ -56,7 +56,7 @@ void in_main(int narg,char **arg)
   char *pathout=arg[6];
   
   //Init the MPI grid
-  init_grid(T,L);
+  initGrid(T,L);
   
   //////////////////////////// read the conf /////////////////////////////
   
@@ -104,8 +104,8 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa_threaded(narg,arg,in_main);
-  close_nissa();
+  initNissa_threaded(narg,arg,in_main);
+  closeNissa();
   
   return 0;
 }

@@ -5,7 +5,7 @@ int main(int narg,char **arg)
   char filename[1024];
 
   //basic mpi initialization
-  init_nissa();
+  initNissa();
 
   if(narg<2 && rank==0)
     {
@@ -20,7 +20,7 @@ int main(int narg,char **arg)
   read_str_int("L",&L);
   read_str_int("T",&T);
   //Init the MPI grid 
-  init_grid(T,L);
+  initGrid(T,L);
   
   read_str_str("Filename",filename,1024);
 
@@ -116,7 +116,7 @@ int main(int narg,char **arg)
 
   ///////////////////////////////////////////
 
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

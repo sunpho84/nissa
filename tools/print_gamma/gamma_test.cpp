@@ -6,7 +6,7 @@ using namespace nissa;
 
 int main(int narg,char **arg)
 {
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   
   if(rank==0)
     {
@@ -188,7 +188,7 @@ int main(int narg,char **arg)
 	}
     }
     
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

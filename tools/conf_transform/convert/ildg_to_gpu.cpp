@@ -24,7 +24,7 @@ void write_su3(FILE *out,su3 in)
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   
   if(narg<5) CRASH("use: %s L T file_in file_out",arg[0]);
   
@@ -32,7 +32,7 @@ int main(int narg,char **arg)
   T=atoi(arg[2]);
   
   //Init the MPI grid
-  init_grid(T,L);
+  initGrid(T,L);
   
   //////////////////////////// read the conf /////////////////////////////
   
@@ -62,8 +62,8 @@ int main(int narg,char **arg)
 	    int even=sum%2;
 	    int num=even*locVolh + snum(x,y,z,t);
 	    
-	    coords_t c={t,x,y,z};
-	    int ivol=loclx_of_coord(c);
+	    Coords c={t,x,y,z};
+	    int ivol=loclxOfCoord(c);
 	    
 	    for(int mu=0;mu<4;mu++)
 	      su3_copy(out_conf[mu*locVol+num],in_conf[ivol][map_mu[mu]]);
@@ -95,7 +95,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

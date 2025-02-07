@@ -10,7 +10,7 @@ int main(int narg,char **arg)
   int prec=32;
 
   //basic mpi initialization
-  init_nissa();
+  initNissa();
 
   if(narg<2 && rank==0)
     {
@@ -34,7 +34,7 @@ int main(int narg,char **arg)
   close_input();
 
   //Init the MPI grid
-  init_grid(T,L);
+  initGrid(T,L);
   
   //Initialize the random generator
   init_random(seed);
@@ -117,7 +117,7 @@ int main(int narg,char **arg)
 
   //////////////////////////////////////////////////////
 
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

@@ -15,7 +15,7 @@ void in_main(int narg,char **arg)
   int nspinors=atoi(arg[5]);
   
   //Init the MPI grid
-  init_grid(T,L);
+  initGrid(T,L);
   
   ///////////////////////////////////////////
   
@@ -74,9 +74,9 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa_threaded(narg,arg,in_main);
+  initNissa_threaded(narg,arg,in_main);
   
-  close_nissa();
+  closeNissa();
   
   return 0;
 }
