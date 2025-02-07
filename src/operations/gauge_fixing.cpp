@@ -27,20 +27,6 @@
 
 namespace nissa
 {
-  //apply the passed transformation to the point
-  CUDA_HOST_AND_DEVICE void local_gauge_transform(quad_su3 *conf,su3 g,int ivol)
-  {
-    // for each dir...
-    for(int mu=0;mu<NDIM;mu++)
-      {
-        int b=loclxNeighdw[ivol][mu];
-        
-        //perform local gauge transform
-        safe_su3_prod_su3(conf[ivol][mu],g,conf[ivol][mu]);
-        safe_su3_prod_su3_dag(conf[b][mu],conf[b][mu],g);
-      }
-  }
-  
   void gauge_transform_conf(LxField<quad_su3>& uout,
 			    const LxField<su3>& g,
 			    const LxField<quad_su3>& uin)
@@ -269,77 +255,105 @@ namespace nissa
   }
   
   //do all the fixing
-  void Landau_or_Coulomb_gauge_fixing_overrelax(LxField<quad_su3>& fixed_conf,
+  void Landau_or_Coulomb_gauge_fixing_overrelax(LxField<quad_su3>& fixedConf,
 						const LC_gauge_fixing_pars_t::gauge_t& gauge,
 						const double& overrelax_prob,
 						const LxField<su3>& fixer,
 						const LxField<quad_su3>& ori_conf)
   {
-    CRASH("reimplement");
+    using Scalar=double[1];
     
-    // for(int eo=0;eo<2;eo++)
-    //   {
-    // 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-    // 	  {
-    // 	    int ivol=loclx_of_loceo[eo][ieo];
-	    
-    // 	    //compute the derivative
-    // 	    su3 temp;
-    // 	    compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,gauge);
-	    
-    // 	    //dagger
-    // 	    su3 ref;
-    // 	    unsafe_su3_hermitian(ref,temp);
-	    
-    // 	    //find the link that maximizes the trace
-    // 	    su3 g;
-    // 	    su3_unitarize_maximal_trace_projecting(g,ref);
-	    
-    // 	    //square probabilistically
-    // 	    double p=rnd_get_unif(loc_rnd_gen+ivol,0,1);
-    // 	    if(p<overrelax_prob) safe_su3_prod_su3(g,g,g);
-	    
-    // 	    //transform
-    // 	    local_gauge_transform(fixed_conf,g,ivol);
-	    
-    // 	    //store the change
-    // 	    safe_su3_prod_su3(fixer[ivol],g,fixer[ivol]);
-	    
-    // 	    //lower external border must be sync.ed with upper internal border of lower node
-    // 	    //  upper internal border with same parity must be sent using buf_up[mu][par]
-    // 	    //    ""     ""      ""   ""   opp.    "     "  "  recv using buf_up[mu][!par]
-    // 	    //  lower external   ""   ""   same    "     "  "  recv using buf_dw[mu][!par]
-    // 	    //    ""     ""      ""   ""   opp.    "     "  "  sent using buf_dw[mu][par]
-    // 	    for(int mu=0;mu<NDIM;mu++)
-    // 	      {
-    // 		int f=loclxNeighup[ivol][mu];
-    // 		int b=loclxNeighdw[ivol][mu];
-    // 		if(f>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[f]-locVolh],fixed_conf[ivol][mu]);
-    // 		if(b>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[b]-locVolh],fixed_conf[b][mu]);
-    // 	      }
-    // 	  }
-    // 	NISSA_PARALLEL_LOOP_END;
-    // 	THREAD_BARRIER();
-	
-    // 	//communicate
-    // 	comm_start(eo_su3_comm);
-    // 	comm_wait(eo_su3_comm);
-	
-    // 	//read out
-    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    // 	  if(loclx_parity[ivol]!=eo)
-    // 	    for(int mu=0;mu<NDIM;mu++)
-    // 	      {
-    // 		int f=loclxNeighup[ivol][mu];
-    // 		int b=loclxNeighdw[ivol][mu];
-    // 		if(f>=locVol) su3_copy(fixed_conf[ivol][mu],((su3*)recv_buf)[loceo_of_loclx[f]-locVolh]);
-    // 		if(b>=locVol) su3_copy(fixed_conf[b][mu],((su3*)recv_buf)[loceo_of_loclx[b]-locVolh]);
-    // 	      }
-    // 	NISSA_PARALLEL_LOOP_END;
-    // 	THREAD_BARRIER();
-    //   }
+    FieldRngOf<Scalar> drawer(field_rng_stream.getDrawer<Scalar>());
     
-    // set_borders_invalid(fixed_conf);
+    for(int eo=0;eo<2;eo++)
+      {
+	PAR(0,
+	    locVolh,
+	    CAPTURE(eo,
+		    overrelax_prob,
+		    gauge,
+		    drawer,
+		    TO_READ(fixer),
+		    TO_WRITE(fixedConf)),
+	    ieo,
+	    {
+	      const int ivol=
+		loclx_of_loceo[eo][ieo];
+	      
+	      //compute the derivative
+	      su3 temp;
+	      compute_Landau_or_Coulomb_functional_der(temp,fixedConf,ivol,gauge);
+	      
+	      //dagger
+	      su3 ref;
+	      unsafe_su3_hermitian(ref,temp);
+	      
+	      //find the link that maximizes the trace
+	      su3 g;
+	      su3_unitarize_maximal_trace_projecting(g,ref);
+	      
+	      //square probabilistically
+	      Scalar p;
+	      drawer.fillLocSite(p,ivol);
+	      
+	      if(p[0]<overrelax_prob)
+		safe_su3_prod_su3(g,g,g);
+	      
+	      //transform
+	      for(int mu=0;mu<NDIM;mu++)
+		{
+		  const int b=
+		    loclxNeighdw[ivol][mu];
+		  
+		  //perform local gauge transform
+		  su3 tmp;
+		  unsafe_su3_prod_su3(tmp,g,fixedConf[ivol][mu]);
+		  safe_su3_prod_su3_dag(fixedConf[b][mu],tmp,g);
+		}
+	      
+	      //store the change
+	      safe_su3_prod_su3(fixer[ivol],g,fixer[ivol]);
+	      
+	      //lower external border must be sync.ed with upper internal border of lower node
+	      //  upper internal border with same parity must be sent using buf_up[mu][par]
+	      //    ""     ""      ""   ""   opp.    "     "  "  recv using buf_up[mu][!par]
+	      //  lower external   ""   ""   same    "     "  "  recv using buf_dw[mu][!par]
+	      //    ""     ""      ""   ""   opp.    "     "  "  sent using buf_dw[mu][par]
+	      for(int mu=0;mu<NDIM;mu++)
+		{
+		  const int f=
+		    loclxNeighup[ivol][mu];
+		  
+		  const int b=
+		    loclxNeighdw[ivol][mu];
+		  
+		  if(f>=locVol)
+		    su3_copy(((su3*)send_buf)[loceo_of_loclx[f]-locVolh],fixedConf[ivol][mu]);
+		  if(b>=locVol)
+		    su3_copy(((su3*)send_buf)[loceo_of_loclx[b]-locVolh],fixedConf[b][mu]);
+		}
+	    });
+	
+	//communicate
+	exchangeHaloNeighBuf<su3>(0);
+	
+	//read out
+	PAR(0,
+	    locVol,
+	    CAPTURE(eo,
+		    TO_WRITE(fixedConf)),
+	    ivol,
+	    {
+	      if(loclx_parity[ivol]!=eo)
+		for(int mu=0;mu<NDIM;mu++)
+		  {
+		    int f=loclxNeighup[ivol][mu];
+		    int b=loclxNeighdw[ivol][mu];
+		    if(f>=locVol) su3_copy(fixedConf[ivol][mu],((su3*)recv_buf)[loceo_of_loclx[f]-locVolh]);
+		    if(b>=locVol) su3_copy(fixedConf[b][mu],((su3*)recv_buf)[loceo_of_loclx[b]-locVolh]);
+		  }
+	    });
+      }
   }
   
   //put the Fourier Acceleration kernel of eq.3.6 of C.Davies paper
