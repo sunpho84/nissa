@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include <base/field.hpp>
+#include <base/sitmo.hpp>
 #include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <new_types/su3_op.hpp>
@@ -31,6 +32,9 @@ namespace nissa
   
   //Source type
   enum source_t{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED_SOURCE,SPINCOLOR_DILUTED_SOURCE};
+  
+  /// New generator
+  EXTERN_RANDOM FieldRngStream field_rng_stream;
   
   //The structure for the random generator
   struct rnd_gen

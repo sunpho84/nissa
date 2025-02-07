@@ -17,9 +17,6 @@ namespace nissa
 #define PERIODIC_BC 0
 #define ANTIPERIODIC_BC 1
   
-  /// New generator
-  EXTERN_PARS FieldRngStream field_rng_stream;
-  
   //Twisted run
   EXTERN_PARS int twisted_run;
   EXTERN_PARS tm_basis_t base;

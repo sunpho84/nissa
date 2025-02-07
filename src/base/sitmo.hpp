@@ -430,11 +430,14 @@ namespace nissa
   /// This is the object that is accessed from external routines
   struct FieldRngStream
   {
+    /// Take note of initialization
+    bool inited{};
+    
     /// Embeds the random number generator
-    Sitmo::Rng rng;
+    Sitmo::Rng rng{};
     
     //Number of double precision numbers generated per site
-    uint64_t nGeneratedDouble;
+    uint64_t nGeneratedDouble{};
     
     /// Skip n drawers
     template <typename T>
@@ -471,8 +474,11 @@ namespace nissa
     /// Initializes with a seed
     void init(const uint32_t& seed)
     {
+      if(inited)
+	CRASH("already inited");
+      inited=true;
+      
       rng.seed(seed);
-      nGeneratedDouble=0;
     }
     
     /// Returns the commands to exec hen starting/ending the benchmark
