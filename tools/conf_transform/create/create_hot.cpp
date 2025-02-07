@@ -21,7 +21,7 @@ int main(int narg,char **arg)
   {
     LxField<quad_su3> conf("conf");
     generate_hot_lx_conf(conf);
-    write_ildg_gauge_conf(arg[4],conf,64);
+    write_ildg_gauge_conf(arg[4],conf);
   }
   
   ///////////////////////////////////////////

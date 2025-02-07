@@ -3,25 +3,31 @@
 using namespace nissa;
 
 typedef double realspin1field[NDIM];
+
 typedef realspin1field realspin1prop[NDIM];
 
-void write_u1_field(ILDG_File file, realspin1field* field)
+void write_u1_field(ILDG_File file,
+		    const LxField<realspin1field>& field)
 {
-  realspin1field* permuted=nissa_malloc("permuted",locVol,realspin1field);
-  NISSA_PARALLEL_LOOP(loclx,0,locVol)
-    {
-      for(int mu=0;mu<NDIM;mu++)
-	permuted[loclx][(mu+NDIM-1)%NDIM]=field[loclx][mu];
-    }
-  NISSA_PARALLEL_LOOP_END;
-  set_borders_invalid(permuted);
+  LxField<realspin1field> permuted("permuted");
   
-  write_real_vector(file,permuted,64,"ildg-binary-data");
-  nissa_free(permuted);
+  PAR(0,
+      locVol,
+      CAPTURE(TO_READ(field),
+	      TO_WRITE(permuted)),
+      loclx,
+      {
+	for(int mu=0;mu<NDIM;mu++)
+	  permuted[loclx][(mu+NDIM-1)%NDIM]=field[loclx][mu];
+      });
+  
+  write_real_vector(file,permuted,"ildg-binary-data");
 }
 
-void inMain(int narg,char **arg)
+int main(int narg,char **arg)
 {
+  initNissa(narg,arg);
+  
   //check argument
   if(narg<7) CRASH("Use: %s L T gauge[L=LANDAU,F=FEYNMAN,C=COULOMB] seed nconfs pattern [e for plaquette] [su3conf input] [u3conf output]",arg[0]);
   
@@ -37,8 +43,7 @@ void inMain(int narg,char **arg)
   
   initGrid(T,L);
   
-  FieldRngStream fieldRngStream;
-  fieldRngStream.init(seed);
+  field_rng_stream.init(seed);
   
   gauge_info gl;
   gl.zms=UNNO_ALEMANNA;
@@ -58,9 +63,9 @@ void inMain(int narg,char **arg)
     }
   gl.c1=WILSON_C1;
   
-  spin1field *photonEta=nissa_malloc("photonEta",locVol,spin1field);
-  spin1field *photonField=nissa_malloc("photonField",locVol,spin1field);
-  realspin1field *realPhotonField=nissa_malloc("realPhotonField",locVol,realspin1field);
+  LxField<spin1field> photonEta("photonEta");
+  LxField<spin1field> photonField("photonField");
+  LxField<realspin1field> realPhotonField("realPhotonField");
   // spin1prop *propRecoMom=nissa_malloc("propRecoMom",locVol,spin1prop);
   // spin1prop *propRecoMom2=nissa_malloc("propRecoMom2",locVol,spin1prop);
   // spin1prop *propReco=nissa_malloc("propReco",locVol,spin1prop);
@@ -70,27 +75,30 @@ void inMain(int narg,char **arg)
   for(int iConf=0;iConf<nConfs;iConf++)
     {
       auto sourceFiller=
-	fieldRngStream.getDrawer<spin1field>();
+	field_rng_stream.getDrawer<spin1field>();
       
       sourceFiller.fillField(photonEta);
       
-      NISSA_PARALLEL_LOOP(loclx,0,locVol)
-	{
-	  for(int mu=0;mu<NDIM;mu++)
-	    z2Transform(photonEta[loclx][mu]);
-	}
-      NISSA_PARALLEL_LOOP_END;
-      set_borders_invalid(photonEta);
+      PAR(0,
+	  locVol,
+	  CAPTURE(TO_WRITE(photonEta)),
+	  loclx,
+	  {
+	    for(int mu=0;mu<NDIM;mu++)
+	      z2Transform(photonEta[loclx][mu]);
+	  });
       
       multiply_by_sqrt_tlSym_gauge_propagator(photonField,photonEta,gl);
       
-      NISSA_PARALLEL_LOOP(loclx,0,locVol)
-	{
-	  for(int mu=0;mu<NDIM;mu++)
-	    realPhotonField[loclx][mu]=photonField[loclx][mu][RE];
-	}
-      NISSA_PARALLEL_LOOP_END;
-      set_borders_invalid(realPhotonField);
+      PAR(0,
+	  locVol,
+	  CAPTURE(TO_WRITE(realPhotonField),
+		  TO_READ(photonField)),
+	  loclx,
+	  {
+	    for(int mu=0;mu<NDIM;mu++)
+	      realPhotonField[loclx][mu]=photonField[loclx][mu][RE];
+	  });
       
       char outPath[128];
       snprintf(outPath,128,pattern,iConf);
@@ -141,53 +149,57 @@ void inMain(int narg,char **arg)
   
   if(e)
     {
-      quad_su3* u1=nissa_malloc("u1",locVol+bord_vol,quad_su3);
+      LxField<quad_su3> u1("u1",WITH_HALO);
       
-      NISSA_PARALLEL_LOOP(loclx,0,locVol)
-	{
-	  for(int mu=0;mu<NDIM;mu++)
-	    {
-	      complex c;
-	      complex_iexp(c,e*photonField[loclx][mu][RE]);
-	      
-	      su3_put_to_diag(u1[loclx][mu],c);
-	    }
-	}
-      NISSA_PARALLEL_LOOP_END;
-      set_borders_invalid(u1);
+      PAR(0,
+	  locVol,
+	  CAPTURE(e,
+		  TO_READ(photonField),
+		  TO_WRITE(u1)),
+	  loclx,
+	  {
+	    for(int mu=0;mu<NDIM;mu++)
+	      {
+		complex c;
+		complex_iexp(c,e*photonField[loclx][mu][RE]);
+		
+		su3_put_to_diag_complex(u1[loclx][mu],c);
+	      }
+	  });
       
-      const double pU1=global_plaquette_lx_conf(u1);
+      const double pU1=
+	global_plaquette_lx_conf(u1);
       
       if(su3Path)
 	{
-	  quad_su3* conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
+	  LxField<quad_su3> conf("conf",WITH_HALO);
 	  read_ildg_gauge_conf(conf,su3Path);
 	  
-	  const double pSU3=global_plaquette_lx_conf(conf);
+	  const double pSU3=
+	    global_plaquette_lx_conf(conf);
 	  
 	  MASTER_PRINTF("\nPlaquette of the conf without the u1 phase: %.16lg\n",pSU3);
 	  
-	  NISSA_PARALLEL_LOOP(loclx,0,locVol)
-	    {
-	      for(int mu=0;mu<NDIM;mu++)
-		su3_prodassign_su3(conf[loclx][mu],u1[loclx][mu]);
-	    }
-	  NISSA_PARALLEL_LOOP_END;
-	  set_borders_invalid(conf);
+	  PAR(0,
+	      locVol,
+	      CAPTURE(TO_READ(u1),
+		      TO_WRITE(conf)),
+	      loclx,
+	      {
+		for(int mu=0;mu<NDIM;mu++)
+		  su3_prodassign_su3(conf[loclx][mu],u1[loclx][mu]);
+	      });
 	  
-	  const double pU3=global_plaquette_lx_conf(conf);
+	  const double pU3=
+	    global_plaquette_lx_conf(conf);
 	  
 	  MASTER_PRINTF("Plaquette of the conf with the u1 phase: %.16lg\n",pU3);
 	  
 	  if(u3Path)
-	    write_ildg_gauge_conf(u3Path,conf,64);
-	  
-	  nissa_free(conf);
+	    write_ildg_gauge_conf(u3Path,conf);
 	}
       
       MASTER_PRINTF("Plaquette of the u1 phase: %.16lg\n\n",pU1);
-      
-      nissa_free(u1);
     }
 
   // spin1prop *prop=nissa_malloc("prop",locVol,spin1prop);
@@ -236,14 +248,6 @@ void inMain(int narg,char **arg)
   // nissa_free(propMom);
   // nissa_free(propReco);
   // nissa_free(propRecoMom);
-  nissa_free(realPhotonField);
-  nissa_free(photonField);
-  nissa_free(photonEta);
-}
-
-int main(int narg,char **arg)
-{
-  initNissa_threaded(narg,arg,inMain);
   closeNissa();
   
   return 0;

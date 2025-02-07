@@ -18,14 +18,14 @@ int snum(int x,int y,int z,int t)
   return (t+x*glbSize[0]+y*glbSize[1]*glbSize[0]+z*glbSize[2]*glbSize[1]*glbSize[0]);
 }
 
-void write_to_binary_file(FILE *fp,su3 A)
-{
-  if(little_endian)
-    change_endianness((double*)A,(double*)A,sizeof(su3)/sizeof(double));
+// void write_to_binary_file(FILE *fp,su3 A)
+// {
+//   if(little_endian)
+//     change_endianness((double*)A,(double*)A,sizeof(su3)/sizeof(double));
   
-  if(fwrite(A,sizeof(su3),1,fp)!=1)
-    CRASH("Problems in writing Su3 matrix");
-}
+//   if(fwrite(A,sizeof(su3),1,fp)!=1)
+//     CRASH("Problems in writing Su3 matrix");
+// }
 
 std::pair<int,int> indrem(const int& iel_fr)
 {

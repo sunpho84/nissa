@@ -25,27 +25,28 @@ int read_int(FILE *in)
   return out;
 }
 
-void read_from_binary_file(su3 A,FILE *fp)
-{
-  if(fread(A,sizeof(su3),1,fp)!=1)
-    CRASH("Problems in reading Su3 matrix");
+// void read_from_binary_file(su3 A,FILE *fp)
+// {
+//   if(fread(A,sizeof(su3),1,fp)!=1)
+//     CRASH("Problems in reading Su3 matrix");
   
-#ifdef USE_SSL
-  CRASH("reimplement");
-  // for(int icol=0;icol<NCOL;icol++)
-  //   for(int jcol=0;jcol<NCOL;jcol++)
-  //     MD5_Update(&mdContext,A[icol][jcol],sizeof(complex));
+// #ifdef USE_SSL
+//   CRASH("reimplement");
+//   // for(int icol=0;icol<NCOL;icol++)
+//   //   for(int jcol=0;jcol<NCOL;jcol++)
+//   //     MD5_Update(&mdContext,A[icol][jcol],sizeof(complex));
   
-#endif
+// #endif
   
-  if(little_endian)
-    change_endianness((double*)A,(double*)A,sizeof(su3)/sizeof(double));
+//   if(little_endian)
+//     change_endianness((double*)A,(double*)A,sizeof(su3)/sizeof(double));
 
-}
+// }
 
 int main(int narg,char **arg)
 {
-  char *in_conf_name,*out_conf_name;
+  char *in_conf_name;
+  //  char *out_conf_name;
   
   //basic mpi initialization
   initNissa(narg,arg);
@@ -55,12 +56,13 @@ int main(int narg,char **arg)
   
   if(narg<7) CRASH("use: %s T LX LY LZ file_in file_out\n.",arg[0]);
   
-  glbSize[0]=atoi(arg[1]);
-  glbSize[1]=atoi(arg[2]);
-  glbSize[2]=atoi(arg[3]);
-  glbSize[3]=atoi(arg[4]);
-  in_conf_name=arg[5];
-  out_conf_name=arg[6];
+  CRASH("reimplement");
+  // glbSize[0]=atoi(arg[1]);
+  // glbSize[1]=atoi(arg[2]);
+  // glbSize[2]=atoi(arg[3]);
+  // glbSize[3]=atoi(arg[4]);
+  // in_conf_name=arg[5];
+  // out_conf_name=arg[6];
   
   //Init the MPI grid
   initGrid(0,0);
@@ -83,7 +85,7 @@ int main(int narg,char **arg)
   if(pars[0]!=NDIM) CRASH("NDim=%d",pars[0]);
   for(int mu=0;mu<NDIM;mu++)
     if(pars[1+mu]!=glbSize[mu])
-      CRASH("size[%d]=%d!=glb_size[mu]=%d",mu,pars[mu+1],mu,glbSize[mu]);
+      CRASH("size[%d]=%d!=glb_size[%d]=%d",mu,pars[mu+1],mu,glbSize[mu]);
   int itraj=pars[5];
   MASTER_PRINTF("traj id: %d\n",itraj);
   
@@ -113,7 +115,8 @@ int main(int narg,char **arg)
       {
 	// MASTER_PRINTF("trying to read ivol %d mu %d, point in the file: %d\n",ivol,mu,ftell(fin));
 	
-	read_from_binary_file(in_conf[ivol][mu],fin);
+	CRASH("reimplement");
+	// read_from_binary_file(in_conf[ivol][mu],fin);
 	
 	if(ivol==0)
 	  {
@@ -201,7 +204,9 @@ int main(int narg,char **arg)
   MASTER_PRINTF("NFailed checks of U(3) unitarity: %d, SU3: %d\n",nfail1,nfail2);
   
   //print the plaquette and write the conf
-  MASTER_PRINTF("Global plaquette: %.16lg\n",global_plaquette_lx_conf(out_conf));
+  
+  CRASH("reimplement");
+  // MASTER_PRINTF("Global plaquette: %.16lg\n",global_plaquette_lx_conf(out_conf));
   
   ILDG_message mess;
   ILDG_message_init_to_last(&mess);
@@ -211,7 +216,8 @@ int main(int narg,char **arg)
   snprintf(text,1024,"%d",itraj);
   ILDG_string_message_append_to_last(&mess,"MD_traj",text);
   
-  write_ildg_gauge_conf(out_conf_name,out_conf,64,&mess);
+  CRASH("reimplement");
+  // write_ildg_gauge_conf(out_conf_name,out_conf,&mess);
   
   //free messages
   ILDG_message_free_all(&mess);

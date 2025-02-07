@@ -33,12 +33,12 @@ void conf_convert(char *outpath,char *inpath)
   //compute and convert the plaquette
   double plaq=
     global_plaquette_lx_conf(conf)*3;
-  fixFromNativeEndianness<LITTLE_ENDIAN>(plaq);
+  fixFromNativeEndianness<LittleEndian>(plaq);
   
   //convert the lattice size
   Coords temp=glbSize;
   for(int mu=0;mu<NDIM;mu++)
-    fixFromNativeEndianness<LITTLE_ENDIAN>(temp[mu]);
+    fixFromNativeEndianness<LittleEndian>(temp[mu]);
   
   //write the header
   FILE *fout=fopen(outpath,"w");
@@ -53,9 +53,14 @@ void conf_convert(char *outpath,char *inpath)
   MPI_Barrier(MPI_COMM_WORLD);
   
   //if needed convert the endianess of the conf
-  fixFromNativeEndianness<Endianness Dest>(T &t)
-  if(!little_endian)
-    change_endianness((double*)conf,(double*)conf,locVol*4*18);
+  if(nativeEndianness!=LittleEndian)
+    FOR_EACH_SITE_DEG_OF_FIELD(conf,
+			       CAPTURE(TO_WRITE(conf)),
+			       site,
+			       iDeg,
+			       {
+				 fixFromNativeEndianness<LittleEndian>(conf(site,iDeg));
+			       });
   
   //reorder
   char *buf=new char[locVol*sizeof(quad_su3)];
@@ -81,8 +86,10 @@ void conf_convert(char *outpath,char *inpath)
   delete[] buf;
 }
 
-void in_main(int narg,char **arg)
+int main(int narg,char **arg)
 {
+  initNissa(narg,arg);
+  
   if(narg<2) CRASH("Use: %s input",arg[0]);
   
   open_input(arg[1]);
@@ -122,11 +129,7 @@ void in_main(int narg,char **arg)
   ///////////////////////////////////////////
   
   delete remapper;
-}
-
-int main(int narg,char **arg)
-{
-  initNissa_threaded(narg,arg,in_main);
+  
   closeNissa();
   
   return 0;
