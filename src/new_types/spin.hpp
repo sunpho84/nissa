@@ -25,7 +25,7 @@ namespace nissa
   typedef spin spinspin[NDIRAC];
   typedef complex as2t[NDIM*(NDIM+1)/2];
   
-  //this is just for avoid misleading, but is nothing more that a spinspin
+  /// This is just for avoid misleading, but is nothing more that a spin or spinspin
   typedef complex spin1field[NDIM];
   typedef spin1field spin1prop[NDIM];
   
