@@ -217,6 +217,15 @@ namespace nissa
     else              insert_Wilson_tadpole(*loop_source,conf,ori,tadpole,t);
   }
   
+  /// Insert the lepton loop
+  LxField<spin1field> get_lepton_loop(const double& mass,
+				      const Momentum& theta)
+  {
+    LxField<spin1field> lepton_loop("leptonLoop",WITH_HALO);
+    
+    return lepton_loop;
+  }
+  
   //insert the conserved current
   void insert_conserved_current(LxField<spincolor>& out,
 				const LxField<quad_su3>& conf,
@@ -543,7 +552,8 @@ namespace nissa
       }
     
     /// Function to insert the virtual photon emission projection
-    auto vphotonInsertCurr=[mass,theta](const BwFw bwFw,const int nu)
+    auto vphotonInsertCurr=
+      [mass,theta](const BwFw bwFw,const int nu)
     {
       gauge_info insPhoton;
       insPhoton.which_gauge=photon.which_gauge;
@@ -555,7 +565,11 @@ namespace nissa
       
       const double Eg=gluon_energy(insPhoton,mass,0);
       
-      return [bwFw,nu,Eg,theta] CUDA_HOST_AND_DEVICE(complex ph,const int ivol,const int mu,const double fwbw_phase)
+      return
+	[bwFw,nu,Eg,theta] CUDA_HOST_AND_DEVICE(complex ph,
+						const int ivol,
+						const int mu,
+						const double fwbw_phase)
       {
 	const double a=-3*0.5*fwbw_phase*M_PI*theta[mu]/glbSize[mu];
 	
@@ -629,6 +643,7 @@ namespace nissa
       case DEL_POS:select_position(loop_source,ori,r);break;
       case DEL_SPIN:select_spin(loop_source,ori,r);break;
       case DEL_COL:select_color(loop_source,ori,r);break;
+      case LEP_LOOP:insert_external_source(loop_source,*conf,get_lepton_loop(mass,theta),ori,rel_t,r,allDirs,loc_hadr_curr);break;
       }
     
     if(ext_field)
