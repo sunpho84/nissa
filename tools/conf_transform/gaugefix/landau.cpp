@@ -2,22 +2,29 @@
 
 using namespace nissa;
 
-void in_main(int narg,char **arg)
+int main(int narg,char **arg)
 {
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
+  
+  //basic mpi initialization
+  initNissa(narg,arg);
+  
   open_input(arg[1]);
   
   //Init the MPI grid
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
-  init_grid(T,L);
+  initGrid(T,L);
   
-  char conf_in_path[1024];
-  read_str_str("InGaugePath",conf_in_path,1024);
+  char inPath[1024];
+  read_str_str("InGaugePath",inPath,1024);
+  
   double precision;
   read_str_double("Precision",&precision);
-  char conf_out_path[1024];
-  read_str_str("OutGaugePath",conf_out_path,1024);
+  
+  char outPath[1024];
+  read_str_str("OutGaugePath",outPath,1024);
   
   close_input();
   
@@ -25,39 +32,24 @@ void in_main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  quad_su3 *conf=nissa_malloc("Conf",locVol+bord_vol,quad_su3);
-  quad_su3 *fix_conf=nissa_malloc("Conf2",locVol+bord_vol,quad_su3);
+  LxField<quad_su3> conf("Conf",WITH_HALO);
+  LxField<quad_su3> fixedConf("FixedConf",WITH_HALO);
   
-  read_ildg_gauge_conf(conf,conf_in_path);
-  communicate_lx_quad_su3_borders(conf);
+  read_ildg_gauge_conf(conf,inPath);
   
   //set pars
   LC_gauge_fixing_pars_t pars;
   pars.gauge=LC_gauge_fixing_pars_t::Landau;
   pars.target_precision=precision;
   
-  CRASH("reimplement");
-  //Landau_or_Coulomb_gauge_fix(fix_conf,&pars,conf);
+  Landau_or_Coulomb_gauge_fix(fixedConf,pars,conf);
   
-  write_ildg_gauge_conf(conf_out_path,fix_conf,64);
+  write_ildg_gauge_conf(outPath,fixedConf);
   
   MASTER_PRINTF("plaq before: %16.16lg\n",global_plaquette_lx_conf(conf));
-  MASTER_PRINTF("plaq after: %16.16lg\n",global_plaquette_lx_conf(fix_conf));
+  MASTER_PRINTF("plaq after: %16.16lg\n",global_plaquette_lx_conf(fixedConf));
   
-  ///////////////////////////////////////////
-  
-  nissa_free(conf);
-  nissa_free(fix_conf);
-  
-}
-
-int main(int narg,char **arg)
-{
-  if(narg<2) CRASH("Use: %s input_file",arg[0]);
-  
-  //basic mpi initialization
-  init_nissa_threaded(narg,arg,in_main);
-  close_nissa();
+  closeNissa();
   
   return 0;
 }
