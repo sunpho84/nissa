@@ -36,7 +36,7 @@ namespace nissa
   
   void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin *out,clover_term_t *Cl,colorspinspin *in);
   void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,clover_term_t *Cl,su3spinspin *in);
-  void unsafe_apply_chromo_operator_to_spincolor_128(spincolor_128 *out,clover_term_t *Cl,spincolor_128 *in);
+  void unsafe_apply_chromo_operator_to_spincolor_128(SpinColor128 *out,clover_term_t *Cl,SpinColor128 *in);
   
   void chromo_operator(LxField<clover_term_t>& Cl,
 		       const LxField<quad_su3>& conf);

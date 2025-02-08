@@ -41,11 +41,16 @@ namespace nissa
   
   //summ two float_128
   void MPI_FLOAT_128_SUM_routine(void *in,void *out,int *len,MPI_Datatype *type)
-  {for(int i=0;i<(*len);i++) float_128_summassign(((float_128*)out)[i],((float_128*)in)[i]);}
+  {
+    for(int i=0;i<(*len);i++)
+      ((Float128*)out)[i]+=((Float128*)in)[i];
+  }
   
   //summ two complex_128
   void MPI_COMPLEX_128_SUM_routine(void *in,void *out,int *len,MPI_Datatype *type)
-  {for(int i=0;i<(*len);i++) complex_128_summassign(((complex_128*)out)[i],((complex_128*)in)[i]);}
+  {
+    for(int i=0;i<(*len);i++)
+      complex_128_summassign(((Complex128*)out)[i],((Complex128*)in)[i]);}
   
   //init mpi
   void init_MPI_thread(int narg,char **arg)

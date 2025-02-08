@@ -137,7 +137,7 @@ namespace nissa
   }
   
   //128 bit case
-  CUDA_HOST_AND_DEVICE void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,clover_term_t Cl,spincolor_128 in)
+  CUDA_HOST_AND_DEVICE void unsafe_apply_point_chromo_operator_to_SpinColor128(SpinColor128 out,clover_term_t Cl,SpinColor128 in)
   {
     unsafe_su3_prod_color_128(out[0],Cl[0],in[0]);
     su3_dag_summ_the_prod_color_128(out[0],Cl[1],in[1]);
@@ -149,12 +149,12 @@ namespace nissa
     unsafe_su3_prod_color_128(out[3],Cl[3],in[2]);
     su3_subt_the_prod_color_128(out[3],Cl[2],in[3]);
   }
-  void unsafe_apply_chromo_operator_to_spincolor_128(spincolor_128* out,clover_term_t* Cl,spincolor_128* in)
+  void unsafe_apply_chromo_operator_to_SpinColor128(SpinColor128* out,clover_term_t* Cl,SpinColor128* in)
   {
     CRASH("reimplement");
     
     // NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    //   unsafe_apply_point_chromo_operator_to_spincolor_128(out[ivol],Cl[ivol],in[ivol]);
+    //   unsafe_apply_point_chromo_operator_to_SpinColor128(out[ivol],Cl[ivol],in[ivol]);
     // NISSA_PARALLEL_LOOP_END;
     // set_borders_invalid(out);
   }
@@ -215,7 +215,7 @@ namespace nissa
     // set_borders_invalid(out);
   }
   
-  // CUDA_HOST_AND_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex& diag,clover_term_t Cl,halfspincolor_128 in)
+  // CUDA_HOST_AND_DEVICE void apply_point_diag_plus_clover_term_to_halfSpinColor128(halfSpinColor128 out,complex& diag,clover_term_t Cl,halfSpinColor128 in)
   // {
   //   unsafe_color_128_prod_complex_64(out[0],in[0],diag);
   //   su3_summ_the_prod_color_128(out[0],Cl[0],in[0]);

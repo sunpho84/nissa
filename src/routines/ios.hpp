@@ -15,6 +15,7 @@
 #include "base/debug.hpp"
 #include "base/randomDevice.hpp"
 #include "new_types/complex.hpp"
+#include "new_types/dirac.hpp"
 #include "routines/mpi_routines.hpp"
 
 #if THREADS_TYPE == OPENMP_THREADS

@@ -56,8 +56,8 @@ namespace nissa
   DEFINE_MPI_DATATYPE_OF(uint32_t,MPI_UNSIGNED)
   DEFINE_MPI_DATATYPE_OF(double,MPI_DOUBLE)
   DEFINE_MPI_DATATYPE_OF(complex,MPI_DOUBLE_COMPLEX)
-  DEFINE_MPI_DATATYPE_OF(float_128,MPI_FLOAT_128)
-  DEFINE_MPI_DATATYPE_OF(complex_128,MPI_COMPLEX_128)
+  DEFINE_MPI_DATATYPE_OF(Float128,MPI_FLOAT_128)
+  DEFINE_MPI_DATATYPE_OF(Complex128,MPI_COMPLEX_128)
   
   /// Instantiates the correct datatype, given the type
   template <typename T>
@@ -88,8 +88,8 @@ namespace nissa
     }						\
   }
   
-  DEFINE_MPI_OP_DISPATCHER(float_128,MPI_FLOAT_128_SUM);
-  DEFINE_MPI_OP_DISPATCHER(complex_128,MPI_COMPLEX_128_SUM);
+  DEFINE_MPI_OP_DISPATCHER(Float128,MPI_FLOAT_128_SUM);
+  DEFINE_MPI_OP_DISPATCHER(Complex128,MPI_COMPLEX_128_SUM);
   
   /// Gets the sum operation for the type T
   template <typename T>
