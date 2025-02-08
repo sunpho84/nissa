@@ -2,8 +2,7 @@
 
 using namespace nissa;
 
-int L,T;
-void in_main(int narg,char **arg)
+void inMain(int narg,char **arg)
 {
   if(narg<9) CRASH("use: %s L T filein nlev alpha1 alpha2 alpha3 fileout",arg[0]);
   
@@ -25,7 +24,7 @@ void in_main(int narg,char **arg)
   
   //////////////////////////// read the conf /////////////////////////////
   
-  quad_su3* conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
+  LxField<quad_su3> conf("conf",WITH_HALO_EDGES);
   
   //read the conf and write plaquette
   ILDG_message mess;
@@ -70,15 +69,15 @@ void in_main(int narg,char **arg)
   MASTER_PRINTF("Cooling time: %lg\n",cool_time);
   
   //write the conf
-  write_ildg_gauge_conf(pathout,conf,64);
+  write_ildg_gauge_conf(pathout,conf);
   
-  nissa_free(conf);
   ILDG_message_free_all(&mess);
 }
 
 int main(int narg,char **arg)
 {
-  initNissa_threaded(narg,arg,in_main);
+  initNissa(narg,arg);
+  inMain(narg,arg);
   closeNissa();
   
   return 0;

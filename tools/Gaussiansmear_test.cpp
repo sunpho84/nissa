@@ -104,7 +104,7 @@ void compute_density(FILE *fout,
   if(dists.size()==0)
     for(int64_t gvol=0;gvol<glbVol/glbSize[0];gvol++)
       {
-	Coords g=glb_coord_of_glblx(gvol);
+	Coords g=glbCoordOfGlblx(gvol);
 	int rho=0;
 	for(int mu=1;mu<NDIM;mu++)
 	  {
@@ -145,7 +145,7 @@ void compute_density(FILE *fout,
   for(auto& dist : dists)
     {
       dens_t& d=density[dist];
-      master_fprintf(fout," NDists %d\n",(int)density[0].size());
+      // master_fprintf(fout," NDists %d\n",(int)density[0].size());
       
       CRASH("");
       // for(int t=0;t<glb_size[0];t++)
@@ -183,7 +183,7 @@ void in_main(int narg,char **arg)
   //read conf
   char conf_path[1024];
   read_str_str("Conf",conf_path,1024);
-  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVol+bordVol,quad_su3);
   CRASH("");
   // read_ildg_gauge_conf(conf,conf_path);
   
@@ -243,7 +243,7 @@ void in_main(int narg,char **arg)
   // MASTER_PRINTF("SpatPlaquette %16.16lg\n",plaqs[1]);
   
   //set the source
-  color *source=nissa_malloc("source",locVol+bord_vol,color);
+  color *source=nissa_malloc("source",locVol+bordVol,color);
   vector_reset(source);
   
   // for(Coords c{};c[0]<glbSize[0];c[0]++)
