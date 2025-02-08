@@ -31,7 +31,7 @@ namespace nissa
     /// Reconstruct the extent, no extent case
     template <typename T,
 	      typename Fund>
-    struct _ReconstructExtents
+    struct _DuplicateExtents
     {
       using type=Fund;
     };
@@ -40,18 +40,18 @@ namespace nissa
     template <int N,
 	      typename T,
 	      typename Fund>
-    struct _ReconstructExtents<T[N],Fund>
+    struct _DuplicateExtents<T[N],Fund>
     {
       using type=
-	typename _ReconstructExtents<T,Fund>::type[N];
+	typename _DuplicateExtents<T,Fund>::type[N];
     };
   }
   
   /// Reconstruct all the extents, if T=D[N1][N2]...[NN] replace it with Fund[N1][N2]...[NN]
   template <typename T,
 	    typename Fund>
-  using ReconstructExtents=
-    typename impl::_ReconstructExtents<T,Fund>::type;
+  using DuplicateExtents=
+    typename impl::_DuplicateExtents<T,Fund>::type;
   
   using I=int[5][3];
 }

@@ -25,6 +25,7 @@
 #include <geometry/geometry_lx.hpp>
 #include <linalgs/reduce.hpp>
 #include <metaprogramming/constnessChanger.hpp>
+#include <metaprogramming/extent.hpp>
 #include <metaprogramming/feature.hpp>
 #include <metaprogramming/unroll.hpp>
 #include <routines/ios.hpp>
@@ -675,13 +676,11 @@ namespace nissa
     
     /// Reduce the field summing all elements and storing the result inside 'out'
     template <typename F=GlbReduceSumFunctor>
-    void reduce(T& out,
-		const F& f=GlbReduceSumFunctor(),
-		const MPI_Op& mpiOp=MPI_SUM) const
+    void reduceNoPreserve(T& out,
+			  const F& f=GlbReduceSumFunctor(),
+			  const MPI_Op& mpiOp=MPI_SUM)
     {
-      /// Copy to a temporary to avoid destroying the field
-      Field tmp("tmp");
-      tmp=*this;
+      Field& self=*this;
       
       int64_t n=this->nSites();
       
@@ -693,7 +692,7 @@ namespace nissa
 	  
 	  PAR(0,nReductions,
 	      CAPTURE(stride,
-		      TO_WRITE(tmp),
+		      TO_WRITE(self),
 		      f),
 		      ireduction,
 	      {
@@ -701,7 +700,7 @@ namespace nissa
 		const int64_t second=first+stride;
 		
 		UNROLL_FOR(iDeg,0,nInternalDegs)
-		  f(tmp(first,iDeg),tmp(second,iDeg));
+		  f(self(first,iDeg),self(second,iDeg));
 	      });
 	  n=stride;
 	};
@@ -710,14 +709,54 @@ namespace nissa
 #if defined(USE_CUDA)
  	if constexpr(memorySpace==MemorySpace::GPU)
 	  cudaMemcpy((Fund*)&out+iDeg,
-		     tmp.template getPtrTo<MemorySpace::GPU>(0,iDeg),
+		     self.template getPtrTo<MemorySpace::GPU>(0,iDeg),
 		     sizeof(Fund),
 		     cudaMemcpyDeviceToHost);
 	else
 #endif
-	  ((Fund*)&out)[iDeg]=tmp(0,iDeg);
+	  ((Fund*)&out)[iDeg]=self(0,iDeg);
       
       MPI_Allreduce(MPI_IN_PLACE,&out,nInternalDegs,MPI_Datatype_of<Fund>(),mpiOp,MPI_COMM_WORLD);
+    }
+    
+    /// Reduce the field summing all elements and storing the result inside 'out'
+    template <typename F=GlbReduceSumFunctor>
+    void reduce(T& out,
+		const F& f=GlbReduceSumFunctor(),
+		const MPI_Op& mpiOp=MPI_SUM) const
+    {
+      /// Copy to a temporary to avoid destroying the field
+      Field tmp("tmp");
+      tmp=*this;
+      
+      tmp.reduceNoPreserve(out,f,mpiOp);
+    }
+    
+    /// Reduce with accuracy
+    template <typename F=GlbReduceSumFunctor>
+    void preciseReduce(T& out,
+		       const F& f=GlbReduceSumFunctor(),
+		       const MPI_Op& mpiOp=MPI_FLOAT_128_SUM) const
+    {
+      using T128=
+	DuplicateExtents<T,Float128>;
+      
+      /// Copy to a high prec field
+      Field<T128,FC,STL,MS> tmp("tmp");
+      FOR_EACH_SITE_DEG_OF_FIELD(tmp,
+				 CAPTURE(TO_WRITE(tmp),
+					 self=this->getReadable()),
+				 site,
+				 iDeg,
+				 {
+				   tmp(site,iDeg)=self(site,iDeg);
+				 });
+      
+      T128 tmpOut;
+      tmp.reduceNoPreserve(tmpOut,f,mpiOp);
+      
+      for(int i=0;i<nInternalDegs;i++)
+	((Fund*)&out)[i]=((Float128*)&tmpOut)[i].roundDown();
     }
     
     /// (*this,out)
