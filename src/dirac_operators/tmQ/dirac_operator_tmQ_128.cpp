@@ -12,7 +12,7 @@
 //Apply the Q=D*g5 operator to a spincolor
 namespace nissa
 {
-  void apply_tmQ_128(spincolor_128* out,quad_su3* conf,double kappa,double mu,spincolor_128* in)
+  void apply_tmQ_128(SpinColor128 *out,quad_su3 *conf,double kappa,double mu,SpinColor128 *in)
   {
     CRASH("reimplement");
     
