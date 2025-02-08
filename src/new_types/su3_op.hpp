@@ -907,7 +907,14 @@ namespace nissa
     su3_copy(a,d);
   }
   
-  inline void su3_prodassign_su3(su3 a,const su3 b) {safe_su3_prod_su3(a,a,b);}
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_prodassign_su3(A&& a,
+			  const B& b)
+  {
+    safe_su3_prod_su3(a,a,b);
+  }
   
   /// a+=b*c
   template <typename A,
