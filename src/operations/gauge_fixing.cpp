@@ -22,9 +22,6 @@
 #include <routines/mpi_routines.hpp>
 #include <threads/threads.hpp>
 
-#define VERBOSITY_MASTER_PRINTF VERBOSITY_LV1_MASTER_PRINTF
-//#define VERBOSITY_MASTER_PRINTF VERBOSITY_LV3_MASTER_PRINTF
-
 namespace nissa
 {
   void gauge_transform_conf(LxField<quad_su3>& uout,
@@ -188,7 +185,6 @@ namespace nissa
 					      const LxField<double> *F_offset=nullptr,
 					      LxField<double> *ext_loc_F=nullptr)
   {
-    
     LxField<double> *_loc_F=ext_loc_F;
     if(ext_loc_F==nullptr)
       _loc_F=new LxField<double>("loc_F");
@@ -210,7 +206,7 @@ namespace nissa
     
     //collapse
     double F;
-    loc_F.reduce(F);
+    loc_F.preciseReduce(F);
     
     if(ext_loc_F==nullptr)
       delete _loc_F;
@@ -258,7 +254,7 @@ namespace nissa
   void Landau_or_Coulomb_gauge_fixing_overrelax(LxField<quad_su3>& fixedConf,
 						const LC_gauge_fixing_pars_t::gauge_t& gauge,
 						const double& overrelax_prob,
-						const LxField<su3>& fixer,
+						LxField<su3>& fixer,
 						const LxField<quad_su3>& ori_conf)
   {
     using Scalar=double[1];
@@ -273,7 +269,7 @@ namespace nissa
 		    overrelax_prob,
 		    gauge,
 		    drawer,
-		    TO_READ(fixer),
+		    TO_WRITE(fixer),
 		    TO_WRITE(fixedConf)),
 	    ieo,
 	    {
@@ -308,7 +304,7 @@ namespace nissa
 		  //perform local gauge transform
 		  su3 tmp;
 		  unsafe_su3_prod_su3(tmp,g,fixedConf[ivol][mu]);
-		  safe_su3_prod_su3_dag(fixedConf[b][mu],tmp,g);
+		  unsafe_su3_prod_su3_dag(fixedConf[b][mu],tmp,g);
 		}
 	      
 	      //store the change
@@ -359,37 +355,38 @@ namespace nissa
   //put the Fourier Acceleration kernel of eq.3.6 of C.Davies paper
   void Fourier_accelerate_derivative(LxField<su3>& der)
   {
-    CRASH("reimplement");
-    // //Fourier Transform
-    // fft4d(der,FFT_MINUS,FFT_NORMALIZE);
+    //Fourier Transform
+    fft4d(der,FFT_MINUS,FFT_NORMALIZE);
     
-    // //compute 4*\sum_mu sin^2(2*pi*(L_mu-1))
-    // double num=16;
+    //compute 4*\sum_mu sin^2(2*pi*(L_mu-1))
+    double num=16;
     
-    // //put the kernel and the prefactor
-    // NISSA_PARALLEL_LOOP(imom,0,locVol)
-    //   {
-    // 	//compute 4*\sum_mu sin^2(2*pi*ip_mu)
-    // 	double den=0;
-    // 	for(int mu=0;mu<NDIM;mu++)
-    // 	  {
-    // 	    double p=2*M_PI*glbCoordOfLoclx[imom][mu]/glbSize[mu];
-    // 	    den+=sqr(sin(0.5*p));
-    // 	  }
-    // 	den*=4;
-	
-    // 	//build the factor
-    // 	double fact=num;
-    // 	if(fabs(den)>1e-10) fact/=den;
-	
-    // 	//put the factor
-    // 	su3_prodassign_double(der[imom],fact);
-    //   }
-    // NISSA_PARALLEL_LOOP_END;
-    // THREAD_BARRIER();
+    //put the kernel and the prefactor
+    PAR(0,
+	locVol,
+	CAPTURE(num,
+		TO_WRITE(der)),
+	imom,
+	{
+	  //compute 4*\sum_mu sin^2(2*pi*ip_mu)
+	  double den=0;
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      double p=2*M_PI*glbCoordOfLoclx[imom][mu]/glbSize[mu];
+	      den+=sqr(sin(0.5*p));
+	    }
+	  den*=4;
+	  
+	  //build the factor
+	  double fact=num;
+	  if(fabs(den)>1e-10) fact/=den;
+	  
+	  //put the factor
+	  su3_prodassign_double(der[imom],fact);
+	});
     
-    // //Anti-Fourier Transform
-    // fft4d(der,FFT_PLUS,FFT_NO_NORMALIZE);
+    //Anti-Fourier Transform
+    fft4d(der,FFT_PLUS,FFT_NO_NORMALIZE);
   }
   
   //take exp(-0.5*alpha*der)
@@ -436,10 +433,6 @@ namespace nissa
 		     const bool& use_adapt,
 		     int& nskipped_adapt)
   {
-#ifndef REPRODUCIBLE_RUN
-    CRASH("need reproducible run to enable adaptative search");
-#endif
-    
     //first guess
     double alpha=alpha_def;
     
@@ -456,7 +449,7 @@ namespace nissa
     bool found=false,give_up=false;
     do
       {
-	VERBOSITY_MASTER_PRINTF("---iter %d---\n",iter);
+	VERBOSITY_LV3_MASTER_PRINTF("---iter %d---\n",iter);
 	//take the exponent
 	exp_der_alpha_half(g,der,alpha);
 	
@@ -475,19 +468,19 @@ namespace nissa
 	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,F_offset);
 	  }
 	
-	double c=F[0];
+	[[maybe_unused]] double c=F[0];
 	double b=(4*F[1]-F[2]-3*F[0])/(2*alpha);
 	double a=(F[2]-2*F[1]+F[0])/(2*sqr(alpha));
 	
-	VERBOSITY_MASTER_PRINTF("x:   %.16lg %.16lg %.16lg\n",0.0,alpha,2*alpha);
-	VERBOSITY_MASTER_PRINTF("F:   %.16lg %.16lg %.16lg\n",F[0],F[1],F[2]);
-	VERBOSITY_MASTER_PRINTF("abc: %lg %lg %lg\n",a,b,c);
+	VERBOSITY_LV3_MASTER_PRINTF("x:   %.16lg %.16lg %.16lg\n",0.0,alpha,2*alpha);
+	VERBOSITY_LV3_MASTER_PRINTF("F:   %.16lg %.16lg %.16lg\n",F[0],F[1],F[2]);
+	VERBOSITY_LV3_MASTER_PRINTF("abc: %lg %lg %lg\n",a,b,c);
 	
 	const double a_tol=1e-14;
 	bool pos_curv=(a>a_tol);
 	if(not pos_curv)
 	  {
-	    VERBOSITY_MASTER_PRINTF("Curvature %lg is not positive within tolerance (%lg), switching temporarily off the adaptative search\n",a,a_tol);
+	    VERBOSITY_LV3_MASTER_PRINTF("Curvature %lg is not positive within tolerance (%lg), switching temporarily off the adaptative search\n",a,a_tol);
 	    give_up=true;
 	  }
 	else
@@ -496,15 +489,16 @@ namespace nissa
 	    pos_curv=(a>0);
 	    bool brack_vert=(fabs(2*alpha)>fabs(vert));
 	    
-	    VERBOSITY_MASTER_PRINTF("Vertex position: %lg\n",vert);
-	    VERBOSITY_MASTER_PRINTF("Curvature is positive: %d\n",pos_curv);
+	    VERBOSITY_LV3_MASTER_PRINTF("Vertex position: %lg\n",vert);
+	    VERBOSITY_LV3_MASTER_PRINTF("Curvature is positive: %d\n",pos_curv);
 	    
 	    alpha=vert;
-	    if(not brack_vert) VERBOSITY_MASTER_PRINTF("Not bracketing the vertex, changing alpha to %lg\n",alpha);
+	    if(not brack_vert)
+	      VERBOSITY_LV3_MASTER_PRINTF("Not bracketing the vertex, changing alpha to %lg\n",alpha);
 	    else
 	      {
 		found=true;
-		VERBOSITY_MASTER_PRINTF("Bracketting the vertex, jumping to %lg\n",alpha);
+		VERBOSITY_LV3_MASTER_PRINTF("Bracketting the vertex, jumping to %lg\n",alpha);
 	      }
 	  }
 	
@@ -513,7 +507,7 @@ namespace nissa
 	//check that not too many iterations have been performed
 	if(iter>=nadapt_iter_max)
 	  {
-	    VERBOSITY_MASTER_PRINTF("%d adaptative searches performed, switching off temporarily the adaptative search\n",iter);
+	    VERBOSITY_LV2_MASTER_PRINTF("%d adaptative searches performed, switching off temporarily the adaptative search\n",iter);
 	    give_up=true;
 	  }
       }
@@ -586,7 +580,7 @@ namespace nissa
 	
 	double den;
 	accum.reduce(den);
-	VERBOSITY_MASTER_PRINTF("den: %lg\n",den);
+	VERBOSITY_LV3_MASTER_PRINTF("den: %lg\n",den);
 	
 	//numerator
 	PAR(0,locVol,
@@ -607,11 +601,10 @@ namespace nissa
 	
 	double num;
 	accum.reduce(num);
-	VERBOSITY_MASTER_PRINTF("num: %lg\n",num);
+	VERBOSITY_LV3_MASTER_PRINTF("num: %lg\n",num);
 	
 	//compute beta
-	beta=num/den;
-	if(beta<0) beta=0;
+	beta=std::max(0.0,num/den);
 	
 	//switch off beta if even smaller
 	const double gcg_tol=1e-20;
@@ -619,11 +612,11 @@ namespace nissa
 	  {
 	    beta=0;
 	    use_GCG=false;
-	    VERBOSITY_MASTER_PRINTF("Switching off GCG at iter %d, fabs(num)[%lg]<gcg_tol[%lg] or fabs(den)[%lg]<gcg_tol[%lg]\n",iter,fabs(num),gcg_tol,fabs(den),gcg_tol);
+	    VERBOSITY_LV2_MASTER_PRINTF("Switching off GCG at iter %d, fabs(num)[%lg]<gcg_tol[%lg] or fabs(den)[%lg]<gcg_tol[%lg]\n",iter,fabs(num),gcg_tol,fabs(den),gcg_tol);
 	  }
       }
     else beta=0;
-    VERBOSITY_MASTER_PRINTF("beta: %lg\n",beta);
+    VERBOSITY_LV3_MASTER_PRINTF("beta: %lg\n",beta);
     
     //store prev_der, increase s (der) and store prev_s
     prev_der=der;
