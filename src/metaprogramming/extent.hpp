@@ -16,7 +16,8 @@ namespace nissa
     {
       if constexpr(std::is_array_v<U>)
 	return 1+_nOfExtents<std::remove_extent_t<U>>();
-      else return 0;
+      else
+	return 0;
     };
   }
   
@@ -24,6 +25,35 @@ namespace nissa
   template <typename T>
   static constexpr size_t nOfExtents=
     impl::_nOfExtents<T>();
+  
+  namespace impl
+  {
+    /// Reconstruct the extent, no extent case
+    template <typename T,
+	      typename Fund>
+    struct _ReconstructExtents
+    {
+      using type=Fund;
+    };
+    
+    /// Reconstruct a single extent and call recursively
+    template <int N,
+	      typename T,
+	      typename Fund>
+    struct _ReconstructExtents<T[N],Fund>
+    {
+      using type=
+	typename _ReconstructExtents<T,Fund>::type[N];
+    };
+  }
+  
+  /// Reconstruct all the extents, if T=D[N1][N2]...[NN] replace it with Fund[N1][N2]...[NN]
+  template <typename T,
+	    typename Fund>
+  using ReconstructExtents=
+    typename impl::_ReconstructExtents<T,Fund>::type;
+  
+  using I=int[5][3];
 }
 
 #endif
