@@ -2,12 +2,9 @@
 
 using namespace nissa;
 
-int main(int narg,char **arg)
+void inMain(int narg,char **arg)
 {
   if(narg<2) CRASH("Use: %s input_file",arg[0]);
-  
-  //basic mpi initialization
-  initNissa(narg,arg);
   
   open_input(arg[1]);
   
@@ -48,7 +45,12 @@ int main(int narg,char **arg)
   
   MASTER_PRINTF("plaq before: %16.16lg\n",global_plaquette_lx_conf(conf));
   MASTER_PRINTF("plaq after: %16.16lg\n",global_plaquette_lx_conf(fixedConf));
-  
+}
+
+int main(int narg,char** arg)
+{
+  initNissa(narg,arg);
+  inMain(narg,arg);
   closeNissa();
   
   return 0;
