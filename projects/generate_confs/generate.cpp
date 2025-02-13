@@ -516,7 +516,7 @@ void measurements(EoField<quad_su3>& temp,
 	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,magnetization);
 	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,minmax_eigenvalues);
 	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,nucleon_corr);
-	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,meson_corr);
+	RANGE_FERMIONIC_MEAS(drv,meson_corr);
 	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,spectral_proj);
 	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,tm_tuning);
       }

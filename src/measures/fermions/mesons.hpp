@@ -61,7 +61,11 @@ namespace nissa
     }
   };
   
-  void measure_meson_corr(eo_ptr<quad_su3> conf,theory_pars_t &tp,meson_corr_meas_pars_t &pars,int iconf,int conf_created);
+  void measure_meson_corr(const EoField<quad_su3>& conf,
+			  const theory_pars_t& tp,
+			  const meson_corr_meas_pars_t& pars,
+			  const int& iconf,
+			  const int& conf_created);
 }
 
 #endif

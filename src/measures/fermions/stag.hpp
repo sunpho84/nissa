@@ -112,30 +112,41 @@ namespace nissa
     enum shift_orie_t{UP,DW,BOTH};
     void apply_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side=BOTH);
     void summ_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side);
-    void apply_shift_op(eo_ptr<color> out,eo_ptr<color> single_perm,eo_ptr<color> internal_temp,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,int shift,eo_ptr<color> in);
     
-    void put_stag_phases(eo_ptr<color> source,int mask);
+    void apply_shift_op(EoField<color>& out,
+			EoField<color>& single_perm,
+			EoField<color>& internal_temp,
+			const EoField<quad_su3>& conf,
+			const EoField<quad_u1>& u1b,
+			const int& shift,
+			const EoField<color>& in);
+    
+    void put_stag_phases(EoField<color>& source,
+			 const int& mask);
+    
     enum GAMMA_INT{IDENTITY,GAMMA_0,GAMMA_1,SIGMA_0_1,GAMMA_2,SIGMA_0_2,SIGMA_1_2,GAMMA_5_SIGMA_3,GAMMA_3,SIGMA_0_3,SIGMA_1_3,GAMMA5_GAMMA_2,SIGMA_2_3,GAMMA_5_GAMMA_1,GAMMA_5_GAMMA_0,GAMMA_5};
-    inline void apply_stag_op(eo_ptr<color> out,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,GAMMA_INT spin,GAMMA_INT taste,eo_ptr<color> in)
+    
+    inline void apply_stag_op(EoField<color>& out,
+			      const EoField<quad_su3>& conf,
+			      const EoField<quad_u1>& u1b,
+			      const GAMMA_INT& spin,
+			      const GAMMA_INT& taste,
+			      const EoField<color>& in)
     {
       //Allocate temp
-      eo_ptr<color> temp[2];
+      std::vector<EoField<color>> temp;
       for(int itemp=0;itemp<2;itemp++)
-	for(int eo=0;eo<2;eo++)
-	  temp[itemp][eo]=nissa_malloc("temp",locVolh+bordVolh,color);
+	temp.emplace_back("temp",WITH_HALO);
       
       //Form the mask and shift
-      int shift=(spin^taste);
-      int mask=form_stag_op_pattern(spin,taste);
+      const int& shift=
+	(spin^taste);
+      const int& mask=
+	form_stag_op_pattern(spin,taste);
       
       //Apply the operator
       apply_shift_op(out,temp[0],temp[1],conf,u1b,shift,in);
       put_stag_phases(out,mask);
-      
-      //Free temporaries
-      for(int itemp=0;itemp<2;itemp++)
-	for(int eo=0;eo<2;eo++)
-	  nissa_free(temp[itemp][eo]);
     }
     
     void summ_dens(complex *dens,eo_ptr<color> quark,eo_ptr<color> temp0,eo_ptr<color> temp1,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> backfield,int shift,int mask,eo_ptr<color> chi,eo_ptr<color> eta);
