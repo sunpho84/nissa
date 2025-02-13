@@ -472,7 +472,12 @@ void measure_poly_corrs(const poly_corr_meas_pars_t &pars,
 
 #define RANGE_FERMIONIC_MEAS(DRV,OBS)					\
     RANGE_FERMIONIC_MEAS_IF(DRV,OBS)					\
-    NAME2(measure,OBS)(temp,DRV->theories[itheory],DRV->NAME2(OBS,meas)[imeas],iconf,conf_created);
+    NAME2(measure,OBS)(temp,DRV->theories[itheory],DRV->NAME2(OBS,meas)[imeas],iconf,conf_created)
+
+#define RANGE_FERMIONIC_MEAS_DEAD(DRV,OBS)				\
+    RANGE_FERMIONIC_MEAS_IF(DRV,OBS)					\
+    CRASH("not working")
+    /*NAME2(measure,OBS)(temp,DRV->theories[itheory],DRV->NAME2(OBS,meas)[imeas],iconf,conf_created)*/
 
 #define RANGE_FERMIONIC_MEAS_EXTENDED(DRV,OBS,...)			\
     RANGE_FERMIONIC_MEAS_IF(DRV,OBS)					\
@@ -505,20 +510,20 @@ void measurements(EoField<quad_su3>& temp,
     if(drv->any_fermionic_measure_is_due(itheory,iconf))
       {
 	//smear
-	CRASH("reimplement");//stout_smear(temp,conf,&(drv->theories[itheory].stout_pars));
+	stout_smear(temp,conf,drv->theories[itheory].stout_pars);
 	
-	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,fermionic_putpourri);
-	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,quark_rendens);
-	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,ellesettete);
-	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,chir_zumba);
-	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,qed_corr);
-	CRASH("reimplement");//RANGE_FERMIONIC_MEAS_EXTENDED(drv,spinpol,drv->theories[itheory].stout_pars,temp);
-	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,magnetization);
-	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,minmax_eigenvalues);
-	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,nucleon_corr);
+	RANGE_FERMIONIC_MEAS_DEAD(drv,fermionic_putpourri);
+	RANGE_FERMIONIC_MEAS_DEAD(drv,quark_rendens);
+	RANGE_FERMIONIC_MEAS_DEAD(drv,ellesettete);
+	RANGE_FERMIONIC_MEAS_DEAD(drv,chir_zumba);
+	RANGE_FERMIONIC_MEAS_DEAD(drv,qed_corr);
+	//RANGE_FERMIONIC_MEAS_DEAD_EXTENDED(drv,spinpol,drv->theories[itheory].stout_pars,temp);
+	RANGE_FERMIONIC_MEAS_DEAD(drv,magnetization);
+	RANGE_FERMIONIC_MEAS_DEAD(drv,minmax_eigenvalues);
+	//RANGE_FERMIONIC_MEAS_DEAD(drv,nucleon_corr);
 	RANGE_FERMIONIC_MEAS(drv,meson_corr);
-	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,spectral_proj);
-	CRASH("reimplement");//RANGE_FERMIONIC_MEAS(drv,tm_tuning);
+	RANGE_FERMIONIC_MEAS_DEAD(drv,spectral_proj);
+	RANGE_FERMIONIC_MEAS_DEAD(drv,tm_tuning);
       }
   
   meas_time+=take_time();
