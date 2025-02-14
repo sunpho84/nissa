@@ -16,7 +16,12 @@
 
 namespace nissa
 {
-  typedef complex color[NCOL];
+  template <typename F>
+  using Color=
+    Complex<F>[NCOL];
+  
+  using color=
+    Color<double>;
   
   typedef complex color2[2];
   typedef color2 su2[2];
@@ -33,7 +38,20 @@ namespace nissa
   
   typedef spinspin colorspinspin[NCOL];
   
-  typedef color su3[NCOL];
+  template <typename F>
+  using Su3=
+    Color<F>[NCOL];
+  
+  using su3=
+    Su3<double>;
+  
+  template <typename F>
+  using QuadSu3=
+    Su3<F>[NDIM];
+  
+  using quad_su3=
+    QuadSu3<double>;
+  
   typedef su3 quad_su3[NDIM];
   typedef su3 oct_su3[2*NDIM];
   

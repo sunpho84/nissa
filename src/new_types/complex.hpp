@@ -19,7 +19,13 @@
 
 namespace nissa
 {
-  typedef double complex[2];
+  template <typename F>
+  using Complex=
+    F[2];
+  
+  using complex=
+    Complex<double>;
+  
   typedef complex quad_u1[NDIM];
   
   typedef float single_complex[2];
