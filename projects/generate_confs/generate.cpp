@@ -260,7 +260,8 @@ void init_simulation(char *path)
   
   //initialize sweeper to cool
   for(size_t i=0;i<drv->top_meas.size();i++)
-    if(drv->top_meas[i].each && drv->top_meas[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(drv->top_meas[i].smooth_pars.cool.gauge_action);
+    if(drv->top_meas[i].each and drv->top_meas[i].smooth_pars.method==smooth_pars_t::COOLING)
+      init_sweeper(drv->top_meas[i].smooth_pars.cool.gauge_action);
   
   //init the program in "evolution" or "analysis" mode
   if(drv->run_mode==driver_t::EVOLUTION_MODE) init_program_to_run(drv->conf_pars.start_cond);

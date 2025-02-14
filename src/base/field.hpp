@@ -125,6 +125,8 @@ namespace nissa
 	return "GPU";
 	break;
       }
+    
+    return "";
   }
   
   /////////////////////////////////////////////////////////////////
@@ -1448,7 +1450,12 @@ namespace nissa
   {
     /// Type representing a pointer to type T
     template <FieldCoverage EO>
-    using F=std::conditional_t<EO==EVN,Fevn,Fodd>;
+    using F=
+      std::conditional_t<EO==EVN,Fevn,Fodd>;
+    
+    /// Fundamental type
+    using Fund=
+      typename FevnOrOdd::Fund;
     
     Fevn evenPart;
     
@@ -1588,6 +1595,32 @@ namespace nissa
       });
     }
     
+#define PROVIDE_SELFOP(OP)						\
+    EoField& operator OP ## =(const EoField& oth)			\
+    {									\
+      evenPart OP ## =oth.evenPart;					\
+      oddPart OP ## =oth.oddPart;					\
+									\
+      return *this;							\
+    }
+    
+    PROVIDE_SELFOP(+);
+    PROVIDE_SELFOP(-);
+    
+#undef PROVIDE_SELFOP
+    
+#define PROVIDE_SELF_SCALOP(OP)						\
+    EoField& operator OP ## =(const Fund& oth)				\
+    {									\
+      evenPart OP ## =oth.evenPart;					\
+      oddPart OP ## =oth.oddPart;					\
+    }
+    
+    PROVIDE_SELF_SCALOP(*);
+    PROVIDE_SELF_SCALOP(/);
+    
+#undef PROVIDE_SELF_SCALOP
+    
     /// Compare
     INLINE_FUNCTION
     bool operator==(const EoField& oth) const
@@ -1610,6 +1643,14 @@ namespace nissa
       oddPart=oth.oddPart;
       
       return *this;
+    }
+    
+    /// Returns the squared norm
+    Fund norm2() const
+    {
+      return
+	evenPart.norm2()+
+	oddPart.norm2();
     }
   };
   
