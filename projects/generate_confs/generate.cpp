@@ -264,8 +264,10 @@ void init_simulation(char *path)
       init_sweeper(drv->top_meas[i].smooth_pars.cool.gauge_action);
   
   //init the program in "evolution" or "analysis" mode
-  if(drv->run_mode==driver_t::EVOLUTION_MODE) init_program_to_run(drv->conf_pars.start_cond);
-  else                                        init_program_to_analyze();
+  if(drv->run_mode==driver_t::EVOLUTION_MODE)
+    init_program_to_run(drv->conf_pars.start_cond);
+  else
+    init_program_to_analyze();
   
   close_file(input_global);
 }
@@ -357,8 +359,10 @@ void measure_gauge_obs_internal(FILE *file,
   if(pars.meas_plaq)
     {
       double paths[2];
-      if(gauge_action_name==WILSON_GAUGE_ACTION) global_plaquette_lx_conf(paths,conf);
-      else global_plaquette_and_rectangles_lx_conf(paths,conf);
+      if(gauge_action_name==WILSON_GAUGE_ACTION)
+	global_plaquette_lx_conf(paths,conf);
+      else
+	global_plaquette_and_rectangles_lx_conf(paths,conf);
       master_fprintf(file,"\t%16.16lg\t%16.16lg",paths[0],paths[1]);
     }
   

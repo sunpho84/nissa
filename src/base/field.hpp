@@ -836,10 +836,10 @@ namespace nissa
 	      bool Force=false>						\
     CONST Field<T,NFC,STL>& castFieldCoverage() CONST			\
     {									\
-      if constexpr(not (Force or FC== EVEN_OR_ODD_SITES))	\
-	static_assert(NFC==EVEN_SITES or NFC==ODD_SITES, \
+      if constexpr(not (Force or FC== EVEN_OR_ODD_SITES))		\
+	static_assert(NFC==EVEN_SITES or NFC==ODD_SITES,		\
 		      "incompatible fieldCoverage! Force the change if needed"); \
-									\
+      									\
       return *(CONST Field<T,NFC,STL>*)this;				\
     }									\
 									\
