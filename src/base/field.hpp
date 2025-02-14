@@ -1557,11 +1557,12 @@ namespace nissa
     
     /// Update the halo of both parities
     INLINE_FUNCTION
-    void updateHalo() const
+    void updateHalo(const bool& force=0) const
     {
-      forBothParities([this](const auto& par)
+      forBothParities([force,
+		       this](const auto& par)
       {
-	(*this)[par].updateHalo();
+	(*this)[par].updateHalo(force);
       });
     }
     
