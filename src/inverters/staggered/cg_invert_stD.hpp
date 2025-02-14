@@ -20,7 +20,7 @@ namespace nissa
 			 const double& residue,
 			 const EoField<color>& source)
   {
-    inv_stD_cg(sol,nullptr,conf,m,niter,residue,source);
+    inv_stD_cg(sol,std::nullopt,conf,m,niter,residue,source);
   }
 }
 
