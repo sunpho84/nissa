@@ -1554,17 +1554,6 @@ namespace nissa
   
   void su3_unitarize_with_sqrt(su3 out,const su3 in);
   
-  //product of an su3 matrix by a color vector
-  CUDA_HOST_AND_DEVICE inline void unsafe_single_su3_prod_single_color(single_color a,const single_su3 b,const single_color c)
-  {
-    UNROLL_FOR_ALL_COLS(ic)
-      {
-	unsafe_single_complex_prod(a[ic],b[ic][0],c[0]);
-	UNROLL_FOR(jc,1,NCOL)
-	  single_complex_summ_the_prod(a[ic],b[ic][jc],c[jc]);
-      }
-  }
-  
   //safe prod
   CUDA_HOST_AND_DEVICE inline void safe_su3_prod_color(color a,const su3 b,const color c) {color t;unsafe_su3_prod_color(t,b,c);color_copy(a,t);}
   
@@ -1580,11 +1569,6 @@ namespace nissa
       UNROLL_FOR_ALL_COLS(jc)
 	complex_summ_the_prod(a[ic],b[ic][jc],c[jc]);
   }
-  
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  void single_su3_summ_the_prod_single_color(single_color a,
-					     const single_su3 b,const single_color c)
-  {for(size_t c1=0;c1<NCOL;c1++) for(size_t c2=0;c2<NCOL;c2++) single_complex_summ_the_prod(a[c1],b[c1][c2],c[c2]);}
   
   //subt
   template <typename A,

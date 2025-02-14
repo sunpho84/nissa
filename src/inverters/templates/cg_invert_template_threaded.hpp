@@ -1,3 +1,6 @@
+#ifndef _CG_INVERT_TEMPLATE_THREADED_HPP
+#define _CG_INVERT_TEMPLATE_THREADED_HPP
+
 #ifdef HAVE_CONFIG_H
 # include "config.hpp"
 #endif
@@ -141,8 +144,11 @@ namespace nissa
     VERBOSITY_LV1_MASTER_PRINTF(" Total cg iterations: %d\n",final_iter);
     
     //check if not converged
-    if(final_iter==niter) CRASH("exit without converging");
+    if(final_iter==niter)
+      CRASH("exit without converging");
     
     cg_inv_over_time+=take_time();
   }
 }
+
+#endif

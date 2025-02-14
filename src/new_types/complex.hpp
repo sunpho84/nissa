@@ -28,8 +28,6 @@ namespace nissa
   
   typedef complex quad_u1[NDIM];
   
-  typedef float single_complex[2];
-  
   //////////////////////////////////////////////////////////
   
   inline double real_part_of_complex_prod(const complex a,const complex b)
@@ -58,17 +56,6 @@ namespace nissa
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void complex_copy(A&& a,
 		    const B& b)
-  {
-    a[0]=b[0];
-    a[1]=b[1];
-  }
-  
-  inline void complex_copy_from_single_complex(complex a,const single_complex b)
-  {
-    a[0]=b[0];
-    a[1]=b[1];
-  }
-  inline void single_complex_copy_from_complex(single_complex a,const complex b)
   {
     a[0]=b[0];
     a[1]=b[1];
@@ -360,13 +347,6 @@ namespace nissa
     a[0]+=t;
   }
   
-  CUDA_HOST_AND_DEVICE inline void single_complex_summ_the_prod(single_complex a,const single_complex b,const single_complex c)
-  {
-    const double t=b[0]*c[0]-b[1]*c[1];
-    a[1]+=b[0]*c[1]+b[1]*c[0];
-    a[0]+=t;
-  }
-  
   /// Subt from the output the product of two complex number
   template <typename A,
 	    typename B,
@@ -397,13 +377,6 @@ namespace nissa
     a[0]+=t;
   }
   
-  inline void single_complex_summ_the_conj2_prod(single_complex a,const single_complex b,const single_complex c)
-  {
-    const double t=+b[0]*c[0]+b[1]*c[1];
-    a[1]+=-b[0]*c[1]+b[1]*c[0];
-    a[0]+=t;
-  }
-  
   /// a+=~b*c
   template <typename A,
 	    typename B,
@@ -415,9 +388,6 @@ namespace nissa
   {
     complex_summ_the_conj2_prod(a,c,b);
   }
-  
-  inline void single_complex_summ_the_conj1_prod(single_complex a,const single_complex b,const single_complex c)
-  {single_complex_summ_the_conj2_prod(a,c,b);}
   
   template <typename A,
 	    typename B,
@@ -447,13 +417,6 @@ namespace nissa
     a[0]-=t;
   }
   
-  CUDA_HOST_AND_DEVICE inline void single_complex_subt_the_conj2_prod(single_complex a,const single_complex b,const single_complex c)
-  {
-    const double t=+b[0]*c[0]+b[1]*c[1];
-    a[1]-=-b[0]*c[1]+b[1]*c[0];
-    a[0]-=t;
-  }
-  
   template <typename A,
 	    typename B,
 	    typename C>
@@ -465,8 +428,6 @@ namespace nissa
     complex_subt_the_conj2_prod(a,c,b);
   }
   
-  CUDA_HOST_AND_DEVICE inline void single_complex_subt_the_conj1_prod(single_complex a,const single_complex b,const single_complex c)
-  {single_complex_subt_the_conj2_prod(a,c,b);}
   CUDA_HOST_AND_DEVICE inline void complex_subt_the_conj_conj_prod(complex a,const complex b,const complex c)
   {
     const double t=+b[0]*c[0]-b[1]*c[1];
@@ -482,17 +443,6 @@ namespace nissa
   void unsafe_complex_prod(A&& a,
 			   const B& b,
 			   const C& c)
-  {
-    a[0]=b[0]*c[0]-b[1]*c[1];
-    a[1]=b[0]*c[1]+b[1]*c[0];
-  }
-  
-  inline void unsafe_single_single_complex_prod(single_complex a,const single_complex b,const single_complex c)
-  {
-    a[0]=b[0]*c[0]-b[1]*c[1];
-    a[1]=b[0]*c[1]+b[1]*c[0];
-  }
-  CUDA_HOST_AND_DEVICE inline void unsafe_single_complex_prod(single_complex a,const single_complex b,const single_complex c)
   {
     a[0]=b[0]*c[0]-b[1]*c[1];
     a[1]=b[0]*c[1]+b[1]*c[0];

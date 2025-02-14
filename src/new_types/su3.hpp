@@ -60,12 +60,6 @@ namespace nissa
   typedef su3 as2t_su3[NDIM*(NDIM+1)/2];
   typedef su3 clover_term_t[4];
   typedef halfspincolor_halfspincolor inv_clover_term_t[2];
-  
-  typedef single_complex single_color[NCOL];
-  typedef single_color single_su3[NCOL];
-  typedef single_color single_halfspincolor[2];
-  typedef single_color single_spincolor[NDIRAC];
-  typedef single_su3 single_quad_su3[NDIRAC];
 }
 
 #endif

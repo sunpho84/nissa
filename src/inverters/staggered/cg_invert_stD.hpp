@@ -61,7 +61,7 @@ namespace nissa
 			       ideg,
 			       sol(site,ideg)=(source(site,ideg)-0.5*sol(site,ideg))/m;);
     //check solution
-    EoField<color> residueVec("residueVec");
+    EoField<Color<F>> residueVec("residueVec");
     apply_stD(residueVec,conf,m,sol);
     residueVec-=source;
     
@@ -76,14 +76,15 @@ namespace nissa
     MASTER_PRINTF("check solution, residue: %lg/%lg=%lg, target one: %lg\n",residueNorm2,sourceNorm2,residueNorm2/sourceNorm2,residue);
   }
   
-  inline void inv_stD_cg(EoField<color>& sol,
-			 const EoField<quad_su3>& conf,
+  template <typename F>
+  inline void inv_stD_cg(EoField<Color<F>>& sol,
+			 const EoField<QuadSu3<F>>& conf,
 			 const double& m,
 			 const int& niter,
 			 const double& residue,
-			 const EoField<color>& source)
+			 const EoField<Color<F>>& source)
   {
-    inv_stD_cg(sol,std::optional<EvnField<color>>{},conf,m,niter,residue,source);
+    inv_stD_cg(sol,std::optional<EvnField<Color<F>>>{},conf,m,niter,residue,source);
   }
 }
 

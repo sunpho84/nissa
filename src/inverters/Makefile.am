@@ -1,10 +1,6 @@
 ###################################### inverters #################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/staggered/cg_invert_evn_stD.cpp \
-	%D%/staggered/cg_invert_stD.cpp \
-	%D%/staggered/cg_invert_stD2ee_m2.cpp \
-	%D%/staggered/cg_invert_stD2ee_m2_portable.cpp \
 	%D%/twisted_mass/cg_invert_tmD_eoprec.cpp \
 	%D%/twisted_mass/cg_invert_tmQ2.cpp \
 	%D%/twisted_mass/cgm_invert_tmQ2.cpp \
@@ -31,7 +27,6 @@ include_HEADERS+= \
 	%D%/staggered/cg_invert_stD.hpp \
 	%D%/staggered/cg_invert_evn_stD.hpp \
 	%D%/staggered/cgm_invert_stD2ee_m2_portable.hpp \
-	%D%/staggered/cg_invert_stD2ee_m2_portable.hpp \
 	%D%/twisted_clover/cg_invert_tmclovQ.hpp \
 	%D%/twisted_clover/cg_invert_tmclovQ2.hpp \
 	%D%/twisted_clover/cg_64_invert_tmclovQ2_portable.hpp \
