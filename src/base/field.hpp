@@ -860,6 +860,20 @@ namespace nissa
     
 #undef PROVIDE_CASTS
     
+    /// Returns a copy cast to the given fund
+    template <typename NewFund>
+    auto fundCast() const
+    {
+      /// Type to be used for the new underlying struct
+      using NewT=
+	DuplicateExtents<T,NewFund>;
+      
+      Field<NewT,FC,STL> res(name,haloEdgesPresence);
+      res=*this;
+      
+      return res;
+    }
+    
     /// Constructor
     Field(const char *name,
 	  const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
@@ -1283,9 +1297,12 @@ namespace nissa
     }
     
     /// Assigns from a different layout
-    template <SpaceTimeLayout OFl>
+    template <typename OT,
+	      SpaceTimeLayout OFl,
+	      ENABLE_THIS_TEMPLATE_IF(std::is_same_v<T,OT> or
+				      std::is_same_v<T,DuplicateExtents<OT,Fund>>)>
     INLINE_FUNCTION
-    Field& operator=(const Field<T,FC,OFl,MS>& oth)
+    Field& operator=(const Field<OT,FC,OFl,MS>& oth)
     {
       assign(oth);
       
@@ -1621,6 +1638,18 @@ namespace nissa
     PROVIDE_SELF_SCALOP(/);
     
 #undef PROVIDE_SELF_SCALOP
+    
+    /// Returns a copy cast to the given fund
+    template <typename NewFund>
+    auto fundCast() const
+    {
+      using NewT=
+	DuplicateExtents<T,NewFund>;
+      
+      return
+	EoField<NewT,STL>(this->evenPart.template fundCast<NewFund>(),
+			  this->oddPart.template fundCast<NewFund>());
+    }
     
     /// Compare
     INLINE_FUNCTION
