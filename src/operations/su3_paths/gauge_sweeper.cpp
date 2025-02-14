@@ -196,7 +196,7 @@ namespace nissa
   void gauge_sweeper_t::init_staples(int ext_nlinks_per_staples_of_link,void(*ext_add_staples_per_link)(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu),void (*ext_compute_staples)(su3 staples,su3 *links,int *ilinks,double C1))
   {
     //take external nlinks and mark
-    if(!par_geom_inited) CRASH("call geom initializer before");
+    if(not par_geom_inited) CRASH("call geom initializer before");
     if(staples_inited) CRASH("staples already initialized");
     staples_inited=true;
     nlinks_per_staples_of_link=ext_nlinks_per_staples_of_link;
@@ -227,7 +227,8 @@ namespace nissa
     
     //check cached
     VERBOSITY_LV3_MASTER_PRINTF("Max cached links: %d\n",max_cached_link);
-    if(max_cached_link>bordVol+edgeVol) CRASH("larger buffer needed [really? recheck this]");
+    if(max_cached_link>bordVol+edgeVol)
+      CRASH("larger buffer needed [really? recheck this], we need cache %d links",max_cached_link);
     
     //perform two checks
     check_hit_exactly_once();

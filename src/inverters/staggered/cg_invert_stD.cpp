@@ -9,7 +9,6 @@
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_eo.hpp"
-#include "linalgs/linalgs.hpp"
 #include "routines/ios.hpp"
 
 //this is the famous trick to invert the full D matrix using e/o precond: sol[ODD]=1/m*(source[ODD]-Doe*sol[EVN])
@@ -57,31 +56,27 @@ namespace nissa
     //   {
     inv_evn_stD_cg(sol.evenPart,guess,conf,m,niter,residue,source);
     apply_st2Doe(sol.oddPart,conf,sol.evenPart);
-    CRASH("reimplement");
-    // double_vector_linear_comb((double*)(sol[ODD].data),(double*)(source[ODD].data),1/m,(double*)(sol[ODD].data),-0.5/m,locVolh*6);
-      // }
+    auto& s=sol[ODD];
+    FOR_EACH_SITE_DEG_OF_FIELD(s,
+			       CAPTURE(m,
+				       sol=sol[ODD].getWritable(),
+				       source=source[ODD].getReadable()),
+			       site,
+			       ideg,
+			       sol(site,ideg)=(source(site,ideg)-0.5*sol(site,ideg))/m;);
+    //check solution
+    EoField<color> residueVec("residueVec");
+    apply_stD(residueVec,conf,m,sol);
+    residueVec-=source;
     
-    // //check solution
-    // eo_ptr<color> residueVec={nissa_malloc("temp_evn",locVolh,color),nissa_malloc("temp_odd",locVolh,color)};
-    // apply_stD(residueVec,conf,m,sol);
+    /// Source L2 norm
+    const double sourceNorm2=
+      source.norm2();
     
-    // /// Source L2 norm
-    // double sourceNorm2=0.0;
+    /// Residue L2 norm
+    const double residueNorm2=
+      residueVec.norm2();
     
-    // /// Residue L2 norm
-    // double residueNorm2=0.0;
-    
-    // for(int eo=0;eo<2;eo++)
-    //   {
-    // 	double_vector_subtassign((double*)residueVec[eo],(double*)source[eo],locVolh*sizeof(color)/sizeof(double));
-	
-    // 	sourceNorm2+=double_vector_glb_norm2(source[eo],locVolh);
-    //     residueNorm2+=double_vector_glb_norm2(residueVec[eo],locVolh);
-    //   }
-    
-    // MASTER_PRINTF("check solution, residue: %lg/%lg=%lg, target one: %lg\n",residueNorm2,sourceNorm2,residueNorm2/sourceNorm2,residue);
-    
-    // for(int eo=0;eo<2;eo++)
-    //   nissa_free(residueVec[eo]);
+    MASTER_PRINTF("check solution, residue: %lg/%lg=%lg, target one: %lg\n",residueNorm2,sourceNorm2,residueNorm2/sourceNorm2,residue);
   }
 }

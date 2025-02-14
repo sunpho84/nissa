@@ -14,7 +14,11 @@ namespace nissa
   // void apply_stDoe(color *out,eo_ptr<quad_su3> conf,color *in);
   // void odd_apply_stD(color *out,eo_ptr<quad_su3> conf,double m,eo_ptr<color> in,double sign=1);
   // void odd_apply_stD_dag(color *out,eo_ptr<quad_su3> conf,double m,eo_ptr<color> in);
-  // void apply_stD(eo_ptr<color> out,eo_ptr<quad_su3> conf,double m,eo_ptr<color> in);
+  
+  void apply_stD(EoField<color>& out,
+		 const EoField<quad_su3>& conf,
+		 const double& m,
+		 const EoField<color>& in);
   
   // void apply_Adams(eo_ptr<color> out,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double m_Adams,eo_ptr<color> temp,eo_ptr<color> in);
   // void apply_AdamsII(eo_ptr<color> out,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double m_Adams,eo_ptr<color> temp,eo_ptr<color> in);
@@ -37,7 +41,7 @@ namespace nissa
 		       OddField<color>& temp,
 		       const double& mass2,
 		       const EvnField<color>& in);
-
+  
   /// Functor needed to find the call to apply_stD2ee_m2 with specific conf and temp
   struct ApplyStD2eeM2Functor
   {

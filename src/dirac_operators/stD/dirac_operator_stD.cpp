@@ -53,7 +53,7 @@ namespace nissa
 			       });
   }
   
-  //return the result of the application of D to a vector
+  /// Return the result of the application of D to a vector
   void apply_stD(EoField<color>& out,
 		 const EoField<quad_su3>& conf,
 		 const double& m,
