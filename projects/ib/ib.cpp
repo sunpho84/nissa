@@ -485,7 +485,6 @@ void init_simulation(int narg,char **arg)
   loc_contr=new LxField<complex>("loc_contr");
   
   allocate_mes2pts_contr();
-  allocate_handcuffs_contr();
   
   nmeslep_corr=nquark_lep_combos*nindep_meslep_weak;
   meslep_hadr_part=nissa_malloc("hadr",locVol,spinspin);
@@ -510,7 +509,7 @@ void close()
   free_L_prop();
   
   free_mes2pts_contr();
-  free_handcuffs_contr();
+  freeHandcuffsContr();
   
   delete loc_contr;
   

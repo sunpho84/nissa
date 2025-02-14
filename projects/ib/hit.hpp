@@ -19,6 +19,9 @@ struct HitLooper
   /// List of computed 2pts
   std::set<int> computed2ptsList;
   
+  /// List of computed handcuff sides
+  std::set<std::string> computedHandcuffSidesList;
+  
   /// Ordered dependecies
   std::vector<std::string> orderedDep;
   
@@ -440,10 +443,12 @@ struct HitLooper
   }
   
   /// Perform one of step: dryRun, or eval
-  void internalRun(const int runStep,const size_t iHit)
+  void internalRun(const int& runStep,
+		   const size_t& iHit)
   {
     computedPropsList.clear();
     computed2ptsList.clear();
+    computedHandcuffSidesList.clear();
     offloadedList.clear();
     propagatorsStatus.clear();
     
@@ -506,7 +511,7 @@ struct HitLooper
 	       computed2ptsList.count(icombo)==0)
 	      {
 		if(runStep==2)
-		  MASTER_PRINTF("Can compute contraction: %s %s -> %s, %zu/%zu\n",
+		  MASTER_PRINTF("Can compute 2pts contraction: %s %s -> %s, %zu/%zu\n",
 			      a.c_str(),b.c_str(),mes2pts_contr_map[icombo].name.c_str(),computed2ptsList.size(),mes2pts_contr_map.size());
 		
 		// Insert the correlation in the computed list
@@ -532,6 +537,45 @@ struct HitLooper
 		    nPassedDep+=2;
 		  }
 	      }
+	  
+	  for(auto& [name,hs] : handcuffsSides)
+	    if(const std::string& bw=hs.bw,
+	       fw=hs.fw;
+	       computedPropsList.count(bw) and
+	       computedPropsList.count(fw) and
+	       computedHandcuffSidesList.count(name)==0)
+	      {
+		if(runStep==2)
+		  MASTER_PRINTF("Can compute handcuff contraction side: %s %s -> %s, %zu/%zu\n",
+				bw.c_str(),fw.c_str(),name.c_str(),computedHandcuffSidesList.size(),handcuffsSides.size());
+		
+		// Insert the correlation in the computed list
+		computedHandcuffSidesList.insert(name);
+		
+		for(const std::string& p : {bw,fw})
+		  if(runStep==1)
+		    orderedDep.push_back(p);
+		  else
+		    ensureInMemory(p);
+		
+		// Compute the correlation function
+		if(runStep==2)
+		  {
+		    computeHandcuffSide(hs);
+		    if(hs.store==1)
+		      write_real_vector(combine("%s/hit%zu_handcuff_side_%s",outfolder,iHit,name.c_str()),hs.data,"handcuff");
+		  }
+		
+		// Remove the dependency from the 2pts of the props
+		for(const std::string& p : {bw,fw})
+		  propDep[p].erase("handcuffSide_"+name);
+		
+		if(runStep==2)
+		  {
+		    eraseUnnededProps();
+		    nPassedDep+=2;
+		  }
+	      }
 	}
     
     propDep=propDepBack;
@@ -542,30 +586,48 @@ struct HitLooper
 	  VERBOSITY_LV2_MASTER_PRINTF("  %s\n",s.c_str());
 	VERBOSITY_LV2_MASTER_PRINTF("Dependencies end\n");
       }
+    else
+      computeHandcuffsContr(false);
   }
   
-  void run(const size_t iHit)
+  /// Run the simulation
+  void run(const size_t& iHit)
   {
     for(int runStep=1;runStep<=2;runStep++)
       internalRun(runStep,iHit);
     
     std::ostringstream os;
+    
     for(size_t iContr=0;iContr<mes2pts_contr_map.size();iContr++)
       if(const auto& m=mes2pts_contr_map[iContr];computed2ptsList.find(iContr)==computed2ptsList.end())
 	os<<" not computed corr "<<m.name<<" between "<<m.a<<" and "<<m.b<<std::endl;
     
+    for(const auto& [name,handcuffSide] : handcuffsSides)
+      if(computedHandcuffSidesList.find(name)==computedHandcuffSidesList.end())
+	os<<" not computed handcuff "<<name<<" between "<<handcuffSide.bw<<" and "<<handcuffSide.fw<<std::endl;
+    
     if(os.str().size())
       CRASH("%s",os.str().c_str());
+    
+    computeHandcuffsContr(true);
   }
   
   /// Constructor
   HitLooper()
   {
-    // Insert all contractions
+    // Insert all contractions for 2pts
     for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
       for(const std::string& p : {mes2pts_contr_map[icombo].a,mes2pts_contr_map[icombo].b})
 	{
 	  propDep[p].insert("2pts_"+std::to_string(icombo));
+	  oldDepInserted.push_back(p);
+	}
+    
+    // Insert all contractions for handcuffs sides
+    for(const auto& [name,handcuffsSide] : handcuffsSides)
+      for(const std::string& p : {handcuffsSide.bw,handcuffsSide.fw})
+	{
+	  propDep[p].insert("handcuffSide_"+name);
 	  oldDepInserted.push_back(p);
 	}
     

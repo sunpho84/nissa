@@ -12,10 +12,10 @@
 
 
 #ifndef EXTERN_CONTR
- #define EXTERN_CONTR extern
- #define INIT_TO(VAR)
+# define EXTERN_CONTR extern
+# define INIT_TO(VAR)
 #else
- #define INIT_TO(VAR) =VAR
+# define INIT_TO(VAR) =VAR
 #endif
 
 namespace nissa
@@ -35,8 +35,19 @@ namespace nissa
   struct mes_contr_map_t
   {
     std::string name;
-    std::string a,b;
-    mes_contr_map_t(std::string name,std::string a,std::string b) : name(name),a(a),b(b) {}
+    
+    std::string a;
+    
+    std::string b;
+    
+    mes_contr_map_t(const std::string& name,
+		    const std::string& a,
+		    const std::string& b) :
+      name(name),
+      a(a),
+      b(b)
+    {
+    }
   };
   EXTERN_CONTR std::vector<mes_contr_map_t> mes2pts_contr_map;
   EXTERN_CONTR int nmes2pts_contr_made INIT_TO(0);
@@ -61,6 +72,8 @@ namespace nissa
   
   ///////////////////////////////////////// handcuffs contractions ///////////////////////////////////////////////////////
   
+  EXTERN_CONTR int computeHitSummedHandcuffs;
+  
   void vector_current_mel(LxField<spin1field>& si,
 			  const dirac_matr& ext_g,
 			  const int& r,
@@ -82,27 +95,78 @@ namespace nissa
 					     const std::string &prop_name_fw,
 					     const bool& revert);
   
-  struct handcuffs_side_map_t
+  /// Contains handcuffs
+  struct HandcuffsSide
   {
-    std::string name;
+    /// Gamma matrix
     int igamma;
-    std::string bw,fw;
+    
+    /// Name of the backward propagator
+    std::string bw;
+    
+    /// Name of the forward propagator
+    std::string fw;
+    
+    /// Decide whether to store or not
     int store;
-    handcuffs_side_map_t(std::string name,int igamma,std::string bw,std::string fw,int store) : name(name),igamma(igamma),bw(bw),fw(fw),store(store) {}
+    
+    /// Handcuff data
+    LxField<spin1field> data;
+    
+    /// Sum of the hit-by-hit handcuffs
+    LxField<spin1field>* sum;
+    
+    /// Constructor
+    HandcuffsSide(const int& igamma,
+		  const std::string& bw,
+		  const std::string& fw,
+		  const int& store) :
+      igamma(igamma),
+      bw(bw),
+      fw(fw),
+      store(store),
+      data("data"),
+      sum(nullptr)
+    {
+      if(computeHitSummedHandcuffs)
+	sum=new LxField<spin1field>("sum");
+    }
+    
+    /// Move constructor
+    HandcuffsSide(HandcuffsSide&&)=default;
+    
+    /// Destructor
+    ~HandcuffsSide()
+    {
+      if(sum)
+	delete sum;
+    }
   };
-  EXTERN_CONTR std::vector<handcuffs_side_map_t> handcuffs_side_map;
   
-  struct handcuffs_map_t
+  EXTERN_CONTR std::map<std::string,HandcuffsSide> handcuffsSides;
+  
+  /// Define a handcuff
+  struct Handcuff
   {
+    /// Name of the handcuff
     std::string name;
     
+    /// Left side
     std::string left;
     
+    /// Right side
     std::string right;
     
-    handcuffs_map_t(const std::string& name,
-		    const std::string& left,
-		    const std::string& right) :
+    /// Data of the handcuffs
+    std::vector<std::complex<double>> data;
+    
+    /// Sum of the hit-by-hit handcuff
+    std::complex<double> sum;
+    
+    /// Constructor
+    Handcuff(const std::string& name,
+	     const std::string& left,
+	     const std::string& right) :
       name(name),
       left(left),
       right(right)
@@ -110,18 +174,19 @@ namespace nissa
     }
   };
   
-  EXTERN_CONTR std::vector<handcuffs_map_t> handcuffs_map;
-  EXTERN_CONTR int nhandcuffs_contr_made INIT_TO(0);
-  EXTERN_CONTR double handcuffs_contr_time INIT_TO(0);
-  EXTERN_CONTR complex *handcuffs_contr INIT_TO(NULL);
-  void allocate_handcuffs_contr();
-  void compute_handcuffs_contr();
-  void print_handcuffs_contr();
-  void free_handcuffs_contr();
+  EXTERN_CONTR std::vector<Handcuff> handcuffs;
   
-  inline int ind_handcuffs_contr(int ihand)
-  {return ihand;}
-  EXTERN_CONTR int handcuffs_contr_size;
+  EXTERN_CONTR double handcuffsContrTime INIT_TO(0);
+  
+  EXTERN_CONTR int nhandcuffsContrMade INIT_TO(0);
+  
+  void computeHandcuffSide(HandcuffsSide& h);
+  
+  void computeHandcuffsContr(const bool& useSum);
+  
+  void printHandcuffsContr();
+  
+  void freeHandcuffsContr();
   
   //////////////////////////////////////////////// barion contractions //////////////////////////////////////////////////
   
@@ -192,7 +257,6 @@ namespace nissa
   //compute all contractions
   inline void compute_contractions()
   {
-    compute_handcuffs_contr();
     //compute_meslep_contr();
     if(compute_octet) CRASH("dependencies are broken");//compute_bar2pts_contr();
     if(compute_decuplet) CRASH("dependencies are broken");//compute_bar2pts_alt_contr();
@@ -202,7 +266,7 @@ namespace nissa
   inline void print_contractions()
   {
     print_mes2pts_contr();
-    print_handcuffs_contr();
+    printHandcuffsContr();
     //print_meslep_contr();
     if(compute_octet) print_bar2pts_contr();
     if(compute_decuplet) print_bar2pts_alt_contr();

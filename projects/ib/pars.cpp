@@ -235,6 +235,8 @@ namespace nissa
     
     if(nhand_contr)
       {
+	read_str_int("ComputeHitSummed",&computeHitSummedHandcuffs);
+	
 	int nhand_sides;
 	read_str_int("NHandcuffsSides",&nhand_sides);
 	
@@ -243,29 +245,42 @@ namespace nissa
 	  {
 	    char name[1024];
 	    read_str(name,1024);
+	    
 	    int igamma;
 	    read_int(&igamma);
+	    
 	    char bw[1024];
-	    char fw[1024];
 	    read_str(bw,1024);
+	    
+	    char fw[1024];
 	    read_str(fw,1024);
+	    
 	    int store;
 	    read_int(&store);
 	    
 	    for(int icopy=0;icopy<ncopies;icopy++)
 	      {
 		char suffix[128]="";
-		if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+		if(ncopies>1)
+		  sprintf(suffix,"_copy%d",icopy);
 		
 		char full_name[1024+129];
-		char bw_full[1024+129];
-		char fw_full[1024+129];
 		sprintf(full_name,"%s%s",name,suffix);
+		
+		char bw_full[1024+129];
 		sprintf(bw_full,"%s%s",bw,suffix);
+		if(Q.find(bw_full)==Q.end())
+		  CRASH("for bubble \'%s\' the first propagator \'%s\' is not present",name,bw_full);
+		
+		char fw_full[1024+129];
 		sprintf(fw_full,"%s%s",fw,suffix);
-		if(Q.find(bw_full)==Q.end()) CRASH("for bubble \'%s\' the first propagator \'%s\' is not present",name,bw_full);
-		if(Q.find(fw_full)==Q.end()) CRASH("for bubble \'%s\' the second propagator \'%s\' is not present",name,fw_full);
-		handcuffs_side_map.push_back(handcuffs_side_map_t(full_name,igamma,bw_full,fw_full,store));
+		if(Q.find(fw_full)==Q.end())
+		  CRASH("for bubble \'%s\' the second propagator \'%s\' is not present",name,fw_full);
+		
+		if(const auto a=handcuffsSides.try_emplace(full_name,igamma,bw_full,fw_full,store);not a.second)
+		  CRASH("unable to insert handcuff side %s with gamma %d between %s and %s",full_name,igamma,bw_full,fw_full);
+		  ;
+		
 		for(auto& q : {bw_full,fw_full})
 		  propsNeededToContr.insert(q);
 	      }
@@ -276,37 +291,49 @@ namespace nissa
 	  {
 	    char name[1024];
 	    read_str(name,1024);
+	    
 	    char left[1024];
-	    char right[1024];
 	    read_str(left,1024);
+	    
+	    char right[1024];
 	    read_str(right,1024);
 	    
 	    for(int icopy=0;icopy<ncopies;icopy++)
 	      {
 		char suffix[128]="";
-		if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+		if(ncopies>1)
+		  sprintf(suffix,"_copy%d",icopy);
 		
 		char full_name[1024+129];
-		char left_full[1024+129];
-		char right_full[1024+129];
 		sprintf(full_name,"%s%s",name,suffix);
+		
+		char left_full[1024+129];
 		sprintf(left_full,"%s%s",left,suffix);
+		
+		char right_full[1024+129];
 		sprintf(right_full,"%s%s",right,suffix);
 		
 		//check if left and right is present in handcuffs_size_map
 		bool left_hand_found=false;
 		bool right_hand_found=false;
-		for(auto &hand : handcuffs_side_map)
+		for(const auto& [name,hand] : handcuffsSides)
 		  {
-		    if(hand.name==left_full) left_hand_found=true;
-		    if(hand.name==right_full) right_hand_found=true;
-		    if(left_hand_found && right_hand_found) break;
+		    if(name==left_full)
+		      left_hand_found=true;
+		    
+		    if(name==right_full)
+		      right_hand_found=true;
+		    
+		    if(left_hand_found and right_hand_found)
+		      break;
 		  }
 		
-		if(!left_hand_found)   CRASH("for handcuffs \'%s\' the left bubble \'%s\' is not present",name,left_full);
-		if(!right_hand_found)  CRASH("for handcuffs \'%s\' the right bubble \'%s\' is not present",name,right_full);
+		if(not left_hand_found)
+		  CRASH("for handcuffs \'%s\' the left bubble \'%s\' is not present",name,left_full);
+		if(not right_hand_found)
+		  CRASH("for handcuffs \'%s\' the right bubble \'%s\' is not present",name,right_full);
 		
-		handcuffs_map.push_back(handcuffs_map_t(full_name,left_full,right_full));
+		handcuffs.emplace_back(full_name,left_full,right_full);
 	      }
 	  }
       }

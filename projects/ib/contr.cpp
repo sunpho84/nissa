@@ -12,11 +12,20 @@ namespace nissa
   /// Clear all correlation
   void clearCorrelations()
   {
-    if(mes2pts_contr_size) vector_reset(mes2pts_contr);
-    if(handcuffs_contr_size) vector_reset(handcuffs_contr);
-    if(bar2pts_contr_size) vector_reset(bar2pts_contr);
-    if(bar2pts_alt_contr_size) vector_reset(bar2pts_alt_contr);
-    if(nmeslep_corr) vector_reset(meslep_contr);
+    if(mes2pts_contr_size)
+      vector_reset(mes2pts_contr);
+    if(computeHitSummedHandcuffs)
+      for(auto& [name,handcuffSide] : handcuffsSides)
+	handcuffSide.sum->reset();
+    for(auto& handcuff : handcuffs)
+      for(std::complex<double>& c : handcuff.data)
+	c=0.0;
+    if(bar2pts_contr_size)
+      vector_reset(bar2pts_contr);
+    if(bar2pts_alt_contr_size)
+      vector_reset(bar2pts_alt_contr);
+    if(nmeslep_corr)
+      vector_reset(meslep_contr);
   }
   
   //class to open or append a path, depending if it was already used
@@ -198,12 +207,14 @@ namespace nissa
     
     //set the header template
     std::string header_template;
-    if(alternative_header_template=="") header_template="\n # Contraction of %s ^ \\dag and %s"+source_coords_if_not_averaging_hits()+"\n\n";
+    if(alternative_header_template=="")
+      header_template="\n # Contraction of %s ^ \\dag and %s"+source_coords_if_not_averaging_hits()+"\n\n";
     else header_template=alternative_header_template;
     
     contr_print_time-=take_time();
     
-    const double norm=doNotAverageHits?1:(1.0/n);
+    const double norm=
+      doNotAverageHits?1:(1.0/n);
     
     //reduce and normalise
     // glb_nodes_reduce_complex_vect(mes2pts_contr,mes2pts_contr_size);
@@ -574,7 +585,8 @@ namespace nissa
     CRASH("#warning reimplement");
     //glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
     
-    const double norm=doNotAverageHits?0.5:(1.0/(2*nhits));
+    const double norm=
+      doNotAverageHits?0.5:(1.0/(2*nhits));
     
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
 	for(int dir_exc=0;dir_exc<2;dir_exc++)
@@ -599,7 +611,8 @@ namespace nissa
     //list to open or append
     open_or_append_t list;
     
-    const double norm=doNotAverageHits?0.5:(1.0/(2*nhits));
+    const double norm=
+      doNotAverageHits?0.5:(1.0/(2*nhits));
     
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
       for(int iProj=0;iProj<NBAR_ALT_PROJ;iProj++)
@@ -718,12 +731,16 @@ namespace nissa
     
     dirac_matr GAMMA[NDIM];
     for(int mu=0;mu<NDIM;mu++)
-      if(revert) GAMMA[mu]=base_gamma[5]*base_gamma[iGammaOfMu(mu)];
-      else       GAMMA[mu]=base_gamma[iGammaOfMu(mu)];
+      if(revert)
+	GAMMA[mu]=base_gamma[5]*base_gamma[iGammaOfMu(mu)];
+      else
+	GAMMA[mu]=base_gamma[iGammaOfMu(mu)];
     
     dirac_matr g;
-    if(revert) g=dirac_prod(ext_g,base_gamma[5]);
-    else       g=ext_g;
+    if(revert)
+      g=dirac_prod(ext_g,base_gamma[5]);
+    else
+      g=ext_g;
     
     for(int iso_spi_fw=0;iso_spi_fw<nso_spi;iso_spi_fw++)
       for(int iso_col=0;iso_col<nso_col;iso_col++)
@@ -731,8 +748,11 @@ namespace nissa
 	  int iso_spi_bw=g.pos[iso_spi_fw];
 	  
 	  //get componentes
-	  decltype(auto) Qbw=Q[id_Qbw][so_sp_col_ind(iso_spi_bw,iso_col)].getSurelyReadableOn<defaultMemorySpace>();
-	  decltype(auto) Qfw=Q[id_Qfw][so_sp_col_ind(iso_spi_fw,iso_col)].getSurelyReadableOn<defaultMemorySpace>();
+	  decltype(auto) Qbw=
+	    Q[id_Qbw][so_sp_col_ind(iso_spi_bw,iso_col)].getSurelyReadableOn<defaultMemorySpace>();
+	  
+	  decltype(auto) Qfw=
+	    Q[id_Qfw][so_sp_col_ind(iso_spi_fw,iso_col)].getSurelyReadableOn<defaultMemorySpace>();
 	  
 	  PAR(0,locVol,
 	      CAPTURE(g,GAMMA,iso_spi_fw,
@@ -776,142 +796,146 @@ namespace nissa
       }
   }
   
-  //                                                          handcuffs
+  /// Handcuff side
+  void computeHandcuffSide(HandcuffsSide& h)
+  {
+    MASTER_PRINTF("Computing handcuff contractions between %s and %s\n",h.bw.c_str(),h.fw.c_str());
+    
+    //store source norm for all sides
+    //std::map<std::string,double> normSides;
+    
+    //loop over sides
+    //normSides.insert({side_name,Q[h.fw].ori_source_norm2*Q[h.bw].ori_source_norm2});
+	
+    //check r are the same (that is, opposite!)
+    if(twisted_run and (not loc_hadr_curr)) {
+      if(Q[h.fw].r==Q[h.bw].r and (not Q[h.bw].is_source))
+	CRASH("conserved current needs opposite r (before reverting), but quarks %s and %s have the same",h.fw.c_str(),h.bw.c_str());
+    }
+    
+    //compute dirac combo
+    const int& ig=
+      ::abs(h.igamma);
+    const int revert=
+      (h.igamma>=0); //reverting only if positive ig asked
+    
+    if(ig!=5 and not diluted_spi_source)
+      CRASH("ig %d not available if not diluting in spin",ig);
+    
+    MASTER_PRINTF("Computing HandcuffSide between %s and %s\n",h.bw.c_str(),h.fw.c_str());
+    
+    //compute the matrix element
+    local_or_conserved_vector_current_mel(h.data,base_gamma[ig],h.bw,h.fw,revert);
+    if(auto& s=h.sum)
+      *s+=h.data;
+  }
   
-  void compute_handcuffs_contr()
+  /// Compute and prints handcuffs
+  void computeHandcuffsContr(const bool& useSum)
   {
     MASTER_PRINTF("Computing handcuffs contractions\n");
     
-    //allocate all sides
-    std::map<std::string,LxField<spin1field>*> sides;
+    handcuffsContrTime-=take_time();
     
-    //store source norm for all sides
-    std::map<std::string,double> normSides;
-    
-    //loop over sides
-    for(size_t iside=0;iside<handcuffs_side_map.size();iside++)
+    /// Add the photon
+    for(Handcuff &h : handcuffs)
       {
-	CRASH("dependencies are broken");
-	//allocate
-	handcuffs_side_map_t &h=handcuffs_side_map[iside];
-	std::string side_name=h.name;
+	const HandcuffsSide& hleft=
+	  handcuffsSides.at(h.left);
 	
-        normSides.insert({side_name,Q[h.fw].ori_source_norm2*Q[h.bw].ori_source_norm2});
-	
-	sides[side_name]=new LxField<spin1field>(side_name.c_str());
-	LxField<spin1field>& si=*sides[side_name];
-	si.reset();
-	
-	//check r are the same (that is, opposite!)
-	if(twisted_run and (not loc_hadr_curr)) {
-	  if(Q[h.fw].r==Q[h.bw].r and (not Q[h.bw].is_source))
-	    CRASH("conserved current needs opposite r (before reverting), but quarks %s and %s have the same",h.fw.c_str(),h.bw.c_str());
-	}
-	
-	//compute dirac combo
-	dirac_matr g;
-	const int ig=::abs(handcuffs_side_map[iside].igamma);
-	const int revert=(handcuffs_side_map[iside].igamma>=0); //reverting only if positive ig asked
-	if(ig!=5 and not diluted_spi_source)
-	  CRASH("ig %d not available if not diluting in spin",ig);
-	//dirac_prod(&g,base_gamma+5,base_gamma+ig);
-	g=base_gamma[ig];
-	
-	//compute the matrix element
-	local_or_conserved_vector_current_mel(si,g,h.bw,h.fw,revert);
-	
-	//if(h.store) store_spin1field(combine("%s/handcuff_side_%s",outfolder,h.name.c_str()),si);
-      }
-    
-    //add the photon
-    for(size_t ihand=0;ihand<handcuffs_map.size();ihand++)
-      {
-	handcuffs_map_t &h=handcuffs_map[ihand];
-	std::string right_with_photon=h.right+"_photon";
-	MASTER_PRINTF("Inserting photon to compute %s\n",right_with_photon.c_str());
-	
-	if(sides.find(right_with_photon)==sides.end())
-	  {
-	    auto rp=sides[right_with_photon]=new LxField<spin1field>(right_with_photon.c_str());
-	    multiply_by_tlSym_gauge_propagator(*rp,*sides[h.right],photon);
-	  }
-      }
-    
-    //compute the hands
-    for(size_t ihand=0;ihand<handcuffs_map.size();ihand++)
-      if(sides.find(handcuffs_map[ihand].left)==sides.end() or
-	 sides.find(handcuffs_map[ihand].right)==sides.end())
-	CRASH("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
-      else
-	{
-	  const auto& left=*sides[handcuffs_map[ihand].left];
-	  const auto& right=*sides[handcuffs_map[ihand].right+"_photon"];
+	const HandcuffsSide& hright=
+	  handcuffsSides.at(h.right);
 	  
-	  loc_contr->reset();
-	  PAR(0,locVol,
-	      CAPTURE(loc_contr=nissa::loc_contr->getWritable(),
-		      TO_READ(left),
-		      TO_READ(right)),
+	const LxField<spin1field>& left=
+	  useSum?(*hleft.sum):hleft.data;
+	
+	const LxField<spin1field>& right=
+	  useSum?(*hright.sum):hright.data;
+	
+	LxField<spin1field> rightWithPhoton("rightWithPhoton");
+	multiply_by_tlSym_gauge_propagator(rightWithPhoton,right,photon);
+	
+	loc_contr->reset();
+	PAR(0,locVol,
+	    CAPTURE(loc_contr=nissa::loc_contr->getWritable(),
+		    TO_READ(left),
+		    TO_READ(rightWithPhoton)),
 	      ivol,
 	      {
 		for(int mu=0;mu<NDIM;mu++)
-		  complex_subt_the_prod(loc_contr[ivol],
+		  complex_summ_the_prod(loc_contr[ivol],
 					left[ivol][mu],
-					right[ivol][mu]);
+					rightWithPhoton[ivol][mu]);
 	      });
 	  
-          double normalization=glbSpatVol*144.0;
-          normalization/=sqrt((double)normSides[handcuffs_map[ihand].left]*normSides[handcuffs_map[ihand].right]);
-	  
-	  complex temp[1];
-	  glb_reduce(temp,*loc_contr,locVol);
-	  complex_summ_the_prod_double(handcuffs_contr[ind_handcuffs_contr(ihand)],temp[0],normalization);
-	}
+	const double norm=
+	  glbSpatVol*144.0/
+	  sqrt(Q[hleft.bw].ori_source_norm2*
+	       Q[hleft.fw].ori_source_norm2*
+	       Q[hright.bw].ori_source_norm2*
+	       Q[hright.fw].ori_source_norm2);
+	
+	complex temp;
+	glb_reduce(&temp,*loc_contr,locVol);
+	complex_prodassign_double(temp,norm);
+	
+	if(useSum)
+	  h.sum=std::complex<double>{temp[0],temp[1]};
+	else
+	  h.data.emplace_back(temp[0],temp[1]);
+      }
     
-    //free
-    for(std::map<std::string,LxField<spin1field>*>::iterator it=sides.begin();it!=sides.end();it++)
-      delete it->second;
-  }
-  
-  //allocate handcuff contractions
-  void allocate_handcuffs_contr()
-  {
-    handcuffs_contr_size=ind_handcuffs_contr(handcuffs_map.size()-1)+1;
-    handcuffs_contr=nissa_malloc("handcuffs_contr",handcuffs_contr_size,complex);
-  }
-  
-  //free handcuff contractions
-  void free_handcuffs_contr()
-  {
-    nissa_free(handcuffs_contr);
+    nhandcuffsContrMade++;
+    handcuffsContrTime+=take_time();
   }
   
   //print handcuffs contractions
-  void print_handcuffs_contr()
+  void printHandcuffsContr()
   {
-    //list to open or append
-    open_or_append_t list;
-    
     contr_print_time-=take_time();
     
-    const double norm=doNotAverageHits?1:(1.0/nhits);
-    
     //Open if size different from zero
-    FILE *fout=nullptr;
-    if(handcuffs_map.size()) fout=list.open(combine("%s/handcuffs",outfolder));
+    FILE *fout=
+      open_file(combine("%s/handcuffs",outfolder),"w");
     
-    for(size_t icombo=0;icombo<handcuffs_map.size();icombo++)
+    for(const Handcuff& h : handcuffs)
       {
-	master_fprintf(fout,"\n # Contraction %zu %s\n\n",icombo,source_coords_if_not_averaging_hits().c_str());
+	master_fprintf(fout,"\n # Contraction (%s)~~~~(%s)\n\n",h.left.c_str(),h.right.c_str());
 	
-	//normalize for nsources
-	complex c;
-	complex_prod_double(c,handcuffs_contr[ind_handcuffs_contr(icombo)],norm);
-	master_fprintf(fout,"%s %+16.16lg %+16.16lg\n",handcuffs_map[icombo].name.c_str(),c[RE],c[IM]);
+	auto print=
+	  [fout](const std::complex<double>& c)
+	  {
+	    master_fprintf(fout,"%+16.16lg %+16.16lg\n",c.real(),c.imag());
+	  };
+	
+	if(doNotAverageHits)
+	  for(const std::complex<double>& c : h.data)
+	    print(c);
+	else
+	  {
+	    std::complex<double> s{};
+	    for(const std::complex<double>& c : h.data)
+	      s+=c;
+	    print(s);
+	  }
+	
+	if(computeHitSummedHandcuffs)
+	  {
+	    master_fprintf(fout,"\n");
+	    print(h.sum);
+	  }
       }
+    
     //close the file
-    if(fout) close_file(fout);
+    close_file(fout);
     
     contr_print_time+=take_time();
+  }
+  
+  /// Frees the handcuffs contractions
+  void freeHandcuffsContr()
+  {
+    handcuffsSides.clear();
+    handcuffs.clear();
   }
 }
