@@ -27,11 +27,14 @@ namespace nissa
     T r("r");
     
     //macro to be defined externally, allocating all the required additional vectors
-    if(guess) sol=*guess;
-    else sol.reset();
-    
+    if(guess)
+	sol=*guess;
+    else
+      sol.reset();
+   
     START_TIMING(cg_inv_over_time,ncg_inv);
-    int each=VERBOSITY_LV3?1:10;
+    const int each=
+      VERBOSITY_LV3?1:10;
     
     const double sourceNorm2=
       source.norm2();
@@ -42,7 +45,8 @@ namespace nissa
     r=source;
     r-=s;
     p=r;
-    double delta=r.norm2();
+    double delta=
+      r.norm2();
     VERBOSITY_LV3_MASTER_PRINTF("delta: %lg\n",delta);
     
     VERBOSITY_LV2_MASTER_PRINTF("Source norm2: %lg\n",sourceNorm2);
@@ -117,7 +121,8 @@ namespace nissa
 				     d=r(site,iDeg)+d*gammag;
 				   });
 	
-	if(iter%each==0) VERBOSITY_LV2_MASTER_PRINTF("iter %d relative residue: %lg\n",iter,lambda/sourceNorm2);
+	if(iter%each==0)
+	  VERBOSITY_LV2_MASTER_PRINTF("iter %d relative residue: %lg\n",iter,lambda/sourceNorm2);
       }
     while(lambda>=(residue*sourceNorm2) and iter<niter);
     

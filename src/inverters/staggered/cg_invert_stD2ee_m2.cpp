@@ -2,11 +2,7 @@
  #include "config.hpp"
 #endif
 
-#include "base/vectors.hpp"
 #include "cg_invert_stD2ee_m2_portable.hpp"
-#include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_mix.hpp"
-#include "routines/ios.hpp"
 
 namespace nissa
 {
@@ -18,6 +14,6 @@ namespace nissa
 			const double& residue,
 			const EvnField<color>& source)
   {
-      inv_stD2ee_m2_cg_portable(sol,guess,eo_conf,m2,niter,residue,source);
+    inv_stD2ee_m2_cg_portable(sol,guess,eo_conf,m2,niter,residue,source);
   }
 }

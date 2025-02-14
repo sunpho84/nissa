@@ -92,6 +92,7 @@ namespace nissa
 	      {
 		apply_shift_op(source,temp[0],temp[1],conf,tp.backfield[iflav],shift[iop],ori_source);
 		put_stag_phases(source,mask[iop]);
+		
 		mult_Minv(quark[iop],conf,tp,iflav,meas_pars.residue,source);
 	      }
 	    

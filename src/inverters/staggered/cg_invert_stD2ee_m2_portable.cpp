@@ -24,16 +24,16 @@ namespace nissa
        &conf,
        &m2]
       (EvnField<color>& out,
-		const EvnField<color>& in) mutable
+       const EvnField<color>& in) mutable
       {
 	apply_stD2ee_m2(out,conf,temp,m2,in);
       };
     
     cg_invert(sol,
-	       guess,
+	      guess,
 	      f,
-	       niter,
-	       residue,
-	       source);
+	      niter,
+	      residue,
+	      source);
   }
 }
