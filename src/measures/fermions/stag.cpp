@@ -206,7 +206,7 @@ namespace nissa
     {
       add_backfield_with_stagphases_to_conf(conf,u1b);
       inv_stD_cg(prop,conf,m,100000,residue,source);
-      //rem_backfield_with_stagphases_from_conf(conf,u1b);
+      rem_backfield_with_stagphases_from_conf(conf,u1b);
     }
     
     void mult_Minv(EoField<color>& prop,
