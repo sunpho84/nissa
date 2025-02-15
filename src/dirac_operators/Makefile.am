@@ -30,9 +30,6 @@ include_HEADERS+= \
 	%D%/overlap/dirac_operator_overlap.hpp
 
 EXTRA_DIST= \
-	base/git_info.hpp \
-	%D%/stD/dirac_operator_stD_portable.cpp \
-	%D%/stD/dirac_operator_stD_32_portable.cpp \
 	%D%/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_portable.cpp \
 	%D%/tmD_eoprec/dirac_operator_tmD_eoprec_portable.cpp \
 	%D%/tmQ/dirac_operator_tmQ_portable.cpp
