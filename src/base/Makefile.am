@@ -69,5 +69,5 @@ include_HEADERS+= \
 	%D%/export_conf_to_external_solver.hpp
 endif
 
-EXTRA_DIST= \
+EXTRA_DIST+= \
 	base/git_info.hpp
