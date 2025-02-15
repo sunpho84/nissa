@@ -635,15 +635,15 @@ namespace nissa
     }
     
     /// Squared norm
-    double norm2() const
+    Fund norm2() const
     {
       return realPartOfScalarProdWith(*this);
     }
     
     /// Put the field to the new norm, returning the reciprocal of normalizing factor
-    double normalize(const double& newNorm=1.0)
+    Fund normalize(const Fund& newNorm=1.0)
     {
-      const double f=
+      const Fund f=
 	newNorm/sqrt(this->norm2());
       
       (*this)*=f;
@@ -652,15 +652,15 @@ namespace nissa
     }
     
     /// Put the field to the given norm
-    double normalize(const Field& oth,
-		     const double& newNorm=1.0)
+    Fund normalize(const Field& oth,
+		   const Fund& newNorm=1.0)
     {
       //compute current norm
-      const double oldNorm2=
+      const Fund oldNorm2=
 	sqrt(oth.norm2());
       
       //compute normalizing factor
-      const double fact=
+      const Fund fact=
 	newNorm/sqrt(oldNorm2);
       
       PAR(0,this->nSites(),
@@ -684,7 +684,8 @@ namespace nissa
     {
       Field& self=*this;
       
-      int64_t n=this->nSites();
+      int64_t n=
+	this->nSites();
       
       // const double init_time=take_time();
       while(n>1)
@@ -789,9 +790,9 @@ namespace nissa
     }
     
     /// Re(*this,out)
-    double realPartOfScalarProdWith(const Field& oth) const
+    Fund realPartOfScalarProdWith(const Field& oth) const
     {
-      double res;
+      Fund res;
       
 // #ifdef USE_CUDA
 //       if(spaceTimeLayout==SpaceTimeLayout::CPU or bord_vol==0 or haloEdgesPresence==WITHOUT_HALO)
@@ -807,7 +808,7 @@ namespace nissa
 //       else
 // 	{
 // #endif
-	  Field<double,FC> buf("buf");
+	  Field<Fund,FC> buf("buf");
 	  
 	  PAR(0,this->nSites(),
 	      CAPTURE(TO_WRITE(buf),
@@ -815,7 +816,7 @@ namespace nissa
 		      TO_READ(oth)),
 	      site,
 	      {
-		double r=0;
+		Fund r=0.0;
 		UNROLL_FOR(internalDeg,0,nInternalDegs)
 		  r+=t(site,internalDeg)*oth(site,internalDeg);
 		buf[site]=r;
