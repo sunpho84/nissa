@@ -145,8 +145,7 @@ namespace nissa
 		TO_READ(conf),
 		TO_WRITE(temp)),io,
 	{
-	  
-	  color o{};
+	  Color<F> o{};
 	  
 	  //derivatives in the spatial direction - with self summ
 	  UNROLL_FOR_ALL_DIRS(mu)
@@ -154,11 +153,11 @@ namespace nissa
 	      const int evup=loceo_neighup[ODD][io][mu];
 	      const int evdw=loceo_neighdw[ODD][io][mu];
 	      
-	      color iu,id;
+	      Color<F> iu,id;
 	      color_copy(iu,in[evup]);
 	      color_copy(id,in[evdw]);
 	      
-	      su3 cu,cd;
+	      Su3<F> cu,cd;
 	      su3_copy(cu,conf[ODD][io  ][mu]);
 	      su3_copy(cd,conf[EVN][evdw][mu]);
 	      
@@ -177,18 +176,18 @@ namespace nissa
 		TO_READ(conf),
 		TO_WRITE(out)),ie,
 	{
-	  color o{};
+	  Color<F>o{};
 	  
 	  UNROLL_FOR_ALL_DIRS(mu)
 	    {
 	      const int odup=loceo_neighup[EVN][ie][mu];
 	      const int oddw=loceo_neighdw[EVN][ie][mu];
 	      
-	      color tu,td;
+	      Color<F>tu,td;
 	      color_copy(tu,temp[odup]);
 	      color_copy(td,temp[oddw]);
 	      
-	      su3 cu,cd;
+	      Su3<F> cu,cd;
 	      su3_copy(cu,conf[EVN][ie  ][mu]);
 	      su3_copy(cd,conf[ODD][oddw][mu]);
 	      

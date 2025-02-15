@@ -40,7 +40,7 @@ namespace nissa
       VERBOSITY_LV3?1:10;
     
     const double sourceNorm2=
-      source.norm2();
+      (double)source.norm2();
     
     //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
     f(s,sol);
@@ -49,7 +49,7 @@ namespace nissa
     r-=s;
     p=r;
     double delta=
-      r.norm2();
+      (double)r.norm2();
     VERBOSITY_LV3_MASTER_PRINTF("delta: %lg\n",delta);
     
     VERBOSITY_LV2_MASTER_PRINTF("Source norm2: %lg\n",sourceNorm2);
@@ -72,7 +72,7 @@ namespace nissa
 	cg_inv_over_time-=take_time();
 	
 	const double alpha=
-	  s.realPartOfScalarProdWith(p);
+	  (double)s.realPartOfScalarProdWith(p);
 	VERBOSITY_LV3_MASTER_PRINTF("alpha: %lg\n",alpha);
 	
 	const double omega=
@@ -100,7 +100,7 @@ namespace nissa
 				   });
 	
 	//(r_(k+1),r_(k+1))
-	lambda=r.norm2();
+	lambda=(double)r.norm2();
 	VERBOSITY_LV3_MASTER_PRINTF("lambda: %lg\n",lambda);
 	
 	//(r_(k+1),r_(k+1))/(r_k,r_k)
@@ -133,7 +133,7 @@ namespace nissa
     f(s,sol);
     r=source;
     r-=s;
-    lambda=r.norm2();
+    lambda=(double)r.norm2();
     
     VERBOSITY_LV2_MASTER_PRINTF("final relative residue (after %d iters): %lg where %lg was required\n",
 				final_iter,lambda/sourceNorm2,residue);

@@ -6,7 +6,6 @@
 #endif
 
 #include <cmath>
-#include <cstdio>
 
 #ifndef EXTERN_FLOAT_128
 # define EXTERN_FLOAT_128 extern
@@ -138,6 +137,13 @@ namespace nissa
       const Float128& a=*this;
       
       return {-a[0],-a[1]};
+    }
+    
+    /// Unary plus
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    Float128 operator+() const
+    {
+      return *this;
     }
     
     /// Subtract another Float128
@@ -276,6 +282,12 @@ namespace nissa
 	return data[0];
       else
 	return std::nextafter(data[0],+1e-300);
+    }
+    
+    /// Cast to double
+    explicit operator double() const
+    {
+      return roundDown();
     }
   };
   

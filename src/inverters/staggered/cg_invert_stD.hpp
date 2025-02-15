@@ -67,11 +67,11 @@ namespace nissa
     
     /// Source L2 norm
     const double sourceNorm2=
-      source.norm2();
+      (double)source.norm2();
     
     /// Residue L2 norm
     const double residueNorm2=
-      residueVec.norm2();
+      (double)residueVec.norm2();
     
     MASTER_PRINTF("check solution, residue: %lg/%lg=%lg, target one: %lg\n",residueNorm2,sourceNorm2,residueNorm2/sourceNorm2,residue);
   }
