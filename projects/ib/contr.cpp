@@ -3,6 +3,7 @@
 #define EXTERN_CONTR
 # include "contr.hpp"
 
+#include <complex>
 #include <set>
 
 #include "prop.hpp"
