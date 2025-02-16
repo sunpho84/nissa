@@ -680,7 +680,7 @@ namespace nissa
     template <typename F=GlbReduceSumFunctor>
     void reduceNoPreserve(T& out,
 			  const F& f=GlbReduceSumFunctor(),
-			  const MPI_Op& mpiOp=MPI_SUM)
+			  const MPI_Op& mpiOp=MPI_Op_sum_for_type<T>())
     {
       Field& self=*this;
       
@@ -726,7 +726,7 @@ namespace nissa
     template <typename F=GlbReduceSumFunctor>
     void reduce(T& out,
 		const F& f=GlbReduceSumFunctor(),
-		const MPI_Op& mpiOp=MPI_SUM) const
+		const MPI_Op& mpiOp=MPI_Op_sum_for_type<T>()) const
     {
       /// Copy to a temporary to avoid destroying the field
       Field tmp("tmp");
@@ -739,7 +739,7 @@ namespace nissa
     template <typename F=GlbReduceSumFunctor>
     void preciseReduce(T& out,
 		       const F& f=GlbReduceSumFunctor(),
-		       const MPI_Op& mpiOp=MPI_FLOAT_128_SUM) const
+		       const MPI_Op& mpiOp=MPI_Op_sum_for_type<Float128>()) const
     {
       using T128=
 	DuplicateExtents<T,Float128>;
