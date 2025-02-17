@@ -221,7 +221,9 @@ void init_simulation(int narg,char **arg)
       
       bool decripted=false;
       
-      if(strcasecmp(ins,ins_tag[PROP])==0 or strcasecmp(ins,ins_tag[DIROP])==0)
+      if(strcasecmp(ins,ins_tag[PROP])==0 or
+	 strcasecmp(ins,ins_tag[DIROP])==0 or
+	 strcasecmp(ins,ins_tag[LEP_LOOP])==0)
 	{
 	  decripted=true;
 	  
