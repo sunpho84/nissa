@@ -217,8 +217,6 @@ namespace nissa
     else              insert_Wilson_tadpole(*loop_source,conf,ori,tadpole,t);
   }
   
-  constexpr dirac_matr g0umg5{.pos{2,3,0,1},.entr{{-2.0},{-2.0}}}; // Weak current at rest
-  
   /// Insert the lepton loop
   LxField<spin1field> get_lepton_loop(const double& mass,
 				      const double& kappa,
@@ -282,6 +280,7 @@ namespace nissa
 		rho,
 		projMu,
 		projNu,
+		g0umg5=dirac_matr{.pos{2,3,0,1},.entr{{-2.0},{-2.0}}}, // Weak current at rest
 		TO_WRITE(lepton_loop)),
 	iMom,
 	{
