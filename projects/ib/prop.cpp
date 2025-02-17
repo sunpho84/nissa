@@ -217,20 +217,34 @@ namespace nissa
     else              insert_Wilson_tadpole(*loop_source,conf,ori,tadpole,t);
   }
   
+  constexpr dirac_matr g0umg5{.pos{2,3,0,1},.entr{{-2.0},{-2.0}}}; // Weak current at rest
+  
   /// Insert the lepton loop
   LxField<spin1field> get_lepton_loop(const double& mass,
-				      const int& tWall,
-				      const int& rho,
-				      const Momentum& theta)
+				      const double& kappa,
+				      const Momentum& theta,
+				      const double& residue)
   {
+    const int rho=
+      round(kappa);
+    
+    const int tWall=
+      round(residue);
+    
+    if(fabs(kappa-rho)>1e-15)
+      CRASH("please use kappa to specify the rho index");
+    
+    if(fabs(tWall-residue)>1e-15)
+      CRASH("please use residue to specify twall");
+    
     LxField<complex> ph("ph");
     
     /// Modification of eq.47 of 1904.08731
     TmQuarkInfo lep(kappa_of_m0(mass),0.0,0,theta);
     const double Elep=
-      tm_quark_energy(lep,0.0);
+      tm_quark_energy(lep,0);
     
-    // Go to momentum space adding the twisted phasis of the sink
+    // Go to momentum space adding the twisted phasis of the source and sink
     PAR(0,
 	locVol,
 	CAPTURE(Elep,
@@ -256,45 +270,33 @@ namespace nissa
     
     LxField<spin1field> lepton_loop("leptonLoop",WITH_HALO);
     
+    spinspin projMu;
+    twisted_on_shell_operator_of_imom(projMu,lep,0,/*tilded*/false,-1,tm_basis_t::WILSON_BASE); // Final state has negative energy in the projector
+    
+    spinspin projNu;
+    naive_massless_on_shell_operator_of_imom(projNu,lep.bc,0,-1); // Same
+    
     PAR(0,
 	locVol,
 	CAPTURE(lep,
 		rho,
+		projMu,
+		projNu,
 		TO_WRITE(lepton_loop)),
 	iMom,
 	{
 	  spinspin prop;
 	  mom_space_twisted_propagator_of_imom(prop,lep,iMom,tm_basis_t::WILSON_BASE);
 	  safe_spinspin_prod_dirac(prop,prop,base_gamma[iGammaOfMu(rho)]);
-	  spinspin proj;
-	  naive_massless_on_shell_operator_of_imom(proj,lep.bc,iMom,+1); //Check
-	  safe_spinspin_prod_spinspin(prop,prop,proj);
-	  constexpr dirac_matr g0umg5{.pos{2,3,0,1},.entr{{-2.0},{-2.0}}};
+	  safe_spinspin_prod_spinspin(prop,prop,projNu);
 	  safe_spinspin_prod_dirac(prop,prop,g0umg5);
-	  spinspin op;
-	  twisted_on_shell_operator_of_imom(op,lep,iMom,/*tilded*/false,+1,tm_basis_t::WILSON_BASE);
-	  safe_spinspin_prod_spinspin(prop,prop,op);
+	  safe_spinspin_prod_spinspin(prop,prop,projMu);
 	  for(int nu=0;nu<NDIM;nu++)
 	    trace_spinspin_with_dirac(lepton_loop[iMom][nu],prop,base_gamma[iGammaOfMu(nu)]);
 	});
     
-    // Go back to x space adding the twisted phasis of the source
+    // Go back to x space
     fft4d(lepton_loop,+1,1);
-    PAR(0,
-	locVol,
-	CAPTURE(theta,
-		TO_WRITE(lepton_loop)),
-	site,
-	{
-	  double ps=0.0;
-	  for(int i=1;i<NDIM;i++)
-	    ps+=theta[i]*rel_coord_of_loclx(site,i)*M_PI/glbSize[i];
-	  
-	  complex c;
-	  complex_iexp(c,ps);
-	  for(int mu=0;mu<NDIM;mu++)
-	    complex_prodassign(lepton_loop[site][mu],c);
-	});
     
     multiply_by_tlSym_gauge_propagator(lepton_loop,lepton_loop,photon);
     
@@ -597,7 +599,7 @@ namespace nissa
   }
   
   //generate a sequential source
-  void generate_source(insertion_t inser,char *ext_field_path,double mass,int r,double charge,double kappa,const Momentum& kappa_asymm,const Momentum& theta,std::vector<source_term_t>& source_terms,int isou,int t)
+  void generate_source(insertion_t inser,char *ext_field_path,double mass,int r,double charge,double kappa,const Momentum& kappa_asymm,const Momentum& theta,const double& residue,std::vector<source_term_t>& source_terms,int isou,int t)
   {
     source_time-=take_time();
     
@@ -718,13 +720,7 @@ namespace nissa
       case DEL_POS:select_position(loop_source,ori,r);break;
       case DEL_SPIN:select_spin(loop_source,ori,r);break;
       case DEL_COL:select_color(loop_source,ori,r);break;
-#define TAKE_CARE_LEP_LOOP(MU)						\
-	case LEP_LOOP ## MU:insert_external_source(loop_source,*conf,get_lepton_loop(mass,t,MU,theta),ori,rel_t,r,allDirs,loc_hadr_curr);break
-	TAKE_CARE_LEP_LOOP(0);
-	TAKE_CARE_LEP_LOOP(1);
-	TAKE_CARE_LEP_LOOP(2);
-	TAKE_CARE_LEP_LOOP(3);
-	#undef TAKE_CARE_LEP_LOOP
+      case LEP_LOOP:insert_external_source(loop_source,*conf,get_lepton_loop(mass,kappa,theta,residue),ori,rel_t,r,allDirs,loc_hadr_curr);break;
       }
     
     if(ext_field)
@@ -793,7 +789,7 @@ namespace nissa
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
 	  int isou=so_sp_col_ind(id_so,ic_so);
-	  generate_source(insertion,q.ext_field_path,q.mass,q.r,q.charge,q.kappa,q.kappa_asymm,q.theta,q.source_terms,isou,q.tins);
+	  generate_source(insertion,q.ext_field_path,q.mass,q.r,q.charge,q.kappa,q.kappa_asymm,q.theta,q.residue,q.source_terms,isou,q.tins);
 	  q[isou].initOn<defaultMemorySpace>([&name,
 					      ihit,
 					      id_so,
