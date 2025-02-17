@@ -529,14 +529,30 @@ namespace nissa
   {spinspin temp;unsafe_dirac_prod_spinspin_dag(temp,m,in);spinspin_copy(out,temp);}
   
   //out=in*m
-  CUDA_HOST_AND_DEVICE inline void unsafe_spinspin_prod_dirac(spinspin out,const spinspin in,const dirac_matr& m)
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void unsafe_spinspin_prod_dirac(A&& out,
+				  const B& in,
+				  const dirac_matr& m)
   {
     spinspin_put_to_zero(out);
     UNROLL_FOR_ALL_SPIN(id1)
-      UNROLL_FOR_ALL_SPIN(id2)unsafe_complex_prod(out[id1][m.pos[id2]],in[id1][id2],m.entr[id2]);
+      UNROLL_FOR_ALL_SPIN(id2)
+      unsafe_complex_prod(out[id1][m.pos[id2]],in[id1][id2],m.entr[id2]);
   }
-  inline void safe_spinspin_prod_dirac(spinspin out,const spinspin in,const dirac_matr& m)
-  {spinspin temp;unsafe_spinspin_prod_dirac(temp,in,m);spinspin_copy(out,temp);}
+  
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void safe_spinspin_prod_dirac(A&& out,
+				const B& in,
+				const dirac_matr& m)
+  {
+    spinspin temp;
+    unsafe_spinspin_prod_dirac(temp,in,m);
+    spinspin_copy(out,temp);
+  }
   
   //product of spinspin and spin
   template <typename A,
