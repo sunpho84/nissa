@@ -219,9 +219,84 @@ namespace nissa
   
   /// Insert the lepton loop
   LxField<spin1field> get_lepton_loop(const double& mass,
+				      const int& tWall,
+				      const int& rho,
 				      const Momentum& theta)
   {
+    LxField<complex> ph("ph");
+    
+    /// Modification of eq.47 of 1904.08731
+    TmQuarkInfo lep(kappa_of_m0(mass),0.0,0,theta);
+    const double Elep=
+      tm_quark_energy(lep,0.0);
+    
+    // Go to momentum space adding the twisted phasis of the sink
+    PAR(0,
+	locVol,
+	CAPTURE(Elep,
+		tWall,
+		theta,
+		TO_WRITE(ph)),
+	site,
+	{
+	  const int tsite=
+	    rel_coord_of_loclx(site,0);
+	  
+	  const double e=
+	    exp(Elep*fabs(tWall-tsite));
+	  
+	  double ps=0.0;
+	  for(int i=1;i<NDIM;i++)
+	    ps+=theta[i]*rel_coord_of_loclx(site,i)*M_PI/glbSize[i];
+	  
+	  ph[site][RE]=e*cos(ps)*(tWall>tsite);
+	  ph[site][IM]=e*sin(-ps)*(tWall>tsite);
+	});
+    fft4d(ph,-1,0);
+    
     LxField<spin1field> lepton_loop("leptonLoop",WITH_HALO);
+    
+    PAR(0,
+	locVol,
+	CAPTURE(lep,
+		rho,
+		TO_WRITE(lepton_loop)),
+	iMom,
+	{
+	  spinspin prop;
+	  mom_space_twisted_propagator_of_imom(prop,lep,iMom,tm_basis_t::WILSON_BASE);
+	  safe_spinspin_prod_dirac(prop,prop,base_gamma[iGammaOfMu(rho)]);
+	  spinspin proj;
+	  naive_massless_on_shell_operator_of_imom(proj,lep.bc,iMom,+1); //Check
+	  safe_spinspin_prod_spinspin(prop,prop,proj);
+	  constexpr dirac_matr g0umg5{.pos{2,3,0,1},.entr{{-2.0},{-2.0}}};
+	  safe_spinspin_prod_dirac(prop,prop,g0umg5);
+	  spinspin op;
+	  twisted_on_shell_operator_of_imom(op,lep,iMom,/*tilded*/false,+1,tm_basis_t::WILSON_BASE);
+	  safe_spinspin_prod_spinspin(prop,prop,op);
+	  for(int nu=0;nu<NDIM;nu++)
+	    trace_spinspin_with_dirac(lepton_loop[iMom][nu],prop,base_gamma[iGammaOfMu(nu)]);
+	});
+    
+    // Go back to x space adding the twisted phasis of the source
+    fft4d(lepton_loop,+1,1);
+    PAR(0,
+	locVol,
+	CAPTURE(theta,
+		TO_WRITE(lepton_loop)),
+	site,
+	{
+	  double ps=0.0;
+	  for(int i=1;i<NDIM;i++)
+	    ps+=theta[i]*rel_coord_of_loclx(site,i)*M_PI/glbSize[i];
+	  
+	  complex c;
+	  complex_iexp(c,ps);
+	  for(int mu=0;mu<NDIM;mu++)
+	    complex_prodassign(lepton_loop[site][mu],c);
+	});
+    
+    multiply_by_tlSym_gauge_propagator(lepton_loop,lepton_loop,photon);
     
     return lepton_loop;
   }
@@ -643,7 +718,13 @@ namespace nissa
       case DEL_POS:select_position(loop_source,ori,r);break;
       case DEL_SPIN:select_spin(loop_source,ori,r);break;
       case DEL_COL:select_color(loop_source,ori,r);break;
-      case LEP_LOOP:insert_external_source(loop_source,*conf,get_lepton_loop(mass,theta),ori,rel_t,r,allDirs,loc_hadr_curr);break;
+#define TAKE_CARE_LEP_LOOP(MU)						\
+	case LEP_LOOP ## MU:insert_external_source(loop_source,*conf,get_lepton_loop(mass,t,MU,theta),ori,rel_t,r,allDirs,loc_hadr_curr);break
+	TAKE_CARE_LEP_LOOP(0);
+	TAKE_CARE_LEP_LOOP(1);
+	TAKE_CARE_LEP_LOOP(2);
+	TAKE_CARE_LEP_LOOP(3);
+	#undef TAKE_CARE_LEP_LOOP
       }
     
     if(ext_field)
