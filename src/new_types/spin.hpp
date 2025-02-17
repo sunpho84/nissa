@@ -605,7 +605,13 @@ namespace nissa
     c[0]=c[1]=0;
     summ_the_trace_prod_spinspins(c,a,b);
   }
-  CUDA_HOST_AND_DEVICE inline void trace_spinspin_with_dirac(complex out,const spinspin s,const dirac_matr& m)
+  
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void trace_spinspin_with_dirac(A&& out,
+				 B&& s,
+				 const dirac_matr& m)
   {
     complex_put_to_zero(out);
     UNROLL_FOR_ALL_SPIN(id1)
