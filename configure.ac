@@ -189,7 +189,7 @@ case "$with_threads_type" in
     	    then
 		THREADS_TYPE=CUDA_THREADS
 	    else
-		AC_MSG_ERROR(["Asked to enable Cuda when the framework has not been found"])
+		AC_MSG_ERROR(["Asked to use cuda threads but the cuda framework has not been found"])
 	     fi;;
       *) AC_MSG_ERROR(["Unkwnown threads type ${withval}"])
 esac
@@ -236,6 +236,24 @@ AC_DEFINE_UNQUOTED([DEFAULT_MEMORY_LAYOUT],${MEMORY_LAYOUT},["Default memory lay
 AC_MSG_RESULT([with memory layout... ${with_memory_layout}])
 SUMMARY_RESULT="$SUMMARY_RESULT
 memory layout            : $with_memory_layout"
+
+#cuda-aware mpi
+AC_ARG_ENABLE(cuda-aware-mpi,
+	AS_HELP_STRING([--enable-cuda-aware-mpi],[Enable cuda-aware-mpi]),
+	enable_cuda_aware_mpi="${enableval}",
+	if test "$THREADS_TYPE" == "CUDA_THREADS"
+	then
+		enable_cuda_aware_mpi="yes"
+	else
+		enable_cuda_aware_mpi="no"
+	fi)
+if test "$enable_cuda_aware_mpi" == "yes"
+then
+	AC_DEFINE([ENABLE_CUDA_AWARE_MPI],1,[Enable cuda-aware mpi])
+fi
+AC_MSG_RESULT([enable cuda aware mpi... ${enable_cuda_aware_mpi}])
+SUMMARY_RESULT="$SUMMARY_RESULT
+cuda-aware mpi          : $enable_cuda_aware_mpi"
 
 ####################################
 
@@ -316,20 +334,6 @@ then
 	AC_DEFINE([ENABLE_QUDA_BYPASS],1,[Enable quda bypass])
 fi
 
-#################### tmLQCD ####################
-
-#search for the library
-TMLQCD_LIBS="-lwrapper -lhmc -lmeas -lmonomial -loperator -lsolver -linit -llinalg -lhmc -lxchange -lrational -lio"
-OLD_LIBS=$LIBS
-LIBS="$TMLQCD_LIBS $LIBS"
-AX_SUBPACKAGE(tmLQCD,,tmLQCD,tmLQCD_invert_init,TMLQCD)
-LIBS=$OLD_LIBS
-
-if test "$enable_tmLQCD" == "yes"
-then
-	LIBS="$LIBS $TMLQCD_LIBS"
-fi
-
 #################### DDalphaAMG ####################
 
 AX_SUBPACKAGE(DDalphaAMG,DDalphaAMG.h,DDalphaAMG,DDalphaAMG_get_communicator,DDALPHAAMG)
@@ -395,12 +399,12 @@ AC_ARG_ENABLE(parser-generation,
 	AS_HELP_STRING([--enable-parser-generation],[Enable generation of parsers]),
 	enable_parser_generation="${enableval}",
 	enable_parser_generation="yes")
-	if test "$enable_parser_generation" == "yes"
-	then
-		#check yacc and lex
-		AC_PROG_YACC
-		AM_PROG_LEX
-	fi
+if test "$enable_parser_generation" == "yes"
+then
+	#check yacc and lex
+	AC_PROG_YACC
+	AM_PROG_LEX
+fi
 AM_CONDITIONAL([PARSER_GENERATION],[test "$enable_parser_generation" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling parser generation... $enable_parser_generation])
 

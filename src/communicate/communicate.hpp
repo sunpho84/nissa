@@ -63,7 +63,7 @@
 */
 
 #ifndef EXTERN_COMMUNICATE
- #define EXTERN_COMMUNICATE extern
+# define EXTERN_COMMUNICATE extern
 #endif
 
 namespace nissa
@@ -72,9 +72,21 @@ namespace nissa
   EXTERN_COMMUNICATE int comm_in_prog;
   EXTERN_COMMUNICATE int use_async_communications;
   
-  //buffers
-  EXTERN_COMMUNICATE uint64_t recv_buf_size,send_buf_size;
-  CUDA_MANAGED EXTERN_COMMUNICATE char *recv_buf,*send_buf;
+  EXTERN_COMMUNICATE uint64_t recvBufSize;
+  
+  EXTERN_COMMUNICATE uint64_t sendBufSize;
+  
+#ifdef ENABLE_CUDA_AWARE_MPI
+# define CUDA_MANAGED_IF_NOT_CUDA_AWARE
+#else
+# define CUDA_MANAGED_IF_NOT_CUDA_AWARE CUDA_MANAGED
+#endif
+  
+  CUDA_MANAGED_IF_NOT_CUDA_AWARE EXTERN_COMMUNICATE char* recvBuf;
+  
+  CUDA_MANAGED_IF_NOT_CUDA_AWARE EXTERN_COMMUNICATE char* sendBuf;
+  
+#undef CUDA_MANAGED_IF_NOT_CUDA_AWARE
 }
 
 #undef EXTERN_COMMUNICATE
