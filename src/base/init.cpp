@@ -233,8 +233,8 @@ namespace nissa
 #endif
     
     //put 0 as minimal request
-    recv_buf_size=0;
-    send_buf_size=0;
+    recvBufSize=0;
+    sendBufSize=0;
     
     //read the configuration file, if present
     read_nissa_config_file();
@@ -742,11 +742,17 @@ namespace nissa
     ncomm_allocated=0;
     
     //allocate only now buffers, so we should have finalized its size
-    recv_buf=nissa_malloc("recv_buf",recv_buf_size,char);
-    send_buf=nissa_malloc("send_buf",send_buf_size,char);
+#ifdef ENABLE_CUDA_AWARE_MPI
+    recvBuf=memoryManager<MemorySpace::GPU>()->provide<char>(recvBufSize);
+    sendBuf=memoryManager<MemorySpace::GPU>()->provide<char>(sendBufSize);
+#else
+    recvBuf=nissa_malloc("recvBuf",recvBufSize,char);
+    sendBuf=nissa_malloc("sendBuf",sendBufSize,char);
+#endif
     
 #ifdef USE_QUDA
-    if(use_quda) quda_iface::initialize();
+    if(use_quda)
+      quda_iface::initialize();
 #endif
      
     //take final time

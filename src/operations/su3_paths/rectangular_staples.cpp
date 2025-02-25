@@ -53,7 +53,7 @@ namespace nissa
 			TO_READ(sq_staples)),
 		ibord,
 		{
-		  su3_copy(((quad_su3*)send_buf)[ibord][mu],sq_staples[surflxOfBordlx[ibord]][mu][3+inu]); //one contribution per link in the border
+		  su3_copy(((quad_su3*)sendBuf)[ibord][mu],sq_staples[surflxOfBordlx[ibord]][mu][3+inu]); //one contribution per link in the border
 		});
 	  }
     
@@ -115,7 +115,7 @@ namespace nissa
 			TO_WRITE(sq_staples)),
 		ibord,
 		{
-		  su3_copy(sq_staples[locVol+ibord][mu][3+inu],((quad_su3*)recv_buf)[ibord][mu]); //one contribution per link in the border
+		  su3_copy(sq_staples[locVol+ibord][mu][3+inu],((quad_su3*)recvBuf)[ibord][mu]); //one contribution per link in the border
 		});
 	  }
   }
@@ -166,7 +166,7 @@ namespace nissa
 			TO_WRITE(out)),
 		ibord,
 		{
-		  su3_copy(((quad_su3*)send_buf)[ibord][mu],out[locVol+ibord][mu][inu]); //one contribution per link in the border
+		  su3_copy(((quad_su3*)sendBuf)[ibord][mu],out[locVol+ibord][mu][inu]); //one contribution per link in the border
 		});
 	  }
     
@@ -259,7 +259,7 @@ namespace nissa
 			TO_WRITE(out)),
 		ibord,
 		{
-		  su3_copy(out[surflxOfBordlx[ibord]][mu][inu],((quad_su3*)recv_buf)[ibord][mu]);//one contribution per link in the border
+		  su3_copy(out[surflxOfBordlx[ibord]][mu][inu],((quad_su3*)recvBuf)[ibord][mu]);//one contribution per link in the border
 		});
 	  }
   }

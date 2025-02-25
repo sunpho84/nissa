@@ -554,8 +554,8 @@ namespace nissa
     find_bulk_sites();
     
     //allocate a buffer large enough to allow communications of su3spinspin lx border
-    recv_buf_size=std::max(recv_buf_size,bordVol*sizeof(su3spinspin));
-    send_buf_size=std::max(send_buf_size,bordVol*sizeof(su3spinspin));
+    recvBufSize=std::max(recvBufSize,bordVol*sizeof(su3spinspin));
+    sendBufSize=std::max(sendBufSize,bordVol*sizeof(su3spinspin));
     
     //create the sweepers but do not fully initialize
     Wilson_sweeper=new gauge_sweeper_t;
@@ -603,8 +603,13 @@ namespace nissa
     MASTER_PRINTF("Unsetting cartesian geometry\n");
     lxGeomInited=0;
     
-    nissa_free(recv_buf);
-    nissa_free(send_buf);
+#ifdef ENABLE_CUDA_AWARE_MPI
+    memoryManager<MemorySpace::GPU>()->release(recvBuf);
+    memoryManager<MemorySpace::GPU>()->release(sendBuf);
+#else
+    nissa_free(recvBuf);
+    nissa_free(sendBuf);
+#endif
     
     nissa_free(locCoordOfLoclx);
     nissa_free(glbCoordOfLoclx);

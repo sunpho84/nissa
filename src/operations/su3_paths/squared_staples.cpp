@@ -92,7 +92,7 @@ namespace nissa
 	CAPTURE(TO_READ(conf)),
 	ibord,
 	{
-	  quad_su3_copy(((quad_su3*)send_buf)[ibord],conf[surflxOfBordlx[ibord]]);
+	  quad_su3_copy(((quad_su3*)sendBuf)[ibord],conf[surflxOfBordlx[ibord]]);
 	});
     
     //start communication of lower surf to backward nodes
@@ -139,7 +139,7 @@ namespace nissa
 	CAPTURE(TO_WRITE(conf)),
 	i,
 	{
-	  quad_su3_copy(conf[locVol+bordVolh+i],((quad_su3*)recv_buf)[bordVolh+i]);
+	  quad_su3_copy(conf[locVol+bordVolh+i],((quad_su3*)recvBuf)[bordVolh+i]);
 	});
   }
   
@@ -187,7 +187,7 @@ namespace nissa
 			TO_WRITE(out)),
 		ibord,
 		{
-		  su3_copy(((quad_su3*)send_buf)[ibord][mu],out[locVol+ibord][mu][inu]); //one contribution per link in the border
+		  su3_copy(((quad_su3*)sendBuf)[ibord][mu],out[locVol+ibord][mu][inu]); //one contribution per link in the border
 		});
 	  }
     
@@ -273,7 +273,7 @@ namespace nissa
 			inu),
 		ibord,
 		{
-		  su3_copy(out[surflxOfBordlx[ibord]][mu][inu],((quad_su3*)recv_buf)[ibord][mu]); //one contribution per link in the border
+		  su3_copy(out[surflxOfBordlx[ibord]][mu][inu],((quad_su3*)recvBuf)[ibord][mu]); //one contribution per link in the border
 		});
 	  }
   }

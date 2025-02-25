@@ -215,18 +215,18 @@ namespace nissa
   /// Spoil the receiving and sending buffer to check consistency
   void taintTheCommBuffers()
   {
-    PAR(0,recv_buf_size/sizeof(int),
+    PAR(0,recvBufSize/sizeof(int),
 	CAPTURE(),
 	i,
 	{
-	  ((int*)recv_buf)[i]=-3;
+	  ((int*)recvBuf)[i]=-3;
 	});
     
-    PAR(0,send_buf_size/sizeof(int),
+    PAR(0,sendBufSize/sizeof(int),
 	CAPTURE(),
 	i,
 	{
-	  ((int*)send_buf)[i]=-4;
+	  ((int*)sendBuf)[i]=-4;
 	});
   }
   
@@ -384,9 +384,9 @@ namespace nissa
 			  });
 		      );
     
-    int* r=(int*)recv_buf;
-    int* s=(int*)send_buf;
-    const int n=recv_buf_size/sizeof(int);
+    int* r=(int*)recvBuf;
+    int* s=(int*)sendBuf;
+    const int n=recvBufSize/sizeof(int);
     PAR(0,n,
 	CAPTURE(r,s),
 	i,

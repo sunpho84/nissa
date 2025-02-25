@@ -997,7 +997,7 @@ namespace nissa
 	  i,
 	  {
 	    UNROLL_FOR(internalDeg,0,nInternalDegs)
-	      ((Fund*)send_buf)[internalDeg+nInternalDegs*i]=
+	      ((Fund*)sendBuf)[internalDeg+nInternalDegs*i]=
 		t(f(i),internalDeg);
 	  });
     }
@@ -1045,7 +1045,7 @@ namespace nissa
 		  Field::surfSiteOfHaloSite(iHalo);
 		
 		f(t[iSurf],
-		  ((B*)recv_buf)[iHalo],
+		  ((B*)recvBuf)[iHalo],
 		  bf,
 		  mu);
 	      });
@@ -1066,7 +1066,7 @@ namespace nissa
 	    
 	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
 	      data[FD::index(offset+i,internalDeg,externalSize)]=
-		((Fund*)recv_buf)[internalDeg+nInternalDegs*i];
+		((Fund*)recvBuf)[internalDeg+nInternalDegs*i];
 	  });
     }
     
@@ -1102,7 +1102,7 @@ namespace nissa
 		  bf*bordVolh/divCoeff+
 		  iHaloOriDir+bordOffset[mu]/divCoeff;
 		
-		f(((B*)send_buf)[iHalo],
+		f(((B*)sendBuf)[iHalo],
 		  t[locVol/divCoeff+iHalo],
 		  bf,
 		  mu);
@@ -1131,7 +1131,7 @@ namespace nissa
 	sizeof(T)*n;
       
       const size_t maxBufSize=
-	std::min(send_buf_size,recv_buf_size);
+	std::min(sendBufSize,recvBufSize);
       
       if(neededBufSize>maxBufSize)
 	CRASH("asking to create a communicator that needs %ld large buffer (%ld allocated)",

@@ -53,8 +53,8 @@ namespace nissa
 	      
 	      const int recvOri=1-sendOri;
 	      
-	      sendOrRecv("send",MPI_Isend,send_buf,sendOri);
-	      sendOrRecv("recv",MPI_Irecv,recv_buf,recvOri);
+	      sendOrRecv("send",MPI_Isend,sendBuf,sendOri);
+	      sendOrRecv("recv",MPI_Irecv,recvBuf,recvOri);
 	    }
     
     return requests;
@@ -105,8 +105,8 @@ namespace nissa
 	    const int recvOri1=1-sendOri1;
 	    const int recvOri2=1-sendOri2;
 	    
-	    sendOrRecv("send",MPI_Isend,send_buf,sendOri1,sendOri2);
-	    sendOrRecv("recv",MPI_Irecv,recv_buf,recvOri1,recvOri2);
+	    sendOrRecv("send",MPI_Isend,sendBuf,sendOri1,sendOri2);
+	    sendOrRecv("recv",MPI_Irecv,recvBuf,recvOri1,recvOri2);
 	  }
     
     return requests;

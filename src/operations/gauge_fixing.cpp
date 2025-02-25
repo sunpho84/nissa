@@ -324,9 +324,9 @@ namespace nissa
 		    loclxNeighdw[ivol][mu];
 		  
 		  if(f>=locVol)
-		    su3_copy(((su3*)send_buf)[loceo_of_loclx[f]-locVolh],fixedConf[ivol][mu]);
+		    su3_copy(((su3*)sendBuf)[loceo_of_loclx[f]-locVolh],fixedConf[ivol][mu]);
 		  if(b>=locVol)
-		    su3_copy(((su3*)send_buf)[loceo_of_loclx[b]-locVolh],fixedConf[b][mu]);
+		    su3_copy(((su3*)sendBuf)[loceo_of_loclx[b]-locVolh],fixedConf[b][mu]);
 		}
 	    });
 	
@@ -345,8 +345,8 @@ namespace nissa
 		  {
 		    int f=loclxNeighup[ivol][mu];
 		    int b=loclxNeighdw[ivol][mu];
-		    if(f>=locVol) su3_copy(fixedConf[ivol][mu],((su3*)recv_buf)[loceo_of_loclx[f]-locVolh]);
-		    if(b>=locVol) su3_copy(fixedConf[b][mu],((su3*)recv_buf)[loceo_of_loclx[b]-locVolh]);
+		    if(f>=locVol) su3_copy(fixedConf[ivol][mu],((su3*)recvBuf)[loceo_of_loclx[f]-locVolh]);
+		    if(b>=locVol) su3_copy(fixedConf[b][mu],((su3*)recvBuf)[loceo_of_loclx[b]-locVolh]);
 		  }
 	    });
       }
