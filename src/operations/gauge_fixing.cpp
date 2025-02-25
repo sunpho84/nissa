@@ -269,6 +269,7 @@ namespace nissa
 		    overrelax_prob,
 		    gauge,
 		    drawer,
+		    sb=(su3*)sendBuf,
 		    TO_WRITE(fixer),
 		    TO_WRITE(fixedConf)),
 	    ieo,
@@ -324,9 +325,9 @@ namespace nissa
 		    loclxNeighdw[ivol][mu];
 		  
 		  if(f>=locVol)
-		    su3_copy(((su3*)sendBuf)[loceo_of_loclx[f]-locVolh],fixedConf[ivol][mu]);
+		    su3_copy(sb[loceo_of_loclx[f]-locVolh],fixedConf[ivol][mu]);
 		  if(b>=locVol)
-		    su3_copy(((su3*)sendBuf)[loceo_of_loclx[b]-locVolh],fixedConf[b][mu]);
+		    su3_copy(sb[loceo_of_loclx[b]-locVolh],fixedConf[b][mu]);
 		}
 	    });
 	
@@ -337,6 +338,7 @@ namespace nissa
 	PAR(0,
 	    locVol,
 	    CAPTURE(eo,
+		    rb=(su3*)recvBuf,
 		    TO_WRITE(fixedConf)),
 	    ivol,
 	    {
@@ -345,8 +347,8 @@ namespace nissa
 		  {
 		    int f=loclxNeighup[ivol][mu];
 		    int b=loclxNeighdw[ivol][mu];
-		    if(f>=locVol) su3_copy(fixedConf[ivol][mu],((su3*)recvBuf)[loceo_of_loclx[f]-locVolh]);
-		    if(b>=locVol) su3_copy(fixedConf[b][mu],((su3*)recvBuf)[loceo_of_loclx[b]-locVolh]);
+		    if(f>=locVol) su3_copy(fixedConf[ivol][mu],rb[loceo_of_loclx[f]-locVolh]);
+		    if(b>=locVol) su3_copy(fixedConf[b][mu],rb[loceo_of_loclx[b]-locVolh]);
 		  }
 	    });
       }

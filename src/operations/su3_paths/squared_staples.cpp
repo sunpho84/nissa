@@ -89,10 +89,11 @@ namespace nissa
     //in the first half of sending buf
     PAR(0,
 	bordVolh,
-	CAPTURE(TO_READ(conf)),
+	CAPTURE(sb=(quad_su3*)sendBuf,
+		TO_READ(conf)),
 	ibord,
 	{
-	  quad_su3_copy(((quad_su3*)sendBuf)[ibord],conf[surflxOfBordlx[ibord]]);
+	  quad_su3_copy(sb[ibord],conf[surflxOfBordlx[ibord]]);
 	});
     
     //start communication of lower surf to backward nodes
@@ -136,10 +137,11 @@ namespace nissa
     //copy the received forward border (stored in the second half of receiving buf) on its destination
     PAR(0,
 	bordVolh,
-	CAPTURE(TO_WRITE(conf)),
+	CAPTURE(rb=(quad_su3*)recvBuf,
+		TO_WRITE(conf)),
 	i,
 	{
-	  quad_su3_copy(conf[locVol+bordVolh+i],((quad_su3*)recvBuf)[bordVolh+i]);
+	  quad_su3_copy(conf[locVol+bordVolh+i],rb[bordVolh+i]);
 	});
   }
   
@@ -184,10 +186,11 @@ namespace nissa
 		bordVolh+bordOffset[nu]+bordDirVol[nu],
 		CAPTURE(mu,
 			inu,
+			sb=(quad_su3*)sendBuf,
 			TO_WRITE(out)),
 		ibord,
 		{
-		  su3_copy(((quad_su3*)sendBuf)[ibord][mu],out[locVol+ibord][mu][inu]); //one contribution per link in the border
+		  su3_copy(sb[ibord][mu],out[locVol+ibord][mu][inu]); //one contribution per link in the border
 		});
 	  }
     
@@ -268,12 +271,13 @@ namespace nissa
 	    
 	    PAR(bordOffset[nu],
 		bordOffset[nu]+bordDirVol[nu],
-		CAPTURE(TO_WRITE(out),
+		CAPTURE(rb=(quad_su3*)recvBuf,
 			mu,
-			inu),
+			inu,
+			TO_WRITE(out)),
 		ibord,
 		{
-		  su3_copy(out[surflxOfBordlx[ibord]][mu][inu],((quad_su3*)recvBuf)[ibord][mu]); //one contribution per link in the border
+		  su3_copy(out[surflxOfBordlx[ibord]][mu][inu],rb[ibord][mu]); //one contribution per link in the border
 		});
 	  }
   }

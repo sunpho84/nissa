@@ -215,18 +215,20 @@ namespace nissa
   /// Spoil the receiving and sending buffer to check consistency
   void taintTheCommBuffers()
   {
-    PAR(0,recvBufSize/sizeof(int),
-	CAPTURE(),
+    PAR(0,
+	recvBufSize/sizeof(int),
+	CAPTURE(rb=recvBuf),
 	i,
 	{
-	  ((int*)recvBuf)[i]=-3;
+	  ((int*)rb)[i]=-3;
 	});
     
-    PAR(0,sendBufSize/sizeof(int),
-	CAPTURE(),
+    PAR(0,
+	sendBufSize/sizeof(int),
+	CAPTURE(sb=sendBuf),
 	i,
 	{
-	  ((int*)sendBuf)[i]=-4;
+	  ((int*)sb)[i]=-4;
 	});
   }
   

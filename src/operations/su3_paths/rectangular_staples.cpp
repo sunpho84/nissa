@@ -50,10 +50,11 @@ namespace nissa
 		bordOffset[nu]+bordDirVol[nu],
 		CAPTURE(mu,
 			inu,
+			sb=(quad_su3*)sendBuf,
 			TO_READ(sq_staples)),
 		ibord,
 		{
-		  su3_copy(((quad_su3*)sendBuf)[ibord][mu],sq_staples[surflxOfBordlx[ibord]][mu][3+inu]); //one contribution per link in the border
+		  su3_copy(sb[ibord][mu],sq_staples[surflxOfBordlx[ibord]][mu][3+inu]); //one contribution per link in the border
 		});
 	  }
     
@@ -112,10 +113,11 @@ namespace nissa
 		bordVolh+bordOffset[nu]+bordDirVol[nu],
 		CAPTURE(mu,
 			inu,
+			rb=(quad_su3*)recvBuf,
 			TO_WRITE(sq_staples)),
 		ibord,
 		{
-		  su3_copy(sq_staples[locVol+ibord][mu][3+inu],((quad_su3*)recvBuf)[ibord][mu]); //one contribution per link in the border
+		  su3_copy(sq_staples[locVol+ibord][mu][3+inu],rb[ibord][mu]); //one contribution per link in the border
 		});
 	  }
   }
@@ -163,10 +165,11 @@ namespace nissa
 		bordVolh+bordOffset[nu]+bordDirVol[nu],
 		CAPTURE(mu,
 			inu,
+			sb=(quad_su3*)sendBuf,
 			TO_WRITE(out)),
 		ibord,
 		{
-		  su3_copy(((quad_su3*)sendBuf)[ibord][mu],out[locVol+ibord][mu][inu]); //one contribution per link in the border
+		  su3_copy(sb[ibord][mu],out[locVol+ibord][mu][inu]); //one contribution per link in the border
 		});
 	  }
     
@@ -256,10 +259,11 @@ namespace nissa
 		bordOffset[nu]+bordDirVol[nu],
 		CAPTURE(mu,
 			inu,
+			rb=(quad_su3*)recvBuf,
 			TO_WRITE(out)),
 		ibord,
 		{
-		  su3_copy(out[surflxOfBordlx[ibord]][mu][inu],((quad_su3*)recvBuf)[ibord][mu]);//one contribution per link in the border
+		  su3_copy(out[surflxOfBordlx[ibord]][mu][inu],rb[ibord][mu]);//one contribution per link in the border
 		});
 	  }
   }

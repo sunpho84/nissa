@@ -993,11 +993,12 @@ namespace nissa
     {
       PAR(0,n,
 	  CAPTURE(f,
+		  sb=sendBuf,
 		  t=this->getReadable()),
 	  i,
 	  {
 	    UNROLL_FOR(internalDeg,0,nInternalDegs)
-	      ((Fund*)sendBuf)[internalDeg+nInternalDegs*i]=
+	      ((Fund*)sb)[internalDeg+nInternalDegs*i]=
 		t(f(i),internalDeg);
 	  });
     }
@@ -1058,6 +1059,7 @@ namespace nissa
       PAR(0,n,
 	  CAPTURE(data=this->template getPtr<defaultMemorySpace>(),
 		  offset,
+		  rb=recvBuf,
 		  defaultMemorySpace=defaultMemorySpace,
 		  externalSize=this->externalSize),
 	  i,
@@ -1066,7 +1068,7 @@ namespace nissa
 	    
 	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
 	      data[FD::index(offset+i,internalDeg,externalSize)]=
-		((Fund*)recvBuf)[internalDeg+nInternalDegs*i];
+		((Fund*)rb)[internalDeg+nInternalDegs*i];
 	  });
     }
     
