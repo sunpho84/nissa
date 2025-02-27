@@ -226,6 +226,9 @@ namespace nissa
     const int rho=
       round(kappa);
     
+    if(rho>4 or rho<0)
+      CRASH("invalid rho, please pass an integer in [0;3) to kappa");
+    
     const int tWall=
       round(residue);
     
@@ -241,6 +244,17 @@ namespace nissa
     TmQuarkInfo lep(kappa_of_m0(mass),0.0,0,theta);
     const double Elep=
       tm_quark_energy(lep,0);
+    
+    double aptilde=0;
+    for(int mu=1;mu<NDIM;mu++)
+	aptilde+=sqr(sin(M_PI*theta[mu]/glbSize[mu]));
+    aptilde=sqrt(aptilde);
+    
+    /// Eq. 61 of 1904.08731
+    const double lepTens=
+      8*aptilde*(sinh(Elep)-aptilde);
+    
+    MASTER_PRINTF("Leptonic tensor: %.16lg\n",lepTens);
     
     // Go to momentum space adding the twisted phasis of the source and sink
     PAR(0,

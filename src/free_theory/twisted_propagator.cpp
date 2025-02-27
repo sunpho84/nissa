@@ -192,19 +192,26 @@ namespace nissa
     return abse;
   }
   
-  //same for the naive fermions
+  /// Same for the naive fermions
   double naive_massless_on_shell_operator_of_imom(spinspin& proj,
 						  const Momentum& bc,
 						  const int& imom,
 						  const int& esign)
   {
-    if(esign!=-1&&esign!=+1) CRASH("illegal energy sign\"%d\"",esign);
-    double abse=naive_massless_quark_energy(bc,imom);
-    double e=esign*abse;
+    if(esign!=-1 and esign!=+1)
+      CRASH("illegal energy sign\"%d\"",esign);
+    
+    const double abse=
+      naive_massless_quark_energy(bc,imom);
+    
+    const double e=
+      esign*abse;
     
     spinspin_dirac_prod_double(proj,base_gamma[iGammaOfMu(0)],-sinh(e));
+    
     const Coords c=glbCoordOfGlblx(imom);
-    for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma[iGammaOfMu(mu)],sin(M_PI*(2*c[mu]+bc[mu])/glbSize[mu]));
+    for(int mu=1;mu<NDIM;mu++)
+      spinspin_dirac_summ_the_prod_idouble(proj,base_gamma[iGammaOfMu(mu)],sin(M_PI*(2*c[mu]+bc[mu])/glbSize[mu]));
     
     return abse;
   }
