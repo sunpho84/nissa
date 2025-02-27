@@ -70,7 +70,7 @@ __top_builddir__tools_spinors_take_parity_SOURCES=spinors/take_parity.cpp
 __top_builddir__tools_print_gamma_gamma_test_SOURCES=print_gamma/gamma_test.cpp
 __top_builddir__tools_unitarity_check_unitarity_check_SOURCES=unitarity_check/unitarity_check.cpp
 
-EXTRA_DIST=find_best_vir_partitioning/prepare_mapping.sh
+EXTRA_DIST+=find_best_vir_partitioning/prepare_mapping.sh
 
 #generate assembly report if asked
 if ASSEMBLY_REPORT
