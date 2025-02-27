@@ -10,7 +10,7 @@ SUBDIRS= \
 	projects
 
 #adds extra files to distribution
-EXTRA_DIST= \
+EXTRA_DIST+= \
 	config \
 	README \
 	src/nissa.hpp \
