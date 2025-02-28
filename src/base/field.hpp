@@ -1288,11 +1288,11 @@ namespace nissa
       
       FOR_EACH_SITE_DEG_OF_FIELD(self,
 				 CAPTURE(TO_READ(oth),
-					 t=this->getWritable()),
+					 TO_WRITE(self)),
 				 site,
 				 iDeg,
 				 {
-				   t(site,iDeg)=oth(site,iDeg);
+				   self(site,iDeg)=oth(site,iDeg);
 				 }
       );
       
