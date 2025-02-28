@@ -226,7 +226,7 @@ namespace nissa
 	MASTER_PRINTF(" %d",ncopies);
       }
     else if(strcasecmp(text,"NHits")!=0)
-      CRASH("Expecting NCopiesHits of NHits");
+      CRASH("Expecting NCopiesHits or NHits");
     
     read_int(&nhits);
     MASTER_PRINTF(" %d\n",nhits);
