@@ -620,14 +620,28 @@ namespace nissa
     if(rel_t!=-1) rel_t=(t+source_coord[0])%glbSize[0];
     
     LxField<quad_su3> *conf;
-    if(not is_smearing_ins(inser)) conf=get_updated_conf(charge,theta,*glb_conf);
-    else
+    switch(inser)
       {
-	LxField<quad_su3> *ext_conf;
-	if(ape_smeared_conf) ext_conf=ape_smeared_conf;
-	else                 ext_conf=glb_conf;
+      case SMEARING:
+      case ANYSM:
+	LxField<quad_su3>* ext_conf;
+	
+	if(ape_smeared_conf)
+	  ext_conf=ape_smeared_conf;
+	else
+	  ext_conf=glb_conf;
 	conf=get_updated_conf(0.0,theta,*ext_conf);
-      }
+	
+	break;
+      case LEP_LOOP:
+	
+	conf=get_updated_conf(charge,{},*glb_conf);
+	
+	break;
+      default:
+	
+	conf=get_updated_conf(charge,theta,*glb_conf);
+	}
     
     LxField<spincolor> ori("ori",WITH_HALO);
     build_source(ori,source_terms,isou);
