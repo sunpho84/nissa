@@ -253,7 +253,7 @@ namespace nissa
     
     double aptilde=0;
     for(int i=1;i<4;i++)
-      aptilde+=sqr(sin(M_PI*lep.bc[i]/glbSize[i];));
+      aptilde+=sqr(sin(M_PI*lep.bc[i]/glbSize[i]));
     aptilde=sqrt(aptilde);
     
     MASTER_PRINTF("%.16lg %.16lg\n",c[0],c[1]);
