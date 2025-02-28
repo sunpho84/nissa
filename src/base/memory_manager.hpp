@@ -221,6 +221,13 @@ namespace nissa
     T* provide(const Size nel,
 	       const Size alignment=DEFAULT_ALIGNMENT)
     {
+      if(nel==0)
+	{
+	  VERBOSITY_LV3_MASTER_PRINTF("Skipping allocate zero size vector\n");
+	  
+	  return nullptr;
+	}
+      
       /// Total size to allocate
       const Size size=
 	sizeof(T)*nel;
