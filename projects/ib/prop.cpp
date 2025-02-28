@@ -213,8 +213,54 @@ namespace nissa
 		      const int& t,
 		      const int& r)
   {
-    if(twisted_run>0) insert_tm_tadpole(*loop_source,conf,ori,r,tadpole,t);
-    else              insert_Wilson_tadpole(*loop_source,conf,ori,tadpole,t);
+    if(twisted_run>0)
+      insert_tm_tadpole(*loop_source,conf,ori,r,tadpole,t);
+    else
+      insert_Wilson_tadpole(*loop_source,conf,ori,tadpole,t);
+  }
+  
+  ///Test of Eq. 61 of 1904.08731
+  void testLeptonLoop(const double& mass,
+		      const double& kappa,
+		      const Momentum& theta,
+		      const double& residue)
+  {
+    dirac_matr g0umg5{.pos{2,3,0,1},.entr{{-2.0},{-2.0}}};
+    TmQuarkInfo lep(kappa_of_m0(mass),0.0,0,theta);
+    
+    spinspin projMu;
+    auto lep2=lep;
+    for(int i=0;i<4;i++)
+      lep2.bc[i]*=-1;
+    twisted_on_shell_operator_of_imom(projMu,lep2,0,/*tilded*/false,-1,tm_basis_t::WILSON_BASE); // Final state has negative energy in the projector
+    
+    spinspin projNu;
+    naive_massless_on_shell_operator_of_imom(projNu,lep.bc,0,-1); // Same
+
+
+    spinspin prop;
+    spinspin_put_to_id(prop);
+    safe_spinspin_prod_dirac(prop,prop,g0umg5);
+    safe_spinspin_prod_spinspin(prop,prop,projNu);
+    safe_spinspin_prod_dirac(prop,prop,g0umg5);
+    safe_spinspin_prod_spinspin(prop,prop,projMu);
+    
+    complex c;
+    trace_spinspin_with_dirac(c,prop,base_gamma[0]);
+    
+    const double Elep=
+      tm_quark_energy(lep,0);
+    
+    double aptilde=0;
+    for(int i=1;i<4;i++)
+      aptilde+=sqr(sin(M_PI*lep.bc[i]/glbSize[i];));
+    aptilde=sqrt(aptilde);
+    
+    MASTER_PRINTF("%.16lg %.16lg\n",c[0],c[1]);
+    
+    const double d=
+      8*aptilde*(sinh(Elep)-aptilde);
+    MASTER_PRINTF("expected: %.16lg\n",d);
   }
   
   /// Insert the lepton loop
@@ -223,6 +269,8 @@ namespace nissa
 				      const Momentum& theta,
 				      const double& residue)
   {
+    //testLeptonLoop(mass,kappa,theta,residue);
+    
     const int rho=
       round(kappa);
     
