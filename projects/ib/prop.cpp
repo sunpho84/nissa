@@ -264,10 +264,10 @@ namespace nissa
   }
   
   /// Insert the lepton loop
-  LxField<spin1field> get_lepton_loop(const double& mass,
-				      const double& kappa,
-				      const Momentum& theta,
-				      const double& residue)
+  LxField<spin1field> getLeptonLoop(const double& mass,
+				    const double& kappa,
+				    const Momentum& theta,
+				    const double& residue)
   {
     //testLeptonLoop(mass,kappa,theta,residue);
     
@@ -828,7 +828,7 @@ namespace nissa
       case DEL_POS:select_position(loop_source,ori,r);break;
       case DEL_SPIN:select_spin(loop_source,ori,r);break;
       case DEL_COL:select_color(loop_source,ori,r);break;
-      case LEP_LOOP:insert_external_source(loop_source,*conf,get_lepton_loop(mass,kappa,theta,residue),ori,rel_t,r,allDirs,loc_hadr_curr);break;
+      case LEP_LOOP:insert_external_source(loop_source,*conf,getLeptonLoop(mass,kappa,theta,residue),ori,rel_t,r,allDirs,loc_hadr_curr);break;
       }
     
     if(ext_field)
