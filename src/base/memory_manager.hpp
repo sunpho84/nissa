@@ -249,15 +249,18 @@ namespace nissa
     template <typename T>
     void release(T* &ptr) ///< Pointer getting freed
     {
-      if(useCache)
-	moveToCache(ptr);
-      else
+      if(ptr!=nullptr)
 	{
-	  popFromUsed(ptr);
-	  deAllocateRaw(ptr);
+	  if(useCache)
+	    moveToCache(ptr);
+	  else
+	    {
+	      popFromUsed(ptr);
+	      deAllocateRaw(ptr);
+	    }
+	  
+	  ptr=nullptr;
 	}
-      
-      ptr=nullptr;
     }
     
     /// Release all used memory
