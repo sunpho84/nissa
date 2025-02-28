@@ -40,9 +40,9 @@ namespace nissa
   
   CUDA_MANAGED EXTERN_PARS int diluted_spi_source,diluted_col_source,diluted_spat_source;
   CUDA_MANAGED EXTERN_PARS int nso_spi,nso_col;
-  CUDA_MANAGED EXTERN_PARS Coords source_coord;
+  CUDA_MANAGED EXTERN_PARS Coords oriCoords;
   CUDA_HOST_AND_DEVICE inline int rel_coord_of_glb_coord(int c,int mu)
-  {return (glbSize[mu]+c-source_coord[mu])%glbSize[mu];}
+  {return (glbSize[mu]+c-oriCoords[mu])%glbSize[mu];}
   inline int rel_time_of_glb_time(int t)
   {return rel_coord_of_glb_coord(t,0);}
   CUDA_HOST_AND_DEVICE inline int rel_coord_of_loclx(int loclx,int mu)

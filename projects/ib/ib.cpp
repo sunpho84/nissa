@@ -506,6 +506,8 @@ void close()
   
   Q.clear();
   
+  cachedLepLoops.clear();
+  
   free_photon_fields();
   free_loop_source();
   free_L_prop();

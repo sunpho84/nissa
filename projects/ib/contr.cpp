@@ -177,7 +177,7 @@ namespace nissa
 	glb_reduce(temp_contr,*loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
 	
 	for(int t=0;t<glbSize[0];t++)
-	  complex_summassign(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glbSize[0]-source_coord[0])%glbSize[0])],temp_contr[t]);
+	  complex_summassign(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glbSize[0]-oriCoords[0])%glbSize[0])],temp_contr[t]);
       }
     
     nmes2pts_contr_made+=mes_gamma_list.size();
@@ -191,9 +191,9 @@ namespace nissa
     
     if(doNotAverageHits)
       {
-	res+=", origin located at txyz = ("+std::to_string(source_coord[0]);
+	res+=", origin located at txyz = ("+std::to_string(oriCoords[0]);
 	for(int mu=1;mu<NDIM;mu++)
-	  res+=","+std::to_string(source_coord[mu]);
+	  res+=","+std::to_string(oriCoords[mu]);
 	res+=")";
       }
     

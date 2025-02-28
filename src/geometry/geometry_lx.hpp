@@ -47,6 +47,21 @@ namespace nissa
     {
       return data[i];
     }
+    
+    /// Compare
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    bool operator<(const MyArray& oth) const
+    {
+      for(size_t i=0;i<N;i++)
+	{
+	  if(data[i]<oth.data[i])
+	    return true;
+	  if(data[i]>oth.data[i])
+	    return false;
+	}
+      
+      return false;
+    }
   };
   
   /// Type used to specify which direction to use

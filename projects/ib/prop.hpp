@@ -198,6 +198,32 @@ namespace nissa
     }
   };
   
+  /// Keep track of a loop
+  struct LepLoopTag
+  {
+    /// Mass of the loop
+    double mass;
+    
+    /// Current index
+    int rho;
+    
+    Momentum theta;
+    
+    int tWall;
+    
+    auto operator<(const LepLoopTag& oth) const
+    {
+      return
+	mass<oth.mass and
+	rho<oth.rho and
+	theta<oth.theta and
+	tWall<oth.tWall;
+    }
+  };
+  
+  /// Cached loops
+  EXTERN_PROP std::map<LepLoopTag,LxField<spin1field>> cachedLepLoops;
+  
   const int ALL_TIMES=-1;
   
   EXTERN_PROP int ninv_tot INIT_TO(0);
@@ -304,13 +330,13 @@ namespace nissa
 	using C=double[1];
 	C c;
 	field_rng_stream.drawScalar(c);
-	source_coord[mu]=c[0]*glbSize[mu];
+	oriCoords[mu]=c[0]*glbSize[mu];
       }
     
     if(stoch_source)
-      MASTER_PRINTF(" source time: %d\n",source_coord[0]);
+      MASTER_PRINTF(" source time: %d\n",oriCoords[0]);
     else
-      MASTER_PRINTF(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
+      MASTER_PRINTF(" point source coords: %d %d %d %d\n",oriCoords[0],oriCoords[1],oriCoords[2],oriCoords[3]);
     if(need_photon)
       {
 	if(skip)

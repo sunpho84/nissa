@@ -256,6 +256,41 @@ namespace nissa
     
     MASTER_PRINTF("Leptonic tensor: %.16lg\n",lepTens);
     
+    /// Stored origin of the cached lep loops
+    static Coords cahcedOriCoords;
+    
+    /// Detect if it is a new origin
+    bool isNewOri{false};
+    for(int mu=0;mu<NDIM;mu++)
+      isNewOri|=cahcedOriCoords[mu]!=oriCoords[mu];
+    
+    cahcedOriCoords=oriCoords;
+    
+    // Clear the loops if new origin
+    if(isNewOri)
+      {
+	MASTER_PRINTF("New origin detected, either new hit or new conf, clearing the lep loops\n");
+	cachedLepLoops.clear();
+      }
+    
+    /// Finds the loop field or instantiates a new one
+    auto [_lepLoop,hasCreated]=
+      cachedLepLoops.try_emplace(LepLoopTag{.mass=mass,.rho=rho,.theta=theta,.tWall=tWall},"lepLoop",WITH_HALO);
+    
+    MASTER_PRINTF("Lepton loop for mass %lg, rho %d, theta{%lg,%lg,%lg}, twall %d found: %d\n",mass,rho,theta[1],theta[2],theta[3],tWall,not hasCreated);
+    
+    /// Take reference to the created or found loop
+    LxField<spin1field>& lepton_loop=_lepLoop->second;
+    
+    if(not hasCreated)
+      {
+	MASTER_PRINTF(" Skipping loop creation\n");
+	
+	return lepton_loop;
+      }
+    else
+      MASTER_PRINTF(" Creating the loop\n");
+    
     // Go to momentum space adding the twisted phasis of the source and sink
     PAR(0,
 	locVol,
@@ -279,8 +314,6 @@ namespace nissa
 	  ph[site][IM]=e*sin(-ps)*(tWall>tsite);
 	});
     fft4d(ph,-1,0);
-    
-    LxField<spin1field> lepton_loop("leptonLoop",WITH_HALO);
     
     spinspin projMu;
     twisted_on_shell_operator_of_imom(projMu,lep,0,/*tilded*/false,-1,tm_basis_t::WILSON_BASE); // Final state has negative energy in the projector
@@ -617,7 +650,7 @@ namespace nissa
     source_time-=take_time();
     
     int rel_t=t;
-    if(rel_t!=-1) rel_t=(t+source_coord[0])%glbSize[0];
+    if(rel_t!=-1) rel_t=(t+oriCoords[0])%glbSize[0];
     
     LxField<quad_su3> *conf;
     switch(inser)
@@ -683,7 +716,7 @@ namespace nissa
 	if(mu==nu)
 	  {
 	    const int TH=glbSize[0]/2;
-	    const int t=(glbSize[0]+glbCoordOfLoclx[ivol][0]-source_coord[0])%glbSize[0];
+	    const int t=(glbSize[0]+glbCoordOfLoclx[ivol][0]-oriCoords[0])%glbSize[0];
 	    
 	    const double f1= //eq.3.8 of reph.pdf
 	      (bwFw==BwFw::BW)?
@@ -942,7 +975,7 @@ namespace nissa
 	  //sum_mu -sign*2*pi*p_mu*y_mu/L_mu
 	  double arg=0;
 	  for(int mu=0;mu<NDIM;mu++)
-	    arg+=-fft_sign*2*M_PI*glbCoordOfLoclx[imom][mu]*source_coord[mu]/glbSize[mu];
+	    arg+=-fft_sign*2*M_PI*glbCoordOfLoclx[imom][mu]*oriCoords[mu]/glbSize[mu];
 	  
 	  complex f={cos(arg),sin(arg)};
 	  spincolor_prodassign_complex(qtilde[imom],f);
