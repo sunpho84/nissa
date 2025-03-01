@@ -201,7 +201,10 @@ namespace nissa
 	
 	/// Launch the actual calculation
 	auto launch=
-	  [min,
+	  [func,
+	   file,
+	   line,
+	   min,
 	   max,
 	   loopLength,
 	   f](const int blockSize)
