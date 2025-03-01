@@ -382,7 +382,7 @@ namespace nissa
 	{
 	  spinspin prop;
 	  mom_space_twisted_propagator_of_imom(prop,lep,iMom,tm_basis_t::WILSON_BASE);
-	  safe_spinspin_prod_dirac(prop,prop,base_gamma[iGammaOfMu(rho)]);
+	  safe_spinspin_prod_dirac(prop,prop,base_gamma[rho]);
 	  safe_spinspin_prod_spinspin(prop,prop,projNu);
 	  safe_spinspin_prod_dirac(prop,prop,g0umg5);
 	  safe_spinspin_prod_spinspin(prop,prop,projMu);
