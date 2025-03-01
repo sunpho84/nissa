@@ -117,7 +117,8 @@ namespace nissa
   DEFINE_MULTIPLY_MOM_SPACE_TWISTED_PROPAGATOR(spincolor);
   
   //compute the m0 corresponding to a certain kappa
-  CUDA_HOST_AND_DEVICE inline double m0_of_kappa(const double& kappa)
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  double m0_of_kappa(const double& kappa)
   {
     return 0.5/kappa-4;
   }

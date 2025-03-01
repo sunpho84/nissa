@@ -376,7 +376,8 @@ namespace nissa
 		projMu,
 		projNu,
 		g0umg5=dirac_matr{.pos{2,3,0,1},.entr{{-2.0},{-2.0}}}, // Weak current at rest
-		TO_WRITE(lepton_loop)),
+		TO_WRITE(lepton_loop),
+		TO_READ(ph)),
 	iMom,
 	{
 	  spinspin prop;
@@ -385,8 +386,13 @@ namespace nissa
 	  safe_spinspin_prod_spinspin(prop,prop,projNu);
 	  safe_spinspin_prod_dirac(prop,prop,g0umg5);
 	  safe_spinspin_prod_spinspin(prop,prop,projMu);
+	  
 	  for(int nu=0;nu<NDIM;nu++)
-	    trace_spinspin_with_dirac(lepton_loop[iMom][nu],prop,base_gamma[iGammaOfMu(nu)]);
+	    {
+	      complex c;
+	      trace_spinspin_with_dirac(c,prop,base_gamma[iGammaOfMu(nu)]);
+	      unsafe_complex_prod(lepton_loop[iMom][nu],c,ph[iMom]);
+	    }
 	});
     
     // Go back to x space

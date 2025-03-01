@@ -26,6 +26,7 @@ namespace nissa
     
     int r{1};
     
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     TmQuarkInfo(const double& kappa,
 		const double& mass,
 		const int& r,
@@ -39,7 +40,8 @@ namespace nissa
       for(int mu=1;mu<NDIM;mu++)
 	bc[mu]=theta;
     }
-      
+    
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     TmQuarkInfo(const double& kappa,
 		const double& mass,
 		const int& r,
@@ -52,6 +54,7 @@ namespace nissa
     {
     }
     
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     TmQuarkInfo()
     {
     }

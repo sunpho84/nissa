@@ -383,9 +383,10 @@ namespace nissa
   template <typename A,
 	    typename B,
 	    typename C>
-  CUDA_HOST_AND_DEVICE inline void unsafe_spinspin_prod_spinspin(A&& out,
-								 const B& a,
-								 const C& b)
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void unsafe_spinspin_prod_spinspin(A&& out,
+				     const B& a,
+				     const C& b)
   {
     spinspin_put_to_zero(out);
     spinspin_summ_the_spinspin_prod(out,a,b);
