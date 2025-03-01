@@ -9,6 +9,12 @@ double qr=0;
 
 gauge_info photon;
 
+template <typename T>
+T cube(const T& c)
+{
+  return c*c*c;
+}
+
 double M_of_mom(TmQuarkInfo qu,double sin2_momh)
 {
   double M=m0_of_kappa(qu.kappa)+2*sin2_momh;
