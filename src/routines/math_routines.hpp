@@ -45,14 +45,12 @@ namespace nissa
     return (a<b)?a:b;
   }
   
-  template <class T>
-  CUDA_HOST_AND_DEVICE
-  T sqr(T a)
-  {return a*a;}
-  
-  template <class T>
-  T cube(T a)
-  {return a*a*a;};
+  template <typename T>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  T sqr(const T& a)
+  {
+    return a*a;
+  }
   
   template <class T>
   void ave_dev(T &ave,T &dev,const T *v,const int n)
