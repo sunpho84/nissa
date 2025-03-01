@@ -1286,15 +1286,17 @@ namespace nissa
       auto& self=
 	*this;
       
-      FOR_EACH_SITE_DEG_OF_FIELD(self,
-				 CAPTURE(TO_READ(oth),
-					 TO_WRITE(self)),
-				 site,
-				 iDeg,
-				 {
-				   self(site,iDeg)=oth(site,iDeg);
-				 }
-      );
+      PAR(0,
+	  self.nSites(),
+	  CAPTURE(TO_READ(oth),
+		  TO_WRITE(self)),
+	  site,
+	  {
+	    for(int iDeg=0;iDeg<O::nInternalDegs;iDeg++)
+	      {
+		self(site,iDeg)=oth(site,iDeg);
+	      }
+	  });
       
       doNotBackupDuringBenchmark=b;
     }
