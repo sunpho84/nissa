@@ -116,7 +116,8 @@ namespace nissa
     
     double tol=1e-14;
     bool zmp=((fabs(qu.mass)<tol) /* null twisted mass*/ and (fabs(qu.kappa-1.0/8)<tol)) /* null Wilson mass */;
-    for(int mu=0;mu<NDIM;mu++) zmp&=(fabs(qu.bc[mu])<tol);  //fully periodic
+    for(int mu=0;mu<NDIM;mu++)
+      zmp&=(fabs(qu.bc[mu])<tol);  //fully periodic
     
     bool zm_time=(glbCoordOfLoclx[imom][0]==0);
     bool zm_spat=true;
@@ -139,13 +140,19 @@ namespace nissa
     else
       {
 	//for efficiency
-	double rep_den=1/den/glbVol;
+	const double rep_den=1.0/den/glbVol;
 	
-	double c0[2]; c0[MAX_TWIST_BASE]=qu.mass;      c0[WILSON_BASE]=M;
-	double c5[2]; c5[MAX_TWIST_BASE]=M*tau3[qu.r]; c5[WILSON_BASE]=-qu.mass*tau3[qu.r];
+	double c0[2];
+	c0[MAX_TWIST_BASE]=qu.mass;
+	c0[WILSON_BASE]=M;
+	
+	double c5[2];
+	c5[MAX_TWIST_BASE]=M*tau3[qu.r];
+	c5[WILSON_BASE]=-qu.mass*tau3[qu.r];
 	
 	spinspin_dirac_summ_the_prod_double(prop,base_gamma[0],c0[base]*rep_den);
-	for(int mu=0;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(prop,base_gamma[iGammaOfMu(mu)],-sin_mom[mu]*rep_den);
+	for(int mu=0;mu<NDIM;mu++)
+	  spinspin_dirac_summ_the_prod_idouble(prop,base_gamma[iGammaOfMu(mu)],-sin_mom[mu]*rep_den);
 	spinspin_dirac_summ_the_prod_idouble(prop,base_gamma[5],c5[base]*rep_den);
       }
   }
