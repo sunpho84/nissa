@@ -216,7 +216,8 @@ namespace nissa
 	    const dim3 gridDimension(g);
 	    
 	    cudaGenericKernel<<<gridDimension,blockDimension>>>(min,max,f);
-	    cudaDeviceSynchronize();
+	    DECRYPT_CUDA_ERROR(cudaDeviceSynchronize(),"After launching kernel %s file %s line %d on loop [%d,%d) using blocks of size %d",
+			       func,file,line,(int)min,(int)max,optimalBlockSize);
 	  };
 	
 	/// Gets the maximum number of threads per block
