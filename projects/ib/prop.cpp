@@ -236,8 +236,7 @@ namespace nissa
     
     spinspin projNu;
     naive_massless_on_shell_operator_of_imom(projNu,lep.bc,0,-1); // Same
-
-
+    
     spinspin prop;
     spinspin_put_to_id(prop);
     safe_spinspin_prod_dirac(prop,prop,g0umg5);
@@ -328,7 +327,8 @@ namespace nissa
     MASTER_PRINTF("Lepton loop for mass %lg, rho %d, theta{%lg,%lg,%lg}, twall %d found: %d\n",mass,rho,theta[1],theta[2],theta[3],tWall,not hasCreated);
     
     /// Take reference to the created or found loop
-    LxField<spin1field>& lepton_loop=_lepLoop->second;
+    LxField<spin1field>& lepton_loop=
+      _lepLoop->second;
     
     if(not hasCreated)
       {
@@ -363,8 +363,12 @@ namespace nissa
 	});
     fft4d(ph,-1,0);
     
+    auto lepOthVerse=lep;
+    for(int i=0;i<4;i++)
+      lepOthVerse.bc[i]*=-1;
+    
     spinspin projMu;
-    twisted_on_shell_operator_of_imom(projMu,lep,0,/*tilded*/false,-1,tm_basis_t::WILSON_BASE); // Final state has negative energy in the projector
+    twisted_on_shell_operator_of_imom(projMu,lepOthVerse,0,/*tilded*/false,-1,tm_basis_t::WILSON_BASE); // Final state has negative energy in the projector
     
     spinspin projNu;
     naive_massless_on_shell_operator_of_imom(projNu,lep.bc,0,-1); // Same
