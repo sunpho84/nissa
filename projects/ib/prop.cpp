@@ -304,6 +304,8 @@ namespace nissa
     const double lepTens=
       8*aptilde*(sinh(Elep)-aptilde);
     
+    MASTER_PRINTF("Elep: %.16lg\n",Elep);
+    MASTER_PRINTF("APtilde: %.16lg\n",aptilde);
     MASTER_PRINTF("Leptonic tensor: %.16lg\n",lepTens);
     
     /// Stored origin of the cached lep loops
