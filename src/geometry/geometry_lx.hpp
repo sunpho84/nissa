@@ -62,6 +62,17 @@ namespace nissa
       
       return false;
     }
+    
+    /// Compare
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    bool operator==(const MyArray& oth) const
+    {
+      for(size_t i=0;i<N;i++)
+	if(data[i]!=oth.data[i])
+	  return false;
+      
+      return true;
+    }
   };
   
   /// Type used to specify which direction to use

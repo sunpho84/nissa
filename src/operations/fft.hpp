@@ -142,7 +142,7 @@ namespace nissa
 	      fftw_destroy_plan(plan);
 #else
 	      CRASH("FFTW needed, not found");
-#endif 
+#endif
 	      
 #endif
 	      

@@ -214,10 +214,13 @@ namespace nissa
     auto operator<(const LepLoopTag& oth) const
     {
       return
-	mass<oth.mass and
-	rho<oth.rho and
-	theta<oth.theta and
-	tWall<oth.tWall;
+	mass<oth.mass or
+	(mass==oth.mass and
+	 (rho<oth.rho or
+	  (rho==oth.rho and
+	   (theta<oth.theta or
+	    (theta==oth.theta and
+	     tWall<oth.tWall)))));
     }
   };
   

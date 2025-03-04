@@ -273,17 +273,20 @@ namespace nissa
     const int rho=
       round(kappa);
     
-    if(rho>4 or rho<0)
-      CRASH("invalid rho, please pass an integer in [0;3) to kappa");
-    
     const int tWall=
       round(residue);
     
     if(fabs(kappa-rho)>1e-15)
       CRASH("please use kappa to specify the rho index");
     
+    if(rho<0 or rho>15)
+      CRASH("please pass rho using integer kappa in the range [0-15]");
+    
     if(fabs(tWall-residue)>1e-15)
       CRASH("please use residue to specify twall");
+    
+    if(tWall<0 or tWall>=glbSize[0])
+      CRASH("please pass twall using integr residue in the range [0-%d]",glbSize[0]-1);
     
     LxField<complex> ph("ph");
     
