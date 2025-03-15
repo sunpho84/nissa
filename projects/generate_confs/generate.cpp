@@ -1628,7 +1628,7 @@ void in_main(int narg,char **arg)
   print_stat("read",read_conf_time,nread_conf);
   print_stat("write",write_conf_time,nwrite_conf);
   for(size_t i=0;i<drv->top_meas.size();i++)
-    master_printf("time to perform the %d topo meas (%s): %lg (%2.2g %c tot)\n",i,drv->top_meas[i].path.c_str(),top_meas_time[i],
+    master_printf("time to perform the %zu topo meas (%s): %lg (%2.2g %c tot)\n",i,drv->top_meas[i].path.c_str(),top_meas_time[i],
 		  top_meas_time[i]*100/(take_time()-init_time),'%');
   
   close_simulation();

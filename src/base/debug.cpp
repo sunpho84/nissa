@@ -34,16 +34,18 @@ namespace nissa
   {
     volatile int flag=0;
     
-    printf("Entering debug loop on rank %d, flag has address %p please type:\n"
-	   "$ gdb -p %d\n"
-	   "$ set flag=1\n"
-	   "$ continue\n",
-	   rank,
-	   &flag,
-	   getpid());
-    
     if(is_master_rank())
-      while(flag==0);
+      {
+	printf("Entering debug loop on rank %d, flag has address %p please type:\n"
+	       "$ gdb -p %d\n"
+	       "$ set flag=1\n"
+	       "$ continue\n",
+	       rank,
+	       &flag,
+	       getpid());
+	
+	while(flag==0);
+      }
     
     ranks_barrier();
   }
@@ -59,14 +61,13 @@ namespace nissa
   }
   
   //write the list of called routines
-  void print_backtrace_list()
+  void print_backtrace_list(int which_rank)
   {
     void *callstack[128];
     int frames=backtrace(callstack,128);
     char **strs=backtrace_symbols(callstack,frames);
     
-    //only master rank, but not master thread
-    if(is_master_rank())
+    if(which_rank==-1 or which_rank==rank)
       {
 	printf("Backtracing...\n");
 	for(int i=0;i<frames;i++) printf("%s\n",strs[i]);
@@ -84,7 +85,7 @@ namespace nissa
     //give time to master thread to crash, if possible
     if(!IS_MASTER_THREAD) sleep(1);
     
-    if(is_master_rank())
+    // if(is_master_rank())
       {
 	//expand error message
 	char mess[1024];
@@ -93,11 +94,12 @@ namespace nissa
 	vsprintf(mess,templ,ap);
 	va_end(ap);
 	
-	fprintf(stderr,"\x1b[31m" "ERROR on line %d of file \"%s\", message error: \"%s\".\n\x1b[0m",line,file,mess);
+	fprintf(stderr,"\x1b[31m" "on rank %d ERROR on line %d of file \"%s\", message error: \"%s\".\n\x1b[0m",rank,line,file,mess);
 	fprintf(stderr,"Memory used: %ld bytes per rank (%ld bytes total)\n",required_memory,required_memory*nranks);
 	print_backtrace_list();
-	ranks_abort(0);
-      }
+    }
+    
+    ranks_abort(0);
   }
   
   void internal_crash_printing_error(int line,const char *file,int err_code,const char *templ,...)

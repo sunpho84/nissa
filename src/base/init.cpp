@@ -268,7 +268,7 @@ namespace nissa
     master_printf("Nissa initialized!\n");
     
     const char DEBUG_LOOP_STRING[]="WAIT_TO_ATTACH";
-    if(getenv(DEBUG_LOOP_STRING)!=NULL)
+    if(getenv(DEBUG_LOOP_STRING)!=nullptr)
       debug_loop();
     else
       master_printf("To wait attaching the debugger please export: %s\n",DEBUG_LOOP_STRING);
@@ -299,9 +299,9 @@ namespace nissa
   }
   
   //compute the variance of the border
-  int compute_border_variance(const coords_t& L,const coords_t& P,int factorize_processor)
+  int64_t compute_border_variance(const coords_t& L,const coords_t& P,int factorize_processor)
   {
-    int S2B=0,SB=0;
+    int64_t S2B=0,SB=0;
     for(int ib=0;ib<NDIM;ib++)
       {
 	int B=1;
@@ -381,7 +381,7 @@ namespace nissa
     else
       {
 	//minimal variance border
-	int mBV=-1;
+	int64_t mBV=-1;
 	
 	//factorize the local volume
 	int list_fact_LV[log2N(LV)];
@@ -469,7 +469,7 @@ namespace nissa
 		//if it is equal to previous found surface, consider borders variance
 		if(surf_LV==min_surf_LV)
 		  {
-		    int BV=compute_border_variance(L,R,factorize_rank);
+		    int64_t BV=compute_border_variance(L,R,factorize_rank);
 		    //if borders are more homogeneus consider this grid
 		    if(BV<mBV)
 		      {
@@ -523,7 +523,7 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++) verbosity_lv3_master_printf("%d ",box_coord[ibox][mu]);
       
 	//size
-	verbosity_lv3_master_printf("] size [ ",ibox);
+	verbosity_lv3_master_printf("] size [ ");
 	nsite_per_box[ibox]=1;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
@@ -570,7 +570,7 @@ namespace nissa
     
     master_printf("Global lattice:\t%d",glbSize[0]);
     for(int mu=1;mu<NDIM;mu++) master_printf("x%d",glbSize[mu]);
-    master_printf(" = %d\n",glbVol);
+    master_printf(" = %ld\n",glbVol);
     master_printf("Number of running ranks: %d\n",nranks);
     
     //find the grid minimizing the surface
@@ -586,7 +586,7 @@ namespace nissa
 	ok&=(nrank_dir[mu]>0);
 	if(!ok) crash("nrank_dir[%d]: %d",mu,nrank_dir[mu]);
 	ok&=(glbSize[mu]%nrank_dir[mu]==0);
-	if(!ok) crash("glb_size[%d]%nrank_dir[%d]=%d",mu,mu,glbSize[mu]%nrank_dir[mu]);
+	if(!ok) crash("glb_size[%d]" "%c" "nrank_dir[%d]=%d",mu,'%',mu,glbSize[mu]%nrank_dir[mu]);
 	paral_dir[mu]=(nrank_dir[mu]>1);
 	nparal_dir+=paral_dir[mu];
       }
@@ -680,7 +680,7 @@ namespace nissa
     //print information
     master_printf("Local volume\t%d",locSize[0]);
     for(int mu=1;mu<NDIM;mu++) master_printf("x%d",locSize[mu]);
-    master_printf(" = %d\n",locVol);
+    master_printf(" = %ld\n",locVol);
     master_printf("List of parallelized dirs:\t");
     for(int mu=0;mu<NDIM;mu++) if(paral_dir[mu]) master_printf("%d ",mu);
     if(nparal_dir==0) master_printf("(none)");

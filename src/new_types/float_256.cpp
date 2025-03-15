@@ -15,7 +15,7 @@ namespace nissa
 {
   void float_256_print(float_256 a)
   {
-    crash("");
+    crash(" ");
     // printf("(");
     // float_128_print((double*)a);
     // printf(",");

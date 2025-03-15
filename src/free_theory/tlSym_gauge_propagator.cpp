@@ -6,19 +6,16 @@
 #include "base/random.hpp"
 #include "base/vectors.hpp"
 #include "new_types/complex.hpp"
-#include "linalgs/reduce.hpp"
 #include "new_types/spin.hpp"
 #include "operations/fourier_transform.hpp"
 #include "routines/mpi_routines.hpp"
 #include "routines/ios.hpp"
-#include "threads/threads.hpp"
 
 #include "free_theory_types.hpp"
 
 #ifdef USE_EIGEN
  #include <Eigen/Dense>
  #include <Eigen/Eigenvalues>
- #include <iostream>
 #endif
 
 namespace nissa
@@ -62,7 +59,6 @@ namespace nissa
   //compute the tree level Symanzik gauge propagator in the momentum space according to P.Weisz
   CUDA_HOST_AND_DEVICE void mom_space_tlSym_gauge_propagator_of_imom(spin1prop prop,gauge_info gl,int imom)
   {
-    double c1=gl.c1,c12=c1*c1,c13=c12*c1;
     int kron_delta[4][4]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
     
     //momentum
@@ -82,6 +78,8 @@ namespace nissa
 	kt6+=kt6_dir[mu];
       }
     
+    double c1=gl.c1,c12=c1*c1,c13=c12*c1;
+    
     //product and sums of kt2 over direction differents from mu and nu
     for(int mu=0;mu<NDIM;mu++)
       for(int nu=0;nu<NDIM;nu++)
@@ -100,11 +98,36 @@ namespace nissa
     double kt23=kt2*kt2*kt2;
     double kt42=kt4*kt4;
     
-    if(fabs(kt2)>=1e-14)
+    if(gl.which_gauge==gauge_info::COULOMB)
       {
+	if(gl.c1!=0) crash("Coulomb gauge implmented only for Wilson action");
+	
+	double kt_spat_2=0;
+	for(int mu=1;mu<4;mu++)
+	  kt_spat_2+=kt2_dir[mu];
+	
+	for(int mu=0;mu<4;mu++)
+	  for(int nu=0;nu<4;nu++)
+	    {
+	      if(fabs(kt_spat_2)>1e-14)
+		prop[mu][nu][RE]=((mu==nu)-kt[mu]*kt[nu]*((nu!=0)+(mu!=0)-1)/kt_spat_2)/kt2/glbVol;
+	      else
+		prop[mu][nu][RE]=0;
+	      prop[mu][nu][IM]=0;
+	    }
+      }
+    else
+      {
+	constexpr double FEYNMAN_ALPHA=1,LANDAU_ALPHA=0;
+	const double alpha=
+	  (gl.which_gauge==gauge_info::FEYNMAN)?
+	  FEYNMAN_ALPHA:
+	  LANDAU_ALPHA;
+	
 	//Deltakt
 	double Deltakt=(kt2-c1*kt4)*(kt2-c1*(kt22+kt4)+0.5*c12*(kt23+2*kt6-kt2*kt4));
-	for(int rho=0;rho<4;rho++) Deltakt-=4*c13*kt4_dir[rho]*ktpo2[rho][rho];
+	for(int rho=0;rho<4;rho++)
+	  Deltakt-=4*c13*kt4_dir[rho]*ktpo2[rho][rho];
 	
 	//A
 	double A[4][4];
@@ -116,20 +139,16 @@ namespace nissa
 	for(int mu=0;mu<4;mu++)
 	  for(int nu=0;nu<4;nu++)
 	    {
-	      prop[mu][nu][RE]=gl.alpha*kt[mu]*kt[nu];
+	      prop[mu][nu][RE]=alpha*kt[mu]*kt[nu];
 	      for(int si=0;si<4;si++)
 		prop[mu][nu][RE]+=(kt[si]*kron_delta[mu][nu]-kt[nu]*kron_delta[mu][si])*kt[si]*A[si][nu];
 	      
-	      prop[mu][nu][RE]/=kt2*kt2*glbVol;
+	      if(fabs(kt2)>=1e-14)
+		prop[mu][nu][RE]/=kt2*kt2*glbVol;
+	      else
+		prop[mu][nu][RE]=0;
 	      prop[mu][nu][IM]=0;
 	    }
-      }
-    else
-      {
-	//printf("setting to zero propagator mode %d\n",glblx_of_loclx[imom]);
-	for(int mu=0;mu<4;mu++)
-	  for(int nu=0;nu<4;nu++)
-	    prop[mu][nu][RE]=prop[mu][nu][IM]=0;//gl.zmp/glb_vol;
       }
     
     //cancel when appropriate
@@ -147,7 +166,6 @@ namespace nissa
   
   void multiply_mom_space_tlSym_gauge_propagator(spin1field* out,spin1field* in,gauge_info gl)
   {
-    
     NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	spin1prop prop;
@@ -161,87 +179,85 @@ namespace nissa
   void multiply_mom_space_sqrt_tlSym_gauge_propagator(spin1field* out,spin1field* in,gauge_info gl)
   {
 #ifndef USE_EIGEN
-    if(gl.alpha!=FEYNMAN_ALPHA or gl.c1!=0)
-      crash("Eigen required when out of Wilson regularisation in the Feynaman gauge");
+    if(gl.which_gauge!=gauge_info::FEYNMAN or gl.c1!=0)
+      crash("Eigen required when out of Wilson regularisation or in the Feynaman gauge");
 #endif
     
-    crash("fix this");
-    
-//     NISSA_PARALLEL_LOOP(imom,0,locVol)
-//       {
-// 	//take the propagator
-// 	spin1prop prop;
-// 	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
+    NISSA_PARALLEL_LOOP(imom,0,locVol)
+      {
+	//take the propagator
+	spin1prop prop;
+	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
 	
-// #ifdef USE_EIGEN
-// 	using namespace Eigen;
+#ifdef USE_EIGEN
+	using namespace Eigen;
 	
-// 	//copy in the eigen strucures
-// 	Vector4cd ein;
-// 	Matrix4d eprop;
-// 	for(int mu=0;mu<NDIM;mu++)
-// 	  for(int nu=0;nu<NDIM;nu++)
-// 	    eprop(mu,nu)=prop[mu][nu][RE];
+	//copy in the eigen strucures
+	Vector4cd ein;
+	Matrix4d eprop;
+	for(int mu=0;mu<NDIM;mu++)
+	  for(int nu=0;nu<NDIM;nu++)
+	    eprop(mu,nu)=prop[mu][nu][RE];
 	
-// 	for(int id=0;id<NDIRAC;id++)
-// 	  {
-// 	    ein(id).real(in[imom][id][RE]);
-// 	    ein(id).imag(in[imom][id][IM]);
-// 	  }
+	for(int id=0;id<NDIRAC;id++)
+	  {
+	    ein(id).real(in[imom][id][RE]);
+	    ein(id).imag(in[imom][id][IM]);
+	  }
 	
-// 	Matrix4d sqrt_eprop;
-// 	// master_printf("Computing sqrt for mode: %d (%d %d %d %d)\n",imom,glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3]);
-// 	// std::cout<<eprop<<std::endl;
+	Matrix4d sqrt_eprop;
+	// master_printf("Computing sqrt for mode: %d (%d %d %d %d)\n",imom,glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3]);
+	// std::cout<<eprop<<std::endl;
 	
-// 	//compute eigenthings
-// 	SelfAdjointEigenSolver<Matrix4d> solver;
-// 	solver.compute(eprop);
+	//compute eigenthings
+	SelfAdjointEigenSolver<Matrix4d> solver;
+	solver.compute(eprop);
 	
-// 	//get eigenthings
-// 	const Matrix4d eve=solver.eigenvectors();
-// 	const Vector4d eva=solver.eigenvalues().transpose();
+	//get eigenthings
+	const Matrix4d eve=solver.eigenvectors();
+	const Vector4d eva=solver.eigenvalues().transpose();
 	
-// 	//check positivity
-// 	const double tol=1e-14,min_coef=eva.minCoeff();
-// 	if(min_coef<-tol) crash("Minimum coefficient: %lg, greater in module than tolerance %lg",min_coef,tol);
+	//check positivity
+	const double tol=1e-14,min_coef=eva.minCoeff();
+	if(min_coef<-tol) crash("Minimum coefficient: %lg, greater in module than tolerance %lg",min_coef,tol);
 	
-// 	// //compute sqrt of eigenvalues, forcing positivity (checked to tolerance before)
-// 	Vector4d sqrt_eva;
-// 	for(int mu=0;mu<NDIM;mu++) sqrt_eva(mu)=sqrt(fabs(eva(mu)));
-// 	sqrt_eprop=eve*sqrt_eva.asDiagonal()*eve.transpose();
+	// //compute sqrt of eigenvalues, forcing positivity (checked to tolerance before)
+	Vector4d sqrt_eva;
+	for(int mu=0;mu<NDIM;mu++) sqrt_eva(mu)=sqrt(fabs(eva(mu)));
+	sqrt_eprop=eve*sqrt_eva.asDiagonal()*eve.transpose();
 	
-// 	//performing check on the result
-// 	const Matrix4d err=sqrt_eprop*sqrt_eprop-eprop;
-// 	const double err_norm=err.norm();
-// 	const double prop_norm=eprop.norm();
-// 	const double rel_err=err_norm/prop_norm;
-// 	// std::cout<<"Testing sqrt:          "<<rel_err<<std::endl;
-// 	if(prop_norm>tol and err_norm>tol) crash("Error! Relative error on sqrt for mode %d (prop norm %lg) is %lg, greater than tolerance %lg",imom,prop_norm,rel_err,tol);
+	//performing check on the result
+	const Matrix4d err=sqrt_eprop*sqrt_eprop-eprop;
+	const double err_norm=err.norm();
+	const double prop_norm=eprop.norm();
+	const double rel_err=err_norm/prop_norm;
+	// std::cout<<"Testing sqrt:          "<<rel_err<<std::endl;
+	if(prop_norm>tol and err_norm>tol) crash("Error! Relative error on sqrt for mode %ld (prop norm %lg) is %lg, greater than tolerance %lg",imom,prop_norm,rel_err,tol);
 	
-// 	//product with in, store
-// 	Vector4cd eout=sqrt_eprop*ein;
-// 	for(int mu=0;mu<NDIM;mu++)
-// 	  {
-// 	    out[imom][mu][RE]=eout(mu).real();
-// 	    out[imom][mu][IM]=eout(mu).imag();
-// 	  }
-// #else
-// 	spin_prod_double(out[imom],in[imom],sqrt(prop[0][0][RE]));
-// #endif
+	//product with in, store
+	Vector4cd eout=sqrt_eprop*ein;
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    out[imom][mu][RE]=eout(mu).real();
+	    out[imom][mu][IM]=eout(mu).imag();
+	  }
+#else
+	spin_prod_double(out[imom],in[imom],sqrt(prop[0][0][RE]));
+#endif
 	
-// 	// //verify g.f condition
-// 	// double tr=0.0,nre=0.0,nim=0.0;
-// 	// for(int mu=0;mu<NDIM;mu++)
-// 	//   {
-// 	//     double kmu=M_PI*(2*glbCoordOfLoclx[imom][mu]+gl.bc[mu])/glbSize[mu];
-// 	//     double ktmu=2*sin(kmu/2);
+	// //verify g.f condition
+	// double tr=0.0,nre=0.0,nim=0.0;
+	// for(int mu=0;mu<NDIM;mu++)
+	//   {
+	//     double kmu=M_PI*(2*glbCoordOfLoclx[imom][mu]+gl.bc[mu])/glbSize[mu];
+	//     double ktmu=2*sin(kmu/2);
 	    
-// 	//     tr+=out[imom][mu][RE]*ktmu;
-// 	//     nre+=sqr(out[imom][mu][RE]);
-// 	//     nim+=sqr(out[imom][mu][IM]);
-// 	//   }
-//       }
-//     NISSA_PARALLEL_LOOP_END;
+	//     tr+=out[imom][mu][RE]*ktmu;
+	//     nre+=sqr(out[imom][mu][RE]);
+	//     nim+=sqr(out[imom][mu][IM]);
+	//   }
+      }
+    NISSA_PARALLEL_LOOP_END;
     
     
     set_borders_invalid(out);

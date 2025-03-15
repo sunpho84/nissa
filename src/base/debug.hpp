@@ -28,17 +28,20 @@ namespace nissa
   
   void debug_loop();
   void check_128_bit_prec();
+  __attribute__((format (printf,3,4),noreturn))
   void internal_crash(int line,const char *file,const char *templ,...);
+  __attribute__((format (printf,4,5)))
   void internal_crash_printing_error(int line,const char *file,int err_code,const char *templ,...);
+  __attribute__((format (printf,4,5)))
   void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...);
 #ifdef USE_CUDA
+  __attribute__((format (printf,4,5)))
   void internal_decript_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...);
 #endif
-  void print_backtrace_list();
+  void print_backtrace_list(int which_rank=0);
   void signal_handler(int);
   double take_time();
 }
-
 
 #undef EXTERN_DEBUG
 #undef INIT_DEBUG_TO

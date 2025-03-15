@@ -31,6 +31,13 @@ namespace nissa
     {
       return data[i];
     }
+    
+    bool operator<(const checksum& oth) const
+    {
+      using U=const std::pair<uint32_t,uint32_t>;
+      
+      return (*(U*)data)<(*(U*)oth.data);
+    }
   };
   
   void checksum_compute_ildg_data(uint32_t *check,void *data,size_t bps);

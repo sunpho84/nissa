@@ -7,9 +7,14 @@
 
 #ifdef USE_QUDA
 # include <quda.h>
+# include <multigrid.h>
 #endif
 
+#include <complex>
+#include <map>
+
 #include "base/multiGridParams.hpp"
+#include "io/checksum.hpp"
 #include "routines/ios.hpp"
 #include "geometry/geometry_eo.hpp"
 
@@ -108,6 +113,9 @@ namespace quda_iface
     
     return plaq[0];
   }
+  
+  /// Since the solver might have not deleted the eigenvectors, try to flag them so maybe they will be deleted
+  void maybeFlagTheMultigridEigenVectorsForDeletion();
 }
 
 #undef QUDA_API

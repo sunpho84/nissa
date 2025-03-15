@@ -128,6 +128,8 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void color_summ_the_prod_complex(color a,const color b,const complex c) {for(size_t ic=0;ic<NCOL;ic++) complex_summ_the_prod(a[ic],b[ic],c);}
   CUDA_HOST_AND_DEVICE inline void color_subt_the_prod_complex(color a,const color b,const complex c) {for(size_t ic=0;ic<NCOL;ic++) complex_subt_the_prod(a[ic],b[ic],c);}
   
+  CUDA_HOST_AND_DEVICE inline void color_prod_color_delta(color a,const color b,const size_t c) {for(size_t ic=0;ic<NCOL;ic++) complex_prod_double(a[ic],b[ic],c==ic);}
+  
   inline void color_linear_comb(color a,const color b,const double cb,const color c,const double cc) {for(size_t ic=0;ic<NCOL;ic++) complex_linear_comb(a[ic],b[ic],cb,c[ic],cc);}
   
   CUDA_HOST_AND_DEVICE inline void color_scalar_prod(complex out,const color a,const color b)
@@ -1114,6 +1116,8 @@ namespace nissa
   {spincolor_prod_double(a,a,factor);}
   CUDA_HOST_AND_DEVICE inline void spincolor_prodassign_idouble(spincolor a,const double factor)
   {spincolor_prod_idouble(a,a,factor);}
+  CUDA_HOST_AND_DEVICE inline void spincolor_prod_color_delta(spincolor a,const spincolor b,const int c)
+  {for(size_t i=0;i<NDIRAC;i++) color_prod_color_delta(a[i],b[i],c);}
   
   //spincolor*complex
   CUDA_HOST_AND_DEVICE inline void unsafe_spincolor_prod_complex(spincolor a,const spincolor b,const complex factor)
@@ -1406,6 +1410,9 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void colorspinspin_prodassign_complex_conj(colorspinspin c,const complex f)
   {colorspinspin_prod_complex_conj(c,c,f);}
   
+  CUDA_HOST_AND_DEVICE inline void colorspinspin_prod_color_delta(colorspinspin out,const colorspinspin in,const size_t c)
+  {for(size_t ic=0;ic<NCOL;ic++) spinspin_prod_double(out[ic],in[ic],c==ic);}
+  
   //colorspinspin summ
   CUDA_HOST_AND_DEVICE inline void colorspinspin_summ(colorspinspin out,const colorspinspin in1,const colorspinspin in2) {for(size_t i=0;i<NCOL;i++) spinspin_summ(out[i],in1[i],in2[i]);}
   CUDA_HOST_AND_DEVICE inline void colorspinspin_summassign(colorspinspin out,const colorspinspin in) {colorspinspin_summ(out,out,in);}
@@ -1441,6 +1448,9 @@ namespace nissa
   {su3spinspin_prod_complex(c,c,f);}
   CUDA_HOST_AND_DEVICE inline void su3spinspin_prodassign_complex_conj(su3spinspin c,const complex f)
   {su3spinspin_prod_complex_conj(c,c,f);}
+  
+  CUDA_HOST_AND_DEVICE inline void su3spinspin_prod_color_delta(su3spinspin out,const su3spinspin in,const size_t c)
+  {for(size_t ic=0;ic<NCOL;ic++) colorspinspin_prod_double(out[ic],in[ic],c==ic);}
   
   //su3spinspin summ
   CUDA_HOST_AND_DEVICE inline void su3spinspin_summ(su3spinspin out,const su3spinspin in1,const su3spinspin in2) {for(size_t i=0;i<NCOL;i++) colorspinspin_summ(out[i],in1[i],in2[i]);}

@@ -51,13 +51,13 @@ namespace nissa
   
   //revert the endianness of doubles
   CUDA_HOST_AND_DEVICE
-  inline void change_endianness(double *dest,double *sour,int ndoubles,int verbose=1)
+  inline void change_endianness(double *dest,double *sour,int64_t ndoubles,int verbose=1)
   {
 #ifndef COMPILING_FOR_DEVICE
-    if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d doubles\n",ndoubles);
+    if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %zu doubles\n",ndoubles);
 #endif
     
-    for(int idouble=0;idouble<ndoubles;idouble++)
+    for(int64_t idouble=0;idouble<ndoubles;idouble++)
       {
 	double_reverter_t temp;
 	temp.d=sour[idouble];
@@ -71,13 +71,13 @@ namespace nissa
   
   //revert the endianness of floats
   CUDA_HOST_AND_DEVICE
-  inline void change_endianness(float *dest,float *sour,int nfloats,int verbose=1)
+  inline void change_endianness(float *dest,float *sour,int64_t nfloats,int verbose=1)
   {
 #ifndef COMPILING_FOR_DEVICE
-    if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d floats\n",nfloats);
+    if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %ld floats\n",nfloats);
 #endif
     
-    for(int ifloat=0;ifloat<nfloats;ifloat++)
+    for(int64_t ifloat=0;ifloat<nfloats;ifloat++)
       {
 	float_reverter_t temp;
 	temp.f=sour[ifloat];
@@ -88,19 +88,19 @@ namespace nissa
   }
   
   CUDA_HOST_AND_DEVICE
-  inline void change_endianness(uint32_t *dest,uint32_t *sour,int nints,int verbose=1)
+  inline void change_endianness(uint32_t *dest,uint32_t *sour,int64_t nints,int verbose=1)
   {
     change_endianness((float*)dest,(float*)sour,nints,verbose);
   }
   
   CUDA_HOST_AND_DEVICE
-  inline void change_endianness(uint16_t *dest,uint16_t *sour,int nshorts,int verbose=1)
+  inline void change_endianness(uint16_t *dest,uint16_t *sour,int64_t nshorts,int verbose=1)
   {
 #ifndef COMPILING_FOR_DEVICE
-    if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d uint16_t\n",nshorts);
+    if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %ld uint16_t\n",nshorts);
 #endif
     
-    for(int ishort=0;ishort<nshorts;ishort++)
+    for(int64_t ishort=0;ishort<nshorts;ishort++)
       {
 	uint16_t_reverter_t temp;
 	temp.u=sour[ishort];
@@ -112,16 +112,16 @@ namespace nissa
   ////////////////////Copy a vector of floats to doubles. Sweep is reversed to avoid overwriting////////////////
   
   //Do not change endianness
-  inline void floats_to_doubles_same_endianness(double *dest,float *sour,int n,int verbose=1)
+  inline void floats_to_doubles_same_endianness(double *dest,float *sour,int64_t n,int verbose=1)
   {
-    if(verbose) verbosity_lv3_master_printf("Converting %d floats to doubles\n",n);
+    if(verbose) verbosity_lv3_master_printf("Converting %ld floats to doubles\n",n);
     for(int i=n-1;i>=0;i--) dest[i]=(double)(sour[i]);
   }
   
   //Change endianness
-  inline void floats_to_doubles_changing_endianness(double *dest,float *sour,int n,int verbose=1)
+  inline void floats_to_doubles_changing_endianness(double *dest,float *sour,int64_t n,int verbose=1)
   {
-    if(verbose) verbosity_lv3_master_printf("Converting %d floats to doubles changing endianness (two steps\n",n);
+    if(verbose) verbosity_lv3_master_printf("Converting %ld floats to doubles changing endianness (two steps\n",n);
     floats_to_doubles_same_endianness(dest,sour,n,verbose);
     change_endianness(dest,dest,n,verbose);
   }
@@ -129,28 +129,28 @@ namespace nissa
   ////////////////////Copy a vector of doubles to floats. Sweep is direct, to avoid overwriting////////////////
   
   //Do not change the endianness
-  inline void doubles_to_floats_same_endianness(float *dest,double *sour,int n,int verbose=1)
+  inline void doubles_to_floats_same_endianness(float *dest,double *sour,int64_t n,int verbose=1)
   {
-    if(verbose) verbosity_lv3_master_printf("Converting %d doubles to floats\n",n);
+    if(verbose) verbosity_lv3_master_printf("Converting %ld doubles to floats\n",n);
     for(int i=0;i<n;i++) dest[i]=(float)(sour[i]);
   }
   
   //Change endianness
-  inline void doubles_to_floats_changing_endianness(float *dest,double *sour,int n,int verbose=1)
+  inline void doubles_to_floats_changing_endianness(float *dest,double *sour,int64_t n,int verbose=1)
   {
-    if(verbose) verbosity_lv3_master_printf("Converting %d doubles to floats changing endianness (two steps)\n",n);
+    if(verbose) verbosity_lv3_master_printf("Converting %ld doubles to floats changing endianness (two steps)\n",n);
     doubles_to_floats_same_endianness(dest,sour,n,verbose);
     change_endianness(dest,dest,n,verbose);
   }
   
   CUDA_HOST_AND_DEVICE
-  inline void change_endianness(int *dest,int *sour,int nints,int verbose=1)
+  inline void change_endianness(int *dest,int *sour,int64_t nints,int verbose=1)
   {
     change_endianness((float*)dest,(float*)sour,nints,verbose);
   }
   
   CUDA_HOST_AND_DEVICE
-  inline void change_endianness(uint64_t *dest,uint64_t *sour,int nints,int verbose=1)
+  inline void change_endianness(uint64_t *dest,uint64_t *sour,int64_t nints,int verbose=1)
   {
     change_endianness((double*)dest,(double*)sour,nints,verbose);
   }

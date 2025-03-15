@@ -430,6 +430,7 @@ namespace nissa
     char path[1024]="nissa_config";
     
     std::vector<triple_tag> tags;
+    tags.push_back(triple_tag("prepend_time",                  prepend_time));
     tags.push_back(triple_tag("verbosity_lv",                  verbosity_lv));
     tags.push_back(triple_tag("use_128_bit_precision",         use_128_bit_precision));
     tags.push_back(triple_tag("check_inversion_residue",       check_inversion_residue));
@@ -443,6 +444,7 @@ namespace nissa
     tags.push_back(triple_tag("set_y_nranks",		       fix_nranks[2]));
     tags.push_back(triple_tag("set_z_nranks",		       fix_nranks[3]));
     tags.push_back(triple_tag("ignore_ILDG_magic_number",      ignore_ILDG_magic_number));
+    tags.push_back(triple_tag("fast_read_write_vectors",       fast_read_write_vectors));
     tags.push_back(triple_tag("perform_benchmark",             perform_benchmark));
 #if HIGH_PREC_TYPE==GMP_HIGH_PREC
     tags.push_back(triple_tag("mpf_precision",                 mpf_precision));

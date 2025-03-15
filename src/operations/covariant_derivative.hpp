@@ -38,6 +38,10 @@ namespace nissa
   void prop_multiply_with_gamma(colorspinspin *out,int ig,colorspinspin *in,int it=-1);
   void prop_multiply_with_gamma(su3spinspin *out,int ig,su3spinspin *in,int it=-1);
   
+  void prop_multiply_with_color_delta(spincolor *out,int ic,spincolor *in,int it=-1);
+  void prop_multiply_with_color_delta(colorspinspin *out,int ic,colorspinspin *in,int it=-1);
+  void prop_multiply_with_color_delta(su3spinspin *out,int ic,su3spinspin *in,int it=-1);
+  
   void Laplace_operator_2_links(color *out,quad_su3 *conf,const which_dir_t& dirs,color *in);
   void Laplace_operator(spincolor *out,quad_su3 *conf,const which_dir_t& dirs,spincolor *in);
   

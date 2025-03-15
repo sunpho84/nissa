@@ -89,7 +89,7 @@ using namespace nissa;
 
 void in_main(int narg,char **arg)
 {
-  crash("");
+  crash(" ");
   
   // if(narg<2) crash("Use: %s input",arg[0]);
   

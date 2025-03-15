@@ -21,7 +21,7 @@
 namespace nissa
 {
   //set to zero
-  void double_vector_init_to_zero(double *a,int n)
+  void double_vector_init_to_zero(double *a,int64_t n)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       a[i]=0;
@@ -31,7 +31,7 @@ namespace nissa
   }
   
   //copy
-  template <class T1,class T2> void internal_vector_copy(T1 *a,T2 *b,int n)
+  template <class T1,class T2> void internal_vector_copy(T1 *a,T2 *b,int64_t n)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       a[i]=b[i];
@@ -41,24 +41,24 @@ namespace nissa
   }
   
   //double to single and vv
-  void double_vector_to_single(float* a,double* b,int n)
+  void double_vector_to_single(float* a,double* b,int64_t n)
   {
     internal_vector_copy(a,b,n);
   }
   
-  void single_vector_to_double(double* a,float *b,int n)
+  void single_vector_to_double(double* a,float *b,int64_t n)
   {
     internal_vector_copy(a,b,n);
   }
   
   //double to double
-  void double_vector_copy(double *a,double* b,int n)
+  void double_vector_copy(double *a,double* b,int64_t n)
   {
     internal_vector_copy(a,b,n);
   }
   
   //set to zero
-  void single_vector_init_to_zero(float *a,int n)
+  void single_vector_init_to_zero(float *a,int64_t n)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       a[i]=0;
@@ -68,7 +68,7 @@ namespace nissa
   }
   
   //copy
-  void single_vector_copy(float *a,float *b,int n)
+  void single_vector_copy(float *a,float *b,int64_t n)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       a[i]=b[i];
@@ -78,7 +78,7 @@ namespace nissa
   }
   
   //summ
-  void double_vector_summ(double* out,double* in1,double* in2,int n)
+  void double_vector_summ(double* out,double* in1,double* in2,int64_t n)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       out[i]=in1[i]+in2[i];
@@ -87,7 +87,7 @@ namespace nissa
   }
   
   //subt
-  void double_vector_subt(double* out,double* in1,double* in2,int n)
+  void double_vector_subt(double* out,double* in1,double* in2,int64_t n)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       out[i]=in1[i]-in2[i];
@@ -96,14 +96,14 @@ namespace nissa
   }
   
   //prod with double
-  void double_vector_prod_double(double* out,double* in,double r,int n)
+  void double_vector_prod_double(double* out,double* in,double r,int64_t n)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       out[i]=r*in[i];
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
-  void float_128_vector_prod_double(float_128* out,float_128* in,double r,int n)
+  void float_128_vector_prod_double(float_128* out,float_128* in,double r,int64_t n)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       float_128_prod_64(out[i],in[i],r);
@@ -112,7 +112,7 @@ namespace nissa
   }
   
   //prod with double of the summ
-  void double_vector_prod_the_summ_double(double* out,double r,double* in1,double* in2,int n)
+  void double_vector_prod_the_summ_double(double* out,double r,double* in1,double* in2,int64_t n)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       out[i]=r*(in1[i]+in2[i]);
@@ -121,7 +121,7 @@ namespace nissa
   }
   
   //scalar product
-  void double_vector_glb_scalar_prod(double* glb_res,double* a,double* b,int n)
+  void double_vector_glb_scalar_prod(double* glb_res,double* a,double* b,int64_t n)
   {
 #ifndef REPRODUCIBLE_RUN
     double *reducing_buffer=get_reducing_buffer<double>(n);
@@ -148,7 +148,7 @@ namespace nissa
   }
   
   //scalar product
-  void complex_vector_glb_scalar_prod(double* glb_res,complex* a,complex* b,int n)
+  void complex_vector_glb_scalar_prod(double* glb_res,complex* a,complex* b,int64_t n)
   {
 #ifndef REPRODUCIBLE_RUN
     complex *reducing_buffer=get_reducing_buffer<complex>(n);
@@ -174,13 +174,13 @@ namespace nissa
 #else
     complex_128 temp;
     glb_reduce(&temp,reducing_buffer,n);
-    for(int ri=0;ri<2;ri++)
+    for(int64_t ri=0;ri<2;ri++)
       glb_res[ri]=temp[ri][0];
 #endif
   }
   
   //scalar product
-  void single_vector_glb_scalar_prod(float* glb_res,float* a,float* b,int n)
+  void single_vector_glb_scalar_prod(float* glb_res,float* a,float* b,int64_t n)
   {
     crash("not working");
 //     //perform thread summ
@@ -194,7 +194,7 @@ namespace nissa
   }
   
   //put a vector of complex equal to its conjugate
-  void complex_vector_conj(complex* res,complex* in,int n)
+  void complex_vector_conj(complex* res,complex* in,int64_t n)
   {
     
     NISSA_PARALLEL_LOOP(i,0,n)
@@ -204,7 +204,7 @@ namespace nissa
   }
   
   //Ai=Ai+Bi*c
-  void complex_vector_summassign_complex_vector_prod_complex(complex* a,complex* b,double* c,int n)
+  void complex_vector_summassign_complex_vector_prod_complex(complex* a,complex* b,double* c,int64_t n)
   {
     
     NISSA_PARALLEL_LOOP(i,0,n)
@@ -214,7 +214,7 @@ namespace nissa
   }
   
   //put the passed vector to the new norm, returning the reciprocal of normalizating factor
-  void double_vector_normalize(double* ratio,double* out,double* in,double norm,int n)
+  void double_vector_normalize(double* ratio,double* out,double* in,double norm,int64_t n)
   {
     //compute current norm
     double old_norm;
@@ -230,7 +230,7 @@ namespace nissa
   }
   
   //a[]=b[]+c[]*d
-  void double_vector_summ_double_vector_prod_double(double* a,double* b,double* c,double d,int n,int OPT)
+  void double_vector_summ_double_vector_prod_double(double* a,double* b,double* c,double d,int64_t n,int OPT)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       a[i]=b[i]+c[i]*d;
@@ -240,7 +240,7 @@ namespace nissa
   }
   
   //single version
-  void single_vector_summ_single_vector_prod_single(float* a,float* b,float* c,float d,int n,int OPT)
+  void single_vector_summ_single_vector_prod_single(float* a,float* b,float* c,float d,int64_t n,int OPT)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       a[i]=b[i]+c[i]*d;
@@ -250,7 +250,7 @@ namespace nissa
   }
   
   //a[]=b[]*c+d[]*e
-  void double_vector_linear_comb(double* a,double* b,double c,double* d,double e,int n,int OPT)
+  void double_vector_linear_comb(double* a,double* b,double c,double* d,double e,int64_t n,int OPT)
   {
     
     NISSA_PARALLEL_LOOP(i,0,n)
@@ -262,7 +262,7 @@ namespace nissa
   }
   
   //a[]=b[]*c+d[]*e
-  void single_vector_linear_comb(float* a,float* b,float c,float* d,float e,int n,int OPT)
+  void single_vector_linear_comb(float* a,float* b,float c,float* d,float e,int64_t n,int OPT)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       a[i]=b[i]*c+d[i]*e;
@@ -274,14 +274,14 @@ namespace nissa
   ////////////////////////////////////////////////////// quadruple precision ///////////////////////////////////////////
   
   //a=b
-  void double_vector_from_quadruple_vector(double* a,float_128* b,int n)
+  void double_vector_from_quadruple_vector(double* a,float_128* b,int64_t n)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       a[i]=double_from_float_128(b[i]);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(a);
   }
-  void quadruple_vector_from_double_vector(float_128* a,double* b,int n)
+  void quadruple_vector_from_double_vector(float_128* a,double* b,int64_t n)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       float_128_from_64(a[i],b[i]);
@@ -290,7 +290,7 @@ namespace nissa
   }
   
   //a=a+b
-  void quadruple_vector_summassign_double_vector(float_128* a,double* b,int n)
+  void quadruple_vector_summassign_double_vector(float_128* a,double* b,int64_t n)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       float_128_summassign_64(a[i],b[i]);
@@ -299,7 +299,7 @@ namespace nissa
   }
   
   //a=b-c
-  void quadruple_vector_subt_from_double_vector(float_128* a,double* b,float_128* c,int n)
+  void quadruple_vector_subt_from_double_vector(float_128* a,double* b,float_128* c,int64_t n)
   {
     NISSA_PARALLEL_LOOP(i,0,n)
       float_128_subt_from_64(a[i],b[i],c[i]);
@@ -310,9 +310,9 @@ namespace nissa
   /////////////////// scalar prodcut in quadruple /////////////////
   
   //(a,b)
-  void quadruple_vector_glb_scalar_prod(float_128* glb_res,float_128* a,float_128* b,int n)
+  void quadruple_vector_glb_scalar_prod(float_128* glb_res,float_128* a,float_128* b,int64_t n)
   {
-    crash("");
+    crash(" ");
     glb_res[0][0]=0; //to remove warning
     // //perform thread summ
     // float_128 loc_thread_res={0,0};
@@ -324,7 +324,7 @@ namespace nissa
   }
   
   //(a,b)
-  void double_conv_quadruple_vector_glb_scalar_prod(double *out,float_128 *a,float_128 *b,int n)
+  void double_conv_quadruple_vector_glb_scalar_prod(double *out,float_128 *a,float_128 *b,int64_t n)
   {
     float_128 out_128;
     quadruple_vector_glb_scalar_prod(&out_128,a,b,n);
@@ -334,9 +334,9 @@ namespace nissa
   //////////////// only quadruple accumulation //////////////////
   
   //(a,b)
-  void quadruple_accumulate_double_vector_glb_scalar_prod(float_128* a,double* b,double* c,int n)
+  void quadruple_accumulate_double_vector_glb_scalar_prod(float_128* a,double* b,double* c,int64_t n)
   {
-    crash("");
+    crash(" ");
     a[0][0]=a[0][1]=0; //to remove warning
     // //perform thread summ
     // float_128 loc_thread_res={0,0};
@@ -348,7 +348,7 @@ namespace nissa
   }
   
   //(a,b)
-  double double_conv_quadruple_accumulate_double_vector_glb_scalar_prod(double *a,double *b,int n)
+  double double_conv_quadruple_accumulate_double_vector_glb_scalar_prod(double *a,double *b,int64_t n)
   {
     float_128 out;
     quadruple_accumulate_double_vector_glb_scalar_prod(&out,a,b,n);
@@ -506,7 +506,7 @@ namespace nissa
     THREAD_BARRIER();
   }
   
-  void parallel_memcpy(void* out,void* in,int n)
+  void parallel_memcpy(void* out,void* in,int64_t n)
   {
 #if THREADS_TYPE == OPENMP_THREADS
     
@@ -514,7 +514,7 @@ namespace nissa
     {
       NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,n,THREAD_ID,nthreads);
       memcpy((char*)out+start,(char*)in+start,chunk_load);
-      (void)&end;//to avoid warning
+      (void)end;//to avoid warning
     }
     THREAD_BARRIER();
 #else

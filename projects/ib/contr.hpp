@@ -22,7 +22,7 @@ namespace nissa
 {
   EXTERN_CONTR double contr_print_time INIT_TO(0);
   
-  /////////////////////////////////////////////////////////////////
+  void clearCorrelations();
   
   void compute_prop_scalprod(double *res,std::string pr_dag,std::string pr);
   
@@ -44,7 +44,7 @@ namespace nissa
   CUDA_MANAGED EXTERN_CONTR complex *mes2pts_contr INIT_TO(NULL);
   EXTERN_CONTR std::vector<idirac_pair_t> mes_gamma_list;
   void allocate_mes2pts_contr();
-  void compute_mes2pts_contr(int normalize=true);
+  void compute_mes2pt_contr(int icombo);
   void print_mes2pts_contr(int n=nhits,int force_append=false,int skip_inner_header=false,const std::string &alternative_header_template="");
   void free_mes2pts_contr();
   
@@ -162,11 +162,10 @@ namespace nissa
   //compute all contractions
   inline void compute_contractions()
   {
-    compute_mes2pts_contr();
     compute_handcuffs_contr();
     //compute_meslep_contr();
-    if(compute_octet) compute_bar2pts_contr();
-    if(compute_decuplet) compute_bar2pts_alt_contr();
+    if(compute_octet) crash("dependencies are broken");//compute_bar2pts_contr();
+    if(compute_decuplet) crash("dependencies are broken");//compute_bar2pts_alt_contr();
   }
   
   //print out all contractions

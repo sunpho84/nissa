@@ -42,7 +42,11 @@ namespace nissa
       }
     
 #ifdef USE_QUDA
-    if(use_quda) quda_iface::finalize();
+    if(use_quda)
+      {
+	quda_iface::maybeFlagTheMultigridEigenVectorsForDeletion();
+	quda_iface::finalize();
+      }
 #endif
      
     //unset lx geometry
@@ -84,11 +88,6 @@ namespace nissa
     master_printf("Total communication time: %lg s\n",tot_comm_time);
 #endif
     
-    //free thread delays pattern
-#if THREAD_DEBUG>=2
-    free(delayed_thread_barrier);
-    free(delay_rnd_gen);
-#endif
     
     MPI_Barrier(MPI_COMM_WORLD);
     master_printf("   Ciao!\n\n");

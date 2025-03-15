@@ -9,6 +9,16 @@
 
 namespace nissa
 {
+  /// Clear all correlation
+  void clearCorrelations()
+  {
+    if(mes2pts_contr_size) vector_reset(mes2pts_contr);
+    if(handcuffs_contr_size) vector_reset(handcuffs_contr);
+    if(bar2pts_contr_size) vector_reset(bar2pts_contr);
+    if(bar2pts_alt_contr_size) vector_reset(bar2pts_alt_contr);
+    if(nmeslep_corr) vector_reset(meslep_contr);
+  }
+  
   //class to open or append a path, depending if it was already used
   class open_or_append_t
   {
@@ -75,11 +85,11 @@ namespace nissa
     nissa_free(loc);
   }
   
-  //compute all the meson contractions
-  void compute_mes2pts_contr(int normalize)
+  //compute one meson contraction
+  void compute_mes2pt_contr(int icombo)
   //void compute_mes2pts_contr(int normalize)
   {
-    master_printf("Computing meson 2pts_contractions\n");
+    const auto [name,a,b]=mes2pts_contr_map[icombo];
     
     // Tr [ GSO G5 S1^+ G5 GSI S2 ]      GSI is on the sink
     // (GSO)_{ij(i)} (G5)_{j(i)} (S1*)^{ab}_{kj(i)} (G5)_k (GSI)_{kl(k)} (S2)^{ab}_{l(k)i}
@@ -91,81 +101,101 @@ namespace nissa
     
     if(IS_MASTER_THREAD) mes2pts_contr_time-=take_time();
     
-    for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
+    qprop_t &Q1=Q[a];
+    qprop_t &Q2=Q[b];
+    double norm=12/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2); //12 in case of a point source
+    for(size_t ihadr_contr=0;ihadr_contr<mes_gamma_list.size();ihadr_contr++)
       {
-	master_printf("icombo %d/%d\n",icombo,mes2pts_contr_map.size());
-	qprop_t &Q1=Q[mes2pts_contr_map[icombo].a];
-	qprop_t &Q2=Q[mes2pts_contr_map[icombo].b];
-	double norm=12/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2); //12 in case of a point source
-	for(size_t ihadr_contr=0;ihadr_contr<mes_gamma_list.size();ihadr_contr++)
+	int ig_so=mes_gamma_list[ihadr_contr].so;
+	int ig_si=mes_gamma_list[ihadr_contr].si;
+	if(nso_spi==1 and ig_so!=5) crash("implemented only g5 contraction on the source for non-diluted source");
+	
+	vector_reset(loc_contr);
+	
+	for(int i=0;i<nso_spi;i++)
 	  {
-	    int ig_so=mes_gamma_list[ihadr_contr].so;
-	    int ig_si=mes_gamma_list[ihadr_contr].si;
-	    if(nso_spi==1 and ig_so!=5) crash("implemented only g5 contraction on the source for non-diluted source");
+	    int j=(base_gamma+ig_so)->pos[i];
 	    
-	    vector_reset(loc_contr);
+	    complex A;
+	    unsafe_complex_prod(A,(base_gamma+ig_so)->entr[i],(base_gamma+5)->entr[j]);
 	    
-	    for(int i=0;i<nso_spi;i++)
+	    complex AB[NDIRAC];
+	    for(int k=0;k<NDIRAC;k++)
 	      {
-		int j=(base_gamma+ig_so)->pos[i];
-		
-		complex A;
-		unsafe_complex_prod(A,(base_gamma+ig_so)->entr[i],(base_gamma+5)->entr[j]);
-		
-		for(int b=0;b<nso_col;b++)
-		  {
-		    spincolor *q1=Q1[so_sp_col_ind(j,b)];
-		    spincolor *q2=Q2[so_sp_col_ind(i,b)];
-		    
-		    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-		      {
-			for(int k=0;k<NDIRAC;k++)
-			  {
-			    int l=(base_gamma+ig_si)->pos[k];
-			    
-			    //compute AB*norm
-			    complex B;
-			    unsafe_complex_prod(B,(base_gamma+5)->entr[k],(base_gamma+ig_si)->entr[k]);
-			    complex AB;
-			    unsafe_complex_prod(AB,A,B);
-			    if(normalize) complex_prodassign_double(AB,norm);
-			    
-			    complex c={0,0};
-			    for(int a=0;a<NCOL;a++)
-			      complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
-			    complex_summ_the_prod(loc_contr[ivol],c,AB);
-			  }
-		      }
-		    NISSA_PARALLEL_LOOP_END;
-		  }
+		//compute AB*norm
+		complex B;
+		unsafe_complex_prod(B,(base_gamma+5)->entr[k],(base_gamma+ig_si)->entr[k]);
+		unsafe_complex_prod(AB[k],A,B);
+		complex_prodassign_double(AB[k],norm);
 	      }
 	    
-	    THREAD_BARRIER();
-	    complex temp_contr[glbSize[0]];
-	    glb_reduce(temp_contr,loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
-	    
-	    for(int t=0;t<glbSize[0];t++)
-	      complex_summassign(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glbSize[0]-source_coord[0])%glbSize[0])],temp_contr[t]);
+	    for(int b=0;b<nso_col;b++)
+	      {
+		spincolor *q1=Q1[so_sp_col_ind(j,b)];
+		spincolor *q2=Q2[so_sp_col_ind(i,b)];
+		
+		NISSA_PARALLEL_LOOP(ivol,0,locVol)
+		  {
+		    for(int k=0;k<NDIRAC;k++)
+		      {
+			int l=(base_gamma+ig_si)->pos[k];
+			
+			complex c={0,0};
+			for(int a=0;a<NCOL;a++)
+			  complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
+			complex_summ_the_prod(loc_contr[ivol],c,AB[k]);
+		      }
+		  }
+		NISSA_PARALLEL_LOOP_END;
+	      }
 	  }
+	
+	THREAD_BARRIER();
+	complex temp_contr[glbSize[0]];
+	glb_reduce(temp_contr,loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+	
+	for(int t=0;t<glbSize[0];t++)
+	  complex_summassign(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glbSize[0]-source_coord[0])%glbSize[0])],temp_contr[t]);
       }
     
-    //stats
-    if(IS_MASTER_THREAD)
+  //stats
+  if(IS_MASTER_THREAD)
+    {
+      nmes2pts_contr_made+=mes_gamma_list.size();
+      mes2pts_contr_time+=take_time();
+    }
+  }
+
+  /// Prepares a string containing the origin, if not averaging hits
+  std::string source_coords_if_not_averaging_hits()
+  {
+    std::string res;
+    
+    if(doNotAverageHits)
       {
-	nmes2pts_contr_made+=mes2pts_contr_map.size()*mes_gamma_list.size();
-	mes2pts_contr_time+=take_time();
+	res+=", origin located at txyz = ("+std::to_string(source_coord[0]);
+	for(int mu=1;mu<NDIM;mu++)
+	  res+=","+std::to_string(source_coord[mu]);
+	res+=")";
       }
+    
+    return res;
   }
   
   //print all mesonic 2pts contractions
   void print_mes2pts_contr(int n,int force_append,int skip_inner_header,const std::string &alternative_header_template)
   {
+    if(doNotAverageHits)
+      force_append=true;
+    
     //set the header template
     std::string header_template;
-    if(alternative_header_template=="") header_template="\n # Contraction of %s ^ \\dag and %s\n\n";
+    if(alternative_header_template=="") header_template="\n # Contraction of %s ^ \\dag and %s"+source_coords_if_not_averaging_hits()+"\n\n";
     else header_template=alternative_header_template;
     
     contr_print_time-=take_time();
+    
+    const double norm=doNotAverageHits?1:(1.0/n);
     
     //reduce and normalise
     // glb_nodes_reduce_complex_vect(mes2pts_contr,mes2pts_contr_size);
@@ -183,7 +213,7 @@ namespace nissa
 	
 	master_fprintf(fout,header_template.c_str(),combo.a.c_str(),combo.b.c_str());
 	
-	print_contractions_to_file(fout,mes_gamma_list,mes2pts_contr+ind_mes2pts_contr(icombo,0,0),0,"",1.0/n,skip_inner_header);
+	print_contractions_to_file(fout,mes_gamma_list,mes2pts_contr+ind_mes2pts_contr(icombo,0,0),0,"",norm,skip_inner_header);
 	master_fprintf(fout,"\n");
 	
 	//close the file
@@ -533,6 +563,8 @@ namespace nissa
     crash("#warning reimplement");
     //glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
     
+    const double norm=doNotAverageHits?0.5:(1.0/(2*nhits));
+    
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
 	for(int dir_exc=0;dir_exc<2;dir_exc++)
 	{
@@ -542,7 +574,7 @@ namespace nissa
 	    {
 	      //normalize for nsources and 1+g0
 	      complex c;
-	      complex_prod_double(c,bar2pts_contr[ind_bar2pts_contr(icombo,dir_exc,t)],1.0/(2*nhits));
+	      complex_prod_double(c,bar2pts_contr[ind_bar2pts_contr(icombo,dir_exc,t)],norm);
 	      master_fprintf(fout,"%+16.16lg %+16.16lg\n",c[RE],c[IM]);
 	    }
 	  
@@ -556,6 +588,8 @@ namespace nissa
     //list to open or append
     open_or_append_t list;
     
+    const double norm=doNotAverageHits?0.5:(1.0/(2*nhits));
+    
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
       for(int iProj=0;iProj<NBAR_ALT_PROJ;iProj++)
 	for(int iWick=0;iWick<2;iWick++)
@@ -563,12 +597,12 @@ namespace nissa
 	    //open output
 	    FILE *fout=list.open(combine("%s/bar_alt_contr_%s_proj_%d_Wick_%d",outfolder,bar2pts_contr_map[icombo].name.c_str(),iProj,iWick));
 	    
-	    master_fprintf(fout,"# proj %d\n",iProj);
+	    master_fprintf(fout,"# proj %d %s \n",iProj,source_coords_if_not_averaging_hits().c_str());
 	    for(int t=0;t<glbSize[0];t++)
 	      {
 		//normalize for nsources and 1+g0
 		complex c;
-		complex_prod_double(c,bar2pts_alt_contr[ind_bar2pts_alt_contr(icombo,iWick,iProj,t)],1.0/(2*nhits));
+		complex_prod_double(c,bar2pts_alt_contr[ind_bar2pts_alt_contr(icombo,iWick,iProj,t)],norm);
 		master_fprintf(fout,"%+16.16lg %+16.16lg\n",c[RE],c[IM]);
 	      }
 	    
@@ -720,6 +754,7 @@ namespace nissa
     //loop over sides
     for(size_t iside=0;iside<handcuffs_side_map.size();iside++)
       {
+	crash("dependencies are broken");
 	//allocate
 	handcuffs_side_map_t &h=handcuffs_side_map[iside];
 	std::string side_name=h.name;
@@ -764,7 +799,7 @@ namespace nissa
       }
     
     //compute the hands
-    for(int ihand=0;ihand<handcuffs_map.size();ihand++)
+    for(size_t ihand=0;ihand<handcuffs_map.size();ihand++)
       if(sides.find(handcuffs_map[ihand].left)==sides.end() or
 	 sides.find(handcuffs_map[ihand].right)==sides.end())
 	crash("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
@@ -815,15 +850,19 @@ namespace nissa
     
     contr_print_time-=take_time();
     
+    const double norm=doNotAverageHits?1:(1.0/nhits);
+    
     //Open if size different from zero
     FILE *fout=nullptr;
     if(handcuffs_map.size()) fout=list.open(combine("%s/handcuffs",outfolder));
     
     for(size_t icombo=0;icombo<handcuffs_map.size();icombo++)
       {
+	master_fprintf(fout,"\n # Contraction %zu %s\n\n",icombo,source_coords_if_not_averaging_hits().c_str());
+	
 	//normalize for nsources
 	complex c;
-	complex_prod_double(c,handcuffs_contr[ind_handcuffs_contr(icombo)],1.0/nhits);
+	complex_prod_double(c,handcuffs_contr[ind_handcuffs_contr(icombo)],norm);
 	master_fprintf(fout,"%s %+16.16lg %+16.16lg\n",handcuffs_map[icombo].name.c_str(),c[RE],c[IM]);
       }
     //close the file

@@ -58,12 +58,12 @@ namespace nissa
 		{
 		  op.inv(phi_r,eta,iflav,1);
 #ifdef USE_EXTERNAL_SOLVER
-		  export_conf::export_bypass=export_conf::AVOID_EXPORT;
+		  export_conf::export_rule=export_conf::AVOID_EXPORT;
 #endif
 		}
 	      op.inv(phi,eta,iflav,0);
 #ifdef USE_EXTERNAL_SOLVER
-	      export_conf::export_bypass=export_conf::AVOID_EXPORT;
+	      export_conf::export_rule=export_conf::AVOID_EXPORT;
 #endif
 	      op.ins(phi_ins_P,5,phi);
 	      op.inv(phi_ins_P,phi_ins_P,iflav,0);
@@ -91,7 +91,7 @@ namespace nissa
 	      c(phi_ins_P,4,7);
 	    }
 #ifdef USE_EXTERNAL_SOLVER
-	  export_conf::export_bypass=export_conf::NO_BYPASS;
+	  export_conf::export_rule=export_conf::DO_THE_CHECK;
 #endif	  
 	  //output
 	  for(int t=0;t<glbSize[0];t++)

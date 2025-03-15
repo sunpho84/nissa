@@ -335,7 +335,7 @@ namespace nissa
     RngView getRngViewOnGlbSiteIRndReal(const int& glblx,const int& irnd_real_per_site)
     {
       //Computes the number in the stream of reals
-      const uint64_t irnd_double=offsetReal+glblx+nissa::glbVol*irnd_real_per_site;
+      const uint64_t irnd_double=offsetReal*nissa::glbVol+glblx+nissa::glbVol*irnd_real_per_site;
       
       //Computes the offset in the rng stream
       const uint64_t irnd_uint32_t=2*irnd_double;

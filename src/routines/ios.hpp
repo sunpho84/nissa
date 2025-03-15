@@ -51,6 +51,7 @@ namespace nissa
 {
   extern int rank;
   
+  EXTERN_IOS int prepend_time;
   EXTERN_IOS int verb_call;
   EXTERN_IOS int verbosity_lv;
   
@@ -60,8 +61,10 @@ namespace nissa
   int cd(std::string path);
   int cp(std::string path_out,std::string path_in);
   int create_dir(std::string path);
+  __attribute__((format (printf,2,3)))
   int master_fprintf(FILE *stream,const char *format,...);
   //int rm(const char *path);
+  __attribute__((format (printf,1,2)))
   std::string combine(const char *format,...);
   void master_get_temp_file(FILE *&fout,std::string &prefix);
   void close_file(FILE *file);

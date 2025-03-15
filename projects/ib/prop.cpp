@@ -36,7 +36,6 @@ namespace nissa
   //get a propagator inverting on "in"
   void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double charge,double residue,const momentum_t& theta)
   {
-    
     //rotate the source index - the propagator rotate AS the sign of mass term
     if(twisted_run>0)
       safe_dirac_prod_spincolor(in,(tau3[r]==-1)?Pminus:Pplus,in);
@@ -60,8 +59,22 @@ namespace nissa
 	quad_su3 *conf=get_updated_conf(charge,theta,glb_conf);
 	
 	master_printf("   inverting explicitly\n");
-	if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
-	else inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
+	
+#ifdef USE_EXTERNAL_SOLVER
+	
+	std::ostringstream os;
+	os.precision(16);
+	os<<conf_path<<"ch"<<charge;
+	for(int mu=0;mu<NDIM;mu++)
+	  os<<"th["<<mu<<"]"<<theta[mu];
+	export_conf::confTag=os.str();
+	export_conf::relyOnTag=true;
+#endif
+	
+	if(clover_run)
+	  inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
+	else
+	  inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
       }
     
     verbosity_lv1_master_printf("Solving time: %lg s\n",take_time()-tin);
@@ -71,149 +84,6 @@ namespace nissa
     //rotate the sink index
     if(twisted_run>0)
       safe_dirac_prod_spincolor(out,(tau3[r]==-1)?Pminus:Pplus,out);
-  }
-  
-  //generate a source, wither a wall or a point in the origin
-  void generate_original_source(qprop_t* sou,bool skipOnly)
-  {
-    const rnd_t noise_type=sou->noise_type;
-    
-    std::unique_ptr<FieldRngOf<spincolor>> drawer;
-    if(stoch_source and use_new_generator)
-      {
-	drawer=std::make_unique<FieldRngOf<spincolor>>(field_rng_stream.getDrawer<spincolor>());
-	if(noise_type!=RND_Z4 and noise_type!=RND_Z2)
-	  crash("Noise type different from Z4 or Z2 not implemented yet");
-	
-	if(skipOnly)
-	  return;
-      }
-    
-    //consistency check
-    if(not stoch_source and (not diluted_spi_source or not diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
-    
-    //reset all to begin
-    for(int i=0;i<nso_spi*nso_col;i++) vector_reset(sou->sp[i]);
-    
-    spincolor **sou_proxy=nissa_malloc("sou_proxy",nso_spi*nso_col,spincolor*);
-    for(int id_so=0;id_so<nso_spi;id_so++)
-      for(int ic_so=0;ic_so<nso_col;ic_so++)
-	sou_proxy[so_sp_col_ind(id_so,ic_so)]=sou->sp[so_sp_col_ind(id_so,ic_so)];
-    
-    const int tins=sou->tins;
-    
-    //NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    NISSA_LOC_VOL_LOOP(ivol)
-      {
-	spincolor c;
-	spincolor_put_to_zero(c);
-	
-	//compute relative coords
-	bool is_spat_orig=true;
-	coords_t rel_c;
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    rel_c[mu]=rel_coord_of_loclx(ivol,mu);
-	    if(mu) is_spat_orig&=(rel_c[mu]==0);
-	  }
-	
-	//dilute in space
-	int mask=1;
-	for(int mu=0;mu<NDIM;mu++) mask&=(rel_c[mu]%diluted_spat_source==0);
-	
-	//fill colour and spin index 0
-	for(int id_si=0;id_si<(diluted_spi_source?1:NDIRAC);id_si++)
-	  for(int ic_si=0;ic_si<(diluted_col_source?1:NCOL);ic_si++)
-	    {
-	      if(stoch_source and mask and (tins==-1 or rel_c[0]==tins))
-		{
-		  if(use_new_generator)
-		    {
-		      drawer->fillLocSite(c,ivol);
-		      for(int id=0;id<NDIRAC;id++)
-			for(int ic=0;ic<NCOL;ic++)
-			  {
-			    if(noise_type==RND_Z4)
-			      z4Transform(c[id][ic]);
-			    else
-			      z2Transform(c[id][ic]);
-			  }
-		    }
-		  else
-		    comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),noise_type);
-		}
-	      if(not stoch_source and is_spat_orig and (tins==-1 or rel_c[0]==tins)) complex_put_to_real(c[id_si][ic_si],1);
-	    }
-	
-	//fill other spin indices
-	for(int id_so=0;id_so<nso_spi;id_so++)
-	  for(int ic_so=0;ic_so<nso_col;ic_so++)
-	    for(int id_si=0;id_si<NDIRAC;id_si++)
-	      for(int ic_si=0;ic_si<NCOL;ic_si++)
-		  if((!diluted_spi_source or (id_so==id_si)) and (!diluted_col_source or (ic_so==ic_si)))
-		    complex_copy(sou_proxy[so_sp_col_ind(id_so,ic_so)][ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
-      }
-    //NISSA_PARALLEL_LOOP_END;
-    
-    //compute the norm2, set borders invalid
-    double ori_source_norm2=0;
-    for(int id_so=0;id_so<nso_spi;id_so++)
-      for(int ic_so=0;ic_so<nso_col;ic_so++)
-	{
-	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
-	  set_borders_invalid(s);
-	  ori_source_norm2+=double_vector_glb_norm2(s,locVol);
-	}
-    if(IS_MASTER_THREAD) sou->ori_source_norm2=ori_source_norm2;
-    
-    // complex *n=nissa_malloc("n",locVol,complex);
-    // spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
-    // for(int id_so=0;id_so<nso_spi;id_so++)
-    //   for(int ic_so=0;ic_so<nso_col;ic_so++)
-    // 	{
-    // 	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
-    // 	  master_printf("eta (0): %lg %lg\n",s[0][0][0][RE],s[0][0][0][IM]);
-    // 	  fft4d((complex*)temp,(complex*)s,NDIRAC*NCOL,FFT_PLUS,FFT_NO_NORMALIZE);
-	  
-    // 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    // 	    {
-    // 	      n[ivol][RE]=spincolor_norm2(temp[ivol]);
-    // 	      n[ivol][IM]=0;
-    // 	    }
-    // 	  NISSA_PARALLEL_LOOP_END;
-	  
-    // 	  fft4d(n,n,1,FFT_MINUS,FFT_NORMALIZE);
-	  
-    // 	  const int64_t nPoints=((tins==-1)?glbVol:glbSpatVol);
-	  
-    // 	  master_printf("eta+ eta (0): %lg , eta+ eta (1): %lg\n",n[0][RE],n[1][RE]);
-    // 	  if(rank==0)
-    // 	    n[0][RE]-=(double)NDIRAC*NCOL*nPoints/nso_spi/nso_col;
-    // 	  master_printf("eta+ eta (0) after sub: %lg\n",n[0][RE]);
-	  
-    // 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    // 	    {
-    // 	      n[ivol][RE]*=n[ivol][RE];
-    // 	    }
-    // 	  NISSA_PARALLEL_LOOP_END;
-	  
-    // 	  complex res[1];
-    // 	  glb_reduce(res,n,locVol);
-	  
-    // 	  master_printf("Res: %lg\n",res[0][RE]);
-	  
-    // 	  double exp=(double)NDIRAC*NCOL*sqr(nPoints)/(nso_spi*nso_col);
-    // 	  master_printf("Exp: %lg\n",exp);
-	  
-    // 	  double dev=res[0][RE]/exp-1;
-	  
-    // 	  master_printf("Dev: %lg\n",dev);
-    // 	}
-    
-    // nissa_free(temp);
-    // nissa_free(n);
-    
-    nissa_free(sou_proxy);
   }
   
   //insert the photon on the source side
@@ -411,6 +281,7 @@ namespace nissa
   
   void build_source(spincolor* out,std::vector<source_term_t>* source_terms,int isou)
   {
+    master_printf("Creating the source\n");
     
     vector_reset(out);
     
@@ -423,6 +294,8 @@ namespace nissa
 	NISSA_PARALLEL_LOOP_END;
       }
     set_borders_invalid(out);
+    
+    master_printf("Source created\n");
   }
   
   void generate_photon_source(spin1field *photon_eta)
@@ -443,6 +316,70 @@ namespace nissa
       }
     else
       generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
+  }
+  
+  //multiply for the Dirac operator
+  void mult_by_Dop(spincolor *out,spincolor *in,double kappa,double mass,int r,double charge,const momentum_t& theta)
+  {
+    //rotate the source index - the dirac operator rotate opposite of the mass term
+    if(twisted_run>0)
+      safe_dirac_prod_spincolor(in,(tau3[r]==+1)?Pminus:Pplus,in);
+    
+    quad_su3 *conf=get_updated_conf(charge,theta,glb_conf);
+    
+    if(clover_run) apply_tmclovQ(out,conf,kappa,Cl,mass,in);
+    else apply_tmQ(out,conf,kappa,mass,in);
+    
+    safe_dirac_prod_spincolor(out,base_gamma[5],out);
+    
+    //rotate the sink index
+    if(twisted_run>0)
+      safe_dirac_prod_spincolor(out,(tau3[r]==+1)?Pminus:Pplus,out);
+  }
+  
+  /// Choose a single position
+  void select_position(spincolor* out,spincolor* ori,int pos)
+  {
+    const coords_t g=glb_coord_of_glblx(pos);
+    
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      {
+	bool mask=true;
+	for(int mu=0;mu<NDIM;mu++)
+	  mask&=rel_coord_of_loclx(ivol,mu)==g[mu];
+	
+	spincolor_prod_double(out[ivol],ori[ivol],mask);
+      }
+    NISSA_PARALLEL_LOOP_END;
+    
+    set_borders_invalid(out);
+  }
+  
+  /// Choose a single spin index s
+  void select_spin(spincolor* out,spincolor* ori,int s)
+  {
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      {
+	for(int id=0;id<NDIRAC;id++)
+	  color_prod_double(out[ivol][id],ori[ivol][id],id==s);
+      }
+    NISSA_PARALLEL_LOOP_END;
+    
+    set_borders_invalid(out);
+  }
+  
+  /// Choose a single color index c
+  void select_color(spincolor* out,spincolor* ori,int c)
+  {
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      {
+	for(int id=0;id<NDIRAC;id++)
+	  for(int ic=0;ic<NCOL;ic++)
+	    complex_prod_double(out[ivol][id][ic],ori[ivol][id][ic],ic==c);
+      }
+    NISSA_PARALLEL_LOOP_END;
+    
+    set_borders_invalid(out);
   }
   
   enum class BwFw {BW,FW};
@@ -477,15 +414,17 @@ namespace nissa
     spin1field *ext_field=nullptr;
     if(inser==EXT_FIELD)
       {
+	const std::string path=combine("%s/%s",outfolder,ext_field_path);
 	ext_field=nissa_malloc("ext_field",locVol+bord_vol,spin1field);
-	read_real_vector(ext_field,combine("%s/%s",outfolder,ext_field_path),"Current");
+	ReadWriteRealVector<spin1field> r(ext_field,ext_field_path);
+	r.read();
       }
     
     /// Function to insert the virtual photon emission projection
     auto vphotonInsertCurr=[mass,theta](const BwFw bwFw,const int nu)
     {
       gauge_info insPhoton;
-      insPhoton.alpha=photon.alpha;
+      insPhoton.which_gauge=photon.which_gauge;
       insPhoton.bc[0]=0;
       for(int mu=1;mu<NDIM;mu++)
 	insPhoton.bc[mu]=theta[mu];
@@ -529,10 +468,11 @@ namespace nissa
     master_printf("Inserting r: %d\n",r);
     switch(inser)
       {
-      case PROP:prop_multiply_with_gamma(loop_source,0,ori,rel_t);break;
+      case PROP:
       case SCALAR:prop_multiply_with_gamma(loop_source,0,ori,rel_t);break;
       case PSEUDO:prop_multiply_with_gamma(loop_source,5,ori,rel_t);break;
       case GAMMA:prop_multiply_with_gamma(loop_source,r,ori,rel_t);break;
+      case COLOR:prop_multiply_with_color_delta(loop_source,r,ori,rel_t);break;
       case PHOTON:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case PHOTON0:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[0],loc_hadr_curr);break;
       case PHOTON1:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[1],loc_hadr_curr);break;
@@ -560,8 +500,12 @@ namespace nissa
       case WFLOW:flow_prop(loop_source,conf,ori,rel_t,kappa,r);break;
       case BACK_WFLOW:back_flow_prop(loop_source,conf,ori,rel_t,kappa,r);break;
       case PHASING:phase_prop(loop_source,ori,rel_t,theta);break;
+      case DIROP:mult_by_Dop(loop_source,ori,kappa,mass,r,charge,theta);break;
+      case DEL_POS:select_position(loop_source,ori,r);break;
+      case DEL_SPIN:select_spin(loop_source,ori,r);break;
+      case DEL_COL:select_color(loop_source,ori,r);break;
       }
-    
+
     nissa_free(ori);
     if(ext_field)
       nissa_free(ext_field);
@@ -570,132 +514,97 @@ namespace nissa
     nsource_tot++;
   }
   
-  //Generate all the original sources
-  void generate_original_sources(int ihit,bool skipOnly)
-  {
-    
-    for(size_t i=0;i<ori_source_name_list.size();i++)
-      {
-	std::string &name=ori_source_name_list[i];
-	master_printf("Generating source \"%s\"\n",name.c_str());
-	qprop_t *q=&Q[name];
-	generate_original_source(q,skipOnly);
-	
-	if(not skipOnly)
-	  for(int id_so=0;id_so<nso_spi;id_so++)
-	    for(int ic_so=0;ic_so<nso_col;ic_so++)
-	      {
-		//combine the filename
-		std::string path=combine("%s/hit%d_source%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
-		
-		int isou=so_sp_col_ind(id_so,ic_so);
-		spincolor *sou=(*q)[isou];
-		
-		//if the prop exists read it
-		if(file_exists(path))
-		  {
-		    master_printf("  loading the source dirac index %d, color %d\n",id_so,ic_so);
-		    START_TIMING(read_prop_time,nread_prop);
-		    read_real_vector(sou,path,"scidac-binary-data");
-		    STOP_TIMING(read_prop_time);
-		  }
-		else
-		  {
-		    master_printf("  file %s not available, skipping loading\n",path.c_str());
-		    
-		    //and store if needed
-		    if(q->store)
-		      {
-			master_printf("  writing the source dirac index %d, color %d\n",id_so,ic_so);
-			START_TIMING(store_prop_time,nstore_prop);
-			write_real_vector(path,sou,64,"scidac-binary-data");
-			STOP_TIMING(store_prop_time);
-		      }
-		  }
-	      }
-      }
-  }
-  
   //generate all the quark propagators
-  void generate_quark_propagators(int ihit)
+  void generate_quark_propagator(std::string& name,qprop_t& q,int ihit)
   {
-    for(size_t i=0;i<qprop_name_list.size();i++)
+    q.alloc_storage();
+    
+    //get ori_source norm2
+    const std::string& first_source=q.source_terms.front().first;
+    const double ori_source_norm2=q.ori_source_norm2=Q[first_source].ori_source_norm2;
+    for(auto& n : q.source_terms)
       {
-	//get names
-	std::string name=qprop_name_list[i];
-	qprop_t &q=Q[name];
-	
-	//get ori_source norm2
-	const std::string& first_source=q.source_terms.front().first;
-	const double ori_source_norm2=q.ori_source_norm2=Q[first_source].ori_source_norm2;
-	for(auto& n : q.source_terms)
-	  {
-	    double this_source_norm2=Q[n.first].ori_source_norm2;
-	    if(ori_source_norm2!=this_source_norm2)
-	      crash("first source %s has different norm2 %lg than %s, %lg",first_source.c_str(),ori_source_norm2,n.first.c_str(),this_source_norm2);
-	  }
-	
-	//write info on mass and r
-	if(twisted_run) master_printf(" mass[%d]=%lg, r=%d, theta={%lg,%lg,%lg}\n",i,q.mass,q.r,q.theta[1],q.theta[2],q.theta[3]);
-	else            master_printf(" kappa[%d]=%lg, theta={%lg,%lg,%lg}\n",i,q.kappa,q.theta[1],q.theta[2],q.theta[3]);
-	
-	//compute the inverse clover term, if needed
-	if(clover_run) invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
-	
-	//create the description of the source
-	std::string source_descr;
-	if(q.source_terms.size()==1)
-	  source_descr=first_source;
-	else
-	  {
-	    source_descr="(";
-	    for(int i=0;i<(int)q.source_terms.size();i++)
-	      {
-		source_term_t& this_source=q.source_terms[i];
-		complex c={this_source.second.first,this_source.second.second};
-		if(i>0) source_descr+="+";
-		source_descr+=this_source.first+"*("+std::to_string(c[RE])+","+std::to_string(c[IM])+")";
-	      }
-	    source_descr+=")";
-	  }
-	
-	insertion_t insertion=q.insertion;
-	master_printf("Generating propagator %s inserting %s on source %s\n",name.c_str(),ins_name[insertion],source_descr.c_str());
-	for(int id_so=0;id_so<nso_spi;id_so++)
-	  for(int ic_so=0;ic_so<nso_col;ic_so++)
-	    {
-	      int isou=so_sp_col_ind(id_so,ic_so);
-	      generate_source(insertion,q.ext_field_path,q.mass,q.r,q.charge,q.kappa,q.kappa_asymm,q.theta,q.source_terms,isou,q.tins);
-	      spincolor *sol=q[isou];
-	      
-	      //combine the filename
-	      std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
-	      
-	      //if the prop exists read it
-	      if(file_exists(path))
-		{
-		  master_printf("  loading the solution, dirac index %d, color %d\n",id_so,ic_so);
-		  START_TIMING(read_prop_time,nread_prop);
-		  read_real_vector(sol,path,"scidac-binary-data");
-		  STOP_TIMING(read_prop_time);
-		}
-	      else
-		{
-		  //otherwise compute it
-		  if(q.insertion==PROP) get_qprop(sol,loop_source,q.kappa,q.mass,q.r,q.charge,q.residue,q.theta);
-		  else                  vector_copy(sol,loop_source);
-		  
-		  //and store if needed
-		  if(q.store)
-		    {
-		      START_TIMING(store_prop_time,nstore_prop);
-		      write_real_vector(path,sol,64,"scidac-binary-data");
-		      STOP_TIMING(store_prop_time);
-		    }
-		  master_printf("  finished the calculation of dirac index %d, color %d\n",id_so,ic_so);
-		}
-	    }
+	double this_source_norm2=Q[n.first].ori_source_norm2;
+	if(ori_source_norm2!=this_source_norm2)
+	  crash("first source %s has different norm2 %lg than %s, %lg",first_source.c_str(),ori_source_norm2,n.first.c_str(),this_source_norm2);
       }
+    
+    //write info on mass and r
+    if(twisted_run)
+      master_printf(" mass=%lg, r=%d, theta={%lg,%lg,%lg}\n",q.mass,q.r,q.theta[1],q.theta[2],q.theta[3]);
+    else
+      master_printf(" kappa=%lg, theta={%lg,%lg,%lg}\n",q.kappa,q.theta[1],q.theta[2],q.theta[3]);
+    
+    //compute the inverse clover term, if needed
+    if(clover_run and q.insertion==PROP)
+      {
+	static double m=0,k=0;
+	if(m!=q.mass or k!=q.kappa)
+	  {
+	    m=q.mass;
+	    k=q.kappa;
+	    const double init_time=take_time();
+	    master_printf("Inverting clover\n");
+	    invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
+	    master_printf("Clover inverted in %lg s\n",take_time()-init_time);
+	  }
+      }
+    
+    //create the description of the source
+    std::string source_descr;
+    if(q.source_terms.size()==1)
+      source_descr=first_source;
+    else
+      {
+	source_descr="(";
+	for(int i=0;i<(int)q.source_terms.size();i++)
+	  {
+	    source_term_t& this_source=q.source_terms[i];
+	    complex c={this_source.second.first,this_source.second.second};
+	    if(i>0) source_descr+="+";
+	    source_descr+=this_source.first+"*("+std::to_string(c[RE])+","+std::to_string(c[IM])+")";
+	  }
+	source_descr+=")";
+      }
+    
+    insertion_t insertion=q.insertion;
+    master_printf("Generating propagator %s inserting %s on source %s\n",name.c_str(),ins_name[insertion],source_descr.c_str());
+    for(int id_so=0;id_so<nso_spi;id_so++)
+      for(int ic_so=0;ic_so<nso_col;ic_so++)
+	{
+	  int isou=so_sp_col_ind(id_so,ic_so);
+	  generate_source(insertion,q.ext_field_path,q.mass,q.r,q.charge,q.kappa,q.kappa_asymm,q.theta,q.source_terms,isou,q.tins);
+	  spincolor *sol=q[isou];
+	  
+	  //combine the filename
+	  const std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+	  
+	  ReadWriteRealVector<spincolor> rw(sol,path);
+	  
+	  //if the prop exists read it
+	  if(rw.canLoad())
+	    {
+	      master_printf("  loading the solution, dirac index %d, color %d\n",id_so,ic_so);
+	      START_TIMING(read_prop_time,nread_prop);
+	      rw.read();
+	      STOP_TIMING(read_prop_time);
+	    }
+	  else
+	    {
+	      //otherwise compute it
+	      if(q.insertion==PROP) get_qprop(sol,loop_source,q.kappa,q.mass,q.r,q.charge,q.residue,q.theta);
+	      else                  vector_copy(sol,loop_source);
+	      
+	      //and store if needed
+	      if(q.store)
+		{
+		  START_TIMING(store_prop_time,nstore_prop);
+		  rw.write();
+		  STOP_TIMING(store_prop_time);
+		}
+	      master_printf("  finished the calculation of dirac index %d, color %d\n",id_so,ic_so);
+	    }
+	}
   }
   
   /////////////////////////////////////////////// photon propagators ///////////////////////////////////////////
@@ -740,14 +649,16 @@ namespace nissa
 	//combine the filename
 	std::string path=combine("%s/hit%d_field%s",outfolder,ihit,name.c_str());
 	
+	ReadWriteRealVector<spin1field> rw(ph,path);
+	
 	//if asked and the file exists read it
 	if(load_photons)
 	  {
-	    if(file_exists(path))
+	    if(rw.canLoad())
 	      {
 		master_printf("  loading the photon field %s\n",name.c_str());
 		START_TIMING(read_prop_time,nread_prop);
-		read_real_vector(ph,path,"scidac-binary-data");
+		rw.read();
 		STOP_TIMING(read_prop_time);
 	      }
 	    else master_printf("  file %s not available, skipping loading\n",path.c_str());
@@ -758,7 +669,7 @@ namespace nissa
 	  {
 	    master_printf("  storing the photon field %s\n",name.c_str());
 	    START_TIMING(store_prop_time,nstore_prop);
-	    write_real_vector(path,ph,64,"scidac-binary-data");
+	    rw.write();
 	    STOP_TIMING(store_prop_time);
 	  }
       }
@@ -802,7 +713,7 @@ namespace nissa
     if(not file_exists("mom_list.txt")) fout=open_file(path_list,"w");
     
     //store the list of filtered
-    std::set<int> list_of_filtered;;
+    std::set<int> list_of_filtered;
     
     //scattering list
     all_to_all_scattering_list_t sl;
@@ -936,7 +847,6 @@ namespace nissa
   //perform fft and store the propagators
   void propagators_fft(int ihit)
   {
-    
     spincolor *qtilde=nissa_malloc("qtilde",locVol+bord_vol,spincolor);
     
     int nf=fft_filterer.size();
@@ -950,6 +860,7 @@ namespace nissa
     double fft_sign=-1;
     for(size_t iprop=0;iprop<fft_prop_list.size();iprop++)
       {
+	crash("dependencies are broken");
 	const std::string tag=fft_prop_list[iprop];
 	master_printf("Fourier transforming propagator %s\n",tag.c_str());
 	
