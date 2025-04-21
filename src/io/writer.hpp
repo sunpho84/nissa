@@ -16,7 +16,7 @@ namespace nissa
 {
   template <typename T>
   void write_real_vector(ILDG_File &file,
-			 const LxField<T>& in,
+			 const T& in,
 			 const char* header_message,
 			 const ILDG_message* mess=nullptr)
   {
