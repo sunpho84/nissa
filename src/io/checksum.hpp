@@ -41,9 +41,8 @@ namespace nissa
   };
   
   /// Computes the ildg checksum
-  template <typename T,
-	    SpaceTimeLayout STL>
-  Checksum ildgChecksum(const LxField<T,STL>& field)
+  template <typename L>
+  Checksum ildgChecksum(const L& field)
   {
     using ChecksumCArr=
       uint32_t[2];
@@ -66,7 +65,7 @@ namespace nissa
 	    {ildg_ivol%29,ildg_ivol%31};
 	  
 	  uint32_t crc=0xffffffffL;
-	  for(int iDeg=0;iDeg<(LxField<T>::nInternalDegs);iDeg++)
+	  for(int iDeg=0;iDeg<(L::nInternalDegs);iDeg++)
 	    {
 	      auto temp=
 		field(ivol,iDeg);
