@@ -150,8 +150,10 @@ namespace nissa
 	    
 	    for(int b=0;b<nso_col;b++)
 	      {
+		mes2pts_move_to_make_readable_time-=take_time();
 		decltype(auto) q1=Q1[so_sp_col_ind(j,b)].getSurelyReadableOn<defaultMemorySpace>();
 		decltype(auto) q2=Q2[so_sp_col_ind(i,b)].getSurelyReadableOn<defaultMemorySpace>();
+		mes2pts_move_to_make_readable_time+=take_time();
 		
 		PAR(0,locVol,
 			CAPTURE(ig_si,AB,
