@@ -493,6 +493,13 @@ namespace nissa
     {
       return *this;
     }
+    
+    /// Returns the same or a copy if not with the given spacetime layout
+    template <SpaceTimeLayout Dest>
+    decltype(auto) getSurelyWithSpaceTimeLayout() const
+    {
+      return fptr->template getSurelyWithSpaceTimeLayout<Dest>();
+    }
   };
   
   /////////////////////////////////////////////////////////////////
