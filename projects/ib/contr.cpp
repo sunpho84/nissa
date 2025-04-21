@@ -153,6 +153,7 @@ namespace nissa
 		mes2pts_move_to_make_readable_time-=take_time();
 		decltype(auto) q1=Q1[so_sp_col_ind(j,b)].getSurelyReadableOn<defaultMemorySpace>();
 		decltype(auto) q2=Q2[so_sp_col_ind(i,b)].getSurelyReadableOn<defaultMemorySpace>();
+		nmes2pts_move_to_make_readable_made++;
 		mes2pts_move_to_make_readable_time+=take_time();
 		
 		PAR(0,locVol,
