@@ -1,6 +1,7 @@
 #ifndef _CONTR_HPP
 #define _CONTR_HPP
 
+#include <complex>
 #include <vector>
 
 #include "geometry/geometry_lx.hpp"
