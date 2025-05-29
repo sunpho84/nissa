@@ -117,9 +117,21 @@ namespace nissa
     //
     // A(i) (S1*)^{ab}_{kj(i)} B(k) (S2)^{ab}_{l(k)i}
     
-    qprop_t &Q1=Q[a];
-    qprop_t &Q2=Q[b];
-    double norm=12/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2); //12 in case of a point source
+    double norm=12/sqrt(Q[a].ori_source_norm2*Q[b].ori_source_norm2); //12 in case of a point source
+    
+    mes2pts_move_to_make_readable_time-=take_time();
+    using R=
+      decltype(Q[a][0].getSurelyReadableOn<defaultMemorySpace>());
+    std::vector<R> Q1;
+    std::vector<R> Q2;
+    for(int i=0;i<nso_col*nso_spi;i++)
+      {
+	Q1.push_back(Q[a][i].getSurelyReadableOn<defaultMemorySpace>());
+	Q2.push_back(Q[b][i].getSurelyReadableOn<defaultMemorySpace>());
+      }
+    nmes2pts_move_to_make_readable_made++;
+    mes2pts_move_to_make_readable_time+=take_time();
+    
     for(size_t ihadr_contr=0;ihadr_contr<mes_gamma_list.size();ihadr_contr++)
       {
 	int ig_so=mes_gamma_list[ihadr_contr].so;
@@ -148,10 +160,10 @@ namespace nissa
 	    
 	    LxField<complex>& loc_contr=*nissa::loc_contr;
 	    
-	    for(int b=0;b<nso_col;b++)
+	    for(int so_col=0;so_col<nso_col;so_col++)
 	      {
-		decltype(auto) q1=Q1[so_sp_col_ind(j,b)].getSurelyReadableOn<defaultMemorySpace>();
-		decltype(auto) q2=Q2[so_sp_col_ind(i,b)].getSurelyReadableOn<defaultMemorySpace>();
+		decltype(auto) q1=Q1[so_sp_col_ind(j,so_col)];
+		decltype(auto) q2=Q2[so_sp_col_ind(i,so_col)];
 		
 		PAR(0,locVol,
 			CAPTURE(ig_si,AB,

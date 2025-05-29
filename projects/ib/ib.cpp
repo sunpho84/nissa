@@ -264,7 +264,10 @@ void init_simulation(int narg,char **arg)
 	vph|=(strcasecmp(ins,ins_tag[possIns])==0);
       
       bool ph=false;
-      for(const auto& possIns : {CVEC0,CVEC1,CVEC2,CVEC3})
+      for(const auto& possIns : {CVEC0,CVECBW0,CVECFW0,
+				 CVEC1,
+				 CVEC2,
+				 CVEC3})
 	ph|=(strcasecmp(ins,ins_tag[possIns])==0);
       
       if(vph)

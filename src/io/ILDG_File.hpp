@@ -144,25 +144,25 @@ namespace nissa
   }
   
   /// Write the data according to the ILDG mapping
-  template <typename T>
+  template <typename L>
   void ILDG_File_write_ildg_data_all(ILDG_File &file,
-				     LxField<T> in,
+				     const L& in,
 				     const char* header_message)
   {
     /// Take note the number of reals per site
     constexpr int nrealsPerSite=
-      LxField<T>::nInternalDegs;
+      L::nInternalDegs;
     
     /// Take notes of the number of bytes per site
     constexpr uint64_t nBytesPerSite=
-      nrealsPerSite*sizeof(typename LxField<T>::Fund);
+      nrealsPerSite*sizeof(typename L::Fund);
     
     /// Computes the length of the data to be written
     const uint64_t data_length=
       nBytesPerSite*glbVol;
     
     /// Temporary buffer with CPU spacetime layout
-    LxField<T,SpaceTimeLayout::CPU> temp("temp");
+    LxField<typename L::Comps,SpaceTimeLayout::CPU> temp("temp");
     
     //reorder data to the appropriate place
     vector_remap_t(locVol,index_to_ILDG_remapping).

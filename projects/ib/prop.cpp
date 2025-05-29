@@ -801,6 +801,21 @@ namespace nissa
       };
     };
     
+    /// Function to insert the bw or fw conserved current
+    auto bwFwInsertCurr=
+      [](const BwFw bwFw,
+	 const int nu)
+    {
+      return
+	[bwFw,nu] CUDA_HOST_AND_DEVICE(complex ph,
+				       const int ivol,
+				       const int mu,
+				       const double fwbw_phase)
+      {
+	  complex_put_to_real(ph,(mu==nu and not (fwbw_phase<0 xor bwFw==BwFw::FW)));
+      };
+    };
+    
     MASTER_PRINTF("Inserting r: %d\n",r);
     LxField<spincolor>& loop_source=
       *nissa::loop_source;
@@ -830,6 +845,8 @@ namespace nissa
       case TADPOLE:insert_tadpole(loop_source,*conf,ori,rel_t,r);break;
       case CVEC:insert_conserved_current(loop_source,*conf,ori,rel_t,r,allDirs);break;
       case CVEC0:insert_conserved_current(loop_source,*conf,ori,rel_t,r,onlyDir[0]);break;
+      case CVECBW0:insert_external_source(loop_source,*conf,bwFwInsertCurr(BwFw::BW,0),ori,rel_t,r,loc_hadr_curr);break;
+      case CVECFW0:insert_external_source(loop_source,*conf,bwFwInsertCurr(BwFw::FW,0),ori,rel_t,r,loc_hadr_curr);break;
       case CVEC1:insert_conserved_current(loop_source,*conf,ori,rel_t,r,onlyDir[1]);break;
       case CVEC2:insert_conserved_current(loop_source,*conf,ori,rel_t,r,onlyDir[2]);break;
       case CVEC3:insert_conserved_current(loop_source,*conf,ori,rel_t,r,onlyDir[3]);break;

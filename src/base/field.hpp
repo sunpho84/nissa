@@ -479,6 +479,27 @@ namespace nissa
     {
       unset();
     }
+    
+    /// Return itself as a readable
+    constexpr INLINE_FUNCTION
+    const FieldRef& getReadable() const
+    {
+      return *this;
+    }
+    
+    /// Return itself as a writable
+    constexpr INLINE_FUNCTION
+    FieldRef& getWritable()
+    {
+      return *this;
+    }
+    
+    /// Returns the same or a copy if not with the given spacetime layout
+    template <SpaceTimeLayout Dest>
+    decltype(auto) getSurelyWithSpaceTimeLayout() const
+    {
+      return fptr->template getSurelyWithSpaceTimeLayout<Dest>();
+    }
   };
   
   /////////////////////////////////////////////////////////////////
@@ -964,6 +985,7 @@ namespace nissa
       return *this;
     }
     
+    /// Gets a readable view
     constexpr INLINE_FUNCTION
     FieldRef<const Field> getReadable() const
     {
@@ -1343,7 +1365,7 @@ namespace nissa
 	  return out;
 	}
       else
-	return *this;
+	return this->getReadable();
     }
     
     /// Make it possible to write to the field, and pass it to the function f
