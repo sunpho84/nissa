@@ -437,7 +437,7 @@ namespace nissa
   
 #endif
   
-  /// Passes the memory manager for the given memory space0
+  /// Passes the memory manager for the given memory space
   template <MemorySpace MS>
   inline MemoryManager* memoryManager()
   {
@@ -451,7 +451,10 @@ namespace nissa
 	return gpuMemoryManager;
 	break;
 #endif
-    }
+      default:
+	CRASH("unresolved memory manager");
+	return nullptr;
+      }
   }
 }
 
