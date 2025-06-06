@@ -831,15 +831,19 @@ namespace nissa
 // #endif
 	  Field<Fund,FC> buf("buf");
 	  
-	  PAR(0,this->nSites(),
+	  /// Parsing is a bit failing in some version of cuda
+	  auto& self=
+	    *this;
+	  
+	  PAR(0,oth.nSites(),
 	      CAPTURE(TO_WRITE(buf),
-		      t=this->getReadable(),
+		      TO_READ(self),
 		      TO_READ(oth)),
 	      site,
 	      {
 		Fund r=0.0;
-		for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-		  r+=t(site,internalDeg)*oth(site,internalDeg);
+		UNROLL_FOR(internalDeg,0,nInternalDegs)
+		  r+=self(site,internalDeg)*oth(site,internalDeg);
 		buf[site]=r;
 	      });
 	  
