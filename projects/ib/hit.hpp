@@ -277,26 +277,28 @@ struct HitLooper
       
     for(int i=1;i<nso_spi*nso_col;i++)
       {
-	sou->sp[i]->initOn<defaultMemorySpace>([i,&sou](LxField<spincolor>& d)
+	const auto sc_so=sp_col_of_so_ind(i);
+	const int sp_so=sc_so.first,co_so=sc_so.second;
+	MASTER_PRINTF("Diluting on index %d={%d,%d}\n",i,sp_so,co_so);
+	
+	sou->sp[i]->initOn<defaultMemorySpace>([sp_so,co_so,&sou](LxField<spincolor>& d)
 	{
+	  decltype(auto) s=sou->sp[0]->getSurelyReadableOn<defaultMemorySpace>();
+	  
 	  PAR(0,locVol,
-	      CAPTURE(s=sou->sp[0]->getSurelyReadableOn<defaultMemorySpace>().getReadable(),
-		      d=d.getWritable(),
-		      i),
+	      CAPTURE(TO_READ(s),
+		      TO_WRITE(d),
+		      sp_so,
+		      co_so),
 	      ivol,
 	      {
-		const auto [sp_so,co_so]=sp_col_of_so_ind(i);
-		
 		UNROLL_FOR_ALL_SPIN(sp_si)
 		  UNROLL_FOR_ALL_COLS(co_si)
 		    {
-		      decltype(auto) c=
-			d[ivol][sp_si][co_si];
-		      
 		      if((sp_si==sp_so or not diluted_spi_source) and (co_si==co_so or not diluted_col_source))
-			complex_copy(c,s[ivol][diluted_spi_source?0:sp_si][diluted_col_source?0:co_si]);
+			complex_copy(d[ivol][sp_si][co_si],s[ivol][diluted_spi_source?0:sp_si][diluted_col_source?0:co_si]);
 		      else
-			complex_put_to_zero(c);
+			complex_put_to_zero(d[ivol][sp_si][co_si]);
 		    }
 	      });
 	});

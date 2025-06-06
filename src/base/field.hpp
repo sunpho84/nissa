@@ -832,7 +832,7 @@ namespace nissa
 	  Field<Fund,FC> buf("buf");
 	  
 	  /// Parsing is a bit failing in some version of cuda
-	  auto& self=
+	  const auto& self=
 	    *this;
 	  
 	  PAR(0,oth.nSites(),
@@ -841,7 +841,7 @@ namespace nissa
 		      TO_READ(oth)),
 	      site,
 	      {
-		Fund r=0.0;
+		Fund r{};
 		UNROLL_FOR(internalDeg,0,nInternalDegs)
 		  r+=self(site,internalDeg)*oth(site,internalDeg);
 		buf[site]=r;
