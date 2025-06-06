@@ -838,7 +838,7 @@ namespace nissa
 	      site,
 	      {
 		Fund r=0.0;
-		UNROLL_FOR(internalDeg,0,nInternalDegs)
+		for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
 		  r+=t(site,internalDeg)*oth(site,internalDeg);
 		buf[site]=r;
 	      });
