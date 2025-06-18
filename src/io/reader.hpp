@@ -89,8 +89,8 @@ namespace nissa
 	});
     
     //perform unitarity test
-    unitarity_check_result_t unitarity_check_result;
-    unitarity_check_lx_conf(unitarity_check_result,conf);
+    const unitarity_check_result_t unitarity_check_result=
+      unitarity_check_lx_conf(conf);
     
     VERBOSITY_LV1_MASTER_PRINTF("Plaquette of read conf: %16.16lg\n",global_plaquette_lx_conf(conf));
     VERBOSITY_LV1_MASTER_PRINTF("Deviation from unitarity: %lg average, %lg max\n",unitarity_check_result.average_diff,unitarity_check_result.max_diff);
