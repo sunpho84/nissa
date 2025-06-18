@@ -201,8 +201,10 @@ namespace nissa
   
   /// Perform a unitarity check on a lx conf
   template <typename C>
-  void unitarity_check_lx_conf(unitarity_check_result_t &result,const C& conf)
+  unitarity_check_result_t unitarity_check_lx_conf(const C& conf)
   {
+    unitarity_check_result_t result;
+    
     //results
     LxField<double> locAvg("locAvg");
     LxField<double> locMax("locMax");
@@ -225,8 +227,8 @@ namespace nissa
 		su3_get_non_unitariness(conf[ivol][idir]);
 	      
 	      //compute average and max deviation
-	      a=err;
-	      m=err;
+	      a+=err;
+	      m=m>err?m:err;
 	      n+=(err>1e-13);
 	    }
 	  
@@ -240,6 +242,8 @@ namespace nissa
     
     locMax.reduce(result.max_diff,GlbReduceMaxFunctor(),MPI_MAX);
     locNbroken.reduce(result.nbroken_links);
+    
+    return result;
   }
   
   void unitarize_lx_conf_orthonormalizing(quad_su3 *conf);

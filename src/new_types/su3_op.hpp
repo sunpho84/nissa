@@ -3036,12 +3036,22 @@ typename B>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   double su3_get_non_unitariness(const U& u)
   {
-    su3 zero;
-    su3_put_to_id(zero);
-    su3_subt_the_prod_su3_dag(zero,u,u);
+    double res;
+    
+    for(int ic=0;ic<NCOL;ic++)
+      {
+	res+=sqr(color_norm2(u[ic])-1.0);
+	
+	for(int jc=ic+1;jc<NCOL;jc++)
+	  {
+	    complex t;
+	    color_scalar_prod(t,u[ic],u[jc]);
+	    res+=2*complex_norm2(t);
+	}
+      }
     
     return
-      sqrt(real_part_of_trace_su3_prod_su3_dag(zero,zero));
+      sqrt(res);
   }
 }
 
