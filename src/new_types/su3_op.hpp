@@ -3036,7 +3036,7 @@ typename B>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   double su3_get_non_unitariness(const U& u)
   {
-    double res;
+    double res{};
     
     for(int ic=0;ic<NCOL;ic++)
       {
