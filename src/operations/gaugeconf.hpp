@@ -219,7 +219,7 @@ namespace nissa
 	{
 	  double& a=locAvg[ivol]=0.0;
 	  double& m=locMax[ivol]=0.0;
-	  int& n=locNbroken[ivol]=0;
+	  int64_t& n=locNbroken[ivol]=0;
 	  
 	  for(int idir=0;idir<NDIM;idir++)
 	    {
