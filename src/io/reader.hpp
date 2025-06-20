@@ -83,7 +83,8 @@ namespace nissa
     
     //reorder from ILDG
     PAR(0,locVol,
-	CAPTURE(TO_WRITE(conf)),ivol,
+	CAPTURE(TO_WRITE(conf)),
+	ivol,
 	{
 	  quad_su3_ildg_to_nissa_reord(conf[ivol],conf[ivol]);
 	});

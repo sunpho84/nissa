@@ -217,9 +217,9 @@ namespace nissa
 		TO_READ(conf)),
 	ivol,
 	{
-	  double a=0;
-	  double m=0;
-	  int n=0;
+	  double& a=locAvg[ivol]=0.0;
+	  double& m=locMax[ivol]=0.0;
+	  int& n=locNbroken[ivol]=0;
 	  
 	  for(int idir=0;idir<NDIM;idir++)
 	    {
@@ -231,10 +231,6 @@ namespace nissa
 	      m=m>err?m:err;
 	      n+=(err>1e-13);
 	    }
-	  
-	  locAvg[ivol]=a;
-	  locMax[ivol]=m;
-	  locNbroken[ivol]=n;
 	});
     
     locAvg.reduce(result.average_diff);
