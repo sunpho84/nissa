@@ -228,7 +228,12 @@ namespace nissa
 	  attr.maxThreadsPerBlock;
 	
 	if(nMaxThreads<=0)
-	  CRASH("kernel %s file %s line %d has max threads per block=%d",func,file,line,nMaxThreads);
+	  {
+	    if(const cudaError_t possErr=cudaGetLastError();possErr!=cudaSuccess)
+	      MASTER_PRINTF("Cuda raised error, %s\n",cudaGetErrorName(possErr));
+	    
+	    CRASH("kernel %s file %s line %d has max threads per block=%d",func,file,line,nMaxThreads);
+	  }
 	
 	const int optimalBlockSize=
 	  getOptimalBlockSize(id,loopLength,1,nMaxThreads,launch);
