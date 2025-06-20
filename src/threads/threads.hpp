@@ -229,12 +229,9 @@ namespace nissa
 	
 	if(nMaxThreads<=0)
 	  {
-	    if(const cudaError_t possErr=cudaGetLastError();possErr!=cudaSuccess)
-	      MASTER_PRINTF("Cuda raised error, %s\n",cudaGetErrorName(possErr));
-	    else
-	      MASTER_PRINTF("Cuda raised no error\n");
-	    
-	    CRASH("kernel %s file %s line %d has max threads per block=%d",func,file,line,nMaxThreads);
+	    const cudaError_t possErr=cudaGetLastError();
+	    const char* err=possErr?cudaGetErrorName(possErr):"no error";
+	    CRASH("kernel %s file %s line %d has max threads per block=%d, result of quering cuda for error: %s",func,file,line,nMaxThreads,err);
 	  }
 	
 	const int optimalBlockSize=
