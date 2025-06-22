@@ -1351,6 +1351,12 @@ namespace quda_iface
     invertQuda(spincolor_out,spincolor_in,&inv_param);
     MASTER_PRINTF("Solution time: %lg s\n",take_time()-solution_time);
     
+    MASTER_PRINTF("TRYING AGAIN WITH THE MRHS\n");
+    inv_param.num_src=1;
+    void *spincolors_in[1]={spincolor_in};
+    void *spincolors_out[1]={spincolor_out};
+    invertMultiSrcQuda(spincolors_out,spincolors_in,&inv_param);
+    
     MASTER_PRINTF("# QUDA solved in: %i iter / %g secs=%g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
     
     const double remap_out_time=take_time();
