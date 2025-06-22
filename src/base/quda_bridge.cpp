@@ -1124,7 +1124,7 @@ namespace quda_iface
       printf("setup_location: %d\n",i.setup_location[ilev]);
     for(int ilev=0;ilev<nlev;ilev++)
       printf("use_eig_solver: %d\n",i.use_eig_solver[ilev]);
-    printf("setup_minimize_memory: %d\n",i.setup_minimize_memory);
+    //printf("setup_minimize_memory: %d\n",i.setup_minimize_memory); seems to be no more  supported
     printf("compute_null_vector: %d\n",i.compute_null_vector);
     printf("generate_all_levels: %d\n",i.generate_all_levels);
     printf("run_verify: %d\n",i.run_verify);
