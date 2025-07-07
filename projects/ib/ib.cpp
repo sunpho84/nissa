@@ -583,7 +583,7 @@ void in_main(int narg,char **arg)
 	  propagators_fft(iHit); // same
 	  
 	  if(doNotAverageHits)
-	    print_contractions();
+	    print_contractions(iHit);
 	}
       
       MASTER_PRINTF("NOffloaded: %d\n",hitLooper.nOffloaded);

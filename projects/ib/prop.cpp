@@ -344,7 +344,7 @@ namespace nissa
     else
       MASTER_PRINTF(" Creating the loop\n");
     
-    // Go to momentum space adding the twisted phasis of the source and sink
+    // Go to momentum space adding the twisted phase of the source and sink
     PAR(0,
 	locVol,
 	CAPTURE(Elep,
