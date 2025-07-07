@@ -1347,27 +1347,29 @@ namespace quda_iface
     remap_nissa_to_quda(spincolor_in,source);
     MASTER_PRINTF("time to remap rhs to quda: %lg s\n",take_time()-remap_in_time);
     
-    const double solution_time=take_time();
-    invertQuda(spincolor_out,spincolor_in,&inv_param);
-    MASTER_PRINTF("Solution time: %lg s\n",take_time()-solution_time);
+    {
+      const double solution_time=take_time();
+      invertQuda(spincolor_out,spincolor_in,&inv_param);
+      MASTER_PRINTF("Solution time: %lg s\n",take_time()-solution_time);
+    }
     
-    MASTER_PRINTF("TRYING AGAIN WITH THE MRHS\n");
+    // MASTER_PRINTF("TRYING AGAIN WITH THE MRHS\n");
     
-    for(int& n=inv_param.num_src=1;n<=8;n++)
-      {
-	void *spincolors_in[n];
-	void *spincolors_out[n];
-	for(int i=0;i<n;i++)
-	  {
-	    spincolors_in[i]=spincolor_in;
-	    spincolors_out[i]=spincolor_out;
-	  }
-	const double solution_time_mrhs=take_time();
-	invertMultiSrcQuda(spincolors_out,spincolors_in,&inv_param);
-	MASTER_PRINTF("Solution time mrhs for %d rhs: %lg s\n",n,take_time()-solution_time_mrhs);
+    // for(int& n=inv_param.num_src=1;n<=8;n++)
+    //   {
+    // 	void *spincolors_in[n];
+    // 	void *spincolors_out[n];
+    // 	for(int i=0;i<n;i++)
+    // 	  {
+    // 	    spincolors_in[i]=spincolor_in;
+    // 	    spincolors_out[i]=spincolor_out;
+    // 	  }
+    // 	const double solution_time_mrhs=take_time();
+    // 	invertMultiSrcQuda(spincolors_out,spincolors_in,&inv_param);
+    // 	MASTER_PRINTF("Solution time mrhs for %d rhs: %lg s\n",n,take_time()-solution_time_mrhs);
 	
-	MASTER_PRINTF("# QUDA solved in: %i iter / %g secs=%g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
-      }
+    // 	MASTER_PRINTF("# QUDA solved in: %i iter / %g secs=%g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
+    //   }
     
     const double remap_out_time=take_time();
     remap_quda_to_nissa(sol,spincolor_out);
