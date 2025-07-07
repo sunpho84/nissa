@@ -213,9 +213,9 @@ namespace nissa
   }
   
   //print all mesonic 2pts contractions
-  void print_mes2pts_contr(int n,int force_append,int skip_inner_header,const std::string &alternative_header_template)
+  void print_mes2pts_contr(const int iHit,int n,int force_append,int skip_inner_header,const std::string &alternative_header_template)
   {
-    if(doNotAverageHits)
+    if(doNotAverageHits and iHit!=0)
       force_append=true;
     
     //set the header template
@@ -589,7 +589,7 @@ namespace nissa
   }
   
   //print all contractions
-  void print_bar2pts_contr()
+  void print_bar2pts_contr(const int iHit)
   {
     //list to open or append
     open_or_append_t list;
@@ -605,7 +605,7 @@ namespace nissa
 	for(int dir_exc=0;dir_exc<2;dir_exc++)
 	{
 	  //open output
-	  FILE *fout=list.open(combine("%s/bar_contr_%s_%s",outfolder,(dir_exc==0)?"dir":"exc",bar2pts_contr_map[icombo].name.c_str()));
+	  FILE *fout=list.open(combine("%s/bar_contr_%s_%s",outfolder,(dir_exc==0)?"dir":"exc",bar2pts_contr_map[icombo].name.c_str()),iHit!=0);
 	  for(int t=0;t<glbSize[0];t++)
 	    {
 	      //normalize for nsources and 1+g0
@@ -619,7 +619,7 @@ namespace nissa
   }
   
   //print all contractions
-  void print_bar2pts_alt_contr()
+  void print_bar2pts_alt_contr(const int iHit)
   {
     //list to open or append
     open_or_append_t list;
@@ -632,7 +632,7 @@ namespace nissa
 	for(int iWick=0;iWick<2;iWick++)
 	  {
 	    //open output
-	    FILE *fout=list.open(combine("%s/bar_alt_contr_%s_proj_%d_Wick_%d",outfolder,bar2pts_contr_map[icombo].name.c_str(),iProj,iWick));
+	    FILE *fout=list.open(combine("%s/bar_alt_contr_%s_proj_%d_Wick_%d",outfolder,bar2pts_contr_map[icombo].name.c_str(),iProj,iWick),iHit!=0);
 	    
 	    master_fprintf(fout,"# proj %d %s \n",iProj,source_coords_if_not_averaging_hits().c_str());
 	    for(int t=0;t<glbSize[0];t++)
@@ -903,13 +903,13 @@ namespace nissa
   }
   
   //print handcuffs contractions
-  void printHandcuffsContr()
+  void printHandcuffsContr(int iHit)
   {
     contr_print_time-=take_time();
     
     //Open if size different from zero
     FILE *fout=
-      open_file(combine("%s/handcuffs",outfolder),"w");
+      open_file(combine("%s/handcuffs",outfolder),(iHit==0)?"w":"a");
     
     for(const Handcuff& h : handcuffs)
       {

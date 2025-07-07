@@ -63,7 +63,7 @@ namespace nissa
   EXTERN_CONTR std::vector<idirac_pair_t> mes_gamma_list;
   void allocate_mes2pts_contr();
   void compute_mes2pt_contr(int icombo);
-  void print_mes2pts_contr(int n=nhits,int force_append=false,int skip_inner_header=false,const std::string &alternative_header_template="");
+  void print_mes2pts_contr(const int iHit,int n=nhits,int force_append=false,int skip_inner_header=false,const std::string &alternative_header_template="");
   void free_mes2pts_contr();
   
   inline int ind_mes2pts_contr(int iquark_combo,int ihadr_contr,int t)
@@ -189,7 +189,7 @@ namespace nissa
   
   void computeHandcuffsContr(const bool& useSum);
   
-  void printHandcuffsContr();
+  void printHandcuffsContr(const int iHit);
   
   void freeHandcuffsContr();
   
@@ -215,7 +215,7 @@ namespace nissa
   void set_bar2pts_contr_ins_map();
   void allocate_bar2pts_contr();
   void compute_bar2pts_contr();
-  void print_bar2pts_contr();
+  void print_bar2pts_contr(const int iHit);
   void free_bar2pts_contr();
   
   inline int ind_bar2pts_contr(int icombo,int dir_exc,int t)
@@ -242,7 +242,7 @@ namespace nissa
   EXTERN_CONTR double bar2pts_alt_contr_time INIT_TO(0);
   void allocate_bar2pts_alt_contr();
   void compute_bar2pts_alt_contr();
-  void print_bar2pts_alt_contr();
+  void print_bar2pts_alt_contr(const int iHit);
   void free_bar2pts_alt_contr();
   inline int ind_bar2pts_alt_contr(int icombo,int iWick,int iProj,int t)
   {
@@ -268,13 +268,13 @@ namespace nissa
   }
   
   //print out all contractions
-  inline void print_contractions()
+  inline void print_contractions(const int iHit=0)
   {
-    print_mes2pts_contr();
-    printHandcuffsContr();
+    print_mes2pts_contr(iHit);
+    printHandcuffsContr(iHit);
     //print_meslep_contr();
-    if(compute_octet) print_bar2pts_contr();
-    if(compute_decuplet) print_bar2pts_alt_contr();
+    if(compute_octet) print_bar2pts_contr(iHit);
+    if(compute_decuplet) print_bar2pts_alt_contr(iHit);
   }
 }
 
