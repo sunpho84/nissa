@@ -73,7 +73,7 @@ namespace nissa
 		READ_ARR(int,"%d",nsetups);
 		READ_ARR(double,"%lg",mu_factor);
 		
-		//size of the blocks
+		//size of the blocks, nb ought to historic bugs, one needs to provide block size in the order XTZY
 		if(strcasecmp(tag,"block_size")==0)
 		  {
 		    block_size_set=true;
