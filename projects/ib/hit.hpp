@@ -634,10 +634,10 @@ struct HitLooper
 	FILE* partialFile=open_file(partialPath(),"r");
 	if(is_master_rank())
 	  {
-	    if(fread(&nHitsDone,sizeof(nHitsDone),1,partialFile)==1)
+	    if(fread(&nHitsDone,sizeof(nHitsDone),1,partialFile)!=1)
 	      CRASH("Failed to load nHitsDone");
 	    
-	    if(fread(mes2pts_contr,sizeof(complex),mes2pts_contr_size,partialFile)==mes2pts_contr_size)
+	    if(fread(mes2pts_contr,sizeof(complex),mes2pts_contr_size,partialFile)!=mes2pts_contr_size)
 	      CRASH("Failed to load 2pts");
 	  }
 	MPI_Bcast(&nHitsDone,1,MPI_INT,master_rank,MPI_COMM_WORLD);
@@ -655,10 +655,10 @@ struct HitLooper
     FILE* partialFile=open_file(partialPath(),"w");
     if(is_master_rank())
       {
-	if(fwrite(&nHitsDone,sizeof(nHitsDone),1,partialFile)==1)
+	if(fwrite(&nHitsDone,sizeof(nHitsDone),1,partialFile)!=1)
 	  CRASH("Failed to write nHitsDone");
 	
-	if(fread(mes2pts_contr,sizeof(complex),mes2pts_contr_size,partialFile)==mes2pts_contr_size)
+	if(fread(mes2pts_contr,sizeof(complex),mes2pts_contr_size,partialFile)!=mes2pts_contr_size)
 	  CRASH("Failed to write 2pts");
 	close_file(partialFile);
       }
