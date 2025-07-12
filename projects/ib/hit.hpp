@@ -650,7 +650,7 @@ struct HitLooper
   }
   
   /// Writes the partial data
-  void writePartialData(const int nHitsDone) const
+  void writePartialData(const int& nHitsDone) const
   {
     FILE* partialFile=open_file(partialPath(),"w");
     if(is_master_rank())
@@ -658,7 +658,7 @@ struct HitLooper
 	if(fwrite(&nHitsDone,sizeof(nHitsDone),1,partialFile)!=1)
 	  CRASH("Failed to write nHitsDone");
 	
-	if(fread(mes2pts_contr,sizeof(complex),mes2pts_contr_size,partialFile)!=mes2pts_contr_size)
+	if(fwrite(mes2pts_contr,sizeof(complex),mes2pts_contr_size,partialFile)!=mes2pts_contr_size)
 	  CRASH("Failed to write 2pts");
 	close_file(partialFile);
       }
