@@ -641,7 +641,7 @@ struct HitLooper
 	      CRASH("Failed to load 2pts");
 	  }
 	MPI_Bcast(&nHitsDone,1,MPI_INT,master_rank,MPI_COMM_WORLD);
-	MPI_Bcast(mes2pts_contr,1,MPI_DOUBLE_COMPLEX,mes2pts_contr_size,MPI_COMM_WORLD);
+	MPI_Bcast(mes2pts_contr,mes2pts_contr_size,MPI_DOUBLE_COMPLEX,master_rank,MPI_COMM_WORLD);
 	
 	close_file(partialFile);
       }
