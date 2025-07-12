@@ -573,17 +573,29 @@ void in_main(int narg,char **arg)
   while(read_conf_parameters(iconf,finish_file_present))
     {
       HitLooper hitLooper;
+      const size_t nHitsDoneSoFar=
+	hitLooper.maybeLoadPartialData();
+      
+      if(nHitsDoneSoFar)
+	MASTER_PRINTF("Found partial file with %zu hits\n",nHitsDoneSoFar);
       
       for(int iHit=0;iHit<nhits;iHit++)
 	{
 	  hitLooper.start_hit(iHit);
-	  hitLooper.run(iHit);
-	  
-	  compute_contractions(); //not working, here only to emit errors
-	  propagators_fft(iHit); // same
-	  
-	  if(doNotAverageHits)
-	    print_contractions(iHit);
+	  if(iHit<=nHitsDoneSoFar)
+	    MASTER_PRINTF("Skipping\n");
+	  else
+	    {
+	      hitLooper.run(iHit);
+	      
+	      compute_contractions(); //not working, here only to emit errors
+	      propagators_fft(iHit); // same
+	      
+	      if(doNotAverageHits)
+		print_contractions(iHit);
+	      
+	      hitLooper.writePartialData(iHit+1);
+	    }
 	}
       
       MASTER_PRINTF("NOffloaded: %d\n",hitLooper.nOffloaded);

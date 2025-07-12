@@ -615,6 +615,63 @@ struct HitLooper
     computeHandcuffsContr(true);
   }
   
+  static std::string partialPath()
+  {
+    return {(std::string)outfolder+"/partial.dat"};
+  }
+  
+  /// Load the partial data, if exists
+  size_t maybeLoadPartialData() const
+  {
+    if(handcuffs.size() or
+       bar2pts_alt_contr_size or
+       bar2pts_contr_size)
+      CRASH("reimplement");
+    
+    int nHitsDone=0;
+    if(file_exists(partialPath()))
+      {
+	FILE* partialFile=open_file(partialPath(),"r");
+	if(is_master_rank())
+	  {
+	    if(fread(&nHitsDone,sizeof(nHitsDone),1,partialFile)==1)
+	      CRASH("Failed to load nHitsDone");
+	    
+	    if(fread(mes2pts_contr,sizeof(complex),mes2pts_contr_size,partialFile)==mes2pts_contr_size)
+	      CRASH("Failed to load 2pts");
+	  }
+	MPI_Bcast(&nHitsDone,1,MPI_INT,master_rank,MPI_COMM_WORLD);
+	MPI_Bcast(mes2pts_contr,1,MPI_DOUBLE_COMPLEX,mes2pts_contr_size,MPI_COMM_WORLD);
+	
+	close_file(partialFile);
+      }
+    
+    return nHitsDone;
+  }
+  
+  /// Writes the partial data
+  void writePartialData(const int nHitsDone) const
+  {
+    FILE* partialFile=open_file(partialPath(),"w");
+    if(is_master_rank())
+      {
+	if(fwrite(&nHitsDone,sizeof(nHitsDone),1,partialFile)==1)
+	  CRASH("Failed to write nHitsDone");
+	
+	if(fread(mes2pts_contr,sizeof(complex),mes2pts_contr_size,partialFile)==mes2pts_contr_size)
+	  CRASH("Failed to write 2pts");
+	close_file(partialFile);
+      }
+  }
+  
+  /// Delete the partial data
+  void deletePartialData() const
+  {
+    if(file_exists(partialPath()))
+      if(is_master_rank())
+	remove(partialPath().c_str());
+  }
+  
   /// Constructor
   HitLooper()
   {
