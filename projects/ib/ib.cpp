@@ -582,7 +582,7 @@ void in_main(int narg,char **arg)
       for(int iHit=0;iHit<nhits;iHit++)
 	{
 	  hitLooper.start_hit(iHit);
-	  if(iHit<=nHitsDoneSoFar)
+	  if(iHit<nHitsDoneSoFar)
 	    MASTER_PRINTF("Skipping\n");
 	  else
 	    {
