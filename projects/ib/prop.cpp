@@ -581,9 +581,13 @@ namespace nissa
     MASTER_PRINTF("Source created\n");
   }
   
-  void generate_photon_source(LxField<spin1field>& photon_eta)
+  void generate_photon_source(LxField<spin1field>& photon_eta,
+			      const bool& skip)
   {
     auto source_filler=field_rng_stream.getDrawer<spin1field>();
+    if(skip)
+      return ;
+    
     source_filler.fillField(photon_eta);
     
     PAR(0,locVol,

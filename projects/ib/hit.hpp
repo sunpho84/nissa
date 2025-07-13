@@ -365,7 +365,8 @@ struct HitLooper
   }
   
   //Generate all the original sources
-  void generate_original_sources(int ihit,bool skipOnly)
+  void generate_original_sources(const int& ihit,
+				 const bool& skipOnly=false)
   {
     for(size_t i=0;i<ori_source_name_list.size();i++)
       {
@@ -418,7 +419,8 @@ struct HitLooper
       }
   }
   
-  void start_hit(int ihit,bool skip=false)
+  void start_hit(const int& ihit,
+		 const bool& skip=false)
   {
     MASTER_PRINTF("\n=== Hit %d/%d ====\n",ihit+1,nhits);
     
@@ -433,8 +435,10 @@ struct HitLooper
 	oriCoords[mu]=c[0]*glbSize[mu];
       }
     
-    if(stoch_source) MASTER_PRINTF(" source time: %d\n",oriCoords[0]);
-    else             MASTER_PRINTF(" point source coords: %d %d %d %d\n",oriCoords[0],oriCoords[1],oriCoords[2],oriCoords[3]);
+    if(stoch_source)
+      MASTER_PRINTF(" source time: %d\n",oriCoords[0]);
+    else
+      MASTER_PRINTF(" point source coords: %d %d %d %d\n",oriCoords[0],oriCoords[1],oriCoords[2],oriCoords[3]);
     if(need_photon)
       {
 	if(skip)

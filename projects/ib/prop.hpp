@@ -296,7 +296,8 @@ namespace nissa
 				const bool& skipOnly);
   
   void generate_quark_propagator(std::string& name,qprop_t& q,int ihit);
-  void generate_photon_source(LxField<spin1field>& photon_eta);
+  void generate_photon_source(LxField<spin1field>& photon_eta,
+			      const bool& skip=false);
   
   void generate_source(insertion_t inser,int r,double charge,double kappa,const Momentum& theta,spincolor *ori,int t);
   
