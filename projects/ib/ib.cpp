@@ -581,8 +581,11 @@ void in_main(int narg,char **arg)
       
       for(int iHit=0;iHit<nhits;iHit++)
 	{
-	  hitLooper.start_hit(iHit);
-	  if(iHit<nHitsDoneSoFar)
+	  const bool skip=
+	    iHit<nHitsDoneSoFar;
+	  
+	  hitLooper.start_hit(iHit,skip);
+	  if(skip)
 	    MASTER_PRINTF("Skipping\n");
 	  else
 	    {
@@ -607,6 +610,8 @@ void in_main(int narg,char **arg)
 	print_contractions();
       
       mark_finished();
+      
+      hitLooper.deletePartialData();
     }
   
   //close the simulation

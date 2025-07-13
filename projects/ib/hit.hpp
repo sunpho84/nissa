@@ -275,7 +275,7 @@ struct HitLooper
 	    spincolor_copy(s[ivol],b);
 	  });
     });
-      
+    
     for(int i=1;i<nso_spi*nso_col;i++)
       {
 	const auto sc_so=sp_col_of_so_ind(i);
