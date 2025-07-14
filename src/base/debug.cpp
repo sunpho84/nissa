@@ -151,6 +151,7 @@ namespace nissa
       case SIGBUS: sprintf(name,"bus error");break;
       case SIGINT: sprintf(name," program interrupted");break;
       case SIGABRT: sprintf(name,"abort signal");break;
+      case SIGTERM: sprintf(name,"term signal");break;
       default: sprintf(name,"unassociated");break;
       }
     print_backtrace_list();

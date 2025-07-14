@@ -130,6 +130,7 @@ namespace nissa
 	signal(SIGXCPU,signal_handler);
 	signal(SIGABRT,signal_handler);
 	signal(SIGINT,signal_handler);
+	signal(SIGTERM,signal_handler);
 	//feenableexcept(FE_DIVBYZERO|FE_INVALID|FE_OVERFLOW);
       }
     else
