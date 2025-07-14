@@ -253,7 +253,7 @@ namespace nissa
 	  //Check if the conf has been finished or is already running
 	  MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
 	  
-	  ok_conf=not (file_exists(finishedFilename) or file_exists(runningFilename));
+	  ok_conf=not (file_exists(finishedPath()) or file_exists(runningPath()));
 	  
 	  //if not finished
 	  if(ok_conf)
