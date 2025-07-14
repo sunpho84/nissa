@@ -550,6 +550,15 @@ void in_main(int narg,char **arg)
   //init simulation according to input file
   init_simulation(narg,arg);
   
+  constexpr char PRESERVE_PARTIAL_DATA_STR[]="PRESERVE_PARTIAL_DATA";
+  if(const char* preservePartialDataStr=getenv(PRESERVE_PARTIAL_DATA_STR))
+    {
+      preservePartialData=atoi(preservePartialDataStr);
+      MASTER_PRINTF("Preserve partial data: %d\n",preservePartialData);
+    }
+  else
+    MASTER_PRINTF("Optionally preserve the partial data by exporting %s\n",PRESERVE_PARTIAL_DATA_STR);
+  
   constexpr char NMAX_PROPS_ALLOCATED_STR[]="NMAX_PROPS_ALLOCATED";
   if(const char* nMaxAllocatedStr=getenv(NMAX_PROPS_ALLOCATED_STR))
     {

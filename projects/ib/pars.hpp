@@ -55,6 +55,8 @@ namespace nissa
   
   EXTERN_PARS int doNotAverageHits INIT_TO(0);
   
+  EXTERN_PARS int preservePartialData INIT_TO(0);
+  
   //convention on gospel
   const int follow_chris=0,follow_nazario=1;
   

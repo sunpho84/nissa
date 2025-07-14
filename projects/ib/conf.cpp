@@ -216,7 +216,9 @@ namespace nissa
     file_touch(finishedPath());
     removeRunning();
     crashHook=nullptr;
-    hitLooper.deletePartialData();
+
+    if(not preservePartialData)
+      hitLooper.deletePartialData();
     nanalyzed_conf++;
   }
   
