@@ -33,7 +33,8 @@ namespace nissa
   }
   
   //get a unique temporary filename
-  void master_get_temp_file(FILE *&fout,std::string &prefix)
+  void master_get_temp_file(FILE *&fout,
+			    std::string& prefix)
   {
     //prepare the full name
     char *buffer=strdup((prefix+"XXXXXX").c_str());
@@ -96,7 +97,7 @@ namespace nissa
   {fprintf_friendly_units(fout,quant,1024,"Bytes");}
   
   //create a dir
-  int create_dir(std::string path)
+  int create_dir(const std::string& path)
   {
     umask(0);
     int res=is_master_rank() ? mkdir(path.c_str(),0775) : 0;
@@ -108,7 +109,8 @@ namespace nissa
   }
   
   //copy a file
-  int cp(std::string path_out,std::string path_in)
+  int cp(const std::string& path_out,
+	 const std::string& path_in)
   {
     int rc=0;
     if(is_master_rank())
@@ -123,7 +125,7 @@ namespace nissa
   }
   
   //pass to the folder
-  int cd(std::string path)
+  int cd(const std::string& path)
   {
     int rc=0;
     if(is_master_rank())
@@ -138,7 +140,9 @@ namespace nissa
   }
   
   //Open a file checking it
-  FILE *open_file(std::string outfile,const char *mode,int ext_rank)
+  FILE *open_file(const std::string& outfile,
+		  const char *mode,
+		  int ext_rank)
   {
     FILE *fout=NULL;
     
@@ -156,11 +160,11 @@ namespace nissa
   }
   
   //Open a text file for output
-  FILE* open_text_file_for_output(std::string outfile)
+  FILE* open_text_file_for_output(const std::string& outfile)
   {return open_file(outfile,"w");}
   
   //Open a text file for input
-  FILE* open_text_file_for_input(std::string infile)
+  FILE* open_text_file_for_input(const std::string& infile)
   {return open_file(infile,"r");}
   
   //close an open file
@@ -168,7 +172,7 @@ namespace nissa
   {if(is_master_rank() && file!=stdout) fclose(file);}
   
   //count the number of lines in a file
-  int count_file_lines(std::string path)
+  int count_file_lines(const std::string& path)
   {
     //return -1 if file does not exist
     if(!file_exists(path)) return -1;
@@ -189,7 +193,7 @@ namespace nissa
   }
   
   //get the size of a file
-  int get_file_size(std::string path)
+  int get_file_size(const std::string& path)
   {
     //return -1 if file does not exist
     if(!file_exists(path)) return -1;

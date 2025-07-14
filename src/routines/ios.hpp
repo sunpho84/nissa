@@ -68,23 +68,23 @@ namespace nissa
   EXTERN_IOS int verb_call;
   
   int count_substrings(const char *str,const char *sub);
-  FILE* open_file(std::string path,const char *mode,int ext_rank=master_rank);
-  FILE* open_text_file_for_output(std::string path);
-  int cd(std::string path);
-  int cp(std::string path_out,std::string path_in);
-  int create_dir(std::string path);
+  FILE* open_file(const std::string& path,const char *mode,int ext_rank=master_rank);
+  FILE* open_text_file_for_output(const std::string& path);
+  int cd(const std::string& path);
+  int cp(const std::string& path_out,const std::string& path_in);
+  int create_dir(const std::string& path);
   __attribute__((format (printf,2,3)))
   int master_fprintf(FILE *stream,const char *format,...);
   //int rm(const char *path);
   __attribute__((format (printf,1,2)))
   std::string combine(const char *format,...);
-  void master_get_temp_file(FILE *&fout,std::string &prefix);
+  void master_get_temp_file(FILE *&fout,std::string& prefix);
   void close_file(FILE *file);
   void fprintf_friendly_filesize(FILE *fout,uint64_t quant);
   void fprintf_friendly_units(FILE *fout,uint64_t quant,uint64_t orders,const char *units);
   void take_last_characters(char *out,const char *in,int size);
-  int count_file_lines(std::string path);
-  int get_file_size(std::string path);
+  int count_file_lines(const std::string& path);
+  int get_file_size(const std::string& path);
   void print_contraction_to_file(FILE *fout,int gso,int gsi,complex *contr,int twall,const char *tag,double norm,int skip_header=false);
   void print_contractions_to_file(FILE *fout,int ncontr,const int *gso,const int *gsi,complex *contr,int twall,const char *tag,double norm,int skip_header=false);
   inline void print_contractions_to_file(FILE *fout,std::vector<idirac_pair_t> &list,complex *contr,int twall,const char *tag,double norm,int skip_header=false)
@@ -123,7 +123,7 @@ namespace nissa
   }
   
   //read using a path
-  template <class T> T master_fscan(std::string path,const char *tag)
+  template <class T> T master_fscan(const std::string& path,const char *tag)
   {
     FILE *stream=open_file(path,"r");
     T out=master_fscan<T>(stream,tag);
@@ -173,7 +173,7 @@ namespace nissa
     }
     
     //try to open and write the tag
-    bool try_lock(const std::string &ext_path)
+    bool try_lock(const std::string& ext_path)
     {
       assert_inited();
       

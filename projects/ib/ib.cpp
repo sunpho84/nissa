@@ -62,13 +62,14 @@ void init_simulation(int narg,char **arg)
       if(not parsed)
 	{
 	  std::string app(arg[iarg]);
-	  stop_path+="_"+app;
-	  running_filename+="_"+app;
-	  finished_filename+="_"+app;
+	  stopPath+="_"+app;
+	  runningFilename+="_"+app;
+	  finishedFilename+="_"+app;
 	  MASTER_PRINTF("Adding to stop,finished,and running filenames the suffix: '%s'\n",arg[iarg]);
-	  MASTER_PRINTF("Stop filename: '%s'\n",stop_path.c_str());
-	  MASTER_PRINTF("Running filename: '%s'\n",running_filename.c_str());
-	  MASTER_PRINTF("Finished filename: '%s'\n",finished_filename.c_str());
+	  MASTER_PRINTF("Stop path: '%s'\n",stopPath.c_str());
+	  MASTER_PRINTF("Running filename: '%s'\n",runningFilename.c_str());
+	  MASTER_PRINTF("Finished filename: '%s'\n",finishedFilename.c_str());
+	  MASTER_PRINTF("Partial data filename: '%s'\n",partialDataFilename.c_str());
 	  parsed=true;
 	}
     }
@@ -570,7 +571,7 @@ void in_main(int narg,char **arg)
   
   //loop over the configs
   int iconf=0;
-  while(read_conf_parameters(iconf,finish_file_present))
+  while(read_conf_parameters(iconf) and not file_exists(finishedPath()))
     {
       HitLooper hitLooper;
       const size_t nHitsDoneSoFar=
@@ -609,9 +610,7 @@ void in_main(int narg,char **arg)
       if(not doNotAverageHits)
 	print_contractions();
       
-      mark_finished();
-      
-      hitLooper.deletePartialData();
+      finalizeConf(hitLooper);
     }
   
   //close the simulation

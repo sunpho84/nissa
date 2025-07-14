@@ -268,10 +268,23 @@ namespace nissa
       else CRASH("Unknown theta tag: %s",theta_tag);
   }
   
-  //handle to stop, running and finished
-  EXTERN_PARS std::string stop_path INIT_TO("stop");
-  EXTERN_PARS std::string running_filename INIT_TO("running");
-  EXTERN_PARS std::string finished_filename INIT_TO("finished");
+  EXTERN_PARS std::string stopPath INIT_TO("stop");
+  
+#define PATH_PROVIDER(NAME,BASE_FILE)				\
+  EXTERN_PARS std::string NAME ## Filename INIT_TO(BASE_FILE);	\
+								\
+  inline std::string NAME ## Path()				\
+  {								\
+    return {(std::string)outfolder+"/"+NAME ## Filename};	\
+  }
+  
+  PATH_PROVIDER(running,"running");
+  
+  PATH_PROVIDER(finished,"finished");
+  
+  PATH_PROVIDER(partialData,"partial.dat");
+  
+#undef PATH_PROVIDER
   
   //read the theta, iso or not
   inline void read_theta(Momentum& theta)

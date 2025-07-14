@@ -63,9 +63,15 @@ namespace nissa
   void debug_loop();
   void check_128_bit_prec();
   
+  /// Function to be called in case of crash
+  EXTERN_DEBUG void(*crashHook)() INIT_DEBUG_TO(nullptr);
+  
   CUDA_HOST_AND_DEVICE
   __attribute__((format (printf,3,4),noreturn))
-  void internal_crash(int line,const char *file,const char *templ,...);
+  void internal_crash(const int& line,
+		      const char *file,
+		      const char *templ,
+		      ...);
   
   __attribute__((format (printf,4,5)))
   void internal_crash_printing_error(int line,const char *file,int err_code,const char *templ,...);

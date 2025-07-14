@@ -52,9 +52,14 @@ namespace nissa
 		  const int& free_theory);
   
   int check_remaining_time();
-  int read_conf_parameters(int &iconf,bool(*external_condition)());
-  bool finish_file_present();
-  void mark_finished();
+  int read_conf_parameters(int &iconf);
+  
+  /// Forward declaration of the hit looper
+  struct HitLooper;
+  
+  /// Cleanup the conf
+  void finalizeConf(const HitLooper& hitLooper);
+  
   void print_statistics();
   void skip_nhits(int a,int b);
 }

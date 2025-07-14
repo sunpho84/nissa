@@ -20,12 +20,6 @@ namespace nissa
     initGrid(T,L);
   }
   
-  /// Check that "finished" file present
-  bool finish_file_present()
-  {
-    return not file_exists(combine("%s/%s",outfolder,finished_filename.c_str()).c_str());
-  }
-  
   //allocate confs needed by the program
   void allocate_confs()
   {
@@ -210,11 +204,27 @@ namespace nissa
       hitLooper.start_hit(ihit,true);
   }
   
+  /// Removes the runfile
+  void removeRunning()
+  {
+    if(is_master_rank())
+      remove(runningPath().c_str());
+  }
+  
+  void finalizeConf(const HitLooper& hitLooper)
+  {
+    file_touch(finishedPath());
+    removeRunning();
+    crashHook=nullptr;
+    hitLooper.deletePartialData();
+    nanalyzed_conf++;
+  }
+  
   //find a new conf
-  int read_conf_parameters(int &iconf,bool(*external_condition)())
+  int read_conf_parameters(int &iconf)
   {
     //Check if asked to stop or restart
-    const int asked_stop=file_exists(stop_path);
+    const int asked_stop=file_exists(stopPath);
     VERBOSITY_LV2_MASTER_PRINTF("Asked to stop: %d\n",asked_stop);
     
     const int asked_restart=file_exists("restart");
@@ -242,10 +252,8 @@ namespace nissa
 	  
 	  //Check if the conf has been finished or is already running
 	  MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
-	  char run_file[1024];
-	  if(snprintf(run_file,1024,"%s/%s",outfolder,running_filename.c_str())<0)
-	    CRASH("witing %s",run_file);
-	  ok_conf=not (file_exists(run_file)) and external_condition();
+	  
+	  ok_conf=not (file_exists(finishedFilename) or file_exists(runningFilename));
 	  
 	  //if not finished
 	  if(ok_conf)
@@ -265,7 +273,7 @@ namespace nissa
 	      if(ok_conf)
 		{
 		  //try to lock the running file
-		  lock_file.try_lock(run_file);
+		  lock_file.try_lock(runningPath());
 		  
 		  //setup the conf and generate the source
 		  start_new_conf();
@@ -274,9 +282,11 @@ namespace nissa
 		  if(not lock_file.check_lock())
 		    {
 		      ok_conf=false;
-		      MASTER_PRINTF("Somebody acquired the lock on %s\n",run_file);
+		      MASTER_PRINTF("Somebody acquired the lock on %s\n",runningPath().c_str());
 		      skip_conf();
 		    }
+		  else
+		    crashHook=removeRunning;
 		}
 	    }
 	  else
@@ -304,20 +314,10 @@ namespace nissa
     if((not ok_conf) and iconf>=ngauge_conf)
       {
 	MASTER_PRINTF("Analyzed all confs, exiting\n\n");
-	file_touch(stop_path);
+	file_touch(stopPath);
       }
     
     return ok_conf;
-  }
-  
-  //mark a conf as finished
-  void mark_finished()
-  {
-    char fin_file[1024];
-    if(snprintf(fin_file,1024,"%s/%s",outfolder,finished_filename.c_str())<0)
-      CRASH("writing %s",fin_file);
-    file_touch(fin_file);
-    nanalyzed_conf++;
   }
   
   inline void print_single_statistic(const double& frac_time,

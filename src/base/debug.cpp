@@ -76,11 +76,22 @@ namespace nissa
     free(strs);
   }
   
-  //crash reporting the expanded error message
+  /// Crash reporting the expanded error message
   CUDA_HOST_AND_DEVICE
-  void internal_crash(int line,const char *file,const char *templ,...)
+  void internal_crash(const int& line,
+		      const char *file,
+		      const char *templ,
+		      ...)
   {
 #ifndef COMPILING_FOR_DEVICE
+    
+    if(crashHook!=nullptr)
+      {
+	fprintf(stderr,"Calling the crash hook\n");
+	crashHook();
+	crashHook=nullptr;
+      }
+     
     fflush(stdout);
     fflush(stderr);
     
