@@ -126,8 +126,12 @@ namespace nissa
     std::vector<R> Q2;
     for(int i=0;i<nso_col*nso_spi;i++)
       {
+	const double tin1=take_time();
 	Q1.push_back(Q[a][i].getSurelyReadableOn<defaultMemorySpace>());
+	MASTER_PRINTF("Time to copy with overhead: %lg s\n",take_time()-tin1);
+	const double tin2=take_time();
 	Q2.push_back(Q[b][i].getSurelyReadableOn<defaultMemorySpace>());
+	MASTER_PRINTF("Time to copy with overhead: %lg s\n",take_time()-tin2);
       }
     nmes2pts_move_to_make_readable_made++;
     mes2pts_move_to_make_readable_time+=take_time();
