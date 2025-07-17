@@ -1367,7 +1367,8 @@ namespace nissa
 	  const double tin=take_time();
 	  Field<T,FC,STL,Dest> out("out",haloEdgesPresence);
 	  out=*this;
-	  MASTER_PRINTF("Time to copy with no overhead: %lg s\n",take_time()-tin);
+	  
+	  MASTER_PRINTF("Time to copy %zu bytes: %lg s\n",sizeof(Fund)*this->externalSize*nInternalDegs,take_time()-tin);
 	  return out;
 	}
       else
