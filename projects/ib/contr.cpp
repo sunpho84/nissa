@@ -144,6 +144,13 @@ namespace nissa
       else
 	MASTER_PRINTF("Prop %s already in the contr prop list\n",n.c_str());
     
+    MASTER_PRINTF("List of props in the library:\n");
+    for(auto& [n,v] : mes2ptsPropsLib)
+      {
+	MASTER_PRINTF(" Prop %s contains %zu elements\n",a.c_str(),b.size());
+	for(const auto& vi : v)
+	  MASTER_PRINTF("  ptr: %p\n",vi->_data);
+      }
     std::vector<ContrProp*>& Q1=mes2ptsPropsLib[a];
     std::vector<ContrProp*>& Q2=mes2ptsPropsLib[b];
     
