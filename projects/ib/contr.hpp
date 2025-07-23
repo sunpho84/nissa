@@ -71,7 +71,10 @@ namespace nissa
     MASTER_PRINTF("Removing %s from the mes2ptsPropsLib\n",n.c_str());
     if constexpr(defaultMemorySpace!=MemorySpace::CPU)
       for(auto& vi : mes2ptsPropsLib[n])
-	delete vi;
+	{
+	  MASTER_PRINTF("Deleting %p\n",vi);
+	  delete vi;
+	}
     mes2ptsPropsLib.erase(n);
   }
   

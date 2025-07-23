@@ -147,7 +147,7 @@ namespace nissa
     MASTER_PRINTF("List of props in the library:\n");
     for(auto& [n,v] : mes2ptsPropsLib)
       {
-	MASTER_PRINTF(" Prop %s contains %zu elements\n",a.c_str(),b.size());
+	MASTER_PRINTF(" Prop %s contains %zu elements\n",n.c_str(),v.size());
 	for(const auto& vi : v)
 	  MASTER_PRINTF("  ptr: %p\n",vi->_data);
       }
