@@ -133,7 +133,10 @@ namespace nissa
 	  mes2ptsPropsLib[n].resize(nso_col*nso_spi);
 	  for(int i=0;i<nso_col*nso_spi;i++)
 	    if constexpr(defaultMemorySpace!=MemorySpace::CPU)
-	      mes2ptsPropsLib[n][i]=new ContrProp(Q[n][i]);
+	      {
+		mes2ptsPropsLib[n][i]=new ContrProp(Q[n][i].name,Q[n][i].haloEdgesPresence);
+		*(mes2ptsPropsLib[n][i])=Q[n][i];
+	      }
 	    else
 	      mes2ptsPropsLib[n][i]=&Q[n][i];
 	}
@@ -176,8 +179,8 @@ namespace nissa
 	    
 	    for(int so_col=0;so_col<nso_col;so_col++)
 	      {
-		decltype(auto) q1=Q1[so_sp_col_ind(j,so_col)];
-		decltype(auto) q2=Q2[so_sp_col_ind(i,so_col)];
+		decltype(auto) q1=*Q1[so_sp_col_ind(j,so_col)];
+		decltype(auto) q2=*Q2[so_sp_col_ind(i,so_col)];
 		
 		PAR(0,locVol,
 			CAPTURE(ig_si,AB,
