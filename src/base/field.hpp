@@ -1345,12 +1345,13 @@ namespace nissa
     {
       if(oth.haloEdgesPresence!=haloEdgesPresence)
 	CRASH("can copy across memory spaces only if the edges/halo are present equally on source and destination");
-      
 #ifdef USE_CUDA
+      const double initTime=take_time();
       cudaMemcpy(this->template getPtr<MS>(),
 		 oth.template getPtr<OMS>(),
 		 this->externalSize*nInternalDegs*sizeof(Fund),
 		 memcpyKindForCopy<MS,OMS>);
+      MASTER_PRINTF("Bare time for cudaMemcpy: %lg s\n",take_time()-initTime);
 #else
       CRASH("Not compiled with cuda");
 #endif
