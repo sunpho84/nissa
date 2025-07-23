@@ -547,6 +547,10 @@ namespace nissa
 		    }
 		}
 	    
+	    MASTER_PRINTF("Removing the props from the 2pts contr list\n");
+	    for(auto& [n,v] : mes2ptsPropsLib)
+	      removeMes2PtsProp(n);
+	    
 	    for(auto& [name,hs] : handcuffsSides)
 	      if(const std::string& bw=hs.bw,
 		 fw=hs.fw;

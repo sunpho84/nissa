@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "geometry/geometry_lx.hpp"
+#include "ib/prop.hpp"
 #include "new_types/dirac.hpp"
 
 #include "pars.hpp"
@@ -62,7 +63,20 @@ namespace nissa
   CUDA_MANAGED EXTERN_CONTR complex *mes2pts_contr INIT_TO(NULL);
   EXTERN_CONTR std::vector<idirac_pair_t> mes_gamma_list;
   void allocate_mes2pts_contr();
+
+  using ContrProp=LxField<spincolor,defaultSpaceTimeLayout,defaultMemorySpace>;
+  EXTERN_CONTR std::map<std::string,std::vector<ContrProp*>> mes2ptsPropsLib;
+  inline void removeMes2PtsProp(const std::string& n)
+  {
+    MASTER_PRINTF("Removing %s from the mes2ptsPropsLib\n",n.c_str());
+    if constexpr(defaultMemorySpace!=MemorySpace::CPU)
+      for(auto& vi : mes2ptsPropsLib[n])
+	delete vi;
+    mes2ptsPropsLib.erase(n);
+  }
+  
   void compute_mes2pt_contr(int icombo);
+  
   void print_mes2pts_contr(const int iHit,int n=nhits,int force_append=false,int skip_inner_header=false,const std::string &alternative_header_template="");
   void free_mes2pts_contr();
   

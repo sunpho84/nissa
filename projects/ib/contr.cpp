@@ -120,15 +120,29 @@ namespace nissa
     double norm=12/sqrt(Q[a].ori_source_norm2*Q[b].ori_source_norm2); //12 in case of a point source
     
     mes2pts_move_to_make_readable_time-=take_time();
-    using R=
-      decltype(Q[a][0].getSurelyReadableOn<defaultMemorySpace>());
-    std::vector<R> Q1;
-    std::vector<R> Q2;
-    for(int i=0;i<nso_col*nso_spi;i++)
-      {
-	Q1.push_back(Q[a][i].getSurelyReadableOn<defaultMemorySpace>());
-	Q2.push_back(Q[b][i].getSurelyReadableOn<defaultMemorySpace>());
-      }
+    
+    for(auto& [n,v] : mes2ptsPropsLib)
+      if(n!=a and n!=b)
+	removeMes2PtsProp(n);
+    
+    for(const std::string& n : {a,b})
+      if(mes2ptsPropsLib.find(n)==mes2ptsPropsLib.end())
+	{
+	  MASTER_PRINTF("Allocating %s in the contr prop list\n",n.c_str());
+	  
+	  mes2ptsPropsLib[n].resize(nso_col*nso_spi);
+	  for(int i=0;i<nso_col*nso_spi;i++)
+	    if constexpr(defaultMemorySpace!=MemorySpace::CPU)
+	      mes2ptsPropsLib[n][i]=new ContrProp(Q[n][i]);
+	    else
+	      mes2ptsPropsLib[n][i]=&Q[n][i];
+	}
+      else
+	MASTER_PRINTF("Prop %s already in the contr prop list\n",n.c_str());
+    
+    std::vector<ContrProp*>& Q1=mes2ptsPropsLib[a];
+    std::vector<ContrProp*>& Q2=mes2ptsPropsLib[b];
+    
     nmes2pts_move_to_make_readable_made++;
     mes2pts_move_to_make_readable_time+=take_time();
     
