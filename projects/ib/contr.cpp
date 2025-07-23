@@ -121,9 +121,12 @@ namespace nissa
     
     mes2pts_move_to_make_readable_time-=take_time();
     
+    std::vector<std::string> toErase;
     for(auto& [n,v] : mes2ptsPropsLib)
       if(n!=a and n!=b)
-	removeMes2PtsProp(n);
+	toErase.push_back(n);
+    for(const std::string& n : toErase)
+      removeMes2PtsProp(n);
     
     for(const std::string& n : {a,b})
       if(mes2ptsPropsLib.find(n)==mes2ptsPropsLib.end())
@@ -144,13 +147,6 @@ namespace nissa
       else
 	MASTER_PRINTF("Prop %s already in the contr prop list\n",n.c_str());
     
-    MASTER_PRINTF("List of props in the library:\n");
-    for(auto& [n,v] : mes2ptsPropsLib)
-      {
-	MASTER_PRINTF(" Prop %s contains %zu elements\n",n.c_str(),v.size());
-	for(const auto& vi : v)
-	  MASTER_PRINTF("  ptr: %p\n",vi->_data);
-      }
     std::vector<ContrProp*>& Q1=mes2ptsPropsLib[a];
     std::vector<ContrProp*>& Q2=mes2ptsPropsLib[b];
     
