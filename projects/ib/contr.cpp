@@ -132,13 +132,14 @@ namespace nissa
 	  
 	  mes2ptsPropsLib[n].resize(nso_col*nso_spi);
 	  for(int i=0;i<nso_col*nso_spi;i++)
-	    if constexpr(defaultMemorySpace!=MemorySpace::CPU)
-	      {
+#ifdef USE_CUDA
+	    {
 		mes2ptsPropsLib[n][i]=new ContrProp(Q[n][i].name,Q[n][i].haloEdgesPresence);
 		*(mes2ptsPropsLib[n][i])=Q[n][i];
 	      }
-	    else
-	      mes2ptsPropsLib[n][i]=&Q[n][i];
+#else
+	  mes2ptsPropsLib[n][i]=&Q[n][i];
+#endif
 	}
       else
 	MASTER_PRINTF("Prop %s already in the contr prop list\n",n.c_str());
