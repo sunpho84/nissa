@@ -100,9 +100,86 @@ namespace nissa
   //list of propagators to fft
   EXTERN_PARS std::vector<std::string> fft_prop_list;
   
+  /// List of gamma used for source or sink
+  struct LocBilinear
+  {
+    /// Covnerted list
+    const std::vector<int> list;
+    
+    /// Letter to identify
+    const char letter;
+    
+    /// Convert to int a char
+    static int CliffOfChar(const char& g)
+    {
+      static constexpr char CliffMap[8]=
+	"SVPATBG";
+      
+      for(int i=0;i<7;i++)
+	if(CliffMap[i]==g)
+	  return
+	    i;
+      
+      CRASH("Cannot convert gamma: %c",g);
+      
+      return
+	{};
+    }
+    
+  static std::vector<int> getList(const char& g,
+				  const char& letter)
+    {
+      static const std::vector<int> literal[7]={
+	{0},
+	{1,2,3},
+	{5},
+	{6,7,8},
+	{10,11,12},
+	{13,14,15},
+	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
+      
+      constexpr static bool ignoreLetter[7]=
+		  {1,0,1,0,0,0,1};
+      
+      const int c=
+	CliffOfChar(g);
+      
+      if(ignoreLetter[c] or not isdigit(letter))
+	return
+	  literal[c];
+      
+      static const int minNumeric[7]={0,0,0,0,1,1,0};
+      
+      const int m=minNumeric[c];
+      
+      const int i=
+	letter-'0'-m;
+      
+      static const std::vector<int> numeric[7]={
+	{0},
+	{4,1,2,3},
+	{5},
+	{9,6,7,8},
+	{10,11,12},
+	{13,14,15},
+	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
+      
+      if(i<0 or i>=(int)numeric[c].size())
+	CRASH("Error, letter %c converts to int %d not in range [%d:%zu]",letter,i,m,numeric[c].size()+m);
+      
+      return
+	{numeric[c][i]};
+    }
+  
+  LocBilinear(const char& g,
+	    const char& letter)
+    : list(getList(g,letter)),letter(letter)
+    {
+    }
+  };
+  
   void read_input_preamble();
   void read_mes2pts_contr_pars();
-  void read_mes2pts_contr_gamma_list();
   void read_bar2pts_contr_pars();
   void read_handcuffs_contr_pars();
   void read_fft_prop_pars();

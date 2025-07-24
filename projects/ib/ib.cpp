@@ -414,11 +414,11 @@ void init_simulation(int narg,char **arg)
   
   constexpr bool decryptNameTest=false;
   if(decryptNameTest)
-    for(const auto& [name,bw,fw] : mes2pts_contr_map)
+    for(const mes_contr_t& m : mes2ptsContr)
       {
 	int bwOrder=0;
 	std::string line;
-	for(const std::string& u : {bw,fw})
+	for(const std::string& u : {m.a,m.b})
 	  {
 	    std::string cur=u;
 	    while(not Q[cur].is_source)
@@ -456,7 +456,7 @@ void init_simulation(int narg,char **arg)
 	    line+="     ";
 	    bwOrder++;
 	  }
-	MASTER_PRINTF("Decrypting %s = %s\n",name.c_str(),line.c_str());
+	MASTER_PRINTF("Decrypting %s = %s\n",m.name.c_str(),line.c_str());
       }
   
   //meslept
@@ -490,7 +490,8 @@ void init_simulation(int narg,char **arg)
   
   loc_contr=new LxField<complex>("loc_contr");
   
-  allocate_mes2pts_contr();
+  for(mes_contr_t& m : mes2ptsContr)
+    m.alloc();
   
   nmeslep_corr=nquark_lep_combos*nindep_meslep_weak;
   meslep_hadr_part=nissa_malloc("hadr",locVol,spinspin);
@@ -516,7 +517,8 @@ void close()
   free_loop_source();
   free_L_prop();
   
-  free_mes2pts_contr();
+  for(mes_contr_t& m : mes2ptsContr)
+    m.unalloc();
   freeHandcuffsContr();
   
   delete loc_contr;

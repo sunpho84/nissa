@@ -47,145 +47,87 @@ namespace nissa
   //read the list of mesons in terms of quarks
   void read_mes2pts_contr_pars()
   {
-    int nmes2pts_contr;
-    read_str_int("NMes2PtsContr",&nmes2pts_contr);
-    for(int i=0;i<nmes2pts_contr;i++)
+    int nmes2pts_contr_blocks=1;
+    
+    const char NMes2PtsContrTag[]="NMes2PtsContr";
+    
+    const char NMes2PtsContrBlocksTag[]="NMes2PtsContrBlocks";
+    
+    char obt_str[1024];
+    read_str(obt_str,1024);
+    if(strcasecmp(obt_str,NMes2PtsContrBlocksTag)==0)
       {
-	char name[1024];
-	read_str(name,1024);
-	char q_name[2][1024];
-	for(int iq=0;iq<2;iq++)
-	  read_str(q_name[iq],1024);
-	
-	for(int icopy=0;icopy<ncopies;icopy++)
-	  {
-	    char suffix[128]="";
-	    if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
-	    
-	    char full_name[1024+129];
-	    sprintf(full_name,"%s%s",name,suffix);
-	    
-	    char q_full_name[2][1024+129];
-	    for(int iq=0;iq<2;iq++)
-	      sprintf(q_full_name[iq],"%s%s",q_name[iq],suffix);
-	    for(int iq=0;iq<2;iq++)
-	      if(Q.find(q_full_name[iq])==Q.end()) CRASH("unable to find q%d %s",iq,q_full_name[iq]);
-	    
-	    mes2pts_contr_map.push_back(mes_contr_map_t(full_name,q_full_name[0],q_full_name[1]));
-	    for(int iq=0;iq<2;iq++)
-	      propsNeededToContr.insert(q_full_name[iq]);
-	  }
+	read_int(&nmes2pts_contr_blocks);
+	expect_str(NMes2PtsContrTag);
       }
+    else
+      if(strcasecmp(obt_str,NMes2PtsContrTag)!=0)
+	CRASH("Unexpected string: %s, expecting \"%s\" or \"%s\"",obt_str,NMes2PtsContrBlocksTag,NMes2PtsContrTag);
     
-    if(nmes2pts_contr) read_mes2pts_contr_gamma_list();
-  }
-  
-  /// List of gamma used for source or sink
-  struct LocBilinear
-  {
-    /// Covnerted list
-    const std::vector<int> list;
-    
-    /// Letter to identify
-    const char letter;
-    
-    /// Convert to int a char
-    static int CliffOfChar(const char& g)
-    {
-      static constexpr char CliffMap[8]=
-	"SVPATBG";
-      
-      for(int i=0;i<7;i++)
-	if(CliffMap[i]==g)
-	  return
-	    i;
-      
-      CRASH("Cannot convert gamma: %c",g);
-      
-      return
-	{};
-    }
-    
-  static std::vector<int> getList(const char& g,
-				  const char& letter)
-    {
-      static const std::vector<int> literal[7]={
-	{0},
-	{1,2,3},
-	{5},
-	{6,7,8},
-	{10,11,12},
-	{13,14,15},
-	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
-      
-      constexpr static bool ignoreLetter[7]=
-		  {1,0,1,0,0,0,1};
-      
-      const int c=
-	CliffOfChar(g);
-      
-      if(ignoreLetter[c] or not isdigit(letter))
-	return
-	  literal[c];
-      
-      static const int minNumeric[7]={0,0,0,0,1,1,0};
-      
-      const int m=minNumeric[c];
-      
-      const int i=
-	letter-'0'-m;
-      
-      static const std::vector<int> numeric[7]={
-	{0},
-	{4,1,2,3},
-	{5},
-	{9,6,7,8},
-	{10,11,12},
-	{13,14,15},
-	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
-      
-      if(i<0 or i>=(int)numeric[c].size())
-	CRASH("Error, letter %c converts to int %d not in range [%d:%zu]",letter,i,m,numeric[c].size()+m);
-      
-      return
-	{numeric[c][i]};
-    }
-  
-  LocBilinear(const char& g,
-	    const char& letter)
-    : list(getList(g,letter)),letter(letter)
-    {
-    }
-  };
-  
-  //read the list of meson contraction asked
-  void read_mes2pts_contr_gamma_list()
-  {
-    int nmes_gamma_contr;
-    read_str_int("NGammaContr",&nmes_gamma_contr);
-    for(int i=0;i<nmes_gamma_contr;i++)
+    while(nmes2pts_contr_blocks>0)
       {
-	char tag[128];
-	read_str(tag,128);
+	int nmes2pts_contr;
+	read_int(&nmes2pts_contr);
 	
-	if(strlen(tag)!=4)
-	  CRASH("Error, string length %lu different from 4",strlen(tag));
-	
-	LocBilinear sink(tag[0],tag[1]);
-	LocBilinear source(tag[2],tag[3]);
-	
-	if(source.letter!=sink.letter)
-	  for(const int& iSink : sink.list)
-	    for(const int& iSource : source.list)
-	      mes_gamma_list.push_back({iSink,iSource});
-	else
+	std::vector<std::array<std::string,3>> qCombo;
+	for(int i=0;i<nmes2pts_contr;i++)
 	  {
-	    if(source.list.size()!=sink.list.size())
-	      CRASH("Error, sizes of source %lu does not agree with size of sink %lu",source.list.size(),sink.list.size());
-	  
-	  for(size_t i=0;i<source.list.size();i++)
-	    mes_gamma_list.push_back({sink.list[i],source.list[i]});
+	    char name[1024];
+	    read_str(name,1024);
+	    char q_name[2][1024];
+	    for(int iq=0;iq<2;iq++)
+	      read_str(q_name[iq],1024);
+	    
+	    qCombo.push_back({name,q_name[0],q_name[1]});
 	  }
+	
+	std::vector<idirac_pair_t> gammaList;
+	int nmes_gamma_contr;
+	read_str_int("NGammaContr",&nmes_gamma_contr);
+	for(int i=0;i<nmes_gamma_contr;i++)
+	  {
+	    char tag[128];
+	    read_str(tag,128);
+	    
+	    if(strlen(tag)!=4)
+	      CRASH("Error, string length %lu different from 4",strlen(tag));
+	    
+	    LocBilinear sink(tag[0],tag[1]);
+	    LocBilinear source(tag[2],tag[3]);
+	    
+	    if(source.letter!=sink.letter)
+	      for(const int& iSink : sink.list)
+		for(const int& iSource : source.list)
+		  gammaList.emplace_back(iSink,iSource);
+	    else
+	      {
+		if(source.list.size()!=sink.list.size())
+		  CRASH("Error, sizes of source %lu does not agree with size of sink %lu",source.list.size(),sink.list.size());
+		
+		for(size_t i=0;i<source.list.size();i++)
+		  gammaList.emplace_back(sink.list[i],source.list[i]);
+	      }
+	  }
+	
+	for(const auto& [name,a,b] : qCombo)
+	  for(int icopy=0;icopy<ncopies;icopy++)
+	    {
+	      const std::string suffix=
+		(ncopies>1)?combine("_copy%d",icopy):"";
+	      
+	      for(const std::string& i : {a,b})
+		if(Q.find(i+suffix)==Q.end())
+		  CRASH("unable to find quark %s",i.c_str());
+		else
+		  propsNeededToContr.insert(i+suffix);
+		  
+	      mes2ptsContr.emplace_back(name+suffix,a+suffix,b+suffix);
+	      mes2ptsContr.back().gammaList=gammaList;
+	  }
+	
+	nmes2pts_contr_blocks--;
+	if(nmes2pts_contr_blocks)
+	  expect_str(NMes2PtsContrTag);
       }
   }
   

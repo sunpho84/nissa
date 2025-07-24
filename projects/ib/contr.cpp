@@ -13,8 +13,9 @@ namespace nissa
   /// Clear all correlation
   void clearCorrelations()
   {
-    if(mes2pts_contr_size)
-      vector_reset(mes2pts_contr);
+    for(mes_contr_t& m : mes2ptsContr)
+      m.reset();
+    
     if(computeHitSummedHandcuffs)
       for(auto& [name,handcuffSide] : handcuffsSides)
 	handcuffSide.sum->reset();
@@ -59,19 +60,6 @@ namespace nissa
     }
   };
   
-  //allocate mesonic contractions
-  void allocate_mes2pts_contr()
-  {
-    mes2pts_contr_size=glbSize[0]*mes_gamma_list.size()*mes2pts_contr_map.size();
-    mes2pts_contr=nissa_malloc("mes2pts_contr",mes2pts_contr_size,complex);
-  }
-  
-  //free mesonic contractions
-  void free_mes2pts_contr()
-  {
-    nissa_free(mes2pts_contr);
-  }
-  
   //compute a single scalar product
   void compute_prop_scalprod(complex& res,
 			     const std::string& pr_dag,
@@ -103,11 +91,12 @@ namespace nissa
   }
   
   //compute meson contractions
-  void compute_mes2pt_contr(int icombo)
+  void compute_mes2pt_contr(const size_t& icombo)
   //void compute_mes2pts_contr(int normalize)
   {
     mes2pts_contr_time-=take_time();
-    const auto [name,a,b]=mes2pts_contr_map[icombo];
+    
+    mes_contr_t& m=mes2ptsContr[icombo];
     
     // Tr [ GSO G5 S1^+ G5 GSI S2 ]      GSI is on the sink
     // (GSO)_{ij(i)} (G5)_{j(i)} (S1*)^{ab}_{kj(i)} (G5)_k (GSI)_{kl(k)} (S2)^{ab}_{l(k)i}
@@ -117,18 +106,18 @@ namespace nissa
     //
     // A(i) (S1*)^{ab}_{kj(i)} B(k) (S2)^{ab}_{l(k)i}
     
-    double norm=12/sqrt(Q[a].ori_source_norm2*Q[b].ori_source_norm2); //12 in case of a point source
+    double norm=12/sqrt(Q[m.a].ori_source_norm2*Q[m.b].ori_source_norm2); //12 in case of a point source
     
     mes2pts_move_to_make_readable_time-=take_time();
     
     std::vector<std::string> toErase;
     for(auto& [n,v] : mes2ptsPropsLib)
-      if(n!=a and n!=b)
+      if(n!=m.a and n!=m.b)
 	toErase.push_back(n);
     for(const std::string& n : toErase)
       removeMes2PtsProp(n);
     
-    for(const std::string& n : {a,b})
+    for(const std::string& n : {m.a,m.b})
       if(mes2ptsPropsLib.find(n)==mes2ptsPropsLib.end())
 	{
 	  MASTER_PRINTF("Allocating %s in the contr prop list\n",n.c_str());
@@ -147,16 +136,16 @@ namespace nissa
       else
 	MASTER_PRINTF("Prop %s already in the contr prop list\n",n.c_str());
     
-    std::vector<ContrProp*>& Q1=mes2ptsPropsLib[a];
-    std::vector<ContrProp*>& Q2=mes2ptsPropsLib[b];
+    std::vector<ContrProp*>& Q1=mes2ptsPropsLib[m.a];
+    std::vector<ContrProp*>& Q2=mes2ptsPropsLib[m.b];
     
     nmes2pts_move_to_make_readable_made++;
     mes2pts_move_to_make_readable_time+=take_time();
     
-    for(size_t ihadr_contr=0;ihadr_contr<mes_gamma_list.size();ihadr_contr++)
+    for(size_t ihadr_contr=0;ihadr_contr<m.gammaList.size();ihadr_contr++)
       {
-	int ig_so=mes_gamma_list[ihadr_contr].so;
-	int ig_si=mes_gamma_list[ihadr_contr].si;
+	int ig_so=m.gammaList[ihadr_contr].so;
+	int ig_si=m.gammaList[ihadr_contr].si;
 	if(nso_spi==1 and ig_so!=5)
 	  CRASH("implemented only g5 contraction on the source for non-diluted source");
 	
@@ -210,10 +199,10 @@ namespace nissa
 	glb_reduce(temp_contr,*loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
 	
 	for(int t=0;t<glbSize[0];t++)
-	  complex_summassign(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glbSize[0]-oriCoords[0])%glbSize[0])],temp_contr[t]);
+	  complex_summassign(m(ihadr_contr,(t+glbSize[0]-oriCoords[0])%glbSize[0]),temp_contr[t]);
       }
     
-    nmes2pts_contr_made+=mes_gamma_list.size();
+    nmes2pts_contr_made+=m.gammaList.size();
     mes2pts_contr_time+=take_time();
   }
   
@@ -257,16 +246,14 @@ namespace nissa
     //list to open or append
     open_or_append_t list;
     
-    for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
+    for(mes_contr_t& m : mes2ptsContr)
       {
-	auto& combo=mes2pts_contr_map[icombo];
-	
 	//path to use
-	FILE *fout=list.open(combine("%s/%s_%s",outfolder,mes2pts_prefix.c_str(),combo.name.c_str()),force_append);
+	FILE *fout=list.open(combine("%s/%s_%s",outfolder,mes2pts_prefix.c_str(),m.name.c_str()),force_append);
 	
-	master_fprintf(fout,header_template.c_str(),combo.a.c_str(),combo.b.c_str());
+	master_fprintf(fout,header_template.c_str(),m.a.c_str(),m.b.c_str());
 	
-	print_contractions_to_file(fout,mes_gamma_list,mes2pts_contr+ind_mes2pts_contr(icombo,0,0),0,"",norm,skip_inner_header);
+	print_contractions_to_file(fout,m.gammaList,&m(0,0),0,"",norm,skip_inner_header);
 	master_fprintf(fout,"\n");
 	
 	//close the file

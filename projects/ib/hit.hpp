@@ -512,19 +512,27 @@ namespace nissa
 		eraseUnnededProps();
 	      }
 	    
-	    for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
-	      if(const std::string& a=mes2pts_contr_map[icombo].a,
-		 b=mes2pts_contr_map[icombo].b;
+	    /// Reorder to capture those that can recycle the props when needed to move to device
+	    std::map<std::pair<std::string,std::string>,size_t> canBeComputed2pts;
+	    for(size_t icombo=0;icombo<mes2ptsContr.size();icombo++)
+	      if(const std::string& a=mes2ptsContr[icombo].a,
+		 b=mes2ptsContr[icombo].b;
 		 computedPropsList.count(a) and
 		 computedPropsList.count(b) and
 		 computed2ptsList.count(icombo)==0)
-		{
-		  if(runStep==2)
+		  canBeComputed2pts[std::make_pair(a,b)]=icombo;
+	    
+	    for(const auto& [ab,iCombo] : canBeComputed2pts)
+	      {
+		const std::string& a=mes2ptsContr[iCombo].a,
+		  b=mes2ptsContr[iCombo].b;
+		
+		if(runStep==2)
 		    MASTER_PRINTF("Can compute 2pts contraction: %s %s -> %s, %zu/%zu\n",
-				  a.c_str(),b.c_str(),mes2pts_contr_map[icombo].name.c_str(),computed2ptsList.size(),mes2pts_contr_map.size());
-		  
+				  a.c_str(),b.c_str(),mes2ptsContr[iCombo].name.c_str(),computed2ptsList.size(),mes2ptsContr.size());
+		
 		  // Insert the correlation in the computed list
-		  computed2ptsList.insert(icombo);
+		  computed2ptsList.insert(iCombo);
 		  
 		  for(const std::string& p : {a,b})
 		    if(runStep==1)
@@ -534,11 +542,11 @@ namespace nissa
 		  
 		  // Compute the correlation function
 		  if(runStep==2)
-		    compute_mes2pt_contr(icombo);
+		    compute_mes2pt_contr(iCombo);
 		  
 		  // Remove the dependency from the 2pts of the props
 		  for(const std::string& p : {a,b})
-		    propDep[p].erase("2pts_"+std::to_string(icombo));
+		    propDep[p].erase("2pts_"+std::to_string(iCombo));
 		  
 		  if(runStep==2)
 		    {
@@ -614,8 +622,8 @@ namespace nissa
       
       std::ostringstream os;
       
-      for(size_t iContr=0;iContr<mes2pts_contr_map.size();iContr++)
-	if(const auto& m=mes2pts_contr_map[iContr];computed2ptsList.find(iContr)==computed2ptsList.end())
+      for(size_t iContr=0;iContr<mes2ptsContr.size();iContr++)
+	if(const auto& m=mes2ptsContr[iContr];computed2ptsList.find(iContr)==computed2ptsList.end())
 	  os<<" not computed corr "<<m.name<<" between "<<m.a<<" and "<<m.b<<std::endl;
       
       for(const auto& [name,handcuffSide] : handcuffsSides)
@@ -645,11 +653,13 @@ namespace nissa
 	      if(fread(&nHitsDone,sizeof(nHitsDone),1,partialFile)!=1)
 		CRASH("Failed to load nHitsDone");
 	      
-	      if(fread(mes2pts_contr,sizeof(complex),mes2pts_contr_size,partialFile)!=mes2pts_contr_size)
+	      for(mes_contr_t& m : mes2ptsContr)
+		if(fread(m.contr,sizeof(complex),m.contrSize,partialFile)!=m.contrSize)
 		CRASH("Failed to load 2pts");
 	    }
 	  MPI_Bcast(&nHitsDone,1,MPI_INT,master_rank,MPI_COMM_WORLD);
-	  MPI_Bcast(mes2pts_contr,mes2pts_contr_size,MPI_DOUBLE_COMPLEX,master_rank,MPI_COMM_WORLD);
+	  for(mes_contr_t& m : mes2ptsContr)
+	    MPI_Bcast(m.contr,m.contrSize,MPI_DOUBLE_COMPLEX,master_rank,MPI_COMM_WORLD);
 	  
 	  close_file(partialFile);
 	}
@@ -666,7 +676,8 @@ namespace nissa
 	  if(fwrite(&nHitsDone,sizeof(nHitsDone),1,partialFile)!=1)
 	    CRASH("Failed to write nHitsDone");
 	  
-	  if(fwrite(mes2pts_contr,sizeof(complex),mes2pts_contr_size,partialFile)!=mes2pts_contr_size)
+	  for(mes_contr_t& m : mes2ptsContr)
+	    if(fwrite(m.contr,sizeof(complex),m.contrSize,partialFile)!=m.contrSize)
 	    CRASH("Failed to write 2pts");
 	  close_file(partialFile);
 	}
@@ -684,8 +695,8 @@ namespace nissa
     HitLooper()
     {
       // Insert all contractions for 2pts
-      for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
-	for(const std::string& p : {mes2pts_contr_map[icombo].a,mes2pts_contr_map[icombo].b})
+      for(size_t icombo=0;icombo<mes2ptsContr.size();icombo++)
+	for(const std::string& p : {mes2ptsContr[icombo].a,mes2ptsContr[icombo].b})
 	  {
 	    propDep[p].insert("2pts_"+std::to_string(icombo));
 	    oldDepInserted.push_back(p);

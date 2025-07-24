@@ -34,7 +34,7 @@ namespace nissa
   
   EXTERN_CONTR std::string mes2pts_prefix INIT_TO("mes_contr");
   
-  struct mes_contr_map_t
+  struct mes_contr_t
   {
     std::string name;
     
@@ -42,16 +42,50 @@ namespace nissa
     
     std::string b;
     
-    mes_contr_map_t(const std::string& name,
-		    const std::string& a,
-		    const std::string& b) :
+    std::vector<idirac_pair_t> gammaList;
+    
+    complex* contr;
+    
+    size_t contrSize;
+    
+    /// Allocate mesonic contractions
+    void alloc()
+    {
+      contrSize=glbSize[0]*gammaList.size();
+      contr=new complex[contrSize];
+    }
+    
+    /// Allocate mesonic contractions
+    void unalloc()
+    {
+      delete[] contr;
+    }
+    
+    complex& operator()(const size_t& iGamma,
+			const size_t& t)
+    {
+      return contr[t+glbSize[0]*iGamma];
+    }
+    
+    /// Reset the contractions
+    void reset()
+    {
+      for(size_t i=0;i<contrSize;i++)
+	complex_put_to_zero(contr[i]);
+    }
+    
+    mes_contr_t(const std::string& name,
+		const std::string& a,
+		const std::string& b) :
       name(name),
       a(a),
       b(b)
     {
     }
   };
-  EXTERN_CONTR std::vector<mes_contr_map_t> mes2pts_contr_map;
+  
+  EXTERN_CONTR std::vector<mes_contr_t> mes2ptsContr;
+  
   EXTERN_CONTR int nmes2pts_contr_made INIT_TO(0);
   EXTERN_CONTR double mes2pts_contr_time INIT_TO(0);
   
@@ -60,10 +94,6 @@ namespace nissa
   
   CUDA_MANAGED EXTERN_CONTR LxField<complex> *loc_contr;
   
-  CUDA_MANAGED EXTERN_CONTR complex *mes2pts_contr INIT_TO(NULL);
-  EXTERN_CONTR std::vector<idirac_pair_t> mes_gamma_list;
-  void allocate_mes2pts_contr();
-
   using ContrProp=LxField<spincolor,defaultSpaceTimeLayout,defaultMemorySpace>;
   EXTERN_CONTR std::map<std::string,std::vector<ContrProp*>> mes2ptsPropsLib;
   inline void removeMes2PtsProp(const std::string& n)
@@ -75,19 +105,18 @@ namespace nissa
     mes2ptsPropsLib.erase(n);
   }
   
-  void compute_mes2pt_contr(int icombo);
+  void compute_mes2pt_contr(const size_t& icombo);
   
   void print_mes2pts_contr(const int iHit,int n=nhits,int force_append=false,int skip_inner_header=false,const std::string &alternative_header_template="");
   void free_mes2pts_contr();
   
-  inline int ind_mes2pts_contr(int iquark_combo,int ihadr_contr,int t)
+  inline int ind_mes2pts_contr(const int& ihadr_contr,
+			       const int& t)
   {
     return
-      (t+glbSize[0]*
-       (ihadr_contr+mes_gamma_list.size()*
-	iquark_combo));
+      t+glbSize[0]*
+      ihadr_contr;
   }
-  EXTERN_CONTR int mes2pts_contr_size;
   
   ///////////////////////////////////////// handcuffs contractions ///////////////////////////////////////////////////////
   
