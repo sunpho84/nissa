@@ -513,16 +513,31 @@ namespace nissa
 	      }
 	    
 	    /// Reorder to capture those that can recycle the props when needed to move to device
-	    std::map<std::pair<std::string,std::string>,size_t> canBeComputed2pts;
+	    std::vector<size_t> canBeComputed2pts;
 	    for(size_t icombo=0;icombo<mes2ptsContr.size();icombo++)
 	      if(const std::string& a=mes2ptsContr[icombo].a,
 		 b=mes2ptsContr[icombo].b;
 		 computedPropsList.count(a) and
 		 computedPropsList.count(b) and
 		 computed2ptsList.count(icombo)==0)
-		  canBeComputed2pts[std::make_pair(a,b)]=icombo;
+		canBeComputed2pts.emplace_back(icombo);
 	    
-	    for(const auto& [ab,iCombo] : canBeComputed2pts)
+	    std::sort(canBeComputed2pts.begin(),
+		      canBeComputed2pts.end(),
+		      [](const size_t& i1,
+			 const size_t& i2)
+		      {
+			auto getKey=
+			  [](const size_t& i)
+			  {
+			    auto& m=mes2ptsContr[i];
+			    return std::make_tuple(m.a,m.b,i);
+			  };
+			
+			return getKey(i1)<getKey(i2);
+		      });
+	    
+	    for(const size_t& iCombo : canBeComputed2pts)
 	      {
 		const std::string& a=mes2ptsContr[iCombo].a,
 		  b=mes2ptsContr[iCombo].b;
