@@ -208,8 +208,12 @@ namespace nissa
   void removeRunning()
   {
     if(is_master_rank())
-      remove(runningPath().c_str());
-  }
+      {
+	if(const int rc=remove(runningPath().c_str())==0)
+	  fprintf(stderr,"Running file %s removed succesfully\n",runningPath().c_str());
+	else
+	  fprintf(stderr,"Impossible to remove running file %s, returned %d instead of 0\n",runningPath().c_str(),rc);
+      }
   
   void finalizeConf(const HitLooper& hitLooper)
   {

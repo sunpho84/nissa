@@ -89,6 +89,7 @@ namespace nissa
       {
 	fprintf(stderr,"Calling the crash hook\n");
 	crashHook();
+	fprintf(stderr,"Crash hook called, now aborting\n");
 	crashHook=nullptr;
       }
      
