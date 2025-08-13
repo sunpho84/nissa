@@ -214,13 +214,14 @@ namespace nissa
 	else
 	  fprintf(stderr,"Impossible to remove running file %s, returned %d instead of 0\n",runningPath().c_str(),rc);
       }
+  }
   
   void finalizeConf(const HitLooper& hitLooper)
   {
     file_touch(finishedPath());
     removeRunning();
     crashHook=nullptr;
-
+    
     if(not preservePartialData)
       hitLooper.deletePartialData();
     nanalyzed_conf++;
