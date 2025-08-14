@@ -235,6 +235,22 @@ namespace nissa
       }
   }
   
+  constexpr int runningUpdateTime=60;
+  
+  bool checkRunningIsRecent()
+  {
+    const auto lastTouch=
+      std::filesystem::last_write_time(runningPath());
+    
+    const auto now=
+      std::filesystem::file_time_type::clock::now();
+    
+    const double nSecFromLastTouch=
+      std::chrono::duration_cast<std::chrono::seconds>(lastTouch-now).count();
+    
+    return nSecFromLastTouch<2*runningUpdateTime;
+  }
+  
   void finalizeConf(const HitLooper& hitLooper)
   {
     file_touch(finishedPath());
@@ -280,12 +296,24 @@ namespace nissa
 	  //Check if the conf has been finished or is already running
 	  MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
 	  
-	  ok_conf=not (file_exists(finishedPath()) or file_exists(runningPath()));
+	  const bool runningIsPresent=
+	    file_exists(runningPath());
+	  
+	  const bool runningIsRecent=
+	    runningIsPresent and checkRunningIsRecent();
+	  
+	  const bool partialDataIsPresent=
+	    file_exists(partialDataPath());
+	  
+	  ok_conf=not (file_exists(finishedPath()) or runningIsRecent);
 	  
 	  //if not finished
 	  if(ok_conf)
 	    {
-	      MASTER_PRINTF(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
+	      MASTER_PRINTF("Partial data %s present: %d, running %s present: %d, running is recent: %d\n",
+			    partialDataPath().c_str(),partialDataIsPresent,partialDataPath().c_str(),runningIsPresent,runningIsRecent);
+	      
+	      MASTER_PRINTF(" Starting or restarting configuration \"%s\"\n",conf_path);
 	      if(not dir_exists(outfolder))
 		{
 		  int ris=create_dir(outfolder);
@@ -315,7 +343,7 @@ namespace nissa
 		  else
 		    {
 		      crashHook=removeRunning;
-		      updateRunningTimer=setRecurringCalledFunction(touchRunning,SIGRTMIN,60,0);
+		      updateRunningTimer=setRecurringCalledFunction(touchRunning,SIGRTMIN,runningUpdateTime,0);
 		    }
 		}
 	    }
