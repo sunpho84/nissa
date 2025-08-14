@@ -3,6 +3,8 @@
 #define EXTERN_CONF
 # include "conf.hpp"
 
+#include <chrono>
+
 #include "contr.hpp"
 #include "hit.hpp"
 #include "pars.hpp"
@@ -216,11 +218,26 @@ namespace nissa
       }
   }
   
+  timer_t updateRunningTimer;
+  
+  /// Touches the runfile
+  void touchRunning(int,
+		    siginfo_t*,
+		    void*)
+  {
+    using namespace std::filesystem;
+    
+    if(is_master_rank())
+      last_write_time(runningPath(),
+		      file_time_type::clock::now());
+  }
+  
   void finalizeConf(const HitLooper& hitLooper)
   {
     file_touch(finishedPath());
     removeRunning();
     crashHook=nullptr;
+    stopRecallingFunction(updateRunningTimer);
     
     if(not preservePartialData)
       hitLooper.deletePartialData();
@@ -293,7 +310,10 @@ namespace nissa
 		      skip_conf();
 		    }
 		  else
-		    crashHook=removeRunning;
+		    {
+		      crashHook=removeRunning;
+		      updateRunningTimer=setRecurringCalledFunction(touchRunning,SIGRTMIN,60,0);
+		    }
 		}
 	    }
 	  else

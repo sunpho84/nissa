@@ -5,14 +5,18 @@
 #define EXTERN_DEBUG
 # include "base/debug.hpp"
 
-#include <signal.h>
+#include <chrono>
 #include <execinfo.h>
+
 #ifdef USE_MPI
 # include <mpi.h>
 #endif
+
+#include <signal.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #ifdef USE_CUDA
 # include <cuda_runtime.h>
@@ -117,6 +121,51 @@ namespace nissa
 #else
     __trap();
 #endif
+  }
+  
+  timer_t setRecurringCalledFunction(void hook(int sigNum,
+					     siginfo_t*,
+					     void*),
+				   const int sigNum,
+				   const int& nSec,
+				   const int& nnSec)
+  {
+    timer_t id{};
+    
+    struct sigevent sev{.sigev_value{.sival_ptr=&id},
+			.sigev_signo=SIGRTMIN,
+			.sigev_notify=SIGEV_SIGNAL};
+    
+    if (timer_create(CLOCK_REALTIME,&sev,&id)==-1)
+      CRASH("Unable to create a timer for a function to be called with signal %d each %d sec %d nSec",sigNum,nSec,nnSec);
+    
+    struct sigaction sa{};
+    sa.sa_flags=SA_RESTART;
+    sa.sa_sigaction=hook;
+    sigemptyset(&sa.sa_mask);
+    if(sigaction(sigNum,&sa,nullptr)==-1)
+      CRASH("Unable to set the action for a function to be called with signal %d each %d sec .%d nsec",sigNum,nSec,nnSec);
+    
+    struct itimerspec its{.it_interval{.tv_sec=nSec,
+				       .tv_nsec=nnSec},
+			  .it_value{.tv_sec=nSec,
+				    .tv_nsec=nnSec}};
+    
+    if(timer_settime(id,0,&its,nullptr)==-1)
+      CRASH("Unable to set the timer for a function to be called with signal %d each %d sec .%d nsec",sigNum,nSec,nnSec);
+    
+    return id;
+  }
+  
+  void stopRecallingFunction(const timer_t& timer_id)
+  {
+    struct itimerspec stopSpec{};
+    
+    if(timer_settime(timer_id,0,&stopSpec,nullptr)==-1)
+      CRASH("Unable to unset a recalling function");
+    
+    if(timer_delete(timer_id)==-1)
+      CRASH("Unable to delete a timer");
   }
   
   void internal_crash_printing_error(int line,const char *file,int err_code,const char *templ,...)

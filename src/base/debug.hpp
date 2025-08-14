@@ -12,6 +12,9 @@
 # define INIT_DEBUG_TO(var) =var
 #endif
 
+#include <csignal>
+#include <ctime>
+
 #ifdef USE_CUDA
 # include <cuda_runtime.h>
 #endif
@@ -84,6 +87,15 @@ namespace nissa
   void print_backtrace_list(int which_rank=0);
   void signal_handler(int);
   double take_time();
+  
+  timer_t setRecurringCalledFunction(void hook(int sigNum,
+					     siginfo_t*,
+					     void*),
+				   const int sigNum,
+				   const int& nSec,
+				   const int& nnSec);
+  
+  void stopRecallingFunction(const timer_t& timer_id);
   
   void testLxHaloExchange();
   void testEoHaloExchange();
