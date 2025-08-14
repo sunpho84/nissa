@@ -228,8 +228,11 @@ namespace nissa
     using namespace std::filesystem;
     
     if(is_master_rank())
-      last_write_time(runningPath(),
-		      file_time_type::clock::now());
+      {
+	last_write_time(runningPath(),
+			file_time_type::clock::now());
+	MASTER_PRINTF("Updating running file %s\n",runningPath().c_str());
+      }
   }
   
   void finalizeConf(const HitLooper& hitLooper)
