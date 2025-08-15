@@ -300,7 +300,7 @@ namespace nissa
 	    file_exists(runningPath());
 	  
 	  const bool runningIsRecent=
-	    runningIsPresent and checkRunningIsRecent();
+	    runningIsPresent?checkRunningIsRecent():false;
 	  
 	  const bool partialDataIsPresent=
 	    file_exists(partialDataPath());
@@ -308,7 +308,7 @@ namespace nissa
 	  ok_conf=not (file_exists(finishedPath()) or runningIsRecent);
 	  
 	  MASTER_PRINTF("Partial data %s present: %d, running %s present: %d, running is recent: %d\n",
-			partialDataPath().c_str(),partialDataIsPresent,partialDataPath().c_str(),runningIsPresent,runningIsRecent);
+			partialDataPath().c_str(),partialDataIsPresent,runningPath().c_str(),runningIsPresent,runningIsRecent);
 	  
 	  //if not finished
 	  if(ok_conf)
