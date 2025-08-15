@@ -246,7 +246,7 @@ namespace nissa
       std::filesystem::file_time_type::clock::now();
     
     const double nSecFromLastTouch=
-      std::chrono::duration_cast<std::chrono::seconds>(lastTouch-now).count();
+      std::chrono::duration_cast<std::chrono::seconds>(now-lastTouch).count();
     
     return nSecFromLastTouch<2*runningUpdateTime;
   }
