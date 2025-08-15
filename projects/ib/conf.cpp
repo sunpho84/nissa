@@ -3,7 +3,7 @@
 #define EXTERN_CONF
 # include "conf.hpp"
 
-#include <chrono>
+#include <sys/stat.h>
 
 #include "contr.hpp"
 #include "hit.hpp"
@@ -239,16 +239,14 @@ namespace nissa
   
   bool checkRunningIsRecent()
   {
-    const auto lastTouch=
-      std::filesystem::last_write_time(runningPath());
+    struct stat result;
+    if(stat(runningPath().c_str(),&result)!=0)
+      CRASH("Unable to get the stats for runfile %s",runningPath().c_str());
     
-    const auto now=
-      std::filesystem::file_time_type::clock::now();
+    const double d=
+      difftime(time(0),result.st_mtime);
     
-    const double nSecFromLastTouch=
-      std::chrono::duration_cast<std::chrono::seconds>(now-lastTouch).count();
-    
-    return nSecFromLastTouch<2*runningUpdateTime;
+    return d<2*runningUpdateTime;
   }
   
   void finalizeConf(const HitLooper& hitLooper)
