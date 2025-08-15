@@ -307,12 +307,12 @@ namespace nissa
 	  
 	  ok_conf=not (file_exists(finishedPath()) or runningIsRecent);
 	  
+	  MASTER_PRINTF("Partial data %s present: %d, running %s present: %d, running is recent: %d\n",
+			partialDataPath().c_str(),partialDataIsPresent,partialDataPath().c_str(),runningIsPresent,runningIsRecent);
+	  
 	  //if not finished
 	  if(ok_conf)
 	    {
-	      MASTER_PRINTF("Partial data %s present: %d, running %s present: %d, running is recent: %d\n",
-			    partialDataPath().c_str(),partialDataIsPresent,partialDataPath().c_str(),runningIsPresent,runningIsRecent);
-	      
 	      MASTER_PRINTF(" Starting or restarting configuration \"%s\"\n",conf_path);
 	      if(not dir_exists(outfolder))
 		{
@@ -325,6 +325,7 @@ namespace nissa
 		      skip_conf();
 		    }
 		}
+	      
 	      if(ok_conf)
 		{
 		  //try to lock the running file
