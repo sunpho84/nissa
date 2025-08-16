@@ -294,19 +294,36 @@ namespace nissa
 	  //Check if the conf has been finished or is already running
 	  MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
 	  
-	  const bool runningIsPresent=
-	    file_exists(runningPath());
+	  const bool hasFinished=
+	    file_exists(finishedPath());
 	  
-	  const bool runningIsRecent=
-	    runningIsPresent?checkRunningIsRecent():false;
-	  
-	  const bool partialDataIsPresent=
-	    file_exists(partialDataPath());
-	  
-	  ok_conf=not (file_exists(finishedPath()) or runningIsRecent);
-	  
-	  MASTER_PRINTF("Partial data %s present: %d, running %s present: %d, running is recent: %d\n",
-			partialDataPath().c_str(),partialDataIsPresent,runningPath().c_str(),runningIsPresent,runningIsRecent);
+	  if(hasFinished)
+	    MASTER_PRINTF("Finished, skipping\n");
+	  else
+	    {
+	      const bool partialDataIsPresent=
+		file_exists(partialDataPath());
+	      
+	      MASTER_PRINTF("Not finished, partial data %s present: %d\n",
+			    partialDataPath().c_str(),partialDataIsPresent);
+	      
+	      if(not file_exists(runningPath()))
+		{
+		  MASTER_PRINTF("Running path %s not present, accepted\n",runningPath().c_str());
+		  ok_conf=true;
+		}
+	      else
+		{
+		  MASTER_PRINTF("Running path %s present, checking\n",runningPath().c_str());
+		  if(checkRunningIsRecent())
+		    MASTER_PRINTF("Running path is recent, skipping\n");
+		  else
+		    {
+		      MASTER_PRINTF("Running path is not recent, accepted\n");
+		      ok_conf=true;
+		    }
+		}
+	    }
 	  
 	  //if not finished
 	  if(ok_conf)
