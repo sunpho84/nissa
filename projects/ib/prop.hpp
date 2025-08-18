@@ -379,7 +379,7 @@ namespace nissa
     
     bool canLoad() const
     {
-      return file_exists(path);
+      return fileExists(path);
     }
     
     void fastOpen(const char* mode)

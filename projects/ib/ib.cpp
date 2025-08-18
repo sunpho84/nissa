@@ -582,7 +582,7 @@ void in_main(int narg,char **arg)
   
   //loop over the configs
   int iconf=0;
-  while(read_conf_parameters(iconf) and not file_exists(finishedPath()))
+  while(read_conf_parameters(iconf) and not fileExists(finishedPath()))
     {
       HitLooper hitLooper;
       const int nHitsDoneSoFar=

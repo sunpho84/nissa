@@ -1077,7 +1077,7 @@ namespace nissa
     //file where to store output
     FILE *fout=NULL;
     const char path_list[]="mom_list.txt";
-    if(not file_exists("mom_list.txt")) fout=open_file(path_list,"w");
+    if(not fileExists("mom_list.txt")) fout=open_file(path_list,"w");
     
     //store the list of filtered
     std::set<int> list_of_filtered;

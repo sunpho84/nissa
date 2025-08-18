@@ -98,8 +98,10 @@ namespace nissa
   }
   
   //check if a file exists
-  int file_exists(std::string path)
+  int fileExists(const std::string& path)
   {
+    VERBOSITY_LV3_MASTER_PRINTF("Checking if file \"%s\" exists\n",path.c_str());
+    
     int status=1;
     
     if(rank==0)
@@ -495,7 +497,7 @@ namespace nissa
     tags.push_back(triple_tag("use_parpack",                    use_parpack));
 #endif
     
-    if(file_exists(path))
+    if(fileExists(path))
       {
 	open_input(path);
 	int nr;

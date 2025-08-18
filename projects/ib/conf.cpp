@@ -265,10 +265,10 @@ namespace nissa
   int read_conf_parameters(int &iconf)
   {
     //Check if asked to stop or restart
-    const int asked_stop=file_exists(stopPath);
+    const int asked_stop=fileExists(stopPath);
     VERBOSITY_LV2_MASTER_PRINTF("Asked to stop: %d\n",asked_stop);
     
-    const int asked_restart=file_exists("restart");
+    const int asked_restart=fileExists("restart");
     VERBOSITY_LV2_MASTER_PRINTF("Asked to restart: %d\n",asked_restart);
     
     //check if enough time
@@ -295,19 +295,19 @@ namespace nissa
 	  MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
 	  
 	  const bool hasFinished=
-	    file_exists(finishedPath());
+	    fileExists(finishedPath());
 	  
 	  if(hasFinished)
 	    MASTER_PRINTF("Finished, skipping\n");
 	  else
 	    {
 	      const bool partialDataIsPresent=
-		file_exists(partialDataPath());
+		fileExists(partialDataPath());
 	      
 	      MASTER_PRINTF("Not finished, partial data %s present: %d\n",
 			    partialDataPath().c_str(),partialDataIsPresent);
 	      
-	      if(not file_exists(runningPath()))
+	      if(not fileExists(runningPath()))
 		{
 		  MASTER_PRINTF("Running path %s not present, accepted\n",runningPath().c_str());
 		  ok_conf=true;
