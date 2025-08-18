@@ -126,9 +126,9 @@ namespace nissa
 	  for(int i=0;i<nso_col*nso_spi;i++)
 #ifdef USE_CUDA
 	    {
-		mes2ptsPropsLib[n][i]=new ContrProp(Q[n][i].name,Q[n][i].haloEdgesPresence);
-		*(mes2ptsPropsLib[n][i])=Q[n][i];
-	      }
+	      mes2ptsPropsLib[n][i]=new ContrProp(Q[n][i].name(),Q[n][i].haloEdgesPresence);
+	      *(mes2ptsPropsLib[n][i])=Q[n][i];
+	    }
 #else
 	  mes2ptsPropsLib[n][i]=&Q[n][i];
 #endif
