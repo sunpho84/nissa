@@ -135,7 +135,7 @@ void init_rnd_gen()
 {
   //if seed_new file found, load it
   const char seed_new_path[]="seed_new";
-  if(file_exists(seed_new_path))
+  if(fileExists(seed_new_path))
     {
       if(rnd_gen_mess=="") MASTER_PRINTF("Ignoring loaded rnd_gen status\n");
       rnd_gen_mess="";
@@ -178,7 +178,7 @@ void init_program_to_run(start_conf_cond_t start_conf_cond)
   if(nflavs==0) init_sweeper(drv->sea_theory().gauge_action_name);
   
   //load conf or generate it
-  if(file_exists(drv->conf_pars.path))
+  if(fileExists(drv->conf_pars.path))
     {
       MASTER_PRINTF("File %s found, loading\n",drv->conf_pars.path.c_str());
       read_conf(*conf,drv->conf_pars.path.c_str());
@@ -456,7 +456,7 @@ void measure_poly_corrs(const poly_corr_meas_pars_t &pars,
   VERBOSITY_LV1_MASTER_PRINTF("Plaquette after \"temp\" (%d) smear: %16.16lg\n",pars.dir,global_plaquette_lx_conf(lx_conf));
   
   //open
-  FILE *fout=fopen(pars.path.c_str(),(conf_created or !file_exists(pars.path))?"w":"r+");
+  FILE *fout=fopen(pars.path.c_str(),(conf_created or !fileExists(pars.path))?"w":"r+");
   if(fout==NULL) CRASH("opening %s",pars.path.c_str());
   if(fseek(fout,0,SEEK_END)) CRASH("seeking to the end");
   
@@ -578,7 +578,7 @@ bool enough_time()
 bool check_if_continue()
 {
   //check if to stop because stop present
-  bool stop_present=file_exists("stop");
+  bool stop_present=fileExists("stop");
   if(stop_present)
     {
       VERBOSITY_LV1_MASTER_PRINTF("'Stop' file present, closing\n");
@@ -586,7 +586,7 @@ bool check_if_continue()
     }
   
   //check if to stop because stop or restart present
-  bool restart_present=file_exists("restart");
+  bool restart_present=fileExists("restart");
   if(restart_present)
     {
       VERBOSITY_LV1_MASTER_PRINTF("'Restart' file present, closing\n");
@@ -1647,7 +1647,7 @@ void run_program_for_analysis()
       nconf_analyzed++;
       it++;
     }
-  while(it!=drv->an_conf_list.end() and !file_exists("stop") and enough_time());
+  while(it!=drv->an_conf_list.end() and !fileExists("stop") and enough_time());
   
   MASTER_PRINTF("Analyzed %d configurations\n\n",nconf_analyzed);
 }

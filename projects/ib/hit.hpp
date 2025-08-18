@@ -666,7 +666,7 @@ namespace nissa
 	CRASH("reimplement");
       
       int nHitsDone=0;
-      if(file_exists(partialDataPath()))
+      if(fileExists(partialDataPath()))
 	{
 	  FILE* partialFile=open_file(partialDataPath(),"r");
 	  if(is_master_rank())
@@ -707,7 +707,7 @@ namespace nissa
     /// Delete the partial data
     void deletePartialData() const
     {
-      if(file_exists(partialDataPath()))
+      if(fileExists(partialDataPath()))
 	if(is_master_rank())
 	  remove(partialDataPath().c_str());
     }

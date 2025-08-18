@@ -246,7 +246,7 @@ int main(int narg,char **arg)
       read_int(&tsource);
       read_str(out_folder,1024);
       
-      if(!file_exists(combine("%s/running",out_folder).c_str())&&!file_exists(combine("%s/finished",out_folder).c_str()))
+      if(!fileExists(combine("%s/running",out_folder).c_str())&&!fileExists(combine("%s/finished",out_folder).c_str()))
 	{
 	  if(!dir_exists(out_folder)) create_dir(out_folder);
 	  file_touch(combine("%s/running",out_folder).c_str());

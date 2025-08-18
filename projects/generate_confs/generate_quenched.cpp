@@ -271,10 +271,10 @@ void append_corr(const char *path,double *corr,int r,bool conf_created)
 {
   //open for writing/append
 #ifdef USE_MPI_IO
-  ILDG_File file=ILDG_File_open(path,MPI_MODE_WRONLY|((file_exists(path)&&(!conf_created))?MPI_MODE_APPEND:MPI_MODE_CREATE));
+  ILDG_File file=ILDG_File_open(path,MPI_MODE_WRONLY|((fileExists(path)&&(!conf_created))?MPI_MODE_APPEND:MPI_MODE_CREATE));
   if(conf_created) MPI_File_set_size(file,0);
 #else
-  ILDG_File file=ILDG_File_open(path,(file_exists(path)&&(!conf_created))?"r+":"w");
+  ILDG_File file=ILDG_File_open(path,(fileExists(path)&&(!conf_created))?"r+":"w");
 #endif
   
   //write data
@@ -545,7 +545,7 @@ void init_simulation(char *path)
     }
   
   //search conf
-  bool conf_found=file_exists(conf_path);
+  bool conf_found=fileExists(conf_path);
   
   //open file according
   file_obs=open_file(gauge_obs_path,conf_found?"a":"w");
@@ -763,7 +763,7 @@ bool enough_time()
 bool check_if_continue()
 {
   //check if to stop because stop present
-  bool stop_present=file_exists("stop");
+  bool stop_present=fileExists("stop");
   if(stop_present)
     {
       VERBOSITY_LV1_MASTER_PRINTF("'Stop' file present, closing\n");
@@ -771,7 +771,7 @@ bool check_if_continue()
     }
   
   //check if to stop because stop or restart present
-  bool restart_present=file_exists("restart");
+  bool restart_present=fileExists("restart");
   if(restart_present)
     {
       VERBOSITY_LV1_MASTER_PRINTF("'Restart' file present, closing\n");
@@ -827,7 +827,7 @@ void in_main(int narg,char **arg)
       char *data;
       buffer_t buf;
       
-      if(file_exists("H_exp"))
+      if(fileExists("H_exp"))
 	{
 	  size_t data_length=get_file_size("H_exp");
 	  data=nissa_malloc("data",data_length,char);

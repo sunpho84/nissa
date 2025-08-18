@@ -141,7 +141,7 @@ void init(int seed,int &base_isweep)
   nacc=0;
   base_isweep=0;
   
-  if(file_exists("conf"))
+  if(fileExists("conf"))
     {
       read_conf("conf",base_isweep);
       conf_created=false;

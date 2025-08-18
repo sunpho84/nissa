@@ -36,7 +36,7 @@ void read_input_header(char *input_path)
 int count_npassed_conf()
 {
   //if out file does not exist return 0
-  if(!file_exists(out_path)) return 0;
+  if(!fileExists(out_path)) return 0;
   
   //find conf number according to saving mode
   int nconf;
@@ -100,7 +100,7 @@ void init(int narg,char **arg)
 void read_conf_path()
 {
   read_str(conf_path,1024);
-  if(!file_exists(conf_path)) CRASH("conf %s does not exist");
+  if(!fileExists(conf_path)) CRASH("conf %s does not exist");
 }
 
 //generate a point source

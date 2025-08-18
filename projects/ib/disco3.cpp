@@ -296,9 +296,9 @@ void start_new_conf(quad_su3 *conf,const char *conf_path,spincolor *eta,const in
 int read_conf_parameters(quad_su3 *conf,char *outfolder,int &iconf,const int& nconfs,const int& nanalyzed_confs,const double& wall_time,spincolor *eta,const int& nm,const int& nhits_to_do)
 {
   //Check if asked to stop or restart
-  int asked_stop=file_exists("stop_disco");
+  int asked_stop=fileExists("stop_disco");
   VERBOSITY_LV2_MASTER_PRINTF("Asked to stop: %d\n",asked_stop);
-  int asked_restart=file_exists("restart");
+  int asked_restart=fileExists("restart");
   VERBOSITY_LV2_MASTER_PRINTF("Asked to restart: %d\n",asked_restart);
   //check if enough time
   int enough_time=check_remaining_time(nanalyzed_confs,wall_time);
@@ -325,7 +325,7 @@ int read_conf_parameters(quad_su3 *conf,char *outfolder,int &iconf,const int& nc
 	char fin_file[1024];
 	if(snprintf(fin_file,1024,"%s/finished_disco",outfolder)<0) CRASH("witing %s",run_file);
 	
-	if(file_exists(run_file) or file_exists(fin_file))
+	if(fileExists(run_file) or fileExists(fin_file))
 	  {
 	    ok_conf=false;
 	    MASTER_PRINTF("\"%s\" finished or running, skipping configuration \"%s\"\n",outfolder,conf_path);

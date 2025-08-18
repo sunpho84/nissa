@@ -179,9 +179,9 @@ void close()
 //check if asked to stop or restart
 bool asked_to_stop_or_restart()
 {
-  const bool asked_stop=file_exists("stop");
+  const bool asked_stop=fileExists("stop");
   MASTER_PRINTF("Asked to stop: %d\n",asked_stop);
-  const int asked_restart=file_exists("restart");
+  const int asked_restart=fileExists("restart");
   MASTER_PRINTF("Asked to restart: %d\n",asked_restart);
   
   return asked_stop or asked_restart;

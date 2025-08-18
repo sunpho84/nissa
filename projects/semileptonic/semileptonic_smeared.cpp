@@ -542,7 +542,7 @@ int read_conf_parameters(int *iconf)
       char fin_file[1024],run_file[1024];
       safe_snprintf(fin_file,1024,"%s/finished",outfolder);
       safe_snprintf(run_file,1024,"%s/running",outfolder);
-      ok_conf=!(file_exists(fin_file)) and !(file_exists(run_file));
+      ok_conf=!(fileExists(fin_file)) and !(fileExists(run_file));
       
       //if not finished
       if(ok_conf)
@@ -1409,7 +1409,7 @@ void in_main(int narg,char **arg)
   
   //loop over the configs
   int iconf=0,enough_time=1;
-  while(iconf<ngauge_conf and enough_time and !file_exists("stop") and read_conf_parameters(&iconf))
+  while(iconf<ngauge_conf and enough_time and !fileExists("stop") and read_conf_parameters(&iconf))
     {
       //smear the conf and generate the source
       setup_conf();
