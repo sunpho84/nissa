@@ -175,7 +175,7 @@ namespace nissa
   int count_file_lines(const std::string& path)
   {
     //return -1 if file does not exist
-    if(!file_exists(path)) return -1;
+    if(!fileExists(path)) return -1;
     
     //scan the file
     FILE *fin=open_text_file_for_input(path);
@@ -196,7 +196,7 @@ namespace nissa
   int get_file_size(const std::string& path)
   {
     //return -1 if file does not exist
-    if(!file_exists(path)) return -1;
+    if(!fileExists(path)) return -1;
     
     //scan the file
     FILE *fin=open_text_file_for_input(path);

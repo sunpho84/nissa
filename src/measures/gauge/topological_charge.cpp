@@ -254,7 +254,7 @@ namespace nissa
     // vector_remap_t *topo_corr_rem=NULL;
     // if(pars.meas_corr)
     //   {
-    // 	corr_file=fopen(pars.corr_path.c_str(),(conf_created or !file_exists(pars.corr_path))?"w":"r+");
+    // 	corr_file=fopen(pars.corr_path.c_str(),(conf_created or !fileExists(pars.corr_path))?"w":"r+");
     // 	if(corr_file==NULL) CRASH("opening %s",pars.corr_path.c_str());
     // 	if(fseek(corr_file,0,SEEK_END)) CRASH("seeking to the end");
     // 	topo_corr_rem=new vector_remap_t(locVol,index_to_topo_corr_remapping,NULL);

@@ -129,7 +129,7 @@ namespace nissa
   inline void load_topodynamical_potential(topotential_pars_t& pars,
 					   const bool& mandatory)
   {
-    if(file_exists(topo_file_name))
+    if(fileExists(topo_file_name))
       pars.load(topo_file_name);
     else
       if(mandatory)
