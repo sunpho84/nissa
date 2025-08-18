@@ -36,7 +36,7 @@ namespace nissa
     for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++) omega[ilev]=def_omega[ilev];
     
     
-    if(nissa::file_exists(path))
+    if(nissa::fileExists(path))
       {
 	nissa::open_input(path);
 	int nr;
