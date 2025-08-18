@@ -607,7 +607,7 @@ namespace nissa
     //glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
     
     const double norm=
-      doNotAverageHits?0.5:(1.0/(2*nhits));
+      doNotAverageHits?0.5:(1.0/(2*nHits));
     
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
 	for(int dir_exc=0;dir_exc<2;dir_exc++)
@@ -633,7 +633,7 @@ namespace nissa
     open_or_append_t list;
     
     const double norm=
-      doNotAverageHits?0.5:(1.0/(2*nhits));
+      doNotAverageHits?0.5:(1.0/(2*nHits));
     
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
       for(int iProj=0;iProj<NBAR_ALT_PROJ;iProj++)

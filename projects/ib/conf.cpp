@@ -202,7 +202,7 @@ namespace nissa
   void skip_conf()
   {
     HitLooper hitLooper;
-    for(int ihit=0;ihit<nhits;ihit++)
+    for(int ihit=0;ihit<nHits;ihit++)
       hitLooper.start_hit(ihit,true);
   }
   

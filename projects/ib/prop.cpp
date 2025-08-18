@@ -1264,7 +1264,7 @@ namespace nissa
 	  {
 	    std::string filename=combine("%s/fft_%s",outfolder,tag.c_str());
 	    if(fft_filterer[i].file_suffix!="") filename+=combine("_%s",fft_filterer[i].file_suffix.c_str());
-	    if(nhits>1) filename+=combine("_hit_%d",ihit);
+	    if(nHits>1) filename+=combine("_hit_%d",ihit);
 	    
 	    //open and write
 	    FILE *fout=open_file(filename,"w");

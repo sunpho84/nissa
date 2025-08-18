@@ -292,8 +292,8 @@ namespace nissa
   }
   
   //number of hits
-  EXTERN_PARS int nhits INIT_TO(1);
-  EXTERN_PARS int ncopies INIT_TO(1);
+  EXTERN_PARS int nHits INIT_TO(1);
+  EXTERN_PARS int nCopies INIT_TO(1);
   inline void read_nhits()
   {
     char text[128];
@@ -301,19 +301,19 @@ namespace nissa
     MASTER_PRINTF("Read %s",text);
     if(strcasecmp(text,"NCopiesHits")==0)
       {
-	read_int(&ncopies);
-	MASTER_PRINTF(" %d",ncopies);
+	read_int(&nCopies);
+	MASTER_PRINTF(" %d",nCopies);
       }
     else if(strcasecmp(text,"NHits")!=0)
       CRASH("Expecting NCopiesHits or NHits");
     
-    read_int(&nhits);
-    MASTER_PRINTF(" %d\n",nhits);
+    read_int(&nHits);
+    MASTER_PRINTF(" %d\n",nHits);
     
-    if(ncopies<=0)
-      CRASH("nCopies must be a positive integer, %d unsupported",ncopies);
-    if(nhits<=0)
-      CRASH("nHits must be a positive integer, %d unsupported",nhits);
+    if(nCopies<=0)
+      CRASH("nCopies must be a positive integer, %d unsupported",nCopies);
+    if(nHits<=0)
+      CRASH("nHits must be a positive integer, %d unsupported",nHits);
   }
   
   //number of configurations

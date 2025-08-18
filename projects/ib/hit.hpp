@@ -205,9 +205,13 @@ namespace nissa
     void generate_original_source(qprop_t* sou,
 				  const bool& skipOnly)
     {
+      VERBOSITY_LV3_MASTER_PRINTF("creating the drawer\n");
       FieldRngOf<spincolor> drawer(field_rng_stream.getDrawer<spincolor>());
       if(stoch_source and skipOnly)
-	return;
+	{
+	  VERBOSITY_LV3_MASTER_PRINTF("Going to destroy the drawer\n");
+	  return;
+	}
       
       //consistency check
       if(not stoch_source and (not diluted_spi_source or not diluted_col_source))
@@ -424,7 +428,7 @@ namespace nissa
     void start_hit(const int& ihit,
 		   const bool& skip=false)
     {
-      MASTER_PRINTF("\n=== Hit %d/%d ====\n",ihit+1,nhits);
+      MASTER_PRINTF("\n=== Hit %d/%d ====\n",ihit+1,nHits);
       
       if(doNotAverageHits)
 	clearCorrelations();
@@ -441,6 +445,7 @@ namespace nissa
 	MASTER_PRINTF(" source time: %d\n",oriCoords[0]);
       else
 	MASTER_PRINTF(" point source coords: %d %d %d %d\n",oriCoords[0],oriCoords[1],oriCoords[2],oriCoords[3]);
+      
       if(need_photon)
 	{
 	  if(skip)
@@ -448,6 +453,7 @@ namespace nissa
 	  else
 	    generate_photon_stochastic_propagator(ihit);
 	}
+      
       generate_original_sources(ihit,skip);
     }
     
@@ -652,7 +658,7 @@ namespace nissa
     }
     
     /// Load the partial data, if exists
-    size_t maybeLoadPartialData() const
+    int maybeLoadPartialData() const
     {
       if(handcuffs.size() or
 	 bar2pts_alt_contr_size or

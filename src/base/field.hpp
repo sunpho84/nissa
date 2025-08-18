@@ -257,9 +257,18 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  PROVIDE_FEATURE(Field);
+  
   /// Reference to field
   template <typename F>
   struct FieldRef;
+  
+  /// Field
+  template <typename T,
+	    FieldCoverage FC,
+	    SpaceTimeLayout STL=defaultSpaceTimeLayout,
+	    MemorySpace MS=defaultMemorySpace>
+  struct Field;
   
   /// Hosts all the data and provides low-level access
   template <typename D,
@@ -289,6 +298,98 @@ namespace nissa
 	CRASH("asked a pointer to be valid on memory space %s, but field is defined on %s",
 	      memorySpaceName(DMS),memorySpaceName(MS));
     }
+    
+    /// Re(*this,out)
+    template <typename F>
+    Fund realPartOfScalarProdWith(const FieldFeat<F>& _oth) const
+    {
+      Fund res;
+      
+// #ifdef USE_CUDA
+//       if(spaceTimeLayout==SpaceTimeLayout::CPU or bord_vol==0 or haloEdgesPresence==WITHOUT_HALO)
+// 	{
+// 	  res=
+// 	    thrust::inner_product(thrust::device,
+// 				  _data,
+// 				  _data+this->nSites()*nInternalDegs,
+// 				  oth._data,
+// 				  Fund{});
+// 	  non_loc_reduce(&res);
+// 	}
+//       else
+// 	{
+// #endif
+	  Field<Fund,F::fieldCoverage> buf("buf");
+	  
+	  /// Parsing is a bit failing in some version of cuda
+	  const D& self=
+	    *(const D*)this;
+	  
+	  const F& oth=
+	    *(const F*)this;
+	  
+	  PAR(0,self.nSites(),
+	      CAPTURE(TO_WRITE(buf),
+		      TO_READ(self),
+		      TO_READ(oth)),
+	      site,
+	      {
+		Fund r{};
+		UNROLL_FOR(internalDeg,0,nInternalDegs)
+		  r+=self(site,internalDeg)*oth(site,internalDeg);
+		buf[site]=r;
+	      });
+	  
+	  buf.reduce(res);
+	  
+// #ifdef USE_CUDA
+// 	}
+// #endif
+      
+      return res;
+    }
+    
+    /// Squared norm
+    Fund norm2() const
+    {
+      return realPartOfScalarProdWith(*static_cast<const D*>(this));
+    }
+    
+    /// Communicate the halo
+    void updateHalo(const bool& force=false) const
+    {
+      const D& self=
+	*static_cast<const D*>(this);
+      
+      if(force or not self.haloIsValid())
+	{
+	  VERBOSITY_LV3_MASTER_PRINTF("Sync communication of halo of %s\n",self.name());
+	  
+	  const std::vector<MPI_Request> requests=
+	    self.startCommunicatingHalo();
+	  self.finishCommunicatingHalo(requests);
+      }
+    }
+    
+    /// Communicate the edges
+    void updateEdges(const bool& force=false) const
+    {
+      const D& self=
+	*static_cast<const D*>(this);
+      
+      updateHalo(force);
+      
+      if(force or not self.edgesAreValid())
+	{
+	  VERBOSITY_LV3_MASTER_PRINTF("Sync communication of edges of %s\n",self.name());
+	  
+	  const std::vector<MPI_Request> requests=
+	    self.startCommunicatingEdges();
+	  self.finishCommunicatingEdges(requests);
+      }
+    }
+    
+    /////////////////////////////////////////////////////////////////
     
     /// Computes the index of the data
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
@@ -397,7 +498,9 @@ namespace nissa
   /// Field
   template <typename F>
   struct FieldRef :
-    FieldData<FieldRef<F>,typename F::Comps,F::memorySpace>
+    FieldFeat<FieldRef<F>>,
+    FieldData<FieldRef<F>,typename F::Comps,F::memorySpace>,
+    FieldSizes<F::fieldCoverage>
   {
     /// Type describing the components
     using Comps=
@@ -414,6 +517,10 @@ namespace nissa
     /// Spacetime layout of the field
     static constexpr SpaceTimeLayout spaceTimeLayout=
       F::spaceTimeLayout;
+    
+    /// Coverage of sites
+    static constexpr FieldCoverage fieldCoverage=
+      F::fieldCoverage;
     
     /////////////////////////////////////////////////////////////////
     
@@ -455,6 +562,24 @@ namespace nissa
 #endif
     }
     
+    /// Returns the name
+    const char* name() const
+    {
+      return fptr->name();
+    }
+    
+    /// Start communication using halo
+    std::vector<MPI_Request> startCommunicatingHalo() const
+    {
+      return fptr->startCommunicatingHalo();
+    }
+    
+    /// Finalize communications
+    void finishCommunicatingHalo(std::vector<MPI_Request> requests) const
+    {
+      fptr->finishCommunicatingHalo(std::move(requests));
+    }
+    
     /// Removes the reference
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     void unset()
@@ -494,6 +619,16 @@ namespace nissa
       return *this;
     }
     
+    bool haloIsValid() const
+    {
+      return fptr->haloIsValid();
+    }
+    
+    bool edgesAreValid() const
+    {
+      return fptr->edgesAreValid();
+    }
+    
     /// Returns the same or a copy if not with the given spacetime layout
     template <SpaceTimeLayout Dest>
     decltype(auto) getSurelyWithSpaceTimeLayout() const
@@ -504,13 +639,11 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  PROVIDE_FEATURE(Field);
-  
   /// Field
   template <typename T,
 	    FieldCoverage FC,
-	    SpaceTimeLayout STL=defaultSpaceTimeLayout,
-	    MemorySpace MS=defaultMemorySpace>
+	    SpaceTimeLayout STL,
+	    MemorySpace MS>
   struct Field :
     FieldData<Field<T,FC,STL,MS>,T,MS>,
     FieldFeat<Field<T,FC,STL,MS>>,
@@ -525,7 +658,13 @@ namespace nissa
     mutable int nRef;
     
     /// Name of the field
-    const char* name;
+    const char* _name;
+    
+    /// Returns the name of the field
+    const char* name() const
+    {
+      return _name;
+    }
     
     /// Components
     using Comps=T;
@@ -553,10 +692,20 @@ namespace nissa
     Field* backup;
     
     /// States whether the halo is updated
-    mutable bool haloIsValid;
+    mutable bool _haloIsValid;
+    
+    bool haloIsValid() const
+    {
+      return _haloIsValid;
+    }
     
     /// States whether the edges are updated
-    mutable bool edgesAreValid;
+    mutable bool _edgesAreValid;
+    
+    bool edgesAreValid() const
+    {
+      return _edgesAreValid;
+    }
     
     // /// Exec the operation f on each site and degree of freedom
     // template <typename F>
@@ -658,7 +807,7 @@ namespace nissa
     /// Squared norm
     Fund norm2() const
     {
-      return realPartOfScalarProdWith(*this);
+      return this->realPartOfScalarProdWith(*this);
     }
     
     /// Put the field to the new norm, returning the reciprocal of normalizing factor
@@ -810,52 +959,6 @@ namespace nissa
       glb_reduce(&res,buf,this->nSites());
     }
     
-    /// Re(*this,out)
-    Fund realPartOfScalarProdWith(const Field& oth) const
-    {
-      Fund res;
-      
-// #ifdef USE_CUDA
-//       if(spaceTimeLayout==SpaceTimeLayout::CPU or bord_vol==0 or haloEdgesPresence==WITHOUT_HALO)
-// 	{
-// 	  res=
-// 	    thrust::inner_product(thrust::device,
-// 				  _data,
-// 				  _data+this->nSites()*nInternalDegs,
-// 				  oth._data,
-// 				  Fund{});
-// 	  non_loc_reduce(&res);
-// 	}
-//       else
-// 	{
-// #endif
-	  Field<Fund,FC> buf("buf");
-	  
-	  /// Parsing is a bit failing in some version of cuda
-	  const auto& self=
-	    *this;
-	  
-	  PAR(0,oth.nSites(),
-	      CAPTURE(TO_WRITE(buf),
-		      TO_READ(self),
-		      TO_READ(oth)),
-	      site,
-	      {
-		Fund r{};
-		UNROLL_FOR(internalDeg,0,nInternalDegs)
-		  r+=self(site,internalDeg)*oth(site,internalDeg);
-		buf[site]=r;
-	      });
-	  
-	  buf.reduce(res);
-	  
-// #ifdef USE_CUDA
-// 	}
-// #endif
-      
-      return res;
-    }
-    
 #define PROVIDE_CASTS(CONST)						\
     /* Cast to a different fieldCoverage */				\
     template <FieldCoverage NFC,					\
@@ -894,23 +997,23 @@ namespace nissa
       using NewT=
 	DuplicateExtents<T,NewFund>;
       
-      Field<NewT,FC,STL> res(name,haloEdgesPresence);
+      Field<NewT,FC,STL> res(name(),haloEdgesPresence);
       res=*this;
       
       return res;
     }
     
     /// Constructor
-    Field(const char *name,
+    Field(const char *_name,
 	  const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
       nRef(0),
-      name(name),
+      _name(_name),
       haloEdgesPresence(haloEdgesPresence),
-      haloIsValid(false),
-      edgesAreValid(false)
+      _haloIsValid(false),
+      _edgesAreValid(false)
     {
       this->externalSize=FieldSizes<fieldCoverage>::nSitesToAllocate(haloEdgesPresence);
-      VERBOSITY_LV3_MASTER_PRINTF("Allocating field %s\n",name);
+      VERBOSITY_LV3_MASTER_PRINTF("Allocating field %s\n",name());
       this->_data=memoryManager<MS>()->template provide<Fund>(this->externalSize*nInternalDegs);
     }
     
@@ -918,7 +1021,7 @@ namespace nissa
     template <SpaceTimeLayout OFL,
 	      ENABLE_THIS_TEMPLATE_IF(OFL!=STL)>
     Field(const Field<T,FC,OFL>& oth) :
-      Field(oth.name,oth.haloEdgesPresence)
+      Field(oth.name(),oth.haloEdgesPresence)
     {
       *this=oth;
     }
@@ -926,10 +1029,10 @@ namespace nissa
     /// Move constructor
     Field(Field&& oth) :
       nRef(oth.nRef),
-      name(oth.name),
+      _name(oth.name()),
       haloEdgesPresence(oth.haloEdgesPresence),
-      haloIsValid(oth.haloIsValid),
-      edgesAreValid(oth.edgesAreValid)
+      _haloIsValid(oth.haloIsValid()),
+      _edgesAreValid(oth.edgesAreValid())
     {
       this->externalSize=oth.externalSize;
       this->_data=oth._data;
@@ -939,7 +1042,7 @@ namespace nissa
     
     /// Copy constructor
     Field(const Field& oth) :
-      Field(oth.name,oth.haloEdgesPresence)
+      Field(oth.name(),oth.haloEdgesPresence)
     {
       *this=oth;
     }
@@ -949,13 +1052,13 @@ namespace nissa
     ~Field()
     {
 #ifndef COMPILING_FOR_DEVICE
-      VERBOSITY_LV3_MASTER_PRINTF("Deallocating field %s\n",name);
+      VERBOSITY_LV3_MASTER_PRINTF("Deallocating field %s\n",name());
       if(this->_data)
 	{
 	  if(nRef==0)
 	    memoryManager<MS>()->release(this->_data);
 	  else
-	    CRASH("Trying to destroying field %s with dangling references",name);
+	    CRASH("Trying to destroying field %s with dangling references",name());
 	}
 #endif
     }
@@ -969,7 +1072,7 @@ namespace nissa
 	{
 	  benchmarkBeginActions.emplace_back([this]()
 	  {
-	    VERBOSITY_LV3_MASTER_PRINTF("Backing up field %s\n",name);
+	    VERBOSITY_LV3_MASTER_PRINTF("Backing up field %s\n",name());
 	    backup=new Field("backup",haloEdgesPresence);
 	    *backup=*this;
 	  });
@@ -978,12 +1081,12 @@ namespace nissa
 	  {
 	    *this=*backup;
 	    delete backup;
-	    VERBOSITY_LV3_MASTER_PRINTF("Restored field %s\n",name);
+	    VERBOSITY_LV3_MASTER_PRINTF("Restored field %s\n",name());
 	  });
-	  VERBOSITY_LV3_MASTER_PRINTF("Added backup actions for field %s\n",name);
+	  VERBOSITY_LV3_MASTER_PRINTF("Added backup actions for field %s\n",name());
 	}
       else
-	VERBOSITY_LV3_MASTER_PRINTF("Skipping backup actions for field %s as we are not inside a parallel for\n",name);
+	VERBOSITY_LV3_MASTER_PRINTF("Skipping backup actions for field %s as we are not inside a parallel for\n",name());
 #endif
       
       return *this;
@@ -1001,13 +1104,13 @@ namespace nissa
     /// Set edges as invalid
     void invalidateEdges()
     {
-      edgesAreValid=false;
+      _edgesAreValid=false;
     }
     
     /// Set halo as invalid
     void invalidateHalo()
     {
-      haloIsValid=false;
+      _haloIsValid=false;
       
       invalidateEdges();
     }
@@ -1178,7 +1281,7 @@ namespace nissa
       
       //take time and write some debug output
       START_TIMING(tot_comm_time,ntot_comm);
-      VERBOSITY_LV3_MASTER_PRINTF("Start communication of borders of %s\n",name);
+      VERBOSITY_LV3_MASTER_PRINTF("Start communication of borders of %s\n",name());
       
       //fill the communicator buffer, start the communication and take time
       fillSendingBufWithSurface();
@@ -1193,21 +1296,21 @@ namespace nissa
     {
       //take note of passed time and write some debug info
       START_TIMING(tot_comm_time,ntot_comm);
-      VERBOSITY_LV3_MASTER_PRINTF("Finish communication of halo of %s\n",name);
+      VERBOSITY_LV3_MASTER_PRINTF("Finish communication of halo of %s\n",name());
       
       //wait communication to finish, fill back the vector and take time
       waitAsyncCommsFinish(requests);
       fillHaloWithReceivingBuf();
       STOP_TIMING(tot_comm_time);
       
-      haloIsValid=true;
+      _haloIsValid=true;
     }
     
     /// Crash if the halo is not allocated
     void assertHasHalo() const
     {
       if(not (haloEdgesPresence>=WITH_HALO))
-	CRASH("needs halo allocated for %s!",name);
+	CRASH("needs halo allocated for %s!",name());
     }
     
     /////////////////////////////////////////////////////////////////
@@ -1222,7 +1325,7 @@ namespace nissa
       
       //take time and write some debug output
       START_TIMING(tot_comm_time,ntot_comm);
-      VERBOSITY_LV3_MASTER_PRINTF("Start communication of edges of %s\n",name);
+      VERBOSITY_LV3_MASTER_PRINTF("Start communication of edges of %s\n",name());
       
       //fill the communicator buffer, start the communication and take time
       fillSendingBufWithEdgesSurface();
@@ -1237,51 +1340,21 @@ namespace nissa
     {
       //take note of passed time and write some debug info
       START_TIMING(tot_comm_time,ntot_comm);
-      VERBOSITY_LV3_MASTER_PRINTF("Finish communication of edges of %s\n",name);
+      VERBOSITY_LV3_MASTER_PRINTF("Finish communication of edges of %s\n",name());
       
       //wait communication to finish, fill back the vector and take time
       waitAsyncCommsFinish(requests);
       fillEdgesWithReceivingBuf();
       STOP_TIMING(tot_comm_time);
       
-      haloIsValid=true;
+      _haloIsValid=true;
     }
     
     /// Crash if the edges are not allocated
     void assertHasEdges() const
     {
       if(not (haloEdgesPresence>=WITH_HALO_EDGES))
-	CRASH("needs edges allocated on field %s!",name);
-    }
-    
-    /////////////////////////////////////////////////////////////////
-    
-    /// Communicate the halo
-    void updateHalo(const bool& force=false) const
-    {
-      if(force or not haloIsValid)
-	{
-	  VERBOSITY_LV3_MASTER_PRINTF("Sync communication of halo of %s\n",name);
-	  
-	  const std::vector<MPI_Request> requests=
-	    startCommunicatingHalo();
-	  finishCommunicatingHalo(requests);
-      }
-    }
-    
-    /// Communicate the edges
-    void updateEdges(const bool& force=false) const
-    {
-      updateHalo(force);
-      
-      if(force or not edgesAreValid)
-	{
-	  VERBOSITY_LV3_MASTER_PRINTF("Sync communication of edges of %s\n",name);
-	  
-	  const std::vector<MPI_Request> requests=
-	    startCommunicatingEdges();
-	  finishCommunicatingEdges(requests);
-      }
+	CRASH("needs edges allocated on field %s!",name());
     }
     
     /////////////////////////////////////////////////////////////////

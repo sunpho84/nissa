@@ -197,7 +197,7 @@ namespace nissa
   int check_tok_starts_comment(char *tok)
   {return strncasecmp(tok,"/*",2)==0;}
   int check_tok_ends_comment(char *tok)
-  {return strncasecmp(tok+strlen(tok)-2,"*/",2)==0;}
+  {return strncasecmp(tok+std::max(0lu,strlen(tok)-2),"*/",2)==0;}
   
   //read up to "*/"
   void read_up_to_end_of_comment()

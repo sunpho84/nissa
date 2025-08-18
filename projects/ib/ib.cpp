@@ -90,7 +90,7 @@ void init_simulation(int narg,char **arg)
   read_nhits();
   int nsources;
   read_str_int("NSources",&nsources);
-  ori_source_name_list.resize(nsources*ncopies);
+  ori_source_name_list.resize(nsources*nCopies);
   //discard header
   expect_str("Name");
   if(stoch_source) expect_str("NoiseType");
@@ -117,10 +117,10 @@ void init_simulation(int narg,char **arg)
       read_int(&store_source);
       
       //add
-      for(int icopy=0;icopy<ncopies;icopy++)
+      for(int icopy=0;icopy<nCopies;icopy++)
 	{
 	  char suffix[128]="";
-	  if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+	  if(nCopies>1) sprintf(suffix,"_copy%d",icopy);
 	  
 	  char fullName[1024+129];
 	  sprintf(fullName,"%s%s",name,suffix);
@@ -135,7 +135,7 @@ void init_simulation(int narg,char **arg)
   //NProps
   int nprops;
   read_str_int("NProps",&nprops);
-  qprop_name_list.resize(nprops*ncopies);
+  qprop_name_list.resize(nprops*nCopies);
   //Discard header
   expect_str("Name");
   expect_str("Ins");
@@ -378,10 +378,10 @@ void init_simulation(int narg,char **arg)
       read_int(&store_prop);
       MASTER_PRINTF("Read variable 'Store' with value: %d\n",store_prop);
       
-      for(int icopy=0;icopy<ncopies;icopy++)
+      for(int icopy=0;icopy<nCopies;icopy++)
 	{
 	  char suffix[128]="";
-	  if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+	  if(nCopies>1) sprintf(suffix,"_copy%d",icopy);
 	  
 	  std::vector<source_term_t> source_full_terms=source_terms;
 	  for(auto& [name,weight] : source_full_terms)
@@ -395,7 +395,7 @@ void init_simulation(int narg,char **arg)
 	  if(Q.find(fullName)!=Q.end()) CRASH("name \'%s\' already included",fullName);
 	  
 	  Q[fullName].init_as_propagator(ins_from_tag(ins),source_full_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
-	  qprop_name_list[icopy+ncopies*iq]=fullName;
+	  qprop_name_list[icopy+nCopies*iq]=fullName;
 	}
     }
   
@@ -585,13 +585,13 @@ void in_main(int narg,char **arg)
   while(read_conf_parameters(iconf) and not file_exists(finishedPath()))
     {
       HitLooper hitLooper;
-      const size_t nHitsDoneSoFar=
+      const int nHitsDoneSoFar=
 	hitLooper.maybeLoadPartialData();
       
       if(nHitsDoneSoFar)
-	MASTER_PRINTF("Found partial file with %zu hits\n",nHitsDoneSoFar);
+	MASTER_PRINTF("Found partial file with %d hits\n",nHitsDoneSoFar);
       
-      for(int iHit=0;iHit<nhits;iHit++)
+      for(int iHit=0;iHit<nHits;iHit++)
 	{
 	  const bool skip=
 	    iHit<nHitsDoneSoFar;

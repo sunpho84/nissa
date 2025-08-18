@@ -110,10 +110,10 @@ namespace nissa
 	  }
 	
 	for(const auto& [name,a,b] : qCombo)
-	  for(int icopy=0;icopy<ncopies;icopy++)
+	  for(int icopy=0;icopy<nCopies;icopy++)
 	    {
 	      const std::string suffix=
-		(ncopies>1)?combine("_copy%d",icopy):"";
+		(nCopies>1)?combine("_copy%d",icopy):"";
 	      
 	      for(const std::string& i : {a,b})
 		if(Q.find(i+suffix)==Q.end())
@@ -150,10 +150,10 @@ namespace nissa
 	for(int iq=0;iq<3;iq++)
 	  read_str(q_name[iq],1024);
 	
-	for(int icopy=0;icopy<ncopies;icopy++)
+	for(int icopy=0;icopy<nCopies;icopy++)
 	  {
 	    char suffix[128]="";
-	    if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+	    if(nCopies>1) sprintf(suffix,"_copy%d",icopy);
 	    
 	    char full_name[1024+129];
 	    sprintf(full_name,"%s%s",name,suffix);
@@ -200,10 +200,10 @@ namespace nissa
 	    int store;
 	    read_int(&store);
 	    
-	    for(int icopy=0;icopy<ncopies;icopy++)
+	    for(int icopy=0;icopy<nCopies;icopy++)
 	      {
 		char suffix[128]="";
-		if(ncopies>1)
+		if(nCopies>1)
 		  sprintf(suffix,"_copy%d",icopy);
 		
 		char full_name[1024+129];
@@ -240,10 +240,10 @@ namespace nissa
 	    char right[1024];
 	    read_str(right,1024);
 	    
-	    for(int icopy=0;icopy<ncopies;icopy++)
+	    for(int icopy=0;icopy<nCopies;icopy++)
 	      {
 		char suffix[128]="";
-		if(ncopies>1)
+		if(nCopies>1)
 		  sprintf(suffix,"_copy%d",icopy);
 		
 		char full_name[1024+129];
@@ -296,10 +296,10 @@ namespace nissa
 	    char tag[1024];
 	    read_str(tag,1024);
 	    
-	    for(int icopy=0;icopy<ncopies;icopy++)
+	    for(int icopy=0;icopy<nCopies;icopy++)
 	      {
 		char suffix[128]="";
-		if(ncopies>1) sprintf(suffix,"_copy%d",icopy);
+		if(nCopies>1) sprintf(suffix,"_copy%d",icopy);
 		
 		char tag_full[1024+129];
 		sprintf(tag_full,"%s%s",tag,suffix);

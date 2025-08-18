@@ -107,7 +107,7 @@ namespace nissa
   
   void compute_mes2pt_contr(const size_t& icombo);
   
-  void print_mes2pts_contr(const int iHit,int n=nhits,int force_append=false,int skip_inner_header=false,const std::string &alternative_header_template="");
+  void print_mes2pts_contr(const int iHit,int n=nHits,int force_append=false,int skip_inner_header=false,const std::string &alternative_header_template="");
   void free_mes2pts_contr();
   
   inline int ind_mes2pts_contr(const int& ihadr_contr,

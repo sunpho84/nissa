@@ -328,7 +328,7 @@ namespace nissa
   
   inline void start_hit(int ihit,bool skip=false)
   {
-    MASTER_PRINTF("\n=== Hit %d/%d ====\n",ihit+1,nhits);
+    MASTER_PRINTF("\n=== Hit %d/%d ====\n",ihit+1,nHits);
     for(int mu=0;mu<NDIM;mu++)
       {
 	using C=double[1];
