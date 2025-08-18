@@ -140,7 +140,7 @@ namespace nissa
   /// Tries to load the tuned kernel info
   inline void tryLoadTunedKernelsInfo()
   {
-    if(not file_exists(tunedKernelInfoFileName))
+    if(not fileExists(tunedKernelInfoFileName))
       {
 	MASTER_PRINTF("%s file not found, ignoring load tuned parameters\n",tunedKernelInfoFileName);
 	return ;
