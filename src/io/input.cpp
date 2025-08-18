@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <filesystem>
 
 #define EXTERN_INPUT
 # include "input.hpp"
@@ -104,14 +105,12 @@ namespace nissa
     
     int status=1;
     
-    if(rank==0)
+    if(is_master_rank())
       {
-	FILE *f=fopen(path.c_str(),"r");
-	if(f!=NULL)
+	if(std::filesystem::exists(path))
 	  {
 	    VERBOSITY_LV3_MASTER_PRINTF("File '%s' exists!\n",path.c_str());
 	    status=1;
-	    fclose(f);
 	  }
 	else
 	  {
@@ -120,10 +119,7 @@ namespace nissa
 	  }
       }
     
-    //broadcast the result
-    MPI_Bcast(&status,1,MPI_INT,0,MPI_COMM_WORLD);
-    
-    return status;
+    return broadcast(status);
   }
   
   //return 0 if the dir do not exists, 1 if exists, -1 if exist but is not a directory
