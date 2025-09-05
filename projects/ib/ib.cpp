@@ -13,7 +13,10 @@ using namespace nissa;
 
 ///////////////////////////////// initialise the library, read input file, allocate /////////////////////////////////////
 
-extern int runningUpdateTime;
+namespace nissa
+{
+  extern int runningUpdateTime;
+}
 
 void init_simulation(int narg,char **arg)
 {
