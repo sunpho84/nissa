@@ -235,7 +235,7 @@ namespace nissa
       }
   }
   
-  constexpr int runningUpdateTime=60;
+  constexpr int runningUpdateTime=600;
   
   bool checkRunningIsRecent()
   {
