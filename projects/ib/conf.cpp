@@ -235,10 +235,13 @@ namespace nissa
       }
   }
   
-  constexpr int runningUpdateTime=600;
+  int runningUpdateTime=60;
   
   bool checkRunningIsRecent()
   {
+    if(runningUpdateTime==0)
+      return false;
+    
     struct stat result;
     if(stat(runningPath().c_str(),&result)!=0)
       CRASH("Unable to get the stats for runfile %s",runningPath().c_str());
@@ -254,7 +257,8 @@ namespace nissa
     file_touch(finishedPath());
     removeRunning();
     crashHook=nullptr;
-    stopRecallingFunction(updateRunningTimer);
+    if(runningUpdateTime)
+      stopRecallingFunction(updateRunningTimer);
     
     if(not preservePartialData)
       hitLooper.deletePartialData();
@@ -359,7 +363,8 @@ namespace nissa
 		  else
 		    {
 		      crashHook=removeRunning;
-		      updateRunningTimer=setRecurringCalledFunction(touchRunning,SIGRTMIN,runningUpdateTime,0);
+		      if(runningUpdateTime)
+			updateRunningTimer=setRecurringCalledFunction(touchRunning,SIGRTMIN,runningUpdateTime,0);
 		    }
 		}
 	    }
