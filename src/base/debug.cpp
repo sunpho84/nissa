@@ -64,6 +64,19 @@ namespace nissa
 #endif
   }
   
+  using Time=
+    std::chrono::time_point<std::chrono::high_resolution_clock>;
+  
+  Time take_time2()
+  {
+    return std::chrono::high_resolution_clock::now();
+  }
+  
+  double time_diff_with_now(const Time& start)
+  {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(take_time2()-start).count()/1000.0;
+  }
+  
   //write the list of called routines
   void print_backtrace_list(int which_rank)
   {
@@ -130,13 +143,16 @@ namespace nissa
 				   const int& nSec,
 				   const int& nnSec)
   {
+    MASTER_PRINTF("Going to create a recurring function each %d seconds %d museconds\n",nSec,nnSec);
+    fflush(stdout);
+    
     timer_t id{};
     
     struct sigevent sev{.sigev_value{.sival_ptr=&id},
 			.sigev_signo=SIGRTMIN,
 			.sigev_notify=SIGEV_SIGNAL};
     
-    if (timer_create(CLOCK_REALTIME,&sev,&id)==-1)
+    if(timer_create(CLOCK_REALTIME,&sev,&id)==-1)
       CRASH("Unable to create a timer for a function to be called with signal %d each %d sec %d nSec",sigNum,nSec,nnSec);
     
     struct sigaction sa{};
