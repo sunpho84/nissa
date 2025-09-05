@@ -13,10 +13,26 @@ using namespace nissa;
 
 ///////////////////////////////// initialise the library, read input file, allocate /////////////////////////////////////
 
+extern int runningUpdateTime;
+
 void init_simulation(int narg,char **arg)
 {
   //check argument
-  if(narg<2) CRASH("Use: %s input_file [stop_path]|periodic/antiperiodic|store/load_photons",arg[0]);
+  if(narg<2)
+    CRASH("Use: %s input_file [stop_path]|periodic/antiperiodic|store/load_photons",arg[0]);
+  
+  const char RUNNING_UPDATE_TIME_STRING[]=
+    "RUNNING_UPDATE_TIME";
+  if(const char* p=getenv(RUNNING_UPDATE_TIME_STRING))
+    {
+      runningUpdateTime=atoi(p);
+      MASTER_PRINTF("Time between running file update set to: %d s\n",runningUpdateTime);
+    }
+  else
+    {
+      MASTER_PRINTF("Time between running file update set to default value: %d s\n",runningUpdateTime);
+      MASTER_PRINTF("To change it, export the envirnoment variable %s\n",RUNNING_UPDATE_TIME_STRING);
+    }
   
   const char *path=arg[1];
   
