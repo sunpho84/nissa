@@ -62,18 +62,22 @@ namespace nissa
   {
     int ret=0;
     
-    static bool print_time=true;
+    /// Keep track of whether to prefix the time
+    static bool printTime=true;
     
-    if(prepend_time and print_time and is_master_rank())
+    const bool doPrint=
+      is_master_rank() or everyRankPrint;
+    
+    if(prepend_time and printTime and doPrint)
       ret+=fprintf(stream,"%lg s:\t",take_time());
     
     va_list ap;
     va_start(ap,format);
-    if(is_master_rank())
+    if(doPrint)
       ret=vfprintf(stream,format,ap);
     va_end(ap);
     
-    print_time=(format[strlen(format)-1]=='\n');
+    printTime=(format[strlen(format)-1]=='\n');
     
     return ret;
   }

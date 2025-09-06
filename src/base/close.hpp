@@ -44,7 +44,8 @@ namespace nissa
 #endif
      
     //unset lx geometry
-    if(lxGeomInited) unset_lx_geometry();
+    if(lxGeomInited)
+      unset_lx_geometry();
     
     //unset eo geometry
     if(eo_geom_inited) unset_eo_geometry();
@@ -79,6 +80,15 @@ namespace nissa
 #ifdef USE_CUDA
     storeTunedKernelsInfo();
 #endif
+    
+    if(everyRankPrint)
+      {
+	MASTER_PRINTF("Switching back to print only with master rank on its stdout\n");
+	fclose(stdout);
+	stdout=backupStdout;
+	everyRankPrint=false;
+      }
+    
     MPI_Barrier(MPI_COMM_WORLD);
     MASTER_PRINTF("   Ciao!\n\n");
     MPI_Finalize();

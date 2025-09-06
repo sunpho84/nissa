@@ -117,6 +117,19 @@ namespace nissa
     get_MPI_nranks();
     get_MPI_rank();
     
+    const char EVERY_RANK_PRINT_STRING[]="EVERY_RANK_PRINT";
+    if(const char* p=getenv(EVERY_RANK_PRINT_STRING);
+       (everyRankPrint=(p!=nullptr)))
+      {
+	const std::string name=combine("log%s.%d",p,rank);
+	MASTER_PRINTF("Going to print in %s file\n",name.c_str());
+	
+	backupStdout=stdout;
+	stdout=fopen(name.c_str(),"w");
+      }
+    else
+      MASTER_PRINTF("To allow all jobs to print, export the env variable %s with the name to be used for the log[name].[rank] file\n",EVERY_RANK_PRINT_STRING);
+    
     //associate signals
     const char DO_NOT_TRAP_SIGNALS_STRING[]=
       "NISSA_DO_NOT_TRAP_SIGNALS";

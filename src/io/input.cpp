@@ -107,10 +107,11 @@ namespace nissa
     
     if(is_master_rank())
       {
-	if(std::filesystem::exists(path))
+	if(FILE *f=fopen(path.c_str(),"r"))
 	  {
 	    VERBOSITY_LV3_MASTER_PRINTF("File '%s' exists!\n",path.c_str());
 	    status=1;
+	    fclose(f);
 	  }
 	else
 	  {

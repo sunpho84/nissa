@@ -64,6 +64,9 @@ namespace nissa
 {
   extern int rank;
   
+  EXTERN_IOS bool everyRankPrint;
+  EXTERN_IOS FILE* backupStdout;
+  
   EXTERN_IOS int prepend_time;
   EXTERN_IOS int verb_call;
   
