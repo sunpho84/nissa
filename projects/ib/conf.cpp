@@ -242,14 +242,22 @@ namespace nissa
     if(runningUpdateTime==0)
       return false;
     
-    struct stat result;
-    if(stat(runningPath().c_str(),&result)!=0)
-      CRASH("Unable to get the stats for runfile %s",runningPath().c_str());
+    int res{};
     
-    const double d=
-      difftime(time(0),result.st_mtime);
+    if(is_master_rank())
+      {
+        struct stat result;
+	
+	if(stat(runningPath().c_str(),&result)!=0)
+	  CRASH("Unable to get the stats for runfile %s",runningPath().c_str());
+	
+	const double d=
+	  difftime(time(0),result.st_mtime);
+	
+	res=d<2*runningUpdateTime;
+      }
     
-    return d<2*runningUpdateTime;
+    return broadcast(res);
   }
   
   void finalizeConf(const HitLooper& hitLooper)
