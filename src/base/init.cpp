@@ -118,14 +118,14 @@ namespace nissa
     get_MPI_rank();
     
     const char EVERY_RANK_PRINT_STRING[]="EVERY_RANK_PRINT";
-    if(const char* p=getenv(EVERY_RANK_PRINT_STRING);
-       (everyRankPrint=(p!=nullptr)))
+    if(const char* p=getenv(EVERY_RANK_PRINT_STRING))
       {
 	const std::string name=combine("log%s.%d",p,rank);
 	MASTER_PRINTF("Going to print in %s file\n",name.c_str());
 	
 	backupStdout=stdout;
 	stdout=fopen(name.c_str(),"w");
+	everyRankPrint=true;
       }
     else
       MASTER_PRINTF("To allow all jobs to print, export the env variable %s with the name to be used for the log[name].[rank] file\n",EVERY_RANK_PRINT_STRING);

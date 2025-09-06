@@ -139,9 +139,9 @@ namespace nissa
   timer_t setRecurringCalledFunction(void hook(int sigNum,
 					     siginfo_t*,
 					     void*),
-				   const int sigNum,
-				   const int& nSec,
-				   const int& nnSec)
+				     const int sigNum,
+				     const int& nSec,
+				     const int& nnSec)
   {
     MASTER_PRINTF("Going to create a recurring function each %d seconds %d museconds\n",nSec,nnSec);
     fflush(stdout);
