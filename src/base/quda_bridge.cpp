@@ -913,7 +913,7 @@ namespace quda_iface
 	if(fabs(inv_param.mu)>0)
 	  for(int level=0;level<nlevels;level++)
 	    {
-	      if(use_deflation)
+	      if(usedDeflation)
 		quda_mg_param.mu_factor[level]=multiGrid::mu_factor[level];
 	      else
 		quda_mg_param.mu_factor[level]=multiGrid::mu_factor_no_deflation[level];
