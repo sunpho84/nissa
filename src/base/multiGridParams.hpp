@@ -25,6 +25,7 @@ namespace nissa
     EXTERN_MULTIGRID int smoother_iterations;
     EXTERN_MULTIGRID int gcrNkrylov INIT_TO(24);
     EXTERN_MULTIGRID double mu_factor[MAX_MG_LEVELS];
+    EXTERN_MULTIGRID double mu_factor_no_deflation[MAX_MG_LEVELS];
     EXTERN_MULTIGRID double coarse_solver_tol[MAX_MG_LEVELS];
     EXTERN_MULTIGRID int coarse_solver_maxiter[MAX_MG_LEVELS];
     EXTERN_MULTIGRID double smoother_tol[MAX_MG_LEVELS];

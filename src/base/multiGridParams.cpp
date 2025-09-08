@@ -23,6 +23,7 @@ namespace nissa
     
     for(int ilev=0;ilev<nlevels;ilev++) nsetups[ilev]=4;
     for(int ilev=0;ilev<nlevels;ilev++) mu_factor[ilev]=1;
+    for(int ilev=0;ilev<nlevels;ilev++) mu_factor_no_deflation[ilev]=1;
     for(int ilev=0;ilev<nlevels;ilev++) nu_pre[ilev]=0;
     for(int ilev=0;ilev<nlevels;ilev++) nu_post[ilev]=7;
     
@@ -72,6 +73,7 @@ namespace nissa
 		
 		READ_ARR(int,"%d",nsetups);
 		READ_ARR(double,"%lg",mu_factor);
+		READ_ARR(double,"%lg",mu_factor_no_deflation);
 		
 		//size of the blocks, nb ought to historic bugs, one needs to provide block size in the order XTZY
 		if(strcasecmp(tag,"block_size")==0)

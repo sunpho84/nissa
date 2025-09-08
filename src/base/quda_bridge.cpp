@@ -840,16 +840,6 @@ namespace quda_iface
 	    quda_mg_param.num_setup_iter[level]=1;  //Experimental - keep this set to 1
 	    quda_mg_param.setup_tol[level]=5e-7;    //Usually around 5e-6 is good.
 	    quda_mg_param.setup_maxiter[level]=1000; //500-1000 should work for most systems
-	    // If doing twisted mass, we can scale the twisted mass on the coarser grids
-	    // which significantly increases speed of convergence as a result of making
-	    // the coarsest grid solve a lot better conditioned.
-	    // Dean Howarth has some RG arguments on why the coarse mass parameter should be
-	    // rescaled for the coarse operator to be optimal.
-	    if(fabs(inv_param.mu)>0)
-	      {
-		quda_mg_param.mu_factor[level]=multiGrid::mu_factor[level];
-		MASTER_PRINTF("# QUDA: MG setting coarse mu scaling factor on level %d to %lf\n", level, quda_mg_param.mu_factor[level]);
-	      }
 	    
 	    //Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
 	    quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
@@ -915,6 +905,22 @@ namespace quda_iface
 	      }
 	  }
 	
+	// If doing twisted mass, we can scale the twisted mass on the coarser grids
+	// which significantly increases speed of convergence as a result of making
+	// the coarsest grid solve a lot better conditioned.
+	// Dean Howarth has some RG arguments on why the coarse mass parameter should be
+	// rescaled for the coarse operator to be optimal.
+	if(fabs(inv_param.mu)>0)
+	  for(int level=0;level<nlevels;level++)
+	    {
+	      if(use_deflation)
+		quda_mg_param.mu_factor[level]=multiGrid::mu_factor[level];
+	      else
+		quda_mg_param.mu_factor[level]=multiGrid::mu_factor_no_deflation[level];
+	      
+	      MASTER_PRINTF("# QUDA: MG setting coarse mu scaling factor on level %d to %lf\n", level, quda_mg_param.mu_factor[level]);
+	    }
+	
 	quda_mg_param.compute_null_vector=QUDA_COMPUTE_NULL_VECTOR_YES;
 	quda_mg_param.generate_all_levels=QUDA_BOOLEAN_YES;
 	
@@ -936,7 +942,7 @@ namespace quda_iface
   {
     MASTER_PRINTF("Eigenvectors created: %d\n",hasCreatedEigenvectors);
     
-    multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation;
+    hasCreatedEigenvectors=multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation;
   }
   
   void maybeFlagTheMultigridEigenVectorsForDeletion()
