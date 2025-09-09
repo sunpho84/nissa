@@ -758,7 +758,7 @@ namespace quda_iface
 	const int& nlevels=multiGrid::nlevels;
 	quda_mg_param.n_level=nlevels;
 	
-	usedDeflation=multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation);
+	usedDeflation=multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation;
 	
 	for(int level=0;level<nlevels;level++)
 	  {
