@@ -758,7 +758,8 @@ namespace quda_iface
 	const int& nlevels=multiGrid::nlevels;
 	quda_mg_param.n_level=nlevels;
 	
-	usedDeflation=false; // then possibly set to true later
+	usedDeflation=multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation);
+	
 	for(int level=0;level<nlevels;level++)
 	  {
 	    set_n_vec_batch(quda_mg_param);
@@ -843,13 +844,29 @@ namespace quda_iface
 	    
 	    //Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
 	    quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
-	    quda_mg_param.coarse_solver_tol[level]=nissa::multiGrid::coarse_solver_tol[level];          //Suggest setting each level to 0.25
-	    quda_mg_param.coarse_solver_maxiter[level]=nissa::multiGrid::coarse_solver_maxiter[level];//(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
+	    if(usedDeflation)
+	      {
+		quda_mg_param.coarse_solver_tol[level]=nissa::multiGrid::coarse_solver_tol[level];          //Suggest setting each level to 0.25
+		quda_mg_param.coarse_solver_maxiter[level]=nissa::multiGrid::coarse_solver_maxiter[level];
+	      }
+	    else
+	      {
+		quda_mg_param.coarse_solver_tol[level]=nissa::multiGrid::coarse_solver_tol_no_deflation[level];
+		quda_mg_param.coarse_solver_maxiter[level]=nissa::multiGrid::coarse_solver_maxiter_no_deflation[level];
+	      }
 	    quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
 	    quda_mg_param.n_vec[level]=(level>=1)?32:24;          //24 or 32 is supported presently
-	    quda_mg_param.nu_pre[level]=nissa::multiGrid::nu_pre[level];            //Suggest setting to 0
-	    quda_mg_param.nu_post[level]=nissa::multiGrid::nu_post[level];          //Suggest setting to 8
-	    
+	    if(usedDeflation)
+	      {
+		quda_mg_param.nu_pre[level]=nissa::multiGrid::nu_pre[level];            //Suggest setting to 0
+		quda_mg_param.nu_post[level]=nissa::multiGrid::nu_post[level];          //Suggest setting to 8
+	      }
+	    else
+	      {
+		quda_mg_param.nu_pre[level]=nissa::multiGrid::nu_pre_no_deflation[level];            //Suggest setting to 0
+		quda_mg_param.nu_post[level]=nissa::multiGrid::nu_post_no_deflation[level];          //Suggest setting to 8
+	      }
+	      
 	    //Always set to QUDA_MG_CYCLE_RECURSIVE (this sets the MG cycles to be a K-cycle which is generally superior to a V-cycle for non-Hermitian systems)
 	    quda_mg_param.cycle_type[level]=QUDA_MG_CYCLE_RECURSIVE;
 	    //Set to QUDA_CUDA_FIELD_LOCATION for all levels
@@ -858,7 +875,10 @@ namespace quda_iface
 	    
 	    quda_mg_param.preserve_deflation=QUDA_BOOLEAN_FALSE;
 	    quda_mg_param.smoother[level]=(level+1==nlevels)?QUDA_MR_INVERTER:QUDA_CA_GCR_INVERTER;
-	    quda_mg_param.smoother_tol[level]=nissa::multiGrid::smoother_tol[level];                 //Suggest setting each level to 0.25
+	    if(usedDeflation)
+	      quda_mg_param.smoother_tol[level]=nissa::multiGrid::smoother_tol[level];
+	    else
+	      quda_mg_param.smoother_tol[level]=nissa::multiGrid::smoother_tol_no_deflation[level];
 	    quda_mg_param.smoother_schwarz_cycle[level]=1;          //Experimental, set to 1 for each level
 	    //Suggest setting to QUDA_DIRECT_PC_SOLVE for all levels
 	    quda_mg_param.smoother_solve_type[level]=QUDA_DIRECT_PC_SOLVE;
@@ -876,7 +896,10 @@ namespace quda_iface
 	    quda_mg_param.coarse_grid_solution_type[level]=
 	      QUDA_MATPC_SOLUTION;
 	    //(inv_param.solve_type==QUDA_DIRECT_PC_SOLVE?QUDA_MATPC_SOLUTION:QUDA_MAT_SOLUTION);
-	    quda_mg_param.omega[level]=nissa::multiGrid::omega[level];  //Set to 0.8-1.0
+	    if(usedDeflation)
+	      quda_mg_param.omega[level]=nissa::multiGrid::omega[level];
+	    else
+	      quda_mg_param.omega[level]=nissa::multiGrid::omega_no_deflation[level];
 	    
 	    quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    
@@ -893,11 +916,8 @@ namespace quda_iface
 	    // set the MG EigSolver parameters, almost equivalent to
 	    // setEigParam from QUDA's multigrid_invert_test, except
 	    // for cuda_prec_ritz (on 20190822)
-	    if(level+1==nlevels and multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation)
-	      {
-		configureMultigridSolversToUseDeflationOnLevel(level);
-		usedDeflation=true;
-	      }
+	    if(level+1==nlevels and usedDeflation)
+	      configureMultigridSolversToUseDeflationOnLevel(level);
 	    else
 	      {
 		quda_mg_param.eig_param[level]=nullptr;
@@ -918,7 +938,7 @@ namespace quda_iface
 	      else
 		quda_mg_param.mu_factor[level]=multiGrid::mu_factor_no_deflation[level];
 	      
-	      MASTER_PRINTF("# QUDA: MG setting coarse mu scaling factor on level %d to %lf\n", level, quda_mg_param.mu_factor[level]);
+	      MASTER_PRINTF("# QUDA: MG setting coarse mu scaling factor on level %d to %lg\n",level,quda_mg_param.mu_factor[level]);
 	    }
 	
 	quda_mg_param.compute_null_vector=QUDA_COMPUTE_NULL_VECTOR_YES;
