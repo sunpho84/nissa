@@ -773,6 +773,7 @@ namespace nissa
     MASTER_PRINTF("Time elapsed for grid inizialization: %f s\n",time_init+take_time());
     
     //benchmark the net
-    if(perform_benchmark) bench_net_speed();
+    if(perform_benchmark)
+      benchNetSpeed();
   }
 }

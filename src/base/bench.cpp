@@ -8,6 +8,7 @@
 #define EXTERN_BENCH
 # include <base/bench.hpp>
 
+#include <base/memory_manager.hpp>
 #include <communicate/communicate.hpp>
 #include <geometry/geometry_lx.hpp>
 
@@ -46,55 +47,52 @@ namespace nissa
   }
   
   //benchmark the net speed
-  void bench_net_speed()
+  void benchNetSpeed()
   {
-    if(nranks>1)
-      for(int ipow=14;ipow<=log2(sendBufSize);ipow+=2)
-	{
-	  //allocate a buffer
-	  int size=1<<ipow;
-	  char *out,*in;
-	  
-	  out=nissa_malloc("out",size,char);
-	  in=nissa_malloc("in",size,char);
-	  
-	  //total time
-	  double tot_time=0;
-	  //speeds
-	  double speed_ave=0,speed_var=0;
-	  int ntests=10,n=0;
-	  for(int itest=0;itest<ntests;itest++)
-	    for(int drank=1;drank<nranks;drank++)
+    MemoryManager *mem=memoryManager<defaultMemorySpace>();
+    
+    char* out=mem->provide<char>(sendBufSize);
+    char* in=mem->provide<char>(sendBufSize);
+    
+    MASTER_PRINTF("Communication benchmark, packet size %lu\n",sendBufSize);
+    fflush(stdout);
+    
+    //speeds
+    const int ntests=10;
+    
+    for(int sRank=0;sRank<nranks;sRank++)
+      for(int dRank=0;dRank<sRank;dRank++)
+	if(sRank==rank or dRank==rank)
+	  {
+	    double speedAve=0,speed_var=0;
+	    
+	    for(int itest=0;itest<ntests;itest++)
 	      {
 		double time=-take_time();
-		int tag=9;
-		MPI_Sendrecv(out,size,MPI_CHAR,(rank+drank)%nranks,tag,in,size,MPI_CHAR,(rank-drank+nranks)%nranks,tag,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+		const int tag=9;
+		MPI_Sendrecv(out,sendBufSize,MPI_CHAR,dRank,tag,in,sendBufSize,MPI_CHAR,sRank,tag,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 		time+=take_time();
-		double speed=size/time/1e6;
 		
-		//increase
-		n++;
-		speed_ave+=speed;
+		const double speed=sendBufSize/time/1e6;
+		
+		speedAve+=speed;
 		speed_var+=speed*speed;
-		
-		tot_time+=time;
 	      }
-	  
-	  //reduce
-	  MPI_Allreduce(MPI_IN_PLACE,&n,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-	  MPI_Allreduce(MPI_IN_PLACE,&speed_ave,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	  MPI_Allreduce(MPI_IN_PLACE,&speed_var,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	  
-	  //compute
-	  speed_ave/=n;
-	  speed_var/=n;
-	  speed_var-=speed_ave*speed_ave;
-	  double speed_stddev=sqrt(speed_var);
-	  
-	  nissa_free(in);
-	  nissa_free(out);
-	  
-	  MASTER_PRINTF("Communication benchmark, packet size %d (%lg, stddev %lg) Mb/s (%lg s total)\n",size,speed_ave,speed_stddev,tot_time);
-	}
+	    
+	    //compute
+	    speedAve/=ntests;
+	    speed_var/=ntests;
+	    speed_var-=speedAve*speedAve;
+	    
+	    const double speedStddev=
+	      sqrt(speed_var);
+	    
+	    printf("%d <---> %d : %lg, stddev %lg Mb/s\n",sRank,dRank,speedAve,speedStddev);
+	    
+	    MPI_Barrier(MPI_COMM_WORLD);
+	  }
+    
+    mem->release(in);
+    mem->release(out);
   }
 }
