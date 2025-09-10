@@ -61,36 +61,37 @@ namespace nissa
     const int ntests=10;
     
     for(int sRank=0;sRank<nranks;sRank++)
-      for(int dRank=0;dRank<sRank;dRank++)
-	if(sRank==rank or dRank==rank)
-	  {
-	    double speedAve=0,speed_var=0;
-	    
-	    for(int itest=0;itest<ntests;itest++)
-	      {
-		double time=-take_time();
-		const int tag=9;
-		MPI_Sendrecv(out,sendBufSize,MPI_CHAR,dRank,tag,in,sendBufSize,MPI_CHAR,sRank,tag,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-		time+=take_time();
-		
-		const double speed=sendBufSize/time/1e6;
-		
-		speedAve+=speed;
-		speed_var+=speed*speed;
-	      }
-	    
-	    //compute
-	    speedAve/=ntests;
-	    speed_var/=ntests;
-	    speed_var-=speedAve*speedAve;
-	    
-	    const double speedStddev=
-	      sqrt(speed_var);
-	    
-	    printf("%d <---> %d : %lg, stddev %lg Mb/s\n",sRank,dRank,speedAve,speedStddev);
-	    
-	    MPI_Barrier(MPI_COMM_WORLD);
-	  }
+      for(int dRank=0;dRank<nranks;dRank++)
+	if(sRank!=dRank)
+	  if(sRank==rank or dRank==rank)
+	    {
+	      double speedAve=0,speed_var=0;
+	      
+	      for(int itest=0;itest<ntests;itest++)
+		{
+		  double time=-take_time();
+		  const int tag=9;
+		  MPI_Sendrecv(out,sendBufSize,MPI_CHAR,dRank,tag,in,sendBufSize,MPI_CHAR,sRank,tag,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+		  time+=take_time();
+		  
+		  const double speed=sendBufSize/time/1e6;
+		  
+		  speedAve+=speed;
+		  speed_var+=speed*speed;
+		}
+	      
+	      //compute
+	      speedAve/=ntests;
+	      speed_var/=ntests;
+	      speed_var-=speedAve*speedAve;
+	      
+	      const double speedStddev=
+		sqrt(speed_var);
+	      
+	      printf("%d <---> %d : %lg, stddev %lg Mb/s\n",sRank,dRank,speedAve,speedStddev);
+	      
+	      MPI_Barrier(MPI_COMM_WORLD);
+	    }
     
     mem->release(in);
     mem->release(out);
