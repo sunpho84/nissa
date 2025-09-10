@@ -54,7 +54,7 @@ namespace nissa
     char* out=mem->provide<char>(sendBufSize);
     char* in=mem->provide<char>(sendBufSize);
     
-    MASTER_PRINTF("Communication benchmark, packet size %lu\n",sendBufSize);
+    MASTER_PRINTF("Communication benchmark, packet size: %lu bytes\n",sendBufSize);
     fflush(stdout);
     
     //speeds
@@ -63,48 +63,50 @@ namespace nissa
     for(int sRank=0;sRank<nranks;sRank++)
       for(int dRank=0;dRank<nranks;dRank++)
 	if(sRank!=dRank)
-	  if(sRank==rank or dRank==rank)
-	    {
-	      double speedAve=0,speed_var=0;
-	      
-	      for(int itest=0;itest<ntests;itest++)
-		{
-		  double time=-take_time();
-		  const int tag=9;
-		  if(rank==sRank)
-		    {
-		      printf("on rank %d going to send %d to %lu\n",rank,dRank,sendBufSize);
-		      fflush(stdout);
-		      MPI_Send(out,sendBufSize,MPI_CHAR,dRank,tag,MPI_COMM_WORLD);
-		    }
-		  else
-		    {
-		      printf("on rank %d going to receive %d from %lu\n",rank,sRank,sendBufSize);
-		      fflush(stdout);
-		      MPI_Recv(in,sendBufSize,MPI_CHAR,sRank,tag,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-		    }
-		  
-		  time+=take_time();
-		  
-		  const double speed=sendBufSize/time/1e6;
-		  
-		  speedAve+=speed;
-		  speed_var+=speed*speed;
-		}
-	      
-	      //compute
-	      speedAve/=ntests;
-	      speed_var/=ntests;
-	      speed_var-=speedAve*speedAve;
-	      
-	      const double speedStddev=
-		sqrt(speed_var);
-	      
-	      printf("%d ---> %d : %lg, stddev %lg Mb/s\n",sRank,dRank,speedAve,speedStddev);
-	      fflush(stdout);
-	      
-	      MPI_Barrier(MPI_COMM_WORLD);
-	    }
+	  {
+	    if(sRank==rank or dRank==rank)
+	      {
+		double speedAve=0,speed_var=0;
+		
+		for(int itest=0;itest<ntests;itest++)
+		  {
+		    double time=-take_time();
+		    const int tag=9;
+		    if(rank==sRank)
+		      {
+			// printf("on rank %d going to send %lu to %d\n",rank,sendBufSize,dRank);
+			// fflush(stdout);
+			MPI_Send(out,sendBufSize,MPI_CHAR,dRank,tag,MPI_COMM_WORLD);
+		      }
+		    else
+		      {
+			// printf("on rank %d going to receive %lu from %d\n",rank,sendBufSize,sRank);
+			// fflush(stdout);
+			MPI_Recv(in,sendBufSize,MPI_CHAR,sRank,tag,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+		      }
+		    
+		    time+=take_time();
+		    
+		    const double speed=sendBufSize/time/1e9;
+		    
+		    speedAve+=speed;
+		    speed_var+=speed*speed;
+		  }
+		
+		//compute
+		speedAve/=ntests;
+		speed_var/=ntests;
+		speed_var-=speedAve*speedAve;
+		
+		const double speedStddev=
+		  sqrt(speed_var);
+		
+		printf("%d ---> %d : %lg, stddev %lg GB/s\n",sRank,dRank,speedAve,speedStddev);
+		fflush(stdout);
+	      }
+	    
+	    MPI_Barrier(MPI_COMM_WORLD);
+	  }
     
     mem->release(in);
     mem->release(out);
