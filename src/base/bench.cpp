@@ -71,7 +71,10 @@ namespace nissa
 		{
 		  double time=-take_time();
 		  const int tag=9;
-		  MPI_Sendrecv(out,sendBufSize,MPI_CHAR,dRank,tag,in,sendBufSize,MPI_CHAR,sRank,tag,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+		  if(rank==sRank)
+		    MPI_Send(out,sendBufSize,MPI_CHAR,dRank,tag,MPI_COMM_WORLD);
+		  else
+		    MPI_Recv(in,sendBufSize,MPI_CHAR,sRank,tag,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 		  time+=take_time();
 		  
 		  const double speed=sendBufSize/time/1e6;
@@ -88,7 +91,7 @@ namespace nissa
 	      const double speedStddev=
 		sqrt(speed_var);
 	      
-	      printf("%d <---> %d : %lg, stddev %lg Mb/s\n",sRank,dRank,speedAve,speedStddev);
+	      printf("%d ---> %d : %lg, stddev %lg Mb/s\n",sRank,dRank,speedAve,speedStddev);
 	      
 	      MPI_Barrier(MPI_COMM_WORLD);
 	    }
