@@ -72,9 +72,18 @@ namespace nissa
 		  double time=-take_time();
 		  const int tag=9;
 		  if(rank==sRank)
-		    MPI_Send(out,sendBufSize,MPI_CHAR,dRank,tag,MPI_COMM_WORLD);
+		    {
+		      printf("on rank %d going to send %d to %lu\n",rank,dRank,sendBufSize);
+		      fflush(stdout);
+		      MPI_Send(out,sendBufSize,MPI_CHAR,dRank,tag,MPI_COMM_WORLD);
+		    }
 		  else
-		    MPI_Recv(in,sendBufSize,MPI_CHAR,sRank,tag,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+		    {
+		      printf("on rank %d going to receive %d from %lu\n",rank,sRank,sendBufSize);
+		      fflush(stdout);
+		      MPI_Recv(in,sendBufSize,MPI_CHAR,sRank,tag,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+		    }
+		  
 		  time+=take_time();
 		  
 		  const double speed=sendBufSize/time/1e6;
@@ -92,6 +101,7 @@ namespace nissa
 		sqrt(speed_var);
 	      
 	      printf("%d ---> %d : %lg, stddev %lg Mb/s\n",sRank,dRank,speedAve,speedStddev);
+	      fflush(stdout);
 	      
 	      MPI_Barrier(MPI_COMM_WORLD);
 	    }
