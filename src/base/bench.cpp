@@ -49,12 +49,14 @@ namespace nissa
   //benchmark the net speed
   void benchNetSpeed()
   {
+    const size_t size=sendBufSize/10;
+    
     MemoryManager *mem=memoryManager<defaultMemorySpace>();
     
-    char* out=mem->provide<char>(sendBufSize);
-    char* in=mem->provide<char>(sendBufSize);
+    char* out=mem->provide<char>(size);
+    char* in=mem->provide<char>(size);
     
-    MASTER_PRINTF("Communication benchmark, packet size: %lu bytes\n",sendBufSize);
+    MASTER_PRINTF("Communication benchmark, packet size: %lu bytes\n",size);
     fflush(stdout);
     
     //speeds
@@ -74,20 +76,20 @@ namespace nissa
 		    const int tag=9;
 		    if(rank==sRank)
 		      {
-			// printf("on rank %d going to send %lu to %d\n",rank,sendBufSize,dRank);
+			// printf("on rank %d going to send %lu to %d\n",rank,size,dRank);
 			// fflush(stdout);
-			MPI_Send(out,sendBufSize,MPI_CHAR,dRank,tag,MPI_COMM_WORLD);
+			MPI_Send(out,size,MPI_CHAR,dRank,tag,MPI_COMM_WORLD);
 		      }
 		    else
 		      {
-			// printf("on rank %d going to receive %lu from %d\n",rank,sendBufSize,sRank);
+			// printf("on rank %d going to receive %lu from %d\n",rank,size,sRank);
 			// fflush(stdout);
-			MPI_Recv(in,sendBufSize,MPI_CHAR,sRank,tag,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+			MPI_Recv(in,size,MPI_CHAR,sRank,tag,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 		      }
 		    
 		    time+=take_time();
 		    
-		    const double speed=sendBufSize/time/1e9;
+		    const double speed=size/time/1e9;
 		    
 		    speedAve+=speed;
 		    speed_var+=speed*speed;
@@ -101,7 +103,8 @@ namespace nissa
 		const double speedStddev=
 		  sqrt(speed_var);
 		
-		printf("%d ---> %d : %lg, stddev %lg GB/s\n",sRank,dRank,speedAve,speedStddev);
+		if(sRank==rank)
+		  printf("%d ---> %d : %lg, stddev %lg GB/s\n",sRank,dRank,speedAve,speedStddev);
 		fflush(stdout);
 	      }
 	    
