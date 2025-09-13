@@ -60,7 +60,7 @@ namespace nissa
     fflush(stdout);
     
     //speeds
-    const int ntests=10;
+    const int ntests=4;
     
     for(int sRank=0;sRank<nranks;sRank+=nloc_ranks)
       for(int dRank=0;dRank<nranks;dRank+=nloc_ranks)
