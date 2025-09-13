@@ -76,6 +76,16 @@ namespace nissa
 #endif
   }
   
+  /// Set the id of the rank within the node, the size of the node
+  void get_MPI_local_rank_nranks()
+  {
+    MPI_Comm_split_type(MPI_COMM_WORLD,MPI_COMM_TYPE_SHARED,0,MPI_INFO_NULL,&node_communicator);
+    MPI_Comm_rank(node_communicator,&loc_rank);
+    MPI_Comm_size(node_communicator,&nloc_ranks);
+    
+    MASTER_PRINTF("Number of ranks within a node: %d\n",nloc_ranks);
+  }
+  
   //get rank
   void get_MPI_rank()
   {

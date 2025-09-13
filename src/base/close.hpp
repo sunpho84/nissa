@@ -91,6 +91,7 @@ namespace nissa
     
     MPI_Barrier(MPI_COMM_WORLD);
     MASTER_PRINTF("   Ciao!\n\n");
+    MPI_Comm_free(&node_communicator);
     MPI_Finalize();
   }
 }

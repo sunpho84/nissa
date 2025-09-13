@@ -105,6 +105,7 @@ namespace nissa
   void coords_broadcast(Coords& c);
   void get_MPI_nranks();
   void get_MPI_rank();
+  void get_MPI_local_rank_nranks();
   void init_MPI_thread(int narg,char **arg);
   void define_MPI_types();
   void create_MPI_cartesian_grid();
@@ -118,6 +119,7 @@ namespace nissa
   MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos);
   MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos);
   void MPI_FLOAT_128_SUM_routine(void *in,void *out,int *len,MPI_Datatype *type);
+  EXTERN_MPI MPI_Comm node_communicator;
 #else
   uint64_t ceil_to_next_eight_multiple(uint64_t pos);
   uint64_t diff_with_next_eight_multiple(uint64_t pos);

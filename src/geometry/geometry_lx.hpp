@@ -149,7 +149,11 @@ namespace nissa
   
   inline int rank;
   
+  inline int loc_rank;
+  
   inline int nranks;
+  
+  inline int nloc_ranks;
   
   inline int cartRank;
   

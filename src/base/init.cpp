@@ -116,6 +116,7 @@ namespace nissa
     //get the number of rank and the id of the local one
     get_MPI_nranks();
     get_MPI_rank();
+    get_MPI_local_rank_nranks();
     
     const char EVERY_RANK_PRINT_STRING[]="EVERY_RANK_PRINT";
     if(const char* p=getenv(EVERY_RANK_PRINT_STRING))
@@ -590,7 +591,8 @@ namespace nissa
     //check that lattice is commensurable with the grid
     //and check wether the mu dir is parallelized or not
     int ok=(glbVol%nranks==0);
-    if(!ok) CRASH("The lattice is incommensurable with nranks!");
+    if(not ok)
+      CRASH("The lattice is incommensurable with nranks!");
     
     Coords _isDirParallel;
     for(int mu=0;mu<NDIM;mu++)
