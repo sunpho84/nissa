@@ -2,6 +2,7 @@
 # include "config.hpp"
 #endif
 
+#include <base/field.hpp>
 #include <base/vectors.hpp>
 #include <routines/ios.hpp>
 
@@ -68,7 +69,7 @@ namespace nissa
 	  {
 	    if(sRank==rank or dRank==rank)
 	      {
-		double speedAve=0,speed_var=0;
+		double speedAve=0,speedVar=0;
 		
 		for(int itest=0;itest<ntests;itest++)
 		  {
@@ -92,16 +93,16 @@ namespace nissa
 		    const double speed=size/time/1e9;
 		    
 		    speedAve+=speed;
-		    speed_var+=speed*speed;
+		    speedVar+=speed*speed;
 		  }
 		
 		//compute
 		speedAve/=ntests;
-		speed_var/=ntests;
-		speed_var-=speedAve*speedAve;
+		speedVar/=ntests;
+		speedVar-=speedAve*speedAve;
 		
 		const double speedStddev=
-		  sqrt(speed_var);
+		  sqrt(speedVar);
 		
 		if(sRank==rank)
 		  printf("%d ---> %d : %lg, stddev %lg GB/s\n",sRank,dRank,speedAve,speedStddev);
@@ -113,5 +114,30 @@ namespace nissa
     
     mem->release(in);
     mem->release(out);
+  }
+  
+  /// Benchmark halo exchange
+  void benchHaloExchange()
+  {
+    LxField<spincolor> f("f",WITH_HALO);
+    f.reset();
+    
+    double timeAve{};
+    double timeVar{};
+    
+    const size_t nTests=8;
+    for(size_t i=0;i<nTests;i++)
+      {
+	const double initMoment=take_time();
+	f.updateHalo(true);
+	const double t=take_time()-initMoment;
+	timeAve+=t;
+	timeVar+=t*t;
+      }
+    timeAve/=nTests;
+    timeVar/=nTests;
+    timeVar-=timeAve*timeAve;
+    
+    MASTER_PRINTF("Time to update halo on a spincolor lx field: %lg s +/- %lg s\n",timeAve,timeVar);
   }
 }

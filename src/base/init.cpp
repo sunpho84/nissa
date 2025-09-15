@@ -776,6 +776,9 @@ namespace nissa
     
     //benchmark the net
     for(int i=0;i<perform_benchmark;i++)
-      benchNetSpeed();
+      {
+	benchNetSpeed();
+	benchHaloExchange();
+      }
   }
 }
