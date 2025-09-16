@@ -92,7 +92,7 @@ namespace nissa
 	START_TIMING(ape_time,nape_tot);
 	ape_spatial_smear_conf(*ape_smeared_conf,*conf,ape_smearing_alpha,ape_smearing_niters);
 	STOP_TIMING(ape_time);
-	MASTER_PRINTF("Smeared plaquette: %+16.16lg\n",global_plaquette_lx_conf(*ape_smeared_conf));
+	MASTER_PRINTF("Smeared plaquette: %+16.16lg (ave smear time: %lg s)\n",global_plaquette_lx_conf(*ape_smeared_conf),ape_time/nape_tot);
       }
     
     //invalidate internal conf
