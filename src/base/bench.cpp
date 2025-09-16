@@ -2,6 +2,8 @@
 # include "config.hpp"
 #endif
 
+#include <chrono>
+
 #define EXTERN_BENCH
 # include <base/bench.hpp>
 
@@ -117,25 +119,72 @@ namespace nissa
   }
   
   template <typename F>
-  std::pair<double,double> bench(F&& f,
-				 const size_t& nTests)
+  void  bench(F&& f,
+	      const char* what,
+	      const size_t& nTests)
   {
-    double timeAve{};
-    double timeVar{};
+    /// Benchmark statistics
+    struct Stat
+    {
+      double sum{};
+      
+      double sum2{};
+      
+      int nTests{};
+      
+      Stat& operator+=(const double& t)
+      {
+	sum+=t;
+	sum2+=t*t;
+	nTests++;
+	
+	return *this;
+      }
+      
+      std::pair<double,double> get() const
+      {
+	const double ave=sum/nTests;
+	const double var=sum2/nTests-ave*ave;
+	
+	return {ave,sqrt(var/(nTests-1))};
+      }
+    };
+    
+    Stat glb;
+    
+    Stat loc;
+    
+    //warmup
+    f();
     
     for(size_t i=0;i<nTests;i++)
       {
 	const double initMoment=take_time();
-	f();
+	std::chrono::time_point locInitMoment=std::chrono::steady_clock::now();
+        f();
+	auto locT=locInitMoment-std::chrono::steady_clock::now();
 	const double t=take_time()-initMoment;
-	timeAve+=t;
-	timeVar+=t*t;
+	
+	loc+=std::chrono::duration_cast<std::chrono::nanoseconds>(locT).count()/1e9;
+	glb+=t;
       }
-    timeAve/=nTests;
-    timeVar/=nTests;
-    timeVar-=timeAve*timeAve;
     
-    return {timeAve,sqrt(timeVar/(nTests-1))};
+    auto g=glb.get();
+    
+    auto l=loc.get();
+    
+    MASTER_PRINTF("Time to %s: %lg s +/- %lg s\n",
+		  what,g.first,g.second);
+    for(size_t iRank=0;iRank<nranks;iRank++)
+      {
+	if(rank==iRank)
+	  {
+	    printf(" Local estimate on rank %zu: %lg s +/- %lg s\n",
+		   iRank,l.first,l.second);
+	    fflush(stdout);
+	  }
+	MPI_Barrier(MPI_COMM_WORLD);
+      }
   }
   
   /// Benchmark halo exchange
@@ -145,13 +194,10 @@ namespace nissa
     f.reset();
     
     const size_t nTests=8;
-    const auto [a,e]=
-      bench([&f]()
-      {
-	f.updateHalo();
-      },nTests);
-    
-    MASTER_PRINTF("Time to update halo on a spincolor lx field: %lg s +/- %lg s\n",a,e);
+    bench([&f]()
+    {
+      f.updateHalo();
+    },"update halo on a spincolor lx field",nTests);
   }
   
   /// Benchmark the covariant shift
@@ -167,23 +213,21 @@ namespace nissa
     in.updateHalo();
     
     const size_t nTests=8;
-    const auto [a,e]=
-      bench([&in,
-	     &conf,
-	     &out]()
-      {
-	PAR(0,
-	    locVol,
-	    CAPTURE(TO_READ(in),
-		    TO_READ(conf),
-		    TO_WRITE(out)),
-	    ivol,
-	    {
-	      unsafe_su3_prod_spincolor(out[ivol],conf[ivol][0],in[loclxNeighup[ivol][0]]);
-	    });
-      },
-	    nTests);
-    
-    MASTER_PRINTF("Time to perform a covariant shift of a spincolor field: %lg s +/- %lg s\n",a,e);
+    bench([&in,
+	   &conf,
+	   &out]()
+    {
+      PAR(0,
+	  locVol,
+	  CAPTURE(TO_READ(in),
+		  TO_READ(conf),
+		  TO_WRITE(out)),
+	  ivol,
+	  {
+	    unsafe_su3_prod_spincolor(out[ivol],conf[ivol][0],in[loclxNeighup[ivol][0]]);
+	  });
+    },
+	  "perform a covariant shift of a spincolor field",
+	  nTests);
   }
 }
