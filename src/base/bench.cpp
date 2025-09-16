@@ -184,6 +184,6 @@ namespace nissa
       },
 	    nTests);
     
-    MASTER_PRINTF("Time to update halo on a spincolor lx field: %lg s +/- %lg s\n",a,e);
+    MASTER_PRINTF("Time to perform a covariant shift of a spincolor field: %lg s +/- %lg s\n",a,e);
   }
 }
