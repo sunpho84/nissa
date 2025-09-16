@@ -156,9 +156,9 @@ namespace nissa
   /// Benchmark the covariant shift
   void benchCovariantShift()
   {
-    LxField<colorspinspin> out("out");
+    LxField<spincolor> out("out");
     LxField<quad_su3> conf("conf");
-    LxField<colorspinspin> in("in",WITH_HALO);
+    LxField<spincolor> in("in",WITH_HALO);
     
     conf.reset();
     in.reset();
