@@ -10,6 +10,7 @@
 #include <base/memory_manager.hpp>
 #include <communicate/communicate.hpp>
 #include <geometry/geometry_lx.hpp>
+#include <new_types/su3_op.hpp>
 #include <routines/ios.hpp>
 
 namespace nissa
