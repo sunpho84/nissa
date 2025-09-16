@@ -779,6 +779,7 @@ namespace nissa
       {
 	benchNetSpeed();
 	benchHaloExchange();
+	benchCovariantShift();
       }
   }
 }

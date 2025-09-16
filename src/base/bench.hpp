@@ -57,6 +57,7 @@ namespace nissa
   void bench_memory_bandwidth(int mem_size);
   void bench_memory_copy(double *out,double *in,int size);
   void benchNetSpeed();
+  void benchCovariantShift();
   void benchHaloExchange();
   
   const int flops_per_complex_summ=2;

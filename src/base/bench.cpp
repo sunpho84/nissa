@@ -115,20 +115,17 @@ namespace nissa
     mem->release(out);
   }
   
-  /// Benchmark halo exchange
-  void benchHaloExchange()
+  template <typename F>
+  std::pair<double,double> bench(F&& f,
+				 const size_t& nTests)
   {
-    LxField<spincolor> f("f",WITH_HALO);
-    f.reset();
-    
     double timeAve{};
     double timeVar{};
     
-    const size_t nTests=8;
     for(size_t i=0;i<nTests;i++)
       {
 	const double initMoment=take_time();
-	f.updateHalo(true);
+	f();
 	const double t=take_time()-initMoment;
 	timeAve+=t;
 	timeVar+=t*t;
@@ -137,6 +134,55 @@ namespace nissa
     timeVar/=nTests;
     timeVar-=timeAve*timeAve;
     
-    MASTER_PRINTF("Time to update halo on a spincolor lx field: %lg s +/- %lg s\n",timeAve,timeVar);
+    return {timeAve,sqrt(timeVar/(nTests-1))};
+  }
+  
+  /// Benchmark halo exchange
+  void benchHaloExchange()
+  {
+    LxField<spincolor> f("f",WITH_HALO);
+    f.reset();
+    
+    const size_t nTests=8;
+    const auto [a,e]=
+      bench([&f]()
+      {
+	f.updateHalo();
+      },nTests);
+    
+    MASTER_PRINTF("Time to update halo on a spincolor lx field: %lg s +/- %lg s\n",a,e);
+  }
+  
+  /// Benchmark the covariant shift
+  void benchCovariantShift()
+  {
+    LxField<colorspinspin> out("out");
+    LxField<quad_su3> conf("conf");
+    LxField<colorspinspin> in("in",WITH_HALO);
+    
+    conf.reset();
+    in.reset();
+    
+    in.updateHalo();
+    
+    const size_t nTests=8;
+    const auto [a,e]=
+      bench([&in,
+	     &conf,
+	     &out]()
+      {
+	PAR(0,
+	    locVol,
+	    CAPTURE(TO_READ(in),
+		    TO_READ(conf),
+		    TO_WRITE(out)),
+	    ivol,
+	    {
+	      unsafe_su3_prod_spincolor(out[ivol],conf[ivol][0],in[loclxNeighup[ivol][0]]);
+	    });
+      },
+	    nTests);
+    
+    MASTER_PRINTF("Time to update halo on a spincolor lx field: %lg s +/- %lg s\n",a,e);
   }
 }
