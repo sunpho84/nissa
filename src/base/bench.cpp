@@ -2,16 +2,15 @@
 # include "config.hpp"
 #endif
 
-#include <base/field.hpp>
-#include <base/vectors.hpp>
-#include <routines/ios.hpp>
-
 #define EXTERN_BENCH
 # include <base/bench.hpp>
 
+#include <base/field.hpp>
+#include <base/vectors.hpp>
 #include <base/memory_manager.hpp>
 #include <communicate/communicate.hpp>
 #include <geometry/geometry_lx.hpp>
+#include <routines/ios.hpp>
 
 namespace nissa
 {
