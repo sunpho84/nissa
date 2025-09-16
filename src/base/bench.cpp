@@ -162,7 +162,7 @@ namespace nissa
 	const double initMoment=take_time();
 	std::chrono::time_point locInitMoment=std::chrono::steady_clock::now();
         f();
-	auto locT=locInitMoment-std::chrono::steady_clock::now();
+	auto locT=std::chrono::steady_clock::now()-locInitMoment;
 	const double t=take_time()-initMoment;
 	
 	loc+=std::chrono::duration_cast<std::chrono::nanoseconds>(locT).count()/1e9;
@@ -196,7 +196,7 @@ namespace nissa
     const size_t nTests=8;
     bench([&f]()
     {
-      f.updateHalo();
+      f.updateHalo(true);
     },"update halo on a spincolor lx field",nTests);
   }
   
