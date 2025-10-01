@@ -354,6 +354,7 @@ namespace nissa
 	      ok_conf=false;
 	      MASTER_PRINTF("Finished, skipping\n");
 	    }
+	  else ok_conf=true;
 	  
 	  if(ok_conf)
 	    {
