@@ -364,6 +364,11 @@ namespace nissa
 		  MASTER_PRINTF("Conf tested already %d times, larger or equal to the maximum number of trials, skipping\n",nTrials);
 		  ok_conf=false;
 		}
+	      else
+		if(nTrials==0)
+		  MASTER_PRINTF("Conf never tested\n");
+		else
+		  MASTER_PRINTF("Conf tested only %d times, less than max number of trials %d\n",nTrials,nMaxTrials);
 	    }
 	  
 	  if(ok_conf)
