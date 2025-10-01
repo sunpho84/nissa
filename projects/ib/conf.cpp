@@ -206,16 +206,35 @@ namespace nissa
       hitLooper.start_hit(ihit,true);
   }
   
+  /// Try to remove a file
+  int tryRemove(const std::string& path,
+		const std::string& descr)
+  {
+    int rc{};
+    
+    if(is_master_rank())
+      {
+	rc=remove(path.c_str());
+	
+	if(rc==0)
+	  fprintf(stderr,"Successfully removed %s file %s\n",descr.c_str(),path.c_str());
+	else
+	  fprintf(stderr,"Impossible to remove %s file %s, returned %d instead of 0\n",descr.c_str(),path.c_str(),rc);
+      }
+    
+    return broadcast(rc);
+  }
+  
+  /// Removes the ntrials file
+  void removeNTrials()
+  {
+    tryRemove(nTrialsPath(),"number of trials per conf");
+  }
+  
   /// Removes the runfile
   void removeRunning()
   {
-    if(is_master_rank())
-      {
-	if(const int rc=remove(runningPath().c_str())==0)
-	  fprintf(stderr,"Running file %s removed succesfully\n",runningPath().c_str());
-	else
-	  fprintf(stderr,"Impossible to remove running file %s, returned %d instead of 0\n",runningPath().c_str(),rc);
-      }
+    tryRemove(runningPath(),"running");
   }
   
   timer_t updateRunningTimer;
@@ -258,10 +277,30 @@ namespace nissa
     return broadcast(res);
   }
   
+  //Read from file ntrials
+  int getNTrials()
+  {
+    int ntrials{};
+    
+    if(fileExists(nTrialsPath()))
+      {
+	if(is_master_rank())
+	  if(not std::ifstream(nTrialsPath())>>ntrials)
+	    CRASH("Unable to read ntrials from %s",nTrialsPath().c_str());
+	
+	ntrials=broadcast(ntrials);
+      }
+    else
+      MASTER_PRINTF("NTrials path %s not existing, assuming 0\n",nTrialsPath().c_str());
+    
+    return ntrials;
+  }
+  
   void finalizeConf(const HitLooper& hitLooper)
   {
     file_touch(finishedPath());
     removeRunning();
+    removeNTrials();
     crashHook=nullptr;
     if(runningUpdateTime)
       stopRecallingFunction(updateRunningTimer);
@@ -291,6 +330,9 @@ namespace nissa
     
     allocate_confs();
     
+    /// Number of trials per conf
+    int nTrials{};
+    
     int ok_conf=false;
     if((not asked_stop) and (not asked_restart) and enough_time and still_conf)
       do
@@ -308,8 +350,22 @@ namespace nissa
 	    fileExists(finishedPath());
 	  
 	  if(hasFinished)
-	    MASTER_PRINTF("Finished, skipping\n");
-	  else
+	    {
+	      ok_conf=false;
+	      MASTER_PRINTF("Finished, skipping\n");
+	    }
+	  
+	  if(ok_conf)
+	    {
+	      nTrials=getNTrials();
+	      if(nTrials>=nMaxTrials)
+		{
+		  MASTER_PRINTF("Conf tested already %d times, larger or equal to the maximum number of trials, skipping\n",nTrials);
+		  ok_conf=false;
+		}
+	    }
+	  
+	  if(ok_conf)
 	    {
 	      const bool partialDataIsPresent=
 		fileExists(partialDataPath());
@@ -401,6 +457,10 @@ namespace nissa
 	MASTER_PRINTF("Analyzed all confs, exiting\n\n");
 	file_touch(stopPath);
       }
+    
+    if(ok_conf)
+      if(is_master_rank())
+	(std::ofstream(nTrialsPath()))<<(nTrials+1);
     
     return ok_conf;
   }

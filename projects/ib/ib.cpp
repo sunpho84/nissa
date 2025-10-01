@@ -573,18 +573,24 @@ void in_main(int narg,char **arg)
   
   constexpr char PRESERVE_PARTIAL_DATA_STR[]="PRESERVE_PARTIAL_DATA";
   if(const char* preservePartialDataStr=getenv(PRESERVE_PARTIAL_DATA_STR))
-    {
-      preservePartialData=atoi(preservePartialDataStr);
-      MASTER_PRINTF("Preserve partial data: %d\n",preservePartialData);
-    }
+    preservePartialData=atoi(preservePartialDataStr);
   else
     MASTER_PRINTF("Optionally preserve the partial data by exporting %s\n",PRESERVE_PARTIAL_DATA_STR);
+  MASTER_PRINTF("Preserve partial data: %d\n",preservePartialData);
+  
+  constexpr char NMAX_TRIALS_STR[]="NMAX_TRIALS";
+  if(const char* nMaxTrialsStr=getenv(NMAX_TRIALS_STR))
+    nMaxTrials=atoi(nMaxTrialsStr);
+  else
+    MASTER_PRINTF("Optionally set the maximum number of trials for a conf by exporting %s\n",NMAX_TRIALS_STR);
+  
+  MASTER_PRINTF("Number of maximum trials per conf set to: %d\n",nMaxTrials);
   
   constexpr char NMAX_PROPS_ALLOCATED_STR[]="NMAX_PROPS_ALLOCATED";
   if(const char* nMaxAllocatedStr=getenv(NMAX_PROPS_ALLOCATED_STR))
     {
       nMaxPropsAllocated=atoi(nMaxAllocatedStr);
-      MASTER_PRINTF("NMAX_PROPS_ALLOCATED=%d\n",nMaxPropsAllocated);
+      MASTER_PRINTF("%s=%d\n",NMAX_PROPS_ALLOCATED_STR,nMaxPropsAllocated);
     }
   else
     {

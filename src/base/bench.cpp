@@ -119,9 +119,9 @@ namespace nissa
   }
   
   template <typename F>
-  void  bench(F&& f,
-	      const char* what,
-	      const size_t& nTests)
+  void bench(F&& f,
+	     const char* what,
+	     const size_t& nTests)
   {
     /// Benchmark statistics
     struct Stat

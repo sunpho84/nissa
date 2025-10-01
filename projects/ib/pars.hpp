@@ -57,6 +57,8 @@ namespace nissa
   
   EXTERN_PARS int preservePartialData INIT_TO(0);
   
+  EXTERN_PARS int nMaxTrials INIT_TO(3);
+  
   //convention on gospel
   const int follow_chris=0,follow_nazario=1;
   
@@ -358,6 +360,8 @@ namespace nissa
   }
   
   PATH_PROVIDER(running,"running");
+  
+  PATH_PROVIDER(nTrials,"nTrials");
   
   PATH_PROVIDER(finished,"finished");
   
