@@ -375,20 +375,17 @@ namespace nissa
 			    partialDataPath().c_str(),partialDataIsPresent);
 	      
 	      if(not fileExists(runningPath()))
-		{
-		  MASTER_PRINTF("Running path %s not present, accepted\n",runningPath().c_str());
-		  ok_conf=true;
-		}
+		MASTER_PRINTF("Running path %s not present, accepted\n",runningPath().c_str());
 	      else
 		{
 		  MASTER_PRINTF("Running path %s present, checking\n",runningPath().c_str());
 		  if(checkRunningIsRecent())
-		    MASTER_PRINTF("Running path is recent, skipping\n");
-		  else
 		    {
-		      MASTER_PRINTF("Running path is not recent, accepted\n");
-		      ok_conf=true;
+		      MASTER_PRINTF("Running path is recent, skipping\n");
+		      ok_conf=false;
 		    }
+		  else
+		      MASTER_PRINTF("Running path is not recent, accepted\n");
 		}
 	    }
 	  
@@ -398,12 +395,12 @@ namespace nissa
 	      MASTER_PRINTF(" Starting or restarting configuration \"%s\"\n",conf_path);
 	      if(not dir_exists(outfolder))
 		{
-		  int ris=create_dir(outfolder);
-		  if(ris==0) MASTER_PRINTF(" Output path \"%s\" not present, created.\n",outfolder);
+		  if(create_dir(outfolder)==0)
+		    MASTER_PRINTF(" Output path \"%s\" not present, created.\n",outfolder);
 		  else
 		    {
 		      MASTER_PRINTF(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
-		      ok_conf=0;
+		      ok_conf=false;
 		      skip_conf();
 		    }
 		}
