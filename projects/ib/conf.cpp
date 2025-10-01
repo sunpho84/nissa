@@ -285,7 +285,7 @@ namespace nissa
     if(fileExists(nTrialsPath()))
       {
 	if(is_master_rank())
-	  if(not std::ifstream(nTrialsPath())>>ntrials)
+	  if(not (std::ifstream(nTrialsPath())>>ntrials))
 	    CRASH("Unable to read ntrials from %s",nTrialsPath().c_str());
 	
 	ntrials=broadcast(ntrials);
@@ -354,7 +354,8 @@ namespace nissa
 	      ok_conf=false;
 	      MASTER_PRINTF("Finished, skipping\n");
 	    }
-	  else ok_conf=true;
+	  else
+	    ok_conf=true;
 	  
 	  if(ok_conf)
 	    {
