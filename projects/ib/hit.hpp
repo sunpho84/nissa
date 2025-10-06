@@ -231,7 +231,7 @@ namespace nissa
 	      
 	      if(stoch_source)
 		{
-		  if(tins==-1 or rel_coord_of_loclx(ivol,0)==0)
+		  if(tins==-1 or rel_coord_of_loclx(ivol,0)==tins)
 		    {
 		      spincolor drawn;
 		      drawer.fillLocSite(drawn,ivol);
