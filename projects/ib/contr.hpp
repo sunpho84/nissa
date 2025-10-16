@@ -232,7 +232,7 @@ namespace nissa
   
   void computeHandcuffsContr(const bool& useSum);
   
-  void printHandcuffsContr(const int iHit);
+  void printHandcuffsContr(const int& iHit);
   
   void freeHandcuffsContr();
   
@@ -314,7 +314,8 @@ namespace nissa
   inline void print_contractions(const int iHit=0)
   {
     print_mes2pts_contr(iHit);
-    printHandcuffsContr(iHit);
+    if(not handcuffs.empty())
+      printHandcuffsContr(iHit);
     //print_meslep_contr();
     if(compute_octet) print_bar2pts_contr(iHit);
     if(compute_decuplet) print_bar2pts_alt_contr(iHit);

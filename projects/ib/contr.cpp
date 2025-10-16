@@ -911,7 +911,7 @@ namespace nissa
   }
   
   //print handcuffs contractions
-  void printHandcuffsContr(int iHit)
+  void printHandcuffsContr(const int& iHit)
   {
     contr_print_time-=take_time();
     
