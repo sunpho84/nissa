@@ -229,6 +229,8 @@
 %token TK_MEAS_MESON_CORRS
 %token TK_OPERATORS
 %type <int_pair_list> operators
+%token TK_DIR
+%type <int_numb> dir
 //nucleon corr
 %type <nucleon_corr_meas> nucleon_corr_meas
 %token TK_MEAS_NUCLEON_CORRS
@@ -624,7 +626,10 @@ meson_corr_meas: TK_MEAS_MESON_CORRS {$$=new meson_corr_meas_pars_t();}
                | meson_corr_meas operators {
 		   if((*$2)[0]!=std::make_pair(15,15)) crash("first entry of the meson list must be 15,15, instead it is: %d %d",(*$2)[0].first,(*$2)[0].second);
 		   $$->mesons=(*$2);delete $2;}
+               |meson_corr_meas dir {$$->dir=$2;}
 ;
+
+dir: TK_DIR '=' int_numb {$$=$3;};
 
 operators: TK_OPERATORS '=' int_pair_list {
     for(size_t i=0;i<$3->size();i++)

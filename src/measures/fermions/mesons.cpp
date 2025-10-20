@@ -24,16 +24,18 @@ namespace
   int nop;
   int ncombo;
   int nflavs;
+  int dir;
+  int dir_extent;
 }
   
   //compute the index where to store
-  inline int icombo(int iflav,int iop_so,int iop_si,int t)
+  inline int icombo(int iflav,int iop_so,int iop_si,int i_dir)
   {
-    return t+glbSize[0]*(iop_si+nop*(iop_so+nop*iflav));
+    return i_dir+dir_extent*(iop_si+nop*(iop_so+nop*iflav));
   }
   
   //compute correlation functions for staggered mesons, arbitary taste and spin
-  void compute_meson_corr(complex* corr,eo_ptr<quad_su3> conf,theory_pars_t* tp,meson_corr_meas_pars_t* meas_pars)
+  void compute_meson_corr(complex* corr,eo_ptr<quad_su3> conf,theory_pars_t* tp,meson_corr_meas_pars_t* meas_pars, int dir, int dir_extent)
   {
     //allocate
     eo_ptr<color> ori_source,source,sol,temp[2];
@@ -74,11 +76,11 @@ namespace
 	
 	//generate tso
 	int source_coord;
-	source_coord=rnd_get_unif(&glb_rnd_gen,0,glbSize[0]);
-	verbosity_lv2_master_printf("tsource: %d\n",source_coord);
+	source_coord=rnd_get_unif(&glb_rnd_gen,0,dir_extent);
+	verbosity_lv2_master_printf("source: %d\n",source_coord);
 	
 	//generate source
-	generate_fully_undiluted_eo_source(ori_source,meas_pars->rnd_type,source_coord);
+	generate_fully_undiluted_eo_source(ori_source,meas_pars->rnd_type,source_coord, dir);
 	
 	for(int iflav=0;iflav<nflavs;iflav++)
 	  {
@@ -112,16 +114,16 @@ namespace
 		      THREAD_BARRIER();
 		    }
 		  
-		  complex unshiftedGlbContr[glbSize[0]];
-		  glb_reduce(unshiftedGlbContr,loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+		  complex unshiftedGlbContr[dir_extent];
+		  glb_reduce(unshiftedGlbContr,loc_contr,locVol,dir_extent,locSize[dir],glbCoordOfLoclx[0][dir]);
 		  
-		  for(int glb_t=0;glb_t<glbSize[0];glb_t++)
+		  for(int glb_idir=0;glb_idir<dir_extent;glb_idir++)
 		    {
 		      /// Distance from source
-		      const int dt=
-			(glb_t-source_coord+glbSize[0])%glbSize[0];
+		      const int d_dir=
+			(glb_idir-source_coord+dir_extent)%dir_extent;
 		      
-		      complex_summassign(corr[icombo(iflav,iop_so,iop_si,dt)],unshiftedGlbContr[glb_t]);
+		      complex_summassign(corr[icombo(iflav,iop_so,iop_si,d_dir)],unshiftedGlbContr[glb_idir]);
 		    }
 		}
 	  }
@@ -153,8 +155,14 @@ namespace
   {
     nop=meas_pars.mesons.size();
     nflavs=tp.nflavs();
-    ncombo=icombo(nflavs-1,nop-1,nop-1,glbSize[0]-1)+1;
-    double norm=1.0/(meas_pars.nhits*glbSpatVol);
+	dir=meas_pars.dir;
+	dir_extent=glbSize[dir];
+
+	verbosity_lv1_master_printf("Meson correlator: type=%s, dir=%d, extent=%d\n",dir==0?"temporal":"spatial", dir, dir_extent);
+
+    ncombo=icombo(nflavs-1,nop-1,nop-1,dir_extent-1)+1;
+	const double orthVol=double(glbVol)/double(dir_extent);
+    double norm=1.0/(meas_pars.nhits*orthVol);
     complex *corr=nissa_malloc("corr",ncombo,complex);
     
     //measure the meson corrs for each quark
@@ -163,7 +171,7 @@ namespace
       {
 	verbosity_lv2_master_printf("Computing copy %d/%d\n",icopy,ncopies);
 	
-	compute_meson_corr(corr,ext_conf,&tp,&meas_pars);
+	compute_meson_corr(corr,ext_conf,&tp,&meas_pars, dir, dir_extent);
 	
 	//open the file, allocate point result and source
 	FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
@@ -180,16 +188,16 @@ namespace
 			       " iop_si %d , spin_si %d , taste_si %d ;"
 			       " flv = %d , m = %lg\n",
 			       iconf,iop_so,spin_so,taste_so,iop_si,spin_si,taste_si,iflav,tp.quarks[iflav].mass);
-		for(int t=0;t<glbSize[0];t++)
+		for(int d_dir=0;d_dir<dir_extent;d_dir++)
 		  {
-		    int ic=icombo(iflav,iop_so,iop_si,t);
-		    master_fprintf(file,"%d %+16.16lg %+16.16lg\n",t,corr[ic][RE]*norm,corr[ic][IM]*norm);
+		    int ic=icombo(iflav,iop_so,iop_si,d_dir);
+		    master_fprintf(file,"%d %+16.16lg %+16.16lg\n",d_dir,corr[ic][RE]*norm,corr[ic][IM]*norm);
 		  }
 		master_fprintf(file,"\n");
 	      }
 	close_file(file);
 	
-	nissa_free(corr);
+	nissa_free(corr); //maybe should be outside the copies loop idk
       }
   }
   
@@ -200,6 +208,8 @@ namespace
     
     os<<"MeasMesonCorrs\n";
     os<<base_fermionic_meas_t::get_str(full);
+	if(dir!=def_dir() or full)
+    os<<" Dir\t\t=\t"<<dir<<"\n";
     if(mesons.size() or full)
       {
 	os<<" Operators\t=\t{";
