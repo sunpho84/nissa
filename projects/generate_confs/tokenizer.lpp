@@ -124,6 +124,9 @@ Path DEBUG_PRINTF("Found Path\n");return TK_PATH;
  /* operator list */
 Operators DEBUG_PRINTF("Found Operators\n");return TK_OPERATORS;
 
+ /* direction */
+Dir DEBUG_PRINTF("Found Dir\n");return TK_DIR;
+
  /* rendens pars */
 MaxOrder DEBUG_PRINTF("Found MaxOrder\n");return TK_MAX_ORDER;
 
