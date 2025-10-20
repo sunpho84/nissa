@@ -29,8 +29,8 @@ namespace nissa
     meson_corr_meas_pars_t() :
       base_fermionic_meas_t(),
       dir(def_dir())
-    {path=def_path();}
-    virtual ~meson_corr_meas_pars_t(){}
+      {path=def_path();}
+      virtual ~meson_corr_meas_pars_t(){}
   };
   
   void measure_meson_corr(eo_ptr<quad_su3> conf,theory_pars_t &tp,meson_corr_meas_pars_t &pars,int iconf,int conf_created);

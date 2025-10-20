@@ -25,17 +25,16 @@ namespace
   int ncombo;
   int nflavs;
   int dir;
-  int dir_extent;
 }
   
   //compute the index where to store
   inline int icombo(int iflav,int iop_so,int iop_si,int i_dir)
   {
-    return i_dir+dir_extent*(iop_si+nop*(iop_so+nop*iflav));
+    return i_dir+glbSize[dir]*(iop_si+nop*(iop_so+nop*iflav));
   }
   
   //compute correlation functions for staggered mesons, arbitary taste and spin
-  void compute_meson_corr(complex* corr,eo_ptr<quad_su3> conf,theory_pars_t* tp,meson_corr_meas_pars_t* meas_pars, int dir, int dir_extent)
+  void compute_meson_corr(complex* corr,eo_ptr<quad_su3> conf,theory_pars_t* tp,meson_corr_meas_pars_t* meas_pars, int dir)
   {
     //allocate
     eo_ptr<color> ori_source,source,sol,temp[2];
@@ -76,7 +75,7 @@ namespace
 	
 	//generate tso
 	int source_coord;
-	source_coord=rnd_get_unif(&glb_rnd_gen,0,dir_extent);
+	source_coord=rnd_get_unif(&glb_rnd_gen,0,glbSize[dir]);
 	verbosity_lv2_master_printf("source: %d\n",source_coord);
 	
 	//generate source
@@ -114,14 +113,14 @@ namespace
 		      THREAD_BARRIER();
 		    }
 		  
-		  complex unshiftedGlbContr[dir_extent];
-		  glb_reduce(unshiftedGlbContr,loc_contr,locVol,dir_extent,locSize[dir],glbCoordOfLoclx[0][dir]);
+		  complex unshiftedGlbContr[glbSize[dir]];
+		  glb_reduce(unshiftedGlbContr,loc_contr,locVol,glbSize[dir],locSize[dir],glbCoordOfLoclx[0][dir]);
 		  
-		  for(int glb_idir=0;glb_idir<dir_extent;glb_idir++)
+		  for(int glb_idir=0;glb_idir<glbSize[dir];glb_idir++)
 		    {
 		      /// Distance from source
 		      const int d_dir=
-			(glb_idir-source_coord+dir_extent)%dir_extent;
+			(glb_idir-source_coord+glbSize[dir])%glbSize[dir];
 		      
 		      complex_summassign(corr[icombo(iflav,iop_so,iop_si,d_dir)],unshiftedGlbContr[glb_idir]);
 		    }
@@ -156,12 +155,11 @@ namespace
     nop=meas_pars.mesons.size();
     nflavs=tp.nflavs();
 	dir=meas_pars.dir;
-	dir_extent=glbSize[dir];
 
-	verbosity_lv1_master_printf("Meson correlator: type=%s, dir=%d, extent=%d\n",dir==0?"temporal":"spatial", dir, dir_extent);
+	verbosity_lv1_master_printf("Meson correlator: type=%s, dir=%d, extent=%d\n",dir==0?"temporal":"spatial", dir, glbSize[dir]);
 
-    ncombo=icombo(nflavs-1,nop-1,nop-1,dir_extent-1)+1;
-	const double orthVol=double(glbVol)/double(dir_extent);
+    ncombo=icombo(nflavs-1,nop-1,nop-1,glbSize[dir]-1)+1;
+	const double orthVol=double(glbVol)/double(glbSize[dir]);
     double norm=1.0/(meas_pars.nhits*orthVol);
     complex *corr=nissa_malloc("corr",ncombo,complex);
     
@@ -171,7 +169,7 @@ namespace
       {
 	verbosity_lv2_master_printf("Computing copy %d/%d\n",icopy,ncopies);
 	
-	compute_meson_corr(corr,ext_conf,&tp,&meas_pars, dir, dir_extent);
+	compute_meson_corr(corr,ext_conf,&tp,&meas_pars, dir, glbSize[dir]);
 	
 	//open the file, allocate point result and source
 	FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
@@ -188,7 +186,7 @@ namespace
 			       " iop_si %d , spin_si %d , taste_si %d ;"
 			       " flv = %d , m = %lg\n",
 			       iconf,iop_so,spin_so,taste_so,iop_si,spin_si,taste_si,iflav,tp.quarks[iflav].mass);
-		for(int d_dir=0;d_dir<dir_extent;d_dir++)
+		for(int d_dir=0;d_dir<glbSize[dir];d_dir++)
 		  {
 		    int ic=icombo(iflav,iop_so,iop_si,d_dir);
 		    master_fprintf(file,"%d %+16.16lg %+16.16lg\n",d_dir,corr[ic][RE]*norm,corr[ic][IM]*norm);
