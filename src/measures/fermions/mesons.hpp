@@ -28,7 +28,7 @@ namespace nissa
     
     meson_corr_meas_pars_t() :
       base_fermionic_meas_t(),
-      dir(def_dir()),
+      dir(def_dir())
     {path=def_path();}
     virtual ~meson_corr_meas_pars_t(){}
   };
