@@ -18,9 +18,9 @@ namespace nissa
 #if HIGH_PREC_TYPE==GMP_HIGH_PREC
     //init default precision for gmp
     mpf_set_default_prec(mpf_precision);
-    master_printf("Support for >128 bit precision: GMP\n");
+    MASTER_PRINTF("Support for >128 bit precision: GMP\n");
 #else
-    master_printf("Support for >128 bit precision: NATIVE\n");
+    MASTER_PRINTF("Support for >128 bit precision: NATIVE\n");
 #endif
     
     //perform a sanity check on float 128
@@ -29,12 +29,12 @@ namespace nissa
   
 #if (HIGH_PREC_TYPE==NATIVE_HIGH_PREC)
   int high_prec_nbits() {return 209;}
-  void float_high_prec_t_print(float_high_prec_t a){master_printf("%lg %lg %lg %lg\n",a[0],a[1],a[2],a[3]);}
+  void float_high_prec_t_print(float_high_prec_t a){MASTER_PRINTF("%lg %lg %lg %lg\n",a[0],a[1],a[2],a[3]);}
 #endif
 #if (HIGH_PREC_TYPE==GMP_HIGH_PREC)
   int mpf_precision;
   int high_prec_nbits(){return mpf_get_default_prec();}
-  void float_high_prec_t_print(float_high_prec_t a){master_printf("workaround high_prec %lg\n",a.get_d());}
+  void float_high_prec_t_print(float_high_prec_t a){MASTER_PRINTF("workaround high_prec %lg\n",a.get_d());}
 #endif
   
   //takes integer power
@@ -76,7 +76,7 @@ namespace nissa
     float_high_prec_t out=pow(in.get_d(),(double)n/d);
     
     //(out+err)^d=in^n -> err=out*rel_err, rel_err=(ref/out^d-1)/d
-    int iter=0;
+    [[maybe_unused]] int iter=0;
     float_high_prec_t rel_residue;
     double tol=32*pow(2.0,-high_prec_nbits());
     do
@@ -90,7 +90,7 @@ namespace nissa
         //total err
         float_high_prec_t err=rel_residue*out/d;
         out+=err;
-        //verbosity_lv3_master_printf("Iter %d rel_residue: %lg, tol: %lg\n",iter,fabs(rel_residue.get_d()),tol);
+        //VERBOSITY_LV3_MASTER_PRINTF("Iter %d rel_residue: %lg, tol: %lg\n",iter,fabs(rel_residue.get_d()),tol);
 	
         iter++;
       }

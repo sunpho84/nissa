@@ -40,7 +40,6 @@ namespace nissa
     
     //fermionic measures
     std::vector<meson_corr_meas_pars_t> meson_corr_meas;
-    std::vector<nucleon_corr_meas_pars_t> nucleon_corr_meas;
     std::vector<fermionic_putpourri_meas_pars_t> fermionic_putpourri_meas;
     std::vector<quark_rendens_meas_pars_t> quark_rendens_meas;
     std::vector<chir_zumba_meas_pars_t> chir_zumba_meas;
@@ -66,7 +65,6 @@ namespace nissa
 	measure_is_due(fermionic_putpourri_meas,itheory,iconf) or
 	measure_is_due(magnetization_meas,itheory,iconf) or
 	measure_is_due(minmax_eigenvalues_meas,itheory,iconf) or
-	measure_is_due(nucleon_corr_meas,itheory,iconf) or
 	measure_is_due(meson_corr_meas,itheory,iconf) or
 	measure_is_due(quark_rendens_meas,itheory,iconf) or
 	measure_is_due(chir_zumba_meas,itheory,iconf) or
@@ -80,13 +78,12 @@ namespace nissa
     {
       bool a=nissa::measure_is_due(obj,iconf);
       bool b=obj.itheory==itheory;
-      if(a and b) verbosity_lv1_master_printf("Measuring %s for theory %d/%d\n",text,itheory+1,ntheories());
+      if(a and b) VERBOSITY_LV1_MASTER_PRINTF("Measuring %s for theory %d/%d\n",text,itheory+1,ntheories());
       return a and b;
     }
     
     //add
     void add_meson_corr_meas(meson_corr_meas_pars_t &m){meson_corr_meas.push_back(m);}
-    void add_nucleon_corr_meas(nucleon_corr_meas_pars_t &m){nucleon_corr_meas.push_back(m);}
     void add_fermionic_putpourri_meas(fermionic_putpourri_meas_pars_t &m){fermionic_putpourri_meas.push_back(m);}
     void add_quark_rendens_meas(quark_rendens_meas_pars_t &m){quark_rendens_meas.push_back(m);}
     void add_chir_zumba_meas(chir_zumba_meas_pars_t &m){chir_zumba_meas.push_back(m);}
@@ -182,7 +179,6 @@ namespace nissa
       for(size_t i=0;i<theories.size();i++) os<<theories[i].get_str(full)<<"\n";
       //fermionic measures
       os<<vector_get_str(meson_corr_meas,full);
-      os<<vector_get_str(nucleon_corr_meas,full);
       os<<vector_get_str(fermionic_putpourri_meas,full);
       os<<vector_get_str(quark_rendens_meas,full);
       os<<vector_get_str(chir_zumba_meas,full);

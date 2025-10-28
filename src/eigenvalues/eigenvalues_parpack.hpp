@@ -124,18 +124,18 @@ namespace nissa
 	THREAD_BARRIER();
 	
 	//print some debug info
-	verbosity_lv2_master_printf("mat_size: %d\n",mat_size);
-	verbosity_lv2_master_printf("which[min_max]: %s\n",which[min_max]);
-	verbosity_lv2_master_printf("neig: %d\n",neig);
-	verbosity_lv2_master_printf("target_precision: %lg\n",target_precision);
-	verbosity_lv2_master_printf("wspace_size: %d\n",wspace_size);
-	verbosity_lv2_master_printf("ldv: %d\n",ldv);
+	VERBOSITY_LV2_MASTER_PRINTF("mat_size: %d\n",mat_size);
+	VERBOSITY_LV2_MASTER_PRINTF("which[min_max]: %s\n",which[min_max]);
+	VERBOSITY_LV2_MASTER_PRINTF("neig: %d\n",neig);
+	VERBOSITY_LV2_MASTER_PRINTF("target_precision: %lg\n",target_precision);
+	VERBOSITY_LV2_MASTER_PRINTF("wspace_size: %d\n",wspace_size);
+	VERBOSITY_LV2_MASTER_PRINTF("ldv: %d\n",ldv);
 	for(int i=0;i<11;i++)
-	  verbosity_lv2_master_printf("iparam[%d]: %d\n",i,iparam[i]);
+	  VERBOSITY_LV2_MASTER_PRINTF("iparam[%d]: %d\n",i,iparam[i]);
 	for(int i=0;i<14;i++)
-	  verbosity_lv2_master_printf("ipntr[%d]: %d\n",i,ipntr[i]);
-	verbosity_lv2_master_printf("lworkl: %d\n",lworkl);
-	verbosity_lv2_master_printf("info: %d\n",info);
+	  VERBOSITY_LV2_MASTER_PRINTF("ipntr[%d]: %d\n",i,ipntr[i]);
+	VERBOSITY_LV2_MASTER_PRINTF("lworkl: %d\n",lworkl);
+	VERBOSITY_LV2_MASTER_PRINTF("info: %d\n",info);
       }
       
 #define REST_OF_PARS		\
@@ -178,23 +178,23 @@ namespace nissa
 	switch(info)
 	  {
 	  case 0: /*Normal execution */;break;
-	  case 1: crash("Maximum number of iterations taken.");break;
-	  case 3: crash("No shifts could be applied during a cycle of the "
+	  case 1: CRASH("Maximum number of iterations taken.");break;
+	  case 3: CRASH("No shifts could be applied during a cycle of the "
 			"Implicitly restarted Arnoldi iteration. One possibility "
 			"is to increase the size of NCV relative to NEV.");break;
-	  case -1: crash("N must be positive.");break;
-	  case -2: crash("NEV must be positive.");break;
-	  case -3: crash("NCV-NEV >= 2 and less than or equal to N.");break;
-	  case -4: crash("The maximum number of Arnoldi update iteration must be greater than zero.");break;
-	  case -5: crash("WHICH must be one of 'LM', 'SM', 'LR', 'SR', 'LI', 'SI'");break;
-	  case -6: crash("BMAT must be one of 'I' or 'G'.");break;
-	  case -7: crash("Length of private work array is not sufficient.");break;
-	  case -8: crash("Error return from LAPACK eigenvalue calculation;");break;
-	  case -9: crash("Starting vector is zero.");break;
-	  case -10: crash("IPARAM(7) must be 1,2,3.");break;
-	  case -11: crash("IPARAM(7) = 1 and BMAT = 'G' are incompatable.");break;
-	  case -12: crash("IPARAM(1) must be equal to 0 or 1.");break;
-	  case -9999: crash("Could not build an Arnoldi factorization.");break;
+	  case -1: CRASH("N must be positive.");break;
+	  case -2: CRASH("NEV must be positive.");break;
+	  case -3: CRASH("NCV-NEV >= 2 and less than or equal to N.");break;
+	  case -4: CRASH("The maximum number of Arnoldi update iteration must be greater than zero.");break;
+	  case -5: CRASH("WHICH must be one of 'LM', 'SM', 'LR', 'SR', 'LI', 'SI'");break;
+	  case -6: CRASH("BMAT must be one of 'I' or 'G'.");break;
+	  case -7: CRASH("Length of private work array is not sufficient.");break;
+	  case -8: CRASH("Error return from LAPACK eigenvalue calculation;");break;
+	  case -9: CRASH("Starting vector is zero.");break;
+	  case -10: CRASH("IPARAM(7) must be 1,2,3.");break;
+	  case -11: CRASH("IPARAM(7) = 1 and BMAT = 'G' are incompatable.");break;
+	  case -12: CRASH("IPARAM(1) must be equal to 0 or 1.");break;
+	  case -9999: CRASH("Could not build an Arnoldi factorization.");break;
 	  default:crash("Unknown error code");break;
 	  }
 	
@@ -216,7 +216,7 @@ namespace nissa
 	    break;
 	  default:
 	    goon=false;
-	    crash("ido %d not contemplated",ido);
+	    CRASH("ido %d not contemplated",ido);
 	  }
 	
 	return goon;
@@ -251,23 +251,23 @@ namespace nissa
 	    switch(info)
 	      {
 	      case 0: /* Normal exit */;break;
-	      case 1: crash("The Schur form computed by LAPACK routine csheqr could not be reordered by LAPACK routine ztrsen. "
+	      case 1: CRASH("The Schur form computed by LAPACK routine csheqr could not be reordered by LAPACK routine ztrsen. "
 			    "Re-enter subroutine zneupd with IPARAM(5) = NCV and increase the size of the array D to have dimension at least dimension NCV and allocate at least NCV columns for Z."
 			    "NOTE: Not necessary if Z and V share the same space. Please notify the authors if this error occurs.");break;
-	      case -1: crash("N=mat_size=%d must be positive.",mat_size);break;
-	      case -2: crash("NEV=neig=%d must be positive.",neig);break;
-	      case -3: crash("NCV-NEV=wspace_size-neig=%d-%d=%d >= 1 and less than or equal to N=mat_size=%d.",wspace_size,neig,wspace_size-neig,mat_size);break;
-	      case -5: crash("WHICH must be one of 'LM', 'SM', 'LR', 'SR', 'LI', 'SI', is '%s'.",which[min_max]);break;
-	      case -6: crash("BMAT must be one of 'I' or 'G', is '%s'.",bmat);break;
-	      case -7: crash("Length of private work WORKL array=%d is not sufficient.",lworkl);break;
-	      case -8: crash("Error return from LAPACK eigenvalue calculation. This should never happened.");break;
-	      case -9: crash("Error return from calculation of eigenvectors. Informational error from LAPACK routine ztrevc.");break;
-	      case -10: crash("IPARAM(7) must be 1, 2, 3.");break;
-	      case -11: crash("IPARAM(7) = 1 and BMAT = 'G' are incompatible.");break;
-	      case -12: crash("HOWMANY = 'S' not yet implemented.");break;
-	      case -13: crash("HOWMANY must be one of 'A' or 'P' if RVEC = .true.");break;
-	      case -14: crash("ZNAUPD did not find any eigenvalues to sufficient accuracy.");break;
-	      case -15: crash("ZNEUPD got a different count of the number of converged Ritz values than ZNAUPD got."
+	      case -1: CRASH("N=mat_size=%d must be positive.",mat_size);break;
+	      case -2: CRASH("NEV=neig=%d must be positive.",neig);break;
+	      case -3: CRASH("NCV-NEV=wspace_size-neig=%d-%d=%d >= 1 and less than or equal to N=mat_size=%d.",wspace_size,neig,wspace_size-neig,mat_size);break;
+	      case -5: CRASH("WHICH must be one of 'LM', 'SM', 'LR', 'SR', 'LI', 'SI', is '%s'.",which[min_max]);break;
+	      case -6: CRASH("BMAT must be one of 'I' or 'G', is '%s'.",bmat);break;
+	      case -7: CRASH("Length of private work WORKL array=%d is not sufficient.",lworkl);break;
+	      case -8: CRASH("Error return from LAPACK eigenvalue calculation. This should never happened.");break;
+	      case -9: CRASH("Error return from calculation of eigenvectors. Informational error from LAPACK routine ztrevc.");break;
+	      case -10: CRASH("IPARAM(7) must be 1, 2, 3.");break;
+	      case -11: CRASH("IPARAM(7) = 1 and BMAT = 'G' are incompatible.");break;
+	      case -12: CRASH("HOWMANY = 'S' not yet implemented.");break;
+	      case -13: CRASH("HOWMANY must be one of 'A' or 'P' if RVEC = .true.");break;
+	      case -14: CRASH("ZNAUPD did not find any eigenvalues to sufficient accuracy.");break;
+	      case -15: CRASH("ZNEUPD got a different count of the number of converged Ritz values than ZNAUPD got."
 			      "This indicates the user probably made an error in passing data from ZNAUPD to ZNEUPD or that the data was modified before entering ZNEUPD.");break;
 	      }
 	    
@@ -338,7 +338,7 @@ namespace nissa
 	//invoke the step
 	goon=caller.iteration();
 #ifndef ENABLE_PARPACK_DEBUG
-	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d\n",iter,caller.ido,caller.info);
+	VERBOSITY_LV1_MASTER_PRINTF("iteration %d, ido: %d, info: %d\n",iter,caller.ido,caller.info);
 #endif	
 	if(goon)
 	  imp_mat(caller.applied,caller.to_be_applied);

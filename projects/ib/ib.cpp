@@ -1,6 +1,7 @@
 #include <nissa.hpp>
 
 #include "conf.hpp"
+#include "hit.hpp"
 #include "contr.hpp"
 #include "pars.hpp"
 #include "prop.hpp"
@@ -12,29 +13,43 @@ using namespace nissa;
 
 ///////////////////////////////// initialise the library, read input file, allocate /////////////////////////////////////
 
+namespace nissa
+{
+  extern int runningUpdateTime;
+}
+
 void init_simulation(int narg,char **arg)
 {
   //check argument
-  if(narg<2) crash("Use: %s input_file [stop_path]|periodic/antiperiodic|store/load_photons",arg[0]);
+  if(narg<2)
+    CRASH("Use: %s input_file [stop_path]|periodic/antiperiodic|store/load_photons",arg[0]);
+  
+  const char RUNNING_UPDATE_TIME_STRING[]=
+    "RUNNING_UPDATE_TIME";
+  if(const char* p=getenv(RUNNING_UPDATE_TIME_STRING))
+    {
+      runningUpdateTime=atoi(p);
+      MASTER_PRINTF("Time between running file update set to: %d s\n",runningUpdateTime);
+    }
+  else
+    {
+      MASTER_PRINTF("Time between running file update set to default value: %d s\n",runningUpdateTime);
+      MASTER_PRINTF("To change it, export the envirnoment variable %s\n",RUNNING_UPDATE_TIME_STRING);
+    }
   
   const char *path=arg[1];
-  
-  const char ALLOW_PROP_REUSAGE_STRING[]="ALLOW_PROP_REUSAGE";
-  allowPropReusage=(getenv(ALLOW_PROP_REUSAGE_STRING)!=nullptr);
-  if(not allowPropReusage)
-    master_printf("To allow prop reusage please export: %s\n",ALLOW_PROP_REUSAGE_STRING);
   
   //parse the rest of the args
   for(int iarg=2;iarg<narg;iarg++)
     {
       bool parsed=false;
-      master_printf("parsing argument %d: '%s'\n",iarg,arg[iarg]);
+      MASTER_PRINTF("parsing argument %d: '%s'\n",iarg,arg[iarg]);
       
       //check if we passed "periodic"
       if(not parsed and not strcasecmp(arg[iarg],"periodic"))
 	{
 	  temporal_bc=PERIODIC_BC;
-	  master_printf(" Setting temporal bc to %lg = 'periodic'\n",temporal_bc);
+	  MASTER_PRINTF(" Setting temporal bc to %lg = 'periodic'\n",temporal_bc);
 	  parsed=true;
 	}
       
@@ -42,14 +57,14 @@ void init_simulation(int narg,char **arg)
       if(not parsed and not strcasecmp(arg[iarg],"antiperiodic"))
 	{
 	  temporal_bc=ANTIPERIODIC_BC;
-	  master_printf(" Setting temporal bc to %lg = 'antiperiodic'\n",temporal_bc);
+	  MASTER_PRINTF(" Setting temporal bc to %lg = 'antiperiodic'\n",temporal_bc);
 	  parsed=true;
 	}
       
       //check if we passed "store_photons"
       if(not parsed and not strcasecmp(arg[iarg],"store_photons"))
 	{
-	  master_printf(" Store the photon fields\n");
+	  MASTER_PRINTF(" Store the photon fields\n");
 	  store_photons=true;
 	  parsed=true;
 	}
@@ -57,7 +72,7 @@ void init_simulation(int narg,char **arg)
       //check if we passed "load_photons"
       if(not parsed and not strcasecmp(arg[iarg],"load_photons"))
 	{
-	  master_printf(" Load (if present) the photon fields\n");
+	  MASTER_PRINTF(" Load (if present) the photon fields\n");
 	  load_photons=true;
 	  parsed=true;
 	}
@@ -66,13 +81,14 @@ void init_simulation(int narg,char **arg)
       if(not parsed)
 	{
 	  std::string app(arg[iarg]);
-	  stop_path+="_"+app;
-	  running_filename+="_"+app;
-	  finished_filename+="_"+app;
-	  master_printf("Adding to stop,finished,and running filenames the suffix: '%s'\n",arg[iarg]);
-	  master_printf("Stop filename: '%s'\n",stop_path.c_str());
-	  master_printf("Running filename: '%s'\n",running_filename.c_str());
-	  master_printf("Finished filename: '%s'\n",finished_filename.c_str());
+	  stopPath+="_"+app;
+	  runningFilename+="_"+app;
+	  finishedFilename+="_"+app;
+	  MASTER_PRINTF("Adding to stop,finished,and running filenames the suffix: '%s'\n",arg[iarg]);
+	  MASTER_PRINTF("Stop path: '%s'\n",stopPath.c_str());
+	  MASTER_PRINTF("Running filename: '%s'\n",runningFilename.c_str());
+	  MASTER_PRINTF("Finished filename: '%s'\n",finishedFilename.c_str());
+	  MASTER_PRINTF("Partial data filename: '%s'\n",partialDataFilename.c_str());
 	  parsed=true;
 	}
     }
@@ -93,7 +109,7 @@ void init_simulation(int narg,char **arg)
   read_nhits();
   int nsources;
   read_str_int("NSources",&nsources);
-  ori_source_name_list.resize(nsources);
+  ori_source_name_list.resize(nsources*nCopies);
   //discard header
   expect_str("Name");
   if(stoch_source) expect_str("NoiseType");
@@ -118,9 +134,18 @@ void init_simulation(int narg,char **arg)
       //store
       int store_source;
       read_int(&store_source);
+      
       //add
-      ori_source_name_list[isource]=name;
-      Q[name].init_as_source(noise_type,tins,0,store_source);
+      for(int icopy=0;icopy<nCopies;icopy++)
+	{
+	  char suffix[128]="";
+	  if(nCopies>1) sprintf(suffix,"_copy%d",icopy);
+	  
+	  char fullName[1024+129];
+	  sprintf(fullName,"%s%s",name,suffix);
+	  ori_source_name_list[isource+nsources*icopy]=fullName;
+	  Q[fullName].init_as_source(noise_type,tins,0,store_source);
+	}
     }
   
   read_twisted_run();
@@ -129,7 +154,7 @@ void init_simulation(int narg,char **arg)
   //NProps
   int nprops;
   read_str_int("NProps",&nprops);
-  qprop_name_list.resize(nprops);
+  qprop_name_list.resize(nprops*nCopies);
   //Discard header
   expect_str("Name");
   expect_str("Ins");
@@ -150,19 +175,18 @@ void init_simulation(int narg,char **arg)
       //name
       char name[1024];
       read_str(name,1024);
-      master_printf("Read variable 'Name' with value: %s\n",name);
-      if(Q.find(name)!=Q.end() and not allowPropReusage) crash("name \'%s\' already included",name);
+      MASTER_PRINTF("Read variable 'Name' with value: %s\n",name);
       
       //ins name
       char ins[INS_TAG_MAX_LENGTH+1];
       read_str(ins,INS_TAG_MAX_LENGTH);
-      master_printf("Read variable 'Ins' with value: %s\n",ins);
+      MASTER_PRINTF("Read variable 'Ins' with value: %s\n",ins);
       
       //source_name
       std::vector<source_term_t> source_terms;
       char source_name[1024];
       read_str(source_name,1024);
-      master_printf("Read variable 'SourceName' with value: %s\n",source_name);
+      MASTER_PRINTF("Read variable 'SourceName' with value: %s\n",source_name);
       
       bool multi_source=(strcasecmp(source_name,"LINCOMB")==0);
       
@@ -170,7 +194,7 @@ void init_simulation(int narg,char **arg)
       if(multi_source)
 	{
 	  read_int(&nsources);
-	  master_printf("Read variable 'NSources' with value: %d\n",nsources);
+	  MASTER_PRINTF("Read variable 'NSources' with value: %d\n",nsources);
 	}
       else
 	nsources=1;
@@ -181,9 +205,8 @@ void init_simulation(int narg,char **arg)
 	  if(multi_source)
 	    {
 	      read_str(source_name,1024);
-	      if(Q.find(source_name)==Q.end()) crash("unable to find source %s",source_name);
 	      
-	      master_printf("Read variable 'Sourcename' with value: %s\n",source_name);
+	      MASTER_PRINTF("Read variable 'Sourcename' with value: %s\n",source_name);
 	      
 	      //read weight as string
 	      char sweight[128];
@@ -197,19 +220,20 @@ void init_simulation(int narg,char **arg)
 	      weight.first=cweight.real();
 	      weight.second=cweight.imag();
 	    }
-	  else
-	    if(Q.find(source_name)==Q.end()) crash("unable to find source %s",source_name);
 	  
 	  source_terms.push_back(std::make_pair(source_name,weight));
 	}
       
       //insertion time
-      int tins;
-      read_int(&tins);
-      master_printf("Read variable 'Tins' with value: %d\n",tins);
+      int tins=-1;
+      if(strcasecmp(ins,ins_tag[DEL_POS])!=0)
+	{
+	  read_int(&tins);
+	  MASTER_PRINTF("Read variable 'Tins' with value: %d\n",tins);
+	}
       
       double kappa=0.125,mass=0.0,charge=0,residue=1e-16;
-      momentum_t theta;
+      Momentum theta;
       char ext_field_path[32]="";
       theta[0]=temporal_bc;
       for(int mu=1;mu<NDIM;mu++) theta[mu]=0;
@@ -217,27 +241,33 @@ void init_simulation(int narg,char **arg)
       
       bool decripted=false;
       
-      if(strcasecmp(ins,ins_tag[PROP])==0)
+      if(strcasecmp(ins,ins_tag[PROP])==0 or
+	 strcasecmp(ins,ins_tag[DIROP])==0 or
+	 strcasecmp(ins,ins_tag[LEP_LOOP])==0)
 	{
 	  decripted=true;
 	  
 	  read_double(&kappa);
-	  master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
+	  MASTER_PRINTF("Read variable 'Kappa' with value: %lg\n",kappa);
 	  if(twisted_run)
 	    {
 	      read_double(&mass);
-	      master_printf("Read variable 'Mass' with value: %lg\n",mass);
+	      MASTER_PRINTF("Read variable 'Mass' with value: %lg\n",mass);
+	      
 	      read_int(&r);
-	      master_printf("Read variable 'R' with value: %d\n",r);
+	      MASTER_PRINTF("Read variable 'R' with value: %d\n",r);
 	      
 	      //include tau in the mass
 	      mass*=tau3[r];
 	    }
 	  read_double(&charge);
-	  master_printf("Read variable 'Charge' with value: %lg\n",charge);
+	  MASTER_PRINTF("Read variable 'Charge' with value: %lg\n",charge);
 	  read_theta(theta);
-	  read_double(&residue);
-	  master_printf("Read variable 'Residue' with value: %lg\n",residue);
+	  if(strcasecmp(ins,ins_tag[DIROP])!=0)
+	    {
+	      read_double(&residue);
+	      MASTER_PRINTF("Read variable 'Residue' with value: %lg\n",residue);
+	    }
 	}
       
       //read phasing
@@ -253,16 +283,23 @@ void init_simulation(int narg,char **arg)
 				 VBHOTON0,VBHOTON1,VBHOTON2,VBHOTON3})
 	vph|=(strcasecmp(ins,ins_tag[possIns])==0);
       
+      bool ph=false;
+      for(const auto& possIns : {CVEC0,CVECBW0,CVECFW0,
+				 CVEC1,
+				 CVEC2,
+				 CVEC3})
+	ph|=(strcasecmp(ins,ins_tag[possIns])==0);
+      
       if(vph)
 	{
 	  decripted=true;
 	  
 	  read_double(&mass);
-	  master_printf("Read variable 'Mass' with value: %lg\n",mass);
+	  MASTER_PRINTF("Read variable 'Mass' with value: %lg\n",mass);
 	  
 	  
 	  read_int(&r);
-	  master_printf("Read variable 'R' with value: %d\n",r);
+	  MASTER_PRINTF("Read variable 'R' with value: %d\n",r);
 	  
 	  read_theta(theta);
 	}
@@ -273,10 +310,10 @@ void init_simulation(int narg,char **arg)
 	  decripted=true;
 	  
 	  read_double(&kappa);
-	  master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
+	  MASTER_PRINTF("Read variable 'Kappa' with value: %lg\n",kappa);
 	  
 	  read_int(&r);
-	  master_printf("Read variable 'R' with value: %d\n",r);
+	  MASTER_PRINTF("Read variable 'R' with value: %d\n",r);
 	  
 	  read_theta(theta);
 	}
@@ -288,20 +325,52 @@ void init_simulation(int narg,char **arg)
 	  decripted=true;
 	  
 	  read_double(&kappa1);
-	  master_printf("Read variable 'Kappa1' with value: %lg\n",kappa1);
+	  MASTER_PRINTF("Read variable 'Kappa1' with value: %lg\n",kappa1);
 	  
 	  read_double(&kappa2);
-	  master_printf("Read variable 'Kappa2' with value: %lg\n",kappa2);
+	  MASTER_PRINTF("Read variable 'Kappa2' with value: %lg\n",kappa2);
 	  
 	  read_double(&kappa3);
-	  master_printf("Read variable 'Kappa3' with value: %lg\n",kappa3);
+	  MASTER_PRINTF("Read variable 'Kappa3' with value: %lg\n",kappa3);
 	  
 	  read_int(&r);
-	  master_printf("Read variable 'R' with value: %d\n",r);
+	  MASTER_PRINTF("Read variable 'R' with value: %d\n",r);
 	  
 	  read_theta(theta);
 	}
       double kappa_asymm[4]={0.0,kappa1,kappa2,kappa3};
+      
+      if(strcasecmp(ins,ins_tag[DEL_POS])==0)
+	{
+	  Coords c;
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      read_int(&c[mu]);
+	      if(c[mu]<0)
+		CRASH("dir %d has been chosen negative value %d",mu,c[mu]);
+	      if(c[mu]>=glbSize[mu])
+		CRASH("dir %d has been chosen larger than glb size %d",mu,glbSize[mu]);
+	    }
+	  
+	  r=glblxOfCoord(c);
+	  MASTER_PRINTF("Choosing coords {%d,%d,%d,%d} corresponding to site %d\n",c[0],c[1],c[2],c[3],r);
+	  
+	  decripted=true;
+	}
+      
+      if(strcasecmp(ins,ins_tag[DEL_SPIN])==0)
+	{
+	  read_int(&r);
+	  MASTER_PRINTF("Choosing spin %d\n",r);
+	  decripted=true;
+	}
+      
+      if(strcasecmp(ins,ins_tag[DEL_COL])==0)
+	{
+	  read_int(&r);
+	  MASTER_PRINTF("Choosing color %d\n",r);
+	  decripted=true;
+	}
       
       //everything else
       if(not decripted)
@@ -310,23 +379,43 @@ void init_simulation(int narg,char **arg)
 	  if(strcasecmp(ins,ins_tag[EXT_FIELD])==0)
 	    {
 	      read_str(ext_field_path,32);
-	      master_printf("Read variable 'ext_field_path' with value: %s\n",ext_field_path);
+	      MASTER_PRINTF("Read variable 'ext_field_path' with value: %s\n",ext_field_path);
 	    }
 	  
 	  if(twisted_run)
 	    {
 	      read_int(&r);
-	      master_printf("Read variable 'R' with value: %d\n",r);
+	      MASTER_PRINTF("Read variable 'R' with value: %d\n",r);
 	    }
 	  read_double(&charge);
-	  master_printf("Read variable 'Charge' with value: %lg\n",charge);
+	  MASTER_PRINTF("Read variable 'Charge' with value: %lg\n",charge);
+	  
+	  if(ph)
+	    read_theta(theta);
 	}
       
       read_int(&store_prop);
-      master_printf("Read variable 'Store' with value: %d\n",store_prop);
+      MASTER_PRINTF("Read variable 'Store' with value: %d\n",store_prop);
       
-      Q[name].init_as_propagator(ins_from_tag(ins),source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
-      qprop_name_list[iq]=name;
+      for(int icopy=0;icopy<nCopies;icopy++)
+	{
+	  char suffix[128]="";
+	  if(nCopies>1) sprintf(suffix,"_copy%d",icopy);
+	  
+	  std::vector<source_term_t> source_full_terms=source_terms;
+	  for(auto& [name,weight] : source_full_terms)
+	    {
+	      name+=suffix;
+	      if(Q.find(name)==Q.end()) CRASH("unable to find source %s",name.c_str());
+	    }
+	  
+	  char fullName[1024+129];
+	  sprintf(fullName,"%s%s",name,suffix);
+	  if(Q.find(fullName)!=Q.end()) CRASH("name \'%s\' already included",fullName);
+	  
+	  Q[fullName].init_as_propagator(ins_from_tag(ins),source_full_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
+	  qprop_name_list[icopy+nCopies*iq]=fullName;
+	}
     }
   
   read_photon_pars();
@@ -341,6 +430,53 @@ void init_simulation(int narg,char **arg)
   
   //mesons
   read_mes2pts_contr_pars();
+  
+  constexpr bool decryptNameTest=false;
+  if(decryptNameTest)
+    for(const mes_contr_t& m : mes2ptsContr)
+      {
+	int bwOrder=0;
+	std::string line;
+	for(const std::string& u : {m.a,m.b})
+	  {
+	    std::string cur=u;
+	    while(not Q[cur].is_source)
+	      {
+		std::string wh;
+		switch(Q[cur].insertion)
+		  {
+		  case PROP:
+		    wh="-";
+		    break;
+		  case SCALAR:
+		    wh="G[0]";
+		    break;
+		  case PSEUDO:
+		    wh="G[5]";
+		    break;
+		  case GAMMA:
+		    wh="G["+std::to_string(Q[cur].r)+"]";
+		    break;
+		  default:
+		    break;
+		  }
+		
+		if(const int t=Q[cur].tins;t!=-1)
+		  wh+="|t="+std::to_string(t)+"|";
+		
+		if(bwOrder==0)
+		  line=wh+line;
+		else
+		  line=line+wh;
+		
+		cur=Q[cur].source_terms.front().first;
+	      }
+	    
+	    line+="     ";
+	    bwOrder++;
+	  }
+	MASTER_PRINTF("Decrypting %s = %s\n",m.name.c_str(),line.c_str());
+      }
   
   //meslept
   read_meslep_contr_pars();
@@ -364,17 +500,17 @@ void init_simulation(int narg,char **arg)
   
   if(clover_run)
     {
-      Cl=nissa_malloc("Cl",locVol,clover_term_t);
-      invCl=nissa_malloc("invCl",locVol,inv_clover_term_t);
+      Cl=new LxField<clover_term_t>("Cl");
+      invCl=new LxField<inv_clover_term_t>("invCl");
     }
   
   allocate_loop_source();
   allocate_photon_fields();
   
-  loc_contr=nissa_malloc("loc_contr",locVol,complex);
+  loc_contr=new LxField<complex>("loc_contr");
   
-  allocate_mes2pts_contr();
-  allocate_handcuffs_contr();
+  for(mes_contr_t& m : mes2ptsContr)
+    m.alloc();
   
   nmeslep_corr=nquark_lep_combos*nindep_meslep_weak;
   meslep_hadr_part=nissa_malloc("hadr",locVol,spinspin);
@@ -394,14 +530,17 @@ void close()
   
   Q.clear();
   
+  cachedLepLoops.clear();
+  
   free_photon_fields();
   free_loop_source();
   free_L_prop();
   
-  free_mes2pts_contr();
-  free_handcuffs_contr();
+  for(mes_contr_t& m : mes2ptsContr)
+    m.unalloc();
+  freeHandcuffsContr();
   
-  nissa_free(loc_contr);
+  delete loc_contr;
   
   nissa_free(meslep_hadr_part);
   nissa_free(meslep_contr);
@@ -416,8 +555,8 @@ void close()
   
   if(clover_run)
     {
-      nissa_free(Cl);
-      nissa_free(invCl);
+      delete Cl;
+      delete invCl;
     }
   free_bar2pts_contr();
   
@@ -432,22 +571,82 @@ void in_main(int narg,char **arg)
   //init simulation according to input file
   init_simulation(narg,arg);
   
+  constexpr char PRESERVE_PARTIAL_DATA_STR[]="PRESERVE_PARTIAL_DATA";
+  if(const char* preservePartialDataStr=getenv(PRESERVE_PARTIAL_DATA_STR))
+    preservePartialData=atoi(preservePartialDataStr);
+  else
+    MASTER_PRINTF("Optionally preserve the partial data by exporting %s\n",PRESERVE_PARTIAL_DATA_STR);
+  MASTER_PRINTF("Preserve partial data: %d\n",preservePartialData);
+  
+  constexpr char NMAX_TRIALS_STR[]="NMAX_TRIALS";
+  if(const char* nMaxTrialsStr=getenv(NMAX_TRIALS_STR))
+    nMaxTrials=atoi(nMaxTrialsStr);
+  else
+    MASTER_PRINTF("Optionally set the maximum number of trials for a conf by exporting %s\n",NMAX_TRIALS_STR);
+  
+  MASTER_PRINTF("Number of maximum trials per conf set to: %d\n",nMaxTrials);
+  
+  constexpr char NMAX_PROPS_ALLOCATED_STR[]="NMAX_PROPS_ALLOCATED";
+  if(const char* nMaxAllocatedStr=getenv(NMAX_PROPS_ALLOCATED_STR))
+    {
+      nMaxPropsAllocated=atoi(nMaxAllocatedStr);
+      MASTER_PRINTF("%s=%d\n",NMAX_PROPS_ALLOCATED_STR,nMaxPropsAllocated);
+    }
+  else
+    {
+      MASTER_PRINTF("No maximum number of propagators to be allocated passed\n");
+      MASTER_PRINTF("Optionally specify the maximal number of propagators to be allocated by exporting %s\n",NMAX_PROPS_ALLOCATED_STR);
+    }
+  
+  constexpr char DO_NOT_AVERAGE_HITS_STR[]="DO_NOT_AVERAGE_HITS";
+  doNotAverageHits=getenv(DO_NOT_AVERAGE_HITS_STR)!=nullptr;
+  if(doNotAverageHits)
+    MASTER_PRINTF("%s exported, not averaging hits\n",DO_NOT_AVERAGE_HITS_STR);
+  else
+    MASTER_PRINTF("Averaging hits, export %s if needed otherwise\n",DO_NOT_AVERAGE_HITS_STR);
+  
   //loop over the configs
   int iconf=0;
-  while(read_conf_parameters(iconf,finish_file_present))
+  while(read_conf_parameters(iconf) and not fileExists(finishedPath()))
     {
-      for(int ihit=0;ihit<nhits;ihit++)
+      HitLooper hitLooper;
+      const int nHitsDoneSoFar=
+	hitLooper.maybeLoadPartialData();
+      
+      if(nHitsDoneSoFar)
+	MASTER_PRINTF("Found partial file with %d hits\n",nHitsDoneSoFar);
+      
+      for(int iHit=0;iHit<nHits;iHit++)
 	{
-	  start_hit(ihit);
-	  generate_propagators(ihit);
-	  compute_contractions();
-	  propagators_fft(ihit);
+	  const bool skip=
+	    iHit<nHitsDoneSoFar;
+	  
+	  hitLooper.start_hit(iHit,skip);
+	  if(skip)
+	    MASTER_PRINTF("Skipping\n");
+	  else
+	    {
+	      hitLooper.run(iHit);
+	      
+	      compute_contractions(); //not working, here only to emit errors
+	      propagators_fft(iHit); // same
+	      
+	      if(doNotAverageHits)
+		print_contractions(iHit);
+	      
+	      hitLooper.writePartialData(iHit+1);
+	    }
 	}
       
-      free_confs();
-      print_contractions();
+      MASTER_PRINTF("NOffloaded: %d\n",hitLooper.nOffloaded);
+      MASTER_PRINTF("NRecalled: %d\n",hitLooper.nRecalled);
       
-      mark_finished();
+      free_confs();
+      
+      if(not doNotAverageHits)
+	print_contractions();
+      
+      finalizeConf(hitLooper);
     }
   
   //close the simulation
@@ -457,8 +656,9 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa_threaded(narg,arg,in_main);
-  close_nissa();
+  initNissa(narg,arg);
+  in_main(narg,arg);
+  closeNissa();
   
   return 0;
 }

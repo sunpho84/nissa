@@ -37,7 +37,7 @@ namespace nissa
 #endif
   {
     
-    verbosity_lv2_master_printf("\n");
+    VERBOSITY_LV2_MASTER_PRINTF("\n");
     
     BASETYPE *s=nissa_malloc("s",BULK_VOL,BASETYPE);
     BASETYPE *p=nissa_malloc("p",BULK_VOL+BORD_VOL,BASETYPE);
@@ -61,9 +61,9 @@ namespace nissa
     double delta;
     double_vector_glb_scalar_prod(&delta,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
     
-    verbosity_lv2_master_printf("Source norm: %lg\n",source_norm);
-    if(source_norm==0 || std::isnan(source_norm)) crash("invalid norm: %lg",source_norm);
-    verbosity_lv2_master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
+    VERBOSITY_LV2_MASTER_PRINTF("Source norm: %lg\n",source_norm);
+    if(source_norm==0 || std::isnan(source_norm)) CRASH("invalid norm: %lg",source_norm);
+    VERBOSITY_LV2_MASTER_PRINTF("iter 0 relative residue: %lg\n",delta/source_norm);
     
     int final_iter;
     
@@ -78,10 +78,12 @@ namespace nissa
 	//(r_k,r_k)/(p_k*DD*p_k)
 	STOP_TIMING(cg_inv_over_time);
 	APPLY_OPERATOR(s,CG_OPERATOR_PARAMETERS p);
-	if(IS_MASTER_THREAD) cg_inv_over_time-=take_time();
+	cg_inv_over_time-=take_time();
 	
 	double_vector_glb_scalar_prod(&alpha,(double*)s,(double*)p,BULK_VOL*NDOUBLES_PER_SITE);
+	VERBOSITY_LV3_MASTER_PRINTF("alpha: %lg\n",alpha);
 	omega=delta/alpha;
+	VERBOSITY_LV3_MASTER_PRINTF("omega: %lg\n",omega);
 	
 	//sol_(k+1)=x_k+omega*p_k
 	double_vector_summ_double_vector_prod_double((double*)sol,(double*)sol,(double*)p,omega,BULK_VOL*NDOUBLES_PER_SITE);
@@ -95,12 +97,12 @@ namespace nissa
 	delta=lambda;
 	
 	//checks
-	if(std::isnan(gammag)) crash("nanned");
+	if(std::isnan(gammag)) CRASH("nanned");
 	
 	//p_(k+1)=r_(k+1)+gammag*p_k
 	double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,gammag,BULK_VOL*NDOUBLES_PER_SITE);
 	
-	if(iter%each==0) verbosity_lv2_master_printf("iter %d relative residue: %lg\n",iter,lambda/source_norm);
+	if(iter%each==0) VERBOSITY_LV2_MASTER_PRINTF("iter %d relative residue: %lg\n",iter,lambda/source_norm);
       }
     while(lambda>=(residue*source_norm) && iter<niter);
     
@@ -109,18 +111,18 @@ namespace nissa
     double_vector_subt((double*)r,(double*)source,(double*)s,BULK_VOL*NDOUBLES_PER_SITE);
     double_vector_glb_scalar_prod(&lambda,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
     
-    verbosity_lv2_master_printf("final relative residue (after %d iters): %lg where %lg was required\n",
+    VERBOSITY_LV2_MASTER_PRINTF("final relative residue (after %d iters): %lg where %lg was required\n",
 				final_iter,lambda/source_norm,residue);
     if(lambda/source_norm>=2*residue)
-      master_printf("WARNING: true residue %lg much larger than required and expected one %lg\n",
+      WARNING("true residue %lg much larger than required and expected one %lg\n",
 		    lambda/source_norm,residue);
     
-    verbosity_lv1_master_printf(" Total cg iterations: %d\n",final_iter);
+    VERBOSITY_LV1_MASTER_PRINTF(" Total cg iterations: %d\n",final_iter);
     
     //check if not converged
-    if(final_iter==niter) crash("exit without converging");
+    if(final_iter==niter) CRASH("exit without converging");
     
-    if(IS_MASTER_THREAD) cg_inv_over_time+=take_time();
+    cg_inv_over_time+=take_time();
     
     nissa_free(s);
     nissa_free(p);

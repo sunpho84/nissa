@@ -42,7 +42,7 @@ namespace nissa
     //compute and print source norm
     double source_norm;
     double_vector_glb_scalar_prod(&source_norm,(double*)external_source,(double*)external_source,BULK_SIZE*NDOUBLES_PER_SITE);
-    verbosity_lv2_master_printf("Source norm: %lg\n",source_norm);
+    VERBOSITY_LV2_MASTER_PRINTF("Source norm: %lg\n",source_norm);
     
     //internal inverter source
     BASETYPE *internal_source=nissa_malloc("internal_source",BULK_SIZE+BORD_SIZE,BASETYPE);
@@ -68,7 +68,7 @@ namespace nissa
 	
 	double_conv_quadruple_vector_glb_scalar_prod(&current_residue,(float_128*)residue_128,(float_128*)residue_128,BULK_SIZE*NDOUBLES_PER_SITE);
 	current_residue/=source_norm;
-	verbosity_lv2_master_printf("\nExternal loop iter %d relative residue: %lg\n\n",ext_iter,current_residue);
+	VERBOSITY_LV2_MASTER_PRINTF("\nExternal loop iter %d relative residue: %lg\n\n",ext_iter,current_residue);
 	
 	// 3) calibrate inner solver stopping condition
 	double inner_solver_residue=std::max(1.e-16,external_solver_residue/current_residue);
@@ -77,7 +77,8 @@ namespace nissa
 	if(current_residue>=external_solver_residue)
 	  {
 	    //compute partial sol
-	    CG_128_INNER_SOLVER(sol,NULL,CG_128_INNER_PARAMETERS_CALL 1000000,inner_solver_residue,internal_source);
+	    CRASH("reimplement");(void)inner_solver_residue;
+	    //CG_128_INNER_SOLVER(sol,NULL,CG_128_INNER_PARAMETERS_CALL 1000000,inner_solver_residue,internal_source);
 	    
 	    //add the approximated solution to the total one
 	    quadruple_vector_summassign_double_vector((float_128*)sol_128,(double*)sol,BULK_SIZE*NDOUBLES_PER_SITE);
@@ -85,7 +86,7 @@ namespace nissa
 	if(ext_iter!=0 && !(current_residue<previous_residue))
 	  {
 	    quit=1;
-	    master_printf("Previous residue %lg, current residue %lg. Not converging, quitting loop\n",previous_residue,current_residue);
+	    MASTER_PRINTF("Previous residue %lg, current residue %lg. Not converging, quitting loop\n",previous_residue,current_residue);
 	  }
 	previous_residue=current_residue;
 	
@@ -93,8 +94,8 @@ namespace nissa
       }
     while(current_residue>=external_solver_residue && !quit);
     
-    verbosity_lv1_master_printf("\nFinal residue: %lg\n",current_residue);
-    verbosity_lv2_master_printf("\n");
+    VERBOSITY_LV1_MASTER_PRINTF("\nFinal residue: %lg\n",current_residue);
+    VERBOSITY_LV2_MASTER_PRINTF("\n");
     
     //copy the solution in 128 bit to the 64 bit
     double_vector_from_quadruple_vector((double*)sol,(float_128*)sol_128,BULK_SIZE*NDOUBLES_PER_SITE);

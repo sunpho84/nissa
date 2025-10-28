@@ -2,27 +2,22 @@
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/covariant_derivative.cpp \
-	%D%/fft.cpp \
 	%D%/fourier_transform.cpp \
 	%D%/gauge_fixing.cpp \
 	%D%/gaugeconf.cpp \
 	%D%/remap_vector.cpp \
 	%D%/remez/remez_algorithm.cpp \
-	%D%/shift.cpp \
 	%D%/source.cpp \
 	%D%/smearing/APE.cpp \
-	%D%/smearing/gaussian.cpp \
 	%D%/smearing/hex.cpp \
 	%D%/smearing/HYP.cpp \
 	%D%/smearing/smooth.cpp \
-	%D%/smearing/stout_common.cpp \
 	%D%/smearing/stout_eo.cpp \
 	%D%/smearing/stout_lx.cpp \
 	%D%/smearing/Wflow.cpp \
 	%D%/su3_paths/arbitrary.cpp \
 	%D%/su3_paths/clover_term.cpp \
 	%D%/su3_paths/gauge_sweeper.cpp \
-	%D%/su3_paths/plaquette.cpp \
 	%D%/su3_paths/rectangles.cpp \
 	%D%/su3_paths/rectangular_staples.cpp \
 	%D%/su3_paths/squared_staples.cpp \

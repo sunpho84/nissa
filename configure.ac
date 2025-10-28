@@ -28,8 +28,23 @@ AC_PROG_CXX
 AC_PROG_RANLIB
 AC_LANG([C++])
 
+AX_CXX_COMPILE_STDCXX(17,noext,mandatory)
+
 LIBRARY_RESULT="---"
 SUMMARY_RESULT="---"
+
+AX_ASSEMBLY_REPORT
+
+#demangle
+AC_CHECK_HEADERS([cxxabi.h])
+if test "$ac_cv_header_cxxabi_h" == "yes"
+then
+	CAN_DEMANGLE=1
+else
+	CAN_DEMANGLE=0
+fi
+AC_DEFINE_UNQUOTED([CAN_DEMANGLE],${CAN_DEMANGLE},[Enable demangling])
+AC_MSG_RESULT([can demangle... $ac_cv_header_cxxabi_h])
 
 #check if we enable fortran
 AC_ARG_ENABLE(fortran,
@@ -113,29 +128,53 @@ fi
 
 #check openmp
 AX_OPENMP
+if test "$enable_openmp" != "no"
+then
+	CFLAGS="$CFLAGS $OPENMP_CFLAGS"
+	CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
+	CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
+else
+	AC_MSG_ERROR(["Asked to enable OpenMP when the compiler is not supporting it"])
+fi
 
 #cuda
-AX_CHECK_CUDA
-AM_CONDITIONAL([USE_CUDA],[test "$CXX" == "nvcc"])
-if test "$CXX" == "nvcc"
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cuda_runtime.h>]],
+[[ #if !defined __NVCC__
+   # error "Not compiling with nvcc"
+   #endif
+]])],[have_cuda="yes"],[have_cuda="no"])
+AC_MSG_RESULT([checking if compiling with cuda... $have_cuda])
+AM_CONDITIONAL([USE_CUDA],[test "$have_cuda" == "yes"])
+if test "$have_cuda" == "yes"
 then
 	AC_DEFINE([USE_CUDA],1,"Using CUDA")
+	CUDA_MANAGED=__managed__
+	CUDA_HOST_AND_DEVICE="__host__ __device__"
+	CUDA_DEVICE="__device__"
+	
+	if ! (echo $CPPFLAGS $CXXFLAGS|grep -q -- -G)
+	then
+		LTO="-dlto"
+	fi
+	
+	CUDA_CPPFLAGS="-dc $LTO --expt-relaxed-constexpr --extended-lambda -x cu"
 fi
+AX_SUBPACKAGE(cufft,cufft.h,cufft,cufftDestroy,CUFFT)
 
 #threads
 AC_DEFINE([NO_THREADS],[0],["No thread parallelization used"])
 AC_DEFINE([OPENMP_THREADS],[1],["OpenMP parallelization"])
 AC_DEFINE([CUDA_THREADS],[2],["Cuda parallelization"])
 AC_ARG_WITH(threads-type,
-	AS_HELP_STRING([--with-threads-type],[Select the kind of thread (none, cpu, gpu)]),
+	AS_HELP_STRING([--with-threads-type],[Select the kind of thread to be used by default (none, openmp, cuda)]),
 	with_threads_type="${withval}",
-	if test "$have_openmp" == "yes"
+	if test "$have_cuda" == "yes"
 	then
-		with_threads_type="openmp"
+		with_threads_type="cuda"
 	else
-		if test "$have_cuda" == "yes"
+		if test "$have_openmp" == "yes"
 		then
-			with_threads_type="cuda"
+			with_threads_type="openmp"
 		else
 			with_threads_type="none"
 		fi
@@ -145,20 +184,12 @@ case "$with_threads_type" in
      openmp) if test "$have_openmp" != "no"
     	     then
 		THREADS_TYPE=OPENMP_THREADS
-		CFLAGS="$CFLAGS $OPENMP_CFLAGS"
-		CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
-		CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
-	     else
-		AC_MSG_ERROR(["Asked to enable OpenMP when the compiler is not supporting it"])
      	     fi ;;
      cuda)  if test "$have_cuda" != "no"
     	    then
 		THREADS_TYPE=CUDA_THREADS
-		CUDA_MANAGED=__managed__
-		CUDA_HOST_AND_DEVICE="__host__ __device__"
-		CUDA_DEVICE="__device__"
 	    else
-		AC_MSG_ERROR(["Asked to enable Cuda when the framework has not been found"])
+		AC_MSG_ERROR(["Asked to use cuda threads but the cuda framework has not been found"])
 	     fi;;
       *) AC_MSG_ERROR(["Unkwnown threads type ${withval}"])
 esac
@@ -170,15 +201,79 @@ AC_DEFINE_UNQUOTED([CUDA_HOST_AND_DEVICE],${CUDA_HOST_AND_DEVICE},[Whether to du
 AC_DEFINE_UNQUOTED([CUDA_DEVICE],${CUDA_DEVICE},[Whether to instantiate pure device function])
 AH_VERBATIM([COMPILING_FOR_DEVICE],
 #ifdef __CUDA_ARCH__
- 
+
  /// A convenient macro to detect that we are compiling on device
 # define COMPILING_FOR_DEVICE
- 
+
+# define _ASM_BOOKMARK_SYMBOL "//"
+
+#else
+
+# define _ASM_BOOKMARK_SYMBOL "#"
+
 #endif
 )
 AC_MSG_RESULT([with threads type... ${with_threads_type}])
 SUMMARY_RESULT="$SUMMARY_RESULT
 threads type            : $with_threads_type"
+
+#memory layout
+AC_ARG_WITH(memory-layout,
+	AS_HELP_STRING([--with-memory-layout],[Select the default memory layout (cpu, gpu)]),
+	with_memory_layout="${withval}",
+	if test "$THREADS_TYPE" == "CUDA_THREADS"
+	then
+		with_memory_layout="gpu"
+	else
+		with_memory_layout="cpu"
+	fi)
+case "$with_memory_layout" in
+     cpu) MEMORY_LAYOUT=CPU ;;
+     gpu) MEMORY_LAYOUT=GPU ;;
+     *) AC_MSG_ERROR(["Unkwnown memory layout ${withval}"])
+esac
+AC_DEFINE_UNQUOTED([DEFAULT_MEMORY_LAYOUT],${MEMORY_LAYOUT},["Default memory layout for field"])
+AC_MSG_RESULT([with memory layout... ${with_memory_layout}])
+SUMMARY_RESULT="$SUMMARY_RESULT
+memory layout            : $with_memory_layout"
+
+#cuda-aware mpi
+AC_ARG_ENABLE(cuda-aware-mpi,
+	AS_HELP_STRING([--enable-cuda-aware-mpi],[Enable cuda-aware-mpi]),
+	enable_cuda_aware_mpi="${enableval}",
+	if test "$THREADS_TYPE" == "CUDA_THREADS"
+	then
+		enable_cuda_aware_mpi="yes"
+	else
+		enable_cuda_aware_mpi="no"
+	fi)
+if test "$enable_cuda_aware_mpi" == "yes"
+then
+	AC_DEFINE([ENABLE_CUDA_AWARE_MPI],1,[Enable cuda-aware mpi])
+fi
+AC_MSG_RESULT([enable cuda aware mpi... ${enable_cuda_aware_mpi}])
+SUMMARY_RESULT="$SUMMARY_RESULT
+cuda-aware mpi          : $enable_cuda_aware_mpi"
+
+####################################
+
+#endianness specification
+AC_ARG_WITH(endianness,
+	AS_HELP_STRING([--with-endianness],[Specify endianness (auto (default, relies on compiler to specify __BYE_ORDER__), little, big)]),
+	with_endianness="${withval}",
+	with_endianness=auto)
+case "$with_endianness" in
+     little) is_little_endian=true ;;
+     big) is_little_endian=false ;;
+     auto) is_little_endian='(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)';;
+     *) AC_MSG_ERROR(["Unkwnown endianness ${with_endianness}"]);;
+esac
+AC_DEFINE_UNQUOTED([IS_LITTLE_ENDIAN],${is_little_endian},[Whether the machine is little endian])
+AC_MSG_RESULT([with endianness... ${with_endianness}])
+SUMMARY_RESULT="$SUMMARY_RESULT
+endianness            : $with_endianness"
+
+####################################
 
 #AX_CXXFLAGS_WARN_ALL
 AC_MSG_CHECKING(whether compiler understands -Wall)
@@ -192,18 +287,6 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
 #check ntl library
 #LB_CHECK_NTL(,,AC_MSG_ERROR(["Unable to find NTL library"]))
 
-#spi
-AC_ARG_ENABLE(spi,
-	AS_HELP_STRING([--enable-spi],[Enable spi stuff (ony for BG/Q)]),
-	enable_spi="${enableval}",
-	enable_spi="no")
-if test "$enable_spi" == "yes"
-then
-	AC_DEFINE([SPI],1,[Enable spi])
-fi
-AM_CONDITIONAL([SPI],[test "$enable_spi" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling spi... $enable_spi])
-
 ##############################################
 
 AX_SUBPACKAGE(ssl,openssl/ssl.h,crypto ssl,MD5_Final,SSL)
@@ -212,53 +295,9 @@ AX_SUBPACKAGE(ssl,openssl/ssl.h,crypto ssl,MD5_Final,SSL)
 
 AX_SUBPACKAGE(fftw,fftw3.h,fftw3,fftw_plan_dft_r2c_2d,FFTW)
 
-#fast fourier type
-AC_DEFINE([NATIVE_FFT],[0],["Native implementation"])
-AC_DEFINE([FFTW_FFT],[1],["FFTW library"])
-AC_ARG_WITH(fft-type,
-	AS_HELP_STRING([--with-fft-type],[Select the Fast Fourier transform implementation (native, fftw [NOT default if found])]),
-	with_fft_type="${withval}",
-	if test "$enable_fftw" != "no"
-	then
-		with_fft_type="fftw"
-	else
-		with_fft_type="native"
-	fi)
-case "$with_fft_type" in
-     native) AC_DEFINE_UNQUOTED([FFT_TYPE],[NATIVE_FFT],[Enable native Fast Fourier transform]) ;;
-     fftw) if test "$fftw_found" != "no"
-    	   then
-		AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW])
-	   else
-		AC_MSG_ERROR(["Unable to find fftw3 lib"])
-     	   fi ;;
-     *) AC_MSG_ERROR(["Unkwnown Fast Fourier type ${withval}"])
-esac
-AC_MSG_RESULT([with Fast Fourier type... ${with_fft_type}])
-SUMMARY_RESULT="$SUMMARY_RESULT
-FFT type            : $with_fft_type"
-
 #################### eigen ####################
 
 AX_SUBPACKAGE(eigen,Eigen/Dense,,,EIGEN,".",".")
-
-#enable eigen for linear algebra
-AC_ARG_ENABLE(eigen_everywhere,
-	AS_HELP_STRING([--enable-eigen-everywhere],[Enable Eigen Everywhere (default: no)]),
-	enable_eigen_everywhere="${enableval}",
-	enable_eigen_everywhere="no")
-AC_MSG_RESULT(enabling Eigen everywhere ... ${enable_eigen_everywhere})
-
-#check activability
-if test "$enable_eigen_everywhere" == "yes"
-then
-	if test "$eigen_found" == "no"
-	then
-		AC_MSG_ERROR(["Unable to find Eigen"])
-	else
-		AC_DEFINE_UNQUOTED([USE_EIGEN_EVERYWHERE],[1],[Enable Eigen everywhere])
-	fi
-fi
 
 #################### parpack ####################
 
@@ -293,20 +332,6 @@ if test "$enable_quda_bypass" == "yes"
 then
 	LIBS=$(echo $LIBS|sed 's|-lquda||g;s|-lcuda||g')
 	AC_DEFINE([ENABLE_QUDA_BYPASS],1,[Enable quda bypass])
-fi
-
-#################### tmLQCD ####################
-
-#search for the library
-TMLQCD_LIBS="-lwrapper -lhmc -lmeas -lmonomial -loperator -lsolver -linit -llinalg -lhmc -lxchange -lrational -lio"
-OLD_LIBS=$LIBS
-LIBS="$TMLQCD_LIBS $LIBS"
-AX_SUBPACKAGE(tmLQCD,,tmLQCD,tmLQCD_invert_init,TMLQCD)
-LIBS=$OLD_LIBS
-
-if test "$enable_tmLQCD" == "yes"
-then
-	LIBS="$LIBS $TMLQCD_LIBS"
 fi
 
 #################### DDalphaAMG ####################
@@ -345,6 +370,19 @@ High prec type      : $with_high_prec_type"
 
 #################### ####################
 
+#loop unrolling
+AC_ARG_ENABLE(loop-unrolling,
+	AS_HELP_STRING([--enable-loop-unrolling],[Enable loop unrolling]),
+	enable_loop_unrolling="${enableval}",
+	enable_loop_unrolling="yes")
+if test "$enable_loop_unrolling" == "yes"
+then
+	AC_DEFINE([LOOP_UNROLLING],1,[Enable loop unrolling])
+fi
+AC_MSG_RESULT([enabling loop unrolling... $enable_loop_unrolling])
+SUMMARY_RESULT="$SUMMARY_RESULT
+loop unrolling         : $enable_loop_unrolling"
+
 #cgm-debug
 AC_ARG_ENABLE(cgm-debug,
 	AS_HELP_STRING([--enable-cgm-debug],[Enable extremely verbose cgm inverter]),
@@ -361,26 +399,14 @@ AC_ARG_ENABLE(parser-generation,
 	AS_HELP_STRING([--enable-parser-generation],[Enable generation of parsers]),
 	enable_parser_generation="${enableval}",
 	enable_parser_generation="yes")
-	if test "$enable_parser_generation" == "yes"
-	then
-		#check yacc and lex
-		AC_PROG_YACC
-		AM_PROG_LEX
-	fi
+if test "$enable_parser_generation" == "yes"
+then
+	#check yacc and lex
+	AC_PROG_YACC
+	AM_PROG_LEX
+fi
 AM_CONDITIONAL([PARSER_GENERATION],[test "$enable_parser_generation" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling parser generation... $enable_parser_generation])
-
-#MPI I/O
-AC_ARG_ENABLE(mpi-io,
-	AS_HELP_STRING([--disable-mpi-io],[Enable MPI I/O]),
-	enable_mpi_io="${enableval}",
-	enable_mpi_io="yes")
-if test "$enable_mpi_io" == "yes"
-then
-	AC_DEFINE([USE_MPI_IO],1,[Enable MPI I/O])
-fi
-AM_CONDITIONAL([USE_MPI_IO],[test "$enable_mpi_io" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling MPI I/O... $enable_mpi_io])
 
 #repropducible run
 AC_ARG_ENABLE(reproducible-run,
@@ -419,15 +445,7 @@ if ! printf "%f" "$max_verbosity_lv" >/dev/null 2>&1; then AC_MSG_ERROR([String 
 AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
 AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
 
-#number of dimension
-AC_ARG_ENABLE(ndim,
-        AS_HELP_STRING([--enable-ndim=n],[Set number of dimensions [Default: 4]]),
-        ndim="${enableval}",
-        ndim=4)
-if ! printf "%f" "$ndim" >/dev/null 2>&1; then AC_MSG_ERROR([String $ndim is not a number]); fi
-AM_CONDITIONAL([NDIM2], [test x$ndim = x2])
-AC_DEFINE_UNQUOTED([NDIM],$ndim,[Number of dimensions])
-AC_MSG_RESULT([enabling number of dimension... $ndim])
+AC_DEFINE_UNQUOTED([NDIM],4,[Number of dimensions])
 
 #external solver
 if test x"$enable_quda" == x"yes" -o x"$enable_DDalphaAMG" == x"yes"
@@ -439,22 +457,8 @@ else
 fi
 AM_CONDITIONAL([USE_EXTERNAL_SOLVER],[test "$use_external_solver" == "yes"])
 
-#number of colors
-AC_ARG_ENABLE(ncol,
-        AS_HELP_STRING([--enable-ncol=n],[Set number of colors [Default: 3]]),
-        ncol="${enableval}",
-        ncol=3)
-if ! printf "%f" "$col" >/dev/null 2>&1; then AC_MSG_ERROR([String $ncol is not a number]); fi
-AM_CONDITIONAL([NCOL3], [test x$ncol = x3])
-AC_DEFINE_UNQUOTED([NCOL],$ncol,[Number of colors])
-AC_MSG_RESULT([enabling number of colors... $ncol])
-SUMMARY_RESULT="$SUMMARY_RESULT
-Number of colors    : $ncol"
-
-if test "$with_threads_type" = "cuda"
-then
-	CPPFLAGS="-dc -dlto --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS"
-fi
+#adding cuda flags before, makes a mess
+CPPFLAGS="$CUDA_CPPFLAGS $CPPFLAGS"
 
 #macros to concatenate
 AC_DEFINE([_CONCAT(X,Y)],[X##Y],[Internally concatenation])
@@ -466,6 +470,14 @@ AC_DEFINE([NAME3(s1,s2,s3)],[NAME2(CONCAT3(s1,_,s2),s3)],[Name with two _])
 AC_DEFINE([NAME4(s1,s2,s3,s4)],[NAME3(CONCAT3(s1,_,s2),s3,s4)],[Name with four _])
 AC_DEFINE([REORDER_BARRIER()],[__asm volatile ("")],[Avoid spilling])
 AC_DEFINE([MACRO_GUARD(...)],[do{__VA_ARGS__}while(0)],[Guard semicolon])
+AC_DEFINE([TO_STRING_INTERNAL(x)],[#x],[Internally stringify])
+AC_DEFINE([TO_STRING(x)],[TO_STRING_INTERNAL(x)],[Stringify])
+AC_DEFINE([LINE_AS_STRING],[TO_STRING(__LINE__)],[Instantiate the line number in a string])
+AC_DEFINE([ASM_BOOKMARK(COMMENT)],
+        [asm(_ASM_BOOKMARK_SYMBOL "Bookmark file: \"" __FILE__ "\", line: " LINE_AS_STRING  ", " COMMENT)],
+        [Include a comment in the assembler, recognizable in the compilation])
+AC_DEFINE([ASM_BOOKMARK_BEGIN(COMMENT)],[ASM_BOOKMARK("BEGIN " COMMENT)],[Put a BEGIN for asm bookmark section])
+AC_DEFINE([ASM_BOOKMARK_END(COMMENT)],[ASM_BOOKMARK("END " COMMENT)],[Put a END for asm bookmark section])
 
 #result of conf to screen
 AC_MSG_RESULT([

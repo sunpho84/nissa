@@ -129,7 +129,7 @@ void initialize_Bk(int narg,char **arg)
   // 0) base initializations
   
   //Check arguments
-  if(narg<2) crash("No input file specified!\n");
+  if(narg<2) CRASH("No input file specified!\n");
   //Take init time
   tot_prog_time-=take_time();
   //Open input
@@ -157,7 +157,7 @@ void initialize_Bk(int narg,char **arg)
   read_list_of_ints("NSeparations",&nsepa,&tsepa);
   read_list_of_chars("WallNames",&nwall,&wall_name,10);
   //Allocate twall space
-  if(nwall!=nsepa+1) crash("nwall=%d != nsepa+1=%d",nwall,nsepa+1);
+  if(nwall!=nsepa+1) CRASH("nwall=%d != nsepa+1=%d",nwall,nsepa+1);
   twall=nissa_malloc("twal",nwall,int);
   so_gnlv=nissa_malloc("so_gnlv",nwall,int);
   so_gnit=nissa_malloc("so_gnit",nwall,int*);
@@ -202,12 +202,12 @@ void initialize_Bk(int narg,char **arg)
       read_list_of_ints(tag_source,&(so_gnlv[iwall]),&(so_gnit[iwall]));
       for(int glv=1;glv<so_gnlv[iwall];glv++)
 	if(so_gnit[iwall][glv]<so_gnit[iwall][glv-1])
-	  crash("gaussian levels have to be sorted in ascending order, but this is not the case for %02 wall!",iwall);
+	  CRASH("gaussian levels have to be sorted in ascending order, but this is not the case for %02 wall!",iwall);
     }
   read_list_of_ints("SinkGaussianNiters",&si_gnlv,&si_gnit);
   for(int glv=1;glv<si_gnlv;glv++)
     if(si_gnit[glv]<si_gnit[glv-1])
-      crash("gaussian levels have to be sorted in ascending order, but this is not the case for sink!");
+      CRASH("gaussian levels have to be sorted in ascending order, but this is not the case for sink!");
   
   // 4) contraction list for eight
 
@@ -215,7 +215,7 @@ void initialize_Bk(int narg,char **arg)
   contr_mezzotto=nissa_malloc("contr_mezzotto",16*glb_size[0],complex);
   
   read_str_int("NSpec",&nspec);
-  if(nspec>nmass) crash("Nspec>nmass!!!");
+  if(nspec>nmass) CRASH("Nspec>nmass!!!");
   read_str_int("NContrTwoPoints",&ncontr_2pts);
   contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
   loc_2pts=nissa_malloc("loc_2pts",ncontr_2pts*glb_size[0],complex);
@@ -240,7 +240,7 @@ void initialize_Bk(int narg,char **arg)
   //Allocate all the propagators colorspinspin vectors
   nprop=0;
   for(int iwall=0;iwall<nwall;iwall++) nprop+=2*so_gnlv[iwall]*nmass;
-  master_printf("Number of propagator to be allocated: %d\n",nprop);
+  MASTER_PRINTF("Number of propagator to be allocated: %d\n",nprop);
   S=nissa_malloc("S",nprop,colorspinspin*);
   for(int iprop=0;iprop<nprop;iprop++) S[iprop]=nissa_malloc("S[i]",loc_vol+bord_vol,colorspinspin);
   
@@ -274,25 +274,25 @@ int read_conf_parameters()
       read_str(outfolder,1024);
       
       //Check if the conf exist
-      master_printf("Considering configuration \"%s\" with output path \"%s\".\n",outfolder,conf_path);
+      MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\".\n",outfolder,conf_path);
       ok_conf=!(dir_exists(outfolder));
       if(ok_conf)
         {
           int ris=create_dir(outfolder);
-          if(ris==0) master_printf(" Output path \"%s\" not present: configuration \"%s\" not yet analyzed, starting.\n",outfolder,conf_path);
+          if(ris==0) MASTER_PRINTF(" Output path \"%s\" not present: configuration \"%s\" not yet analyzed, starting.\n",outfolder,conf_path);
           else
             {
               ok_conf=0;
-              master_printf(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+              MASTER_PRINTF(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
             }
         }
       else
-        master_printf(" Output path \"%s\" already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
+        MASTER_PRINTF(" Output path \"%s\" already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
       igauge_conf++;
     }
   while(!ok_conf && igauge_conf<ngauge_conf);
   
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   
   return ok_conf;
 }
@@ -311,15 +311,15 @@ int check_residual_time()
       
       enough_time=remaining_time>pess_time;
       
-      master_printf("\n");
-      master_printf("-average running time: %lg secs per conf,\n",ave_time);
-      master_printf("-pessimistical estimate: %lg secs per conf\n",pess_time);
-      master_printf("-remaining time: %lg secs\n",remaining_time);
-      if(!enough_time) master_printf("Not enough time for another conf, so exiting.\n");
+      MASTER_PRINTF("\n");
+      MASTER_PRINTF("-average running time: %lg secs per conf,\n",ave_time);
+      MASTER_PRINTF("-pessimistical estimate: %lg secs per conf\n",pess_time);
+      MASTER_PRINTF("-remaining time: %lg secs\n",remaining_time);
+      if(!enough_time) MASTER_PRINTF("Not enough time for another conf, so exiting.\n");
     }
   else
     {
-      master_printf("Finished all the confs, so exiting.\n");
+      MASTER_PRINTF("Finished all the confs, so exiting.\n");
       enough_time=0;
     }
 
@@ -333,16 +333,16 @@ void load_gauge_conf()
   double time=-take_time();
   read_ildg_gauge_conf(conf,conf_path);
   time+=take_time();
-  master_printf("\nTime needed to load conf %s: %g s.\n\n",conf_path,time);
+  MASTER_PRINTF("\nTime needed to load conf %s: %g s.\n\n",conf_path,time);
   
   //compute plaquette
-  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
+  MASTER_PRINTF("plaq: %.18g\n",global_plaquette_lx_conf(conf));
   
   //prepare the smerded version
   ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
   
   //calculate smerded plaquette
-  master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
+  MASTER_PRINTF("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
   
   //Put the anti-periodic condition on the temporal border
   old_theta[0]=0;
@@ -352,16 +352,16 @@ void load_gauge_conf()
   //prepare the hypped conf if needed
   if(include_static)
     {
-      master_printf("Hypping the conf\n");
+      MASTER_PRINTF("Hypping the conf\n");
       hyp_smear_conf_dir(hyp_conf,conf,hyp_alpha0,hyp_alpha1,hyp_alpha2,0);
-      master_printf("hypped plaq: %.18g\n",global_plaquette_lx_conf(hyp_conf));
+      MASTER_PRINTF("hypped plaq: %.18g\n",global_plaquette_lx_conf(hyp_conf));
     }
 }
 
 //calculate the propagators
 void calculate_S(int iwall)
 {
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   
   for(int id=0;id<4;id++)
     {
@@ -372,23 +372,23 @@ void calculate_S(int iwall)
       //loop over smerding levels of the source
       for(int so_glv=0;so_glv<so_gnlv[iwall];so_glv++)
 	{
-	  master_printf("\n");
+	  MASTER_PRINTF("\n");
 	  
 	  int so_gnit_to_app=((so_glv==0) ? so_gnit[iwall][so_glv] : (so_gnit[iwall][so_glv]-so_gnit[iwall][so_glv-1]));
 	  gaussian_smearing(source,source,sme_conf,gaussian_kappa,so_gnit_to_app);
 	  
 	  double part_time=-take_time();
-	  master_printf("\n");
+	  MASTER_PRINTF("\n");
 	  inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,ndyn_mass,niter_max,stopping_residues,source);
 	  part_time+=take_time();ntot_inv++;tot_inv_time+=part_time;
-	  master_printf("\nFinished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n\n",
+	  MASTER_PRINTF("\nFinished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n\n",
 			     iwall,id,so_glv,part_time);
 	  
 	  for(int imass=0;imass<ndyn_mass;imass++)
 	    { //reconstruct the doublet
 	      reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgm_solution[imass]);
 	      
-	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
+	      MASTER_PRINTF("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		{
 		  int iprop=iS(iwall,so_glv,imass,r);
@@ -399,7 +399,7 @@ void calculate_S(int iwall)
     }
   
   //rotate dynamical quarks to physical basis
-  master_printf("\nRotating propagators\n");
+  MASTER_PRINTF("\nRotating propagators\n");
   for(int so_glv=0;so_glv<so_gnlv[iwall];so_glv++)
     for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
       for(int imass=0;imass<ndyn_mass;imass++) //put the (1+ig5)/sqrt(2) factor
@@ -413,12 +413,12 @@ void calculate_S(int iwall)
     {
       color *stat_source=nissa_malloc("StatSource",loc_vol+bord_vol,color);
       
-      master_printf("\nComputing static prop\n");
+      MASTER_PRINTF("\nComputing static prop\n");
       get_color_from_colorspinspin(stat_source,original_source,0,0);
 
       for(int so_glv=0;so_glv<so_gnlv[iwall];so_glv++)
 	{
-	  master_printf("\n");
+	  MASTER_PRINTF("\n");
 	  
 	  int so_gnit_to_app=((so_glv==0) ? so_gnit[iwall][so_glv] : (so_gnit[iwall][so_glv]-so_gnit[iwall][so_glv-1]));
 	  gaussian_smearing(stat_source,stat_source,sme_conf,gaussian_kappa,so_gnit_to_app);
@@ -501,7 +501,7 @@ void print_two_points_contractions_to_file(FILE *fout)
 //Calculate and print to file all the contractions
 void calculate_all_contractions()
 {
-  master_printf("Computing all contractions\n");
+  MASTER_PRINTF("Computing all contractions\n");
   tot_contr_3pts_time-=take_time();
   
   //loop over left-right wall combo
@@ -574,7 +574,7 @@ void calculate_all_contractions()
 	    char path_2pts[1024];
 	    sprintf(path_2pts,"%s/two_points_w%s_%02d_%02d",outfolder,wall_name[iwall],so_gnit[iwall][so_glv],si_gnit[si_glv]);
 	    FILE *fout_2pts=open_text_file_for_output(path_2pts);
-	    master_printf("opening file %s\n",path_2pts);
+	    MASTER_PRINTF("opening file %s\n",path_2pts);
 	    //loop over all the combos
 	    for(int im2=0;im2<nmass;im2++)
 	      for(int r2=0;r2<2;r2++)
@@ -590,7 +590,7 @@ void calculate_all_contractions()
 		      meson_two_points(S[iprop1],S[iprop2]);
 		      
 		      print_two_points_contractions_to_file(fout_2pts);
-		      verbosity_lv3_master_printf("printing contractions between %d and %d\n",iprop1,iprop2);
+		      VERBOSITY_LV3_MASTER_PRINTF("printing contractions between %d and %d\n",iprop1,iprop2);
 		      ntot_contr_2pts+=ncontr_2pts;
 		    }
 	    close_file(fout_2pts);
@@ -607,7 +607,7 @@ void analize_conf()
   for(int iwall=1;iwall<nwall;iwall++) twall[iwall]=(twall[0]+tsepa[iwall-1])%glb_size[0];
   
   //Invert propagators
-  master_printf("Going to invert: %d walls\n",nwall);
+  MASTER_PRINTF("Going to invert: %d walls\n",nwall);
   for(int iwall=0;iwall<nwall;iwall++)
     {
       generate_source(iwall);
@@ -626,14 +626,14 @@ void close_Bk()
   //take final time
   tot_prog_time+=take_time();
 
-  master_printf("\n");
-  master_printf("Total time: %g secs to analize %d configurations (%f secs avg), of which:\n",
+  MASTER_PRINTF("\n");
+  MASTER_PRINTF("Total time: %g secs to analize %d configurations (%f secs avg), of which:\n",
 		tot_prog_time,nanalized_conf,tot_prog_time/nanalized_conf);
-  master_printf(" - %02.2f%s to perform %d inversions (%f secs avg)\n",
+  MASTER_PRINTF(" - %02.2f%s to perform %d inversions (%f secs avg)\n",
 		tot_inv_time/tot_prog_time*100,"%",ntot_inv,tot_inv_time/ntot_inv);
-  master_printf(" - %02.2f%s to perform %d 3pts contr. (%f secs avg)\n",
+  MASTER_PRINTF(" - %02.2f%s to perform %d 3pts contr. (%f secs avg)\n",
 		tot_contr_3pts_time/tot_prog_time*100,"%",ntot_contr_3pts,tot_contr_3pts_time/ntot_contr_3pts);
-  master_printf(" - %02.2f%s to perform %d 2pts contr. (%f secs avg)\n",
+  MASTER_PRINTF(" - %02.2f%s to perform %d 2pts contr. (%f secs avg)\n",
 		tot_contr_2pts_time/tot_prog_time*100,"%",ntot_contr_2pts,tot_contr_2pts_time/ntot_contr_2pts);
   
   nissa_free(twall);

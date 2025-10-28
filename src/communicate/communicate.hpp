@@ -2,16 +2,11 @@
 #define COMMUNICATE_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
-#include <mpi.h>
-#include <stdio.h>
 #include <stdint.h>
 
-#include "new_types/rat_approx.hpp"
-
-#define NISSA_DEFAULT_WARN_IF_NOT_COMMUNICATED 0
 #define NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS 1
 
 /*
@@ -68,63 +63,30 @@
 */
 
 #ifndef EXTERN_COMMUNICATE
- #define EXTERN_COMMUNICATE extern
+# define EXTERN_COMMUNICATE extern
 #endif
 
 namespace nissa
 {
-#ifdef USE_MPI
-  //out and in buffer
-  struct comm_t
-  {
-    //destinations and source ranks
-    int send_rank[8],recv_rank[8];
-    //requests and message
-    MPI_Request requests[16];
-    int nrequest,imessage;
-    
-    //communication in progress
-    int comm_in_prog;
-    //local size
-    uint64_t nbytes_per_site;
-    //size of the message
-    uint64_t tot_mess_size;
-    //offsets
-    int send_offset[8],message_length[8],recv_offset[8];
-    
-    //constructor
-    bool initialized;
-    comm_t(){initialized=false;}
-  };
-#endif
-  
   EXTERN_COMMUNICATE int ncomm_allocated;
   EXTERN_COMMUNICATE int comm_in_prog;
-  EXTERN_COMMUNICATE int warn_if_not_communicated;
   EXTERN_COMMUNICATE int use_async_communications;
   
-  //buffers
-  EXTERN_COMMUNICATE uint64_t recv_buf_size,send_buf_size;
-  CUDA_MANAGED EXTERN_COMMUNICATE char *recv_buf,*send_buf;
+  EXTERN_COMMUNICATE uint64_t recvBufSize;
   
-#define DEFINE_COMM(T) EXTERN_COMMUNICATE comm_t NAME3(lx,T,comm),NAME3(eo,T,comm)
+  EXTERN_COMMUNICATE uint64_t sendBufSize;
   
-  DEFINE_COMM(spin);
-  DEFINE_COMM(spin1field);
-  DEFINE_COMM(color);
-  DEFINE_COMM(spincolor);
-  DEFINE_COMM(spincolor_128);
-  DEFINE_COMM(halfspincolor);
-  DEFINE_COMM(colorspinspin);
-  DEFINE_COMM(spinspin);
-  DEFINE_COMM(su3spinspin);
-  DEFINE_COMM(su3);
-  DEFINE_COMM(as2t_su3);
-  DEFINE_COMM(quad_su3);
-  DEFINE_COMM(oct_su3);
-  DEFINE_COMM(single_color);
-  DEFINE_COMM(single_halfspincolor);
-  DEFINE_COMM(single_quad_su3);
+#ifdef ENABLE_CUDA_AWARE_MPI
+# define CUDA_MANAGED_IF_NOT_CUDA_AWARE
+#else
+# define CUDA_MANAGED_IF_NOT_CUDA_AWARE CUDA_MANAGED
+#endif
+  
+  CUDA_MANAGED_IF_NOT_CUDA_AWARE EXTERN_COMMUNICATE char* recvBuf;
+  
+  CUDA_MANAGED_IF_NOT_CUDA_AWARE EXTERN_COMMUNICATE char* sendBuf;
+  
+#undef CUDA_MANAGED_IF_NOT_CUDA_AWARE
 }
 
 #undef EXTERN_COMMUNICATE

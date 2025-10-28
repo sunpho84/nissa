@@ -53,12 +53,12 @@ namespace nissa
   }
   
   //initialize the geometry of the boxes subdirpar sets
-  void gauge_sweeper_t::init_box_dir_par_geometry(int ext_gpar,int(*par_comp)(const coords_t& ivol_coord,const int& dir))
+  void gauge_sweeper_t::init_box_dir_par_geometry(int ext_gpar,int(*par_comp)(const Coords& ivol_coord,const int& dir))
   {
     comm_init_time-=take_time();
     
     //check and mark as inited, store parity and allocate geometry and subbox volume
-    if(par_geom_inited) crash("parity checkboard already initialized");
+    if(par_geom_inited) CRASH("parity checkboard already initialized");
     par_geom_inited=true;
     gpar=ext_gpar;
     ivol_of_box_dir_par=nissa_malloc("ivol_of_box_dir_par",NDIM*locVol,int);
@@ -74,20 +74,20 @@ namespace nissa
 	    for(int isub=0;isub<nsite_per_box[ibox];isub++)
 	      {
 		//get coordinates of site
-		coords_t isub_coord=coord_of_lx(isub,box_size[ibox]);
+		Coords isub_coord=coordOfLx(isub,boxSize[ibox]);
 		
 		//get coords in the local size, and parity
-		coords_t ivol_coord;
+		Coords ivol_coord;
 		for(int mu=0;mu<NDIM;mu++)
-		  ivol_coord[mu]=box_size[0][mu]*box_coord[ibox][mu]+isub_coord[mu];
+		  ivol_coord[mu]=boxSize[0][mu]*boxCoord[ibox][mu]+isub_coord[mu];
 		
 		int site_par=par_comp(ivol_coord,dir);
-		if(site_par>=gpar||site_par<0) crash("obtained par %d while expecting in the range [0,%d]",par,gpar-1);
+		if(site_par>=gpar||site_par<0) CRASH("obtained par %d while expecting in the range [0,%d]",par,gpar-1);
 		
 		//map sites in current parity
 		if(site_par==par)
 		  {
-		    ivol_of_box_dir_par[ibox_dir_par++]=lx_of_coord(ivol_coord,locSize);
+		    ivol_of_box_dir_par[ibox_dir_par++]=lxOfCoord(ivol_coord,locSize);
 		    nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)]++;
 		  }
 	      }
@@ -98,7 +98,7 @@ namespace nissa
   //check that everything is hit once and only once
   void gauge_sweeper_t::check_hit_exactly_once()
   {
-    coords_t *hit=nissa_malloc("hit",locVol,coords_t);
+    Coords *hit=nissa_malloc("hit",locVol,Coords);
     vector_reset(hit);
     
     //mark what we hit
@@ -110,7 +110,7 @@ namespace nissa
 	    for(int ibox_dir_par=0;ibox_dir_par<nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)];ibox_dir_par++)
 	      {
 		int ivol=ivol_of_box_dir_par[ibox_dir_par+ibase];
-		if(ivol>=locVol) crash("ibox %d ibox_par %d ibase %d ivol %d",ibox,ibox_dir_par,ibase,ivol);
+		if(ivol>=locVol) CRASH("ibox %d ibox_par %d ibase %d ivol %d",ibox,ibox_dir_par,ibase,ivol);
 		hit[ivol][dir]++;
 	      }
 	    ibase+=nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)];
@@ -119,7 +119,7 @@ namespace nissa
     //check to have hit everything
     for(int ivol=0;ivol<locVol;ivol++)
       for(int mu=0;mu<NDIM;mu++)
-	if(hit[ivol][mu]!=1) crash("missing hit ivol %d mu %d",ivol,mu);
+	if(hit[ivol][mu]!=1) CRASH("missing hit ivol %d mu %d",ivol,mu);
     
     nissa_free(hit);
   }
@@ -160,7 +160,7 @@ namespace nissa
                       {
                         int link=ilink_per_staples[ihit+nlinks_per_staples_of_link*(ibox_dir_par+ibase)];
                         if(link>=NDIM*locVol+max_cached_link)
-                          crash("ibox %d ibox_dir_par %d ibase %d ihit %d, link %d, max_cached_link %d",
+                          CRASH("ibox %d ibox_dir_par %d ibase %d ihit %d, link %d, max_cached_link %d",
                                 ibox,ibox_dir_par,ibase,ihit,link,max_cached_link);
                         
 			if(0)
@@ -182,7 +182,7 @@ namespace nissa
 					link>=NDIM*locVol?-1:locCoordOfLoclx[link/NDIM][0]);
 			    for(int mu=1;mu<NDIM;mu++) ap+=sprintf(ap,",%d",link>=NDIM*locVol?-1:locCoordOfLoclx[link/NDIM][mu]);
 			    ap+=sprintf(ap,"},dir %d]: par %d",link%NDIM,hit[link]-1);
-			    crash("%s",message);
+			    CRASH("%s",message);
 			  }
 		      }
                 }
@@ -196,8 +196,8 @@ namespace nissa
   void gauge_sweeper_t::init_staples(int ext_nlinks_per_staples_of_link,void(*ext_add_staples_per_link)(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu),void (*ext_compute_staples)(su3 staples,su3 *links,int *ilinks,double C1))
   {
     //take external nlinks and mark
-    if(!par_geom_inited) crash("call geom initializer before");
-    if(staples_inited) crash("staples already initialized");
+    if(not par_geom_inited) CRASH("call geom initializer before");
+    if(staples_inited) CRASH("staples already initialized");
     staples_inited=true;
     nlinks_per_staples_of_link=ext_nlinks_per_staples_of_link;
     add_staples_per_link=ext_add_staples_per_link;
@@ -226,8 +226,9 @@ namespace nissa
     buf_in=nissa_malloc("buf_in",max_cached_link,su3);
     
     //check cached
-    verbosity_lv3_master_printf("Max cached links: %d\n",max_cached_link);
-    if(max_cached_link>bord_vol+edge_vol) crash("larger buffer needed [really? recheck this]");
+    VERBOSITY_LV3_MASTER_PRINTF("Max cached links: %d\n",max_cached_link);
+    if(max_cached_link>bordVol+edgeVol)
+      CRASH("larger buffer needed [really? recheck this], we need cache %d links",max_cached_link);
     
     //perform two checks
     check_hit_exactly_once();
@@ -241,7 +242,7 @@ namespace nissa
   //reorder the packer
   void reorder_packing_link_source_dest(gauge_sweeper_t* gs)
   {
-    crash("redo");
+    CRASH("reimplement");
     // //split workload and find starting point
     // NISSA_CHUNK_WORKLOAD(bdp_start,chunk_load,bdp_end,0,(1<<NDIM)*NDIM*gs->gpar,THREAD_ID,nthreads);
     // int ibase=0;
@@ -333,7 +334,7 @@ namespace nissa
   //pack all the links required to compute staples
   void gauge_sweeper_t::pack_links(quad_su3 *conf,int ibase,int nbox_dir_par)
   {
-    crash("redo");
+    CRASH("redo");
     // //prepare the chunk load
     // NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,nlinks_per_staples_of_link*nbox_dir_par,THREAD_ID,NACTIVE_THREADS);
     // int *source_dest=packing_link_source_dest+2*(nlinks_per_staples_of_link*ibase+start);
@@ -348,7 +349,7 @@ namespace nissa
   }
   
   //compute the parity according to the Symanzik requirements
-  int Symanzik_par(const coords_t& ivol_coord,const int& dir)
+  int Symanzik_par(const Coords& ivol_coord,const int& dir)
   {
     int site_par=0;
     for(int mu=0;mu<NDIM;mu++) site_par+=((mu==dir)?2:1)*ivol_coord[mu];
@@ -361,8 +362,8 @@ namespace nissa
   //add all links needed for a certain site
   void add_Symanzik_staples(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu)
   {
-    coords_t& A=glbCoordOfLoclx[ivol];                            //       P---O---N
-    coords_t B,C,/*D,*/E,F,G,H,I,J,K,L,M,/*N,*/O,P;               //       |   |   |
+    Coords& A=glbCoordOfLoclx[ivol];                            //       P---O---N
+    Coords B,C,/*D,*/E,F,G,H,I,J,K,L,M,/*N,*/O,P;               //       |   |   |
     //find coord mu                                             //   H---G---F---E---D
     K[mu]=L[mu]=M[mu]=(A[mu]-1+glbSize[mu])%glbSize[mu];      //   |   |   |   |   |
     I[mu]=J[mu]=B[mu]=C[mu]=A[mu];                              //   I---J---A---B---C
@@ -370,13 +371,13 @@ namespace nissa
     /*N[mu]=*/O[mu]=P[mu]=(A[mu]+2)%glbSize[mu];               //       K---L---M
     for(int inu=0;inu<NDIM-1;inu++)
       {
-	int nu=perp_dir[mu][inu];
+	int nu=perpDirs[mu][inu];
 	
 	//copy orthogonal coords
 #if NDIM>=3
 	for(int irh=0;irh<NDIM-2;irh++)
 	  {
-	    int rh=perp2_dir[mu][inu][irh];
+	    int rh=perp2Dirs[mu][inu][irh];
 	    B[rh]=C[rh]=/*D[rh]=*/E[rh]=F[rh]=G[rh]=H[rh]=I[rh]=J[rh]=K[rh]=L[rh]=M[rh]=/*N[rh]=*/O[rh]=P[rh]=A[rh];
 	  }
 #endif
@@ -570,9 +571,9 @@ namespace nissa
   {
     if(!Symanzik_sweeper->staples_inited)
       {
-	verbosity_lv3_master_printf("Initializing Symanzik sweeper\n");
+	VERBOSITY_LV3_MASTER_PRINTF("Initializing Symanzik sweeper\n");
 	//checking consistency for gauge_sweeper initialization
-	for(int mu=0;mu<NDIM;mu++) if(locSize[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,locSize[mu]);
+	for(int mu=0;mu<NDIM;mu++) if(locSize[mu]<4) CRASH("loc_size[%d]=%d must be at least 4",mu,locSize[mu]);
 	//initialize the Symanzik sweeper
 	const int nlinks_per_Symanzik_staples_of_link=(NDIM-1)*2*(3+5*3)-(NDIM-1)*8+2;
 	Symanzik_sweeper->init_box_dir_par_geometry(4,Symanzik_par);
@@ -583,7 +584,7 @@ namespace nissa
   ///////////////////////////////////////// Wilson ////////////////////////////////////////
   
   //compute the parity according to the Wilson requirements
-  int Wilson_par(const coords_t& ivol_coord,const int& dir)
+  int Wilson_par(const Coords& ivol_coord,const int& dir)
   {
     int site_par=0;
     for(int mu=0;mu<NDIM;mu++) site_par+=ivol_coord[mu];
@@ -596,20 +597,20 @@ namespace nissa
   //add all links needed for a certain site
   void add_Wilson_staples(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu)
   {
-    coords_t& A=glbCoordOfLoclx[ivol];
-    coords_t B,F,G,J;                                       //       G---F---E
+    Coords& A=glbCoordOfLoclx[ivol];
+    Coords B,F,G,J;                                       //       G---F---E
     //find coord mu                                         //       |   |   |
     J[mu]=B[mu]=A[mu];                                      //       J---A---B
     F[mu]=G[mu]=(A[mu]+1)%glbSize[mu];
     for(int inu=0;inu<NDIM-1;inu++)
       {
-	int nu=perp_dir[mu][inu];
+	int nu=perpDirs[mu][inu];
 	
 	//copy orthogonal coords
 #if NDIM>=3
 	for(int irh=0;irh<NDIM-2;irh++)
 	  {
-	    int rh=perp2_dir[mu][inu][irh];
+	    int rh=perp2Dirs[mu][inu][irh];
 	    B[rh]=F[rh]=G[rh]=J[rh]=A[rh];
 	  }
 #endif
@@ -674,9 +675,9 @@ namespace nissa
   {
     if(!Wilson_sweeper->staples_inited)
       {
-	verbosity_lv3_master_printf("Initializing Wilson sweeper\n");
+	VERBOSITY_LV3_MASTER_PRINTF("Initializing Wilson sweeper\n");
 	//checking consistency for gauge_sweeper initialization
-	for(int mu=0;mu<NDIM;mu++) if(locSize[mu]<2) crash("loc_size[%d]=%d must be at least 2",mu,locSize[mu]);
+	for(int mu=0;mu<NDIM;mu++) if(locSize[mu]<2) CRASH("loc_size[%d]=%d must be at least 2",mu,locSize[mu]);
 	//initialize the Wilson sweeper
 	Wilson_sweeper->init_box_dir_par_geometry(2,Wilson_par);
 	const int nlinks_per_Wilson_staples_of_link=6*(NDIM-1);
@@ -687,15 +688,23 @@ namespace nissa
   //call the appropriate sweeper intializator
   void init_sweeper(gauge_action_name_t gauge_action_name)
   {
-    MANDATORY_NOT_PARALLEL;
-    
     switch(gauge_action_name)
       {
-      case WILSON_GAUGE_ACTION:if(!Wilson_sweeper->staples_inited) init_Wilson_sweeper();break;
+      case WILSON_GAUGE_ACTION:
+	if(!Wilson_sweeper->staples_inited)
+	  init_Wilson_sweeper();
+	break;
       case TLSYM_GAUGE_ACTION:
-      case IWASAKI_GAUGE_ACTION:if(!Symanzik_sweeper->staples_inited) init_Symanzik_sweeper();break;
-      case UNSPEC_GAUGE_ACTION:crash("unspecified action");break;
-      default: crash("not implemented action");break;
+      case IWASAKI_GAUGE_ACTION:
+	if(!Symanzik_sweeper->staples_inited)
+	  init_Symanzik_sweeper();
+	break;
+      case UNSPEC_GAUGE_ACTION:
+	CRASH("unspecified action");
+	break;
+      default:
+	CRASH("not implemented action");
+	break;
       }
   }
 }

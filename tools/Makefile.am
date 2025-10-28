@@ -1,9 +1,10 @@
+include $(top_srcdir)/config/baseMakefile.am
+
 AM_CPPFLAGS=-I$(top_srcdir)/src
 LDADD=$(top_builddir)/lib/libnissa.a
 AUTOMAKE_OPTIONS=subdir-objects
 
-bin_PROGRAMS= \
-	$(top_builddir)/tools/benchmarks/stag \
+bin_PROGRAMS+= \
 	$(top_builddir)/tools/conf_measure/topo \
 	$(top_builddir)/tools/conf_transform/convert/eo_to_ildg \
 	$(top_builddir)/tools/conf_transform/convert/gpu_to_ildg \
@@ -13,6 +14,7 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/conf_transform/convert/ildg_to_gpu \
 	$(top_builddir)/tools/conf_transform/create/create_cold \
 	$(top_builddir)/tools/conf_transform/create/create_hot \
+	$(top_builddir)/tools/conf_transform/create/create_U1 \
 	$(top_builddir)/tools/conf_transform/gaugefix/landau \
 	$(top_builddir)/tools/conf_transform/gaugefix/random \
 	$(top_builddir)/tools/conf_transform/smear/hex \
@@ -35,7 +37,7 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/spinors/sources_compare \
 	$(top_builddir)/tools/unitarity_check/unitarity_check
 
-__top_builddir__tools_benchmarks_stag_SOURCES=benchmarks/stag.cpp
+#__top_builddir__tools_benchmarks_stag_SOURCES=benchmarks/stag.cpp
 __top_builddir__tools_find_best_vir_partitioning_find_SOURCES=find_best_vir_partitioning/find.cpp
 __top_builddir__tools_remez_algorithm_remez_create_SOURCES=remez_algorithm/remez_create.cpp
 __top_builddir__tools_conf_measure_topo_SOURCES=conf_measure/topo.cpp
@@ -46,6 +48,7 @@ __top_builddir__tools_conf_transform_convert_ildg_to_Claudio_SOURCES=conf_transf
 __top_builddir__tools_conf_transform_convert_eo_to_ildg_SOURCES=conf_transform/convert/eo_to_ildg.cpp
 __top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES=conf_transform/convert/ildg_to_gpu.cpp conf_transform/convert/gpu_stagphase.cpp
 __top_builddir__tools_conf_transform_create_create_cold_SOURCES=conf_transform/create/create_cold.cpp
+__top_builddir__tools_conf_transform_create_create_U1_SOURCES=conf_transform/create/create_U1.cpp
 __top_builddir__tools_endianness_endianness_check_SOURCES=endianness/endianness_check.cpp
 __top_builddir__tools_endianness_endianness_swap_SOURCES=endianness/endianness_swap.cpp
 __top_builddir__tools_read_ildg_read_ildg_SOURCES=read_ildg/read_ildg.cpp
@@ -67,4 +70,12 @@ __top_builddir__tools_spinors_take_parity_SOURCES=spinors/take_parity.cpp
 __top_builddir__tools_print_gamma_gamma_test_SOURCES=print_gamma/gamma_test.cpp
 __top_builddir__tools_unitarity_check_unitarity_check_SOURCES=unitarity_check/unitarity_check.cpp
 
-EXTRA_DIST=find_best_vir_partitioning/prepare_mapping.sh
+EXTRA_DIST+=find_best_vir_partitioning/prepare_mapping.sh
+
+#generate assembly report if asked
+if ASSEMBLY_REPORT
+BUILT_SOURCES+=$(assembly_reports)
+CLEANFILES+=$(assembly_reports)
+endif
+
+#	$(top_builddir)/tools/benchmarks/stag

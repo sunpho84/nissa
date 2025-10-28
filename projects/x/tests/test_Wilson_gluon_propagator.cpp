@@ -92,8 +92,8 @@ int main(int narg,char **arg)
       }
   double glb_d_tl_wi_fft=sqrt(glb_reduce_double(loc_d_tl_wi_fft)/glb_vol);
   double glb_d_wi_inv_fft=sqrt(glb_reduce_double(loc_d_wi_inv_fft)/glb_vol);
-  master_printf("\n\nAverage norm2 difference between Wilson fft and tlSym fft computed propagators: %lg\n",glb_d_tl_wi_fft);
-  master_printf("Average norm2 difference between Wilson fft and inv computed propagators: %lg\n\n",glb_d_wi_inv_fft);
+  MASTER_PRINTF("\n\nAverage norm2 difference between Wilson fft and tlSym fft computed propagators: %lg\n",glb_d_tl_wi_fft);
+  MASTER_PRINTF("Average norm2 difference between Wilson fft and inv computed propagators: %lg\n\n",glb_d_wi_inv_fft);
   
   /////////////////////////// check Wilson Klein Gordon operator in momentum space //////////////////////
   

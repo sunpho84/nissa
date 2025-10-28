@@ -2,43 +2,49 @@
 
 using namespace nissa;
 
-int T=24,L=12;
-double qkappa=0.125;
-double qmass=.340264;
+int T=8,L=4;
+// double qkappa=0.125;
+// double qmass=.340264;
 double qr=0;
 
 gauge_info photon;
 
-double M_of_mom(tm_quark_info qu,double sin2_momh)
+template <typename T>
+T cube(const T& c)
+{
+  return c*c*c;
+}
+
+double M_of_mom(TmQuarkInfo qu,double sin2_momh)
 {
   double M=m0_of_kappa(qu.kappa)+2*sin2_momh;
   return M;
 }
 
-double M_of_mom(tm_quark_info qu,int imom)
+double M_of_mom(TmQuarkInfo qu,int imom)
 {
-  momentum_t sin_mom;
+  Momentum sin_mom;
   double sin2_mom,sin2_momh;
   get_component_of_twisted_propagator_of_imom(sin_mom,sin2_mom,sin2_momh,qu,imom);
   return M_of_mom(qu,sin2_momh);
 }
 
-double mom_comp_of_coord(int ip_mu,tm_quark_info qu,int mu)
+double mom_comp_of_coord(int ip_mu,TmQuarkInfo qu,int mu)
 {return M_PI*(2*ip_mu+qu.bc[mu])/glbSize[mu];}
 
-double mom_comp_of_site(int ip,tm_quark_info qu,int mu)
+double mom_comp_of_site(int ip,TmQuarkInfo qu,int mu)
 {return mom_comp_of_coord(glbCoordOfLoclx[ip][mu],qu,mu);}
 
-void sin_mom(momentum_t& sin_mom,int imom,tm_quark_info qu)
+void sin_mom(Momentum& sin_mom,int imom,TmQuarkInfo qu)
 {for(int mu=0;mu<NDIM;mu++) sin_mom[mu]=sin(mom_comp_of_coord(glbCoordOfLoclx[imom][mu],qu,mu));}
 
-double sin2_mom(int imom,tm_quark_info qu)
+double sin2_mom(int imom,TmQuarkInfo qu)
 {double out=0;for(int mu=0;mu<NDIM;mu++) out+=sqr(sin(mom_comp_of_coord(glbCoordOfLoclx[imom][mu],qu,mu)));return out;}
 
-double den_of_mom(const int& imom,const tm_quark_info& qu)
+double den_of_mom(const int& imom,const TmQuarkInfo& qu)
 {
   //takes the momenta part
-  momentum_t sin_mom;
+  Momentum sin_mom;
   double sin2_mom,sin2_momh;
   get_component_of_twisted_propagator_of_imom(sin_mom,sin2_mom,sin2_momh,qu,imom);
   
@@ -49,20 +55,20 @@ double den_of_mom(const int& imom,const tm_quark_info& qu)
   return den;
 }
 
-double mom_prod(const momentum_t& p,const momentum_t& q)
+double mom_prod(const Momentum& p,const Momentum& q)
 {
   double pro=0;
   for(int mu=0;mu<NDIM;mu++) pro+=p[mu]*q[mu];
   return pro;
 }
 
-void bar_transf(complex *co,tm_quark_info qu)
+void bar_transf(complex *co,TmQuarkInfo qu)
 {
   //for(int p=0;p<glb_size[0];p++)
-  //master_printf("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
-  //master_printf("\n");
+  //MASTER_PRINTF("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
+  //MASTER_PRINTF("\n");
   
-  tm_quark_info ba=qu;
+  TmQuarkInfo ba=qu;
   ba.bc[0]=1*3; //aperiodic
   
   complex c[glbSize[0]];
@@ -76,11 +82,11 @@ void bar_transf(complex *co,tm_quark_info qu)
 	  if(x<glbSize[0]/2) complex_summ_the_prod(c[x],co[ip0],fact);
 	  else                complex_summ_the_conj1_prod(c[x],co[ip0],fact);
 	}
-      master_printf("%d %.16lg %.16lg\n",x,c[x][0],c[x][1]);
+      MASTER_PRINTF("%d %.16lg %.16lg\n",x,c[x][0],c[x][1]);
     }
 }
 
-void bar_contr_free(complex *mess,tm_quark_info qu)
+void bar_contr_free(complex *mess,TmQuarkInfo qu)
 {
   double mu2=qu.mass*qu.mass;
   complex co[glbSize[0]];
@@ -89,14 +95,14 @@ void bar_contr_free(complex *mess,tm_quark_info qu)
     {
       double Mp=M_of_mom(qu,p);
       double dp=den_of_mom(p,qu);
-      momentum_t sin_p;
+      Momentum sin_p;
       sin_mom(sin_p,p,qu);
       
       NISSA_LOC_VOL_LOOP(q)
         {
 	  double Mq=M_of_mom(qu,q);
 	  double dq=den_of_mom(q,qu);
-	  momentum_t sin_q;
+	  Momentum sin_q;
 	  sin_mom(sin_q,q,qu);
 	  
 	  double pq=mom_prod(sin_p,sin_q);
@@ -104,10 +110,10 @@ void bar_contr_free(complex *mess,tm_quark_info qu)
 	  
 	  for(int r0=0;r0<glbSize[0];r0++)
 	    {
-	      coords_t cr;
+	      Coords cr;
 	      cr[0]=(3*glbSize[0]+r0-glbCoordOfLoclx[p][0]-glbCoordOfLoclx[q][0])%glbSize[0];
 	      for(int mu=1;mu<NDIM;mu++) cr[mu]=(3*glbSize[mu]-glbCoordOfLoclx[p][mu]-glbCoordOfLoclx[q][mu])%glbSize[mu];
-	      int r=loclx_of_coord(cr);
+	      int r=loclxOfCoord(cr);
 	      
 	      complex_summ_the_prod_double(co[r0],mess[r],numden);
 	    }
@@ -119,21 +125,21 @@ void bar_contr_free(complex *mess,tm_quark_info qu)
 
 void check_fw_vacuum_curr()
 {
-  tm_quark_info qu;
+  TmQuarkInfo qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
   qu.kappa=0.177;
   qu.mass=0.4;
   qu.r=1;
   
-  momentum_t res;
+  Momentum res;
   for(int mu=0;mu<NDIM;mu++)
     res[mu]=0.0;
   
   NISSA_LOC_VOL_LOOP(ip)
     {
       double dp=den_of_mom(ip,qu);
-      momentum_t sin_p;
+      Momentum sin_p;
       sin_mom(sin_p,ip,qu);
       double Mp=M_of_mom(qu,ip);
       for(int mu=0;mu<NDIM;mu++)
@@ -143,21 +149,21 @@ void check_fw_vacuum_curr()
 	}
     }
   
-  master_printf("Result of Marcus comparison\n");
+  MASTER_PRINTF("Result of Marcus comparison\n");
   for(int mu=0;mu<NDIM;mu++)
-    master_printf("%16.16lg\n",res[mu]);
+    MASTER_PRINTF("%16.16lg\n",res[mu]);
 }
 
 void check_bar()
 {
-  tm_quark_info qu;
+  TmQuarkInfo qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" -----------------baryon direct -------------------- \n");
+  MASTER_PRINTF(" -----------------baryon direct -------------------- \n");
   
   //compute the propagator traced
   complex *mess=nissa_malloc("mess",glbVol,complex);
@@ -177,14 +183,14 @@ void check_bar()
 
 void check_bar2()
 {
-  tm_quark_info qu;
+  TmQuarkInfo qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" -----------------baryon direct ins on outdiquark -------------------- \n");
+  MASTER_PRINTF(" -----------------baryon direct ins on outdiquark -------------------- \n");
   
   //compute the propagator with self-energy insertion, traced
   complex *mess=nissa_malloc("mess",glbVol,complex);
@@ -199,7 +205,7 @@ void check_bar2()
   double mu2=qu.mass*qu.mass;
   NISSA_LOC_VOL_LOOP(p)
     {
-      momentum_t sin_p;
+      Momentum sin_p;
       sin_mom(sin_p,p,qu);
       double Mp=M_of_mom(qu,p);
       double pp=mom_prod(sin_p,sin_p),Mpp=Mp*Mp;
@@ -207,13 +213,13 @@ void check_bar2()
       NISSA_LOC_VOL_LOOP(q)
         {
 	  double Mq=M_of_mom(qu,q);
-	  momentum_t sin_q;
+	  Momentum sin_q;
 	  sin_mom(sin_q,q,qu);
 	  
 	  //find p-q and compute gluon prop
-	  coords_t cpmq;
+	  Coords cpmq;
 	  for(int mu=0;mu<NDIM;mu++) cpmq[mu]=(glbSize[mu]+glbCoordOfLoclx[p][mu]-glbCoordOfLoclx[q][mu])%glbSize[mu];
-	  int pmq=glblx_of_coord(cpmq);
+	  int pmq=glblxOfCoord(cpmq);
 	  
 	  double pq=mom_prod(sin_p,sin_q);
 	  complex num={
@@ -231,21 +237,21 @@ void check_bar2()
   nissa_free(pho_pro);
 }
 
-double Co(int p,int q,tm_quark_info qu,int mu)
+double Co(int p,int q,TmQuarkInfo qu,int mu)
 {return cos((mom_comp_of_site(p,qu,mu)+mom_comp_of_site(q,qu,mu))/2);}
-double Si(int p,int q,tm_quark_info qu,int mu)
+double Si(int p,int q,TmQuarkInfo qu,int mu)
 {return sin((mom_comp_of_site(p,qu,mu)+mom_comp_of_site(q,qu,mu))/2);}
 
 void check_bar3()
 {
-  tm_quark_info qu;
+  TmQuarkInfo qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" -----------------baryon direct cons ins on outdiquark -------------------- \n");
+  MASTER_PRINTF(" -----------------baryon direct cons ins on outdiquark -------------------- \n");
   
   //compute the propagator with self-energy insertion, traced
   complex *mess=nissa_malloc("mess",glbVol,complex);
@@ -261,7 +267,7 @@ void check_bar3()
   double mu2=mu*mu;
   NISSA_LOC_VOL_LOOP(p)
     {
-      momentum_t sin_p;
+      Momentum sin_p;
       sin_mom(sin_p,p,qu);
       double Mp=M_of_mom(qu,p);
       double pp=mom_prod(sin_p,sin_p),Mpp=Mp*Mp;
@@ -270,14 +276,14 @@ void check_bar3()
       NISSA_LOC_VOL_LOOP(q)
         {
 	  double Mq=M_of_mom(qu,q);
-	  momentum_t sin_q;
+	  Momentum sin_q;
 	  sin_mom(sin_q,q,qu);
 	  double q0=sin_q[0];
 	  
 	  //find p-q and compute gluon prop
-	  coords_t cpmq;
+	  Coords cpmq;
 	  for(int nu=0;nu<NDIM;nu++) cpmq[nu]=(glbSize[nu]+glbCoordOfLoclx[p][nu]-glbCoordOfLoclx[q][nu])%glbSize[nu];
-	  int pmq=glblx_of_coord(cpmq);
+	  int pmq=glblxOfCoord(cpmq);
 	  
 	  double pq=mom_prod(sin_p,sin_q);
 	  complex num={0,0};
@@ -311,13 +317,13 @@ void check_bar3()
   nissa_free(pho_pro);
 }
 
-void mes_transf(complex *co,tm_quark_info qu)
+void mes_transf(complex *co,TmQuarkInfo qu)
 {
   for(int p=0;p<glbSize[0];p++)
-    master_printf("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
-  master_printf("\n");
+    MASTER_PRINTF("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
+  MASTER_PRINTF("\n");
   
-  tm_quark_info me=qu;
+  TmQuarkInfo me=qu;
   me.bc[0]=0;
   
   complex c[glbSize[0]];
@@ -330,47 +336,139 @@ void mes_transf(complex *co,tm_quark_info qu)
 	  complex fact={cos(p0*x),sin(p0*x)};
 	  complex_summ_the_prod(c[x],co[ip0],fact);
 	}
-      master_printf("%d %.16lg %.16lg\n",x,c[x][0],c[x][1]);
+      MASTER_PRINTF("%d %.16lg %.16lg\n",x,c[x][0],c[x][1]);
     }
 }
 
 void check_mes_2pts()
 {
-  tm_quark_info qu;
+  TmQuarkInfo qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.14;
+  qu.mass=0.001;
   qu.r=1;
   
-  master_printf(" ------------------ meson------------------ \n");
+  MASTER_PRINTF(" ------------------ meson------------------ \n");
   
   double mu2=qu.mass*qu.mass;
   complex co[glbSize[0]];
   memset(co,0,sizeof(complex)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
-      momentum_t sin_p;
+      Momentum sin_p;
       sin_mom(sin_p,p,qu);
       double dp=den_of_mom(p,qu);
       double Mp=M_of_mom(qu,p);
       
       for(int q0=0;q0<glbSize[0];q0++)
 	{
-	  coords_t cq;
+	  Coords cq;
 	  cq[0]=q0;
 	  for(int mu=1;mu<NDIM;mu++) cq[mu]=glbCoordOfLoclx[p][mu];
-	  int q=loclx_of_coord(cq);
+	  int q=loclxOfCoord(cq);
 	  
-	  momentum_t sin_q;
+	  Momentum sin_q;
 	  sin_mom(sin_q,q,qu);
 	  double dq=den_of_mom(q,qu);
 	  double Mq=M_of_mom(qu,q);
 	  double pq=mom_prod(sin_p,sin_q);
 	
 	int pmq0=(glbSize[0]+glbCoordOfLoclx[p][0]-glbCoordOfLoclx[q][0])%glbSize[0];
-	double contr=4*(mu2+pq+Mp*Mq);
+	double contr=4*(mu2+pq-Mp*Mq);
 	co[pmq0][RE]+=NCOL*contr/(glbSize[0]*glbVol*dp*dq);
+      }
+    }
+  
+  mes_transf(co,qu);
+}
+
+void check_mes_ins_S_2pts()
+{
+  TmQuarkInfo qu;
+  qu.bc[0]=1;
+  for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
+  qu.kappa=0.14;
+  qu.mass=0.001;
+  qu.r=1;
+  
+  MASTER_PRINTF(" ------------------ meson with S insertion ------------------ \n");
+  
+  complex co[glbSize[0]];
+  memset(co,0,sizeof(complex)*glbSize[0]);
+  NISSA_LOC_VOL_LOOP(p)
+    {
+      Momentum sin_p;
+      sin_mom(sin_p,p,qu);
+      double dp=den_of_mom(p,qu);
+      double Mp=M_of_mom(qu,p);
+      
+      for(int q0=0;q0<glbSize[0];q0++)
+	{
+	  Coords cq;
+	  cq[0]=q0;
+	  for(int mu=1;mu<NDIM;mu++) cq[mu]=glbCoordOfLoclx[p][mu];
+	  int q=loclxOfCoord(cq);
+	  
+	  Momentum sin_q;
+	  sin_mom(sin_q,q,qu);
+	  double dq=den_of_mom(q,qu);
+	  double Mq=M_of_mom(qu,q);
+	  double pq=mom_prod(sin_p,sin_q);
+	  // double Mpp=Mp*Mp;
+	  // double pp=mom_prod(sin_p,sin_p);
+	  double qq=mom_prod(sin_q,sin_q);
+	  double m=qu.mass;
+	  
+	int pmq0=(glbSize[0]+glbCoordOfLoclx[p][0]-glbCoordOfLoclx[q][0])%glbSize[0];
+	double contr=4*cube(m) + 8*m*Mp*Mq + 8*m*pq - 4*m*qq - 4*m*sqr(Mq);
+	 // double contr=4*cube(m) - 4*m*Mpp + 8*m*Mp*Mq - 4*m*pp + 8*m*pq;
+	co[pmq0][RE]+=NCOL*contr/(glbSize[0]*glbVol*dp*dp*dq);
+      }
+    }
+  
+  mes_transf(co,qu);
+}
+
+void check_mes_ins_P_2pts()
+{
+  TmQuarkInfo qu;
+  qu.bc[0]=1;
+  for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
+  qu.kappa=0.14;
+  qu.mass=0.001;
+  qu.r=1;
+  
+  MASTER_PRINTF(" ------------------ meson with P insertion ------------------ \n");
+  
+  complex co[glbSize[0]];
+  memset(co,0,sizeof(complex)*glbSize[0]);
+  NISSA_LOC_VOL_LOOP(p)
+    {
+      Momentum sin_p;
+      sin_mom(sin_p,p,qu);
+      double dp=den_of_mom(p,qu);
+      double Mp=M_of_mom(qu,p);
+      
+      for(int q0=0;q0<glbSize[0];q0++)
+	{
+	  Coords cq;
+	  cq[0]=q0;
+	  for(int mu=1;mu<NDIM;mu++) cq[mu]=glbCoordOfLoclx[p][mu];
+	  int q=loclxOfCoord(cq);
+	  
+	  Momentum sin_q;
+	  sin_mom(sin_q,q,qu);
+	  double dq=den_of_mom(q,qu);
+	  double Mq=M_of_mom(qu,q);
+	  double pq=mom_prod(sin_p,sin_q);
+	  double Mpp=Mp*Mp;
+	  double pp=mom_prod(sin_p,sin_p);
+	  double mu2=sqr(qu.mass);
+	  
+	int pmq0=(glbSize[0]+glbCoordOfLoclx[p][0]-glbCoordOfLoclx[q][0])%glbSize[0];
+	double contr=4*Mpp*Mq + 8*Mp*mu2 - 4*Mq*mu2 - 4*Mq*pp + 8*Mp*pq;
+	co[pmq0][IM]+=NCOL*contr/(glbSize[0]*glbVol*dp*dp*dq);
       }
     }
   
@@ -379,41 +477,44 @@ void check_mes_2pts()
 
 void check_mes_V1V1()
 {
-  tm_quark_info qu;
+  TmQuarkInfo qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
-  qu.r=qr;
-  
-  master_printf(" ------------------ meson_v1v1------------------ \n");
+  qu.kappa=0.14;
+  qu.mass=0.001;
+  qu.r=1;
+  TmQuarkInfo pu=qu;
+  pu.r=-1;
+  MASTER_PRINTF(" ------------------ meson_v1v1------------------ \n");
   
   double mu2=qu.mass*qu.mass;
   complex co[glbSize[0]];
   memset(co,0,sizeof(complex)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
-      momentum_t sin_p;
-      sin_mom(sin_p,p,qu);
-      double dp=den_of_mom(p,qu);
-      double Mp=M_of_mom(qu,p);
+      Momentum sin_p;
+      sin_mom(sin_p,p,pu);
+      double dp=den_of_mom(p,pu);
+      double Mp=M_of_mom(pu,p);
       
       for(int q0=0;q0<glbSize[0];q0++)
 	{
-	  coords_t cq;
+	  Coords cq;
 	  cq[0]=q0;
 	  for(int mu=1;mu<NDIM;mu++) cq[mu]=glbCoordOfLoclx[p][mu];
-	  int q=loclx_of_coord(cq);
+	  int q=loclxOfCoord(cq);
 	  
-	  momentum_t sin_q;
+	  Momentum sin_q;
 	  sin_mom(sin_q,q,qu);
 	  double dq=den_of_mom(q,qu);
 	  double Mq=M_of_mom(qu,q);
 	  double pq=mom_prod(sin_p,sin_q);
 	
 	int pmq0=(glbSize[0]+glbCoordOfLoclx[p][0]-glbCoordOfLoclx[q][0])%glbSize[0];
-	double contr=4*(mu2+pq-Mp*Mq-2*sin_p[1]*sin_q[1]);
-	
+	//double contr=4*(mu2+pq-Mp*Mq-2*sin_p[1]*sin_q[1]);
+	double contr=-4*Mp*Mq - 4*mu2 - 4*pq - 8*sin_p[1]*sin_q[1];
+	//double contr=-4*Mp*Mq - 4*mu2 - 4*pq - 8*sin_p[1]*sin_q[1];
+
 	co[pmq0][RE]+=NCOL*contr/(glbSize[0]*glbVol*dp*dq);
       }
     }
@@ -423,33 +524,33 @@ void check_mes_V1V1()
 
 void check_mes_A1A1()
 {
-  tm_quark_info qu;
+  TmQuarkInfo qu;
   qu.bc[0]=0;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" ------------------ meson_v1v1------------------ \n");
+  MASTER_PRINTF(" ------------------ meson_a1a1------------------ \n");
   
   double mu2=qu.mass*qu.mass;
   complex co[glbSize[0]];
   memset(co,0,sizeof(complex)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
-      momentum_t sin_p;
+      Momentum sin_p;
       sin_mom(sin_p,p,qu);
       double dp=den_of_mom(p,qu);
       double Mp=M_of_mom(qu,p);
       
       for(int q0=0;q0<glbSize[0];q0++)
 	{
-	  coords_t cq;
+	  Coords cq;
 	  cq[0]=q0;
 	  for(int mu=1;mu<NDIM;mu++) cq[mu]=glbCoordOfLoclx[p][mu];
-	  int q=loclx_of_coord(cq);
+	  int q=loclxOfCoord(cq);
 	  
-	  momentum_t sin_q;
+	  Momentum sin_q;
 	  sin_mom(sin_q,q,qu);
 	  double dq=den_of_mom(q,qu);
 	  double Mq=M_of_mom(qu,q);
@@ -468,14 +569,14 @@ void check_mes_A1A1()
 
 void check_mes_self_en()
 {
-  tm_quark_info qu;
+  TmQuarkInfo qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" ------------------ meson with self energy ------------------ \n");
+  MASTER_PRINTF(" ------------------ meson with self energy ------------------ \n");
   
   spin1prop *pho_pro=nissa_malloc("pho_pro",locVol,spin1prop);
   NISSA_LOC_VOL_LOOP(p)
@@ -488,7 +589,7 @@ void check_mes_self_en()
   memset(co,0,sizeof(complex)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
-      momentum_t sin_p;
+      Momentum sin_p;
       sin_mom(sin_p,p,qu);
       double dp=den_of_mom(p,qu);
       double Mp=M_of_mom(qu,p);
@@ -497,24 +598,24 @@ void check_mes_self_en()
       
       NISSA_LOC_VOL_LOOP(q)
         {
-	  momentum_t sin_q;
+	  Momentum sin_q;
 	  sin_mom(sin_q,q,qu);
 	  double dq=den_of_mom(q,qu);
 	  double Mq=M_of_mom(qu,q);
 	  double pq=mom_prod(sin_p,sin_q);
 	  
 	  //find p-q and compute gluon prop
-	  coords_t cpmq;
+	  Coords cpmq;
 	  for(int mu=0;mu<NDIM;mu++) cpmq[mu]=(glbSize[mu]+glbCoordOfLoclx[p][mu]-glbCoordOfLoclx[q][mu])%glbSize[mu];
-	  int pmq=glblx_of_coord(cpmq);
+	  int pmq=glblxOfCoord(cpmq);
 	  
 	  for(int t0=0;t0<glbSize[0];t0++)
 	    {
-	      coords_t ct;
+	      Coords ct;
 	      ct[0]=t0;
 	      for(int mu=1;mu<NDIM;mu++) ct[mu]=glbCoordOfLoclx[p][mu];
-	      int t=loclx_of_coord(ct);
-	      momentum_t sin_t;
+	      int t=loclxOfCoord(ct);
+	      Momentum sin_t;
 	      sin_mom(sin_t,t,qu);
 	      double dt=den_of_mom(t,qu);
 	      double Mt=M_of_mom(qu,t);
@@ -535,14 +636,14 @@ void check_mes_self_en()
 
 void check_mes_cons_self_en()
 {
-  tm_quark_info qu;
+  TmQuarkInfo qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" ------------------ meson with self energy conservata ------------------ \n");
+  MASTER_PRINTF(" ------------------ meson with self energy conservata ------------------ \n");
   
   spin1prop *pho_pro=nissa_malloc("pho_pro",locVol,spin1prop);
   NISSA_LOC_VOL_LOOP(p)
@@ -555,7 +656,7 @@ void check_mes_cons_self_en()
   memset(co,0,sizeof(complex)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
-      momentum_t sin_p;
+      Momentum sin_p;
       sin_mom(sin_p,p,qu);
       double dp=den_of_mom(p,qu);
       double Mp=M_of_mom(qu,p);
@@ -564,24 +665,24 @@ void check_mes_cons_self_en()
       
       NISSA_LOC_VOL_LOOP(q)
         {
-	  momentum_t sin_q;
+	  Momentum sin_q;
 	  sin_mom(sin_q,q,qu);
 	  double dq=den_of_mom(q,qu);
 	  double Mq=M_of_mom(qu,q);
 	  double pq=mom_prod(sin_p,sin_q);
 	  
 	  //find p-q and compute gluon prop
-	  coords_t cpmq;
+	  Coords cpmq;
 	  for(int mu=0;mu<NDIM;mu++) cpmq[mu]=(glbSize[mu]+glbCoordOfLoclx[p][mu]-glbCoordOfLoclx[q][mu])%glbSize[mu];
-	  int pmq=glblx_of_coord(cpmq);
+	  int pmq=glblxOfCoord(cpmq);
 	  
 	  for(int it0=0;it0<glbSize[0];it0++)
 	    {
-	      coords_t ct;
+	      Coords ct;
 	      ct[0]=it0;
 	      for(int mu=1;mu<NDIM;mu++) ct[mu]=glbCoordOfLoclx[p][mu];
-	      int t=loclx_of_coord(ct);
-	      momentum_t sin_t;
+	      int t=loclxOfCoord(ct);
+	      Momentum sin_t;
 	      sin_mom(sin_t,t,qu);
 	      double dt=den_of_mom(t,qu);
 	      double Mt=M_of_mom(qu,t);
@@ -617,33 +718,33 @@ void check_mes_cons_self_en()
 
 void check_handcuffs()
 {
-  tm_quark_info qu;
+  TmQuarkInfo qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
-  master_printf(" ------------------ handcuffs ------------------ \n");
+  MASTER_PRINTF(" ------------------ handcuffs ------------------ \n");
   
   double mu2=qu.mass*qu.mass;
   quad_u1 co[glbSize[0]];
   memset(co,0,sizeof(quad_u1)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
-      momentum_t sin_p;
+      Momentum sin_p;
       sin_mom(sin_p,p,qu);
       double dp=den_of_mom(p,qu);
       double Mp=M_of_mom(qu,p);
       
       for(int q0=0;q0<glbSize[0];q0++)
 	{
-	  coords_t cq;
+	  Coords cq;
 	  cq[0]=q0;
 	  for(int mu=1;mu<NDIM;mu++) cq[mu]=glbCoordOfLoclx[p][mu];
-	  int q=loclx_of_coord(cq);
+	  int q=loclxOfCoord(cq);
 	  
-	  momentum_t sin_q;
+	  Momentum sin_q;
 	  sin_mom(sin_q,q,qu);
 	  double dq=den_of_mom(q,qu);
 	  double Mq=M_of_mom(qu,q);
@@ -707,7 +808,7 @@ void check_gen()
 	  double ea=sa/n;
 	  double eb=sb/n;
 	  double c=(eab-ea*eb)/sqrt((eaa-ea*ea)*(ebb-eb*eb));
-	  master_printf("%lg\n",c);
+	  MASTER_PRINTF("%lg\n",c);
 	}
     
 }
@@ -715,33 +816,34 @@ void check_gen()
 //print the propagator on a particular momentum
 void print_ref_prop()
 {
-  tm_quark_info qu;
-  qu.bc[0]=1;
-  for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
-  qu.r=qr;
+  CRASH("reimplement");
+  // TmQuarkInfo qu;
+  // qu.bc[0]=1;
+  // for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
+  // qu.kappa=qkappa;
+  // qu.mass=qmass;
+  // qu.r=qr;
   
-  spinspin p;
-  mom_space_twisted_propagator_of_imom(p,qu,loclx_of_coord_list(5,1,3,2),MAX_TWIST_BASE);
+  // spinspin p;
+  // mom_space_twisted_propagator_of_imom(p,qu,loclx_of_coord_list(5,1,3,2),MAX_TWIST_BASE);
   
-  master_printf("propagator at site 5,1,3,2:\n");
-  spinspin_print(p);
+  // MASTER_PRINTF("propagator at site 5,1,3,2:\n");
+  // spinspin_print(p);
   
-  spinspin *prop=nissa_malloc("prop",locVol,spinspin);
-  compute_x_space_twisted_propagator_by_fft(prop,qu,MAX_TWIST_BASE);
-  master_printf("x space propagator at site 5,1,3,2:\n");
-  spinspin_print(prop[loclx_of_coord_list(5,1,3,2)]);
+  // spinspin *prop=nissa_malloc("prop",locVol,spinspin);
+  // compute_x_space_twisted_propagator_by_fft(prop,qu,MAX_TWIST_BASE);
+  // MASTER_PRINTF("x space propagator at site 5,1,3,2:\n");
+  // spinspin_print(prop[loclx_of_coord_list(5,1,3,2)]);
   
-  nissa_free(prop);
+  // nissa_free(prop);
 }
 
 //init everything
 void init_simulation()
 {
-  init_grid(T,L);
+  initGrid(T,L);
   
-  photon.alpha=FEYNMAN_ALPHA;
+  photon.which_gauge=gauge_info::FEYNMAN;
   photon.bc[0]=photon.bc[1]=photon.bc[2]=photon.bc[3]=0;
   photon.c1=WILSON_C1;
   photon.zms=UNNO_ALEMANNA;
@@ -749,11 +851,11 @@ void init_simulation()
 
 void check_scalar_EU()
 {
-   tm_quark_info qu;
+   TmQuarkInfo qu;
   qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
+  qu.kappa=0.125;
+  qu.mass=0.4;
   qu.r=qr;
   
   spin1prop *pho_pro=nissa_malloc("pho_pro",locVol,spin1prop);
@@ -763,37 +865,37 @@ void check_scalar_EU()
     mom_space_tlSym_gauge_propagator_of_imom(pho_pro[p],photon,p);
     tad+=pho_pro[p][0][0][RE];
   }
-  master_printf("Tadpole: %lg\n",tad);
+  MASTER_PRINTF("Tadpole: %lg\n",tad);
   
   double eu4=0;
   NISSA_LOC_VOL_LOOP(imom)
   {
     //e+=12*M_of_mom(qu,imom)/den_of_mom(imom,qu); //pseudo
-    momentum_t sin_p;
+    Momentum sin_p;
     sin_mom(sin_p,imom,qu);
     double c=0;
     for(int mu=0;mu<4;mu++)
 	c+=3*(-4*Si(imom,imom,qu,mu)*sin_p[mu] + 4*M_of_mom(qu,imom)*Co(imom,imom,qu,mu))*tad/2.0;
     eu4+=c/den_of_mom(imom,qu);
   }
-  master_printf("eu4: %.16lg\n",eu4);
+  MASTER_PRINTF("eu4: %.16lg\n",eu4);
   
   double eu6=0;
   double mu2=qu.mass*qu.mass;
   NISSA_LOC_VOL_LOOP(p)
     NISSA_LOC_VOL_LOOP(q)
     {
-      momentum_t sin_p;
+      Momentum sin_p;
       sin_mom(sin_p,p,qu);
-      momentum_t sin_q;
+      Momentum sin_q;
       sin_mom(sin_q,q,qu);
       double Mp=M_of_mom(qu,p);
       double Mq=M_of_mom(qu,q);
       double pq=mom_prod(sin_p,sin_q);
       
-      coords_t cpmq;
+      Coords cpmq;
       for(int mu=0;mu<NDIM;mu++) cpmq[mu]=(glbSize[mu]+glbCoordOfLoclx[p][mu]-glbCoordOfLoclx[q][mu])%glbSize[mu];
-      int pmq=glblx_of_coord(cpmq);
+      int pmq=glblxOfCoord(cpmq);
       
       double c=0;
       for(int mu=0;mu<4;mu++)
@@ -808,8 +910,8 @@ void check_scalar_EU()
   
   nissa_free(pho_pro);
   
-  master_printf("eu6: %.16lg\n",eu6);
-  crash("");
+  MASTER_PRINTF("eu6: %.16lg\n",eu6);
+  CRASH("ddd");
 }
 
 void in_main(int narg,char **arg)
@@ -820,36 +922,40 @@ void in_main(int narg,char **arg)
   //print_ref_prop();
   
   check_mes_2pts();
+  MASTER_PRINTF("\n\n");
+  check_mes_ins_P_2pts();
+  MASTER_PRINTF("\n\n");
   check_mes_V1V1();
-  check_mes_A1A1();
   return;
-    master_printf("\n\n");
+  check_mes_A1A1();
+    MASTER_PRINTF("\n\n");
 
   check_scalar_EU();
   
   check_fw_vacuum_curr();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_handcuffs();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_mes_2pts();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_mes_self_en();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_mes_cons_self_en();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_bar();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_bar2();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   check_bar3();
-  master_printf("\n\n");
+  MASTER_PRINTF("\n\n");
   for(int i=0;i<2000;i++) check_gen();
 }
 
 int main(int narg,char **arg)
 {
-  init_nissa_threaded(narg,arg,in_main);
-  close_nissa();
+  initNissa(narg,arg);
+  in_main(narg,arg);
+  closeNissa();
   
   return 0;
 }

@@ -19,14 +19,14 @@ void Pline_serial(su3 *Pline, quad_su3 *conf)
 	{
 	  for (iX[0]=0; iX[0]<T; iX[0]++)
 	    {
-	      X=loclx_of_coord(iX);
+	      X=loclxOfCoord(iX);
 	      unsafe_su3_hermitian(U0[iX[0]+1],conf[X][0]);
 	    }
 	  su3_copy(plf[1],U0[1]);
 	  for (int t=2; t<=T; t++) su3_prod_su3(plf[t],U0[t],plf[t-1]);
 	  for (iX[0]=0; iX[0]<T; iX[0]++)
 	    {
-	      X=loclx_of_coord(iX);
+	      X=loclxOfCoord(iX);
 	      su3_copy(U0[iX[0]+1],conf[X][0]);
 	    }
 	  su3_copy(plb[T],U0[T]);
@@ -36,12 +36,12 @@ void Pline_serial(su3 *Pline, quad_su3 *conf)
 	      su3_prod_su3(plb[tback],U0[tback],plb[tback+1]);
 	    }
 	  iX[0]=0;
-	  X=loclx_of_coord(iX);
+	  X=loclxOfCoord(iX);
 	  su3_put_to_id(Pline[X]);
 	  for (iX[0]=1; iX[0]<T; iX[0]++)
 	    {
 	      int t=iX[0];
-	      X=loclx_of_coord(iX);
+	      X=loclxOfCoord(iX);
 	      if( t <= ( T/2 - 1 ) ) su3_copy(Pline[X],  plf[ t ]);
 	      else  su3_copy(Pline[X],plb[t+1]);
 	    }	      
@@ -64,19 +64,19 @@ void Pline_serial_forward(su3 *Pline, quad_su3 *conf)
 	{
 	  for (iX[0]=0; iX[0]<T; iX[0]++)
 	    {
-	      X=loclx_of_coord(iX);
+	      X=loclxOfCoord(iX);
 	      unsafe_su3_hermitian(U0[iX[0]+1],conf[X][0]);
 	    }
 	  su3_copy(plf[1],U0[1]);
 	  for (int t=2; t<=T; t++) su3_prod_su3(plf[t],U0[t],plf[t-1]);
 	  
 	  iX[0]=0;
-	  X=loclx_of_coord(iX);
+	  X=loclxOfCoord(iX);
 	  su3_put_to_id(Pline[X]);
 	  for (iX[0]=1; iX[0]<T; iX[0]++)
 	    {
 	      int t=iX[0];
-	      X=loclx_of_coord(iX);
+	      X=loclxOfCoord(iX);
 	      su3_copy(Pline[X],  plf[ t ]);
 	    }
 	}
@@ -98,7 +98,7 @@ void Pline_serial_backward(su3 *Pline, quad_su3 *conf)
 	{
 	  for (iX[0]=0; iX[0]<T; iX[0]++)
 	    {
-	      X=loclx_of_coord(iX);
+	      X=loclxOfCoord(iX);
 	      su3_copy(U0[iX[0]+1],conf[X][0]);
 	    }
 	  su3_copy(plb[T],U0[T]);
@@ -110,7 +110,7 @@ void Pline_serial_backward(su3 *Pline, quad_su3 *conf)
 	  for (iX[0]=T-1; iX[0]>=0; iX[0]--)
 	    {
 	      int t=iX[0];
-	      X=loclx_of_coord(iX);
+	      X=loclxOfCoord(iX);
 	      su3_copy(Pline[X],plb[t+1]);
 	    }
 	}
@@ -121,7 +121,7 @@ int main(int narg,char **arg)
   char filename[1024];
 
   //basic mpi initialization
-  init_nissa();
+  initNissa();
 
   if(narg<2 && rank==0)
     {
@@ -140,7 +140,7 @@ int main(int narg,char **arg)
   close_input();
 
   //Init the MPI grid 
-  init_grid(T,L);
+  initGrid(T,L);
 
   ///////////////////////////////////////////
 
@@ -180,7 +180,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

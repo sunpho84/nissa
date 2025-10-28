@@ -1,24 +1,28 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #define EXTERN_DEBUG
 # include "base/debug.hpp"
 
-#include <signal.h>
-#include <errno.h>
+#include <chrono>
 #include <execinfo.h>
+
 #ifdef USE_MPI
- #include <mpi.h>
+# include <mpi.h>
 #endif
+
+#include <signal.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #ifdef USE_CUDA
- #include <cuda_runtime.h>
+# include <cuda_runtime.h>
 #endif
 
+#include "base/field.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/float_128.hpp"
 #include "routines/ios.hpp"
@@ -32,18 +36,20 @@ namespace nissa
   /// Implements the trap to debug
   void debug_loop()
   {
-    volatile int flag=0;
-    
-    printf("Entering debug loop on rank %d, flag has address %p please type:\n"
-	   "$ gdb -p %d\n"
-	   "$ set flag=1\n"
-	   "$ continue\n",
-	   rank,
-	   &flag,
-	   getpid());
-    
     if(is_master_rank())
-      while(flag==0);
+      {
+	volatile int flag=0;
+	
+	printf("Entering debug loop on rank %d, flag has address %p please type:\n"
+	       "$ gdb -p %d\n"
+	       "$ set flag=1\n"
+	       "$ continue\n",
+	       rank,
+	       &flag,
+	       getpid());
+	
+	while(flag==0);
+      }
     
     ranks_barrier();
   }
@@ -58,15 +64,27 @@ namespace nissa
 #endif
   }
   
+  using Time=
+    std::chrono::time_point<std::chrono::high_resolution_clock>;
+  
+  Time take_time2()
+  {
+    return std::chrono::high_resolution_clock::now();
+  }
+  
+  double time_diff_with_now(const Time& start)
+  {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(take_time2()-start).count()/1000.0;
+  }
+  
   //write the list of called routines
-  void print_backtrace_list()
+  void print_backtrace_list(int which_rank)
   {
     void *callstack[128];
     int frames=backtrace(callstack,128);
     char **strs=backtrace_symbols(callstack,frames);
     
-    //only master rank, but not master thread
-    if(is_master_rank())
+    if(which_rank==-1 or which_rank==rank)
       {
 	printf("Backtracing...\n");
 	for(int i=0;i<frames;i++) printf("%s\n",strs[i]);
@@ -75,16 +93,30 @@ namespace nissa
     free(strs);
   }
   
-  //crash reporting the expanded error message
-  void internal_crash(int line,const char *file,const char *templ,...)
+  /// Crash reporting the expanded error message
+  CUDA_HOST_AND_DEVICE
+  void internal_crash(const int& line,
+		      const char *file,
+		      const char *templ,
+		      ...)
   {
+#ifndef COMPILING_FOR_DEVICE
+    
+    if(crashHook!=nullptr)
+      {
+	master_fprintf(stderr,"Calling the crash hook\n");
+	crashHook();
+	master_fprintf(stderr,"Crash hook called, now aborting\n");
+	crashHook=nullptr;
+      }
+     
     fflush(stdout);
     fflush(stderr);
     
     //give time to master thread to crash, if possible
-    if(!IS_MASTER_THREAD) sleep(1);
+    sleep(1);
     
-    if(is_master_rank())
+    // if(is_master_rank())
       {
 	//expand error message
 	char mess[1024];
@@ -93,11 +125,63 @@ namespace nissa
 	vsprintf(mess,templ,ap);
 	va_end(ap);
 	
-	fprintf(stderr,"\x1b[31m" "ERROR on line %d of file \"%s\", message error: \"%s\".\n\x1b[0m",line,file,mess);
+	fprintf(stderr,RED_HIGHLIGHT "on rank %d ERROR on line %d of file \"%s\", message error: \"%s\"." DO_NOT_HIGHLIGHT,rank,line,file,mess);
 	fprintf(stderr,"Memory used: %ld bytes per rank (%ld bytes total)\n",required_memory,required_memory*nranks);
 	print_backtrace_list();
-	ranks_abort(0);
-      }
+    }
+    
+    ranks_abort(0);
+#else
+    __trap();
+#endif
+  }
+  
+  timer_t setRecurringCalledFunction(void hook(int sigNum,
+					     siginfo_t*,
+					     void*),
+				     const int sigNum,
+				     const int& nSec,
+				     const int& nnSec)
+  {
+    MASTER_PRINTF("Going to create a recurring function each %d seconds %d museconds\n",nSec,nnSec);
+    fflush(stdout);
+    
+    timer_t id{};
+    
+    struct sigevent sev{.sigev_value{.sival_ptr=&id},
+			.sigev_signo=SIGRTMIN,
+			.sigev_notify=SIGEV_SIGNAL};
+    
+    if(timer_create(CLOCK_REALTIME,&sev,&id)==-1)
+      CRASH("Unable to create a timer for a function to be called with signal %d each %d sec %d nSec",sigNum,nSec,nnSec);
+    
+    struct sigaction sa{};
+    sa.sa_flags=SA_RESTART;
+    sa.sa_sigaction=hook;
+    sigemptyset(&sa.sa_mask);
+    if(sigaction(sigNum,&sa,nullptr)==-1)
+      CRASH("Unable to set the action for a function to be called with signal %d each %d sec .%d nsec",sigNum,nSec,nnSec);
+    
+    struct itimerspec its{.it_interval{.tv_sec=nSec,
+				       .tv_nsec=nnSec},
+			  .it_value{.tv_sec=nSec,
+				    .tv_nsec=nnSec}};
+    
+    if(timer_settime(id,0,&its,nullptr)==-1)
+      CRASH("Unable to set the timer for a function to be called with signal %d each %d sec .%d nsec",sigNum,nSec,nnSec);
+    
+    return id;
+  }
+  
+  void stopRecallingFunction(const timer_t& timer_id)
+  {
+    struct itimerspec stopSpec{};
+    
+    if(timer_settime(timer_id,0,&stopSpec,nullptr)==-1)
+      CRASH("Unable to unset a recalling function");
+    
+    if(timer_delete(timer_id)==-1)
+      CRASH("Unable to delete a timer");
   }
   
   void internal_crash_printing_error(int line,const char *file,int err_code,const char *templ,...)
@@ -122,7 +206,7 @@ namespace nissa
   //called when signal received
   void signal_handler(int sig)
   {
-    master_printf("maximal memory used: %ld\n",max_required_memory);
+    MASTER_PRINTF("maximal memory used: %ld\n",max_required_memory);
     verbosity_lv=3;
     char name[100];
     switch(sig)
@@ -133,16 +217,17 @@ namespace nissa
       case SIGBUS: sprintf(name,"bus error");break;
       case SIGINT: sprintf(name," program interrupted");break;
       case SIGABRT: sprintf(name,"abort signal");break;
+      case SIGTERM: sprintf(name,"term signal");break;
       default: sprintf(name,"unassociated");break;
       }
     print_backtrace_list();
     print_all_vect_content();
-    crash("signal %d (%s) detected, exiting",sig,name);
+    CRASH("signal %d (%s) detected, exiting",sig,name);
   }
   
 #ifdef USE_MPI
   //decript the MPI error
-  void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...)
+  void internal_decrypt_MPI_error(int line,const char *file,int rc,const char *templ,...)
   {
     if(rc!=MPI_SUCCESS and is_master_rank())
       {
@@ -162,7 +247,7 @@ namespace nissa
 #endif
   
 #if USE_CUDA
-  void internal_decript_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...)
+  void internal_decrypt_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...)
   {
     if(rc!=cudaSuccess and rank==0)
       {
@@ -180,14 +265,247 @@ namespace nissa
   //perform a simple check on 128 bit precision
   void check_128_bit_prec()
   {
-    float_128 a;
-    float_128_from_64(a,1);
-    float_128_summassign_64(a,1e-20);
-    float_128_summassign_64(a,-1);
+    Float128 a=1;
+    a+=1e-20;
+    a+=-1;
     
-    double res=a[0]+a[1];
-    if(fabs(res-1e-20)>1e-30) crash("float_128, 1+1e-20-1=%lg, difference with 1e-20: %lg",res,res-1e-20);
-    verbosity_lv2_master_printf("128 bit precision is working, 1+1e-20-1=%lg where %lg expected in double prec\n",res,1+1e-20-1);
+    const double res=a.roundDown();
+    if(fabs(res-1e-20)>1e-30)
+      CRASH("float_128, 1+1e-20-1=%lg, difference with 1e-20: %lg",res,res-1e-20);
+    VERBOSITY_LV2_MASTER_PRINTF("128 bit precision is working, 1+1e-20-1=%lg where %lg expected in double prec\n",res,1+1e-20-1);
+  }
+  
+  std::string siteAsString(const int& n)
+  {
+    const auto c=glbCoordOfGlblx(n);
     
+    std::string res=
+      std::to_string(n)+
+      "("+std::to_string(c[0]);
+    
+    for(int nu=1;nu<NDIM;nu++)
+      res+=","+std::to_string(c[nu]);
+    res+=")";
+    
+    return res;
+  }
+  
+  /// Spoil the receiving and sending buffer to check consistency
+  void taintTheCommBuffers()
+  {
+    PAR(0,
+	recvBufSize/sizeof(int),
+	CAPTURE(rb=recvBuf),
+	i,
+	{
+	  ((int*)rb)[i]=-3;
+	});
+    
+    PAR(0,
+	sendBufSize/sizeof(int),
+	CAPTURE(sb=sendBuf),
+	i,
+	{
+	  ((int*)sb)[i]=-4;
+	});
+  }
+  
+  void testLxHaloExchange()
+  {
+    LxField<int> test("testHalo",WITH_HALO);
+    
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(test)),i,
+	{
+	  test[i]=glblxOfLoclx[i];
+	});
+    
+    test.invalidateHalo();
+    
+    taintTheCommBuffers();
+    
+    test.updateHalo();
+    
+    NISSA_LOC_VOL_LOOP(site)
+      {
+	for(int ori=0;ori<2;ori++)
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      const int ln=loclx_neigh[ori][site][mu];
+	      const int gn=(ln<locVol)?glblxOfLoclx[ln]:glblxOfBordlx[ln-locVol];
+	      const int neighVal=test[ln];
+	      
+	      if(neighVal!=gn)
+		MASTER_PRINTF("site %s ori %d dir %d has neigh %s with val %s\n",
+			      siteAsString(glblxOfLoclx[site]).c_str(),
+			      ori,mu,
+			      siteAsString(gn).c_str(),
+			      siteAsString(neighVal).c_str());
+	    }
+      }
+    
+    MASTER_PRINTF("lx halo communicates consistently\n");
+  }
+  
+  void testEoHaloExchange()
+  {
+    EoField<int> test("testEoHalo",WITH_HALO);
+    
+    FOR_BOTH_PARITIES(par,
+		      PAR(0,locVolh,
+			  CAPTURE(par,test=test[par].getWritable()),i,
+			  {
+			    test[i]=glblxOfLoclx[loclx_of_loceo[par][i]];
+			  });
+		      );
+    
+    test.invalidateHalo();
+    
+    taintTheCommBuffers();
+    
+    test.updateHalo();
+    
+    FOR_BOTH_PARITIES(par,
+		      for(int eoSite=0;eoSite<locVolh;eoSite++)
+		      {
+			for(int ori=0;ori<2;ori++)
+			  for(int mu=0;mu<NDIM;mu++)
+			    {
+			      const int ln=((ori==0)?loceo_neighdw:loceo_neighup)[par][eoSite][mu];
+			      const int lx=loclx_of_loceo[!par][ln];
+			      const int gn=(lx<locVol)?glblxOfLoclx[lx]:glblxOfBordlx[lx-locVol];
+			      const int neighVal=test[!par][ln];
+			      
+			      if(neighVal!=gn)
+				MASTER_PRINTF("site %s ori %d dir %d has neigh %s with val %s\n",
+					      siteAsString(glblxOfLoclx[loclx_of_loceo[!par][eoSite]]).c_str(),
+					      ori,mu,
+					      siteAsString(gn).c_str(),
+					      siteAsString(neighVal).c_str());
+			    }
+		      });
+  
+    MASTER_PRINTF("eo edges communicates consistently\n");
+  }
+  
+  void testLxEdgesExchange()
+  {
+    LxField<int> test("testEdge",WITH_HALO_EDGES);
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(test)),i,
+	{
+	  test[i]=glblxOfLoclx[i];
+	});
+    
+    PAR(0,bordVol,
+	CAPTURE(TO_WRITE(test)),i,
+	{
+	  test[i+locVol]=-1;
+	});
+    
+    PAR(0,edgeVol,
+	CAPTURE(TO_WRITE(test)),i,
+	{
+	  test[i+locVol+bordVol]=-2;
+	});
+    
+    test.invalidateHalo();
+    test.invalidateEdges();
+    test.updateHalo();
+    
+    taintTheCommBuffers();
+    
+    test.updateEdges();
+    
+    NISSA_LOC_VOL_LOOP(site)
+      {
+	for(int ori1=0;ori1<2;ori1++)
+	  for(int ori2=0;ori2<2;ori2++)
+	    for(int iEdge=0;iEdge<nEdges;iEdge++)
+	      {
+		const auto [mu,nu]=edge_dirs[iEdge];
+		
+		const int l1n=loclx_neigh[ori1][site][mu];
+		const int ln=loclx_neigh[ori2][l1n][nu];
+		const int gn=(ln<locVol)?glblxOfLoclx[ln]:((ln<locVol+bordVol)?glblxOfBordlx[ln-locVol]:glblxOfEdgelx[ln-locVol-bordVol]);
+		const int neighVal=test[ln];
+		
+		if(neighVal!=gn)
+		  MASTER_PRINTF("site %s ori (%d,%d) dir (%d,%d) has edgelx neigh %s with val %s\n",
+				siteAsString(glblxOfLoclx[site]).c_str(),
+				ori1,ori2,mu,nu,
+				siteAsString(gn).c_str(),
+				siteAsString(neighVal).c_str());
+	      }
+      }
+    MASTER_PRINTF("lx edges communicates consistently\n");
+  }
+  
+  void testEoEdgesExchange()
+  {
+    EoField<int> test("testEoEdge",WITH_HALO_EDGES);
+    FOR_BOTH_PARITIES(par,
+		      PAR(0,locVolh,
+			  CAPTURE(par,test=test[par].getWritable()),i,
+			  {
+			    test[i]=glblxOfLoclx[loclx_of_loceo[par][i]];
+			  });
+		      
+		      PAR(0,bordVolh,
+			  CAPTURE(test=test[par].getWritable()),i,
+			  {
+			    test[i+locVolh]=-1;
+			  });
+		      
+		      PAR(0,edgeVolh,
+			  CAPTURE(test=test[par].getWritable()),i,
+			  {
+			    test[i+locVolh+bordVolh]=-2;
+			  });
+		      );
+    
+    int* r=(int*)recvBuf;
+    int* s=(int*)sendBuf;
+    const int n=recvBufSize/sizeof(int);
+    PAR(0,n,
+	CAPTURE(r,s),
+	i,
+	{
+	  r[i]=-3;
+	  s[i]=-4;
+	});
+    
+    test.invalidateHalo();
+    test.invalidateEdges();
+    test.updateHalo();
+    test.updateEdges();
+    
+    FOR_BOTH_PARITIES(par,
+		      NISSA_LOC_VOLH_LOOP(ieo)
+		      {
+			for(int ori1=0;ori1<2;ori1++)
+			  for(int ori2=0;ori2<2;ori2++)
+			    for(int iEdge=0;iEdge<nEdges;iEdge++)
+			      {
+				const auto [mu,nu]=edge_dirs[iEdge];
+				
+				const int l1n=((ori1==0)?loceo_neighdw:loceo_neighup)[par][ieo][mu];
+				const int ln=((ori2==0)?loceo_neighdw:loceo_neighup)[!par][l1n][nu];
+				const int lx=loclx_of_loceo[par][ln];
+				const int gn=(lx<locVol)?glblxOfLoclx[lx]:((lx<locVol+bordVol)?glblxOfBordlx[lx-locVol]:glblxOfEdgelx[lx-locVol-bordVol]);
+				const int neighVal=test[par][ln];
+				
+				if(neighVal!=gn)
+				  MASTER_PRINTF("par %d site %s ori (%d,%d) dir (%d,%d) neigh %s with val %s\n",
+						par(),
+						siteAsString(glblxOfLoclx[loclx_of_loceo[par][ieo]]).c_str(),
+						ori1,ori2,mu,nu,
+						siteAsString(gn).c_str(),
+						siteAsString(neighVal).c_str());
+			      }
+		      }
+		      );
+    
+    MASTER_PRINTF("eo edges communicates consistently\n");
   }
 }

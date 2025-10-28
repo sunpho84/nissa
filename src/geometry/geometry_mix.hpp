@@ -1,38 +1,84 @@
 #ifndef _GEOMETRY_MIX_HPP
 #define _GEOMETRY_MIX_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <unistd.h>
 
-#include "geometry_eo.hpp"
-#include "geometry_Leb.hpp"
-
-#include "new_types/su3.hpp"
+#include <base/bench.hpp>
+#include <base/field.hpp>
+#include <geometry/geometry_eo.hpp>
+#include <new_types/su3.hpp>
 
 namespace nissa
 {
   void paste_eo_parts_into_lx_vector_internal(void *out_lx,eo_ptr<void> in_eo,size_t bps);
   
-  template <class T> void paste_eo_parts_into_lx_vector(T *out_lx,eo_ptr<T> in_eo)
+  template <typename LX,
+	    typename EO>
+  void paste_eo_parts_into_lx_vector(FieldFeat<LX>& _outLx,
+				     const EO& inEo)
   {
-    paste_eo_parts_into_lx_vector_internal(out_lx,{in_eo[EVN],in_eo[ODD]},sizeof(T));
+    START_TIMING(remap_time,nremap);
+    
+    //paste
+    FOR_BOTH_PARITIES(par,
+    {
+      PAR(0,locVolh,
+	  CAPTURE(par,outLx=_outLx->getWritable(),
+		  TO_READ(inEo)),
+	  eo,
+	  {
+	    for(int internalDeg=0;internalDeg<inEo[par].nInternalDegs;internalDeg++)
+	      outLx(loclx_of_loceo[par][eo],internalDeg)=inEo[par](eo,internalDeg);
+	  });
+    });
+    
+    STOP_TIMING(remap_time);
   }
   
   /////////////////////////////////////////////////////////////////
   
-  void split_lx_vector_into_eo_parts_internal(eo_ptr<void> out_eo,void *in_lx,size_t bps);
-  
-  template <class T> void split_lx_vector_into_eo_parts(eo_ptr<T> out_eo,T *in_lx)
+  template <typename EO,
+	    typename LX>
+  void split_lx_vector_into_eo_parts(EO&& outEo,
+				     const LX& inLx)
   {
-    split_lx_vector_into_eo_parts_internal({out_eo[EVN],out_eo[ODD]},in_lx,sizeof(T));
+    START_TIMING(remap_time,nremap);
+    
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(outEo),
+		TO_READ(inLx)),locLx,
+	{
+	  for(int internalDeg=0;internalDeg<LX::nInternalDegs;internalDeg++)
+	    outEo[loclx_parity[locLx]](loceo_of_loclx[locLx],internalDeg)=inLx(locLx,internalDeg);
+	});
+    
+    STOP_TIMING(remap_time);
   }
   
   /////////////////////////////////////////////////////////////////
   
-  void get_evn_or_odd_part_of_lx_vector_internal(void *out_ev_or_od,void *in_lx,size_t bps,int par);
-  
-  template <class T> void get_evn_or_odd_part_of_lx_vector(T *out_eo,T *in_lx,int par)
+  template <typename EoO,
+	    typename LX>
+  void get_evn_or_odd_part_of_lx_vector(EoO&& outEo,
+					const LX& inLx,
+					const FieldCoverage& par)
   {
-    get_evn_or_odd_part_of_lx_vector_internal(out_eo,in_lx,sizeof(T),par);
+    START_TIMING(remap_time,nremap);
+    
+    //get
+    PAR(0,locVolh,
+	CAPTURE(par,
+		TO_WRITE(outEo),
+		TO_READ(inLx)),locEo,
+	{
+	  for(int internalDeg=0;internalDeg<inLx.nInternalDegs;internalDeg++)
+	    outEo(locEo,internalDeg)=inLx(loclx_of_loceo[par][locEo],internalDeg);
+	});
+    STOP_TIMING(remap_time);
   }
   
   /////////////////////////////////////////////////////////////////

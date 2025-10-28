@@ -135,12 +135,12 @@ int main(int narg,char **arg)
 	 
 	  if(rank==rx)
 	    {
-	      master_printf("%d\n",isource+1);
-	      master_printf("exa\n");
+	      MASTER_PRINTF("%d\n",isource+1);
+	      MASTER_PRINTF("exa\n");
 	      spinspin_print(d2_corr[lx]);
-	      master_printf("sto\n");
+	      MASTER_PRINTF("sto\n");
 	      spinspin_print(d2_stoch_corr_ave[lx]);
-	      master_printf("\n");
+	      MASTER_PRINTF("\n");
 	    }
 	  
 	  double rs=0,rd=0;

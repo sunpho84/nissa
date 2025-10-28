@@ -72,14 +72,14 @@ namespace nissa
     {
       const int64_t tot=n*sizeof(T);
       
-      decript_cuda_error(cudaMalloc(&data,tot),"Allocating %ld bytes",tot);
+      DECRYPT_CUDA_ERROR(cudaMalloc(&data,tot),"Allocating %ld bytes",tot);
     }
     
     /// Free on gpu
     template <typename T>
     void gpu_free(T*& data)
     {
-      decript_cuda_error(cudaFree(data),"Freeing");
+      DECRYPT_CUDA_ERROR(cudaFree(data),"Freeing");
       data=NULL;
     }
     
@@ -88,7 +88,7 @@ namespace nissa
     void cpu_to_gpu(T* out,const T* in,const int64_t n)
     {
       const int64_t tot=n*sizeof(T);
-      decript_cuda_error(cudaMemcpy(out,in,tot,cudaMemcpyHostToDevice),"Copying %ld bytes from cpu to gpu",tot);
+      DECRYPT_CUDA_ERROR(cudaMemcpy(out,in,tot,cudaMemcpyHostToDevice),"Copying %ld bytes from cpu to gpu",tot);
     }
     
     /// Move to cpu
@@ -96,7 +96,7 @@ namespace nissa
     void gpu_to_cpu(T* out,const T* in,const int64_t n)
     {
       const int64_t tot=n*sizeof(T);
-      decript_cuda_error(cudaMemcpy(out,in,n*sizeof(T),cudaMemcpyDeviceToHost),"Copying %ld bytes from cpu to gpu",tot);
+      DECRYPT_CUDA_ERROR(cudaMemcpy(out,in,n*sizeof(T),cudaMemcpyDeviceToHost),"Copying %ld bytes from cpu to gpu",tot);
     }
     
     /// Color on a gpu
@@ -130,7 +130,8 @@ namespace nissa
       const int64_t n;
       
       /// Default constructor
-      gpu_color() : n(NCOL*(locVolh+bord_volh))
+      gpu_color() :
+	n(NCOL*(locVolh+bordVolh))
       {
       }
       
@@ -159,11 +160,11 @@ namespace nissa
 	      buf[iout].set(temp);
 	    }
 	
-	master_printf("Preparing transfer\n");
+	MASTER_PRINTF("Preparing transfer\n");
 	
 	cpu_to_gpu(data,&buf[0],n);
 	
-	master_printf("Transferred color\n");
+	MASTER_PRINTF("Transferred color\n");
       }
       
       /// Export to the passed cpu vector
@@ -219,7 +220,8 @@ namespace nissa
       const int64_t n;
       
       /// Default constructor
-      gpu_links() : n(NDIM*NCOL*NCOL*2*(locVolh+bord_volh))
+      gpu_links() :
+	n(NDIM*NCOL*NCOL*2*(locVolh+bordVolh))
       {
       }
       
@@ -251,11 +253,11 @@ namespace nissa
 		    buf[iout].set(temp);
 		  }
 	
-	master_printf("Preparing transfer\n");
+	MASTER_PRINTF("Preparing transfer\n");
 	
 	cpu_to_gpu(data,&buf[0],n);
 	
-	master_printf("Transferred conf\n");
+	MASTER_PRINTF("Transferred conf\n");
       }
       
       /// Copy to the passed cpu vector
@@ -332,7 +334,7 @@ namespace nissa
       
       for(int ngpu_threads=2;ngpu_threads<1024;ngpu_threads*=2)
 	{
-	  master_printf("nthreads: %d\n",ngpu_threads);
+	  MASTER_PRINTF("nthreads: %d\n",ngpu_threads);
       const dim3 block_dimension(ngpu_threads);
       const dim3 grid_dimension((locVolh+ngpu_threads)/ngpu_threads);
       
@@ -351,7 +353,7 @@ namespace nissa
       
       double each=(end-init)/n;
       const int nflops_per_site=8*8*9*2;
-      master_printf("Time for the improved operator: %lg s, per site: %lg s, Gflops: %lg\n",each,each/locVolh,nflops_per_site/each*locVolh*1e-9);
+      MASTER_PRINTF("Time for the improved operator: %lg s, per site: %lg s, Gflops: %lg\n",each,each/locVolh,nflops_per_site/each*locVolh*1e-9);
 	}
       out.export_to_cpu(_out);
       

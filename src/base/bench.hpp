@@ -2,14 +2,16 @@
 #define _BENCH_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
+#include "new_types/su3.hpp"
+
 #ifndef EXTERN_BENCH
- #define EXTERN_BENCH extern
- #define EQUAL_ZERO
+# define EXTERN_BENCH extern
+# define EQUAL_ZERO
 #else
- #define EQUAL_ZERO =0
+# define EQUAL_ZERO =0
 #endif
 
 namespace nissa
@@ -19,7 +21,14 @@ namespace nissa
   
   EXTERN_BENCH double tot_comm_time EQUAL_ZERO;
   EXTERN_BENCH int ntot_comm EQUAL_ZERO;
-  EXTERN_BENCH double cgm_inv_over_time,cg_inv_over_time EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time1 EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time2 EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time3 EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time4 EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time5 EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time6 EQUAL_ZERO;
+  EXTERN_BENCH double cg_inv_over_time EQUAL_ZERO;
   EXTERN_BENCH int ncgm_inv,ncg_inv EQUAL_ZERO;
   EXTERN_BENCH double portable_stD_app_time EQUAL_ZERO;
   EXTERN_BENCH int nportable_stD_app EQUAL_ZERO;
@@ -40,14 +49,16 @@ namespace nissa
   EXTERN_BENCH int perform_benchmark;
  #define NISSA_DEFAULT_PERFORM_BENCHMARK 0
   
-#define UNPAUSE_TIMING(TIME) if(IS_MASTER_THREAD) TIME-=take_time()
-#define RESET_TIMING(TIME,COUNTER) do{if(IS_MASTER_THREAD){TIME=0;COUNTER=0;}}while(0)
-#define START_TIMING(TIME,COUNTER) do{if(IS_MASTER_THREAD){TIME-=take_time();COUNTER++;}}while(0)
-#define STOP_TIMING(TIME) if(IS_MASTER_THREAD) TIME+=take_time()
+#define UNPAUSE_TIMING(TIME) TIME-=take_time()
+#define RESET_TIMING(TIME,COUNTER) do{TIME=0;COUNTER=0;}while(0)
+#define START_TIMING(TIME,COUNTER) do{TIME-=take_time();COUNTER++;}while(0)
+#define STOP_TIMING(TIME) TIME+=take_time()
   
   void bench_memory_bandwidth(int mem_size);
   void bench_memory_copy(double *out,double *in,int size);
-  void bench_net_speed();
+  void benchNetSpeed();
+  void benchCovariantShift();
+  void benchHaloExchange();
   
   const int flops_per_complex_summ=2;
   const int flops_per_complex_prod=6;

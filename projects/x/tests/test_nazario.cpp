@@ -27,9 +27,9 @@ void compute_amp_self_x(spinspin *self_prop,spinspin *q_prop,spin1prop *g_prop)
 void compute_amp_self_mom(spinspin *self_prop,spinspin *q_prop,spin1prop *g_prop,quark_info qu,gluon_info gl)
 {
   pass_spinspin_from_x_to_mom_space(q_prop,q_prop,qu.bc);
-  master_printf("Passed quark prop to mom\n");
+  MASTER_PRINTF("Passed quark prop to mom\n");
   pass_spinspin_from_x_to_mom_space(g_prop,g_prop,gl.bc);
-  master_printf("Passed gluon prop to mom\n");
+  MASTER_PRINTF("Passed gluon prop to mom\n");
   
   vector_reset(self_prop);
   for(int mu=0;mu<4;mu++)
@@ -49,7 +49,7 @@ void compute_amp_self_mom(spinspin *self_prop,spinspin *q_prop,spin1prop *g_prop
 	      unsafe_dirac_prod_spinspin(t2,&g,t1);
 	      spinspin_summ_the_complex_prod(self_prop[imom],t2,g_prop[jmom][mu][mu]);
 	    }
-	  master_printf("mu %d/4, imom=%d/%d\n",mu,imom+1,glb_vol);
+	  MASTER_PRINTF("mu %d/4, imom=%d/%d\n",mu,imom+1,glb_vol);
 	}
     }
   
@@ -104,9 +104,9 @@ void compute_without_trick(double *corr,spinspin *q_prop,spin1prop *g_prop,quark
 void compute_with_trick(double *corr,spinspin *q_prop,spin1prop *g_prop,quark_info qu,gluon_info gl)
 {
   pass_spinspin_from_x_to_mom_space(q_prop,q_prop,qu.bc);
-  master_printf("Passed quark prop to mom\n");
+  MASTER_PRINTF("Passed quark prop to mom\n");
   pass_spin1prop_from_x_to_mom_space(g_prop,g_prop,gl.bc);
-  master_printf("Passed gluon prop to mom\n");
+  MASTER_PRINTF("Passed gluon prop to mom\n");
   
   complex *corr_mom=nissa_malloc("temp",glb_size[0],complex);
   vector_reset(corr_mom);
@@ -140,12 +140,12 @@ void compute_with_trick(double *corr,spinspin *q_prop,spin1prop *g_prop,quark_in
 	      
 	      complex_summassign(corr_mom[p[0]],t3);
 	    }
-	  master_printf("mu=%d/4, t=%d/%d\n",mu+1,p[0]+1,glb_size[0]);
+	  MASTER_PRINTF("mu=%d/4, t=%d/%d\n",mu+1,p[0]+1,glb_size[0]);
 	}
     }
   
   for(int t=0;t<glb_size[0];t++)
-    master_printf("%lg %lg\n",corr_mom[t][0],corr_mom[t][1]);
+    MASTER_PRINTF("%lg %lg\n",corr_mom[t][0],corr_mom[t][1]);
 
   
   //temporal fourier transform
@@ -203,7 +203,7 @@ int main(int narg,char **arg)
   quark_info qu=create_twisted_quark_info(kappa,mass,quark_theta);
   spinspin *q_prop=nissa_malloc("q_prop",loc_vol,spinspin);
   compute_x_space_twisted_propagator_by_fft(q_prop,qu);
-  master_printf("Computed quark prop\n");
+  MASTER_PRINTF("Computed quark prop\n");
   
   //gluon
   double alpha=1;
@@ -211,7 +211,7 @@ int main(int narg,char **arg)
   gluon_info gl=create_Wilson_gluon_info(alpha,gluon_theta);
   spin1prop *g_prop=nissa_malloc("g_prop",loc_vol,spin1prop);
   compute_x_space_tlSym_gluon_propagator_by_fft(g_prop,gl);
-  master_printf("Computed gluon prop\n");
+  MASTER_PRINTF("Computed gluon prop\n");
   
   double *corr=nissa_malloc("corr",glb_size[0],double);  
   

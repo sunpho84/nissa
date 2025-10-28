@@ -49,7 +49,7 @@ int read_str_enum(int n,char **tags,int stl)
       master_fprintf(stderr,"unkwnown tag %s, expected:\n",read);
       for(int i=0;i<n;i++)
 	master_fprintf(stderr," %s\n",tags[i]);
-      crash("check input");
+      CRASH("check input");
     }
   
   return found;
@@ -60,7 +60,7 @@ void init_semileptonic(int narg,char **arg)
 {
   init_nissa();
   
-  if(narg<2) crash("ue: %s input",arg[0]);
+  if(narg<2) CRASH("ue: %s input",arg[0]);
   
   open_input(arg[1]);
 

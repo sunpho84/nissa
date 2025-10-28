@@ -1,9 +1,11 @@
 #ifndef _CONTR_HPP
 #define _CONTR_HPP
 
+#include <complex>
 #include <vector>
 
 #include "geometry/geometry_lx.hpp"
+#include "ib/prop.hpp"
 #include "new_types/dirac.hpp"
 
 #include "pars.hpp"
@@ -12,86 +14,227 @@
 
 
 #ifndef EXTERN_CONTR
- #define EXTERN_CONTR extern
- #define INIT_TO(VAR)
+# define EXTERN_CONTR extern
+# define INIT_TO(VAR)
 #else
- #define INIT_TO(VAR) =VAR
+# define INIT_TO(VAR) =VAR
 #endif
 
 namespace nissa
 {
   EXTERN_CONTR double contr_print_time INIT_TO(0);
   
-  /////////////////////////////////////////////////////////////////
+  void clearCorrelations();
   
-  void compute_prop_scalprod(double *res,std::string pr_dag,std::string pr);
+  void compute_prop_scalprod(complex& res,
+			     const std::string& pr_dag,
+			     const std::string& pr);
   
   ///////////////////////////////////////// meson contractions ///////////////////////////////////////////////////////
   
   EXTERN_CONTR std::string mes2pts_prefix INIT_TO("mes_contr");
   
-  struct mes_contr_map_t
+  struct mes_contr_t
   {
     std::string name;
-    std::string a,b;
-    mes_contr_map_t(std::string name,std::string a,std::string b) : name(name),a(a),b(b) {}
+    
+    std::string a;
+    
+    std::string b;
+    
+    std::vector<idirac_pair_t> gammaList;
+    
+    complex* contr;
+    
+    size_t contrSize;
+    
+    /// Allocate mesonic contractions
+    void alloc()
+    {
+      contrSize=glbSize[0]*gammaList.size();
+      contr=new complex[contrSize];
+    }
+    
+    /// Allocate mesonic contractions
+    void unalloc()
+    {
+      delete[] contr;
+    }
+    
+    complex& operator()(const size_t& iGamma,
+			const size_t& t)
+    {
+      return contr[t+glbSize[0]*iGamma];
+    }
+    
+    /// Reset the contractions
+    void reset()
+    {
+      for(size_t i=0;i<contrSize;i++)
+	complex_put_to_zero(contr[i]);
+    }
+    
+    mes_contr_t(const std::string& name,
+		const std::string& a,
+		const std::string& b) :
+      name(name),
+      a(a),
+      b(b)
+    {
+    }
   };
-  EXTERN_CONTR std::vector<mes_contr_map_t> mes2pts_contr_map;
+  
+  EXTERN_CONTR std::vector<mes_contr_t> mes2ptsContr;
+  
   EXTERN_CONTR int nmes2pts_contr_made INIT_TO(0);
   EXTERN_CONTR double mes2pts_contr_time INIT_TO(0);
-  CUDA_MANAGED EXTERN_CONTR complex *loc_contr;
   
-  CUDA_MANAGED EXTERN_CONTR complex *mes2pts_contr INIT_TO(NULL);
-  EXTERN_CONTR std::vector<idirac_pair_t> mes_gamma_list;
-  void allocate_mes2pts_contr();
-  void compute_mes2pts_contr(int normalize=true);
-  void print_mes2pts_contr(int n=nhits,int force_append=false,int skip_inner_header=false,const std::string &alternative_header_template="");
+  EXTERN_CONTR int nmes2pts_move_to_make_readable_made INIT_TO(0);
+  EXTERN_CONTR double mes2pts_move_to_make_readable_time INIT_TO(0);
+  
+  CUDA_MANAGED EXTERN_CONTR LxField<complex> *loc_contr;
+  
+  using ContrProp=LxField<spincolor,defaultSpaceTimeLayout,defaultMemorySpace>;
+  EXTERN_CONTR std::map<std::string,std::vector<ContrProp*>> mes2ptsPropsLib;
+  inline void removeMes2PtsProp(const std::string& n)
+  {
+    MASTER_PRINTF("Removing %s from the mes2ptsPropsLib\n",n.c_str());
+    if constexpr(defaultMemorySpace!=MemorySpace::CPU)
+      for(auto& vi : mes2ptsPropsLib[n])
+	delete vi;
+    mes2ptsPropsLib.erase(n);
+  }
+  
+  void compute_mes2pt_contr(const size_t& icombo);
+  
+  void print_mes2pts_contr(const int iHit,int n=nHits,int force_append=false,int skip_inner_header=false,const std::string &alternative_header_template="");
   void free_mes2pts_contr();
   
-  inline int ind_mes2pts_contr(int iquark_combo,int ihadr_contr,int t)
+  inline int ind_mes2pts_contr(const int& ihadr_contr,
+			       const int& t)
   {
     return
-      (t+glbSize[0]*
-       (ihadr_contr+mes_gamma_list.size()*
-	iquark_combo));
+      t+glbSize[0]*
+      ihadr_contr;
   }
-  EXTERN_CONTR int mes2pts_contr_size;
   
   ///////////////////////////////////////// handcuffs contractions ///////////////////////////////////////////////////////
   
-  void vector_current_mel(spin1field *si,dirac_matr *ext_g,int r,const char *id_Qbw,const char *id_Qfw,bool revert);
-  void conserved_vector_current_mel(quad_su3 *conf,spin1field *si,const dirac_matr& ext_g,int r,const char *id_Qbw,const char *id_Qfw,bool revert);
-  void local_or_conserved_vector_current_mel(spin1field *si,const dirac_matr &g,const std::string &prop_name_bw,const std::string &prop_name_fw,bool revert);
+  EXTERN_CONTR int computeHitSummedHandcuffs;
   
-  struct handcuffs_side_map_t
+  void vector_current_mel(LxField<spin1field>& si,
+			  const dirac_matr& ext_g,
+			  const int& r,
+			  const char* id_Qbw,
+			  const char* id_Qfw,
+			  const bool& revert);
+  
+  void conserved_vector_current_mel(const LxField<quad_su3>& conf,
+				    LxField<spin1field>& si,
+				    const dirac_matr& ext_g,
+				    const int& r,
+				    const char* name_bw,
+				    const char* name_fw,
+				    const bool& revert);
+  
+  void local_or_conserved_vector_current_mel(LxField<spin1field>& si,
+					     const dirac_matr &g,
+					     const std::string &prop_name_bw,
+					     const std::string &prop_name_fw,
+					     const bool& revert);
+  
+  /// Contains handcuffs
+  struct HandcuffsSide
   {
-    std::string name;
+    /// Gamma matrix
     int igamma;
-    std::string bw,fw;
+    
+    /// Name of the backward propagator
+    std::string bw;
+    
+    /// Name of the forward propagator
+    std::string fw;
+    
+    /// Decide whether to store or not
     int store;
-    handcuffs_side_map_t(std::string name,int igamma,std::string bw,std::string fw,int store) : name(name),igamma(igamma),bw(bw),fw(fw),store(store) {}
+    
+    /// Handcuff data
+    LxField<spin1field> data;
+    
+    /// Sum of the hit-by-hit handcuffs
+    LxField<spin1field>* sum;
+    
+    /// Constructor
+    HandcuffsSide(const int& igamma,
+		  const std::string& bw,
+		  const std::string& fw,
+		  const int& store) :
+      igamma(igamma),
+      bw(bw),
+      fw(fw),
+      store(store),
+      data("data"),
+      sum(nullptr)
+    {
+      if(computeHitSummedHandcuffs)
+	sum=new LxField<spin1field>("sum");
+    }
+    
+    /// Move constructor
+    HandcuffsSide(HandcuffsSide&&)=default;
+    
+    /// Destructor
+    ~HandcuffsSide()
+    {
+      if(sum)
+	delete sum;
+    }
   };
-  EXTERN_CONTR std::vector<handcuffs_side_map_t> handcuffs_side_map;
   
-  struct handcuffs_map_t
+  EXTERN_CONTR std::map<std::string,HandcuffsSide> handcuffsSides;
+  
+  /// Define a handcuff
+  struct Handcuff
   {
+    /// Name of the handcuff
     std::string name;
-    std::string left,right;
-    handcuffs_map_t(std::string name,std::string left,std::string right) : name(name),left(left),right(right) {}
+    
+    /// Left side
+    std::string left;
+    
+    /// Right side
+    std::string right;
+    
+    /// Data of the handcuffs
+    std::vector<std::complex<double>> data;
+    
+    /// Sum of the hit-by-hit handcuff
+    std::complex<double> sum;
+    
+    /// Constructor
+    Handcuff(const std::string& name,
+	     const std::string& left,
+	     const std::string& right) :
+      name(name),
+      left(left),
+      right(right)
+    {
+    }
   };
   
-  EXTERN_CONTR std::vector<handcuffs_map_t> handcuffs_map;
-  EXTERN_CONTR int nhandcuffs_contr_made INIT_TO(0);
-  EXTERN_CONTR double handcuffs_contr_time INIT_TO(0);
-  EXTERN_CONTR complex *handcuffs_contr INIT_TO(NULL);
-  void allocate_handcuffs_contr();
-  void compute_handcuffs_contr();
-  void print_handcuffs_contr();
-  void free_handcuffs_contr();
+  EXTERN_CONTR std::vector<Handcuff> handcuffs;
   
-  inline int ind_handcuffs_contr(int ihand)
-  {return ihand;}
-  EXTERN_CONTR int handcuffs_contr_size;
+  EXTERN_CONTR double handcuffsContrTime INIT_TO(0);
+  
+  EXTERN_CONTR int nhandcuffsContrMade INIT_TO(0);
+  
+  void computeHandcuffSide(HandcuffsSide& h);
+  
+  void computeHandcuffsContr(const bool& useSum);
+  
+  void printHandcuffsContr(const int& iHit);
+  
+  void freeHandcuffsContr();
   
   //////////////////////////////////////////////// barion contractions //////////////////////////////////////////////////
   
@@ -115,7 +258,7 @@ namespace nissa
   void set_bar2pts_contr_ins_map();
   void allocate_bar2pts_contr();
   void compute_bar2pts_contr();
-  void print_bar2pts_contr();
+  void print_bar2pts_contr(const int iHit);
   void free_bar2pts_contr();
   
   inline int ind_bar2pts_contr(int icombo,int dir_exc,int t)
@@ -142,7 +285,7 @@ namespace nissa
   EXTERN_CONTR double bar2pts_alt_contr_time INIT_TO(0);
   void allocate_bar2pts_alt_contr();
   void compute_bar2pts_alt_contr();
-  void print_bar2pts_alt_contr();
+  void print_bar2pts_alt_contr(const int iHit);
   void free_bar2pts_alt_contr();
   inline int ind_bar2pts_alt_contr(int icombo,int iWick,int iProj,int t)
   {
@@ -162,21 +305,20 @@ namespace nissa
   //compute all contractions
   inline void compute_contractions()
   {
-    compute_mes2pts_contr();
-    compute_handcuffs_contr();
     //compute_meslep_contr();
-    if(compute_octet) compute_bar2pts_contr();
-    if(compute_decuplet) compute_bar2pts_alt_contr();
+    if(compute_octet) CRASH("dependencies are broken");//compute_bar2pts_contr();
+    if(compute_decuplet) CRASH("dependencies are broken");//compute_bar2pts_alt_contr();
   }
   
   //print out all contractions
-  inline void print_contractions()
+  inline void print_contractions(const int iHit=0)
   {
-    print_mes2pts_contr();
-    print_handcuffs_contr();
+    print_mes2pts_contr(iHit);
+    if(not handcuffs.empty())
+      printHandcuffsContr(iHit);
     //print_meslep_contr();
-    if(compute_octet) print_bar2pts_contr();
-    if(compute_decuplet) print_bar2pts_alt_contr();
+    if(compute_octet) print_bar2pts_contr(iHit);
+    if(compute_decuplet) print_bar2pts_alt_contr(iHit);
   }
 }
 

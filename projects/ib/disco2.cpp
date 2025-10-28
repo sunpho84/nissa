@@ -181,28 +181,28 @@ namespace mel
 //       generate_undiluted_source((spincolor*)a,RND_GAUSS,ALL_TIMES);
 //     };
   
-//   // master_printf("EigenFinding\n");
+//   // MASTER_PRINTF("EigenFinding\n");
 //   print_all_eigenstuff(imp_mat,mat_size);
-//   crash("test");
+//   CRASH("test");
   
 //   //launch the eigenfinder
 //   double eig_time=-take_time();
 //   complex Q2_eig_val[neig];
 //   eigenvalues_of_hermatr_find((complex**)eigvec,Q2_eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,eig_precision,niter_max,filler);
 //   eig_time+=take_time();
-//   master_printf("Eigenvalues time: %lg\n",eig_time);
+//   MASTER_PRINTF("Eigenvalues time: %lg\n",eig_time);
   
 //   //prints eigenvalues of QQ for check
-//   master_printf("Eigenvalues of QQ:\n");
+//   MASTER_PRINTF("Eigenvalues of QQ:\n");
 //   for(int ieig=0;ieig<neig;ieig++)
-//     master_printf("%d (%.16lg,%.16lg)\n",ieig,Q2_eig_val[ieig][RE],Q2_eig_val[ieig][IM]);
-//   master_printf("\n");
+//     MASTER_PRINTF("%d (%.16lg,%.16lg)\n",ieig,Q2_eig_val[ieig][RE],Q2_eig_val[ieig][IM]);
+//   MASTER_PRINTF("\n");
   
 //   //find the eigenvalues of Q
-//   master_printf("Eigenvalues of D:\n");
+//   MASTER_PRINTF("Eigenvalues of D:\n");
 //   for(int ieig=0;ieig<neig;ieig++)
 //     {
-//       master_printf(" (norm of vec: %lg)\n",sqrt(double_vector_glb_norm2(eigvec[ieig],loc_vol)));
+//       MASTER_PRINTF(" (norm of vec: %lg)\n",sqrt(double_vector_glb_norm2(eigvec[ieig],loc_vol)));
       
 //       //apply the matrix
 //       apply_tmQ(temp_imp_mat,conf,kappa,am*tau3[r],eigvec[ieig]);
@@ -228,16 +228,16 @@ namespace mel
 // 	    for(int ic=0;ic<NCOL;ic++)
 // 	      {
 // 		complex &c=eigvec[ieig][ivol][id][ic];
-// 		master_printf("ivol %d id %d ic %d, %.16lg %.16lg\n",ivol,id,ic,c[RE],c[IM]);
+// 		MASTER_PRINTF("ivol %d id %d ic %d, %.16lg %.16lg\n",ivol,id,ic,c[RE],c[IM]);
 // 	      }
 // 	}
-//       master_printf(" g5story: (%.16lg,%.16lg)\n",c[RE],c[IM]);
+//       MASTER_PRINTF(" g5story: (%.16lg,%.16lg)\n",c[RE],c[IM]);
       
 //       //compute residue
 //       complex_vector_subtassign_complex_vector_prod_complex((complex*)temp_imp_mat,(complex*)(eigvec[ieig]),lambda[ieig],mat_size);
-//       master_printf("%d (%.16lg,%.16lg), residue: %lg\n",ieig,lambda[ieig][RE],lambda[ieig][IM],sqrt(double_vector_glb_norm2(temp_imp_mat,loc_vol)));
+//       MASTER_PRINTF("%d (%.16lg,%.16lg), residue: %lg\n",ieig,lambda[ieig][RE],lambda[ieig][IM],sqrt(double_vector_glb_norm2(temp_imp_mat,loc_vol)));
 //     }
-//   master_printf("\n");
+//   MASTER_PRINTF("\n");
   
 //   //close vectors
 //   for(int ieig=0;ieig<neig;ieig++)
@@ -286,7 +286,7 @@ void compute_propagators(spincolor** phi,spincolor** eta,int nm,int nhits,quad_s
     for(int ihit=0;ihit<nhits;ihit++)
       {
 	const int i=ind_im_ihit(im,ihit,nhits);
-	master_printf("Prop Hit %d\n",ihit);
+	MASTER_PRINTF("Prop Hit %d\n",ihit);
 	
 	//prepare the source
 	vector_copy(source,eta[i]);
@@ -337,10 +337,10 @@ int check_remaining_time(const int& nanalyzed_confs,const double& wall_time)
       double left_time=wall_time-temp_time;
       int enough_time=left_time>(ave_time*1.1);
       
-      master_printf("\nRemaining time: %lg sec\n",left_time);
-      master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
-      if(enough_time) master_printf("Time is enough to go on!\n");
-      else master_printf("Not enough time, exiting!\n");
+      MASTER_PRINTF("\nRemaining time: %lg sec\n",left_time);
+      MASTER_PRINTF("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
+      if(enough_time) MASTER_PRINTF("Time is enough to go on!\n");
+      else MASTER_PRINTF("Not enough time, exiting!\n");
       
       return enough_time;
     }
@@ -385,16 +385,16 @@ void start_new_conf(quad_su3 *conf,const char *conf_path,spincolor **eta,const i
 int read_conf_parameters(quad_su3 *conf,char *outfolder,int &iconf,const int& nconfs,const int& nanalyzed_confs,const double& wall_time,spincolor **eta,const int& nm,const int& nhits)
 {
   //Check if asked to stop or restart
-  int asked_stop=file_exists("stop_disco");
-  verbosity_lv2_master_printf("Asked to stop: %d\n",asked_stop);
-  int asked_restart=file_exists("restart");
-  verbosity_lv2_master_printf("Asked to restart: %d\n",asked_restart);
+  int asked_stop=fileExists("stop_disco");
+  VERBOSITY_LV2_MASTER_PRINTF("Asked to stop: %d\n",asked_stop);
+  int asked_restart=fileExists("restart");
+  VERBOSITY_LV2_MASTER_PRINTF("Asked to restart: %d\n",asked_restart);
   //check if enough time
   int enough_time=check_remaining_time(nanalyzed_confs,wall_time);
-  verbosity_lv2_master_printf("Enough time: %d\n",enough_time);
+  VERBOSITY_LV2_MASTER_PRINTF("Enough time: %d\n",enough_time);
   //check that there are still conf to go
   int still_conf=iconf<nconfs;
-  verbosity_lv2_master_printf("Still conf: %d\n",still_conf);
+  VERBOSITY_LV2_MASTER_PRINTF("Still conf: %d\n",still_conf);
   
   int ok_conf=false;
   if(!asked_stop and !asked_restart and enough_time and still_conf)
@@ -408,30 +408,30 @@ int read_conf_parameters(quad_su3 *conf,char *outfolder,int &iconf,const int& nc
 	read_str(outfolder,1024);
 	
 	//Check if the conf has been finished or is already running
-	master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+	MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
 	char run_file[1024];
-	if(snprintf(run_file,1024,"%s/running_disco",outfolder)<0) crash("witing %s",run_file);
+	if(snprintf(run_file,1024,"%s/running_disco",outfolder)<0) CRASH("witing %s",run_file);
 	char fin_file[1024];
-	if(snprintf(fin_file,1024,"%s/finished_disco",outfolder)<0) crash("witing %s",run_file);
+	if(snprintf(fin_file,1024,"%s/finished_disco",outfolder)<0) CRASH("witing %s",run_file);
 	
-	if(file_exists(run_file) or file_exists(fin_file))
+	if(fileExists(run_file) or fileExists(fin_file))
 	  {
 	    ok_conf=false;
-	    master_printf("\"%s\" finished or running, skipping configuration \"%s\"\n",outfolder,conf_path);
+	    MASTER_PRINTF("\"%s\" finished or running, skipping configuration \"%s\"\n",outfolder,conf_path);
 	  }
 	else
 	  {
-	    master_printf(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
+	    MASTER_PRINTF(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
 	    ok_conf=true;
 	  }
 	
 	//create the dir
 	if(ok_conf and not dir_exists(outfolder))
 	  {
-	    if(create_dir(outfolder)==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
+	    if(create_dir(outfolder)==0) MASTER_PRINTF(" Output path \"%s\" not present, created.\n",outfolder);
 	    else
 	      {
-		master_printf(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+		MASTER_PRINTF(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
 		ok_conf=0;
 	      }
 	  }
@@ -449,7 +449,7 @@ int read_conf_parameters(quad_su3 *conf,char *outfolder,int &iconf,const int& nc
 	    if(not lock_file.check_lock())
 	      {
 		ok_conf=false;
-		master_printf("Somebody acquired the lock on %s\n",run_file);
+		MASTER_PRINTF("Somebody acquired the lock on %s\n",run_file);
 	      }
 	  }
 	else
@@ -464,16 +464,16 @@ int read_conf_parameters(quad_su3 *conf,char *outfolder,int &iconf,const int& nc
       }
     while((not ok_conf) and still_conf);
   
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   
   //write if it was asked to stop or restart
-  if(asked_stop) master_printf("Asked to stop\n");
-  if(asked_restart) master_printf("Asked to restart\n");
+  if(asked_stop) MASTER_PRINTF("Asked to stop\n");
+  if(asked_restart) MASTER_PRINTF("Asked to restart\n");
   
   //writing that all confs have been measured and write it
   if(!ok_conf and iconf>=nconfs)
     {
-      master_printf("Analyzed all confs, exiting\n\n");
+      MASTER_PRINTF("Analyzed all confs, exiting\n\n");
       file_touch("stop_disco");
     }
   
@@ -484,14 +484,14 @@ int read_conf_parameters(quad_su3 *conf,char *outfolder,int &iconf,const int& nc
 void mark_finished(int& nanalyzed_confs,const char* outfolder)
 {
   char fin_file[1024];
-  if(snprintf(fin_file,1024,"%s/finished_disco",outfolder)<0) crash("writing %s",fin_file);
+  if(snprintf(fin_file,1024,"%s/finished_disco",outfolder)<0) CRASH("writing %s",fin_file);
   file_touch(fin_file);
   nanalyzed_confs++;
 }
 
 inline void print_single_statistic(double frac_time,double tot_time,int niter,const char *tag)
 {
-  if(niter) master_printf(" - %02.2f%% for %d %s (%2.2gs avg)\n",frac_time/tot_time*100,niter,tag,frac_time/niter);
+  if(niter) MASTER_PRINTF(" - %02.2f%% for %d %s (%2.2gs avg)\n",frac_time/tot_time*100,niter,tag,frac_time/niter);
 }
 
 void in_main(int narg,char **arg)
@@ -512,10 +512,10 @@ void in_main(int narg,char **arg)
     switch (c)
       {
       case 'i': input_path=optarg; break;
-      default: crash("Unknown option -%c",optopt);
+      default: CRASH("Unknown option -%c",optopt);
       }
   
-  if(input_path=="") crash("Please specify -i");
+  if(input_path=="") CRASH("Please specify -i");
   open_input(input_path);
   
   //geometry
@@ -843,7 +843,7 @@ void in_main(int narg,char **arg)
   //   }
   
   const double tot_prog_time=take_time()-init_moment;
-  master_printf("Total time: %g, of which:\n",tot_prog_time);
+  MASTER_PRINTF("Total time: %g, of which:\n",tot_prog_time);
   print_single_statistic(inv_time,tot_prog_time,ninv_tot,"inversion");
   for(int idiag=0;idiag<ndiag;idiag++)
     print_single_statistic(EU_time_tot[idiag],tot_prog_time,nEU_tot[idiag],combine("diagram EU%d",diag[idiag]).c_str());

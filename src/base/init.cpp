@@ -1,20 +1,28 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
+#include <cfenv>
+
+#include <base/init.hpp>
+
 #ifdef USE_MPI
- #include <mpi.h>
+# include <mpi.h>
 #endif
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 
 #if HIGH_PREC_TYPE == GMP_HIGH_PREC
- #include <gmpxx.h>
+# include <gmpxx.h>
 #endif
 
 #ifdef USE_CUDA
- #include "base/cuda.hpp"
+# include "base/cuda.hpp"
+#endif
+
+#ifdef HAVE_OPENMP
+# include <omp.h>
 #endif
 
 #include "base/DDalphaAMG_bridge.hpp"
@@ -35,7 +43,6 @@
 
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "geometry/geometry_Leb.hpp"
 #include "linalgs/reduce.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/high_prec.hpp"
@@ -47,7 +54,7 @@
 #include <sys/ioctl.h>
 
 #ifdef USE_QUDA
- #include "base/quda_bridge.hpp"
+# include "base/quda_bridge.hpp"
 #endif
 
 //test to remove limit 2
@@ -68,7 +75,7 @@ namespace nissa
     //check terminal output
     int width=w.ws_col;
     int is_terminal=isatty(STDOUT_FILENO);
-    if(!is_terminal) width=message_width+10;
+    if(not is_terminal) width=message_width+10;
     
     //set the bordr
     if(width>=message_width)
@@ -77,7 +84,7 @@ namespace nissa
 	char sp[n+1];
 	for(int i=0;i<n;i++) sp[i]=' ';
 	sp[n]='\0';
-	master_printf("\n"
+	MASTER_PRINTF("\n"
 		      "%s███╗   ██╗██╗███████╗███████╗ █████╗ \n"
 		      "%s████╗  ██║██║██╔════╝██╔════╝██╔══██╗\n"
 		      "%s██╔██╗ ██║██║███████╗███████╗███████║\n"
@@ -88,8 +95,15 @@ namespace nissa
   };
   
   //init nissa
-  void init_nissa(int narg,char **arg,const char compile_info[5][1024])
+  void initNissa(int narg,
+		 char **arg,
+		 const char compileConfigInfo[5][1024])
   {
+    if(nissaInited)
+      CRASH("Cannot start nissa twice");
+    
+    nissaInited=true;
+    
     //init base things
     init_MPI_thread(narg,arg);
     
@@ -102,11 +116,27 @@ namespace nissa
     //get the number of rank and the id of the local one
     get_MPI_nranks();
     get_MPI_rank();
+    get_MPI_local_rank_nranks();
+    
+    const char EVERY_RANK_PRINT_STRING[]="EVERY_RANK_PRINT";
+    if(const char* p=getenv(EVERY_RANK_PRINT_STRING))
+      {
+	const std::string name=combine("log%s.%d",p,rank);
+	MASTER_PRINTF("Going to print in %s file\n",name.c_str());
+	
+	backupStdout=stdout;
+	stdout=fopen(name.c_str(),"w");
+	everyRankPrint=true;
+      }
+    else
+      MASTER_PRINTF("To allow all jobs to print, export the env variable %s with the name to be used for the log[name].[rank] file\n",EVERY_RANK_PRINT_STRING);
     
     //associate signals
-    const char DO_NOT_TRAP_SIGNALS_STRING[]="NISSA_DO_NOT_TRAP_SIGNALS";
-    verbosity_lv2_master_printf("To avoid trapping signals, export: %s\n",DO_NOT_TRAP_SIGNALS_STRING);
-    if(getenv(DO_NOT_TRAP_SIGNALS_STRING)==NULL)
+    const char DO_NOT_TRAP_SIGNALS_STRING[]=
+      "NISSA_DO_NOT_TRAP_SIGNALS";
+    
+    VERBOSITY_LV1_MASTER_PRINTF("To avoid trapping signals, export: %s\n",DO_NOT_TRAP_SIGNALS_STRING);
+    if(getenv(DO_NOT_TRAP_SIGNALS_STRING)==nullptr)
       {
 	signal(SIGBUS,signal_handler);
 	signal(SIGSEGV,signal_handler);
@@ -114,96 +144,71 @@ namespace nissa
 	signal(SIGXCPU,signal_handler);
 	signal(SIGABRT,signal_handler);
 	signal(SIGINT,signal_handler);
+	signal(SIGTERM,signal_handler);
+	//feenableexcept(FE_DIVBYZERO|FE_INVALID|FE_OVERFLOW);
       }
     else
-      master_printf("Not trapping signals\n");
+      MASTER_PRINTF("Not trapping signals\n");
     
     print_banner();
     
     //print version and configuration and compilation time
-    master_printf("\nInitializing NISSA, git hash: " GIT_HASH ", last commit at " GIT_TIME " with message: \"" GIT_LOG "\"\n");
-    master_printf("Configured at %s with flags: %s\n",compile_info[0],compile_info[1]);
-    master_printf("Compiled at %s of %s\n",compile_info[2],compile_info[3]);
+    MASTER_PRINTF("\nInitializing NISSA, git hash: " GIT_HASH ", last commit at " GIT_TIME " with message: \"" GIT_LOG "\"\n");
+    MASTER_PRINTF("Configured at %s with flags: %s\n",compileConfigInfo[0],compileConfigInfo[1]);
+    MASTER_PRINTF("Compiled at %s of %s\n",compileConfigInfo[2],compileConfigInfo[3]);
     
     //define all derived MPI types
     define_MPI_types();
     
 #ifdef USE_CUDA
     init_cuda();
+    tryLoadTunedKernelsInfo();
+#endif
+    
+#ifdef HAVE_OPENMP
+    MASTER_PRINTF("Compiled with OpenMP support, nThreads: %d\n",omp_get_max_threads());
 #endif
     
     //initialize the first vector of nissa
     initialize_main_vect();
     
     //initialize the memory manager
-    cpu_memory_manager=new CPUMemoryManager;
+    cpuMemoryManager=new CPUMemoryManager;
 #ifdef USE_CUDA
-    gpu_memory_manager=new GPUMemoryManager;
+    gpuMemoryManager=new GPUMemoryManager;
 #endif
+    
+    MASTER_PRINTF("Default memory space: %s\n",memorySpaceName(defaultMemorySpace));
+    MASTER_PRINTF("Default spacetime layout: %s\n",spaceTimeLayoutName(defaultSpaceTimeLayout));
     
     //initialize global variables
     lxGeomInited=0;
     eo_geom_inited=0;
     loc_rnd_gen_inited=0;
     glb_rnd_gen_inited=0;
-    grid_inited=0;
-    for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=nrank_dir[mu]=0;
+    gridInited=0;
+    for(int mu=0;mu<NDIM;mu++)
+      rankCoord[mu];
+    set_nRanksDir({});
     
     //check endianness
-    check_endianness();
-    if(little_endian) master_printf("System endianness: little (ordinary machine)\n");
-    else master_printf("System endianness: big (BG, etc)\n");
-    
-    //set scidac mapping
-    scidac_mapping[0]=0;
-    for(int mu=1;mu<NDIM;mu++) scidac_mapping[mu]=NDIM-mu;
-    
-    for(int mu=0;mu<NDIM;mu++) all_dirs[mu]=1;
-    for(int mu=0;mu<NDIM;mu++)
-      for(int nu=0;nu<NDIM;nu++)
-	{
-	  only_dir[mu][nu]=(mu==nu);
-	  all_other_dirs[mu][nu]=(mu!=nu);
-	  all_other_spat_dirs[mu][nu]=(mu!=nu and nu!=0);
-	}
-    //perpendicular dir
-#if NDIM >= 2
-    for(int mu=0;mu<NDIM;mu++)
+    switch(nativeEndianness)
       {
-	int nu=0;
-	for(int inu=0;inu<NDIM-1;inu++)
-	  {
-	    if(nu==mu) nu++;
-	    perp_dir[mu][inu]=nu;
-#if NDIM >= 3
-	    int rho=0;
-	    for(int irho=0;irho<NDIM-2;irho++)
-	      {
-		for(int t=0;t<2;t++) if(rho==mu||rho==nu) rho++;
-		perp2_dir[mu][inu][irho]=rho;
-#if NDIM >= 4
-		int sig=0;
-		for(int isig=0;isig<NDIM-3;isig++)
-		  {
-		    for(int t=0;t<3;t++) if(sig==mu||sig==nu||sig==rho) sig++;
-		    perp3_dir[mu][inu][irho][isig]=sig;
-		    sig++;
-		  } //sig
-#endif
-		rho++;
-	      } //rho
-#endif
-	    nu++;
-	  } //nu
-#endif
-      } //mu
+    case LittleEndian:
+      MASTER_PRINTF("System endianness: little (ordinary machine)\n");
+      break;
+    case BigEndian:
+      MASTER_PRINTF("System endianness: big (BG, etc)\n");
+      break;
+    };
     
-    //print fft implementation
-#if FFT_TYPE == FFTW_FFT
-    master_printf("Fast Fourier Transform: FFTW3\n");
-#else
-    master_printf("Fast Fourier Transform: NATIVE\n");
-#endif
+    set_perpDirs({{{1,2,3},
+		   {0,2,3},
+		   {0,1,3},
+		   {0,1,2}}});
+    
+    /// Internal storage of the overhead
+    benchOverhead=estimateBenchOverhead();
     
 #if HIGH_PREC_TYPE == GMP_HIGH_PREC
     mpf_precision=NISSA_DEFAULT_MPF_PRECISION;
@@ -214,30 +219,24 @@ namespace nissa
     verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
     use_128_bit_precision=NISSA_DEFAULT_USE_128_BIT_PRECISION;
     use_eo_geom=NISSA_DEFAULT_USE_EO_GEOM;
-    use_Leb_geom=NISSA_DEFAULT_USE_LEB_GEOM;
     warn_if_not_disallocated=NISSA_DEFAULT_WARN_IF_NOT_DISALLOCATED;
-    warn_if_not_communicated=NISSA_DEFAULT_WARN_IF_NOT_COMMUNICATED;
     use_async_communications=NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS;
     for(int mu=0;mu<NDIM;mu++) fix_nranks[mu]=0;
     
 #ifdef USE_DDALPHAAMG
-    master_printf("Linked with DDalphaAMG\n");
+    MASTER_PRINTF("Linked with DDalphaAMG\n");
 #endif
 
 #ifdef USE_QUDA
-	master_printf("Linked with QUDA, version: %d.%d.%d\n",QUDA_VERSION_MAJOR,QUDA_VERSION_MINOR,QUDA_VERSION_SUBMINOR);
+	MASTER_PRINTF("Linked with QUDA, version: %d.%d.%d\n",QUDA_VERSION_MAJOR,QUDA_VERSION_MINOR,QUDA_VERSION_SUBMINOR);
 #endif
     
 #ifdef USE_EIGEN
-    master_printf("Linked with Eigen\n");
+    MASTER_PRINTF("Linked with Eigen\n");
 #endif
     
 #ifdef USE_PARPACK
-    master_printf("Linked with Parpack\n");
-#endif
-    
-#ifdef USE_EIGEN_EVERYWHERE
-    master_printf("Using Eigen everywhere\n");
+    MASTER_PRINTF("Linked with Parpack\n");
 #endif
     
 #ifdef USE_PARPACK
@@ -245,12 +244,12 @@ namespace nissa
 #endif
     
 #ifdef USE_GMP
-    master_printf("Linked with GMP\n");
+    MASTER_PRINTF("Linked with GMP\n");
 #endif
     
     //put 0 as minimal request
-    recv_buf_size=0;
-    send_buf_size=0;
+    recvBufSize=0;
+    sendBufSize=0;
     
     //read the configuration file, if present
     read_nissa_config_file();
@@ -265,17 +264,17 @@ namespace nissa
     //initialize the base of the gamma matrices
     init_base_gamma();
     
-    master_printf("Nissa initialized!\n");
+    MASTER_PRINTF("Nissa initialized!\n");
     
     const char DEBUG_LOOP_STRING[]="WAIT_TO_ATTACH";
-    if(getenv(DEBUG_LOOP_STRING)!=NULL)
+    if(getenv(DEBUG_LOOP_STRING)!=nullptr)
       debug_loop();
     else
-      master_printf("To wait attaching the debugger please export: %s\n",DEBUG_LOOP_STRING);
+      MASTER_PRINTF("To wait attaching the debugger please export: %s\n",DEBUG_LOOP_STRING);
   }
   
   //compute internal volume
-  int bulk_volume(const coords_t& L)
+  int bulk_volume(const Coords& L)
   {
     int intvol=1,mu=0;
     do
@@ -291,17 +290,17 @@ namespace nissa
   }
   
   //compute the bulk volume of the local lattice, given by L/R
-  int bulk_recip_lat_volume(const coords_t& R,const coords_t& L)
+  int bulk_recip_lat_volume(const Coords& R,const Coords& L)
   {
-    coords_t X;
+    Coords X;
     for(int mu=0;mu<NDIM;mu++) X[mu]=L[mu]/R[mu];
     return bulk_volume(X);
   }
   
   //compute the variance of the border
-  int compute_border_variance(const coords_t& L,const coords_t& P,int factorize_processor)
+  int64_t compute_border_variance(const Coords& L,const Coords& P,int factorize_processor)
   {
-    int S2B=0,SB=0;
+    int64_t S2B=0,SB=0;
     for(int ib=0;ib<NDIM;ib++)
       {
 	int B=1;
@@ -317,13 +316,16 @@ namespace nissa
   }
   
   //find the grid minimizing the surface
-  void find_minimal_surface_grid(coords_t& mR,const coords_t& ext_L,int NR)
+  Coords findMinimalSurfaceGrid(const Coords& ext_L,
+				const int& NR)
   {
-    coords_t additionally_parallelize_dir;
+    Coords mR;
+    
+    Coords additionally_parallelize_dir;
     for(int mu=0;mu<NDIM;mu++) additionally_parallelize_dir[mu]=0;
     
     //if we want to repartition one dir we must take this into account
-    coords_t L;
+    Coords L;
     for(int mu=0;mu<NDIM;mu++) L[mu]=additionally_parallelize_dir[mu]?ext_L[mu]/2:ext_L[mu];
     
     //compute total and local volume
@@ -343,15 +345,15 @@ namespace nissa
     if(check_all_dir_parallelized)
       {
 	//check that at least (1<<NDIM) ranks are present and is a multiple of (1<<NDIM)
-	if(NR<(1<<NDIM)) crash("in order to paralellize all the direcion, at least (1<<NDIM) ranks must be present");
-	if(NR%(1<<NDIM)) crash("in order to paralellize all the direcion, the number of ranks must be a multiple of (1<<NDIM)");
+	if(NR<(1<<NDIM)) CRASH("in order to paralellize all the direcion, at least (1<<NDIM) ranks must be present");
+	if(NR%(1<<NDIM)) CRASH("in order to paralellize all the direcion, the number of ranks must be a multiple of (1<<NDIM)");
       }
     
     //check that all directions can be made even, if requested
-    REM_2 if(use_eo_geom) if((V/NR)%(1<<NDIM)!=0) crash("in order to use eo geometry, local size must be a multiple of (1<<NDIM)");
+    REM_2 if(use_eo_geom) if((V/NR)%(1<<NDIM)!=0) CRASH("in order to use eo geometry, local size must be a multiple of (1<<NDIM)");
     
     //check that the global lattice is a multiple of the number of ranks
-    if(V%NR) crash("global volume must be a multiple of ranks number");
+    if(V%NR) CRASH("global volume must be a multiple of ranks number");
     
     //check that we did not asked to fix in an impossible way
     int res_NR=NR;
@@ -364,11 +366,11 @@ namespace nissa
 	if(fix_nranks[mu])
 	  {
 	    if(L[mu]%fix_nranks[mu]||L[mu]<nmin_dir)
-	      crash("asked to fix dir %d in an impossible way",mu);
+	      CRASH("asked to fix dir %d in an impossible way",mu);
 	    res_NR/=fix_nranks[mu];
 	  }
       }
-    if(res_NR<1) crash("overfixed the ranks per direction");
+    if(res_NR<1) CRASH("overfixed the ranks per direction");
     
     //////////////////// find the partitioning which minmize the surface /////////////////////
     
@@ -381,7 +383,7 @@ namespace nissa
     else
       {
 	//minimal variance border
-	int mBV=-1;
+	int64_t mBV=-1;
 	
 	//factorize the local volume
 	int list_fact_LV[log2N(LV)];
@@ -410,7 +412,7 @@ namespace nissa
 	do
 	  {
 	    //number of ranks in each direction for current partitioning
-            coords_t R;
+            Coords R;
             for(int mu=0;mu<NDIM;mu++) R[mu]=1;
 	    
 	    //compute mask factor
@@ -469,7 +471,7 @@ namespace nissa
 		//if it is equal to previous found surface, consider borders variance
 		if(surf_LV==min_surf_LV)
 		  {
-		    int BV=compute_border_variance(L,R,factorize_rank);
+		    int64_t BV=compute_border_variance(L,R,factorize_rank);
 		    //if borders are more homogeneus consider this grid
 		    if(BV<mBV)
 		      {
@@ -499,7 +501,9 @@ namespace nissa
 	while(icombo<ncombo);
       }
     
-    if(!something_found) crash("no valid partitioning found");
+    if(!something_found) CRASH("no valid partitioning found");
+    
+    return mR;
   }
   
   //define boxes
@@ -508,106 +512,122 @@ namespace nissa
     //get the size of box 0
     for(int mu=0;mu<NDIM;mu++)
       {
-	if(locSize[mu]<2) crash("loc_size[%d]=%d must be at least 2",mu,locSize[mu]);
-	box_size[0][mu]=locSize[mu]/2;
+	if(locSize[mu]<2) CRASH("loc_size[%d]=%d must be at least 2",mu,locSize[mu]);
+	boxSize[0][mu]=locSize[mu]/2;
       }
     
     //get coords of cube ans box size
-    coords_t nboxes;
-    for(int mu=0;mu<NDIM;mu++) nboxes[mu]=2;
+    Coords nboxes;
+    for(int mu=0;mu<NDIM;mu++)
+      nboxes[mu]=2;
+    
+    nsite_per_box_t _nsite_per_box;
     for(int ibox=0;ibox<(1<<NDIM);ibox++)
       {
 	//coords
-	verbosity_lv3_master_printf("Box %d coord [ ",ibox);
-	box_coord[ibox]=coord_of_lx(ibox,nboxes);
-	for(int mu=0;mu<NDIM;mu++) verbosity_lv3_master_printf("%d ",box_coord[ibox][mu]);
-      
+	VERBOSITY_LV3_MASTER_PRINTF("Box %d coord [ ",ibox);
+	boxCoord[ibox]=coordOfLx(ibox,nboxes);
+	for(int mu=0;mu<NDIM;mu++) VERBOSITY_LV3_MASTER_PRINTF("%d ",boxCoord[ibox][mu]);
+	
 	//size
-	verbosity_lv3_master_printf("] size [ ",ibox);
-	nsite_per_box[ibox]=1;
+	VERBOSITY_LV3_MASTER_PRINTF("] size [ ");
+	_nsite_per_box[ibox]=1;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    if(ibox!=0) box_size[ibox][mu]=((box_coord[ibox][mu]==0)?
-					    (box_size[0][mu]):(locSize[mu]-box_size[0][mu]));
-	    nsite_per_box[ibox]*=box_size[ibox][mu];
-	    verbosity_lv3_master_printf("%d ",box_size[ibox][mu]);
+	    if(ibox!=0) boxSize[ibox][mu]=((boxCoord[ibox][mu]==0)?
+					    (boxSize[0][mu]):(locSize[mu]-boxSize[0][mu]));
+	    _nsite_per_box[ibox]*=boxSize[ibox][mu];
+	    VERBOSITY_LV3_MASTER_PRINTF("%d ",boxSize[ibox][mu]);
 	  }
-	verbosity_lv3_master_printf("], nsites: %d\n",nsite_per_box[ibox]);
+	VERBOSITY_LV3_MASTER_PRINTF("], nsites: %d\n",nsite_per_box[ibox]);
       }
+    set_nsite_per_box(_nsite_per_box);
   }
   
   //initialize MPI grid
   //if you need non-homogeneus glb_size[i] pass L=T=0 and
   //set glb_size before calling the routine
-  void init_grid(int T,int L)
+  void initGrid(const int& T,
+		const int& L)
   {
     //take initial time
     double time_init=-take_time();
-    master_printf("\nInitializing grid, geometry and communications\n");
+    MASTER_PRINTF("\nInitializing grid, geometry and communications\n");
     
-    if(grid_inited==1) crash("grid already intialized!");
-    grid_inited=1;
+    if(gridInited==1)
+      CRASH("grid already intialized!");
+    gridInited=1;
     
-    //set the volume
-    if(T>0 and L>0)
+    if(T!=0 and L!=0)
       {
-	glbSize[0]=T;
-	for(int mu=1;mu<NDIM;mu++) glbSize[mu]=L;
+	/// Set the global sizes
+	Coords _glbSize;
+	
+	_glbSize[0]=T;
+	for(int mu=1;mu<NDIM;mu++)
+	  _glbSize[mu]=L;
+	
+	set_glbSize(_glbSize);
       }
     
-    //broadcast the global sizes
-    coords_broadcast(glbSize);
-    
-    //calculate global volume, initialize local one
-    glbVol=1;
+    /// Calculate global volume
+    int64_t _glbVol=1;
     for(int mu=0;mu<NDIM;mu++)
-      {
-	locSize[mu]=glbSize[mu];
-	glbVol*=glbSize[mu];
-      }
-    glbSpatVol=glbVol/glbSize[0];
-    glb_vol2=(double)glbVol*glbVol;
+      _glbVol*=glbSize[mu];
+    set_glbVol(_glbVol);
     
-    master_printf("Global lattice:\t%d",glbSize[0]);
-    for(int mu=1;mu<NDIM;mu++) master_printf("x%d",glbSize[mu]);
-    master_printf(" = %d\n",glbVol);
-    master_printf("Number of running ranks: %d\n",nranks);
+    set_glbSpatVol(glbVol/glbSize[0]);
+    glbVol2=(double)glbVol*glbVol;
+    
+    MASTER_PRINTF("Global lattice:\t%d",glbSize[0]);
+    for(int mu=1;mu<NDIM;mu++) MASTER_PRINTF("x%d",glbSize[mu]);
+    MASTER_PRINTF(" = %ld\n",glbVol);
+    MASTER_PRINTF("Number of running ranks: %d\n",nranks);
     
     //find the grid minimizing the surface
-    find_minimal_surface_grid(nrank_dir,glbSize,nranks);
+    Coords _nRanksDir=findMinimalSurfaceGrid(glbSize,nranks);
+    set_nRanksDir(_nRanksDir);
     
     //check that lattice is commensurable with the grid
     //and check wether the mu dir is parallelized or not
     int ok=(glbVol%nranks==0);
-    if(!ok) crash("The lattice is incommensurable with nranks!");
+    if(not ok)
+      CRASH("The lattice is incommensurable with nranks!");
     
+    Coords _isDirParallel;
     for(int mu=0;mu<NDIM;mu++)
       {
-	ok&=(nrank_dir[mu]>0);
-	if(!ok) crash("nrank_dir[%d]: %d",mu,nrank_dir[mu]);
-	ok&=(glbSize[mu]%nrank_dir[mu]==0);
-	if(!ok) crash("glb_size[%d]%nrank_dir[%d]=%d",mu,mu,glbSize[mu]%nrank_dir[mu]);
-	paral_dir[mu]=(nrank_dir[mu]>1);
-	nparal_dir+=paral_dir[mu];
+	ok&=(nRanksDir[mu]>0);
+	if(not ok) CRASH("nrank_dir[%d]: %d",mu,nRanksDir[mu]);
+	ok&=(glbSize[mu]%nRanksDir[mu]==0);
+	if(not ok)
+	  CRASH("glb_size[%d]" "%c" "nrank_dir[%d]=%d",mu,'%',mu,glbSize[mu]%nRanksDir[mu]);
+	_isDirParallel[mu]=(nRanksDir[mu]>1);
+	nParalDir+=isDirParallel[mu];
       }
+    set_isDirParallel(_isDirParallel);
     
-    master_printf("Creating grid:\t%d",nrank_dir[0]);
-    for(int mu=1;mu<NDIM;mu++) master_printf("x%d",nrank_dir[mu]);
-    master_printf("\n");
+    MASTER_PRINTF("Creating grid:\t%d",nRanksDir[0]);
+    for(int mu=1;mu<NDIM;mu++) MASTER_PRINTF("x%d",nRanksDir[mu]);
+    MASTER_PRINTF("\n");
     
     //creates the grid
     create_MPI_cartesian_grid();
     
     //calculate the local volume
-    for(int mu=0;mu<NDIM;mu++) locSize[mu]=glbSize[mu]/nrank_dir[mu];
-    locVol=glbVol/nranks;
-    locSpatVol=locVol/locSize[0];
-    loc_vol2=(double)locVol*locVol;
+    Coords _locSize;
+    for(int mu=0;mu<NDIM;mu++)
+      _locSize[mu]=glbSize[mu]/nRanksDir[mu];
+    set_locSize(_locSize);
+    
+    set_locVol(glbVol/nranks);
+    set_locSpatVol(locVol/locSize[0]);
+    locVol2=(double)locVol*locVol;
     
     //calculate bulk size
     bulkVol=nonBwSurfVol=1;
     for(int mu=0;mu<NDIM;mu++)
-      if(paral_dir[mu])
+      if(isDirParallel[mu])
 	{
 	  bulkVol*=locSize[mu]-2;
 	  nonBwSurfVol*=locSize[mu]-1;
@@ -622,72 +642,88 @@ namespace nissa
     surfVol=locVol-bulkVol;
     
     //calculate the border size
-    bord_volh=0;
-    bord_offset[0]=0;
+    int64_t _bordVolh=0;
+    bordOffset[0]=0;
     for(int mu=0;mu<NDIM;mu++)
       {
 	//bord size along the mu dir
-	if(paral_dir[mu]) bord_dir_vol[mu]=locVol/locSize[mu];
-	else bord_dir_vol[mu]=0;
+	if(isDirParallel[mu]) bordDirVol[mu]=locVol/locSize[mu];
+	else bordDirVol[mu]=0;
 	
 	//total bord
-	bord_volh+=bord_dir_vol[mu];
+	_bordVolh+=bordDirVol[mu];
 	
 	//summ of the border extent up to dir mu
-	if(mu>0) bord_offset[mu]=bord_offset[mu-1]+bord_dir_vol[mu-1];
+	if(mu>0) bordOffset[mu]=bordOffset[mu-1]+bordDirVol[mu-1];
       }
-    bord_vol=2*bord_volh;
+    set_bordVolh(_bordVolh);
+    set_bordVol(2*bordVolh);
     
     init_boxes();
     
     //calculate the egdes size
-    edge_vol=0;
+    int64_t _edgeVol=0;
     edge_offset[0]=0;
-    int iedge=0;
-    for(int mu=0;mu<NDIM;mu++)
+    for(int iedge=0,mu=0;mu<NDIM;mu++)
       for(int nu=mu+1;nu<NDIM;nu++)
 	{
 	  //edge among the i and j dir
-	  if(paral_dir[mu] && paral_dir[nu]) edge_dir_vol[iedge]=bord_dir_vol[mu]/locSize[nu];
+	  if(isDirParallel[mu] && isDirParallel[nu]) edge_dir_vol[iedge]=bordDirVol[mu]/locSize[nu];
 	  else edge_dir_vol[iedge]=0;
 	  
 	  //total edge
-	  edge_vol+=edge_dir_vol[iedge];
+	  _edgeVol+=edge_dir_vol[iedge];
 	  
 	  //summ of the border extent up to dir i
 	  if(iedge>0)
 	    edge_offset[iedge]=edge_offset[iedge-1]+edge_dir_vol[iedge-1];
+	  
+	  edge_dirs[iedge][0]=mu;
+	  edge_dirs[iedge][1]=nu;
+	  
 	  iedge++;
 	}
-    edge_vol*=4;
-    edge_volh=edge_vol/2;
-    master_printf("Edge vol: %d\n",edge_vol);
-      
+    _edgeVol*=4;
+    set_edgeVol(_edgeVol);
+    set_edgeVolh(edgeVol/2);
+    MASTER_PRINTF("Edge vol: %ld\n",edgeVol);
+    
     //set edge numb
-    {
-      int iedge=0;
-      for(int mu=0;mu<NDIM;mu++)
-	{
-	  edge_numb[mu][mu]=-1;
-	  for(int nu=mu+1;nu<NDIM;nu++)
+    for(int iedge=0,mu=0;mu<NDIM;mu++)
+      {
+	edge_numb[mu][mu]=-1;
+	for(int nu=mu+1;nu<NDIM;nu++)
+	  {
+	    edge_numb[mu][nu]=edge_numb[nu][mu]=iedge;
+	    isEdgeParallel[iedge]=(isDirParallel[mu] and isDirParallel[nu]);
+	    iedge++;
+	  }
+      }
+    
+    for(int iEdge=0;iEdge<nEdges;iEdge++)
+      {
+	const auto [mu,nu]=edge_dirs[iEdge];
+	for(int bf1=0;bf1<2;bf1++)
+	  for(int bf2=0;bf2<2;bf2++)
 	    {
-	      edge_numb[mu][nu]=edge_numb[nu][mu]=iedge;
-	      iedge++;
+	      Coords c=rankCoord;
+	      c[mu]=(c[mu]+nRanksDir[mu]+2*bf1-1)%nRanksDir[mu];
+	      c[nu]=(c[nu]+nRanksDir[nu]+2*bf2-1)%nRanksDir[nu];
+	      rank_edge_neigh[bf1][bf2][iEdge]=rankOfCoords(c);
 	    }
-	}
-    }
+      }
     
     //print information
-    master_printf("Local volume\t%d",locSize[0]);
-    for(int mu=1;mu<NDIM;mu++) master_printf("x%d",locSize[mu]);
-    master_printf(" = %d\n",locVol);
-    master_printf("List of parallelized dirs:\t");
-    for(int mu=0;mu<NDIM;mu++) if(paral_dir[mu]) master_printf("%d ",mu);
-    if(nparal_dir==0) master_printf("(none)");
-    master_printf("\n");
-    master_printf("Border size: %d\n",bord_vol);
+    MASTER_PRINTF("Local volume\t%d",locSize[0]);
+    for(int mu=1;mu<NDIM;mu++) MASTER_PRINTF("x%d",locSize[mu]);
+    MASTER_PRINTF(" = %ld\n",locVol);
+    MASTER_PRINTF("List of parallelized dirs:\t");
+    for(int mu=0;mu<NDIM;mu++) if(isDirParallel[mu]) MASTER_PRINTF("%d ",mu);
+    if(nParalDir==0) MASTER_PRINTF("(none)");
+    MASTER_PRINTF("\n");
+    MASTER_PRINTF("Border size: %ld\n",bordVol);
     for(int mu=0;mu<NDIM;mu++)
-      verbosity_lv3_master_printf("Border offset for dir %d: %d\n",mu,bord_offset[mu]);
+      VERBOSITY_LV3_MASTER_PRINTF("Border offset for dir %d: %ld\n",mu,bordOffset[mu]);
     
     //print orderd list of the rank names
     if(VERBOSITY_LV3)
@@ -700,8 +736,8 @@ namespace nissa
 	  {
 	    if(irank==rank)
 	      {
-		printf("Rank %d of %d running on processor %s: %d (%d",rank,nranks,proc_name,cart_rank,rank_coord[0]);
-		for(int mu=1;mu<NDIM;mu++) printf(" %d",rank_coord[mu]);
+		printf("Rank %d of %d running on processor %s: %d (%d",rank,nranks,proc_name,cartRank,rankCoord[0]);
+		for(int mu=1;mu<NDIM;mu++) printf(" %d",rankCoord[mu]);
 		printf(")\n");
 	      }
 	    fflush(stdout);
@@ -716,72 +752,34 @@ namespace nissa
     set_lx_geometry();
     
     if(use_eo_geom) set_eo_geometry();
-    if(use_Leb_geom) set_Leb_geometry();
     
     ///////////////////////////////////// start communicators /////////////////////////////////
-    
-    reducing_buffer=nullptr;
-    reducing_buffer_size=0;
     
     ncomm_allocated=0;
     
     //allocate only now buffers, so we should have finalized its size
-    recv_buf=nissa_malloc("recv_buf",recv_buf_size,char);
-    send_buf=nissa_malloc("send_buf",send_buf_size,char);
-    
-    //setup all lx borders communicators
-    set_lx_comm(lx_su3_comm,sizeof(su3));
-    set_lx_comm(lx_quad_su3_comm,sizeof(quad_su3));
-    set_lx_comm(lx_single_quad_su3_comm,sizeof(single_quad_su3));
-    set_lx_comm(lx_as2t_su3_comm,sizeof(as2t_su3));
-    set_lx_comm(lx_spin_comm,sizeof(spin));
-    set_lx_comm(lx_color_comm,sizeof(color));
-    set_lx_comm(lx_single_color_comm,sizeof(single_color));
-    set_lx_comm(lx_spinspin_comm,sizeof(spinspin));
-    set_lx_comm(lx_spin1field_comm,sizeof(spin1field));
-    set_lx_comm(lx_spincolor_comm,sizeof(spincolor));
-    set_lx_comm(lx_single_halfspincolor_comm,sizeof(single_halfspincolor));
-    set_lx_comm(lx_spincolor_128_comm,sizeof(spincolor_128));
-    set_lx_comm(lx_halfspincolor_comm,sizeof(halfspincolor));
-    set_lx_comm(lx_colorspinspin_comm,sizeof(colorspinspin));
-    set_lx_comm(lx_su3spinspin_comm,sizeof(su3spinspin));
-    set_lx_comm(lx_oct_su3_comm,sizeof(oct_su3));
-    
-    //setup all lx edges communicators
-#ifdef USE_MPI
-    set_lx_edge_senders_and_receivers(MPI_LX_SU3_EDGES_SEND,MPI_LX_SU3_EDGES_RECE,&MPI_SU3);
-    set_lx_edge_senders_and_receivers(MPI_LX_QUAD_SU3_EDGES_SEND,MPI_LX_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
-    set_lx_edge_senders_and_receivers(MPI_LX_AS2T_SU3_EDGES_SEND,MPI_LX_AS2T_SU3_EDGES_RECE,&MPI_AS2T_SU3);
+#ifdef ENABLE_CUDA_AWARE_MPI
+    recvBuf=memoryManager<MemorySpace::GPU>()->provide<char>(recvBufSize);
+    sendBuf=memoryManager<MemorySpace::GPU>()->provide<char>(sendBufSize);
+#else
+    recvBuf=nissa_malloc("recvBuf",recvBufSize,char);
+    sendBuf=nissa_malloc("sendBuf",sendBufSize,char);
 #endif
-    
-    if(use_eo_geom)
-      {
-	set_eo_comm(eo_spin_comm,sizeof(spin));
-	set_eo_comm(eo_spincolor_comm,sizeof(spincolor));
-	set_eo_comm(eo_spincolor_128_comm,sizeof(spincolor_128));
-	set_eo_comm(eo_color_comm,sizeof(color));
-	set_eo_comm(eo_single_color_comm,sizeof(single_color));
-	set_eo_comm(eo_halfspincolor_comm,sizeof(halfspincolor));
-	set_eo_comm(eo_single_halfspincolor_comm,sizeof(single_halfspincolor));
-	set_eo_comm(eo_quad_su3_comm,sizeof(quad_su3));
-	set_eo_comm(eo_su3_comm,sizeof(su3));
-	
-	set_eo_comm(eo_oct_su3_comm,sizeof(oct_su3));
-	
-#ifdef USE_MPI
-	set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
-	set_eo_edge_senders_and_receivers(MPI_EO_AS2T_SU3_EDGES_SEND,MPI_EO_AS2T_SU3_EDGES_RECE,&MPI_AS2T_SU3);
-#endif
-      }
     
 #ifdef USE_QUDA
-    if(use_quda) quda_iface::initialize();
+    if(use_quda)
+      quda_iface::initialize();
 #endif
      
     //take final time
-    master_printf("Time elapsed for grid inizialization: %f s\n",time_init+take_time());
+    MASTER_PRINTF("Time elapsed for grid inizialization: %f s\n",time_init+take_time());
     
     //benchmark the net
-    if(perform_benchmark) bench_net_speed();
+    for(int i=0;i<perform_benchmark;i++)
+      {
+	benchNetSpeed();
+	benchHaloExchange();
+	benchCovariantShift();
+      }
   }
 }

@@ -3,6 +3,7 @@
 
 #include <mpi.h>
 #include <algorithm>
+#include <string>
 
 #include "geometry/geometry_lx.hpp"
 #include "math_routines.hpp"
@@ -42,11 +43,6 @@ namespace nissa
   EXTERN_MPI MPI_Datatype MPI_EO_QUAD_SU3_EDGES_SEND[96],MPI_EO_QUAD_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
   EXTERN_MPI MPI_Datatype MPI_EO_AS2T_SU3_EDGES_SEND[96],MPI_EO_AS2T_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
   
-  //volume, plan and line communicator
-  EXTERN_MPI MPI_Comm cart_comm;
-  EXTERN_MPI MPI_Comm plan_comm[NDIM];
-  EXTERN_MPI MPI_Comm line_comm[NDIM];
-  
   EXTERN_MPI int master_rank INIT_MPI_TO(=0);
   
 #define DEFINE_MPI_DATATYPE_OF(T,MPI_T)		\
@@ -56,11 +52,14 @@ namespace nissa
     return MPI_T;				\
   }
   
+  DEFINE_MPI_DATATYPE_OF(int,MPI_INT)
   DEFINE_MPI_DATATYPE_OF(int64_t,MPI_LONG)
+  DEFINE_MPI_DATATYPE_OF(uint32_t,MPI_UNSIGNED)
+  DEFINE_MPI_DATATYPE_OF(float,MPI_FLOAT)
   DEFINE_MPI_DATATYPE_OF(double,MPI_DOUBLE)
   DEFINE_MPI_DATATYPE_OF(complex,MPI_DOUBLE_COMPLEX)
-  DEFINE_MPI_DATATYPE_OF(float_128,MPI_FLOAT_128)
-  DEFINE_MPI_DATATYPE_OF(complex_128,MPI_COMPLEX_128)
+  DEFINE_MPI_DATATYPE_OF(Float128,MPI_FLOAT_128)
+  DEFINE_MPI_DATATYPE_OF(Complex128,MPI_COMPLEX_128)
   
   /// Instantiates the correct datatype, given the type
   template <typename T>
@@ -91,8 +90,8 @@ namespace nissa
     }						\
   }
   
-  DEFINE_MPI_OP_DISPATCHER(float_128,MPI_FLOAT_128_SUM);
-  DEFINE_MPI_OP_DISPATCHER(complex_128,MPI_COMPLEX_128_SUM);
+  DEFINE_MPI_OP_DISPATCHER(Float128,MPI_FLOAT_128_SUM);
+  DEFINE_MPI_OP_DISPATCHER(Complex128,MPI_COMPLEX_128_SUM);
   
   /// Gets the sum operation for the type T
   template <typename T>
@@ -104,12 +103,14 @@ namespace nissa
 #undef DEFINE_MPI_OP_DISPATCHER
   
   size_t MPI_Get_count_size_t(MPI_Status &status);
-  void coords_broadcast(coords_t& c);
+  void coords_broadcast(Coords& c);
   void get_MPI_nranks();
   void get_MPI_rank();
+  void get_MPI_local_rank_nranks();
   void init_MPI_thread(int narg,char **arg);
   void define_MPI_types();
   void create_MPI_cartesian_grid();
+  __attribute__((noreturn))
   void ranks_abort(int err);
   void ranks_barrier();
   int broadcast(int in,int rank_from=0);
@@ -119,6 +120,7 @@ namespace nissa
   MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos);
   MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos);
   void MPI_FLOAT_128_SUM_routine(void *in,void *out,int *len,MPI_Datatype *type);
+  EXTERN_MPI MPI_Comm node_communicator;
 #else
   uint64_t ceil_to_next_eight_multiple(uint64_t pos);
   uint64_t diff_with_next_eight_multiple(uint64_t pos);

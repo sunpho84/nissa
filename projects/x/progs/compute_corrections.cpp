@@ -29,7 +29,7 @@ void init_program(int narg,char **arg)
   init_nissa(narg,arg);
   
   //Check arguments
-  if(narg<2) crash("use %s input",arg[0]);  
+  if(narg<2) CRASH("use %s input",arg[0]);  
 }
 
 //initialize the program
@@ -95,7 +95,7 @@ void parse_input(quark_info &quark,gluon_info &gluon,char *output_folder,int &ne
   if(strcasecmp(gluon_type,"tlSym")==0) gluon=create_tlSym_gluon_info(alpha,gluon_bc);
   else
     if(strcasecmp(gluon_type,"Wilson")==0) gluon=create_Wilson_gluon_info(alpha,gluon_bc);
-    else crash("Unknown gluon type %s",gluon_type);
+    else CRASH("Unknown gluon type %s",gluon_type);
 }
 
 //save the correlation
@@ -109,7 +109,7 @@ void save_correlators(const char *output_folder,const char *filename,corr16 *cor
 //compute tree level corrections
 void compute_tree_level_corrections(char *output_folder,quark_info &quark)
 {
-  master_printf("Computing tree level corrections\n");
+  MASTER_PRINTF("Computing tree level corrections\n");
   
   //compute tree level propagator
   spinspin *prop=nissa_malloc("prop",loc_vol,spinspin);
@@ -128,7 +128,7 @@ void compute_tree_level_corrections(char *output_folder,quark_info &quark)
 //compute diagram correcting for mass retuning
 void compute_mass_corrections(char *output_folder,quark_info &quark)
 {
-  master_printf("Computing mass corrections\n");
+  MASTER_PRINTF("Computing mass corrections\n");
   
   //compute tree level propagator
   spinspin *prop=nissa_malloc("prop",loc_vol,spinspin);
@@ -150,7 +150,7 @@ void compute_mass_corrections(char *output_folder,quark_info &quark)
 //compute the critical mass
 void compute_crit_mass(quark_info &quark,gluon_info &gluon)
 {
-  master_printf("Computing critical mass\n");
+  MASTER_PRINTF("Computing critical mass\n");
   
   spinspin *temp=nissa_malloc("temp",loc_vol,spinspin);
 
@@ -159,14 +159,14 @@ void compute_crit_mass(quark_info &quark,gluon_info &gluon)
   compute_tadpole_twisted_propagator_in_mom_space(temp,quark,gluon);
   pass_spinspin_from_x_to_mom_space(temp,temp,quark.bc);
   spinspin_copy(tad,temp[0]);
-  master_printf("Tadpole computed\n");
+  MASTER_PRINTF("Tadpole computed\n");
   
   //compute self energy contribution
   spinspin self;
   compute_self_energy_twisted_diagram_in_x_space(temp,quark,gluon);
   pass_spinspin_from_x_to_mom_space(temp,temp,quark.bc);
   spinspin_copy(self,temp[0]);
-  master_printf("Self energy computed\n");
+  MASTER_PRINTF("Self energy computed\n");
   nissa_free(temp);
 
   //summ the trace of 0 momentum
@@ -175,13 +175,13 @@ void compute_crit_mass(quark_info &quark,gluon_info &gluon)
     for(int id=0;id<4;id++)
       crit+=(tad[id][id][RE]+self[id][id][RE])/4*glb_vol;
   
-  master_printf("Critical mass: %lg\n",crit);
+  MASTER_PRINTF("Critical mass: %lg\n",crit);
 }
 
 //diagram of self energy (not tadpole)
 void compute_self_energy_corrections(char *output_folder,quark_info &quark,gluon_info &gluon,int nests=0)
 {
-  master_printf("Computing self energy corrections\n");
+  MASTER_PRINTF("Computing self energy corrections\n");
   
   //compute tree level propagator
   spinspin *prop=nissa_malloc("prop",loc_vol,spinspin);
@@ -198,7 +198,7 @@ void compute_self_energy_corrections(char *output_folder,quark_info &quark,gluon
       spin1field *eta=nissa_malloc("eta",loc_vol+bord_vol,spin1field);
       for(int iest=0;iest<nests;iest++)
 	{
-	  master_printf("%d/%d\n",iest,nests);
+	  MASTER_PRINTF("%d/%d\n",iest,nests);
 	  generate_stochastic_source_and_tlSym_gluon_propagator(phi,eta,gluon);
 	  generate_stochastic_A_B_dag_twisted_propagator(self_stoch_prop,prop,quark,phi,eta,gluon);
 	  double_vector_summ_double_vector_prod_double((double*)self_prop,(double*)self_prop,(double*)self_stoch_prop,1.0/nests,sizeof(corr16)/sizeof(double)*loc_vol);
@@ -221,7 +221,7 @@ void compute_self_energy_corrections(char *output_folder,quark_info &quark,gluon
 //diagram of tadpole
 void compute_tadpole_corrections(char *output_folder,quark_info &quark,gluon_info &gluon)
 {
-  master_printf("Computing tadpole corrections\n");
+  MASTER_PRINTF("Computing tadpole corrections\n");
   
   //compute tree level propagator
   spinspin *prop=nissa_malloc("prop",loc_vol,spinspin);
@@ -245,7 +245,7 @@ void compute_tadpole_corrections(char *output_folder,quark_info &quark,gluon_inf
 //exchange diagram
 void compute_exchange_corrections(char *output_folder,quark_info &quark,gluon_info &gluon,int nests)
 {
-  master_printf("Computing exchange corrections with %d estimates\n",nests);
+  MASTER_PRINTF("Computing exchange corrections with %d estimates\n",nests);
 
   corr16 *corr=nissa_malloc("corr",loc_vol,corr16);
   compute_meson_exchange_correction_stochastically(corr,quark,gluon,nests);

@@ -12,7 +12,7 @@ using namespace std;
 
 void stochastic_x_space_qqg_vertex_source(spinspin *q_out,spinspin *q_in,quark_info qu,spin1field *g_in,gluon_info gl,bool g_dag=false)
 {
-  if(q_out==q_in) crash("q_in==q_out");
+  if(q_out==q_in) CRASH("q_in==q_out");
   
   spinspin *shift_q_in=nissa_malloc("shift_q_in",loc_vol,spinspin);
   spin1field *shift_g_in=nissa_malloc("shift_g_in",loc_vol,spin1field);

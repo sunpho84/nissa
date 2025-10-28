@@ -65,57 +65,58 @@ namespace nissa
     void (*compute_staples_packed)(su3 staples,su3 *links,double C1);
     
     //inits the parity checkboard according to an external parity
-    void init_box_dir_par_geometry(int ext_gpar,int(*par_comp)(const coords_t& ivol_coord,const int& dir));
+    void init_box_dir_par_geometry(int ext_gpar,int(*par_comp)(const Coords& ivol_coord,const int& dir));
     
     //sweep the conf
-    void sweep_conf(quad_su3 *conf,void (*update_fun)(su3 out,su3 staples,int ivol,int mu,void *pars),void *pars)
+    void sweep_conf(LxField<quad_su3>& conf,void (*update_fun)(su3 out,su3 staples,int ivol,int mu,void *pars),void *pars)
     {
-      MANDATORY_PARALLEL;
+      CRASH("reimplement");
+      // MANDATORY_PARALLEL;
       
-      int ibase=0;
-      for(int ibox=0;ibox<(1<<NDIM);ibox++)
-	{
-	  //communicate needed links
-	  if(IS_MASTER_THREAD) comm_time-=take_time();
-	  box_comm[ibox]->communicate(conf,conf,sizeof(su3),NULL,NULL,ibox+100);
-	  if(IS_MASTER_THREAD)
-	    {
-	      comm_time+=take_time();
-	      comp_time-=take_time();
-	    }
-	  for(int dir=0;dir<NDIM;dir++)
-	    for(int par=0;par<gpar;par++)
-	      {
-		int box_dir_par_size=nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)];
+      // int ibase=0;
+      // for(int ibox=0;ibox<(1<<NDIM);ibox++)
+      // 	{
+      // 	  //communicate needed links
+      // 	  if(IS_MASTER_THREAD) comm_time-=take_time();
+      // 	  box_comm[ibox]->communicate(conf,conf,sizeof(su3),NULL,NULL,ibox+100);
+      // 	  if(IS_MASTER_THREAD)
+      // 	    {
+      // 	      comm_time+=take_time();
+      // 	      comp_time-=take_time();
+      // 	    }
+      // 	  for(int dir=0;dir<NDIM;dir++)
+      // 	    for(int par=0;par<gpar;par++)
+      // 	      {
+      // 		int box_dir_par_size=nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)];
 		
-		//pack
-		if(packing_inited) pack_links(conf,ibase,box_dir_par_size);
+      // 		//pack
+      // 		if(packing_inited) pack_links(conf,ibase,box_dir_par_size);
 		
-		//scan the whole box
-		NISSA_PARALLEL_LOOP(ibox_dir_par,ibase,ibase+box_dir_par_size)
-		  {
-		    //compute the staples
-		    su3 staples;
+      // 		//scan the whole box
+      // 		NISSA_PARALLEL_LOOP(ibox_dir_par,ibase,ibase+box_dir_par_size)
+      // 		  {
+      // 		    //compute the staples
+      // 		    su3 staples;
 		    
-		    if(packing_inited)
-		      compute_staples_packed(staples,packing_link_buf+(ibox_dir_par-ibase)*nlinks_per_staples_of_link,C1);
-		    else
-		      compute_staples(staples,(su3*)conf,ilink_per_staples+nlinks_per_staples_of_link*ibox_dir_par,C1);
+      // 		    if(packing_inited)
+      // 		      compute_staples_packed(staples,packing_link_buf+(ibox_dir_par-ibase)*nlinks_per_staples_of_link,C1);
+      // 		    else
+      // 		      compute_staples(staples,(su3*)conf,ilink_per_staples+nlinks_per_staples_of_link*ibox_dir_par,C1);
 		    
-		    //find new link
-		    int ivol=ivol_of_box_dir_par[ibox_dir_par];
-		    update_fun(conf[ivol][dir],staples,ivol,dir,pars);
-		  }
-		NISSA_PARALLEL_LOOP_END;
-		THREAD_BARRIER();
+      // 		    //find new link
+      // 		    int ivol=ivol_of_box_dir_par[ibox_dir_par];
+      // 		    update_fun(conf[ivol][dir],staples,ivol,dir,pars);
+      // 		  }
+      // 		NISSA_PARALLEL_LOOP_END;
+      // 		THREAD_BARRIER();
 		
-		//increment the box-dir-par subset
-		ibase+=box_dir_par_size;
-	      }
-	  if(IS_MASTER_THREAD) comp_time+=take_time();
-	}
+      // 		//increment the box-dir-par subset
+      // 		ibase+=box_dir_par_size;
+      // 	      }
+      // 	  if(IS_MASTER_THREAD) comp_time+=take_time();
+      // 	}
       
-      set_borders_invalid(conf);
+      // set_borders_invalid(conf);
     }
   
     //checkers
@@ -154,8 +155,12 @@ namespace nissa
 	Symanzik_sweeper->C1=C1_IWASAKI;
 	sweeper=Symanzik_sweeper;
 	break;
-      case UNSPEC_GAUGE_ACTION:crash("unspecified action");
-      default: crash("not implemented action");sweeper=NULL;break;
+      case UNSPEC_GAUGE_ACTION:
+	CRASH("unspecified action");
+      default:
+	CRASH("not implemented action");
+	sweeper=NULL;
+	break;
       }
     
     return sweeper;

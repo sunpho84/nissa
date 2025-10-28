@@ -9,31 +9,42 @@
 namespace nissa
 {
   //computes the spectrum of the overlap operator
-  void find_eigenvalues_overlap(spincolor **eigvec,complex *eigval,int neigs,bool min_max,quad_su3 *conf,rat_approx_t& appr,double residue,double mass_overlap,double mass,int wspace_size)
+  void find_eigenvalues_overlap(LxField<spincolor> *eigvec,
+				complex *eigval,
+				const int& neigs,
+				const bool& min_max,
+				const LxField<quad_su3>& conf,
+				const rat_approx_t& appr,
+				const double& residue,
+				const double& mass_overlap,
+				const double& mass,
+				const int& wspace_size)
   {
-    //Application of the overlap Operator
-    const auto imp_mat=[conf,&appr,residue,mass_overlap,mass](complex *out_lx,complex *in_lx)
-      {
-	apply_overlap((spincolor*)out_lx,conf,&appr,residue,mass_overlap,mass,(spincolor*)in_lx);
-      };
+    CRASH("reimplement");
     
-    const auto filler=[](complex *out_lx)
-      {
-	generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);
-      };
+    // //Application of the overlap Operator
+    // const auto imp_mat=[conf,&appr,residue,mass_overlap,mass](complex *out_lx,complex *in_lx)
+    //   {
+    // 	apply_overlap((spincolor*)out_lx,conf,&appr,residue,mass_overlap,mass,(spincolor*)in_lx);
+    //   };
     
-    //parameters of the finder
-    const int mat_size=locVol*NCOL*NDIRAC;
-    const int mat_size_to_allocate=(locVol+bord_vol)*NCOL*NDIRAC;
-    const int niter_max=100000000;
-    master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
+    // const auto filler=[](complex *out_lx)
+    //   {
+    // 	generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);
+    //   };
     
-    //precision of the eigenvalues
-    double maxerr=sqrt(residue);
+    // //parameters of the finder
+    // const int mat_size=locVol*NCOL*NDIRAC;
+    // const int mat_size_to_allocate=(locVol+bord_vol)*NCOL*NDIRAC;
+    // const int niter_max=100000000;
+    // MASTER_PRINTF("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     
-    verbosity_lv1_master_printf("Starting to search for %d %s eigenvalues of the overlap operator, with a precision of %lg, and Krylov space size of %d\n",neigs,(min_max?"max":"min"),maxerr,wspace_size);
+    // //precision of the eigenvalues
+    // double maxerr=sqrt(residue);
     
-    //find eigenvalues and eigenvectors of the overlap
-    eigenvalues_find((complex**)eigvec,eigval,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,maxerr,niter_max,filler,wspace_size);
+    // VERBOSITY_LV1_MASTER_PRINTF("Starting to search for %d %s eigenvalues of the overlap operator, with a precision of %lg, and Krylov space size of %d\n",neigs,(min_max?"max":"min"),maxerr,wspace_size);
+    
+    // //find eigenvalues and eigenvectors of the overlap
+    // eigenvalues_find((complex**)eigvec,eigval,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,maxerr,niter_max,filler,wspace_size);
   }
 }

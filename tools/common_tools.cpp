@@ -54,7 +54,7 @@ void doubles_to_doubles_changing_endianess(double *dest,double *sour,int ndouble
       }
 }
 
-void crash(const char *templ,...)
+void CRASH(const char *templ,...)
 {
   va_list ap;
   va_start(ap,templ);
@@ -90,7 +90,7 @@ void read_up_to_end_of_comment()
   do
     {
       int ok=read_next_token(tok);
-      if(ok!=1) crash("reached end of file without finding end of comment");
+      if(ok!=1) CRASH("reached end of file without finding end of comment");
     }
   while(check_tok_ends_comment(tok)==0);
 }
@@ -124,7 +124,7 @@ int read_var_catcherr(char *out,const char *par,int size_of)
 }
 
 void read_var(char *out,const char *par,int size_of)
-{if(!read_var_catcherr(out,par,size_of)) crash("Couldn't read from input file!!!");}
+{if(!read_var_catcherr(out,par,size_of)) CRASH("Couldn't read from input file!!!");}
 
 //Read an integer from the file
 void read_int(int *out)
@@ -145,7 +145,7 @@ void expect_str(const char *exp_str)
   
   read_str(obt_str,1024);
   
-  if(strcasecmp(exp_str,obt_str)!=0) crash("Error, expexcted '%s' in input file, obtained: '%s'",exp_str,obt_str);
+  if(strcasecmp(exp_str,obt_str)!=0) CRASH("Error, expexcted '%s' in input file, obtained: '%s'",exp_str,obt_str);
 }
 
 //Read an int checking the tag
@@ -174,7 +174,7 @@ FILE* open_file(const char *outfile,const char *mode)
   FILE *fout=NULL;
   
   fout=fopen(outfile,mode);
-  if(fout==NULL) crash("Couldn't open the file: %s for mode: %s",outfile,mode);
+  if(fout==NULL) CRASH("Couldn't open the file: %s for mode: %s",outfile,mode);
   
   return fout;
 }
@@ -198,5 +198,5 @@ int file_exists(const char *path)
 void open_input(char *input_path)
 {
   input_global=fopen(input_path,"r");
-  if(input_global==NULL) crash("File '%s' not found",input_path);
+  if(input_global==NULL) CRASH("File '%s' not found",input_path);
 }

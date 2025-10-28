@@ -71,7 +71,7 @@ int read_prop_prec(const char *name)
   
   read_str_int(name,&prec);
   if(prec!=0 && prec!=32 && prec!=64)
-    crash("Error, asking to save %s in %d precision (only 0, 32, 64 available)",name,prec);
+    CRASH("Error, asking to save %s in %d precision (only 0, 32, 64 available)",name,prec);
   
   return prec;
 }
@@ -89,7 +89,7 @@ interv* read_subset_list(int *n_subset,const char *name,const char *tag)
 	{
 	  read_int(inte[isub][mu]+iext);
 	  // if((*inte[isub][mu])<0||(*inte[isub][mu])>=glb_size[mu])
-	  //   crash("error in loading %s interval, exceeds borders!",name);
+	  //   CRASH("error in loading %s interval, exceeds borders!",name);
 	}
   
   return inte;
@@ -165,7 +165,7 @@ void initialize_Zcomputation(char *input_path)
   if(strcasecmp(time_bc_tag,"PERIODIC")==0) time_bc=PERIODIC;
   else
     if(strcasecmp(time_bc_tag,"ANTIPERIODIC")==0) time_bc=ANTIPERIODIC;
-    else crash("Unknown time boundary condition, use \"PERIODIC\" or \"ANTIPERIODIC\"");
+    else CRASH("Unknown time boundary condition, use \"PERIODIC\" or \"ANTIPERIODIC\"");
     
   // 5) Contraction list for two points
   
@@ -180,7 +180,7 @@ void initialize_Zcomputation(char *input_path)
       read_int(&(op1_2pts[icontr]));
       read_int(&(op2_2pts[icontr]));
       
-      master_printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
+      MASTER_PRINTF(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
     }
   
   // 6) Information on output
@@ -241,7 +241,7 @@ void load_gauge_conf()
   Landau_or_Coulomb_gauge_fix(conf,&gauge_fixing_pars,unfix_conf);
   elaps_time+=take_time();
   fix_time+=elaps_time;
-  master_printf("Fixed conf in %lg sec\n",elaps_time);
+  MASTER_PRINTF("Fixed conf in %lg sec\n",elaps_time);
   
   //compute Pmunu
   if(cSW!=0) clover_term(Cl,cSW,conf);
@@ -254,8 +254,8 @@ void load_gauge_conf()
       write_ildg_gauge_conf(temp,conf,64);
     } 
   
-  master_printf("Unfixed conf plaquette: %16.16lg\n",global_plaquette_lx_conf(unfix_conf));
-  master_printf("Fixed conf plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));
+  MASTER_PRINTF("Unfixed conf plaquette: %16.16lg\n",global_plaquette_lx_conf(unfix_conf));
+  MASTER_PRINTF("Fixed conf plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));
   
   //Put the anti-periodic condition on the temporal border
   old_theta[0]=0;
@@ -293,14 +293,14 @@ void close_Zcomputation()
       nissa_free(invCl);
     }
   
-  master_printf("\n");
-  master_printf("Total time: %lg sec (%lg average per conf), of which:\n",tot_prog_time,tot_prog_time/nanalized_conf);
-  master_printf(" - %02.2f%s to load %d conf. (%2.2gs avg)\n",load_time/tot_prog_time*100,"%",nanalized_conf,load_time/nanalized_conf);
-  master_printf(" - %02.2f%s to fix %d conf. (%2.2gs avg)\n",fix_time/tot_prog_time*100,"%",nanalized_conf,fix_time/nanalized_conf);
-  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
-  master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_prog_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
-  master_printf(" - %02.2f%s to save %d su3spinspins. (%2.2gs avg)\n",save_prop_time/tot_prog_time*100,"%",nsaved_prop_tot,save_prop_time/nsaved_prop_tot);
-  master_printf(" - %02.2f%s to filter propagators. (%2.2gs avg per conf)\n",filter_prop_time/tot_prog_time*100,"%",filter_prop_time/nanalized_conf);
+  MASTER_PRINTF("\n");
+  MASTER_PRINTF("Total time: %lg sec (%lg average per conf), of which:\n",tot_prog_time,tot_prog_time/nanalized_conf);
+  MASTER_PRINTF(" - %02.2f%s to load %d conf. (%2.2gs avg)\n",load_time/tot_prog_time*100,"%",nanalized_conf,load_time/nanalized_conf);
+  MASTER_PRINTF(" - %02.2f%s to fix %d conf. (%2.2gs avg)\n",fix_time/tot_prog_time*100,"%",nanalized_conf,fix_time/nanalized_conf);
+  MASTER_PRINTF(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
+  MASTER_PRINTF(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_prog_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
+  MASTER_PRINTF(" - %02.2f%s to save %d su3spinspins. (%2.2gs avg)\n",save_prop_time/tot_prog_time*100,"%",nsaved_prop_tot,save_prop_time/nsaved_prop_tot);
+  MASTER_PRINTF(" - %02.2f%s to filter propagators. (%2.2gs avg per conf)\n",filter_prop_time/tot_prog_time*100,"%",filter_prop_time/nanalized_conf);
   
   close_nissa();
 }
@@ -472,7 +472,7 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 	    
 	    //open oputput file for concurent access from different ranks
 	    int rc=MPI_File_open(MPI_COMM_WORLD,outfile_fft,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,&(fout[r]));
-	    if(rc) decript_MPI_error(rc,"Unable to open file: %s",outfile_fft);
+	    if(rc) DECRYPT_MPI_ERROR(rc,"Unable to open file: %s",outfile_fft);
 	  }
 	
 	//deciding sign for parities
@@ -496,7 +496,7 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 			for(int mu=0;mu<NDIM;mu++)
 			  {
 			    glb_ip[mu]=(glbSize[mu]+sig[mu]*sht_ip[mu])%glbSize[mu];
-			    //master_printf("%d %d\n",mu,glb_ip[mu]);
+			    //MASTER_PRINTF("%d %d\n",mu,glb_ip[mu]);
 			  }
 			//identify the rank hosting this element
 			int hosting=rank_hosting_site_of_coord(glb_ip);
@@ -569,7 +569,7 @@ int read_conf_parameters(int &iconf)
       
       //Folder
       read_str(outfolder,1024);
-      master_printf("Considering configuration %s\n",conf_path);
+      MASTER_PRINTF("Considering configuration %s\n",conf_path);
       ok_conf=!(dir_exists(outfolder));
       if(ok_conf)
 	{
@@ -583,10 +583,10 @@ int read_conf_parameters(int &iconf)
 	  create_dir(combine("%s/SubsXprop/Orsay",outfolder));
 	  create_dir(combine("%s/SubsPprop/Orsay",outfolder));
 	  
-	  master_printf("Configuration not already analized, starting.\n");
+	  MASTER_PRINTF("Configuration not already analized, starting.\n");
 	}
       else
-	master_printf("Configuration already analized, skipping.\n");
+	MASTER_PRINTF("Configuration already analized, skipping.\n");
       iconf++;
     }
   while(!ok_conf and iconf<ngauge_conf);
@@ -605,17 +605,17 @@ int check_remaining_time()
   double left_time=wall_time-temp_time;
   enough_time=left_time>(ave_time*1.1);
   
-  master_printf("Remaining time: %lg sec\n",left_time);
-  master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
-  if(enough_time) master_printf("Continuing!\n");
-  else master_printf("Not enough time, exiting!\n");
+  MASTER_PRINTF("Remaining time: %lg sec\n",left_time);
+  MASTER_PRINTF("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
+  if(enough_time) MASTER_PRINTF("Continuing!\n");
+  else MASTER_PRINTF("Not enough time, exiting!\n");
   
   return enough_time;
 }
 
 void in_main(int narg,char **arg)
 {
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   tot_prog_time-=take_time();
   initialize_Zcomputation(arg[1]);
@@ -644,7 +644,7 @@ void in_main(int narg,char **arg)
       enough_time=check_remaining_time();
     }
   
-  if(iconf==ngauge_conf) master_printf("Finished all the conf!\n");
+  if(iconf==ngauge_conf) MASTER_PRINTF("Finished all the conf!\n");
   
   tot_prog_time+=take_time();
   close_Zcomputation();

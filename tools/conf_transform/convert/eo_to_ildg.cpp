@@ -19,10 +19,10 @@ using namespace nissa;
 //   if(glblx_parity(glb_site_sour)==0) glb_site_sour++;
   
 //   //check
-//   if(glb_site_sour>=glbVol) crash("%d>=%d impossible!",glb_site_sour,glbVol);
+//   if(glb_site_sour>=glbVol) CRASH("%d>=%d impossible!",glb_site_sour,glbVol);
   
 //   //get coords
-//   const coords_t g=glb_coord_of_glblx(glb_site_sour);
+//   const Coords g=glb_coord_of_glblx(glb_site_sour);
 //   std::swap(g[1],g[3]); //only 1 and 3 must be switched
 //   if(shift_comp) g[mu]=(g[mu]+glbSize[mu]-1)%glbSize[mu];
   
@@ -35,21 +35,21 @@ using namespace nissa;
 // {  
 //   //open
 //   FILE *fin=fopen(inpath,"r");
-//   if(fin==NULL) crash("opening %s",inpath);
+//   if(fin==NULL) CRASH("opening %s",inpath);
   
 //   //read header
 //   int nr;
 //   coords temp;
 //   nr=fread(temp,sizeof(coords),1,fin);
-//   if(nr!=1) crash("did not success in reading");
+//   if(nr!=1) CRASH("did not success in reading");
 //   double plaq;
 //   nr=fread(&plaq,sizeof(double),1,fin);
-//   if(nr!=1) crash("did not success in reading");
+//   if(nr!=1) CRASH("did not success in reading");
 //   MPI_Barrier(MPI_COMM_WORLD);
   
 //   //if needed convert the lattice size to check
 //   if(!little_endian) change_endianness((uint32_t*)temp,(uint32_t*)temp,4);
-//   if(temp[0]!=glbSize[0]||temp[1]!=glbSize[1]) crash("conf of size %dx%d, expecting %dx%d",temp[0],temp[1],glbSize[0],glbSize[1]);
+//   if(temp[0]!=glbSize[0]||temp[1]!=glbSize[1]) CRASH("conf of size %dx%d, expecting %dx%d",temp[0],temp[1],glbSize[0],glbSize[1]);
   
 //   //convert the plaquette
 //   if(!little_endian) change_endianness(plaq);
@@ -62,7 +62,7 @@ using namespace nissa;
 //   //read
 //   char *buf=nissa_malloc("buf",locVol*sizeof(quad_su3),char);
 //   nr=fread(buf,sizeof(quad_su3),locVol,fin);
-//   if(nr!=locVol) crash("did not success in reading the conf");
+//   if(nr!=locVol) CRASH("did not success in reading the conf");
 //   MPI_Barrier(MPI_COMM_WORLD);
  
 //   //if needed convert the endianess of the conf
@@ -74,7 +74,7 @@ using namespace nissa;
 
 //   //compute the plaquette online
 //   double plaq_comp=global_plaquette_lx_conf(conf);
-//   master_printf("Plaquette computed: %16.16lg, read: %16.16lg\n",plaq,plaq_comp);
+//   MASTER_PRINTF("Plaquette computed: %16.16lg, read: %16.16lg\n",plaq,plaq_comp);
   
 //   //write the conf
 //   write_ildg_gauge_conf(outpath,conf,64);
@@ -87,11 +87,12 @@ using namespace nissa;
 //   nissa_free(conf);
 // }
 
-void in_main(int narg,char **arg)
+int main(int narg,char **arg)
 {
-  crash("");
+  initNissa(narg,arg);
+  CRASH(" ");
   
-  // if(narg<2) crash("Use: %s input",arg[0]);
+  // if(narg<2) CRASH("Use: %s input",arg[0]);
   
   // open_input(arg[1]);
   
@@ -102,7 +103,7 @@ void in_main(int narg,char **arg)
   // read_str_int("T",&T);
   
   // //Init the MPI grid 
-  // init_grid(T,L);
+  // initGrid(T,L);
   
   // //init the remapper
   // remapper=new vector_remap_t(4*locVol,index_from_Neo_to_lx,NULL);
@@ -127,12 +128,8 @@ void in_main(int narg,char **arg)
   // ///////////////////////////////////////////
   
   // delete remapper;
-}
-
-int main(int narg,char **arg)
-{
-  init_nissa_threaded(narg,arg,in_main);
-  close_nissa();
+  
+  closeNissa();
   
   return 0;
 }

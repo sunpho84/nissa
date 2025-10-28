@@ -28,7 +28,9 @@
 #define parser_lex tokenizer_lex
 
   void parser_error(YYLTYPE *locp,driver_t *driver,const char *err)
-  {crash("exception at line %d columns [%d-%d] %s",locp->first_line,locp->first_column,locp->last_column,err);}
+  {
+     CRASH("exception at line %d columns [%d-%d] %s",locp->first_line,locp->first_column,locp->last_column,err);
+  }
 
 #define scanner driver->scanner
   %}
@@ -52,7 +54,6 @@
     nissa::Wflow_pars_t *Wflow_pars;
     
     nissa::meson_corr_meas_pars_t *meson_corr_meas;
-    nissa::nucleon_corr_meas_pars_t *nucleon_corr_meas;
     nissa::magnetization_meas_pars_t *magnetization_meas;
     nissa::minmax_eigenvalues_meas_pars_t *minmax_eigenvalues_meas;
     nissa::quark_rendens_meas_pars_t *quark_rendens_meas;
@@ -231,13 +232,6 @@
 %type <int_pair_list> operators
 %token TK_DIR
 %type <int_numb> dir
-//nucleon corr
-%type <nucleon_corr_meas> nucleon_corr_meas
-%token TK_MEAS_NUCLEON_CORRS
-%token TK_GAUSS_SME_NSTEPS
-%token TK_GAUSS_SME_KAPPA
-%token TK_APE_SME_NSTEPS
-%token TK_APE_SME_ALPHA
 //putpourri
 %type <fermionic_putpourri_meas> fermionic_putpourri_meas
 %token TK_MEAS_PUTPOURRI
@@ -327,12 +321,10 @@
 %token TK_MD_RESIDUE
 %token TK_NSUBSTEPS
 %token TK_NPSEUDO_FERMS
-%token TK_NAUX_FIELDS
 %token TK_NHB_HITS
 %token TK_NHB_SWEEPS
 %token TK_NOV_HITS
 %token TK_NOV_SWEEPS
-%token TK_USE_FACC
 %token TK_USE_HMC
 //gauge conf parameters
 %token TK_GAUGE_CONF
@@ -367,7 +359,6 @@ global_specify: geometry
               | theory {driver->theories.push_back(*$1);delete $1;}
 /////////////// fermionic measures ////////////////
               | meson_corr_meas {driver->add_meson_corr_meas(*$1);delete $1;}
-              | nucleon_corr_meas {driver->add_nucleon_corr_meas(*$1);delete $1;}
               | fermionic_putpourri_meas {driver->add_fermionic_putpourri_meas(*$1);delete $1;}
               | quark_rendens_meas {driver->add_quark_rendens_meas(*$1);delete $1;}
               | chir_zumba_meas {driver->add_chir_zumba_meas(*$1);delete $1;}
@@ -397,7 +388,7 @@ global_specify: geometry
 
 meta_command: TK_META_PRINT_SCANNED_INPUT '(' text ')' {FILE *fout=open_file($3->c_str(),"w");driver->master_fprintf(fout);close_file(fout);delete $3;}
             | TK_META_PRINT_FULL_INPUT '(' text ')' {FILE *fout=open_file($3->c_str(),"w");driver->master_fprintf(fout,true);close_file(fout);delete $3;}
-            | TK_META_PRINT '(' text ')' {master_printf($3->c_str());delete $3;}
+            | TK_META_PRINT '(' text ')' {MASTER_PRINTF("%s",$3->c_str());delete $3;}
 ;
 
 //////////////////////////////////////////////// SIMPLE STUFF //////////////////////////////////////////////////
@@ -552,7 +543,7 @@ hyp_pars: TK_HYP {$$=new hyp_pars_t;}
         | hyp_pars nlevels {$$=$1;$$->nlevels=$2;}
         | hyp_pars alphas {
 	    $$=$1;
-	    if($2->size()!=3) crash("hyp alpha needs an exactly 3 long list of int");
+	    if($2->size()!=3) CRASH("hyp alpha needs an exactly 3 long list of int");
 	    $$->alpha0=(*$2)[0];
 	    $$->alpha1=(*$2)[1];
 	    $$->alpha2=(*$2)[2];
@@ -595,23 +586,6 @@ quark: TK_QUARK '=' text
      | quark TK_ELEC_CHARGE '=' double_numb {$$->charge=$4;}
 ;
 
-////////////////////////////////////////////////// NUCLEON CORR //////////////////////////////////////////////////
-
-nucleon_corr_meas: TK_MEAS_NUCLEON_CORRS {$$=new nucleon_corr_meas_pars_t();}
-                 | nucleon_corr_meas each {$$->each=$2;}
-                 | nucleon_corr_meas after {$$->after=$2;}
-                 | nucleon_corr_meas path {$$->path=(*$2);delete $2;}
-                 | nucleon_corr_meas residue {$$->residue=$2;}
-                 | nucleon_corr_meas itheory {$$->itheory=$2;}
-                 | nucleon_corr_meas ncopies {$$->ncopies=$2;}
-                 | nucleon_corr_meas noise_type {$$->rnd_type=$2;}
-                 | nucleon_corr_meas nhits {$$->nhits=$2;}
-                 | nucleon_corr_meas TK_GAUSS_SME_NSTEPS '=' int_numb {$$->gaussSmeNSteps=$4;}
-                 | nucleon_corr_meas TK_GAUSS_SME_KAPPA '=' double_numb {$$->gaussSmeKappa=$4;}
-                 | nucleon_corr_meas TK_APE_SME_NSTEPS '=' int_numb {$$->apeSmeNSteps=$4;}
-                 | nucleon_corr_meas TK_APE_SME_ALPHA '=' double_numb {$$->apeSmeAlpha=$4;}
-;
-
 ////////////////////////////////////////////////// MESON CORR //////////////////////////////////////////////////
 
 meson_corr_meas: TK_MEAS_MESON_CORRS {$$=new meson_corr_meas_pars_t();}
@@ -624,20 +598,21 @@ meson_corr_meas: TK_MEAS_MESON_CORRS {$$=new meson_corr_meas_pars_t();}
                | meson_corr_meas noise_type {$$->rnd_type=$2;}
                | meson_corr_meas nhits {$$->nhits=$2;}
                | meson_corr_meas operators {
-		   if((*$2)[0]!=std::make_pair(15,15)) crash("first entry of the meson list must be 15,15, instead it is: %d %d",(*$2)[0].first,(*$2)[0].second);
+		   if((*$2)[0]!=std::make_pair(15,15)) CRASH("first entry of the meson list must be 15,15, instead it is: %d %d",(*$2)[0].first,(*$2)[0].second);
 		   $$->mesons=(*$2);delete $2;}
                |meson_corr_meas dir {$$->dir=$2;}
 ;
 
-dir: TK_DIR '=' int_numb {$$=$3;};
+dir: TK_DIR '=' int_numb {$$=$3;}
+;
 
 operators: TK_OPERATORS '=' int_pair_list {
     for(size_t i=0;i<$3->size();i++)
 	{
 	    int f=(*$3)[i].first;
 	    int s=(*$3)[i].second;
-	    if((f<0)||(f>15)) crash("first part of entry %d is %d, should be in the range [0,15]",f);
-	    if((s<0)||(s>15)) crash("second part of entry %d is %d, should be in the range [0,15]",s);
+	    if((f<0)||(f>15)) CRASH("first part of entry %zu is %d, should be in the range [0,15]",i,f);
+	    if((s<0)||(s>15)) CRASH("second part of entry %zu is %d, should be in the range [0,15]",i,s);
 	}
 	$$=$3;}
 ;
@@ -763,14 +738,10 @@ global_evolve_pars: TK_EVOLUTION {driver->run_mode=driver_t::EVOLUTION_MODE;}
 ;
 
 global_quenched_evolve_pars: TK_QUENCHED_EVOLUTION {driver->run_mode=driver_t::EVOLUTION_MODE;}
-                  | global_quenched_evolve_pars TK_USE_HMC '=' int_numb {if($4) crash("not implemented");driver->quenched_evol_pars.use_hmc=$4;}
+                  | global_quenched_evolve_pars TK_USE_HMC '=' int_numb {if($4) CRASH("not implemented");driver->quenched_evol_pars.use_hmc=$4;}
                   | global_quenched_evolve_pars TK_TRAJ_LENGTH '=' double_numb {driver->quenched_evol_pars.traj_length=$4;}
                   | global_quenched_evolve_pars TK_SKIP_METRO '=' int_numb {driver->quenched_evol_pars.skip_mtest_ntraj=$4;}
                   | global_quenched_evolve_pars TK_NSTEPS '=' int_numb {driver->quenched_evol_pars.nmd_steps=$4;}
-                  | global_quenched_evolve_pars TK_USE_FACC '=' int_numb {driver->quenched_evol_pars.use_facc=$4;}
-                  | global_quenched_evolve_pars TK_KAPPA '=' double_numb {driver->quenched_evol_pars.kappa=$4;}
-                  | global_quenched_evolve_pars TK_RESIDUE '=' double_numb {driver->quenched_evol_pars.residue=$4;}
-                  | global_quenched_evolve_pars TK_NAUX_FIELDS '=' int_numb {driver->quenched_evol_pars.naux_fields=$4;}
                   | global_quenched_evolve_pars TK_NHB_SWEEPS '=' int_numb {driver->quenched_evol_pars.nhb_sweeps=$4;}
                   | global_quenched_evolve_pars TK_NHB_HITS '=' int_numb {driver->quenched_evol_pars.nhb_hits=$4;}
                   | global_quenched_evolve_pars TK_NOV_SWEEPS '=' int_numb {driver->quenched_evol_pars.nov_sweeps=$4;}
@@ -789,7 +760,7 @@ global_conf_pars: TK_GAUGE_CONF {driver->run_mode=driver_t::EVOLUTION_MODE;}
                         char test2[128];
                         snprintf(test1,128,$4->c_str(),100);
                         snprintf(test2,128,$4->c_str(),101);
-                        if(!strcmp(test1,test2)) crash("bad template \"%s\" for store_path",$4->c_str());
+                        if(!strcmp(test1,test2)) CRASH("bad template \"%s\" for store_path",$4->c_str());
 			delete $4;
 		    }
                 | global_conf_pars TK_STORE_EACH '=' int_numb {driver->conf_pars.store_each=$4;}
@@ -855,7 +826,7 @@ global_analysis_pars: TK_ANALYSIS TK_CONF_LIST '=' text_list
 	{
 	    glob_t globbuf;
 	    if(glob(it.c_str(),0,NULL,&globbuf))
-		crash("Unable to find pattern %s for conf",it.c_str());
+		CRASH("Unable to find pattern %s for conf",it.c_str());
 	    else
 		for(int j=0;j<(int)globbuf.gl_pathc;j++)
 		    driver->an_conf_list.push_back(globbuf.gl_pathv[j]);

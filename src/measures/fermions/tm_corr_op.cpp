@@ -10,13 +10,14 @@ namespace nissa
 {
   void tm_corr_op::ins(spincolor *out,const int igamma,spincolor *in)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	unsafe_dirac_prod_spincolor(out[ivol],base_gamma[igamma],in[ivol]);
-      }
-    NISSA_PARALLEL_LOOP_END;
+    CRASH("Reimplement");
+  //   NISSA_PARALLEL_LOOP(ivol,0,locVol)
+  //     {
+  // 	unsafe_dirac_prod_spincolor(out[ivol],base_gamma[igamma],in[ivol]);
+  //     }
+  //   NISSA_PARALLEL_LOOP_END;
     
-    set_borders_invalid(out);
+  //   set_borders_invalid(out);
   }
 }
 

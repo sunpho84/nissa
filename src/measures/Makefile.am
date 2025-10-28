@@ -2,13 +2,10 @@
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/contract/optimized_mesons_2pts.cpp \
-	%D%/contract/tm_meson_2pts.cpp \
-	%D%/contract/tm_baryon.cpp \
 	%D%/fermions/ellesettete.cpp \
 	%D%/fermions/mesons.cpp \
 	%D%/fermions/magnetization.cpp \
 	%D%/fermions/minmax_eigenvalues.cpp \
-	%D%/fermions/nucleon.cpp \
 	%D%/fermions/putpourri.cpp \
 	%D%/fermions/qed_corr.cpp \
 	%D%/fermions/rendens.cpp \
@@ -23,6 +20,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/gauge/topological_charge.cpp \
 	%D%/gauge/watusso.cpp
 
+
 include_HEADERS+= \
 	%D%/contract/optimized_mesons_2pts.hpp \
 	%D%/fermions/ellesettete.hpp \
@@ -30,7 +28,6 @@ include_HEADERS+= \
 	%D%/fermions/mesons.hpp \
 	%D%/fermions/magnetization.hpp \
 	%D%/fermions/minmax_eigenvalues.hpp \
-	%D%/fermions/nucleon.hpp \
 	%D%/fermions/putpourri.hpp \
 	%D%/fermions/qed_corr.hpp \
 	%D%/fermions/rendens.hpp \
@@ -44,4 +41,3 @@ include_HEADERS+= \
 	%D%/gauge/pline.hpp \
 	%D%/gauge/topological_charge.hpp \
 	%D%/gauge/watusso.hpp
-

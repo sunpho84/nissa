@@ -2,28 +2,37 @@
 #define _QUDA_BRIDGE_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #ifdef USE_QUDA
 # include <quda.h>
+# ifdef READY_TO_DEL
+#  include <dirac_quda.h>
+#  include <invert_quda.h>
+#  include <color_spinor_field.h>
+# endif
 #endif
 
+#include <complex>
+#include <map>
+
 #include "base/multiGridParams.hpp"
+#include "io/checksum.hpp"
 #include "routines/ios.hpp"
 #include "geometry/geometry_eo.hpp"
 
 #ifndef EXTERN_QUDA_BRIDGE
- #define EXTERN_QUDA_BRIDGE extern
- #define INIT_QUDA_BRIDGE_TO(cond)
+# define EXTERN_QUDA_BRIDGE extern
+# define INIT_QUDA_BRIDGE_TO(cond)
 #else
- #define INIT_QUDA_BRIDGE_TO(cond) cond
+# define INIT_QUDA_BRIDGE_TO(cond) cond
 #endif
 
 namespace quda_iface
 {
   using su3_ptr=nissa::su3*;
-  using quda_conf_t=nissa::my_array<su3_ptr,NDIM>;
+  using quda_conf_t=nissa::MyArray<su3_ptr,NDIM>;
   
 #ifdef USE_QUDA
   EXTERN_QUDA_BRIDGE QudaGaugeParam  gauge_param;
@@ -32,6 +41,22 @@ namespace quda_iface
   EXTERN_QUDA_BRIDGE QudaMultigridParam quda_mg_param;
   EXTERN_QUDA_BRIDGE QudaInvertParam inv_mg_param;
   EXTERN_QUDA_BRIDGE QudaEigParam mg_eig_param[QUDA_MAX_MG_LEVEL];
+  
+  EXTERN_QUDA_BRIDGE MPI_Comm cart_comm;
+  
+# ifdef READY_TO_DEL
+  EXTERN_QUDA_BRIDGE quda::Dirac* D;
+  EXTERN_QUDA_BRIDGE quda::Dirac* DSloppy;
+  EXTERN_QUDA_BRIDGE quda::Dirac* DPre;
+  EXTERN_QUDA_BRIDGE quda::DiracMatrix* M;
+  EXTERN_QUDA_BRIDGE quda::DiracMatrix* MSloppy;
+  EXTERN_QUDA_BRIDGE quda::DiracMatrix* MPre;
+  EXTERN_QUDA_BRIDGE quda::SolverParam* solverParam;
+  EXTERN_QUDA_BRIDGE quda::Solver* solver;
+  EXTERN_QUDA_BRIDGE quda::ColorSpinorField* b;
+  EXTERN_QUDA_BRIDGE quda::ColorSpinorField* x;
+  EXTERN_QUDA_BRIDGE std::map<std::string,quda::TimeProfile> profilers;
+# endif
   
 #endif
   
@@ -82,23 +107,31 @@ namespace quda_iface
   QUDA_API void initialize() QUDA_ESCAPE_IF_NOT_AVAILABLE();
   QUDA_API void finalize() QUDA_ESCAPE_IF_NOT_AVAILABLE();
   QUDA_API void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double csw,double mu,spincolor *in) QUDA_ESCAPE_IF_NOT_AVAILABLE();
-  QUDA_API void remap_nissa_to_quda(spincolor *out,spincolor *in) QUDA_ESCAPE_IF_NOT_AVAILABLE();
-  QUDA_API void remap_quda_to_nissa(spincolor *out,spincolor *in) QUDA_ESCAPE_IF_NOT_AVAILABLE();
-  QUDA_API void remap_nissa_to_quda(quda_conf_t out,quad_su3 *in) QUDA_ESCAPE_IF_NOT_AVAILABLE();
-  QUDA_API void remap_nissa_to_quda(quda_conf_t out,eo_ptr<quad_su3> in) QUDA_ESCAPE_IF_NOT_AVAILABLE();
   
-  QUDA_API bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,spincolor *source) QUDA_ESCAPE_IF_NOT_AVAILABLE(return 0;);
+  QUDA_API bool solve_tmD(LxField<spincolor>& sol,
+			  const LxField<quad_su3>& conf,
+			  const double& kappa,
+			  const double& csw,
+			  const double& mu,
+			  const int& niter,
+			  const double& residue,
+			  const LxField<spincolor>& source)
+    QUDA_ESCAPE_IF_NOT_AVAILABLE(return 0;);
+  
   QUDA_API bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source) QUDA_ESCAPE_IF_NOT_AVAILABLE(return 0;);
   
+  void remap_nissa_to_quda(quda_conf_t& out,
+			   const LxField<quad_su3>& in);
+  
   /// Load a gauge conf
-  template<typename T>
-  double load_conf(T nissa_conf)
+  template <typename T>
+  double load_conf(const T& nissa_conf)
   {
-    master_printf("freeing the QUDA gauge conf\n");
+    MASTER_PRINTF("freeing the QUDA gauge conf\n");
     freeGaugeQuda();
     
     remap_nissa_to_quda(quda_conf,nissa_conf);
-    master_printf("loading to QUDA the gauge conf\n");
+    MASTER_PRINTF("loading to QUDA the gauge conf\n");
 #ifdef USE_QUDA
     loadGaugeQuda((void*)&quda_conf[0],&gauge_param);
 #endif
@@ -108,6 +141,9 @@ namespace quda_iface
     
     return plaq[0];
   }
+  
+  /// Since the solver might have not deleted the eigenvectors, try to flag them so maybe they will be deleted
+  void maybeFlagTheMultigridEigenVectorsForDeletion();
 }
 
 #undef QUDA_API

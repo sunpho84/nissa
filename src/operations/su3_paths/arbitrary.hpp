@@ -22,11 +22,13 @@ namespace nissa
     int mov;
     int link_id;
     int ord;
-    void set(int ext_mov,int gx,int mu){
+    
+    void set(int ext_mov,int gx,int mu)
+    {
       mov=ext_mov;
       link_id=gx*4+mu;
-      int lx,rx;
-      get_loclx_and_rank_of_glblx(lx,rx,gx);
+      const auto [rx,lx]=
+	getLoclxAndRankOfGlblx(gx);
       ord=((rank+nranks-rx)%nranks*locVol+lx)*4+mu; //sort according to recv rank
     }
   };
@@ -41,7 +43,7 @@ namespace nissa
       cur_path=0;
       cur_mov=0;
       
-      verbosity_lv3_master_printf("Initializing a new path calculation structure with %d movements and %d paths\n",ntot_mov,npaths);
+      VERBOSITY_LV3_MASTER_PRINTF("Initializing a new path calculation structure with %d movements and %d paths\n",ntot_mov,npaths);
       link_for_movements=nissa_malloc("link_for_movements",ntot_mov,int);
       
       //mark that we have not finished last path
@@ -102,20 +104,20 @@ namespace nissa
       pos=glblxOfLoclx[lx];
       link_for_movements[cur_mov]=START_PATH_FLAG;};
     void summ_to_previous_path() {
-      if(cur_path==0) crash("cannot summ to path number 0");
+      if(cur_path==0) CRASH("cannot summ to path number 0");
       //if not already set, diminuish the number of paths
       if(!(link_for_movements[cur_mov]&SUMM_TO_PREVIOUS_PATH_FLAG)) cur_path--;
       link_for_movements[cur_mov]+=SUMM_TO_PREVIOUS_PATH_FLAG;      
     }
     void switch_to_next_step() {
       cur_mov++;
-      if(cur_mov>ntot_mov) crash("exceded (%d) the number of allocatec movements, %d",cur_mov,ntot_mov);
+      if(cur_mov>ntot_mov) CRASH("exceded (%d) the number of allocatec movements, %d",cur_mov,ntot_mov);
       link_for_movements[cur_mov]=0;}
     void move_forward(int mu);
     void move_backward(int mu);
     void stop_current_path() {
       cur_path++;
-      if(cur_path>npaths) crash("exceded (%d) the number of allocated paths, %d",cur_path,npaths);
+      if(cur_path>npaths) CRASH("exceded (%d) the number of allocated paths, %d",cur_path,npaths);
     }
     void finished_last_path();
     void gather_nonloc_start(MPI_Request *request,int &irequest,su3 *nonloc_links);
@@ -135,11 +137,11 @@ namespace nissa
   ////////////////////////////////////////////////////////////
   
   struct coords_summable_t{
-    coords_t c;
+    Coords c;
     int &operator[](int i){return c[i];}
     bool operator==(coords_summable_t in){bool out=true;for(int i=0;i<NDIM;i++) out&=(c[i]==in.c[i]);return out;}
     bool operator!=(coords_summable_t i){return !((*this)==i);}
-    coords_summable_t(){memset(&c,0,sizeof(coords_t));}
+    coords_summable_t(){memset(&c,0,sizeof(Coords));}
     coords_summable_t(const coords_summable_t &o)
     {
       c=o.c;

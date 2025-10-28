@@ -1,17 +1,23 @@
 #ifndef _RANDOM_HPP
 #define _RANDOM_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "new_types/su3.hpp"
-#include "routines/mpi_routines.hpp"
-#include "threads/threads.hpp"
+#include <base/field.hpp>
+#include <base/sitmo.hpp>
+#include <geometry/geometry_eo.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <new_types/su3_op.hpp>
+#include <routines/mpi_routines.hpp>
+#include <threads/threads.hpp>
 
 #ifndef EXTERN_RANDOM
- #define EXTERN_RANDOM extern
+# define EXTERN_RANDOM extern
 #endif
 
 //random number generator table length
@@ -26,6 +32,9 @@ namespace nissa
   
   //Source type
   enum source_t{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED_SOURCE,SPINCOLOR_DILUTED_SOURCE};
+  
+  /// New generator
+  EXTERN_RANDOM FieldRngStream field_rng_stream;
   
   //The structure for the random generator
   struct rnd_gen
@@ -48,30 +57,163 @@ namespace nissa
   void convert_rnd_gen_to_text(char *text,rnd_gen *gen,int size);
   CUDA_HOST_AND_DEVICE double rnd_get_unif(rnd_gen *gen,double min,double max);
   CUDA_HOST_AND_DEVICE int rnd_get_pm_one(rnd_gen *gen);
-  CUDA_HOST_AND_DEVICE void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_t rtype);
-  void generate_delta_eo_source(eo_ptr<su3> source,int *x);
-  void generate_delta_source(su3spinspin *source,int *x);
-  void generate_colorspindiluted_source(su3spinspin *source,enum rnd_t rtype,int twall);
-  inline void generate_spincolordiluted_source(su3spinspin *source,enum rnd_t rtype,int twall)
-  {generate_colorspindiluted_source(source,rtype,twall);}
-  void generate_spindiluted_source(colorspinspin *source,enum rnd_t rtype,int twall);
-  void generate_undiluted_source(spincolor *source,enum rnd_t rtype,int twall);
-  void generate_fully_undiluted_lx_source(color *source,enum rnd_t rtype,int twall,int dir=0);
-  void generate_fully_undiluted_eo_source(color *source,enum rnd_t rtype,int twall,int par,int dir=0);
-  void generate_fully_undiluted_eo_source(eo_ptr<color> source,enum rnd_t rtype,int twall,int dir=0);
-  void generate_fully_undiluted_eo_source(spincolor *source,enum rnd_t rtype,int twall,int par,int dir=0);
-  void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,int twall,int dir=0);
-  CUDA_HOST_AND_DEVICE void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma);
+  
+  //generate a spindiluted vector according to the passed type
+  void generate_colorspindiluted_source(LxField<su3spinspin>& source,
+					const rnd_t& rtype,
+					const int& twall);
+  
+  //generate a spindiluted vector according to the passed type
+  void generate_spindiluted_source(LxField<colorspinspin>& source,
+				   const rnd_t& rtype,
+				   const int& twall);
+  
+  //generate an undiluted vector according to the passed type
+  void generate_undiluted_source(LxField<spincolor>& source,
+				 const rnd_t& rtype,
+				 const int& twall);
+  
+  //generate a fully undiluted source
+  void generate_fully_undiluted_lx_source(LxField<color>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& dir=0);
+  
+  //eo version
+  void generate_fully_undiluted_eo_source(EvenOrOddField<color>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& par,
+					  const int& dir=0);
+  
+  void generate_fully_undiluted_eo_source(EoField<color>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& dir=0);
+  
+  //same for spincolor
+  void generate_fully_undiluted_eo_source(EvenOrOddField<spincolor>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& par,
+					  const int& dir=0);
+  
+  void generate_fully_undiluted_eo_source(EoField<spincolor>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& dir=0);
+  
+  //generate a delta source
+  void generate_delta_source(LxField<su3spinspin>& source,
+			     const Coords& x);
+  
+  void generate_delta_eo_source(EoField<su3>& source,
+				const Coords& x);
+
+  // void generate_delta_eo_source(eo_ptr<su3> source,int *x);
+  // void generate_delta_source(su3spinspin *source,int *x);
+  // void generate_colorspindiluted_source(su3spinspin *source,enum rnd_t rtype,int twall);
+  // inline void generate_spincolordiluted_source(su3spinspin *source,enum rnd_t rtype,int twall)
+  // {generate_colorspindiluted_source(source,rtype,twall);}
+  // void generate_spindiluted_source(colorspinspin *source,enum rnd_t rtype,int twall);
+  // void generate_undiluted_source(spincolor *source,enum rnd_t rtype,int twall);
+  // void generate_fully_undiluted_lx_source(color *source,enum rnd_t rtype,int twall,int dir=0);
+  
+  // void generate_fully_undiluted_eo_source(EvenOrOddField<color>& source,
+  // 					  const rnd_t& rtype,
+  // 					  const int& twall,
+  // 					  const int& par,
+  // 					  const int& dir=0);
+  
+  // void generate_fully_undiluted_eo_source(EoField<color>& source,
+  // 					  const rnd_t& rtype,
+  // 					  const int& twall,
+  // 					  const int& par,
+  // 					  const int& dir=0);
+  
+  // void generate_fully_undiluted_eo_source(EvenOrOddField<spincolor>& source,
+  // 					  const rnd_t& rtype,
+  // 					  const int& twall,
+  // 					  const int& par,
+  // 					  const int& dir=0);
+  
+  // void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,int twall,int dir=0);
+  
   void rnd_fill_pm_one_loc_vector(double *v,int nps);
   void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max);
-  coords_t generate_random_coord();
-  CUDA_HOST_AND_DEVICE void rnd_get_Z2(complex out,rnd_gen *gen);
-  CUDA_HOST_AND_DEVICE void rnd_get_Z4(complex out,rnd_gen *gen);
-  CUDA_HOST_AND_DEVICE void rnd_get_ZN(complex out,rnd_gen *gen,int N);
-  CUDA_HOST_AND_DEVICE inline void rnd_get_Z3(complex out,rnd_gen *gen)
-  {rnd_get_ZN(out,gen,3);}
+  Coords generate_random_coord();
   double rnd_get_gauss_double(rnd_gen *gen,double ave=0,double sig=1);
-  CUDA_HOST_AND_DEVICE void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig);
+  
+  //return a Z2 complex
+  template <typename C>
+  CUDA_HOST_AND_DEVICE void rnd_get_Z2(C&& out,
+				       rnd_gen *gen)
+  {
+    out[0]=rnd_get_pm_one(gen);
+    out[1]=0;
+  }
+  
+  template <typename C>
+  CUDA_HOST_AND_DEVICE inline void rnd_get_Z3(C&& out,
+					      rnd_gen *gen)
+  {
+    rnd_get_ZN(out,gen,3);
+  }
+  
+  //return a Z4 complex
+  template <typename C>
+  CUDA_HOST_AND_DEVICE void rnd_get_Z4(C&& out,
+				       rnd_gen *gen)
+  {
+    out[0]=rnd_get_pm_one(gen)/(double)RAD2;
+    out[1]=rnd_get_pm_one(gen)/(double)RAD2;
+  }
+  
+  //return a ZN complex
+  template <typename C>
+  CUDA_HOST_AND_DEVICE void rnd_get_ZN(C&& out,
+				       rnd_gen *gen,
+				       const int& N)
+  {
+    complex_iexp(out,2*M_PI*(int)rnd_get_unif(gen,0,N)/N);
+  }
+  
+  //return a gaussian complex with sigma=sig/sqrt(2)
+  template <typename C>
+  CUDA_HOST_AND_DEVICE void rnd_get_gauss_complex(C&& out,
+						  rnd_gen *gen,
+						  const complex& ave,
+						  const double& sig)
+  {
+    const double one_by_sqrt2=0.707106781186547;
+    double norm=sig*one_by_sqrt2;
+    double q,r;
+    
+    r=sqrt(-2*log(1-rnd_get_unif(gen,0,1)));
+    q=2*M_PI*rnd_get_unif(gen,0,1);
+    
+    out[0]=r*cos(q)*norm+ave[0];
+    out[1]=r*sin(q)*norm+ave[1];
+  }
+  
+  template <typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void comp_get_rnd(C&& out,
+		    rnd_gen *gen,
+		    const enum rnd_t& rtype)
+  {
+    switch(rtype)
+      {
+      case RND_ALL_PLUS_ONE: complex_put_to_real(out,+1);                   break;
+      case RND_ALL_MINUS_ONE:complex_put_to_real(out,-1);                   break;
+      case RND_UNIF:         complex_put_to_real(out,rnd_get_unif(gen,0,1));break;
+      case RND_Z2:           rnd_get_Z2(out,gen);                           break;
+      case RND_Z3:           rnd_get_Z3(out,gen);                           break;
+      case RND_Z4:           rnd_get_Z4(out,gen);                           break;
+      case RND_GAUSS:        rnd_get_gauss_complex(out,gen,{0.0,0.0},1);    break;
+      }
+  }
+  
   void start_glb_rnd_gen(const char *text);
   void start_glb_rnd_gen(int seed);
   void start_loc_rnd_gen(int seed);
@@ -79,26 +221,85 @@ namespace nissa
   void start_rnd_gen(rnd_gen *out,int seed);
   void stop_loc_rnd_gen();
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
-  CUDA_HOST_AND_DEVICE void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd);
   
-  //read from /dev/urandom
-  template <typename T>
-  void get_system_random(T &t)
+    /// Put a matrix to random used passed random generator
+  template <typename U>
+  CUDA_HOST_AND_DEVICE
+  void su3_put_to_rnd(U&& u_ran,
+		      rnd_gen &rnd)
   {
-    const int size=sizeof(T);
+    su3_put_to_id(u_ran);
     
-    if(is_master_rank())
-      {
-	const char path[]="/dev/urandom";
-	int fd=open(path,O_RDONLY);
-	if(fd==-1) crash("Opening %s",path);
-	
-	int rc=read(fd,&t,size);
-        if(rc!=size) crash("reading %zu bytes from %s, obtained: %d",size,path,rc);
-	if(close(fd)==-1) crash("Closing %s",path);
-    }
-    MPI_Bcast(&t,size,MPI_CHAR,master_rank,MPI_COMM_WORLD);
+    for(size_t i1=0;i1<NCOL;i1++)
+      for(size_t i2=i1+1;i2<NCOL;i2++)
+	{
+	  //generate u0,u1,u2,u3 random on the four dim. sphere
+	  const double u0=rnd_get_unif(&rnd,-1,1);
+	  const double alpha=sqrt(1-u0*u0);
+	  const double phi=rnd_get_unif(&rnd,0,2*M_PI);
+	  const double costheta=rnd_get_unif(&rnd,-1,1);
+	  const double sintheta=sqrt(1-costheta*costheta);
+	  const double u3=alpha*costheta;
+	  const double u1=alpha*sintheta*cos(phi);
+	  const double u2=alpha*sintheta*sin(phi);
+	  
+	  //define u_l as unit matrix ...
+	  su3 u_l;
+	  su3_put_to_id(u_l);
+	  
+	  //... and then modify the elements in the chosen su(2) subgroup
+	  u_l[i1][i1][RE]=u0;
+	  u_l[i1][i1][IM]=u3;
+	  u_l[i1][i2][RE]=u2;
+	  u_l[i1][i2][IM]=u1;
+	  u_l[i2][i1][RE]=-u2;
+	  u_l[i2][i1][IM]=u1;
+	  u_l[i2][i2][RE]=u0;
+	  u_l[i2][i2][IM]=-u3;
+	  
+	  safe_su3_prod_su3(u_ran,u_l,u_ran);
+	}
   }
+  
+#if NCOL == 3
+  template <typename T>
+  CUDA_HOST_AND_DEVICE void herm_put_to_gauss(T&& H,
+					      rnd_gen *gen,
+					      double sigma)
+  {
+    const double one_by_sqrt3=0.577350269189626;
+    const double two_by_sqrt3=1.15470053837925;
+    
+    double r[8];
+    for(size_t ir=0;ir<4;ir++)
+      {
+	complex rc,ave={0,0};
+	rnd_get_gauss_complex(rc,gen,ave,sigma);
+	r[ir*2+0]=rc[0];
+	r[ir*2+1]=rc[1];
+      }
+    
+    //real part of diagonal elements
+    H[0][0][0]= r[2]+one_by_sqrt3*r[7];
+    H[1][1][0]=-r[2]+one_by_sqrt3*r[7];
+    H[2][2][0]=     -two_by_sqrt3*r[7];
+    
+    //put immaginary part of diagonal elements to 0
+    H[0][0][1]=H[1][1][1]=H[2][2][1]=0;
+    
+    //remaining
+    H[0][1][0]=H[1][0][0]=r[0];
+    H[0][1][1]=-(H[1][0][1]=r[1]);
+    H[0][2][0]=H[2][0][0]=r[3];
+    H[0][2][1]=-(H[2][0][1]=r[4]);
+    H[1][2][0]=H[2][1][0]=r[5];
+    H[1][2][1]=-(H[2][1][1]=r[6]);
+  }
+#endif
+  
+  CUDA_MANAGED EXTERN_RANDOM rnd_gen* backup_loc_rnd_gen;
+  
+  int maybeBackupLocRndGenForBenchmark();
 }
 
 #undef EXTERN_RANDOM

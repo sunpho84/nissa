@@ -1,12 +1,12 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include "theory_pars.hpp"
 
 namespace nissa
 {
-  std::string theory_pars_t::get_str(int full)
+  std::string theory_pars_t::get_str(const bool& full) const
   {
     std::ostringstream os;
     //header

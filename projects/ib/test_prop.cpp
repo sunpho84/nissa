@@ -123,11 +123,11 @@ void compute_lepton_free_loop()
   //compare result of form with numerical evaluation
   complex lcwct_ln;
   compute_lepton_circle_without_contact_term_latt_num(lcwct_ln);
-  master_printf("lepton circle without contact term (numerical): %+16.16lg \n",lcwct_ln[RE]);
+  MASTER_PRINTF("lepton circle without contact term (numerical): %+16.16lg \n",lcwct_ln[RE]);
   double lcwct_lf=compute_lepton_circle_without_contact_term_latt_form();
-  master_printf("lepton circle without contact term (form):      %+16.16lg \n",lcwct_lf);
+  MASTER_PRINTF("lepton circle without contact term (form):      %+16.16lg \n",lcwct_lf);
   double lc_c=compute_lepton_circle_cont();
-  master_printf("lepton circle in the continuum:                 %+016.016lg\n",lc_c);
+  MASTER_PRINTF("lepton circle in the continuum:                 %+016.016lg\n",lc_c);
   
   const int nweak_ins=2;
   int list_weak_insl[nweak_ins]={4,9};
@@ -210,7 +210,7 @@ double sin2h(coords cp,momentum_t bc)
 
 void in_main(int narg,char **arg)
 {
-  if(narg<2) crash("use %s nx",arg[0]);
+  if(narg<2) CRASH("use %s nx",arg[0]);
   int X=atoi(arg[1]);
   int T=2*X,L=X;
   init_grid(T,L);
@@ -266,8 +266,8 @@ void in_main(int narg,char **arg)
     complex cl,clo;
     trace_dirac_prod_spinspin(cl,base_gamma+1,pr);
     trace_dirac_prod_spinspin(clo,base_gamma+1,pro[imom]);
-    master_printf("%lg %lg\n",cl[0]*sqrt(glb_vol)/4,cl[1]*sqrt(glb_vol)/4);
-    master_printf("%lg %lg\n",clo[0]/4,clo[1]/4);
+    MASTER_PRINTF("%lg %lg\n",cl[0]*sqrt(glb_vol)/4,cl[1]*sqrt(glb_vol)/4);
+    MASTER_PRINTF("%lg %lg\n",clo[0]/4,clo[1]/4);
     
     double xp5p5[glb_size[0]];
     memset(xp5p5,0,sizeof(complex)*glb_size[0]);
@@ -275,12 +275,12 @@ void in_main(int narg,char **arg)
       xp5p5[glb_coord_of_loclx[ivol][0]]+=spinspin_norm2(pro[ivol]);
     
     //take ft
-    master_printf("\n");
+    MASTER_PRINTF("\n");
     for(int t=0;t<glb_size[0];t++)
-      master_printf("%lg\n",3*xp5p5[t]/glb_spat_vol);
+      MASTER_PRINTF("%lg\n",3*xp5p5[t]/glb_spat_vol);
   }
   
-  crash("");
+  CRASH("");
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
@@ -343,22 +343,22 @@ void in_main(int narg,char **arg)
               double Z5=sqr(qu.mass)+4*sin2h(cpq,qu.bc)*sin2h(glb_coord_of_loclx[q],qu.bc)+sinp(glb_coord_of_loclx[q],cpq,qu.bc);
 	      fp5p5_uns[p0]+=4*Z1*Z2*Z5/glb_vol/glb_vol;
 	      
-	      //master_printf("t=%d q=%d (%lg,%lg)\n",p0,q,c[RE],c[IM]);
+	      //MASTER_PRINTF("t=%d q=%d (%lg,%lg)\n",p0,q,c[RE],c[IM]);
 	    }
-	  master_printf("MS Cp5p5: p0=%d (%lg,%lg) %lg\n",p0,cp5p5_uns[p0][RE],cp5p5_uns[p0][IM],fp5p5_uns[p0]);
+	  MASTER_PRINTF("MS Cp5p5: p0=%d (%lg,%lg) %lg\n",p0,cp5p5_uns[p0][RE],cp5p5_uns[p0][IM],fp5p5_uns[p0]);
 	}
       
-      master_printf("\n");
+      MASTER_PRINTF("\n");
       
       //take ft
       for(int t=0;t<glb_size[0];t++)
 	{
 	  double c=0;
 	  for(int p0=0;p0<glb_size[0];p0++) c+=cos((2*p0+0)*M_PI*t/glb_size[0])*cp5p5_uns[p0][RE];
-	  master_printf("XS Cp5p5: t=%d %lg\t%lg\n",t,c*glb_vol/glb_size[0],xp5p5[t]);
+	  MASTER_PRINTF("XS Cp5p5: t=%d %lg\t%lg\n",t,c*glb_vol/glb_size[0],xp5p5[t]);
 	}
       
-      master_printf("\n");
+      MASTER_PRINTF("\n");
     }
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -406,7 +406,7 @@ void in_main(int narg,char **arg)
   //compute energies
   lep_energy=tm_quark_energy(le,0);
   neu_energy=naive_massless_quark_energy(le.bc,0);
-  master_printf("mcrit: %lg, Emu: %+016.016lg, Enu: %+016.016lg %lg\n",m0_of_kappa(le.kappa),lep_energy,neu_energy,lep_energy/neu_energy);
+  MASTER_PRINTF("mcrit: %lg, Emu: %+016.016lg, Enu: %+016.016lg %lg\n",m0_of_kappa(le.kappa),lep_energy,neu_energy,lep_energy/neu_energy);
   
   compute_lepton_free_loop();
 }

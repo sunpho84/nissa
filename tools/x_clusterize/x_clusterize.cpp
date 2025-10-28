@@ -21,7 +21,7 @@ void init_clusterize(const char *path)
   read_str_int("L",&L);
   read_str_int("T",&T);
   //Init the MPI grid 
-  init_grid(T,L); 
+  initGrid(T,L); 
   //Pars
   read_str_int("Nr",&nr);
   //Input and output paths
@@ -40,13 +40,13 @@ void init_clusterize(const char *path)
   //find cluster sizes
   clust_size=(nconfs-nterm)/each/njacks;
   nconfs=nterm+clust_size*each*njacks;
-  master_printf("Adapted nconfs to %d\n",nconfs);
-  if(njacks<=1) crash("cannot use njacks %d (at least 2)");
-  if(each==0) crash("cannot use each 0");
-  if(clust_size==0) crash("cannot use clust_size 0");
+  MASTER_PRINTF("Adapted nconfs to %d\n",nconfs);
+  if(njacks<=1) CRASH("cannot use njacks %d (at least 2)");
+  if(each==0) CRASH("cannot use each 0");
+  if(clust_size==0) CRASH("cannot use clust_size 0");
   
-  master_printf("Nconfs to consider: %d\n",nconfs);
-  master_printf("Cluster size: %d\n",clust_size);
+  MASTER_PRINTF("Nconfs to consider: %d\n",nconfs);
+  MASTER_PRINTF("Cluster size: %d\n",clust_size);
   
   //allocate in buffer
   in_buffer=nissa_malloc("in_buffer",loc_vol,double);
@@ -62,7 +62,7 @@ void add_cluster(double* out_buffer,double* in_buffer,int iconf,int r)
   else
     {
       iclust=(iconf-nterm)/each/clust_size;
-      if(iclust>=njacks) crash("iclust: %d >= njacks: %d, iconf: %d",iclust,njacks,iconf);
+      if(iclust>=njacks) CRASH("iclust: %d >= njacks: %d, iconf: %d",iclust,njacks,iconf);
     }
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -86,14 +86,14 @@ void load_data(const char *path)
       header=ILDG_File_get_next_record_header(file);
       
       //parse the header
-      master_printf("Found header: %s\n",header.type);
+      MASTER_PRINTF("Found header: %s\n",header.type);
       int iconf,r;
       int rc=sscanf(header.type,"%d_%d",&iconf,&r);
-      if(rc!=2) crash("returned %d",rc); 
-      if(r>=nr) crash("loaded r=%d while nr=%d",r,nr);
+      if(rc!=2) CRASH("returned %d",rc); 
+      if(r>=nr) CRASH("loaded r=%d while nr=%d",r,nr);
       
       //prompt found conf and r
-      verbosity_lv2_master_printf("Conf: %d, r: %d\n",iconf,r);
+      VERBOSITY_LV2_MASTER_PRINTF("Conf: %d, r: %d\n",iconf,r);
       
       //if we passed termalization we read otherwise we skip it
       if((iconf<nterm || iconf>=nconfs) && (iconf!=0))
@@ -145,7 +145,7 @@ void save_data(const char *path)
   
   if(!little_endian) change_endianness(out_buffer,out_buffer,loc_vol*nr*(njacks+1));
   int rc=fwrite(out_buffer,sizeof(double),loc_vol*nr*(njacks+1),fout);
-  if(rc!=loc_vol*nr*(njacks+1)) crash("returned %d instead of %d",rc,loc_vol*nr*(njacks+1));
+  if(rc!=loc_vol*nr*(njacks+1)) CRASH("returned %d instead of %d",rc,loc_vol*nr*(njacks+1));
      
   close_file(fout);
 }
@@ -163,7 +163,7 @@ void in_main(int narg,char **arg)
   tot_prog_time-=take_time();
   
   //check arguments
-  if(narg<2) crash("Use %s input",arg[0]);
+  if(narg<2) CRASH("Use %s input",arg[0]);
   init_clusterize(arg[1]);
   
   load_data(path_in);
@@ -176,8 +176,8 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa_threaded(narg,arg,in_main);
-  close_nissa();
+  initNissa_threaded(narg,arg,in_main);
+  closeNissa();
     
   return 0;
 }

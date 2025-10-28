@@ -43,7 +43,7 @@ void transf(double *corrx,complex *corrp,int ord)
 
 void compute(double *lead,double *self,double *exch,double *tad,quark_info qu,gluon_info gl)
 {
-  if(nranks>1) crash("works only on scalar");
+  if(nranks>1) CRASH("works only on scalar");
 
   spinspin *q_prop=nissa_malloc("q_prop",loc_vol,spinspin);
   spin1prop *g_prop=nissa_malloc("g_prop",loc_vol,spin1prop);
@@ -213,7 +213,7 @@ void compute(double *lead,double *self,double *exch,double *tad,quark_info qu,gl
   
     if(comp_tad)
       {
-	master_printf("Computing tadpole corrections\n");
+	MASTER_PRINTF("Computing tadpole corrections\n");
 	
 	//compute tadpole propagator
 	spinspin *tad_prop=nissa_malloc("tad_prop",loc_vol,spinspin);
@@ -283,30 +283,30 @@ int main(int narg,char **arg)
   
   if(comp_tree)
     {
-      master_printf("Lead\n");
+      MASTER_PRINTF("Lead\n");
       for(int t=0;t<glb_size[0];t++)
-	master_printf("%d %16.16lg\n",t,lead[t]);
+	MASTER_PRINTF("%d %16.16lg\n",t,lead[t]);
     }
   
   if(comp_self)
     {
-      master_printf("Self\n");
+      MASTER_PRINTF("Self\n");
       for(int t=0;t<glb_size[0];t++)
-	master_printf("%d %16.16lg\n",t,self[t]);
+	MASTER_PRINTF("%d %16.16lg\n",t,self[t]);
     }
 
   if(comp_exch)
     {
-      master_printf("Exch\n");
+      MASTER_PRINTF("Exch\n");
       for(int t=0;t<glb_size[0];t++)
-	master_printf("%d %16.16lg\n",t,exch[t]);
+	MASTER_PRINTF("%d %16.16lg\n",t,exch[t]);
     }
 
   if(comp_tad)
     {
-      master_printf("Tad\n");
+      MASTER_PRINTF("Tad\n");
       for(int t=0;t<glb_size[0];t++)
-	master_printf("%d %16.16lg\n",t,tad[t]);
+	MASTER_PRINTF("%d %16.16lg\n",t,tad[t]);
     }
   
   double stexch_sum[glb_size[0]];
@@ -320,7 +320,7 @@ int main(int narg,char **arg)
       exch_stoch_comp(exch,qu,gl);
       
       //add to the sum and to sum2, print ave
-      if(i==n) master_printf("Stoch_exch after %d\n",i);
+      if(i==n) MASTER_PRINTF("Stoch_exch after %d\n",i);
       for(int t=0;t<glb_size[0];t++)
 	{
 	  stexch_sum[t]+=exch[t];
@@ -330,7 +330,7 @@ int main(int narg,char **arg)
 	  double err=stexch_sum2[t]/i;
 	  err=sqrt((err-ave*ave)/(i-1));
 	  
-	  if(i==n) master_printf("%d %lg %lg\n",t,ave*3,err*3);
+	  if(i==n) MASTER_PRINTF("%d %lg %lg\n",t,ave*3,err*3);
 	}
     }
   

@@ -1,106 +1,252 @@
 #ifndef _COVARIANT_DERIVATIVE_HPP
 #define _COVARIANT_DERIVATIVE_HPP
 
-#include "base/vectors.hpp"
-#include "communicate/borders.hpp"
+#include "base/field.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
 #include "new_types/su3_op.hpp"
 
 namespace nissa
 {
-  void apply_nabla_i(spincolor *out,spincolor *in,quad_su3 *conf,int mu);
-  void apply_nabla_i(colorspinspin *out,colorspinspin *in,quad_su3 *conf,int mu);
-  void apply_nabla_i(su3spinspin *out,su3spinspin *in,quad_su3 *conf,int mu);
+  void apply_nabla_i(LxField<spincolor>& out,
+		     const LxField<spincolor>& in,
+		     const LxField<quad_su3>& conf,
+		     const int& mu);
+  void apply_nabla_i(LxField<colorspinspin>& out,
+		     const LxField<colorspinspin>& in,
+		     const LxField<quad_su3>& conf,
+		     const int& mu);
+  void apply_nabla_i(LxField<su3spinspin>& out,
+		     const LxField<su3spinspin>& in,
+		     const LxField<quad_su3>& conf,
+		     const int& mu);
   
-  void insert_tm_tadpole(spincolor *out,quad_su3 *conf,spincolor *in,int r,const momentum_t& tad,int t);
-  void insert_tm_tadpole(colorspinspin *out,quad_su3 *conf,colorspinspin *in,int r,const momentum_t& tad,int t);
-  void insert_tm_tadpole(su3spinspin *out,quad_su3 *conf,su3spinspin *in,int r,const momentum_t& tad,int t);
-  void insert_Wilson_tadpole(spincolor *out,quad_su3 *conf,spincolor *in,const momentum_t& tad,int t);
-  void insert_Wilson_tadpole(colorspinspin *out,quad_su3 *conf,colorspinspin *in,const momentum_t& tad,int t);
-  void insert_Wilson_tadpole(su3spinspin *out,quad_su3 *conf,su3spinspin *in,const momentum_t& tad,int t);
+  void insert_tm_tadpole(LxField<spincolor>& out,
+			 const LxField<quad_su3>& conf,
+			 const LxField<spincolor>& in,
+			 const int& r,
+			 const Momentum& tad,
+			 const int& t);
+  void insert_tm_tadpole(LxField<colorspinspin>& out,
+			 const LxField<quad_su3>& conf,
+			 const LxField<colorspinspin>& in,
+			 const int& r,
+			 const Momentum& tad,
+			 const int& t);
+  void insert_tm_tadpole(LxField<su3spinspin>& out,
+			 const LxField<quad_su3>& conf,
+			 const LxField<su3spinspin>& in,
+			 const int& r,
+			 const Momentum& tad,
+			 const int& t);
+  void insert_Wilson_tadpole(LxField<spincolor>& out,
+			     const LxField<quad_su3>& conf,
+			     const LxField<spincolor>& in,
+			     const Momentum& tad,
+			     const int& t);
+  void insert_Wilson_tadpole(LxField<colorspinspin>& out,
+			     const LxField<quad_su3>& conf,
+			     const LxField<colorspinspin>& in,
+			     const Momentum& tad,
+			     const int& t);
+  void insert_Wilson_tadpole(LxField<su3spinspin>& out,
+			     const LxField<quad_su3>& conf,
+			     const LxField<su3spinspin>& in,
+			     const Momentum& tad,
+			     const int& t);
   
-  void insert_tm_conserved_current(spincolor *out,quad_su3 *conf,spincolor *in,int r,const which_dir_t& dirs,int t);
-  void insert_tm_conserved_current(colorspinspin *out,quad_su3 *conf,colorspinspin *in,int r,const which_dir_t& dirs,int t);
-  void insert_tm_conserved_current(su3spinspin *out,quad_su3 *conf,su3spinspin *in,int r,const which_dir_t& dirs,int t);
-  void insert_Wilson_conserved_current(spincolor *out,quad_su3 *conf,spincolor *in,const which_dir_t& dirs,int t);
-  void insert_Wilson_conserved_current(colorspinspin *out,quad_su3 *conf,colorspinspin *in,const which_dir_t& dirs,int t);
-  void insert_Wilson_conserved_current(su3spinspin *out,quad_su3 *conf,su3spinspin *in,const which_dir_t& dirs,int t);
+  void insert_tm_conserved_current(LxField<spincolor>& out,
+				   const LxField<quad_su3>& conf,
+				   const LxField<spincolor>& in,
+				   const int& r,
+				   const WhichDirs& dirs,
+				   const int& t);
+  void insert_tm_conserved_current(LxField<colorspinspin>& out,
+				   const LxField<quad_su3>& conf,
+				   const LxField<colorspinspin>& in,
+				   const int& r,
+				   const WhichDirs& dirs,
+				   const int& t);
+  void insert_tm_conserved_current(LxField<su3spinspin>& out,
+				   const LxField<quad_su3>& conf,
+				   const LxField<su3spinspin>& in,
+				   const int& r,
+				   const WhichDirs& dirs,
+				   const int& t);
+  void insert_Wilson_conserved_current(LxField<spincolor>& out,
+				       const LxField<quad_su3>& conf,
+				       const LxField<spincolor>& in,
+				       const WhichDirs& dirs,
+				       const int& t);
+  void insert_Wilson_conserved_current(LxField<colorspinspin>& out,
+				       const LxField<quad_su3>& conf,
+				       const LxField<colorspinspin>& in,
+				       const WhichDirs& dirs,
+				       const int& t);
+  void insert_Wilson_conserved_current(LxField<su3spinspin>& out,
+				       const LxField<quad_su3>& conf,
+				       const LxField<su3spinspin>& in,
+				       const WhichDirs& dirs,
+				       const int& t);
   
-  void insert_tm_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *in,int r,const which_dir_t& dirs,int t);
-  void insert_tm_external_source(colorspinspin *out,quad_su3 *conf,spin1field *curr,colorspinspin *in,int r,const which_dir_t& dirs,int t);
-  void insert_tm_external_source(su3spinspin *out,quad_su3 *conf,spin1field *curr,su3spinspin *in,int r,const which_dir_t& dirs,int t);
-  void insert_Wilson_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *in,const which_dir_t& dirs,int t);
-  void insert_Wilson_external_source(colorspinspin *out,quad_su3 *conf,spin1field *curr,colorspinspin *in,const which_dir_t& dirs,int t);
-  void insert_Wilson_external_source(su3spinspin *out,quad_su3 *conf,spin1field *curr,su3spinspin *in,const which_dir_t& dirs,int t);
+  void insert_tm_external_source(LxField<spincolor>& out,
+				 const LxField<quad_su3>& conf,
+				 const LxField<spin1field>& curr,
+				 const LxField<spincolor>& in,
+				 const int& r,
+				 const WhichDirs& dirs,
+				 const int& t);
+  void insert_tm_external_source(LxField<colorspinspin>& out,
+				 const LxField<quad_su3>& conf,
+				 const LxField<spin1field>& curr,
+				 const LxField<colorspinspin>& in,
+				 const int& r,
+				 const WhichDirs& dirs,
+				 const int& t);
+  void insert_tm_external_source(LxField<su3spinspin>& out,
+				 const LxField<quad_su3>& conf,
+				 const LxField<spin1field>& curr,
+				 const LxField<su3spinspin>& in,
+				 const int& r,
+				 const WhichDirs& dirs,
+				 const int& t);
+  void insert_Wilson_external_source(LxField<spincolor>& out,
+				     const LxField<quad_su3>& conf,
+				     const LxField<spin1field>& curr,
+				     const LxField<spincolor>& in,
+				     const WhichDirs& dirs,
+				     const int& t);
+  void insert_Wilson_external_source(LxField<colorspinspin>& out,
+				     const LxField<quad_su3>& conf,
+				     const LxField<spin1field>& curr,
+				     const LxField<colorspinspin>& in,
+				     const WhichDirs& dirs,
+				     const int& t);
+  void insert_Wilson_external_source(LxField<su3spinspin>& out,
+				     const LxField<quad_su3>& conf,
+				     const LxField<spin1field>& curr,
+				     const LxField<su3spinspin>& in,
+				     const WhichDirs& dirs,
+				     const int& t);
   
-  void prop_multiply_with_gamma(spincolor *out,int ig,spincolor *in,int it=-1);
-  void prop_multiply_with_gamma(colorspinspin *out,int ig,colorspinspin *in,int it=-1);
-  void prop_multiply_with_gamma(su3spinspin *out,int ig,su3spinspin *in,int it=-1);
+  void prop_multiply_with_gamma(LxField<spincolor>& out,
+				const int& ig,
+				const LxField<spincolor>& in,
+				const int& it=-1);
+  void prop_multiply_with_gamma(LxField<colorspinspin>& out,
+				const int& ig,
+				const LxField<colorspinspin>& in,
+				const int& it=-1);
+  void prop_multiply_with_gamma(LxField<su3spinspin>& out,
+				const int& ig,
+				const LxField<su3spinspin>& in,
+				const int& it=-1);
   
-  void Laplace_operator_2_links(color *out,quad_su3 *conf,const which_dir_t& dirs,color *in);
-  void Laplace_operator(spincolor *out,quad_su3 *conf,const which_dir_t& dirs,spincolor *in);
+  void prop_multiply_with_color_delta(LxField<spincolor>& out,
+				      const int& ic,
+				      const LxField<spincolor>& in,
+				      const int& it=-1);
+  void prop_multiply_with_color_delta(LxField<colorspinspin>& out,
+				      const int& ic,
+				      const LxField<colorspinspin>& in,
+				      const int& it=-1);
+  void prop_multiply_with_color_delta(LxField<su3spinspin>& out,
+				      const int& ic,
+				      const LxField<su3spinspin>& in,
+				      const int& it=-1);
+  
+  void Laplace_operator_2_links(LxField<color>& out,
+				const LxField<quad_su3>& conf,
+				const WhichDirs& dirs,
+				const LxField<color>& in);
+  void Laplace_operator(LxField<spincolor>& out,
+			const LxField<quad_su3>& conf,
+			const WhichDirs& dirs,
+			const LxField<spincolor>& in);
   
   /////////////////////////////////////////////////////////////////
   
   template <typename F>
-  void insert_vector_vertex(spincolor *out,quad_su3 *conf,F currCalc,spincolor *in,complex fact_fw,complex fact_bw,const dirac_matr &GAMMA,int t)
+  void insert_vector_vertex(LxField<spincolor>& out,
+			    const LxField<quad_su3>& conf,
+			    F currCalc,
+			    const LxField<spincolor>& in,
+			    const complex& fact_fw,
+			    const complex& fact_bw,
+			    const dirac_matr& GAMMA,
+			    const int& t)
   {
-    vector_reset(out);
-    communicate_lx_spincolor_borders(in);
-    communicate_lx_quad_su3_borders(conf);
+    out.reset();
+    in.updateHalo();
+    conf.updateHalo();
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	if(t==-1 or glbCoordOfLoclx[ivol][0] == t)
-	  for (int mu=0;mu<NDIM;mu++)
-	    {
-	      int ifw=loclxNeighup[ivol][mu];
-	      int ibw=loclxNeighdw[ivol][mu];
-	      spincolor fw,bw;
-	      unsafe_su3_prod_spincolor(fw,conf[ivol][mu],in[ifw]);
-	      unsafe_su3_dag_prod_spincolor(bw,conf[ibw][mu],in[ibw]);
-	      spincolor_prodassign_complex(fw,fact_fw);
-	      spincolor_prodassign_complex(bw,fact_bw);
-	      complex fw_curr,bw_curr;
-	      
-	      currCalc(fw_curr,ivol,mu,1.0);
-	      currCalc(bw_curr,ibw,mu,-1.0);
-	      
-	      spincolor_prodassign_complex(fw,fw_curr);
-	      spincolor_prodassign_complex(bw,bw_curr);
-	      spincolor bw_M_fw, bw_P_fw;
-	      spincolor_subt(bw_M_fw, bw, fw);
-	      spincolor_summ(bw_P_fw, bw, fw);
-	      spincolor GAMMA_bw_P_fw;
-	      unsafe_dirac_prod_spincolor(GAMMA_bw_P_fw, GAMMA, bw_P_fw);
-	      spincolor_summassign(out[ivol], GAMMA_bw_P_fw);
-	      spincolor gmu_bw_M_fw;
-	      unsafe_dirac_prod_spincolor(gmu_bw_M_fw, base_gamma[igamma_of_mu[mu]],bw_M_fw);
-	      spincolor_summassign(out[ivol], gmu_bw_M_fw);
-	    }
-      }
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(out);
+    PAR(0,locVol,
+	CAPTURE(t,GAMMA,currCalc,fact_bw,fact_fw,
+		TO_WRITE(out),
+		TO_READ(in),
+		TO_READ(conf)),
+	ivol,
+	{
+	  if(t==-1 or glbCoordOfLoclx[ivol][0]==t)
+	    for (int mu=0;mu<NDIM;mu++)
+	      {
+		int ifw=loclxNeighup[ivol][mu];
+		int ibw=loclxNeighdw[ivol][mu];
+		spincolor fw,bw;
+		unsafe_su3_prod_spincolor(fw,conf[ivol][mu],in[ifw]);
+		unsafe_su3_dag_prod_spincolor(bw,conf[ibw][mu],in[ibw]);
+		spincolor_prodassign_complex(fw,fact_fw);
+		spincolor_prodassign_complex(bw,fact_bw);
+		complex fw_curr,bw_curr;
+		
+		currCalc(fw_curr,ivol,mu,1.0);
+		currCalc(bw_curr,ibw,mu,-1.0);
+		
+		spincolor_prodassign_complex(fw,fw_curr);
+		spincolor_prodassign_complex(bw,bw_curr);
+		spincolor bw_M_fw, bw_P_fw;
+		spincolor_subt(bw_M_fw, bw, fw);
+		spincolor_summ(bw_P_fw, bw, fw);
+		spincolor GAMMA_bw_P_fw;
+		unsafe_dirac_prod_spincolor(GAMMA_bw_P_fw, GAMMA, bw_P_fw);
+		spincolor_summassign(out[ivol], GAMMA_bw_P_fw);
+		spincolor gmu_bw_M_fw;
+		unsafe_dirac_prod_spincolor(gmu_bw_M_fw,base_gamma[iGammaOfMu(mu)],bw_M_fw);
+		spincolor_summassign(out[ivol], gmu_bw_M_fw);
+	      }
+	});
   }
   
   template <typename F>
-  void insert_external_source(spincolor *out,quad_su3 *conf,F currCalc,spincolor *in,const dirac_matr &GAMMA,int t)
+  void insert_external_source(LxField<spincolor>& out,
+			      const LxField<quad_su3>& conf,
+			      F currCalc,
+			      const LxField<spincolor>& in,
+			      const dirac_matr& GAMMA,
+			      const int& t)
   {
     complex fw_factor={0,-0.5},bw_factor={0,+0.5};
     insert_vector_vertex(out,conf,currCalc,in,fw_factor,bw_factor,GAMMA,t);
   }
   
   template <typename F>
-  void insert_tm_external_source(spincolor *out, quad_su3 *conf,
-                                 F currCalc, spincolor *in, int r, int t)
+  void insert_tm_external_source(LxField<spincolor>& out,
+				 const LxField<quad_su3>& conf,
+				 F currCalc,
+				 const LxField<spincolor>& in,
+				 const int& r,
+				 const int& t)
   {
     dirac_matr GAMMA=dirac_prod_idouble(base_gamma[5],-tau3[r]);
     insert_external_source(out,conf,currCalc,in,GAMMA,t);
   }
   
   template <typename F>
-  void insert_Wilson_external_source(spincolor *out,quad_su3 *conf,F currCalc,spincolor *in,int t)
+  void insert_Wilson_external_source(LxField<spincolor>& out,
+				     const LxField<quad_su3>& conf,
+				     F currCalc,
+				     const LxField<spincolor>& in,
+				     const int& t)
   {
     insert_external_source(out,conf,currCalc,in,base_gamma[0],t);
   }

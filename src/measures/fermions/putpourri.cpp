@@ -44,7 +44,7 @@ namespace nissa
   //compute the fermionic putpourri for a single conf and hit
   void fermionic_putpourri(fermionic_putpourri_t* putpourri,rnd_t rnd_type,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,quark_content_t* quark,double residue,int comp_susc)
   {
-    crash("#warning toredo");
+    CRASH("#warning toredo");
     
     // THREAD_BARRIER();
     
@@ -191,66 +191,56 @@ namespace nissa
   //measure the above fermionic putpourri
   void measure_fermionic_putpourri(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,fermionic_putpourri_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
-    FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
-    int comp_susc=meas_pars.compute_susc;
+    CRASH("reimplement");
     
-    //measure the putpourri for each quark
-    int ncopies=meas_pars.ncopies;
-    for(int icopy=0;icopy<ncopies;icopy++)
-      {
-	master_fprintf(file,"%d",iconf);
-	for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
-	  {
-	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
+    // FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
+    // int comp_susc=meas_pars.compute_susc;
+    
+    // //measure the putpourri for each quark
+    // int ncopies=meas_pars.ncopies;
+    // for(int icopy=0;icopy<ncopies;icopy++)
+    //   {
+    // 	master_fprintf(file,"%d",iconf);
+    // 	for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
+    // 	  {
+    // 	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) CRASH("not defined for non-staggered quarks");
 	    
-	    fermionic_putpourri_t putpourri;
+    // 	    fermionic_putpourri_t putpourri;
 	    
-	    //loop over hits
-	    int nhits=meas_pars.nhits;
-	    for(int hit=0;hit<nhits;hit++)
-	      {
-		verbosity_lv2_master_printf("Evaluating fermionic putpourri for flavor %d/%d, ncopy %d/%d, nhits %d/%d\n",
-					    iflav+1,theory_pars.nflavs(),icopy+1,ncopies,hit+1,nhits);
+    // 	    //loop over hits
+    // 	    int nhits=meas_pars.nhits;
+    // 	    for(int hit=0;hit<nhits;hit++)
+    // 	      {
+    // 		VERBOSITY_LV2_MASTER_PRINTF("Evaluating fermionic putpourri for flavor %d/%d, ncopy %d/%d, nhits %d/%d\n",
+    // 					    iflav+1,theory_pars.nflavs(),icopy+1,ncopies,hit+1,nhits);
 		
-		//compute and summ
-		fermionic_putpourri_t temp;
-		fermionic_putpourri(&temp,meas_pars.rnd_type,conf,theory_pars.backfield[iflav],&theory_pars.quarks[iflav],meas_pars.residue,comp_susc);
-		complex_summassign(putpourri.chiral_cond,temp.chiral_cond);
-		if(comp_susc) complex_summassign(putpourri.chiral_cond_susc,temp.chiral_cond_susc);
-		complex_summassign(putpourri.energy_dens,temp.energy_dens);
-		complex_summassign(putpourri.quark_dens,temp.quark_dens);
-		if(comp_susc) complex_summassign(putpourri.quark_dens_susc,temp.quark_dens_susc);
-		complex_summassign(putpourri.pressure_dens,temp.pressure_dens);
-	      }
+    // 		//compute and summ
+    // 		fermionic_putpourri_t temp;
+    // 		fermionic_putpourri(&temp,meas_pars.rnd_type,conf,theory_pars.backfield[iflav],&theory_pars.quarks[iflav],meas_pars.residue,comp_susc);
+    // 		complex_summassign(putpourri.chiral_cond,temp.chiral_cond);
+    // 		if(comp_susc) complex_summassign(putpourri.chiral_cond_susc,temp.chiral_cond_susc);
+    // 		complex_summassign(putpourri.energy_dens,temp.energy_dens);
+    // 		complex_summassign(putpourri.quark_dens,temp.quark_dens);
+    // 		if(comp_susc) complex_summassign(putpourri.quark_dens_susc,temp.quark_dens_susc);
+    // 		complex_summassign(putpourri.pressure_dens,temp.pressure_dens);
+    // 	      }
 	    
-	   //write results
-	   master_fprintf(file,"\t\t%+16.16lg\t%+16.16lg",putpourri.chiral_cond[RE]/nhits,putpourri.chiral_cond[IM]/nhits);
-	   if(comp_susc) master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.chiral_cond_susc[RE]/nhits,
-				 putpourri.chiral_cond_susc[IM]/nhits);
-	   master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.energy_dens[RE]/nhits,putpourri.energy_dens[IM]/nhits);
-	   master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.quark_dens[RE]/nhits,putpourri.quark_dens[IM]/nhits);
-	   if(comp_susc) master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.quark_dens_susc[RE]/nhits,
-				 putpourri.quark_dens_susc[IM]/nhits);
-	   master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.pressure_dens[RE]/nhits,
-			  putpourri.pressure_dens[IM]/nhits);
-	  }
+    // 	   //write results
+    // 	   master_fprintf(file,"\t\t%+16.16lg\t%+16.16lg",putpourri.chiral_cond[RE]/nhits,putpourri.chiral_cond[IM]/nhits);
+    // 	   if(comp_susc) master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.chiral_cond_susc[RE]/nhits,
+    // 				 putpourri.chiral_cond_susc[IM]/nhits);
+    // 	   master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.energy_dens[RE]/nhits,putpourri.energy_dens[IM]/nhits);
+    // 	   master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.quark_dens[RE]/nhits,putpourri.quark_dens[IM]/nhits);
+    // 	   if(comp_susc) master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.quark_dens_susc[RE]/nhits,
+    // 				 putpourri.quark_dens_susc[IM]/nhits);
+    // 	   master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.pressure_dens[RE]/nhits,
+    // 			  putpourri.pressure_dens[IM]/nhits);
+    // 	  }
 	
-	master_fprintf(file,"\n");
-      }
+    // 	master_fprintf(file,"\n");
+    //   }
     
-    //close the file
-    if(rank==0) fclose(file);
-  }
-  
-  //fermionic putpourri
-  std::string fermionic_putpourri_meas_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
-    
-    os<<"MeasPutpourri\n";
-    if(is_nonstandard()||full) os<<base_fermionic_meas_t::get_str(full);
-    if(compute_susc!=def_compute_susc()||full)  os<<" ComputeSusc\t=\t"<<compute_susc<<"\n";
-    
-    return os.str();
+    // //close the file
+    // if(rank==0) fclose(file);
   }
 }

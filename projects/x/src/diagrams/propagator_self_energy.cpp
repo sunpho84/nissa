@@ -81,7 +81,7 @@ void compute_self_energy_twisted_diagram_in_x_space(spinspin *q_out,quark_info q
 
 void compute_self_energy_twisted_diagram_in_mom_space(spinspin *q_out,spinspin *q_prop,quark_info qu,spin1prop *g_prop,gluon_info gl)
 {
-  if(nranks>1) crash("implemented only in scalar");
+  if(nranks>1) CRASH("implemented only in scalar");
   
   memset(q_out,0,sizeof(spinspin)*loc_vol);
   
@@ -126,7 +126,7 @@ void compute_self_energy_twisted_diagram_in_mom_space(spinspin *q_out,spinspin *
       spinspin_prodassign_double(q_out[ip],-1);
     }
   else
-    crash("Non periodic boundary conditions not implemented yet!");  
+    CRASH("Non periodic boundary conditions not implemented yet!");  
 }
 
 void compute_self_energy_twisted_diagram_in_mom_space(spinspin *q_out,quark_info qu,gluon_info gl)

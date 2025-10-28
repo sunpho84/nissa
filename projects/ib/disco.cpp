@@ -139,20 +139,20 @@ void close()
 {
   close_input();
   
-  master_printf("\n");
-  master_printf("Nanalyzed confs: %d\n",nanalyzed_conf);
-  master_printf("Total time: %lg s\n",take_time()-init_time);
+  MASTER_PRINTF("\n");
+  MASTER_PRINTF("Nanalyzed confs: %d\n",nanalyzed_conf);
+  MASTER_PRINTF("Total time: %lg s\n",take_time()-init_time);
   if(nanalyzed_conf)
     {
-      master_printf("Time per conf: %lg s\n",(take_time()-init_time)/nanalyzed_conf);
-      master_printf(" Time to prepare: %lg s, %lg %c\n",prepare_time,prepare_time/(take_time()-init_time)*100,'%');
-      master_printf(" Time to prop: %lg s, %lg %c\n",prop_time,prop_time/(take_time()-init_time)*100,'%');
-      master_printf(" Time to S0P5: %lg s, %lg %c\n",S0P5_time,S0P5_time/(take_time()-init_time)*100,'%');
-      master_printf(" Time to P5P5: %lg s, %lg %c\n",P5P5_time,P5P5_time/(take_time()-init_time)*100,'%');
-      master_printf(" Time to disco: %lg s, %lg %c\n",disco_time,disco_time/(take_time()-init_time)*100,'%');
-      master_printf(" Time to P5P5_with_ins: %lg s, %lg %c\n",P5P5_with_ins_time,P5P5_with_ins_time/(take_time()-init_time)*100,'%');
+      MASTER_PRINTF("Time per conf: %lg s\n",(take_time()-init_time)/nanalyzed_conf);
+      MASTER_PRINTF(" Time to prepare: %lg s, %lg %c\n",prepare_time,prepare_time/(take_time()-init_time)*100,'%');
+      MASTER_PRINTF(" Time to prop: %lg s, %lg %c\n",prop_time,prop_time/(take_time()-init_time)*100,'%');
+      MASTER_PRINTF(" Time to S0P5: %lg s, %lg %c\n",S0P5_time,S0P5_time/(take_time()-init_time)*100,'%');
+      MASTER_PRINTF(" Time to P5P5: %lg s, %lg %c\n",P5P5_time,P5P5_time/(take_time()-init_time)*100,'%');
+      MASTER_PRINTF(" Time to disco: %lg s, %lg %c\n",disco_time,disco_time/(take_time()-init_time)*100,'%');
+      MASTER_PRINTF(" Time to P5P5_with_ins: %lg s, %lg %c\n",P5P5_with_ins_time,P5P5_with_ins_time/(take_time()-init_time)*100,'%');
     }
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   
   if(cSW!=0.0)
     {
@@ -179,10 +179,10 @@ void close()
 //check if asked to stop or restart
 bool asked_to_stop_or_restart()
 {
-  const bool asked_stop=file_exists("stop");
-  master_printf("Asked to stop: %d\n",asked_stop);
-  const int asked_restart=file_exists("restart");
-  master_printf("Asked to restart: %d\n",asked_restart);
+  const bool asked_stop=fileExists("stop");
+  MASTER_PRINTF("Asked to stop: %d\n",asked_stop);
+  const int asked_restart=fileExists("restart");
+  MASTER_PRINTF("Asked to restart: %d\n",asked_restart);
   
   return asked_stop or asked_restart;
 }
@@ -197,19 +197,19 @@ bool enough_time()
   const bool no_analyzed_conf=(nanalyzed_conf==0);
   if(not no_analyzed_conf)
     {
-      master_printf("Time per conf: %lg s (%d confs)\n",time_per_conf,nanalyzed_conf);
-      master_printf("Time per conf with tol: %lg s\n",time_per_conf_with_tol);
-      master_printf("Remaining time: %lg s\n",remaining_time);
+      MASTER_PRINTF("Time per conf: %lg s (%d confs)\n",time_per_conf,nanalyzed_conf);
+      MASTER_PRINTF("Time per conf with tol: %lg s\n",time_per_conf_with_tol);
+      MASTER_PRINTF("Remaining time: %lg s\n",remaining_time);
     }
   
   const bool enough_remaining_time=no_analyzed_conf or (remaining_time>time_per_conf_with_tol);
   if(no_analyzed_conf)
-    master_printf("No configuration analyzed yet, proceeding in any case\n");
+    MASTER_PRINTF("No configuration analyzed yet, proceeding in any case\n");
   else
     if(enough_remaining_time)
-      master_printf("Time is enough, going on\n");
+      MASTER_PRINTF("Time is enough, going on\n");
     else
-      master_printf("Not enough time\n");
+      MASTER_PRINTF("Not enough time\n");
   
   return enough_remaining_time;
 }
@@ -226,13 +226,13 @@ bool read_conf_path_and_check_outpath_not_exists()
   
   read_str(outfolder,1024);
   
-  master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+  MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
   
   const bool has_to_be_created=not dir_exists(outfolder);
   if(has_to_be_created)
-      master_printf(" Output path \"%s\" not present.\n",outfolder);
+      MASTER_PRINTF(" Output path \"%s\" not present.\n",outfolder);
   else
-    master_printf(" Output path \"%s\" already present.\n",outfolder);
+    MASTER_PRINTF(" Output path \"%s\" already present.\n",outfolder);
   
   return has_to_be_created;
 }
@@ -242,9 +242,9 @@ bool create_outpath()
   const bool created=not create_dir(outfolder);
   
   if(created)
-    master_printf(" Output path \"%s\" for conf \"%s\" created\n",outfolder,conf_path);
+    MASTER_PRINTF(" Output path \"%s\" for conf \"%s\" created\n",outfolder,conf_path);
   else
-    master_printf(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+    MASTER_PRINTF(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
   
   return created;
 }
@@ -253,7 +253,7 @@ bool create_run_file()
 {
   create_outpath();
 
-  if(snprintf(run_file,1024,"%s/running",outfolder)<0) crash("writing %s",run_file);
+  if(snprintf(run_file,1024,"%s/running",outfolder)<0) CRASH("writing %s",run_file);
   
   return lock_file.try_lock(run_file);
 }
@@ -261,7 +261,7 @@ bool create_run_file()
 bool read_conf()
 {
   read_ildg_gauge_conf(glb_conf,conf_path);
-  master_printf("plaq: %+16.16g\n",global_plaquette_lx_conf(glb_conf));
+  MASTER_PRINTF("plaq: %+16.16g\n",global_plaquette_lx_conf(glb_conf));
   
   return true;
 }
@@ -271,7 +271,7 @@ bool check_lock_file()
   const bool lock_file_valid=lock_file.check_lock();
   
   if(not lock_file_valid)
-    master_printf("Somebody acquired the lock on %s\n",run_file);
+    MASTER_PRINTF("Somebody acquired the lock on %s\n",run_file);
   
   return lock_file_valid;
 }
@@ -315,7 +315,7 @@ void searchConf()
   
   if(finished_confs())
     {
-      master_printf("Analyzed all confs, exiting\n\n");
+      MASTER_PRINTF("Analyzed all confs, exiting\n\n");
       file_touch(stop_path);
       runMode=STOP;
     }
@@ -326,7 +326,7 @@ void searchConf()
 void mark_finished()
 {
   char fin_file[1024];
-  if(snprintf(fin_file,1024,"%s/finished",outfolder)<0) crash("writing %s",fin_file);
+  if(snprintf(fin_file,1024,"%s/finished",outfolder)<0) CRASH("writing %s",fin_file);
   file_touch(fin_file);
   
   iconf++;
@@ -340,7 +340,7 @@ void fill_source(const int glbT)
   // double tFrT[1];
   // field_rng_stream.drawScalar(tFrT);
   // const int glbT=tFrT[0]*glb_size[0];
-  master_printf("Source position: %d\n",glbT);
+  MASTER_PRINTF("Source position: %d\n",glbT);
   
   auto source_filler=field_rng_stream.getDrawer<spincolor>();
   source_filler.fillField(source(glbT));
@@ -356,24 +356,26 @@ void fill_source(const int glbT)
     }
   NISSA_PARALLEL_LOOP_END;
   
-  //master_printf("Box-Muller transformation performed\n");
+  //MASTER_PRINTF("Box-Muller transformation performed\n");
   
   set_borders_invalid(source(glbT));
 }
 
 void get_prop(const int& t,const int& r)
 {
-  spincolor* p=prop(t,r);
+  CRASH("reimplement");
   
-  safe_dirac_prod_spincolor(temp,(tau3[r]==-1)?Pminus:Pplus,source(t));
-  if(cSW==0.0)
-    inv_tmD_cg_eoprec(p,NULL,glb_conf,kappa,mass*tau3[r],1000000,residue,temp);
-  else
-    {
-      invert_twisted_clover_term(invCl,mass*tau3[r],kappa,Cl);
-      inv_tmclovD_cg_eoprec(p,NULL,glb_conf,kappa,Cl,invCl,cSW,mass*tau3[r],1000000,residue,temp);
-    }
-  safe_dirac_prod_spincolor(p,(tau3[r]==-1)?Pminus:Pplus,prop(t,r));
+  // spincolor* p=prop(t,r);
+  
+  // safe_dirac_prod_spincolor(temp,(tau3[r]==-1)?Pminus:Pplus,source(t));
+  // if(cSW==0.0)
+  //   inv_tmD_cg_eoprec(p,NULL,glb_conf,kappa,mass*tau3[r],1000000,residue,temp);
+  // else
+  //   {
+  //     invert_twisted_clover_term(invCl,mass*tau3[r],kappa,Cl);
+  //     inv_tmclovD_cg_eoprec(p,NULL,glb_conf,kappa,Cl,invCl,cSW,mass*tau3[r],1000000,residue,temp);
+  //   }
+  // safe_dirac_prod_spincolor(p,(tau3[r]==-1)?Pminus:Pplus,prop(t,r));
 }
 
 void compute_conn_contr(complex* conn_contr,int r1,int r2,int glbT,const dirac_matr& gamma)

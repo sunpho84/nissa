@@ -2,43 +2,106 @@
 #define _DEBUG_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #ifndef EXTERN_DEBUG
- #define EXTERN_DEBUG extern
- #define INIT_DEBUG_TO(var)
+# define EXTERN_DEBUG extern
+# define INIT_DEBUG_TO(var)
 #else
- #define INIT_DEBUG_TO(var) =var
+# define INIT_DEBUG_TO(var) =var
 #endif
+
+#include <csignal>
+#include <ctime>
 
 #ifdef USE_CUDA
- #include <cuda_runtime.h>
+# include <cuda_runtime.h>
 #endif
 
-#define crash(...) nissa::internal_crash(__LINE__,__FILE__,__VA_ARGS__)
-#define crash_printing_error(code,...) internal_crash_printing_error(__LINE__,__FILE__,code,__VA_ARGS__)
-#define decript_MPI_error(...) internal_decript_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
+#define WARNING(FMT,...)						\
+  MASTER_PRINTF(YELLOW_HIGHLIGHT "WARNING, " FMT DO_NOT_HIGHLIGHT,__VA_ARGS__)
 
-#define decript_cuda_error(...)  internal_decript_cuda_error(__LINE__,__FILE__,__VA_ARGS__)
+#define CRASH(...) \
+  ::nissa::internal_crash(__LINE__,__FILE__,__VA_ARGS__)
+
+#define CRASH_PRINTING_ERROR(code,...)					\
+  internal_crash_printing_error(__LINE__,__FILE__,code,__VA_ARGS__)
+
+#define DECRYPT_MPI_ERROR(...) \
+  internal_decrypt_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
+
+#define DECRYPT_CUDA_ERROR(...)  \
+  internal_decrypt_cuda_error(__LINE__,__FILE__,__VA_ARGS__)
+
+//add verbosity macro
+#if MAX_VERBOSITY_LV>=1
+# define VERBOSITY_LV1 (::nissa::verbosity_lv>=1)
+#else
+# define VERBOSITY_LV1 0
+#endif
+#if MAX_VERBOSITY_LV>=2
+# define VERBOSITY_LV2 (::nissa::verbosity_lv>=2)
+#else
+# define VERBOSITY_LV2 0
+#endif
+#if MAX_VERBOSITY_LV>=3
+# define VERBOSITY_LV3 (::nissa::verbosity_lv>=3)
+#else
+# define VERBOSITY_LV3 0
+#endif
+
+#define NISSA_DEFAULT_VERBOSITY_LV 1
 
 namespace nissa
 {
-  EXTERN_DEBUG int check_inversion_residue INIT_DEBUG_TO(0);
+  EXTERN_DEBUG int check_inversion_residue INIT_DEBUG_TO(2);
+  
+  EXTERN_DEBUG int inversion_residue_threshold_odg INIT_DEBUG_TO(2);
+  
+  EXTERN_DEBUG int inversion_residue_heavy_qualify_odg INIT_DEBUG_TO(32);
+  
+  EXTERN_DEBUG int verbosity_lv;
   
   void debug_loop();
   void check_128_bit_prec();
-  void internal_crash(int line,const char *file,const char *templ,...);
+  
+  /// Function to be called in case of crash
+  EXTERN_DEBUG void(*crashHook)() INIT_DEBUG_TO(nullptr);
+  
+  CUDA_HOST_AND_DEVICE
+  __attribute__((format (printf,3,4),noreturn))
+  void internal_crash(const int& line,
+		      const char *file,
+		      const char *templ,
+		      ...);
+  
+  __attribute__((format (printf,4,5)))
   void internal_crash_printing_error(int line,const char *file,int err_code,const char *templ,...);
-  void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...);
+  __attribute__((format (printf,4,5)))
+  void internal_decrypt_MPI_error(int line,const char *file,int rc,const char *templ,...);
 #ifdef USE_CUDA
-  void internal_decript_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...);
+  __attribute__((format (printf,4,5)))
+  void internal_decrypt_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...);
 #endif
-  void print_backtrace_list();
+  void print_backtrace_list(int which_rank=0);
   void signal_handler(int);
   double take_time();
+  
+  timer_t setRecurringCalledFunction(void hook(int sigNum,
+					     siginfo_t*,
+					     void*),
+				   const int sigNum,
+				   const int& nSec,
+				   const int& nnSec);
+  
+  void stopRecallingFunction(const timer_t& timer_id);
+  
+  void testLxHaloExchange();
+  void testEoHaloExchange();
+  void testLxEdgesExchange();
+  void testEoEdgesExchange();
 }
-
 
 #undef EXTERN_DEBUG
 #undef INIT_DEBUG_TO

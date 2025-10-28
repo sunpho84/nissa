@@ -1,0 +1,11 @@
+#init to empty
+bin_PROGRAMS=
+include_HEADERS=
+BUILT_SOURCES=
+EXTRA_DIST=
+CLEANFILES=
+assembly_reports=
+
+#rule to create assembly output and get it filtered
+%.s: %.cpp %.o $(top_srcdir)/config/asm_inspect.sh
+	$(CXXCOMPILE) -S $< -c -o -|$(top_srcdir)/config/asm_inspect.sh $@

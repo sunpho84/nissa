@@ -11,23 +11,23 @@ bool rnd_gen_diff(rnd_gen &a,rnd_gen &b,int tot)
   char tempa[1024],tempb[1024];
   convert_rnd_gen_to_text(tempa,&a,1024);
   convert_rnd_gen_to_text(tempb,&b,1024);
-  master_printf("iter %d %s\n",tot,tempa);
-  master_printf("iter %d %s\n",tot,tempb);
-  master_printf("\n");
+  MASTER_PRINTF("iter %d %s\n",tot,tempa);
+  MASTER_PRINTF("iter %d %s\n",tot,tempb);
+  MASTER_PRINTF("\n");
   return diff;
 }
 
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   
-  if(narg<8) crash("use: %s T X Y Z file_in file_out ori_seed",arg[0]);
+  if(narg<8) CRASH("use: %s T X Y Z file_in file_out ori_seed",arg[0]);
   
   for(int mu=0;mu<4;mu++) glbSize[mu]=atoi(arg[mu+1]);
   
   //Init the MPI grid 
-  init_grid(0,0);
+  initGrid(0,0);
   
   //////////////////////////// read the conf /////////////////////////////
   
@@ -59,7 +59,7 @@ int main(int narg,char **arg)
 	    cur=next;
 	    tot++;
 	  }
-	master_printf("followed %d extraction\n",tot);
+	MASTER_PRINTF("followed %d extraction\n",tot);
 	
 	//store
 	free(cur_mess->data);
@@ -78,7 +78,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

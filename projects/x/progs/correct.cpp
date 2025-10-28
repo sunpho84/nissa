@@ -90,7 +90,7 @@ void prepare_demo_table(double cut_angle,int max_dist)
   NISSA_LOC_VOL_LOOP(ivol)
     if(demo_of_loclx[ivol]!=-1) loclx_of_demo[demo_of_loclx[ivol]]=ivol;
   
-  master_printf("Number of democratic points: %d\n",ndemo_points);
+  MASTER_PRINTF("Number of democratic points: %d\n",ndemo_points);
 }
 
 //initialize the program
@@ -99,8 +99,8 @@ void init_calc(int narg,char **arg)
   //Basic mpi initialization
   init_nissa(narg,arg);
   
-  if(nranks>1) crash("only available in scalar");
-  if(narg<2) crash("use %s input",arg[0]);
+  if(nranks>1) CRASH("only available in scalar");
+  if(narg<2) CRASH("use %s input",arg[0]);
   
   open_input(arg[1]);
   int L;
@@ -120,7 +120,7 @@ void init_calc(int narg,char **arg)
   double plaq;
   read_str_double("Plaq",&plaq);
   g2=6/beta/plaq;
-  master_printf("g2_boost: %lg\n",g2);
+  MASTER_PRINTF("g2_boost: %lg\n",g2);
 
   //init the grid
   init_grid(T,L);
@@ -179,7 +179,7 @@ double Zp_minus_one(double d2,int icorr)
 //load the real part of democratic points of the correlator
 void load_demo_averaged_text_corr(double *out,char *path)
 {
-  master_printf("Opening: %d\n",path);
+  MASTER_PRINTF("Opening: %d\n",path);
   FILE *fin=open_file(path,"r");
   
   coords x;
@@ -200,10 +200,10 @@ void load_demo_averaged_text_corr(double *out,char *path)
 	    int nr=fscanf(fin,"%d %d %d %d %lg %lg %lg %lg",&y[1],&y[2],&y[3],&y[0],&yd2,&yangle,&re,&im);
 	    
 	    //checks
-	    if(nr!=8) crash("Read %d instead than 8",nr);
-	    for(int mu=0;mu<4;mu++) if(y[mu]!=x[mu]) crash("Read %d instead than %d for dir %d",y[mu],x[mu],mu);
-	    if(int(sqrt(yd2))!=int(sqrt(dist2[ivol]))) crash("Distance read %lg does not coincide with expected %lg",yd2,dist2[ivol]);
-	    if(!std::isnan(angle)&&fabs(angle-yangle)>1.e-4) crash("Angle expected: %lg, read: %lg",angle,yangle);
+	    if(nr!=8) CRASH("Read %d instead than 8",nr);
+	    for(int mu=0;mu<4;mu++) if(y[mu]!=x[mu]) CRASH("Read %d instead than %d for dir %d",y[mu],x[mu],mu);
+	    if(int(sqrt(yd2))!=int(sqrt(dist2[ivol]))) CRASH("Distance read %lg does not coincide with expected %lg",yd2,dist2[ivol]);
+	    if(!std::isnan(angle)&&fabs(angle-yangle)>1.e-4) CRASH("Angle expected: %lg, read: %lg",angle,yangle);
 	    
 	    //check democracy
 	    int idemo=demo_of_loclx[ivol];
@@ -224,7 +224,7 @@ void load_demo_ildg_corr(corr16 *out,char *path,bool average=false)
   int nperm=6;
   int npar=16;
   
-  if(average) master_printf("Averaging\n");
+  if(average) MASTER_PRINTF("Averaging\n");
   
   //copy only democratic points
   NISSA_LOC_VOL_LOOP(ivol)
@@ -274,7 +274,7 @@ void load_correction(corr16 *out,const char *inf,int icorr,const char *suff)
   
   char path[1024];
   sprintf(path,"%s/corr%s_tau32-0_L%2d_T%2d_%s.dat",inf,corr_name[icorr],glb_size[1],glb_size[0],suff);
-  master_printf("Opening: %s\n",path);
+  MASTER_PRINTF("Opening: %s\n",path);
   FILE *fin=open_file(path,"r");
   
   coords x;
@@ -301,19 +301,19 @@ void load_correction(corr16 *out,const char *inf,int icorr,const char *suff)
 		    int nr;
 		  case PP:
 		    nr=fscanf(fin,"%d %d %d %d %lg",&y[1],&y[2],&y[3],&y[0],&temp);
-		    if(nr!=5) crash("read %d",nr);
+		    if(nr!=5) CRASH("read %d",nr);
 		    break;
 		  case SS:
 		    nr=fscanf(fin,"%d %d %d %d %lg",&y[1],&y[2],&y[3],&y[0],&temp);
-		    if(nr!=5) crash("read %d",nr);
+		    if(nr!=5) CRASH("read %d",nr);
 		    break;
 		  case VV:
 		    nr=fscanf(fin,"%d %d %d %d %lg %lg %lg %lg %lg %lg",&y[1],&y[2],&y[3],&y[0],&dum1,&dum2,&dum3,&dum4,&dum5,&temp);
-		    if(nr!=10) crash("read %d",nr);
+		    if(nr!=10) CRASH("read %d",nr);
 		    break;
 		  case AA:
 		    nr=fscanf(fin,"%d %d %d %d %lg %lg %lg %lg %lg %lg",&y[1],&y[2],&y[3],&y[0],&dum1,&dum2,&dum3,&dum4,&dum5,&temp);
-		    if(nr!=10) crash("read %d",nr);
+		    if(nr!=10) CRASH("read %d",nr);
 		    break;
 		  }
 		
@@ -323,7 +323,7 @@ void load_correction(corr16 *out,const char *inf,int icorr,const char *suff)
 	  }
   
   char fuf[1024];
-  if(fscanf(fin,"%s",fuf)==1) crash("not reached EOF!");
+  if(fscanf(fin,"%s",fuf)==1) CRASH("not reached EOF!");
   
   fclose(fin);
 }

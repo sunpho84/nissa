@@ -10,12 +10,13 @@ $(top_srcdir)/.git/HEAD:
 $(top_srcdir)/.git/index:
 
 
-BUILT_SOURCES=%D%/git_info.hpp
+BUILT_SOURCES+= \
+	%D%/git_info.hpp
 
 __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/bench.cpp \
-	%D%/close.cpp \
 	%D%/debug.cpp \
+	%D%/field.cpp \
 	%D%/init.cpp \
 	%D%/memory_manager.cpp \
 	%D%/multiGridParams.cpp \
@@ -27,19 +28,13 @@ include_HEADERS+= \
 	%D%/close.hpp \
 	%D%/cuda_test.hpp \
 	%D%/debug.hpp \
+	%D%/field.hpp \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
 	%D%/memory_manager.hpp \
 	%D%/multiGridParams.hpp \
 	%D%/random.hpp \
 	%D%/vectors.hpp
-
-if USE_TMLQCD
-__top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/tmLQCD_bridge.cpp
-include_HEADERS+= \
-	%D%/tmLQCD_bridge.hpp
-endif
 
 if USE_DDALPHAAMG
 __top_builddir__lib_libnissa_a_SOURCES+= \
@@ -49,8 +44,6 @@ include_HEADERS+= \
 endif
 
 if USE_CUDA
-__top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/cuda.cpp
 include_HEADERS+= \
 	%D%/cuda.hpp
 endif
@@ -68,3 +61,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 include_HEADERS+= \
 	%D%/export_conf_to_external_solver.hpp
 endif
+
+EXTRA_DIST+= \
+	base/git_info.hpp

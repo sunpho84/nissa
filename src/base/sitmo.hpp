@@ -2,9 +2,8 @@
 #define _SITMO_HPP
 
 #include <cstdint>
-#include <random>
 
-#include <base/vectors.hpp>
+#include <base/field.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <threads/threads.hpp>
 
@@ -153,7 +152,8 @@ namespace Sitmo
     }
     
     /// Holds the state of the generator
-    struct State : public Sitmo::Word
+    struct State :
+      public Sitmo::Word
     {
       /// Increment of a certain amount
       CUDA_HOST_AND_DEVICE
@@ -272,7 +272,7 @@ namespace nissa
   struct RngView
   {
     /// Field random number generator
-    Sitmo::Rng& ref;
+    Sitmo::Rng ref;
     
     //Number of uint32_t generated so far
     uint64_t irng;
@@ -291,8 +291,10 @@ namespace nissa
     
     //Constructor
     CUDA_HOST_AND_DEVICE
-    RngView(Sitmo::Rng& ref,const uint64_t& irng) :
-      ref(ref),irng(irng)
+    RngView(Sitmo::Rng& ref,
+	    const uint64_t& irng) :
+      ref(ref),
+      irng(irng)
     {
     }
     
@@ -311,10 +313,7 @@ namespace nissa
     bool used;
     
     //Reference to the Sitmo
-    Sitmo::Rng& rng;
-    
-    //Distribution [0,1)
-    std::uniform_real_distribution<> distr;
+    Sitmo::Rng rng;
     
     //Number of reals to be shifted, in units of global volume
     const uint64_t offsetReal;
@@ -324,50 +323,74 @@ namespace nissa
       sizeof(T)/sizeof(double);
     
     //Constructor
-    FieldRngOf(Sitmo::Rng& rng,const uint64_t& offsetReal) :
-      used(false),rng(rng),offsetReal(offsetReal)
+    FieldRngOf(const Sitmo::Rng& rng,
+	       const uint64_t& offsetReal) :
+      used(false),
+      rng(rng),
+      offsetReal(offsetReal)
     {
-      //master_printf("All entries of FieldRng initialized\n");
+      //MASTER_PRINTF("All entries of FieldRng initialized\n");
     }
     
     /// Returns a view on a specific site and real number
     CUDA_HOST_AND_DEVICE
-    RngView getRngViewOnGlbSiteIRndReal(const int& glblx,const int& irnd_real_per_site)
+    RngView getRngViewOnGlbSiteIRndReal(const int& glblx,
+					const int& irnd_real_per_site)
     {
       //Computes the number in the stream of reals
-      const uint64_t irnd_double=offsetReal+glblx+nissa::glbVol*irnd_real_per_site;
+      const uint64_t irnd_double=
+	offsetReal*nissa::glbVol+glblx+nissa::glbVol*irnd_real_per_site;
       
       //Computes the offset in the rng stream
-      const uint64_t irnd_uint32_t=2*irnd_double;
+      const uint64_t irnd_uint32_t=
+	2*irnd_double;
       
       return RngView(rng,irnd_uint32_t);
     }
     
+    
+    /// Gets a number between [0;1)
+    ///
+    /// This routine returns precisely the same than std::uniform_distribution
+    template <typename G>
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    double getUniformDistributed(G&& g)
+    {
+      constexpr double F=4294967296.0;
+      
+      if(const double res=(g()/F+g())/F;res>=1)
+	return 0.999999999999999889;
+      else
+	return res;
+    }
+    
     /// Fill a specific site
-    //CUDA_HOST_AND_DEVICE
-    void fillGlbSite(T& out,const uint64_t glblx)
+    CUDA_HOST_AND_DEVICE
+    void fillGlbSite(T& out,
+		     const uint64_t& glblx)
     {
       for(int irnd_real=0;irnd_real<nRealsPerSite;irnd_real++)
 	{
-	  auto view=getRngViewOnGlbSiteIRndReal(glblx,irnd_real);
+	  auto view=
+	    getRngViewOnGlbSiteIRndReal(glblx,irnd_real);
 	  
-	  ((double*)out)[irnd_real]=distr(view);
+	  ((double*)out)[irnd_real]=getUniformDistributed(view);
 	}
     }
     
     /// Fill a specific site given its local index
-    //CUDA_HOST_AND_DEVICE
-    void fillLocSite(T& out,const uint64_t loclx)
+    CUDA_HOST_AND_DEVICE
+    void fillLocSite(T& out,
+		     const uint64_t& loclx)
     {
-      //Finds the global site of local one
-      const int& glblx=glblxOfLoclx[loclx];
-      fillGlbSite(out,glblx);
+      fillGlbSite(out,glblxOfLoclx[loclx]);
     }
     
+    /// Claims that the generator must be used only once
     void enforce_single_usage()
     {
       if(used)
-	crash("cannot use a rng field twice");
+	CRASH("cannot use a rng field twice");
       used=true;
     }
     
@@ -380,52 +403,64 @@ namespace nissa
     }
     
     /// Fill all sites
-    void fillField(T* out)
+    void fillField(LxField<T>& out)
     {
       enforce_single_usage();
       
-      //NISSA_PARALLEL_LOOP(loclx,0,locVol)
-      NISSA_LOC_VOL_LOOP(loclx)
+      PAR(0,
+	  locVol,
+	  CAPTURE(self=*this,
+		  TO_WRITE(out)),
+	  site,
 	{
-	  const int& glblx=glblxOfLoclx[loclx];
-	  fillGlbSite(out[loclx],glblx);
-	}
-      //NISSA_PARALLEL_LOOP_END;
-      
-      set_borders_invalid(out);
+	  for(int iDeg=0;
+              iDeg<std::remove_reference_t<decltype(out)>::nInternalDegs;
+	      iDeg++)
+	    {
+              auto view=
+		self.getRngViewOnGlbSiteIRndReal(glblxOfLoclx[site],iDeg);
+              out(site,iDeg)=self.getUniformDistributed(view);
+            }
+	});
     }
   };
   
+  /// Stream of numbers for all lattice sites
+  ///
+  /// This is the object that is accessed from external routines
   struct FieldRngStream
   {
-    //Embeds the random number generator
-    Sitmo::Rng rng;
+    /// Take note of initialization
+    bool inited{};
+    
+    /// Embeds the random number generator
+    Sitmo::Rng rng{};
     
     //Number of double precision numbers generated per site
-    uint64_t ndouble_gen;
+    uint64_t nGeneratedDouble{};
     
-    //Skip n drawers
+    /// Skip n drawers
     template <typename T>
     void skipDrawers(const uint64_t& nDrawers)
     {
-      ndouble_gen+=FieldRngOf<T>::nRealsPerSite*nDrawers;
+      nGeneratedDouble+=FieldRngOf<T>::nRealsPerSite*nDrawers;
     }
     
-    //Return a proxy from which to fetch the random numbers
+    /// Return a proxy from which to fetch the random numbers
     template <typename T>
     auto getDrawer()
     {
       static_assert(sizeof(T)%sizeof(double)==0,"Type not multiple in size of double");
       
-      //Result
-      FieldRngOf<T> res(rng,ndouble_gen);
+      /// Result
+      FieldRngOf<T> res(rng,nGeneratedDouble);
       
       skipDrawers<T>(1);
       
       return res;
     }
     
-    //Draw a single instance of T
+    /// Draw a single instance of T
     template <typename T>
     void drawScalar(T& out)
     {
@@ -436,18 +471,53 @@ namespace nissa
       drawer.fillWithOrigin(out);
     }
     
-    //Initializes with a seed
+    /// Initializes with a seed
     void init(const uint32_t& seed)
     {
+      if(inited)
+	CRASH("already inited");
+      inited=true;
+      
       rng.seed(seed);
-      ndouble_gen=0;
+    }
+    
+    /// Returns the commands to exec hen starting/ending the benchmark
+    bool maybeBackupForBenchmark()
+    {
+#ifdef USE_CUDA
+      if(insideParallelFor)
+	{
+	  benchmarkEndActions.emplace_back([this,
+					    n=nGeneratedDouble]()
+	  {
+	    VERBOSITY_LV3_MASTER_PRINTF("Restoring FieldRngStream\n");
+	    this->nGeneratedDouble=n;
+	  });
+	
+	VERBOSITY_LV3_MASTER_PRINTF("Added backup action for FieldRngStream\n");
+	
+	return true;
+      }
+    else
+      {
+	VERBOSITY_LV3_MASTER_PRINTF("Skipping backup actions for FieldRngStream as we are not inside a parallel for\n");
+	
+	return false;
+      }
+#else
+      return false;
+#endif
     }
   };
   
   static constexpr complex zero_complex={0.0,0.0};
   static constexpr complex sqrt_2_half_complex{M_SQRT1_2,M_SQRT1_2};
   
-  inline void BoxMullerTransform(complex out,const complex ave=zero_complex,const complex sig=sqrt_2_half_complex)
+  template <typename C>
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  void BoxMullerTransform(C&& out,
+				 const complex& ave=zero_complex,
+				 const complex& sig=sqrt_2_half_complex)
   {
     const double r=sqrt(-2*log(1-out[RE]));
     const double q=2*M_PI*out[IM];
@@ -456,24 +526,27 @@ namespace nissa
     out[IM]=r*sin(q)*sig[IM]+ave[IM];
   }
   
-  CUDA_HOST_AND_DEVICE
-  inline void z2Transform(double& out)
+  /// Remap a number in the range [0;1) to {-1;+1}
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  double remapUniformToSign(const double& in)
   {
-    out=(out>0.5)?M_SQRT1_2:-M_SQRT1_2;
+    return int(in*2.0)*2-1;
   }
   
-  CUDA_HOST_AND_DEVICE
-  inline void z2Transform(complex out)
+  template <typename C>
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  void z2Transform(C&& out)
   {
-    out[RE]=(out[RE]>0.5)?+1:-1;
+    out[RE]=remapUniformToSign(out[RE]);
     out[IM]=0.0;
   }
   
-  CUDA_HOST_AND_DEVICE
-  inline void z4Transform(complex out)
+  template <typename C>
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  void z4Transform(C&& out)
   {
-    for(int ri=0;ri<2;ri++)
-      z2Transform(out[ri]);
+    UNROLL_FOR_RI(ri)
+      out[ri]=remapUniformToSign(out[ri])*M_SQRT1_2;
   }
 }
 

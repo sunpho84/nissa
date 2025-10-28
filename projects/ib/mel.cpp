@@ -37,7 +37,7 @@ void setup_conf(quad_su3 *conf,momentum_t old_theta,momentum_t put_theta,const c
   if(!free_theory)
     {
       read_ildg_gauge_conf(conf,conf_path);
-      master_printf("plaq: %+016.016g\n",global_plaquette_lx_conf(conf));
+      MASTER_PRINTF("plaq: %+016.016g\n",global_plaquette_lx_conf(conf));
     }
   else generate_cold_lx_conf(conf);
   
@@ -75,7 +75,7 @@ void random_shift_gauge_conf(quad_su3 *conf,momentum_t old_theta,momentum_t put_
   vector_remap_t shifter(locVol,index_shift,(void*)shift_coord);
   shifter.remap(conf,conf,sizeof(quad_su3));
   shift_time+=take_time();
-  master_printf("Shifted of %d %d %d %d in %lg sec, plaquette after shift: %+016.016lg\n",shift_coord[0],shift_coord[1],shift_coord[2],shift_coord[3],shift_time,global_plaquette_lx_conf(conf));
+  MASTER_PRINTF("Shifted of %d %d %d %d in %lg sec, plaquette after shift: %+016.016lg\n",shift_coord[0],shift_coord[1],shift_coord[2],shift_coord[3],shift_time,global_plaquette_lx_conf(conf));
   
   //put back the phase
   put_theta[0]=1;put_theta[1]=put_theta[2]=put_theta[3]=0;
@@ -93,10 +93,10 @@ int check_remaining_time()
   double left_time=wall_time-temp_time;
   enough_time=left_time>(ave_time*1.1);
   
-  master_printf("Remaining time: %lg sec\n",left_time);
-  master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
-  if(enough_time) master_printf("Continuing with next conf!\n");
-  else master_printf("Not enough time, exiting!\n");
+  MASTER_PRINTF("Remaining time: %lg sec\n",left_time);
+  MASTER_PRINTF("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
+  if(enough_time) MASTER_PRINTF("Continuing with next conf!\n");
+  else MASTER_PRINTF("Not enough time, exiting!\n");
   
   return enough_time;
 }
@@ -276,7 +276,7 @@ void init_simulation(char *path)
       
       //set initial value of bc and check kinematic
       for(int i=1;i<NDIM;i++) leps[il].bc[i]=0;
-      if(tm_quark_energy(leps[il],0)>=mes_mass) crash("initial state is lighter (%lg) than final state at rest (%lg)!",mes_mass,tm_quark_energy(leps[il],0));
+      if(tm_quark_energy(leps[il],0)>=mes_mass) CRASH("initial state is lighter (%lg) than final state at rest (%lg)!",mes_mass,tm_quark_energy(leps[il],0));
       
       //compute meson momentum and bc
       double err;
@@ -292,16 +292,16 @@ void init_simulation(char *path)
       	  double der=(tm_quark_energy(leps[il],0)+naive_massless_quark_energy(leps[il].bc,0)-mes_mass-err)/eps;
       	  for(int i=1;i<NDIM;i++) leps[il].bc[i]-=eps+err/der;
 	  
-      	  master_printf("lep_e: %+010.10lg, neu_e: %+010.10lg, mes_mass: %lg, error: %lg, der: %lg\n",lep_energy,neu_energy,mes_mass,err,der);
+      	  MASTER_PRINTF("lep_e: %+010.10lg, neu_e: %+010.10lg, mes_mass: %lg, error: %lg, der: %lg\n",lep_energy,neu_energy,mes_mass,err,der);
       	}
       while(fabs(err)>1e-14);
       
       //write down energy
       lep_energy[il]=tm_quark_energy(leps[il],0);
       neu_energy[il]=naive_massless_quark_energy(leps[il].bc,0);
-      master_printf(" ilepton %d, lepton energy: %lg, neutrino energy: %lg\n",il,lep_energy[il],neu_energy[il]);
-      master_printf(" lep+neut energy: %lg\n",lep_energy[il]+neu_energy[il]);
-      master_printf(" bc: %+016.016lg\n",leps[il].bc[1]);
+      MASTER_PRINTF(" ilepton %d, lepton energy: %lg, neutrino energy: %lg\n",il,lep_energy[il],neu_energy[il]);
+      MASTER_PRINTF(" lep+neut energy: %lg\n",lep_energy[il]+neu_energy[il]);
+      MASTER_PRINTF(" bc: %+016.016lg\n",leps[il].bc[1]);
     }
   
   //Zero mode subtraction
@@ -313,7 +313,7 @@ void init_simulation(char *path)
     if(strncasecmp(zero_mode_sub_str,"UNNO_ALEMANNA",100)==0) photon.zms=UNNO_ALEMANNA;
     else
       if(strncasecmp(zero_mode_sub_str,"ONLY_100",100)==0) photon.zms=ONLY_100;
-      else crash("Unkwnown zero mode subtraction: %s",zero_mode_sub_str);
+      else CRASH("Unkwnown zero mode subtraction: %s",zero_mode_sub_str);
   
   //gauge for photon propagator
   char photon_gauge_str[100];
@@ -323,7 +323,7 @@ void init_simulation(char *path)
     if(strncasecmp(photon_gauge_str,"LANDAU",100)==0) photon.alpha=LANDAU_ALPHA;
     else
       if(strncasecmp(photon_gauge_str,"LANDAU",100)==0) read_str_double("Alpha",&photon.alpha);
-      else crash("Unkwnown photon gauge: %s",photon_gauge_str);
+      else CRASH("Unkwnown photon gauge: %s",photon_gauge_str);
   
   //discretization for photon propagator
   char photon_discrete_str[100];
@@ -331,7 +331,7 @@ void init_simulation(char *path)
   if(strncasecmp(photon_discrete_str,"WILSON",100)==0) photon.c1=WILSON_C1;
   else
     if(strncasecmp(photon_discrete_str,"TLSYM",100)==0) photon.c1=TLSYM_C1;
-    else crash("Unkwnown photon discretization: %s",photon_discrete_str);
+    else CRASH("Unkwnown photon discretization: %s",photon_discrete_str);
   
   //initialize the random generator with the read seed
   read_str_int("Seed",&seed);
@@ -402,20 +402,20 @@ int read_conf_parameters(int &iconf)
       read_str(outfolder,1024);
       
       //Check if the conf has been finished or is already running
-      master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+      MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
       char fin_file[1024],run_file[1024];
       safe_snprintf(fin_file,1024,"%s/%s",outfolder,finished_filename.c_str());
       safe_snprintf(run_file,1024,"%s/%s",outfolder,running_filename.c_str());
-      ok_conf=!(file_exists(fin_file)) && !(file_exists(run_file));
+      ok_conf=!(fileExists(fin_file)) && !(fileExists(run_file));
       
       //if not finished
       if(ok_conf)
 	{
-	  master_printf(" Configuration \"%s\" not yet analyzed, starting",conf_path);
+	  MASTER_PRINTF(" Configuration \"%s\" not yet analyzed, starting",conf_path);
 	  if(!dir_exists(outfolder))
 	    {
 	      int ris=create_dir(outfolder);
-	      if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
+	      if(ris==0) MASTER_PRINTF(" Output path \"%s\" not present, created.\n",outfolder);
 	      else
 		crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
 	    }
@@ -423,7 +423,7 @@ int read_conf_parameters(int &iconf)
 	}
       else
 	{
-	  master_printf(" In output path \"%s\" terminating file already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
+	  MASTER_PRINTF(" In output path \"%s\" terminating file already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
 	  for(int isource=0;isource<nsources;isource++)
 	    {
 	      coords coord;
@@ -436,7 +436,7 @@ int read_conf_parameters(int &iconf)
     }
   while(!ok_conf && iconf<ngauge_conf);
   
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   
   return ok_conf;
 }
@@ -459,7 +459,7 @@ void generate_original_source()
   for(int mu=0;mu<NDIM;mu++) origin_coord[mu]=0;
   
 #ifdef POINT_SOURCE_VERSION
-  master_printf("Source position: t=%d x=%d y=%d z=%d\n",origin_coord[0],origin_coord[1],origin_coord[2],origin_coord[3]);
+  MASTER_PRINTF("Source position: t=%d x=%d y=%d z=%d\n",origin_coord[0],origin_coord[1],origin_coord[2],origin_coord[3]);
   generate_delta_source(original_source,origin_coord);
 #else
   enum rnd_t rnd_type_map[6]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4,RND_GAUSS};
@@ -473,7 +473,7 @@ void generate_original_source()
 void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,bool *dirs,PROP_TYPE *in,int t)
 { 
   
-  if(in==out) crash("in==out");
+  if(in==out) CRASH("in==out");
   
   vector_reset(out);
   
@@ -555,10 +555,10 @@ void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r)
 	
 	//put the output on place
 #ifdef POINT_SOURCE_VERSION
-	master_printf("  finished the inversion dirac index %d, color %d\n",id,ic);
+	MASTER_PRINTF("  finished the inversion dirac index %d, color %d\n",id,ic);
 	put_spincolor_into_su3spinspin(out,temp_solution,id,ic);
 #else
-	master_printf("  finished the inversion dirac index %d\n",id);
+	MASTER_PRINTF("  finished the inversion dirac index %d\n",id);
 	put_spincolor_into_colorspinspin(out,temp_solution,id);
 #endif
       }
@@ -569,12 +569,12 @@ void generate_quark_propagators()
 {
   for(int ip=0;ip<nqprop_kind;ip++)
     {
-      master_printf("Generating propagtor of type %s inserting %s on source %s\n",prop_name[prop_map[ip]],ins_name[insertion_map[ip]],prop_name[source_map[ip]]);
+      MASTER_PRINTF("Generating propagtor of type %s inserting %s on source %s\n",prop_name[prop_map[ip]],ins_name[insertion_map[ip]],prop_name[source_map[ip]]);
       for(int imass=0;imass<nqmass;imass++)
 	for(int r=0;r<nr;r++)
 	  {
-	    if(!pure_wilson) master_printf(" mass[%d]=%lg, r=%d\n",imass,qmass[imass],r);
-	    else             master_printf(" kappa[%d]=%lg\n",imass,qkappa[imass]);
+	    if(!pure_wilson) MASTER_PRINTF(" mass[%d]=%lg, r=%d\n",imass,qmass[imass],r);
+	    else             MASTER_PRINTF(" kappa[%d]=%lg\n",imass,qkappa[imass]);
 	    generate_source(insertion_map[ip],r,Q[iqprop(imass,source_map[ip],r)]);
 	    get_qprop(Q[iqprop(imass,prop_map[ip],r)],source,imass,r);
 	  }
@@ -746,8 +746,8 @@ void insert_photon_on_the_source(spinspin* prop,spin1field* A,bool* dirs,tm_quar
 
 void insert_photon_on_the_source(spinspin *prop,bool *dirs,tm_quark_info le,int twall)
 {
-  if(!loc_muon_curr) master_printf("Inserting photon point-split on time %d\n",twall);
-  else master_printf("Inserting photon locally on time %d\n");
+  if(!loc_muon_curr) MASTER_PRINTF("Inserting photon point-split on time %d\n",twall);
+  else MASTER_PRINTF("Inserting photon locally on time %d\n");
   insert_photon_on_the_source(prop,photon_field,dirs,le,twall);
 }
 
@@ -809,7 +809,7 @@ void generate_lepton_propagators()
 //compute all the hadronic correlations
 void compute_hadronic_correlations()
 {
-  master_printf("Computing hadronic correlation functions\n");
+  MASTER_PRINTF("Computing hadronic correlation functions\n");
   
   hadr_contr_time-=take_time();
   for(int icombo=0;icombo<ncombo_hadr_corr;icombo++)
@@ -970,7 +970,7 @@ int hadrolept_corrpack_ind(int rl,int orie,int r2,int irev,int qins,int ilepton)
 //compute the total hadroleptonic correlation functions
 void compute_hadroleptonic_correlations()
 {
-  master_printf("Computing leptonic correlation functions\n");
+  MASTER_PRINTF("Computing leptonic correlation functions\n");
   lept_contr_time-=take_time();
   
  for(int ilepton=0;ilepton<nleptons;ilepton++)
@@ -1084,17 +1084,17 @@ void print_correlations()
 //close deallocating everything
 void close()
 {
-  master_printf("\n");
-  master_printf("Inverted %d configurations.\n",nanalyzed_conf);
-  master_printf("Total time: %g, of which:\n",tot_prog_time);
-  master_printf(" - %02.2f%s to prepare %d photon stochastic propagators (%2.2gs avg)\n",photon_prop_time/tot_prog_time*100,"%",nphoton_prop_tot,photon_prop_time/nphoton_prop_tot);
-  master_printf(" - %02.2f%s to prepare %d lepton propagators (%2.2gs avg)\n",lepton_prop_time/tot_prog_time*100,"%",nlprop,lepton_prop_time/nlprop);
-  master_printf(" - %02.2f%s to prepare %d generalized sources (%2.2gs avg)\n",source_time/tot_prog_time*100,"%",nsource_tot,source_time/nsource_tot);
-  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
-  master_printf("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
-  master_printf(" - %02.2f%s to perform %d hadronic contractions (%2.2gs avg)\n",hadr_contr_time/tot_prog_time*100,"%",nhadr_contr_tot,hadr_contr_time/nhadr_contr_tot);
-  master_printf(" - %02.2f%s to perform %d leptonic contractions (%2.2gs avg)\n",lept_contr_time/tot_prog_time*100,"%",nlept_contr_tot,lept_contr_time/nlept_contr_tot);
-  master_printf(" - %02.2f%s to print hadro-leptonic contractions\n",print_time/tot_prog_time*100,"%");
+  MASTER_PRINTF("\n");
+  MASTER_PRINTF("Inverted %d configurations.\n",nanalyzed_conf);
+  MASTER_PRINTF("Total time: %g, of which:\n",tot_prog_time);
+  MASTER_PRINTF(" - %02.2f%s to prepare %d photon stochastic propagators (%2.2gs avg)\n",photon_prop_time/tot_prog_time*100,"%",nphoton_prop_tot,photon_prop_time/nphoton_prop_tot);
+  MASTER_PRINTF(" - %02.2f%s to prepare %d lepton propagators (%2.2gs avg)\n",lepton_prop_time/tot_prog_time*100,"%",nlprop,lepton_prop_time/nlprop);
+  MASTER_PRINTF(" - %02.2f%s to prepare %d generalized sources (%2.2gs avg)\n",source_time/tot_prog_time*100,"%",nsource_tot,source_time/nsource_tot);
+  MASTER_PRINTF(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
+  MASTER_PRINTF("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
+  MASTER_PRINTF(" - %02.2f%s to perform %d hadronic contractions (%2.2gs avg)\n",hadr_contr_time/tot_prog_time*100,"%",nhadr_contr_tot,hadr_contr_time/nhadr_contr_tot);
+  MASTER_PRINTF(" - %02.2f%s to perform %d leptonic contractions (%2.2gs avg)\n",lept_contr_time/tot_prog_time*100,"%",nlept_contr_tot,lept_contr_time/nlept_contr_tot);
+  MASTER_PRINTF(" - %02.2f%s to print hadro-leptonic contractions\n",print_time/tot_prog_time*100,"%");
   
   nissa_free(photon_field);
   nissa_free(source);
@@ -1125,21 +1125,21 @@ void in_main(int narg,char **arg)
   tot_prog_time-=take_time();
   
   //check argument
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   //init simulation according to input file
   init_simulation(arg[1]);
   
   //loop over the configs
   int iconf=0,enough_time=1;
-  while(iconf<ngauge_conf && enough_time && !file_exists("stop") && read_conf_parameters(iconf))
+  while(iconf<ngauge_conf && enough_time && !fileExists("stop") && read_conf_parameters(iconf))
     {
       //setup the conf and generate the source
       start_new_conf();
       
       for(int isource=0;isource<nsources;isource++)
 	{
-	  master_printf("\n=== Source %d/%d ====\n",isource+1,nsources);
+	  MASTER_PRINTF("\n=== Source %d/%d ====\n",isource+1,nsources);
 	  
 	  //init
 	  random_shift_gauge_conf(conf,old_theta,put_theta);
@@ -1158,7 +1158,7 @@ void in_main(int narg,char **arg)
       
       //pass to the next conf if there is enough time
       char fin_file[1024];
-      if(snprintf(fin_file,1024,"%s/finished",outfolder)<0) crash("creating path for finished file");
+      if(snprintf(fin_file,1024,"%s/finished",outfolder)<0) CRASH("creating path for finished file");
       file_touch(fin_file);
       
       nanalyzed_conf++;

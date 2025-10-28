@@ -9,7 +9,7 @@ using namespace std;
 
 void mom_space_qq_vertex_function(spinspin v,double p1,double p2,quark_info qu,int mu)
 {
-  if(mu<0||mu>3) crash("mu=%d",mu);
+  if(mu<0||mu>3) CRASH("mu=%d",mu);
 
   double s=(p1+p2)/2;
   spinspin_put_to_id(v);

@@ -151,13 +151,13 @@ void initialize_nucleons(char *input_path)
   // 2) Source position, masses and smearing parameters
   
   expect_str("SourcePosition");
-  master_printf("Source position: ");
+  MASTER_PRINTF("Source position: ");
   for(int idir=0;idir<NDIM;idir++)
     {
       read_int(&(source_pos[idir]));
-      master_printf("%d ",source_pos[idir]);
+      MASTER_PRINTF("%d ",source_pos[idir]);
     }
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   //Smearing parameters
   read_str_double("ApeAlpha",&ape_alpha);
   read_str_int("ApeNiter",&ape_niter);
@@ -223,14 +223,14 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
   read_ildg_gauge_conf(conf,conf_path);
   
   //calculate plaquette of original conf
-  master_printf("plaq: %+16.016lg\n",global_plaquette_lx_conf(conf));
+  MASTER_PRINTF("plaq: %+16.016lg\n",global_plaquette_lx_conf(conf));
   
   //calcolate Cl
   chromo_operator(Cl,conf);
   
   //prepared the smeared version and  calculate plaquette
   ape_spatial_smear_conf(smea_conf,conf,ape_alpha,ape_niter);
-  master_printf("smeared plaq: %+16.16lg\n",global_plaquette_lx_conf(smea_conf));
+  MASTER_PRINTF("smeared plaq: %+16.16lg\n",global_plaquette_lx_conf(smea_conf));
   
   //Put the anti-periodic condition on the temporal border
   put_theta[0]=1;
@@ -247,12 +247,12 @@ void calculate_S0()
 	// =====================================================================
 	
 	// 1) prepare the source
-	master_printf("\n(S0) source index: id=%d, ic=%d\n",id_sour,ic_sour);
+	MASTER_PRINTF("\n(S0) source index: id=%d, ic=%d\n",id_sour,ic_sour);
 	get_spincolor_from_su3spinspin(temp_source,original_source,id_sour,ic_sour);
 	
 	//smear the source
 	gaussian_smearing(source,temp_source,smea_conf,Gauss_kappa,Gauss_niter);
-	master_printf(" -> source smeared\n");
+	MASTER_PRINTF(" -> source smeared\n");
 	
 	//============================================================================
 	
@@ -260,7 +260,7 @@ void calculate_S0()
 	if(IS_MASTER_THREAD) tinv-=take_time();
 	inv_tmDQ_cgm(solDD,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
 	if(IS_MASTER_THREAD) tinv+=take_time();
-	master_printf("inversions finished\n");
+	MASTER_PRINTF("inversions finished\n");
 	
 	//============================================================================
 	
@@ -309,7 +309,7 @@ void calculate_S0()
   NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
   
-  master_printf(" final rotations performed\n");
+  MASTER_PRINTF(" final rotations performed\n");
 }
 
 //Calculate the proton contraction for a single point
@@ -494,7 +494,7 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
   
   tcontr_2pt+=take_time();
   
-  master_printf("contractions finished\n");
+  MASTER_PRINTF("contractions finished\n");
   close_file(output);
   
   nissa_free(diq);
@@ -652,7 +652,7 @@ void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
 	  }
 	set_borders_invalid(source);
 	
-	master_printf("\n(S1) %s, rlike=%d rdislike=%d, sink index: id=%d, ic=%d\n",tag[ld],rlike,rdislike,id_sink,ic_sink);
+	MASTER_PRINTF("\n(S1) %s, rlike=%d rdislike=%d, sink index: id=%d, ic=%d\n",tag[ld],rlike,rdislike,id_sink,ic_sink);
 	
 	tinv-=take_time();
 	inv_tmQ2_left_cgm(solDD,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
@@ -691,7 +691,7 @@ void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
 	  }
       }
   
-  master_printf("%s sequential inversions finished\n",tag[ld]);
+  MASTER_PRINTF("%s sequential inversions finished\n",tag[ld]);
 }
 
 //wrappers
@@ -892,7 +892,7 @@ void in_main(int narg,char **arg)
 {
   tot_prog_time-=take_time();
   
-  if(narg<2) crash("Use: %s input_file\n",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file\n",arg[0]);
   
   initialize_nucleons(arg[1]);
   
@@ -948,10 +948,10 @@ void in_main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  master_printf("Total time: %g s\n",tot_prog_time);
-  master_printf("-inversion time: %g%s avg: %d s\n",tinv/tot_prog_time*100,"%",(int)(tinv/nconf/12));
-  master_printf("-contraction time for 2pts: %g%s\n",tcontr_2pt/tot_prog_time*100,"%");
-  master_printf("-contraction time for 3pts: %g%s\n",tcontr_3pt/tot_prog_time*100,"%");
+  MASTER_PRINTF("Total time: %g s\n",tot_prog_time);
+  MASTER_PRINTF("-inversion time: %g%s avg: %d s\n",tinv/tot_prog_time*100,"%",(int)(tinv/nconf/12));
+  MASTER_PRINTF("-contraction time for 2pts: %g%s\n",tcontr_2pt/tot_prog_time*100,"%");
+  MASTER_PRINTF("-contraction time for 3pts: %g%s\n",tcontr_3pt/tot_prog_time*100,"%");
   
   close_nucleons();
 }

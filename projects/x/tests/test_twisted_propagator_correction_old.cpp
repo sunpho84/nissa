@@ -106,7 +106,7 @@ double pana_c2_ig_corr(double ap_mu,double a2p2,gluon_info gl)
 double real_part_of_trace_with_igamma(spinspin *q,int imom,int mu,quark_info qu)
 {
   complex tr={0,0};
-  if(mu<0||mu>=4) crash("mu=%d",mu);
+  if(mu<0||mu>=4) CRASH("mu=%d",mu);
   
   int nu=map_mu[mu];
   for(int id=0;id<4;id++)
@@ -164,7 +164,7 @@ int main(int narg,char **arg)
   //Basic mpi initialization
   init_nissa(narg,arg);
   
-  if(narg<2) crash("use: %s L",arg[0]);
+  if(narg<2) CRASH("use: %s L",arg[0]);
   L=atoi(arg[1]);
   
   init_test(narg,arg);
@@ -218,16 +218,16 @@ int main(int narg,char **arg)
 	tt+=t2;
 	if(fabs(t2)>1.e-10) 
 	  {
-	    master_printf("%d %lg\n",ivol,t2);
+	    MASTER_PRINTF("%d %lg\n",ivol,t2);
 	    spinspin_print(temp);
-	    master_printf("x-space: \n");
+	    MASTER_PRINTF("x-space: \n");
 	    spinspin_print(corr2_x[ivol]);
-	    master_printf("p-space: \n");
+	    MASTER_PRINTF("p-space: \n");
 	    spinspin_print(corr2_p[ivol]);
 	  }
       }
       tt=glb_reduce_double(tt);
-      master_printf("\nDifference between mom and x-space computation: %lg\n\n",sqrt(tt/glb_vol));
+      MASTER_PRINTF("\nDifference between mom and x-space computation: %lg\n\n",sqrt(tt/glb_vol));
     }
   
   //////////////////////////////////// output ////////////////////////////
@@ -293,17 +293,17 @@ int main(int narg,char **arg)
       double p=M_PI*(2*ix[mu]+qu.bc[mu])/glb_size[mu];
       a2p2+=p*p;
     }
-  master_printf("a2p2: %lg\n",a2p2);
-  master_printf("att: %lg\n",pana_c2_id_corr(a2p2,gl));
+  MASTER_PRINTF("a2p2: %lg\n",a2p2);
+  MASTER_PRINTF("att: %lg\n",pana_c2_id_corr(a2p2,gl));
   
   if(nranks==1 && comp_p)
     {
-      master_printf("p-space: \n");
+      MASTER_PRINTF("p-space: \n");
       spinspin_print(corr2_p[lx]);
-      master_printf("\n");
+      MASTER_PRINTF("\n");
     }
   
-  master_printf("x-space: \n");
+  MASTER_PRINTF("x-space: \n");
   if(rank==rx) spinspin_print(corr2_x[lx]);
   
   close_test();

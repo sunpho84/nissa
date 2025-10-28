@@ -96,7 +96,7 @@ void initialize_semileptonic(char *input_path)
     {
       expect_str(combine("Source%d",iso).c_str());
       read_str_int("ObtainFromSource",&obtain_source_from[iso]);
-      if(obtain_source_from[iso]>=iso||obtain_source_from[iso]<0) crash("source %d can be produced from sources in the range [0,%d)",iso,obtain_source_from[iso]);
+      if(obtain_source_from[iso]>=iso||obtain_source_from[iso]<0) CRASH("source %d can be produced from sources in the range [0,%d)",iso,obtain_source_from[iso]);
       read_str_int("ObtainApplyingSmOp",&obtain_source_applying_sm_op[iso]);
       if(obtain_source_applying_sm_op[iso]>=ngauss_sm_op||obtain_source_applying_sm_op[iso]<0)
 	crash("selected smearing operator %d not in the defined range [0,%d)",obtain_source_applying_sm_op[iso],ngauss_sm_op);
@@ -230,7 +230,7 @@ int main(int narg,char **arg)
   init_nissa(narg,arg);
   
   //initialize the program
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   initialize_semileptonic(arg[1]);
   
   int ngauge_conf;
@@ -246,7 +246,7 @@ int main(int narg,char **arg)
       read_int(&tsource);
       read_str(out_folder,1024);
       
-      if(!file_exists(combine("%s/running",out_folder).c_str())&&!file_exists(combine("%s/finished",out_folder).c_str()))
+      if(!fileExists(combine("%s/running",out_folder).c_str())&&!fileExists(combine("%s/finished",out_folder).c_str()))
 	{
 	  if(!dir_exists(out_folder)) create_dir(out_folder);
 	  file_touch(combine("%s/running",out_folder).c_str());
@@ -256,7 +256,7 @@ int main(int narg,char **arg)
 	  rm(combine("%s/running",out_folder).c_str());
 	  file_touch(combine("%s/finished",out_folder).c_str());
 	}
-      else master_printf("Configuration %s already analized, skipping\n",out_folder);
+      else MASTER_PRINTF("Configuration %s already analized, skipping\n",out_folder);
     }
 
   close_input();

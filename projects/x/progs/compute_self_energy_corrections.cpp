@@ -20,7 +20,7 @@ void init_calc(int narg,char **arg)
   //Basic mpi initialization
   init_nissa(narg,arg);
   
-  if(narg<3) crash("use %s L T [alpha]",arg[0]);
+  if(narg<3) CRASH("use %s L T [alpha]",arg[0]);
   int T=atoi(arg[1]);
   int L=atoi(arg[2]);
   if(narg>=4) sscanf(arg[3],"%lg",&alpha);
@@ -57,7 +57,7 @@ int main(int narg,char **arg)
   //gluon
   double gluon_theta[4]={0,0,0,0};
   gluon_info gl=create_tlSym_gluon_info(alpha,gluon_theta);
-  master_printf("alpha=%lg\n",alpha);
+  MASTER_PRINTF("alpha=%lg\n",alpha);
   
   /////////////////////////////// propagator and pion computed analytically //////////////////////////
   

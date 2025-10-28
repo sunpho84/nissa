@@ -36,7 +36,7 @@ void read_input_header(char *input_path)
 int count_npassed_conf()
 {
   //if out file does not exist return 0
-  if(!file_exists(out_path)) return 0;
+  if(!fileExists(out_path)) return 0;
   
   //find conf number according to saving mode
   int nconf;
@@ -47,7 +47,7 @@ int count_npassed_conf()
       nconf=nlines/T;
       
       //check that number of lines is a multipe of T
-      if(nconf*T!=nlines) crash("outfile %s contains %d lines which is not multiple of T=%d",out_path,nlines,T);
+      if(nconf*T!=nlines) CRASH("outfile %s contains %d lines which is not multiple of T=%d",out_path,nlines,T);
     }
   else
     {
@@ -70,7 +70,7 @@ void init(int narg,char **arg)
   init_time=take_time();
   
   //check arguments and read input header
-  if(narg<2) crash("use %s input",arg[0]);
+  if(narg<2) CRASH("use %s input",arg[0]);
   read_input_header(arg[1]);
   
   //init cartesian grid
@@ -78,7 +78,7 @@ void init(int narg,char **arg)
 
   //count passed conf
   npassed_conf=count_npassed_conf();  
-  master_printf("Already computed: %d conf\n",npassed_conf);
+  MASTER_PRINTF("Already computed: %d conf\n",npassed_conf);
   
   //start local random generator
   start_loc_rnd_gen(seed);
@@ -100,7 +100,7 @@ void init(int narg,char **arg)
 void read_conf_path()
 {
   read_str(conf_path,1024);
-  if(!file_exists(conf_path)) crash("conf %s does not exist");
+  if(!fileExists(conf_path)) CRASH("conf %s does not exist");
 }
 
 //generate a point source
@@ -119,7 +119,7 @@ void generate_source()
 void prepare_conf()
 {
   read_ildg_gauge_conf(conf,conf_path);
-  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
+  MASTER_PRINTF("plaq: %.18g\n",global_plaquette_lx_conf(conf));
   double put_theta[4]={1,0,0,0},old_theta[4]={0,0,0,0};
   adapt_theta(conf,old_theta,put_theta,1,1);
 }
@@ -175,7 +175,7 @@ void gamma_proj()
   else
     {
       if(little_endian) doubles_to_doubles_changing_endianess((double*)glb_out,(double*)glb_out,NGAMMA*T);
-      if(fwrite(glb_out,sizeof(proj_prop_t),T,fout)!=(size_t)T) crash("while writing data");
+      if(fwrite(glb_out,sizeof(proj_prop_t),T,fout)!=(size_t)T) CRASH("while writing data");
     }  
   close_file(fout);
 }
@@ -222,7 +222,7 @@ void in_main(int narg,char **arg)
 	      get_prop();
 	      gamma_proj();
 	    }
-	  else master_printf("Skipping conf %s because already passed\n",conf_path);
+	  else MASTER_PRINTF("Skipping conf %s because already passed\n",conf_path);
 	}
       
       //increment conf id
@@ -230,8 +230,8 @@ void in_main(int narg,char **arg)
     }
 
   //check if we are 
-  if(iconf==ntot_conf) master_printf("Finished all the %d confs\n",ntot_conf);
-  else master_printf("Passed walltime\n");
+  if(iconf==ntot_conf) MASTER_PRINTF("Finished all the %d confs\n",ntot_conf);
+  else MASTER_PRINTF("Passed walltime\n");
 
   finish();
 }

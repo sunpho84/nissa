@@ -42,7 +42,7 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 
 #define YY_EXTRA_TYPE nissa::driver_t*
 
-#define DEBUG_PRINTF(...) if(debug_lexer) master_printf(__VA_ARGS__)
+#define DEBUG_PRINTF(...) if(debug_lexer) MASTER_PRINTF(__VA_ARGS__)
 
 #define YY_INPUT(buf,result,max_size)					\
    {									\
@@ -66,6 +66,8 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
     yylloc->first_column=yycolumn;yylloc->last_column=yycolumn+yyleng-1; \
     yycolumn+=yyleng;
 
+#define YY_NO_INPUT
+
 #include "parser.hpp"
    
    const int debug_lexer=0;
@@ -74,9 +76,9 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 %%
  /* ignoring rules */
 "/*"                                DEBUG_PRINTF("Entering c++-style comment\n");BEGIN(COMMENT);
-<COMMENT>"/*"                       master_printf("warning: multiple comments opened at line: %d\n", yylineno);
+<COMMENT>"/*"                       MASTER_PRINTF("warning: multiple comments opened at line: %d\n", yylineno);
 <COMMENT>"*/"                       DEBUG_PRINTF("Exiting c++-style comment\n");BEGIN(INITIAL);
-<COMMENT>"EOF"                      crash("reached end of file while scanning comment");
+<COMMENT>"EOF"                      CRASH("reached end of file while scanning comment");
 <COMMENT>"\n"                       yycolumn=1;yylineno++;
 <COMMENT>{ANY}
 {NEWLINE}                           DEBUG_PRINTF("Ignoring endline\n");yycolumn=1;yylineno++;
@@ -249,7 +251,6 @@ Ey DEBUG_PRINTF("Found Ey\n");yylval->int_numb=1;return TK_E_COMP;
 Ez DEBUG_PRINTF("Found Ez\n");yylval->int_numb=2;return TK_E_COMP;
 
  /* fermionic measures */
-MeasNucleonCorrs DEBUG_PRINTF("Found MeasNucleonCorrs\n");return TK_MEAS_NUCLEON_CORRS;
 MeasMesonCorrs DEBUG_PRINTF("Found MeasMesonCorrs\n");return TK_MEAS_MESON_CORRS;
 MeasPutpourri DEBUG_PRINTF("Found MeasPutpourri\n");return TK_MEAS_PUTPOURRI;
 MeasRendens DEBUG_PRINTF("Found MeasRendens\n");return TK_MEAS_RENDENS;
@@ -261,12 +262,6 @@ MeasSpinPol DEBUG_PRINTF("Found MeasSpinPol\n");return TK_MEAS_SPINPOL;
 MeasSpectrProj DEBUG_PRINTF("Found MeasSpectrProj\n");return TK_SPECTR_PROJ;
 MeasTMTuning DEBUG_PRINTF("Found MeasTMTuning\n");return TK_TM_TUNING;
 MeasElleSettete DEBUG_PRINTF("Found MeasElleSettete\n");return TK_MEAS_ELLESETTETE;
-
- /* nucleon smearing reimplementation */
-GaussSmeNsteps DEBUG_PRINTF("Found GaussSmeNsteps\n");return TK_GAUSS_SME_NSTEPS;
-GaussSmeKappa DEBUG_PRINTF("Found GaussSmeKappa\n");return TK_GAUSS_SME_KAPPA;
-ApeSmeNsteps DEBUG_PRINTF("Found ApeSmeNsteps\n");return TK_APE_SME_NSTEPS;
-ApeSmeAlpha DEBUG_PRINTF("Found ApeSmeAlpha\n");return TK_APE_SME_ALPHA;
 
  /* parameters for PutPourri */
 ComputeSusc DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;
@@ -326,12 +321,10 @@ MdResidue DEBUG_PRINTF("Found MdResidue\n");return TK_MD_RESIDUE;
 NSteps DEBUG_PRINTF("Found NSteps\n");return TK_NSTEPS;
 NSubsteps DEBUG_PRINTF("Found NSubsteps\n");return TK_NSUBSTEPS;
 NPseudoFerms DEBUG_PRINTF("Found NPseudoFerms\n");return TK_NPSEUDO_FERMS;
-NAuxFields DEBUG_PRINTF("Found NAuxFields\n");return TK_NAUX_FIELDS;
 NHBHits DEBUG_PRINTF("Found NHBHits\n");return TK_NHB_HITS;
 NHBSweeps DEBUG_PRINTF("Found NHBSweeps\n");return TK_NHB_SWEEPS;
 NOVHits DEBUG_PRINTF("Found NOVHits\n");return TK_NOV_HITS;
 NOVSweeps DEBUG_PRINTF("Found NOVSweeps\n");return TK_NOV_SWEEPS;
-UseFacc DEBUG_PRINTF("Found UseFacc\n");return TK_USE_FACC;
 UseHMC DEBUG_PRINTF("Found UseHMC\n");return TK_USE_HMC;
 
  /* analysis pars */
@@ -376,9 +369,9 @@ Minute? DEBUG_PRINTF("Found Minute(s)\n");yylval->int_numb=60;return TK_QUANTITY
 Seconds? DEBUG_PRINTF("Found Second(s)\n");yylval->int_numb=1;return TK_QUANTITY;
 
  /* crash if finds unexpected word or unrecognized char */
-\#{LETTER}{ALNUM}* crash("found unexpected preprocessor directive %s",yytext);
-{LETTER}{ALNUM}* master_printf("Found invalid string \"%s\"\n",yytext);return TK_INVALID_STRING;
-{ANY} master_printf("Found invalid character \'%c\'\n",yytext[0]);return TK_INVALID_CHAR;
+\#{LETTER}{ALNUM}* CRASH("found unexpected preprocessor directive %s",yytext);
+{LETTER}{ALNUM}* MASTER_PRINTF("Found invalid string \"%s\"\n",yytext);return TK_INVALID_STRING;
+{ANY} MASTER_PRINTF("Found invalid character \'%c\'\n",yytext[0]);return TK_INVALID_CHAR;
 
 %%
 

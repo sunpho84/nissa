@@ -2,9 +2,7 @@
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/all_to_all.cpp \
-	%D%/borders.cpp \
-	%D%/communicate.cpp \
-	%D%/edges.cpp
+	%D%/communicate.cpp
 
 include_HEADERS+= \
 	%D%/all_to_all.hpp \

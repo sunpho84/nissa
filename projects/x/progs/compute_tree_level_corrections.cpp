@@ -14,7 +14,7 @@ void init_program(int narg,char **arg)
   init_nissa(narg,arg);
   
   //Check arguments
-  if(narg<2) crash("use %s input",arg[0]);  
+  if(narg<2) CRASH("use %s input",arg[0]);  
 }
 
 //initialize the program

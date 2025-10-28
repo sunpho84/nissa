@@ -13,17 +13,40 @@ namespace nissa
   struct hyp_pars_t
   {
     double alpha0;
+    
     double alpha1;
+    
     double alpha2;
+    
     int nlevels;
     
-    double def_alpha0() {return 1;}
-    double def_alpha1() {return 1;}
-    double def_alpha2() {return 0.5;}
-    int def_nlevels() {return 1;}
+    double def_alpha0() const
+    {
+      return 1;
+    }
     
-    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(bool full=false)
+    double def_alpha1() const
+    {
+      return 1;
+    }
+    
+    double def_alpha2() const
+    {
+      return 0.5;
+    }
+    
+    int def_nlevels() const
+    {
+      return 1;
+    }
+    
+    
+    int master_fprintf(FILE *fout,const bool& full) const
+    {
+      return nissa::master_fprintf(fout,"%s",get_str().c_str());
+    }
+    
+    std::string get_str(const bool full=false) const
     {
       std::ostringstream os;
       
@@ -37,7 +60,7 @@ namespace nissa
       return os.str();
     }
     
-    int is_nonstandard()
+    int is_nonstandard() const
     {
       return
 	alpha0!=def_alpha0() or
@@ -49,10 +72,12 @@ namespace nissa
       alpha0(def_alpha0()),
       alpha1(def_alpha1()),
       alpha2(def_alpha2()),
-      nlevels(def_nlevels()) {}
+      nlevels(def_nlevels())
+    {
+    }
   };
   
-  void hyp_smear_conf(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2,const which_dir_t& dirs=all_dirs);
+  void hyp_smear_conf(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2,const WhichDirs& dirs=allDirs);
 }
 
 #endif

@@ -2,7 +2,7 @@
 #define _GEOMETRY_EO_HPP
 
 #ifndef EXTERN_GEOMETRY_EO
- #define EXTERN_GEOMETRY_EO extern
+# define EXTERN_GEOMETRY_EO extern
 #endif
 
 //ODD/EVN
@@ -13,9 +13,8 @@
 
 #define NISSA_LOC_VOLH_LOOP(a) for(int a=0;a<locVolh;a++)
 
-#include "base/metaprogramming.hpp"
-#include "geometry_lx.hpp"
-#include "new_types/su3.hpp"
+#include <geometry/geometry_lx.hpp>
+#include <new_types/su3.hpp>
 
 namespace nissa
 {
@@ -29,14 +28,19 @@ namespace nissa
     /// Inner pointer pairs
     Tptr data[2];
     
-    /// Constant access to data[i]
-    CUDA_HOST_AND_DEVICE
-    const Tptr& operator[](const int i) const
-    {
-      return data[i];
+#define PROVIDE_SUBSCRIBE_OPERATOR(CONST)	\
+    /*! Constant access to data[i] */		\
+    CUDA_HOST_AND_DEVICE			\
+    CONST Tptr& operator[](const int i) CONST	\
+    {						\
+      return data[i];\
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD_GPU(operator[]);
+    PROVIDE_SUBSCRIBE_OPERATOR(const);
+    
+    PROVIDE_SUBSCRIBE_OPERATOR(/* non-const */);
+    
+#undef PROVIDE_SUBSCRIBE_OPERATOR
     
     /// Create from a pair of pointers
     CUDA_HOST_AND_DEVICE eo_ptr(Tptr a,Tptr b) :
@@ -62,19 +66,27 @@ namespace nissa
     }
   };
   
+  template <typename T>
+  inline constexpr bool is_eo_ptr=false;
+  
+  template <typename T>
+  inline constexpr bool is_eo_ptr<eo_ptr<T>> =true;
+  
   //-eo is even-odd
   CUDA_MANAGED EXTERN_GEOMETRY_EO int *loclx_parity;
   CUDA_MANAGED EXTERN_GEOMETRY_EO int *loceo_of_loclx;
   CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> loclx_of_loceo;
   CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> surfeo_of_bordeo;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<coords_t> loceo_neighup;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<coords_t> loceo_neighdw;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> surfeo_of_edgeo;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<Coords> loceo_neighup;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<Coords> loceo_neighdw;
+
   EXTERN_GEOMETRY_EO int eo_geom_inited;
   EXTERN_GEOMETRY_EO int use_eo_geom;
   
   void filter_hypercube_origin_sites(color **vec);
   int glblx_parity(int glx);
-  int glb_coord_parity(const coords_t& c);
+  int glb_coord_parity(const Coords& c);
   void initialize_eo_edge_receivers_of_kind(MPI_Datatype *MPI_EDGES_RECE,MPI_Datatype *base);
   void initialize_eo_edge_senders_of_kind(MPI_Datatype *MPI_EO_EDGES_SEND,MPI_Datatype *base);
   void set_eo_edge_senders_and_receivers(MPI_Datatype *MPI_EO_EDGES_SEND,MPI_Datatype *MPI_EO_EDGES_RECE,MPI_Datatype *base);

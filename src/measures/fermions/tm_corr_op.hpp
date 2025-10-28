@@ -24,22 +24,22 @@ namespace nissa
     bool need_clov;
     
     /// Configuration
-    quad_su3 *conf;
+    LxField<quad_su3> conf;
     
     /// Temporary vector
-    spincolor* tmp;
+    LxField<spincolor> tmp;
     
     /// Clover term
-    clover_term_t *Cl;
+    LxField<clover_term_t>* Cl;
     
     /// Inverse clover term
-    inv_clover_term_t *invCl;
+    LxField<inv_clover_term_t>* invCl;
     
     // Residue
     const double residue;
     
     /// Quark content
-    theory_pars_t& tp;
+    const theory_pars_t& tp;
     
     /// Current quark
     int cur_flav;
@@ -53,12 +53,12 @@ namespace nissa
 	  
 	  if(cq.cSW)
 	    {
-	      chromo_operator_remove_cSW(Cl,cq.cSW);
-	      master_printf("Remove cSW for flav %d\n",cur_flav);
+	      chromo_operator_remove_cSW(*Cl,cq.cSW);
+	      MASTER_PRINTF("Remove cSW for flav %d\n",cur_flav);
 	    }
 	  
 	  rem_backfield_without_stagphases_from_conf(conf,tp.backfield[cur_flav]);
-	  master_printf("Remove backfield %d\n",cur_flav);
+	  MASTER_PRINTF("Remove backfield %d\n",cur_flav);
 	}
       
       if(cur_flav!=iflav)
@@ -67,15 +67,16 @@ namespace nissa
 	  
 	  const quark_content_t& q=tp.quarks[iflav];
 	  add_backfield_without_stagphases_to_conf(conf,tp.backfield[iflav]);
-	  master_printf("Adding backfield %d\n",iflav);
+	  MASTER_PRINTF("Adding backfield %d\n",iflav);
 	  
-	  master_printf("Plaquette: %.16lg\n",global_plaquette_lx_conf(conf));
+	  MASTER_PRINTF("Plaquette: %.16lg\n",global_plaquette_lx_conf(conf));
 	  
 	  if(q.cSW)
 	    {
-	      master_printf("Adding cSW for flav %d\n",iflav);
-	      chromo_operator_include_cSW(Cl,q.cSW);
-	      invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
+	      MASTER_PRINTF("Adding cSW for flav %d\n",iflav);
+	      chromo_operator_include_cSW(*Cl,q.cSW);
+	      CRASH("reimplement");
+	      //invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
 	    }
 	}
     }
@@ -83,55 +84,57 @@ namespace nissa
     /// Command to invert
     void inv(spincolor *out,spincolor *in,const int iflav,const int r)
     {
-      set_for_quark(iflav);
+      CRASH("reimplement");
       
-      const quark_content_t& q=tp.quarks[iflav];
-      const nissa::dirac_matr& P=
-	(tau3[r]==+1)?Pplus:Pminus;
+      // set_for_quark(iflav);
       
-      safe_dirac_prod_spincolor(tmp,P,in);
-      if(q.cSW) inv_tmclovD_cg_eoprec(out,NULL,conf,q.kappa,Cl,invCl,q.cSW,q.mass*tau3[r],1000000,residue,tmp);
-      else inv_tmD_cg_eoprec(out,NULL,conf,q.kappa,q.mass*tau3[r],1000000,residue,tmp);
-      safe_dirac_prod_spincolor(out,P,out);
+      // const quark_content_t& q=tp.quarks[iflav];
+      // const nissa::dirac_matr& P=
+      // 	(tau3[r]==+1)?Pplus:Pminus;
+      
+      // safe_dirac_prod_spincolor(tmp,P,in);
+      // if(q.cSW) inv_tmclovD_cg_eoprec(out,NULL,conf,q.kappa,Cl,invCl,q.cSW,q.mass*tau3[r],1000000,residue,tmp);
+      // else inv_tmD_cg_eoprec(out,NULL,conf,q.kappa,q.mass*tau3[r],1000000,residue,tmp);
+      // safe_dirac_prod_spincolor(out,P,out);
     }
     
     /// Constructor
-    tm_corr_op(eo_ptr<quad_su3>& ext_conf,const double& residue,theory_pars_t& tp) :
-      residue(residue),tp(tp),cur_flav(-1)
+    tm_corr_op(EoField<quad_su3>& ext_conf,
+	       const double& residue,
+	       const theory_pars_t& tp) :
+      conf("conf",WITH_HALO_EDGES),
+      tmp("tmp",WITH_HALO),
+      residue(residue),
+      tp(tp),
+      cur_flav(-1)
     {
       for(auto& q : tp.quarks)
 	if(q.discretiz!=ferm_discretiz::ROOT_TM_CLOV)
-	  crash("not defined for non-Wilson quarks");
+	  CRASH("not defined for non-Wilson quarks");
       
       // Check if clover is actually different from zero
       need_clov=false;
       for(auto& q : tp.quarks)
 	need_clov|=(q.cSW!=0);
       
-      tmp=nissa_malloc("tmp",locVol+bord_vol,spincolor);
+      CRASH("reimplement");
+      // paste_eo_parts_into_lx_vector_(conf,ext_conf);
       
-      conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
-      paste_eo_parts_into_lx_vector(conf,ext_conf);
-      
-      if(need_clov)
-	{
-	  Cl=nissa_malloc("Cl",locVol+bord_vol,clover_term_t);
-	  invCl=nissa_malloc("invCl",locVol+bord_vol,inv_clover_term_t);
-	  chromo_operator(Cl,conf);
-	}
+      // if(need_clov)
+      // 	{needs reation
+      // 	  Cl=nissa_malloc("Cl",locVol+bord_vol,clover_term_t);
+      // 	  invCl=nissa_malloc("invCl",locVol+bord_vol,inv_clover_term_t);
+      // 	  chromo_operator(Cl,conf);
+      // 	}
     }
     
     /// Destructor
     ~tm_corr_op()
     {
-      nissa_free(conf);
-      
-      nissa_free(tmp);
-      
       if(need_clov)
 	{
-	  nissa_free(Cl);
-	  nissa_free(invCl);
+	  delete Cl;
+	  delete invCl;
 	}
     }
     

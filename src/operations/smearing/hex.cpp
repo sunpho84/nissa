@@ -1,7 +1,8 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include <config.hpp>
 #endif
 
+#include <base/field.hpp>
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "communicate/edges.hpp"
@@ -16,11 +17,15 @@
 //normalization taken from 1011.2711
 namespace nissa
 {
-  template <typename LIn,
-	    typename...Tail>
-  void sme(su3* lOut,const double& alpha,const LIn& V,su3* U,const int& mu,const Tail&...a)
+  template <typename...Tail>
+  void sme(LxField<su3>& lOut,
+	   const double& alpha,
+	   const std::function<LxField<su3>&(int,int,int,int)>& V, // needs to pass through std::function or nvcc complains badly
+	   const LxField<su3>& U,
+	   const int& mu,
+	   const Tail&...a)
   {
-    vector_reset(lOut);
+    lOut.reset();
     
     for(int sigma=0;sigma<NDIM;sigma++)
       {
@@ -28,29 +33,36 @@ namespace nissa
 	for(const auto& i : {mu,a...})
 	  toDo&=(i!=sigma);
 	
-	const auto& A=V(sigma,mu,a...);
-	const auto& B=V(mu,a...,sigma);
-	
 	if(toDo)
-	  NISSA_PARALLEL_LOOP(iVol,0,locVol)
-	    {
-	      su3 temp;
-	      
-	      const int muUp=loclxNeighup[iVol][mu];
-	      
-	      unsafe_su3_prod_su3(temp,A[iVol],B[loclxNeighup[iVol][sigma]]);
-	      su3_summ_the_prod_su3_dag(lOut[iVol],temp,A[muUp]);
-	      
-	      const int sigmaDw=loclxNeighdw[iVol][sigma];
-	      const int sigmaDwMuUp=loclxNeighdw[muUp][sigma];
-	      
-	      unsafe_su3_dag_prod_su3(temp,A[sigmaDw],B[sigmaDw]);
-	      su3_summ_the_prod_su3(lOut[iVol],temp,A[sigmaDwMuUp]);
-	    }
-	NISSA_PARALLEL_LOOP_END;
+	  PAR(0,locVol,
+	      CAPTURE(mu,
+		      sigma,
+		      A=V(sigma,mu,a...).getReadable(),
+		      B=V(mu,a...,sigma).getReadable(),
+		      TO_WRITE(lOut)),
+	      iVol,
+	      {
+		su3 temp;
+		
+		const int muUp=loclxNeighup[iVol][mu];
+		
+		unsafe_su3_prod_su3(temp,A[iVol],B[loclxNeighup[iVol][sigma]]);
+		su3_summ_the_prod_su3_dag(lOut[iVol],temp,A[muUp]);
+		
+		const int sigmaDw=loclxNeighdw[iVol][sigma];
+		const int sigmaDwMuUp=loclxNeighdw[muUp][sigma];
+		
+		unsafe_su3_dag_prod_su3(temp,A[sigmaDw],B[sigmaDw]);
+		su3_summ_the_prod_su3(lOut[iVol],temp,A[sigmaDwMuUp]);
+	      });
       }
     
-    NISSA_PARALLEL_LOOP(iVol,0,locVol)
+    PAR(0,
+	locVol,
+	CAPTURE(TO_WRITE(lOut),
+		TO_READ(U),
+		alpha),
+	iVol,
       {
 	su3 temp1,temp2;
 	
@@ -63,138 +75,159 @@ namespace nissa
 	
 	safe_hermitian_exact_i_exponentiate(Q,Q);
 	unsafe_su3_prod_su3(lOut[iVol],Q,U[iVol]);
-      }
-    NISSA_PARALLEL_LOOP_END;
+      });
   }
   
   /// Hex smear the conf
-  void hex_smear_conf(quad_su3* sm_conf,quad_su3* conf,const double& alpha1,const double& alpha2,const double& alpha3)
+  void hex_smear_conf(LxField<quad_su3>& sm_conf,
+		      const LxField<quad_su3>& conf,
+		      const double& alpha1,
+		      const double& alpha2,
+		      const double& alpha3)
   {
-    crash("must be done inside a struct");
+    const int nDecLevels=4;
+    const int nDecsPerLevel[]=
+      {NDIM,
+       NDIM*(NDIM-1),
+       NDIM*(NDIM-1),
+       NDIM};
     
-    // const int nDecLevels=4;
-    // const int nDecsPerLevel[]=
-    //   {NDIM,
-    //    NDIM*(NDIM-1),
-    //    NDIM*(NDIM-1),
-    //    NDIM};
+    const int nDecTot=
+		nDecsPerLevel[0]+nDecsPerLevel[1]+nDecsPerLevel[2]+nDecsPerLevel[3];
+    std::vector<LxField<su3>> linksAllDecs(nDecTot,{"Dec",WITH_HALO_EDGES});
     
-    // const int nDecTot=
-    // 		nDecsPerLevel[0]+nDecsPerLevel[1]+nDecsPerLevel[2]+nDecsPerLevel[3];
-    // su3* linksAllDecs[nDecTot];
+    std::vector<LxField<su3>*> linksDecsPerLev(nDecLevels);
+    linksDecsPerLev[0]=&linksAllDecs[0];
+    for(int iDecLev=1;iDecLev<nDecLevels;iDecLev++)
+      linksDecsPerLev[iDecLev]=linksDecsPerLev[iDecLev-1]+nDecsPerLevel[iDecLev-1];
     
-    // for(int iDec=0;iDec<nDecTot;iDec++)
-    //   linksAllDecs[iDec]=nissa_malloc("Dec",locVol+bord_vol+edge_vol,su3);
+    auto communicateDecsForLev=
+      [linksDecsPerLev,
+       nDecsPerLevel](const int& iLev)
+      {
+	for(int iDec=0;iDec<nDecsPerLevel[iLev];iDec++)
+	  {
+	    LxField<su3>& o=linksDecsPerLev[iLev][iDec];
+	    o.invalidateHalo();
+	    o.updateEdges();
+	  }
+      };
     
-    // su3** linksDecsPerLev[nDecLevels];
-    // linksDecsPerLev[0]=linksAllDecs;
-    // for(int iDecLev=1;iDecLev<nDecLevels;iDecLev++)
-    //   linksDecsPerLev[iDecLev]=linksDecsPerLev[iDecLev-1]+nDecsPerLevel[iDecLev-1];
+    /////////////////////////////////////////////////////////////////
     
-    // auto communicateDecsForLev=
-    //   [linksDecsPerLev,nDecsPerLevel](const int& iLev)
-    //   {
-    // 	for(int iDec=0;iDec<nDecsPerLevel[iLev];iDec++)
-    // 	  {
-    // 	    su3* o=linksDecsPerLev[iLev][iDec];
-    // 	    set_borders_invalid(o);
-    // 	    communicate_lx_su3_edges(o);
-    // 	  }
-    //   };
+    /// Level0
     
-    // /////////////////////////////////////////////////////////////////
+    const auto links0=
+      [links0List=linksDecsPerLev[0]](const int& mu,
+				      const int& =0,
+				      const int& =0,
+				      const int& =0) -> LxField<su3>& //swallow all other dirs
+      {
+	return
+	  *links0List[mu];
+      };
     
-    // /// Level0
+    for(int mu=0;mu<NDIM;mu++)
+      PAR(0,
+	  locVol,
+	  CAPTURE(mu,
+		  TO_READ(conf),
+		  u=links0(mu).getWritable()),
+	  A,
+	  {
+	    su3_copy(u[A],conf[A][mu]);
+	  });
     
-    // const auto links0=
-    //   [links0List=linksDecsPerLev[0]](const int& mu,auto...) //swallow all other dirs
-    //   {
-    // 	return
-    // 	  links0List[mu];
-    //   };
+    communicateDecsForLev(0);
     
-    // NISSA_PARALLEL_LOOP(A,0,locVol)
-    //   for(int mu=0;mu<NDIM;mu++)
-    // 	su3_copy(links0(mu)[A],conf[A][mu]);
-    // NISSA_PARALLEL_LOOP_END;
+    /////////////////////////////////////////////////////////////////
     
-    // communicateDecsForLev(0);
+    /// Level1
     
-    // /////////////////////////////////////////////////////////////////
-    
-    // /// Level1
-    
-    // const auto links1=
-    //   [links1List=linksDecsPerLev[1]](const int& mu,const int& nu,const int& rho)
-    //   {
-    // 	const int e=15^((1<<mu)+(1<<nu)+(1<<rho));
-    // 	const int sigma=(e==2)+2*(e==4)+3*(e==8);
-    // 	const int iSigma=sigma-(sigma>mu); /// Subtract 1 if sigma>mu since we don't store mu==sigma
+    const auto links1=
+      [links1List=linksDecsPerLev[1]](const int& mu,
+				      const int& nu,
+				      const int& rho,
+				      const int& =0) -> LxField<su3>&
+      {
+	const int e=15^((1<<mu)+(1<<nu)+(1<<rho));
+	const int sigma=(e==2)+2*(e==4)+3*(e==8);
+	const int iSigma=sigma-(sigma>mu); /// Subtract 1 if sigma>mu since we don't store mu==sigma
 	
-    // 	return
-    // 	  links1List[iSigma+(NDIM-1)*mu];
-    //   };
+	return
+	  *links1List[iSigma+(NDIM-1)*mu];
+      };
     
-    // for(int mu=0;mu<NDIM;mu++)
-    //   for(int iNu=0;iNu<NDIM-1;iNu++)
-    // 	for(int iRho=0;iRho<NDIM-2;iRho++)
-    // 	  {
-    // 	    const int nu=perp_dir[mu][iNu];
-    // 	    const int rho=perp2_dir[mu][iNu][iRho];
+    for(int mu=0;mu<NDIM;mu++)
+      for(int iNu=0;iNu<NDIM-1;iNu++)
+	for(int iRho=0;iRho<NDIM-2;iRho++)
+	  {
+	    const int nu=perpDirs[mu][iNu];
+	    const int rho=perp2Dirs[mu][iNu][iRho];
 	    
-    // 	    if(rho>nu)
-    // 	      sme(links1(mu,nu,rho),alpha3/2,links0,links0(mu),mu,nu,rho);
-    // 	  }
+	    if(rho>nu)
+	      sme(links1(mu,nu,rho),alpha3/2,
+		  links0,
+		  links0(mu),
+		  mu,nu,rho);
+	  }
     
-    // communicateDecsForLev(1);
+    communicateDecsForLev(1);
     
-    // /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
     
-    // /// Level2
+    //Level2
     
-    // const auto links2=
-    //   [links2List=linksDecsPerLev[2]](const int& mu,const int& nu)
-    //   {
-    // 	const int iNu=
-    // 	  nu-(nu>mu); /// Subtract 1 if sigma>mu since we don't store mu==sigma
+    const auto links2=
+      [links2List=linksDecsPerLev[2]](const int& mu,
+				      const int& nu,
+				      const int& =0,
+				      const int& =0) -> LxField<su3>&
+      {
+	const int iNu=
+	  nu-(nu>mu); /// Subtract 1 if sigma>mu since we don't store mu==sigma
 	
-    // 	return
-    // 	  links2List[iNu+(NDIM-1)*mu];
-    //   };
+	return
+	  *links2List[iNu+(NDIM-1)*mu];
+      };
     
-    // for(int mu=0;mu<NDIM;mu++)
-    //   for(int iNu=0;iNu<NDIM-1;iNu++)
-    // 	{
-    // 	  const int nu=perp_dir[mu][iNu];
-    // 	  sme(links2(mu,nu),alpha2/4,links1,links0(mu),mu,nu);
-    // 	}
+    for(int mu=0;mu<NDIM;mu++)
+      for(int iNu=0;iNu<NDIM-1;iNu++)
+	{
+	  const int nu=perpDirs[mu][iNu];
+	  sme(links2(mu,nu),alpha2/4,links1,links0(mu),mu,nu,0);
+	}
     
-    // communicateDecsForLev(2);
+    communicateDecsForLev(2);
     
-    // /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
     
-    // /// Level3
+    /// Level3
     
-    // const auto links3=
-    //   [links3List=linksDecsPerLev[3]](const int& mu)
-    //   {
-    // 	return
-    // 	  links3List[mu];
-    //   };
+    const auto links3=
+      [links3List=linksDecsPerLev[3]](const int& mu,
+				      const int& =0,
+				      const int& =0,
+				      const int& =0) -> LxField<su3>&
+      {
+	return
+	  *links3List[mu];
+      };
     
-    // for(int mu=0;mu<NDIM;mu++)
-    //   sme(links3(mu),alpha1/6,links2,links0(mu),mu);
+    for(int mu=0;mu<NDIM;mu++)
+      sme(links3(mu),alpha1/6,links2,links0(mu),mu,0,0);
     
-    // /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
     
-    // for(int mu=0;mu<NDIM;mu++)
-    //   NISSA_PARALLEL_LOOP(A,0,locVol)
-    // 	su3_copy(sm_conf[A][mu],links3(mu)[A]);
-    // NISSA_PARALLEL_LOOP_END;
-    
-    // set_borders_invalid(sm_conf);
-    
-    // for(int iDec=0;iDec<nDecTot;iDec++)
-    //   nissa_free(linksAllDecs[iDec]);
+    for(int mu=0;mu<NDIM;mu++)
+      PAR(0,
+	  locVol,
+	  CAPTURE(mu,
+		  TO_WRITE(sm_conf),
+		  u=links3(mu).getReadable()),
+	  A,
+	  {
+	    su3_copy(sm_conf[A][mu],u[A]);
+	  });
   }
 }

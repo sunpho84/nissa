@@ -18,7 +18,7 @@ void check_endianness()
 }
 
 //crash reporting the expanded error message
-void crash(const char *templ,...)
+void CRASH(const char *templ,...)
 {
   //expand error message
   char mess[1024];
@@ -105,7 +105,7 @@ ILDG_File ILDG_File_open(const char *path,const char *mode)
   char in_path[1024];
   sprintf(in_path,"%s",path);
   file=fopen(in_path,mode);
-  if(file==NULL) crash("while opening file %s",path);
+  if(file==NULL) CRASH("while opening file %s",path);
 
   return file;
 }
@@ -113,7 +113,7 @@ ILDG_File ILDG_File_open(const char *path,const char *mode)
 //close an open file
 void ILDG_File_close(ILDG_File &file)
 {
-  if(fclose(file)!=0) crash("while closing file");
+  if(fclose(file)!=0) CRASH("while closing file");
   file=NULL;
 }
 
@@ -121,7 +121,7 @@ void ILDG_File_close(ILDG_File &file)
 
 //skip the passed amount of bytes starting from curr position
 void ILDG_File_skip_nbytes(ILDG_File &file,ILDG_Offset nbytes)
-{if(fseek(file,nbytes,SEEK_CUR)!=0) crash("while seeking ahead %d bytes from current position",nbytes);}
+{if(fseek(file,nbytes,SEEK_CUR)!=0) CRASH("while seeking ahead %d bytes from current position",nbytes);}
   
 //get current position
 ILDG_Offset ILDG_File_get_position(ILDG_File &file)
@@ -129,7 +129,7 @@ ILDG_Offset ILDG_File_get_position(ILDG_File &file)
   
 //set position
 void ILDG_File_set_position(ILDG_File &file,ILDG_Offset pos,int amode)
-{if(fseek(file,pos,amode)!=0) crash("while seeking");}
+{if(fseek(file,pos,amode)!=0) CRASH("while seeking");}
   
 //get file size
 ILDG_Offset ILDG_File_get_size(ILDG_File &file)
@@ -172,7 +172,7 @@ void ILDG_File_read(void *data,ILDG_File &file,int nbytes_req)
     
   int nbytes_read=fread(data,1,nbytes_req,file);
   if(nbytes_read!=nbytes_req)
-    crash("read %d bytes instead of %d required",nbytes_read,nbytes_req);
+    CRASH("read %d bytes instead of %d required",nbytes_read,nbytes_req);
     
   //padding
   ILDG_File_seek_to_next_eight_multiple(file);
@@ -199,7 +199,7 @@ ILDG_header ILDG_File_get_next_record_header(ILDG_File &file)
   
   //control the magic number magic number
   if(header.magic_no!=ILDG_MAGIC_NO)
-    crash("wrong magic number, expected %x and obtained %x",ILDG_MAGIC_NO,header.magic_no);
+    CRASH("wrong magic number, expected %x and obtained %x",ILDG_MAGIC_NO,header.magic_no);
   
   return header;
 }
@@ -217,7 +217,7 @@ void ILDG_File_skip_record(ILDG_File &file,ILDG_header header)
 void ILDG_File_write(ILDG_File &file,void *data,int nbytes_req)
 {
   int nbytes_wrote=fwrite(data,1,nbytes_req,file);
-  if(nbytes_wrote!=nbytes_req) crash("wrote %d bytes instead of %d required",nbytes_wrote,nbytes_req);
+  if(nbytes_wrote!=nbytes_req) CRASH("wrote %d bytes instead of %d required",nbytes_wrote,nbytes_req);
   
   fflush(file);
 }

@@ -7,7 +7,7 @@ using namespace nissa;
 void in_main(int narg,char **arg)
 {
   //open input
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   open_input(arg[1]);
   
   //Init the MPI grid 
@@ -29,7 +29,7 @@ void in_main(int narg,char **arg)
       read_str_int("MeasType",&jmeas_type);
       
       //read pars
-      if(imeas_type!=jmeas_type) crash("Read jmeas_type %d while expecting %d",jmeas_type,imeas_type);
+      if(imeas_type!=jmeas_type) CRASH("Read jmeas_type %d while expecting %d",jmeas_type,imeas_type);
       read_all_rect_meas_pars(all_rect_meas_pars[imeas_type],true);
     }
 
@@ -49,7 +49,7 @@ void in_main(int narg,char **arg)
   for(int iconf=0;iconf<nconfs;iconf++)
     {
       //read the conf
-      master_printf("========================= considering conf %d/%d =============================\n",iconf+1,nconfs);
+      MASTER_PRINTF("========================= considering conf %d/%d =============================\n",iconf+1,nconfs);
       read_ildg_gauge_conf(conf,conf_path[iconf]);
       
       //do all the measures

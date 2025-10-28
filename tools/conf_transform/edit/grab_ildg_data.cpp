@@ -5,15 +5,15 @@ using namespace nissa;
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   
-  if(narg<5) crash("use: %s L T file_in file_out",arg[0]);
+  if(narg<5) CRASH("use: %s L T file_in file_out",arg[0]);
   
   int L=atoi(arg[1]);
   int T=atoi(arg[2]);
   
   //Init the MPI grid
-  init_grid(T,L);
+  initGrid(T,L);
   //////////////////////////// read the conf /////////////////////////////
   
   quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
@@ -26,7 +26,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

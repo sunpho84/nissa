@@ -6,9 +6,9 @@ int main(int narg,char **arg)
   char filename[1024];
   
   //basic mpi initialization
-  init_nissa();
+  initNissa();
 
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
 
   open_input(arg[1]);
 
@@ -17,7 +17,7 @@ int main(int narg,char **arg)
   read_str_int("T",&T);
   
   //Init the MPI grid 
-  init_grid(T,L);
+  initGrid(T,L);
   
   //Smearing parameters
   double ape_alpha;
@@ -39,7 +39,7 @@ int main(int narg,char **arg)
   //smear the conf
   quad_su3 *smea_conf=nissa_malloc("Smea_Conf",loc_vol+bord_vol+edge_vol,quad_su3);
   ape_spatial_smear_conf(smea_conf,orig_conf,ape_alpha,ape_niters);
-  master_printf("gauge conf smeared\n");
+  MASTER_PRINTF("gauge conf smeared\n");
   
   //allocate and generate the source
   spincolor *sp=nissa_malloc("orig_spincolor",loc_vol+bord_vol,spincolor);
@@ -53,7 +53,7 @@ int main(int narg,char **arg)
       lx[mu]=or_pos[mu]-rank_coord[mu]*loc_size[mu];
       local=local && lx[mu]>=0 && lx[mu]<loc_size[mu];
     }
-  if(local==1) sp[loclx_of_coord(lx)][0][0][0]=1;
+  if(local==1) sp[loclxOfCoord(lx)][0][0][0]=1;
   
   //read the output base
   char base_out[1024];
@@ -88,7 +88,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

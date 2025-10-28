@@ -5,26 +5,24 @@ using namespace nissa;
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   
-  if(narg<4) crash("use: %s L T file_out",arg[0]);
+  if(narg<4) CRASH("use: %s L T file_out",arg[0]);
   
-  int L=atoi(arg[1]);
-  int T=atoi(arg[2]);
+  const int L=atoi(arg[1]);
+  const int T=atoi(arg[2]);
   
   //Init the MPI grid
-  init_grid(T,L);
+  initGrid(T,L);
   
   //crete and write
-  quad_su3 *conf=nissa_malloc("conf",locVol,quad_su3);
+  LxField<quad_su3> conf("conf");
   generate_cold_lx_conf(conf);
-  write_ildg_gauge_conf(arg[3],conf,64);
-  
-  nissa_free(conf);
+  write_ildg_gauge_conf(arg[3],conf);
   
   ///////////////////////////////////////////
   
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

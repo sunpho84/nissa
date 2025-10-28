@@ -6,7 +6,11 @@
 #endif
 
 #ifdef USE_EIGEN
- #include <Eigen/Dense>
+/// Suppress an unitialized variable warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+# include <Eigen/Dense>
+#pragma GCC diagnostic pop
 #endif
 
 #include "base/debug.hpp"
@@ -25,60 +29,61 @@ namespace nissa
   template <class F>
   void print_all_eigenstuff(const F &f,int mat_size)
   {
-#ifndef USE_EIGEN
+    CRASH("reimplement");
     
-    crash("Need Eigen");
+    // #ifndef USE_EIGEN
     
-#else
+//     CRASH("Need Eigen");
     
-    using namespace Eigen;
+// #else
     
-    MANDATORY_NOT_PARALLEL;
+//     using namespace Eigen;
     
-    ComplexEigenSolver<MatrixXcd> solver;
+//     ComplexEigenSolver<MatrixXcd> solver;
     
-    //fill the matrix to be diagonalized
-    MatrixXcd matr(mat_size,mat_size);
-    complex *test=nissa_malloc("test",mat_size,complex);
-    complex *out=nissa_malloc("out",mat_size,complex);
-    for(int i=0;i<mat_size;i++)
-      {
-	vector_reset(test);
-	test[i][RE]=1.0;
+//     //fill the matrix to be diagonalized
+//     MatrixXcd matr(mat_size,mat_size);
+//     complex *test=nissa_malloc("test",mat_size,complex);
+//     complex *out=nissa_malloc("out",mat_size,complex);
+//     for(int i=0;i<mat_size;i++)
+//       {
+// 	vector_reset(test);
+// 	test[i][RE]=1.0;
 	
-	f(out,test);
+// 	f(out,test);
 	
-	for(int j=0;j<mat_size;j++)
-	  matr(j,i)=std::complex<double>(out[j][RE],out[j][IM]);
-      }
+// 	for(int j=0;j<mat_size;j++)
+// 	  matr(j,i)=std::complex<double>(out[j][RE],out[j][IM]);
+//       }
     
-    //diagonalize
-    solver.compute(matr);
+//     //diagonalize
+//     solver.compute(matr);
     
-    //print eigenvectors
-    for(int ieig=0;ieig<mat_size;ieig++)
-      {
-	master_printf("---\n");
-	master_printf("%d\n",ieig);
-	std::complex<double> lambda=solver.eigenvalues()(ieig);
-	master_printf("%.16lg %.16lg\n",lambda.real(),lambda.imag());
+//     //print eigenvectors
+//     for(int ieig=0;ieig<mat_size;ieig++)
+//       {
+// 	MASTER_PRINTF("---\n");
+// 	MASTER_PRINTF("%d\n",ieig);
+// 	std::complex<double> lambda=solver.eigenvalues()(ieig);
+// 	MASTER_PRINTF("%.16lg %.16lg\n",lambda.real(),lambda.imag());
 	
-	for(int i=0;i<mat_size;i++)
-	  {
-	    complex &c=test[i];
-	    c[RE]=solver.eigenvectors()(i,ieig).real();
-	    c[IM]=solver.eigenvectors()(i,ieig).imag();
-	  }
+// 	for(int i=0;i<mat_size;i++)
+// 	  {
+// 	    complex &c=test[i];
+// 	    c[RE]=solver.eigenvectors()(i,ieig).real();
+// 	    c[IM]=solver.eigenvectors()(i,ieig).imag();
+// 	  }
 	
-	f(out,test);
+// 	f(out,test);
 	
-	complex e;
-	complex_vector_glb_scalar_prod(e,(complex*)test,(complex*)out,mat_size);
+// 	complex e;
+// 	CRASH("reimplement");
+// 	//complex_vector_glb_scalar_prod(e,(complex*)test,(complex*)out,mat_size);
 	
-	complex_vector_subtassign_complex_vector_prod_complex((complex*)out,(complex*)test,e,mat_size);
-	master_printf(" (%.16lg,%.16lg), residue: %lg\n",ieig,e[RE],e[IM],sqrt(double_vector_glb_norm2(out,mat_size)));
-      }
-#endif
+// 	complex_vector_subtassign_complex_vector_prod_complex((complex*)out,(complex*)test,e,mat_size);
+// 	MASTER_PRINTF(" (%.16lg,%.16lg), residue: %lg\n",ieig,e[RE],e[IM],sqrt(double_vector_glb_norm2(out,mat_size)));
+//       }
+// #endif
   }
 }
 

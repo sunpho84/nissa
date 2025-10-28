@@ -1,118 +1,188 @@
 #ifndef _PROP_HPP
 #define _PROP_HPP
 
-#include "nissa.hpp"
+#include <filesystem>
+#include <set>
 
 #include "conf.hpp"
 #include "meslep.hpp"
 #include "pars.hpp"
 
 #ifndef EXTERN_PROP
- #define EXTERN_PROP extern
+# define EXTERN_PROP extern
 #define INIT_TO(A)
 #else
- #define INIT_TO(A) =A
+# define INIT_TO(A) =A
 #endif
 
 namespace nissa
 {
   //keep trace if generating photon is needed
   EXTERN_PROP int need_photon INIT_TO(0);
-
+  
   CUDA_HOST_AND_DEVICE
-  inline int so_sp_col_ind(const int& sp,const int& col)
+  inline int so_sp_col_ind(const int& sp,
+			   const int& col)
   {
     return col+nso_col*sp;
   }
   
+  CUDA_HOST_AND_DEVICE
+  inline std::pair<int,int> sp_col_of_so_ind(const int& i)
+  {
+    return {i/nso_col,i%nso_col};
+  }
+  
   typedef std::pair<std::string,std::pair<double,double>> source_term_t;
+  
+  /// Format of the propagator on the host
+  using HostProp=
+    LxField<spincolor,defaultSpaceTimeLayout,MemorySpace::CPU>;
   
   //hold name and information on how to build a propagator
   struct qprop_t
   {
-    bool is_source;
+    bool is_source{false};
     
-    double kappa;
-    double kappa_asymm[NDIM];
-    double mass;
-    int r;
-    double charge;
-    momentum_t theta;
+    double kappa{};
+    Momentum kappa_asymm{};
+    double mass{};
+    int r{};
+    double charge{};
+    Momentum theta{};
     
-    insertion_t insertion;
-    std::vector<source_term_t> source_terms;
-    int tins;
-    double residue;
-    bool store;
+    insertion_t insertion{};
+    std::vector<source_term_t> source_terms{};
+    int tins{};
+    double residue{};
+    bool store{};
     
-    char ext_field_path[33];
+    char ext_field_path[33]{};
     
-    rnd_t noise_type;
-    double ori_source_norm2;
+    rnd_t noise_type{};
+    double ori_source_norm2{};
     
     //spincolor data
-    spincolor** sp;
+    HostProp** sp{};
     
-    CUDA_HOST_AND_DEVICE
-    spincolor* const &operator[](const int i) const
+    // CUDA_HOST_AND_DEVICE
+    // const LxField<spincolor>& operator[](const int& i) const
+    // {
+    //   return *(sp[i]);
+    // }
+    
+    // CUDA_HOST_AND_DEVICE
+    HostProp& operator[](const int& i)
     {
-      return sp[i];
+      return *(sp[i]);
     }
     
-    CUDA_HOST_AND_DEVICE
-    spincolor* &operator[](const int i)
+    void alloc_storage()
     {
-      return sp[i];
-    }
-    
-    void alloc_spincolor()
-    {
-      sp=nissa_malloc("sp",nso_spi*nso_col,spincolor*);
-      for(int i=0;i<nso_spi*nso_col;i++)
-	sp[i]=nissa_malloc("sp",locVol+bord_vol,spincolor);
+      if(sp==nullptr)
+	{
+	  sp=new HostProp*[nso_spi*nso_col];
+	  for(int i=0;i<nso_spi*nso_col;i++)
+	    sp[i]=new HostProp("sp",WITH_HALO);
+	}
     }
     
     //initialize as a propagator
-    void init_as_propagator(insertion_t _insertion,const std::vector<source_term_t>& _source_terms,int _tins,double _residue,double _kappa,const double* _kappa_asymm,double _mass,char *_ext_field_path,int _r,double _charge,const momentum_t& _theta,bool _store)
+    void init_as_propagator(const insertion_t& _insertion,
+			    const std::vector<source_term_t>& _source_terms,
+			    const int& _tins,
+			    const double& _residue,
+			    const double& _kappa,
+			    const double* _kappa_asymm,
+			    const double& _mass,
+			    const char *_ext_field_path,
+			    const int& _r,
+			    const double& _charge,
+			    const Momentum& _theta,
+			    const bool& _store)
     {
       is_source=false;
       
       kappa=_kappa;
-      for(int mu=0;mu<NDIM;mu++) kappa_asymm[mu]=_kappa_asymm[mu];
+      for(int mu=0;mu<NDIM;mu++)
+	kappa_asymm[mu]=_kappa_asymm[mu];
+      
       mass=_mass;
+      
       r=_r;
+      
       charge=_charge;
-      for(int mu=0;mu<NDIM;mu++) theta[mu]=_theta[mu];
+      
+      for(int mu=0;mu<NDIM;mu++)
+	theta[mu]=_theta[mu];
+      
       insertion=_insertion;
+      
       source_terms=_source_terms;
+      
       tins=_tins;
+      
       strncpy(ext_field_path,_ext_field_path,32);
+      
       residue=_residue;
+      
       store=_store;
       
-      if(is_photon_ins(insertion)) need_photon=true;
-      
-      alloc_spincolor();
+      if(is_photon_ins(insertion))
+	need_photon=true;
     }
     
     //initialize as a source
-    void init_as_source(rnd_t _noise_type,int _tins,int _r,bool _store)
+    void init_as_source(const rnd_t& _noise_type,
+			const int& _tins,
+			const int& _r,
+			const bool& _store)
     {
       is_source=true;
       
       noise_type=_noise_type;
+      
       tins=_tins;
+      
       r=_r;
+      
       store=_store;
-      alloc_spincolor();
+      
+      alloc_storage();
     }
     
-    qprop_t(insertion_t insertion,const std::vector<source_term_t>& source_terms,int tins,double residue,double kappa,double* kappa_asymm, double mass,char *ext_field_path,int r,double charge,const momentum_t& theta,bool store)
+    void free_storage()
+    {
+      if(sp)
+	{
+	  for(int i=0;i<nso_spi*nso_col;i++)
+	    delete sp[i];
+	  delete[] sp;
+	  
+	  sp=nullptr;
+	}
+    }
+    
+    qprop_t(const insertion_t& insertion,
+	    const std::vector<source_term_t>& source_terms,
+	    const int& tins,
+	    const double& residue,
+	    const double& kappa,
+	    const double* kappa_asymm,
+	    const double& mass,
+	    const char* ext_field_path,
+	    const int& r,
+	    const double& charge,
+	    const Momentum& theta,
+	    const bool& store)
     {
       init_as_propagator(insertion,source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store);
     }
     
-    qprop_t(rnd_t noise_type,int tins,int r,bool store)
+    qprop_t(const rnd_t& noise_type,
+	    const int& tins,
+	    const int& r,
+	    const bool& store)
     {
       init_as_source(noise_type,tins,r,store);
     }
@@ -124,11 +194,38 @@ namespace nissa
     
     ~qprop_t()
     {
-      for(int i=0;i<nso_spi*nso_col;i++)
-	nissa_free(sp[i]);
-      nissa_free(sp);
+      free_storage();
     }
   };
+  
+  /// Keep track of a loop
+  struct LepLoopTag
+  {
+    /// Mass of the loop
+    double mass;
+    
+    /// Current index
+    int rho;
+    
+    Momentum theta;
+    
+    int tWall;
+    
+    auto operator<(const LepLoopTag& oth) const
+    {
+      return
+	mass<oth.mass or
+	(mass==oth.mass and
+	 (rho<oth.rho or
+	  (rho==oth.rho and
+	   (theta<oth.theta or
+	    (theta==oth.theta and
+	     tWall<oth.tWall)))));
+    }
+  };
+  
+  /// Cached loops
+  EXTERN_PROP std::map<LepLoopTag,LxField<spin1field>> cachedLepLoops;
   
   const int ALL_TIMES=-1;
   
@@ -157,41 +254,64 @@ namespace nissa
   
   EXTERN_PROP std::map<std::string,qprop_t> Q;
   EXTERN_PROP std::vector<std::string> qprop_name_list;
+  EXTERN_PROP std::set<std::string> propsNeededToContr;
   EXTERN_PROP spinspin **L;
   
   EXTERN_PROP int nlprop;
   
   EXTERN_PROP std::vector<std::string> ori_source_name_list;
-  EXTERN_PROP spincolor *loop_source;
-  inline void allocate_loop_source(){loop_source=nissa_malloc("loop_source",locVol+bord_vol,spincolor);}
-  inline void free_loop_source(){nissa_free(loop_source);}
+  
+  EXTERN_PROP LxField<spincolor> *loop_source;
+  
+  inline void allocate_loop_source()
+  {
+    loop_source=new LxField<spincolor>("loop_source",WITH_HALO);
+  }
+  
+  inline void free_loop_source()
+  {
+    delete loop_source;
+  }
   
   EXTERN_PROP int nsource_tot INIT_TO(0),nphoton_prop_tot INIT_TO(0);
   EXTERN_PROP double source_time INIT_TO(0),photon_prop_time INIT_TO(0),lepton_prop_time INIT_TO(0);
   
   EXTERN_PROP int load_photons INIT_TO(false);
   EXTERN_PROP int store_photons INIT_TO(false);
-  CUDA_MANAGED EXTERN_PROP spin1field *photon_field;
-  EXTERN_PROP spin1field *photon_phi;
-  EXTERN_PROP spin1field *photon_eta;
+  
+  CUDA_MANAGED EXTERN_PROP LxField<spin1field> *photon_field;
+  
+  EXTERN_PROP LxField<spin1field> *photon_phi;
+  
+  EXTERN_PROP LxField<spin1field> *photon_eta;
+  
   void allocate_photon_fields();
   void free_photon_fields();
   CUDA_MANAGED EXTERN_PROP spinspin *temp_lep;
   
-  void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double q,double residue,const momentum_t& theta);
-  void generate_original_source(qprop_t *sou);
-  void generate_original_sources(int ihit,bool skip_io=false);
-  void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,bool *dirs);
-  void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,bool *dirs,int loc);
-  void generate_photon_source(spin1field *photon_eta);
-  void generate_source(insertion_t inser,int r,double charge,double kappa,const momentum_t& theta,spincolor *ori,int t);
-  void generate_quark_propagators(int isource);
-  void generate_photon_stochastic_propagator(int ihit);
-  //CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const momentum_t bc);
-  void generate_lepton_propagators();
-  void propagators_fft(int ihit);
+  void generate_original_sources(const int& ihit,
+				 const bool& skipOnly);
   
-  void add_photon_field_to_conf(quad_su3 *conf,double charge);
+  void generate_original_source(qprop_t& sou,
+				const bool& skipOnly);
+  
+  void generate_quark_propagator(std::string& name,qprop_t& q,int ihit);
+  void generate_photon_source(LxField<spin1field>& photon_eta,
+			      const bool& skip=false);
+  
+  void generate_source(insertion_t inser,int r,double charge,double kappa,const Momentum& theta,spincolor *ori,int t);
+  
+  void generate_quark_propagators(const int& ihit);
+  
+  void generate_photon_stochastic_propagator(const int& ihit);
+  
+  //CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const Momentum bc);
+  void generate_lepton_propagators();
+  void propagators_fft(const int& ihit);
+  
+  /// Multiply the configuration for an additional u(1) field, defined as exp(-i e q A /3)
+  void add_photon_field_to_conf(LxField<quad_su3>& conf,
+				const double& charge);
   
   struct fft_filterer_t
   {
@@ -208,26 +328,23 @@ namespace nissa
   
   inline void start_hit(int ihit,bool skip=false)
   {
-    master_printf("\n=== Hit %d/%d ====\n",ihit+1,nhits);
-    if(use_new_generator)
+    MASTER_PRINTF("\n=== Hit %d/%d ====\n",ihit+1,nHits);
+    for(int mu=0;mu<NDIM;mu++)
       {
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    using C=double[1];
-	    C c;
-	    field_rng_stream.drawScalar(c);
-	    source_coord[mu]=c[0]*glbSize[mu];
-	  }
+	using C=double[1];
+	C c;
+	field_rng_stream.drawScalar(c);
+	oriCoords[mu]=c[0]*glbSize[mu];
       }
-    else
-      source_coord=generate_random_coord();
     
-    if(stoch_source) master_printf(" source time: %d\n",source_coord[0]);
-    else             master_printf(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
+    if(stoch_source)
+      MASTER_PRINTF(" source time: %d\n",oriCoords[0]);
+    else
+      MASTER_PRINTF(" point source coords: %d %d %d %d\n",oriCoords[0],oriCoords[1],oriCoords[2],oriCoords[3]);
     if(need_photon)
       {
 	if(skip)
-	  generate_photon_source(photon_eta);
+	  generate_photon_source(*photon_eta);
 	else
 	  generate_photon_stochastic_propagator(ihit);
       }
@@ -239,6 +356,126 @@ namespace nissa
     if(nquark_lep_combos) generate_lepton_propagators();
     generate_quark_propagators(ihit);
   }
+  
+  template <typename T,
+	    SpaceTimeLayout STL,
+	    MemorySpace MS>
+  struct ReadWriteRealVector
+  {
+    LxField<T,STL,MS>& v;
+    
+    std::string path;
+    
+    FILE* fastFile;
+    
+    ReadWriteRealVector(LxField<T,STL,MS>& v,
+			const std::string& _path) :
+      v(v),
+      path(_path)
+    {
+      if(fast_read_write_vectors)
+	path+="_rank"+std::to_string(rank);
+    }
+    
+    bool canLoad() const
+    {
+      return fileExists(path);
+    }
+    
+    void fastOpen(const char* mode)
+    {
+      fastFile=fopen(path.c_str(),mode);
+      if(fastFile==nullptr)
+	CRASH("Unable to open path %s with mode %s",path.c_str(),mode);
+    }
+    
+    void cleanFiles()
+    {
+      std::filesystem::remove(path);
+    }
+    
+    void fastRead()
+    {
+      CRASH("reimplement");
+      fastOpen("r");
+      
+      // if(fread(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
+      // 	CRASH("Problem reading %s",path.c_str());
+      
+      fclose(fastFile);
+    }
+    
+    void read()
+    {
+      MASTER_PRINTF("Reading %s\n",path.c_str());
+      
+      v.template initOn<defaultMemorySpace>([this](LxField<T>& v)
+      {
+	if(fast_read_write_vectors)
+	  {
+	    CRASH("reimplement");
+	    fastOpen("r");
+	    
+	    // if(fread(v,sizeof(T),locVol,fastFile)!=locVol)
+	    //   CRASH("Problem reading %s",path.c_str());
+	    
+	    fclose(fastFile);
+	  }
+	else
+	  read_real_vector(v,path,"scidac-binary-data");
+      });
+    }
+    
+    void fastWrite()
+    {
+      CRASH("reimplement");
+      fastOpen("w");
+      
+      // if(fwrite(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
+      // 	CRASH("Problem writing %s",path.c_str());
+      
+//       size_t written=0;
+//       bool seekingError=false;
+//       const size_t totData=locVol*sizeof(T);
+// #pragma omp parallel reduction(+:written) reduction(||:seekingError)
+//       {
+// 	const size_t nThr=omp_get_num_threads();
+// 	const size_t iThr=omp_get_thread_num();
+// 	const size_t maxThrData=(totData+nThr-1)/nThr;
+// 	const size_t begData=maxThrData*iThr;
+// 	const size_t endData=std::min(begData+maxThrData,totData);
+// 	const size_t thrData=endData-begData;
+// 	seekingError|=fseek(fastFile,begData,SEEK_SET);
+// 	written+=fwrite(v,1,thrData,fastFile);
+//       }
+//       if(written!=totData or seekingError)
+// 	CRASH("Problem writing %s, total written: %zu when %zu expected, seek worked: %d",path.c_str(),written,totData,(int)seekingError);
+      
+      fclose(fastFile);
+    }
+    
+    void write()
+    {
+      MASTER_PRINTF("Writing %s, %zu %p\n",path.c_str(),sizeof(spincolor),&v);
+      
+      if(fast_read_write_vectors)
+	{
+	  fastOpen("w");
+	  if(std::remove_reference_t<decltype(v)>::spaceTimeLayout!=SpaceTimeLayout::CPU)
+	    CRASH("not supported");
+	  //hack
+	  if(fwrite(v.template getPtr<MemorySpace::CPU>(),
+		    sizeof(spincolor),
+		    locVol,
+		    fastFile)!=(size_t)locVol)
+	    CRASH("Problem writing %s",path.c_str());
+	  
+	  fclose(fastFile);
+	}
+      else
+	write_real_vector(path,v.template getSurelyReadableOn<defaultMemorySpace>(),"scidac-binary-data");
+    }
+  };
 }
 
 #undef INIT_TO

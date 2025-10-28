@@ -33,7 +33,8 @@ namespace nissa
   }
   
   //get a unique temporary filename
-  void master_get_temp_file(FILE *&fout,std::string &prefix)
+  void master_get_temp_file(FILE *&fout,
+			    std::string& prefix)
   {
     //prepare the full name
     char *buffer=strdup((prefix+"XXXXXX").c_str());
@@ -43,7 +44,7 @@ namespace nissa
     if(is_master_rank())
       {
 	fd=mkstemp(buffer);
-	if(fd==-1) crash("failed to open a temporary file with prefix %s",prefix.c_str());
+	if(fd==-1) CRASH("failed to open a temporary file with prefix %s",prefix.c_str());
 	fout=fdopen(fd,"w");
       }
     
@@ -55,14 +56,28 @@ namespace nissa
   }
   
   //only master rank and thread print
-  int master_fprintf(FILE *stream,const char *format,...)
+  int master_fprintf(FILE *stream,
+		     const char *format,
+		     ...)
   {
     int ret=0;
     
+    /// Keep track of whether to prefix the time
+    static bool printTime=true;
+    
+    const bool doPrint=
+      is_master_rank() or everyRankPrint;
+    
+    if(prepend_time and printTime and doPrint)
+      ret+=fprintf(stream,"%lg s:\t",take_time());
+    
     va_list ap;
     va_start(ap,format);
-    if(is_master_rank() && IS_MASTER_THREAD) ret=vfprintf(stream,format,ap);
+    if(doPrint)
+      ret=vfprintf(stream,format,ap);
     va_end(ap);
+    
+    printTime=(format[strlen(format)-1]=='\n');
     
     return ret;
   }
@@ -86,19 +101,20 @@ namespace nissa
   {fprintf_friendly_units(fout,quant,1024,"Bytes");}
   
   //create a dir
-  int create_dir(std::string path)
+  int create_dir(const std::string& path)
   {
     umask(0);
     int res=is_master_rank() ? mkdir(path.c_str(),0775) : 0;
     MPI_Bcast(&res,1,MPI_INT,master_rank,MPI_COMM_WORLD);
     if(res!=0)
-      master_printf("Warning, failed to create dir %s, returned %d. Check that you have permissions and that parent dir exists.\n",path.c_str(),res);
+      MASTER_PRINTF("Warning, failed to create dir %s, returned %d. Check that you have permissions and that parent dir exists.\n",path.c_str(),res);
     
     return res;
   }
   
   //copy a file
-  int cp(std::string path_out,std::string path_in)
+  int cp(const std::string& path_out,
+	 const std::string& path_in)
   {
     int rc=0;
     if(is_master_rank())
@@ -106,14 +122,14 @@ namespace nissa
 	char command[1024];
 	sprintf(command,"cp %s %s",path_in.c_str(),path_out.c_str());
 	rc=system(command);
-	if(rc!=0) crash("cp failed!");
+	if(rc!=0) CRASH("cp failed!");
       }
     
     return broadcast(rc);
   }
   
   //pass to the folder
-  int cd(std::string path)
+  int cd(const std::string& path)
   {
     int rc=0;
     if(is_master_rank())
@@ -121,14 +137,16 @@ namespace nissa
 	char command[1024];
 	sprintf(command,"cd %s",path.c_str());
 	rc=system(command);
-	if(rc!=0) crash("cd to %s failed!",path.c_str());
+	if(rc!=0) CRASH("cd to %s failed!",path.c_str());
       }
     
     return broadcast(rc);
   }
   
   //Open a file checking it
-  FILE *open_file(std::string outfile,const char *mode,int ext_rank)
+  FILE *open_file(const std::string& outfile,
+		  const char *mode,
+		  int ext_rank)
   {
     FILE *fout=NULL;
     
@@ -138,7 +156,7 @@ namespace nissa
 	else
 	  {
 	    fout=fopen(outfile.c_str(),mode);
-	    if(fout==NULL) crash("Couldn't open file: \"%s\" with mode: \"%s\"",outfile.c_str(),mode);
+	    if(fout==NULL) CRASH("Couldn't open file: \"%s\" with mode: \"%s\"",outfile.c_str(),mode);
 	  }
       }
     
@@ -146,11 +164,11 @@ namespace nissa
   }
   
   //Open a text file for output
-  FILE* open_text_file_for_output(std::string outfile)
+  FILE* open_text_file_for_output(const std::string& outfile)
   {return open_file(outfile,"w");}
   
   //Open a text file for input
-  FILE* open_text_file_for_input(std::string infile)
+  FILE* open_text_file_for_input(const std::string& infile)
   {return open_file(infile,"r");}
   
   //close an open file
@@ -158,10 +176,10 @@ namespace nissa
   {if(is_master_rank() && file!=stdout) fclose(file);}
   
   //count the number of lines in a file
-  int count_file_lines(std::string path)
+  int count_file_lines(const std::string& path)
   {
     //return -1 if file does not exist
-    if(!file_exists(path)) return -1;
+    if(!fileExists(path)) return -1;
     
     //scan the file
     FILE *fin=open_text_file_for_input(path);
@@ -179,17 +197,17 @@ namespace nissa
   }
   
   //get the size of a file
-  int get_file_size(std::string path)
+  int get_file_size(const std::string& path)
   {
     //return -1 if file does not exist
-    if(!file_exists(path)) return -1;
+    if(!fileExists(path)) return -1;
     
     //scan the file
     FILE *fin=open_text_file_for_input(path);
     int file_size=0;
     if(is_master_rank())
       {
-	if(fseek(fin,0,SEEK_END)) crash("while seeking");
+	if(fseek(fin,0,SEEK_END)) CRASH("while seeking");
 	file_size=ftell(fin);
       }
     

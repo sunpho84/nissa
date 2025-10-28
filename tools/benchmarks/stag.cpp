@@ -20,14 +20,13 @@ void analyse(double &sx,double &s2x,int nbench)
 //print the statistic
 void print_stat(const char *what,double time,int n,int flops)
 {
-  master_printf("time to %s %d times: %lg s, %lg per iter",what,n,time,time/std::max(n,1));
-  master_printf(", %lg MFlop/s\n",flops*1e-6*n/(time?time:1));
+  MASTER_PRINTF("time to %s %d times: %lg s, %lg per iter",what,n,time,time/std::max(n,1));
+  MASTER_PRINTF(", %lg MFlop/s\n",flops*1e-6*n/(time?time:1));
 }
 
 void bench_stag()
 {
-#warning
-  
+  CRASH(""); 
   // //conf
   // quad_su3 *conf[2];
   // for(int eo=0;eo<2;eo++) conf[eo]=nissa_malloc("conf",loc_volh+bord_volh,quad_su3);
@@ -58,7 +57,7 @@ void bench_stag()
   
   // RESET_TIMING(tot_comm_time,ntot_comm);
   
-  // master_printf("\n");
+  // MASTER_PRINTF("\n");
   // t=-take_time();
   // for(int ibench=0;ibench<nbench;ibench++)
   //   {
@@ -77,15 +76,15 @@ void bench_stag()
   // t+=take_time();
   
   // print_stat("apply Leb staggered operator",t,nbench,1158*loc_volh);
-  // master_printf("\n");
+  // MASTER_PRINTF("\n");
   
   // remap_Leb_ev_or_od_to_loc_vector(outrec,Lebout,EVN);
   // double_vector_subtassign((double*)outrec,(double*)out,loc_volh*sizeof(color)/sizeof(double));
   // double n2diff=double_vector_glb_norm2(outrec,loc_volh);
   // double n2=double_vector_glb_norm2(out,loc_volh);
-  // master_printf("Rel norm of the diff: %lg\n",sqrt(n2diff/n2));
+  // MASTER_PRINTF("Rel norm of the diff: %lg\n",sqrt(n2diff/n2));
   
-  // master_printf("Timing to do %d communications: %lg s, %lg each\n",ntot_comm,tot_comm_time,tot_comm_time/ntot_comm);
+  // MASTER_PRINTF("Timing to do %d communications: %lg s, %lg each\n",ntot_comm,tot_comm_time,tot_comm_time/ntot_comm);
   
   // //free
   // for(int eo=0;eo<2;eo++)
@@ -110,7 +109,8 @@ void bench_Wils()
   
   //in
   spincolor *in=nissa_malloc("in",locVol+bord_vol,spincolor);
-  generate_fully_undiluted_eo_source(in, RND_GAUSS,-1,EVN);
+  CRASH("reimplement");
+  //generate_fully_undiluted_eo_source(in, RND_GAUSS,-1,EVN);
   
   //temp and out
   spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
@@ -124,7 +124,7 @@ void bench_Wils()
   
   RESET_TIMING(tot_comm_time,ntot_comm);
   
-  master_printf("\n");
+  MASTER_PRINTF("\n");
   t=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
     {
@@ -134,7 +134,7 @@ void bench_Wils()
   t+=take_time();
   print_stat("apply tm operator",t,nbench,1158*2*locVol);
   
-  master_printf("Timing to do %d communications: %lg s, %lg each\n",ntot_comm,tot_comm_time,tot_comm_time/ntot_comm);
+  MASTER_PRINTF("Timing to do %d communications: %lg s, %lg each\n",ntot_comm,tot_comm_time,tot_comm_time/ntot_comm);
   
   //free
   nissa_free(conf);
@@ -146,13 +146,11 @@ void bench_Wils()
 
 void in_main(int narg,char **arg)
 {
-  if(narg<3) crash("Use %s L T",arg[0]);
-  
-  use_Leb_geom=1;
+  if(narg<3) CRASH("Use %s L T",arg[0]);
   
   //grid
   int L=atoi(arg[1]),T=atoi(arg[2]);
-  init_grid(T,L);
+  initGrid(T,L);
   start_loc_rnd_gen(1234);
   
   bench_stag();
@@ -161,8 +159,8 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  init_nissa_threaded(narg,arg,in_main);
-  close_nissa();
+  initNissa_threaded(narg,arg,in_main);
+  closeNissa();
   
   return 0;
 }

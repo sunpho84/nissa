@@ -1,15 +1,7 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-
-#include "base/bench.hpp"
-#include "base/debug.hpp"
-#include "base/vectors.hpp"
-#include "communicate/borders.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3_op.hpp"
 #include "rectangular_staples.hpp"
@@ -42,217 +34,280 @@ namespace nissa
   SUMM_RECT_BW_STAPLE(out[A][mu][inu],conf[D][nu],conf[D][mu],sq_staples[E][nu][3+imu],temp);  /*fw sq staple*/
   
   // 1) start communicating lower surface forward staples
-  void rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_staples(squared_staples_t *sq_staples,int thread_id)
+  std::vector<MPI_Request> rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_staples(const LxField<squared_staples_t>& sq_staples)
   {
     //copy lower surface into sending buf to be sent to dw nodes
     //obtained scanning on first half of the border, and storing them
     //in the first half of sending buf
     for(int nu=0;nu<4;nu++) //border and staple direction
-      if(paral_dir[nu])
+      if(isDirParallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
-	    int mu=perp_dir[nu][imu];
-	    int inu=(nu<mu)?nu:nu-1;
+	    const int mu=perpDirs[nu][imu];
+	    const int inu=(nu<mu)?nu:nu-1;
 	    
-	    NISSA_PARALLEL_LOOP(ibord,bord_offset[nu],bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(((quad_su3*)send_buf)[ibord][mu],sq_staples[surflxOfBordlx[ibord]][mu][3+inu]); //one contribution per link in the border
-	    NISSA_PARALLEL_LOOP_END;
+	    PAR(bordOffset[nu],
+		bordOffset[nu]+bordDirVol[nu],
+		CAPTURE(mu,
+			inu,
+			sb=(quad_su3*)sendBuf,
+			TO_READ(sq_staples)),
+		ibord,
+		{
+		  su3_copy(sb[ibord][mu],sq_staples[surflxOfBordlx[ibord]][mu][3+inu]); //one contribution per link in the border
+		});
 	  }
     
-    //finished filling
-    THREAD_BARRIER();
-    
     //start communication of lower surf to backward nodes
-    STOP_TIMING(tot_comm_time);
-    int dir_comm[8]={0,0,0,0,1,1,1,1},tot_size=bord_volh*sizeof(quad_su3);
-    comm_start(lx_quad_su3_comm,dir_comm,tot_size);
+    START_TIMING(tot_comm_time,ntot_comm);
+    const std::vector<std::pair<int,int>> dir_comm={{0,0},{0,1},{0,2},{0,3}};
+    
+    return startBufHaloNeighExchange<quad_su3>(1,dir_comm);
   }
   
   // 2) compute non_fwsurf fw staples that are always local
-  void rectangular_staples_lx_conf_compute_non_fw_surf_fw_staples(rectangular_staples_t *out,quad_su3 *conf,squared_staples_t *sq_staples,int thread_id)
+  void rectangular_staples_lx_conf_compute_non_fw_surf_fw_staples(LxField<rectangular_staples_t>& out,
+								  const LxField<quad_su3>& conf,
+								  const LxField<squared_staples_t>& sq_staples)
   {
     for(int mu=0;mu<4;mu++) //link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  int nu=perp_dir[mu][inu];
-	  int imu=(mu<nu)?mu:mu-1;
+	  const int nu=perpDirs[mu][inu];
+	  const int imu=(mu<nu)?mu:mu-1;
 	  
-	  NISSA_PARALLEL_LOOP(ibulk,0,nonFwSurfVol)
-	    {
-	      su3 temp; //three staples in clocwise order
-	      int A=loclxOfNonFwSurflx[ibulk],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
-	      COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu,temp);
-	    }
-	  NISSA_PARALLEL_LOOP_END;
+	  PAR(0,
+	      nonFwSurfVol,
+	      CAPTURE(mu,
+		      imu,
+		      inu,
+		      nu,
+		      TO_WRITE(out),
+		      TO_READ(conf),
+		      TO_READ(sq_staples)),
+	      ibulk,
+	      {
+		su3 temp; //three staples in clocwise order
+		int A=loclxOfNonFwSurflx[ibulk],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
+		COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu,temp);
+	      });
 	}
   }
   
   // 3) finish communication of lower surface fw squared staples
-  void rectangular_staples_lx_conf_finish_communicating_lower_surface_fw_squared_staples(squared_staples_t *sq_staples,int thread_id)
+  void rectangular_staples_lx_conf_finish_communicating_lower_surface_fw_squared_staples(LxField<squared_staples_t>& sq_staples,
+											 std::vector<MPI_Request>& requests)
   {
-    comm_wait(lx_quad_su3_comm);
+    waitAsyncCommsFinish(requests);
     STOP_TIMING(tot_comm_time);
     
     //copy the received forward border (stored in the second half of receiving buf) to its destination
     for(int nu=0;nu<4;nu++) //border and staple direction
-      if(paral_dir[nu])
+      if(isDirParallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
-	    int mu=perp_dir[nu][imu];
+	    int mu=perpDirs[nu][imu];
 	    int inu=(nu<mu)?nu:nu-1;
 	    
-	    NISSA_PARALLEL_LOOP(ibord,bord_volh+bord_offset[nu],bord_volh+bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(sq_staples[locVol+ibord][mu][3+inu],((quad_su3*)recv_buf)[ibord][mu]); //one contribution per link in the border
-	    NISSA_PARALLEL_LOOP_END;
+	    PAR(bordVolh+bordOffset[nu],
+		bordVolh+bordOffset[nu]+bordDirVol[nu],
+		CAPTURE(mu,
+			inu,
+			rb=(quad_su3*)recvBuf,
+			TO_WRITE(sq_staples)),
+		ibord,
+		{
+		  su3_copy(sq_staples[locVol+ibord][mu][3+inu],rb[ibord][mu]); //one contribution per link in the border
+		});
 	  }
-    
-    THREAD_BARRIER();
   }
   
   // 4) compute backward staples to be sent to up nodes and send them
-  void rectangular_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(rectangular_staples_t *out,quad_su3 *conf,squared_staples_t *sq_staples,int thread_id)
+  std::vector<MPI_Request> rectangular_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(LxField<rectangular_staples_t>& out,
+													  const LxField<quad_su3>& conf,
+													  const LxField<squared_staples_t>& sq_staples)
   {
     //compute backward staples to be sent to up nodes
     //obtained scanning D on fw_surf and storing data as they come
     for(int inu=0;inu<3;inu++) //staple direction
       for(int mu=0;mu<4;mu++) //link direction
 	{
-	  int nu=perp_dir[mu][inu];
+	  int nu=perpDirs[mu][inu];
 	  int imu=(mu<nu)?mu:mu-1;
 	  
-	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
-	    {
-	      su3 temp;
-	      int D=loclxOfFwSurflx[ifw_surf],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
-	      COMPUTE_POINT_RECT_BW_STAPLES(out,conf,sq_staples,A,D,E,imu,mu,inu,nu,temp);
-	    }
-	  NISSA_PARALLEL_LOOP_END;
+	  PAR(0,
+	      fwSurfVol,
+	      CAPTURE(mu,
+		      imu,
+		      nu,
+		      inu,
+		      TO_WRITE(out),
+		      TO_READ(conf),
+		      TO_READ(sq_staples)),
+	      ifw_surf,
+	      {
+		su3 temp;
+		int D=loclxOfFwSurflx[ifw_surf],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
+		COMPUTE_POINT_RECT_BW_STAPLES(out,conf,sq_staples,A,D,E,imu,mu,inu,nu,temp);
+	      });
 	}
-    
-    //wait that everything is computed
-    THREAD_BARRIER();
     
     //copy in send buf, obtained scanning second half of each parallelized direction external border and
     //copying the three perpendicular links staple
     for(int nu=0;nu<4;nu++) //border and staple direction
-      if(paral_dir[nu])
+      if(isDirParallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
-	    int mu=perp_dir[nu][imu];
-	    int inu=(nu<mu)?nu:nu-1;
+	    const int mu=perpDirs[nu][imu];
+	    const int inu=(nu<mu)?nu:nu-1;
 	    
-	    NISSA_PARALLEL_LOOP(ibord,bord_volh+bord_offset[nu],bord_volh+bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(((quad_su3*)send_buf)[ibord][mu],out[locVol+ibord][mu][inu]); //one contribution per link in the border
-	    NISSA_PARALLEL_LOOP_END;
+	    PAR(bordVolh+bordOffset[nu],
+		bordVolh+bordOffset[nu]+bordDirVol[nu],
+		CAPTURE(mu,
+			inu,
+			sb=(quad_su3*)sendBuf,
+			TO_WRITE(out)),
+		ibord,
+		{
+		  su3_copy(sb[ibord][mu],out[locVol+ibord][mu][inu]); //one contribution per link in the border
+		});
 	  }
-    
-    //finished filling
-    THREAD_BARRIER();
     
     //start communication of fw surf backward staples to forward nodes
     START_TIMING(tot_comm_time,ntot_comm);
-    int dir_comm[8]={1,1,1,1,0,0,0,0},tot_size=bord_volh*sizeof(quad_su3);
-    comm_start(lx_quad_su3_comm,dir_comm,tot_size);
+    const std::vector<std::pair<int,int>> dir_comm={{1,0},{1,1},{1,2},{1,3}};
+    
+    return startBufHaloNeighExchange<quad_su3>(1,dir_comm);
   }
   
   // 5) compute non_fw_surf bw staples
-  void rectangular_staples_lx_conf_compute_non_fw_surf_bw_staples(rectangular_staples_t *out,quad_su3 *conf,squared_staples_t *sq_staples,int thread_id)
+  void rectangular_staples_lx_conf_compute_non_fw_surf_bw_staples(LxField<rectangular_staples_t>& out,
+								  const LxField<quad_su3>& conf,
+								  const LxField<squared_staples_t>& sq_staples)
   {
     for(int mu=0;mu<4;mu++) //link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  int nu=perp_dir[mu][inu];
+	  int nu=perpDirs[mu][inu];
 	  int imu=(mu<nu)?mu:mu-1;
 	  
 	  //obtained scanning D on fw_surf
-	  NISSA_PARALLEL_LOOP(inon_fw_surf,0,nonFwSurfVol)
-	    {
-	      su3 temp;
-	      int D=loclxOfNonFwSurflx[inon_fw_surf],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
-	      COMPUTE_POINT_RECT_BW_STAPLES(out,conf,sq_staples,A,D,E,imu,mu,inu,nu,temp);
-	    }
-	  NISSA_PARALLEL_LOOP_END;
+	  PAR(0,
+	      nonFwSurfVol,
+	      CAPTURE(nu,
+		      inu,
+		      mu,
+		      imu,
+		      TO_READ(conf),
+		      TO_READ(sq_staples),
+		      TO_WRITE(out)),
+	      inon_fw_surf,
+	      {
+		su3 temp;
+		const int D=loclxOfNonFwSurflx[inon_fw_surf],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
+		COMPUTE_POINT_RECT_BW_STAPLES(out,conf,sq_staples,A,D,E,imu,mu,inu,nu,temp);
+	      });
 	}
   }
   
   // 6) compute fw_surf fw staples
-  void rectangular_staples_lx_conf_compute_fw_surf_fw_staples(rectangular_staples_t *out,quad_su3 *conf,squared_staples_t *sq_staples,int thread_id)
+  void rectangular_staples_lx_conf_compute_fw_surf_fw_staples(LxField<rectangular_staples_t>& out,
+							      const LxField<quad_su3>& conf,
+							      const LxField<squared_staples_t>& sq_staples)
   {
     for(int mu=0;mu<4;mu++) //link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  int nu=perp_dir[mu][inu];
+	  int nu=perpDirs[mu][inu];
 	  int imu=(mu<nu)?mu:mu-1;
 	  
 	  //obtained looping A on forward surface
-	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
-	    {
-	      su3 temp;
-	      int A=loclxOfFwSurflx[ifw_surf],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
-	      COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu,temp);
-	    }
-	  NISSA_PARALLEL_LOOP_END;
+	  PAR(0,
+	      fwSurfVol,
+	      CAPTURE(inu,
+		      nu,
+		      imu,
+		      mu,
+		      TO_WRITE(out),
+		      TO_READ(conf),
+		      TO_READ(sq_staples)),
+	      ifw_surf,
+	      {
+		su3 temp;
+		int A=loclxOfFwSurflx[ifw_surf],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
+		COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu,temp);
+	      });
 	}
   }
   
   // 7) finish communication of fw_surf bw staples
-  void rectangular_staples_lx_conf_finish_communicating_fw_surf_bw_staples(rectangular_staples_t *out,int thread_id)
+  void rectangular_staples_lx_conf_finish_communicating_fw_surf_bw_staples(LxField<rectangular_staples_t>& out,
+									   std::vector<MPI_Request> requests)
   {
-    comm_wait(lx_quad_su3_comm);
+    waitAsyncCommsFinish(requests);
     STOP_TIMING(tot_comm_time);
     
     //copy the received backward staples (stored on first half of receiving buf) on bw_surf sites
     for(int nu=0;nu<4;nu++) //staple and fw bord direction
-      if(paral_dir[nu])
+      if(isDirParallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
-	    int mu=perp_dir[nu][imu];
-	    int inu=(nu<mu)?nu:nu-1;
+	    const int mu=perpDirs[nu][imu];
+	    const int inu=(nu<mu)?nu:nu-1;
 	    
-	    NISSA_PARALLEL_LOOP(ibord,bord_offset[nu],bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(out[surflxOfBordlx[ibord]][mu][inu],((quad_su3*)recv_buf)[ibord][mu]);//one contribution per link in the border
-	    NISSA_PARALLEL_LOOP_END;
+	    PAR(bordOffset[nu],
+		bordOffset[nu]+bordDirVol[nu],
+		CAPTURE(mu,
+			inu,
+			rb=(quad_su3*)recvBuf,
+			TO_WRITE(out)),
+		ibord,
+		{
+		  su3_copy(out[surflxOfBordlx[ibord]][mu][inu],rb[ibord][mu]);//one contribution per link in the border
+		});
 	  }
-    
-    THREAD_BARRIER();
   }
   
   //compute rectangular staples overlapping computation and communications, and avoiding using edges
-  void compute_rectangular_staples_lx_conf(rectangular_staples_t* out,quad_su3* conf,squared_staples_t* sq_staples)
+  void compute_rectangular_staples_lx_conf(LxField<rectangular_staples_t>& out,
+					   const LxField<quad_su3>& conf,
+					   const LxField<squared_staples_t>& sq_staples)
   {
-    
     //compute non_fw_surf fw staples
-    rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_staples(sq_staples,THREAD_ID);
-    rectangular_staples_lx_conf_compute_non_fw_surf_fw_staples(out,conf,sq_staples,THREAD_ID);
-    rectangular_staples_lx_conf_finish_communicating_lower_surface_fw_squared_staples(sq_staples,THREAD_ID);
+    std::vector<MPI_Request> bwRequests=
+      rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_staples(sq_staples);
+    rectangular_staples_lx_conf_compute_non_fw_surf_fw_staples(out,conf,sq_staples); //nasty
+    rectangular_staples_lx_conf_finish_communicating_lower_surface_fw_squared_staples(const_cast<LxField<squared_staples_t>&>(sq_staples),bwRequests);
     
     //compute fw_surf bw staples, non_fw_surf bw staples and fw_surf fw staples
-    rectangular_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(out,conf,sq_staples,THREAD_ID);
-    rectangular_staples_lx_conf_compute_non_fw_surf_bw_staples(out,conf,sq_staples,THREAD_ID);
-    rectangular_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,sq_staples,THREAD_ID);
-    rectangular_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,THREAD_ID);
-    
-    THREAD_BARRIER();
+    std::vector<MPI_Request> fwRequests=
+      rectangular_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(out,conf,sq_staples);
+    rectangular_staples_lx_conf_compute_non_fw_surf_bw_staples(out,conf,sq_staples);
+    rectangular_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,sq_staples);
+    rectangular_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,fwRequests);
   }
   
   //summ everything together
-  void compute_summed_rectangular_staples_lx_conf(quad_su3* out,quad_su3* conf,squared_staples_t* squared_staples)
+  void compute_summed_rectangular_staples_lx_conf(LxField<quad_su3>& out,
+						  const LxField<quad_su3>& conf,
+						  const LxField<squared_staples_t>& sq_staples)
   {
+    LxField<rectangular_staples_t> rectangular_staples("rectangular_staples",WITH_HALO);
     
-    //compute pieces
-    rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",locVol+bord_vol,rectangular_staples_t);
-    compute_rectangular_staples_lx_conf(rectangular_staples,conf,squared_staples);
+    compute_rectangular_staples_lx_conf(rectangular_staples,conf,sq_staples);
     
     //summ
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<4;mu++)
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(out),
+		TO_READ(rectangular_staples)),
+	ivol,
 	{
-	  su3_copy(out[ivol][mu],rectangular_staples[ivol][mu][0]);
-	  for(int iterm=1;iterm<6;iterm++)
-	    su3_summassign(out[ivol][mu],rectangular_staples[ivol][mu][iterm]);
-	}
-    NISSA_PARALLEL_LOOP_END;
-    
-    nissa_free(rectangular_staples);
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      su3_copy(out[ivol][mu],rectangular_staples[ivol][mu][0]);
+	      for(int iterm=1;iterm<2*(NDIM-1);iterm++)
+		su3_summassign(out[ivol][mu],rectangular_staples[ivol][mu][iterm]);
+	    }
+	});
   }
 }

@@ -2,7 +2,6 @@
 #define _GLUONIC_ACTION_HPP
 
 #include "base/debug.hpp"
-#include "routines/ios.hpp"
 
 #include "Symanzik_action.hpp"
 #include "Wilson_action.hpp"
@@ -25,7 +24,7 @@ namespace nissa
     while(iact<nact_known && strcasecmp(name,name_known[iact])!=0) iact++;
     
     //check
-    if(iact==nact_known) crash("unknown gauge action: %s",name);
+    if(iact==nact_known) CRASH("unknown gauge action: %s",name);
     
     return act_known[iact];
   }
@@ -37,24 +36,45 @@ namespace nissa
     
     switch(name)
       {
-      case WILSON_GAUGE_ACTION:res="Wilson";break;
-      case TLSYM_GAUGE_ACTION:res="tlSym";break;
-      case IWASAKI_GAUGE_ACTION:res="Iwasaki";break;
-      default:res="Unknown";
+      case WILSON_GAUGE_ACTION:
+	res="Wilson";
+	break;
+      case TLSYM_GAUGE_ACTION:
+	res="tlSym";
+	break;
+      case IWASAKI_GAUGE_ACTION:
+	res="Iwasaki";
+	break;
+      default:
+	res="Unknown";
       }
     
     return res;
   }
   
-  template <class T> void gluonic_action(double *gluon_action,T conf,gauge_action_name_t gauge_action_name,double beta)
+  template <class T>
+  double gluonic_action(T&& conf,
+			const gauge_action_name_t& gauge_action_name,
+			const double& beta)
   {
+    double gluon_action;
+    
     switch(gauge_action_name)
       {
-      case WILSON_GAUGE_ACTION:Wilson_action(gluon_action,conf,beta);break;
-      case TLSYM_GAUGE_ACTION:tlSym_action(gluon_action,conf,beta);break;
-      case IWASAKI_GAUGE_ACTION:Iwasaki_action(gluon_action,conf,beta);break;
-      default:crash("Unknown action");
+      case WILSON_GAUGE_ACTION:
+	gluon_action=Wilson_action(conf,beta);
+	break;
+      case TLSYM_GAUGE_ACTION:
+	gluon_action=tlSym_action(conf,beta);
+	break;
+      case IWASAKI_GAUGE_ACTION:
+	gluon_action=Iwasaki_action(conf,beta);
+	break;
+      default:
+	CRASH("Unknown action");
       }
+    
+    return gluon_action;
   }
 }
 

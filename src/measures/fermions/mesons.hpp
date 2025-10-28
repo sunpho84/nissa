@@ -6,34 +6,80 @@
 
 namespace nissa
 {
-  struct meson_corr_meas_pars_t : base_fermionic_meas_t
+  struct meson_corr_meas_pars_t :
+    base_fermionic_meas_t
   {
-    std::vector<std::pair<int,int> > mesons;
+    std::vector<std::pair<int,int>> mesons;
+    
     int dir;
+    
+    /// Time direction by defaul
+    int def_dir() const
+    {
+      return 0;
+    }
+    
+    std::string def_path() const
+    {
+      return "meson_corrs";
+    }
+    
+    int master_fprintf(FILE *fout,
+		       const bool& full=false)
+    {
+      return nissa::master_fprintf(fout,"%s",get_str().c_str());
+    }
+    
+    std::string get_str(const bool& full=false) const
+    {
+      std::ostringstream os;
+      
+      os<<"MeasMesonCorrs\n";
+      os<<base_fermionic_meas_t::get_str(full);
 
-    std::string def_path(){return "meson_corrs";}
-    int def_dir(){return 0;} // time direction by defaul
+      if(dir!=def_dir() or full)
+	os<<" Dir\t\t=\t"<<dir<<"\n";
+      
+      if(mesons.size() or full)
+	{
+	  os<<" Operators\t=\t{";
+	  for(size_t i=0;i<mesons.size();i++)
+	    {
+	      os<<"("<<mesons[i].first<<","<<mesons[i].second<<")";
+	      if(i!=mesons.size()-1) os<<",";
+	    }
+	  os<<"}\n";
+	}
+      
+      return os.str();
+    }
     
-    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(bool full=false);
-    
-    int is_nonstandard()
+    int is_nonstandard() const
     {
       return
 	base_fermionic_meas_t::is_nonstandard() or
 	mesons.size() or
-  dir!=def_dir() or
+	dir!=def_dir() or
 	path!=def_path();
     }
     
     meson_corr_meas_pars_t() :
       base_fermionic_meas_t(),
       dir(def_dir())
-      {path=def_path();}
-      virtual ~meson_corr_meas_pars_t(){}
+    {
+      path=def_path();
+    }
+    
+    virtual ~meson_corr_meas_pars_t()
+    {
+    }
   };
   
-  void measure_meson_corr(eo_ptr<quad_su3> conf,theory_pars_t &tp,meson_corr_meas_pars_t &pars,int iconf,int conf_created);
+  void measure_meson_corr(const EoField<quad_su3>& conf,
+			  const theory_pars_t& tp,
+			  const meson_corr_meas_pars_t& pars,
+			  const int& iconf,
+			  const int& conf_created);
 }
 
 #endif

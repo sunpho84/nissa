@@ -25,7 +25,7 @@ smooth_pars_t::method_t smooth_method_name_from_str(const char *name)
   while(imet<nmet_known && strcasecmp(name,name_known[imet])!=0) imet++;
   
   //check
-  if(imet==nmet_known) crash("unknown smoothing method: %s",name);
+  if(imet==nmet_known) CRASH("unknown smoothing method: %s",name);
   
   return met_known[imet];
 }
@@ -55,11 +55,11 @@ void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
         case smooth_pars_t::COOLING: read_cool_pars(smooth_pars.cool);break;
         case smooth_pars_t::STOUT: read_stout_pars(smooth_pars.stout);break;
         case smooth_pars_t::WFLOW: read_Wflow_pars(smooth_pars.Wflow);break;
-        default: crash("should not arrive here");break;
+        default: CRASH("should not arrive here");break;
         }
       read_str_int("MeasEach",&smooth_pars.meas_each_nsmooth);
       if((smooth_pars.method==smooth_pars_t::COOLING||smooth_pars.method==smooth_pars_t::STOUT)&&fabs(smooth_pars.meas_each_nsmooth-int(smooth_pars.meas_each_nsmooth))>=1.e-14)
-        crash("MeasEach must be integer if Cooling or Stouting method selected");
+        CRASH("MeasEach must be integer if Cooling or Stouting method selected");
     }
 }
 
@@ -74,23 +74,26 @@ void read_top_meas_pars(top_meas_pars_t &pars,int flag=false)
     }
 }
 
-void unitarize_conf_max(quad_su3* conf)
+void unitarize_conf_max(LxField<quad_su3>& conf)
 {
-  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    for(int idir=0;idir<4;idir++)
+  PAR(0,locVol,
+      CAPTURE(TO_WRITE(conf)),
+      ivol,
       {
-	su3 t;
-	su3_unitarize_orthonormalizing(t,conf[ivol][idir]);
-	su3_copy(conf[ivol][idir],t);
-      }
-  NISSA_PARALLEL_LOOP_END;
-  set_borders_invalid(conf);
+	for(int idir=0;idir<4;idir++)
+	  {
+	    su3 t;
+	    su3_unitarize_orthonormalizing(t,conf[ivol][idir]);
+	    su3_copy(conf[ivol][idir],t);
+	  }
+      });
 }
 
-
-void in_main(int narg,char **arg)
+int main(int narg,char **arg)
 {
-  if(narg<2) crash("use: %s input",arg[0]);
+  initNissa(narg,arg);
+  
+  if(narg<2) CRASH("use: %s input",arg[0]);
   
   //open input file
   open_input(arg[1]);
@@ -99,7 +102,7 @@ void in_main(int narg,char **arg)
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
-  init_grid(T,L);
+  initGrid(T,L);
   
   //read in and out conf path
   char conf_path[1024];
@@ -111,7 +114,7 @@ void in_main(int narg,char **arg)
   
   //////////////////////////// read the conf /////////////////////////////
   
-  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
+  LxField<quad_su3> conf("conf",WITH_HALO_EDGES);
   
   //read the conf and write plaquette
   ILDG_message mess;
@@ -119,16 +122,12 @@ void in_main(int narg,char **arg)
   read_ildg_gauge_conf(conf,conf_path,&mess);
   unitarize_conf_max(conf);
   
-  measure_topology_lx_conf(top_meas_pars,conf,0,0,false);
+  CRASH("reimplement");
+  //measure_topology_lx_conf(top_meas_pars,conf,0,0,false);
   
-  nissa_free(conf);
   ILDG_message_free_all(&mess);
-}
-
-int main(int narg,char **arg)
-{
-  init_nissa_threaded(narg,arg,in_main);
-  close_nissa();
+  
+  closeNissa();
   
   return 0;
 }

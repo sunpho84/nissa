@@ -109,7 +109,7 @@ namespace nissa
 #ifdef COMPILING_FOR_DEVICE
 	      __trap();
 #else
-	      crash("%lg",rotating_norm);
+	      CRASH("%lg",rotating_norm);
 #endif
 	  }
       }
@@ -121,11 +121,11 @@ namespace nissa
   //unitarize returning (VV^\dagger)^(-1/2)*V hep-lat/0610092
   void su3_unitarize_with_sqrt(su3 out,const su3 in)
   {
-#ifdef USE_EIGEN_EVERYWHERE
+#ifdef USE_EIGEN
     esu3_t ein=SU3_ECAST(in);
     SU3_ECAST(out)=SelfAdjointEigenSolver<esu3_t>(ein*ein.adjoint()).operatorInverseSqrt()*ein;
 #else
-    crash("need eigen");
+    CRASH("need eigen");
 #endif
   }
   
@@ -188,126 +188,34 @@ namespace nissa
   //exact exponential of i times the *****passed hermitian matrix Q*****
   //algorithm taken from hep­lat/0311018
   //the stored f are relative to c0
-  CUDA_HOST_AND_DEVICE void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,const su3 Q)
+  CUDA_HOST_AND_DEVICE void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,
+								       const su3& Q)
   {
     //copy Q
     su3_copy(out.Q,Q);
     
-    //compute the real part of the determinant (eq. 14)
-    double c0=out.c0=su3_real_det(Q);
-    
-    //takes the square of Q
-    unsafe_su3_prod_su3(out.Q2,Q,Q);
-    
-    //takes 1/2 of the real part of the trace of Q2 (eq. 15)
-    double c1=out.c1=su3_real_trace(out.Q2)/2;
-    //compute c0_max (eq. 17)
-    double c0_max=2*pow(c1/3,1.5);
-    
-    //consider the case in which c1<4*10^-3 apart, as done in MILC
-    if(c1<4e-3)
-      {
-	out.f[0][RE]=1-c0*c0/720;
-	out.f[0][IM]=-c0*(1-c1*(1-c1/42)/20)/6;
-	out.f[1][RE]=c0*(1-c1*(1-3*c1/112)/15)/24;
-	out.f[1][IM]=1-c1*(1-c1*(1-c1/42)/20)/6-c0*c0/5040;
-	out.f[2][RE]=0.5*(-1+c1*(1-c1*(1-c1/56)/30)/12+c0*c0/20160);
-	out.f[2][IM]=0.5*(c0*(1-c1*(1-c1/48)/21)/60);
-      }
-    else
-      {
-	//take c0 module and write separately its sign (see note after eq. 34)
-	out.sign=0;
-	if(c0<0)
-	  {
-	    out.sign=1;
-	    c0=-c0;
-	  }
-	
-	//check rounding error
-	double eps=(c0_max-c0)/c0_max;
-	
-	//(eqs. 23-24)
-	double theta;
-	if(eps<0) theta=out.theta=0; //only possible as an effect of rounding error when c0/c0_max=1
-	else
-	  if(eps<1e-3) theta=out.theta=sqrt(2*eps)*(1+(1.0/12+(3.0/160+(5.0/896+(35.0/18432+63.0/90112*eps)*eps)*eps)*eps)*eps);
-	  else theta=out.theta=acos(c0/c0_max);
-	double u=out.u=sqrt(c1/3)*cos(theta/3);
-	double w=out.w=sqrt(c1)*sin(theta/3);
-	
-	//auxiliary variables for the computation of h0, h1, h2
-	double u2=u*u,w2=w*w,u2mw2=u2-w2,w2p3u2=w2+3*u2,w2m3u2=w2-3*u2;
-	double cu=out.cu=cos(u),c2u=out.c2u=cos(2*u);
-	double su=out.su=sin(u),s2u=out.s2u=sin(2*u);
-	double cw=out.cw=cos(w);
-	
-	//compute xi function defined after (eq. 33)
-	double xi0w;
-	if(fabs(w)<0.05)
-	  {
-	    double temp0=w*w,temp1=1-temp0/42,temp2=1.0-temp0/20*temp1;
-	    xi0w=1-temp0/6*temp2;
-	  }
-	else xi0w=sin(w)/w;
-	out.xi0w=xi0w;
-	
-	//computation of h0, h1, h2 (eqs. 30-32)
-	complex h0={
-	  u2mw2*c2u+ //(u2-w2)*cos(2u)
-	  cu*8*u2*cw+ //cos(u)*8*u2*cos(w)
-	  2*su*u*w2p3u2*xi0w, //sin(u)*2*mu*(3*u2+w2)*xi0(w)
-	  u2mw2*s2u+ //(u2-w2)*sin(2u)
-	  -su*8*u2*cw+ //-sin(u)*8*u2*cos(w)
-	  cu*2*u*w2p3u2*xi0w}; //cos(u)*2*u*(3*u2+w2)*xi0(w)
-	complex h1={
-	  2*u*c2u+ //2*u*cos(2u)
-	  -cu*2*u*cw+ //cos(u)*2*u*cos(w)
-	  -su*w2m3u2*xi0w, //sin(u)*(u2-3*w2)*xi0(w)
-	  2*u*s2u+ //2*u*sin(2u)
-	  su*2*u*cos(w)+ //sin(u)*2*u*cos(w)
-	  -cu*w2m3u2*xi0w};//cos(u)*(3*u2-w2)*xi0(w)
-	complex h2={
-	  c2u+ //cos(2u)
-	  -cu*cw+ //-cos(u)*cos(w)
-	  -3*su*u*xi0w, //-3*sin(u)*u*xi0(w)
-	  s2u+ //sin(2u)
-	  su*cw+ //sin(w)*cos(w)
-	  -cu*3*u*xi0w};//-cos(u)*3*u*xi0(w)
-	
-	//build f (eq. 29)
-	double fact=1/(9*u*u-w*w);
-	complex_prod_double(out.f[0],h0,fact);
-	complex_prod_double(out.f[1],h1,fact);
-	complex_prod_double(out.f[2],h2,fact);
-	
-	//change sign to f according to (eq. 34)
-	if(out.sign!=0)
-	  {
-	    out.f[0][IM]*=-1;
-	    out.f[1][RE]*=-1;
-	    out.f[2][IM]*=-1;
-	  }
-      }
   }
   
   //return a cooled copy of the passed link
   void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,int par,int ieo,int mu)
     {
-    //compute the staple
-    su3 staple;
-    compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
+      CRASH("reimplement");//link failing
+    //   //compute the staple
+    // su3 staple;
+    // compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
     
-    //find the link that maximize the plaquette
-    su3_unitarize_maximal_trace_projecting(u,staple);
+    // //find the link that maximize the plaquette
+    // su3_unitarize_maximal_trace_projecting(u,staple);
   }
+  
   inline void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,int ivol,int mu)
   {
-    //compute the staple
-    su3 staple;
-    compute_point_summed_squared_staples_lx_conf_single_dir(staple,lx_conf,ivol,mu);
+    CRASH("reimplement");
+    // //compute the staple
+    // su3 staple;
+    // compute_point_summed_squared_staples_lx_conf_single_dir(staple,lx_conf,ivol,mu);
     
-    //find the link that maximize the plaquette
-    su3_unitarize_maximal_trace_projecting(u,staple);
+    // //find the link that maximize the plaquette
+    // su3_unitarize_maximal_trace_projecting(u,staple);
   }
 }

@@ -45,10 +45,10 @@ int compute_allocable_propagators(int nprop_list,int nch_contr)
   if(nch_contr>0)
     {
       temp_conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+bord_vol+edge_vol));
-      if(temp_conf==NULL) crash("Unable to allocate the space for the gauge configuration!");
+      if(temp_conf==NULL) CRASH("Unable to allocate the space for the gauge configuration!");
       
       temp_clov=(as2t_su3*)malloc(sizeof(as2t_su3)*loc_vol);
-      if(temp_clov==NULL) crash("Unable to allocate the space for the P_munu term!");
+      if(temp_clov==NULL) CRASH("Unable to allocate the space for the P_munu term!");
     }
   
   colorspinspin *fuf=NULL;
@@ -57,8 +57,8 @@ int compute_allocable_propagators(int nprop_list,int nch_contr)
   else nmin_req=3;
   fuf=(colorspinspin*)malloc(nmin_req*sizeof(colorspinspin)*loc_vol);
   
-  if(fuf==NULL) crash("Error: not enough memory for %d propagators",nmin_req);
-  else master_printf("Ok there is enough memory to load %d propagators\n",nmin_req);
+  if(fuf==NULL) CRASH("Error: not enough memory for %d propagators",nmin_req);
+  else MASTER_PRINTF("Ok there is enough memory to load %d propagators\n",nmin_req);
   
   free(fuf);
   
@@ -74,7 +74,7 @@ int compute_allocable_propagators(int nprop_list,int nch_contr)
   
   free(fuf);
   
-  master_printf("Will allocate %d propagators from a list with %d propagators\n",nprop_max,nprop_list);
+  MASTER_PRINTF("Will allocate %d propagators from a list with %d propagators\n",nprop_max,nprop_list);
   
   if(nch_contr>0)
     {
@@ -171,20 +171,20 @@ int main(int narg,char **arg)
   double tot_contract_time=0;
 
   //Basic mpi initialization
-  init_nissa();
+  initNissa();
   
   //Init timinig
   double tot_time=-take_time();
   
   //Open input file
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   open_input(arg[1]);
   
   //Init the MPI grid 
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
-  init_grid(T,L);
+  initGrid(T,L);
   
   //Read the time location of the source
   int twall;
@@ -193,7 +193,7 @@ int main(int narg,char **arg)
   //Read the number of propagators of the first list
   int nprop_list1;
   read_str_int("NPropFirstlist",&nprop_list1);
-  master_printf("Nprop of the first list: %d\n",nprop_list1);
+  MASTER_PRINTF("Nprop of the first list: %d\n",nprop_list1);
   
   //Read the name, mass, theta and other flags for the first list
   char **base_filename1=nissa_malloc("base_filename1*",nprop_list1,char*);
@@ -210,13 +210,13 @@ int main(int narg,char **arg)
       read_int(&(phys_prop1[iprop]));
       read_int(&(r_prop1[iprop]));
 
-      master_printf(" prop.%d %s, m=%f th=%f phys=%d r=%d\n",iprop,base_filename1[iprop],mass_prop1[iprop],theta_prop1[iprop],phys_prop1[iprop],r_prop1[iprop]);
+      MASTER_PRINTF(" prop.%d %s, m=%f th=%f phys=%d r=%d\n",iprop,base_filename1[iprop],mass_prop1[iprop],theta_prop1[iprop],phys_prop1[iprop],r_prop1[iprop]);
     }
       
   //Read the number of propagators of the second list
   int nprop_list2;
   read_str_int("NPropSecondlist",&nprop_list2);
-  master_printf("Nprop of the second list: %d\n",nprop_list2);
+  MASTER_PRINTF("Nprop of the second list: %d\n",nprop_list2);
   
   //Read the name, mass, theta and other flags for the second list
   char **base_filename2=nissa_malloc("base_filename2*",nprop_list2,char*);
@@ -233,17 +233,17 @@ int main(int narg,char **arg)
       read_int(&(phys_prop2[iprop]));
       read_int(&(r_prop2[iprop]));
 
-      master_printf(" prop.%d %s, m=%f th=%f phys=%d r=%d\n",iprop,base_filename2[iprop],mass_prop2[iprop],theta_prop2[iprop],phys_prop2[iprop],r_prop2[iprop]);
+      MASTER_PRINTF(" prop.%d %s, m=%f th=%f phys=%d r=%d\n",iprop,base_filename2[iprop],mass_prop2[iprop],theta_prop2[iprop],phys_prop2[iprop],r_prop2[iprop]);
     }
       
   //Read the number of contractions
   int ncontr;
   read_str_int("NContr",&ncontr);
-  master_printf("Number of contractions: %d\n",ncontr);
+  MASTER_PRINTF("Number of contractions: %d\n",ncontr);
 
   //Initialize the list of correlations and the list of operators
   //contiguous allocation
-  master_printf("%d\n",glb_size[0]);
+  MASTER_PRINTF("%d\n",glb_size[0]);
   complex *contr=nissa_malloc("contr",ncontr*glb_size[0],complex);
   int *op1=nissa_malloc("op1",ncontr,int);
   int *op2=nissa_malloc("op2",ncontr,int);
@@ -253,13 +253,13 @@ int main(int narg,char **arg)
       read_int(&(op1[icontr]));
       read_int(&(op2[icontr]));
 
-      master_printf(" contr.%d %d %d\n",icontr,op1[icontr],op2[icontr]);
+      MASTER_PRINTF(" contr.%d %d %d\n",icontr,op1[icontr],op2[icontr]);
     }
   
   //Read the number of contractions with insertion of the chromo-magnetic operator
   int nch_contr;
   read_str_int("NChromoContr",&nch_contr);
-  master_printf("Number of chromo-contractions: %d\n",nch_contr);
+  MASTER_PRINTF("Number of chromo-contractions: %d\n",nch_contr);
   
   //Initialize the list of chromo correlations and the list of operators
   //contiguous allocation
@@ -272,7 +272,7 @@ int main(int narg,char **arg)
       read_int(&(ch_op1[ich_contr]));
       read_int(&(ch_op2[ich_contr]));
       
-      master_printf(" chromo contr.%d %d %d\n",ich_contr,ch_op1[ich_contr],ch_op2[ich_contr]);
+      MASTER_PRINTF(" chromo contr.%d %d %d\n",ich_contr,ch_op1[ich_contr],ch_op2[ich_contr]);
     }
   
   //Read the location of the gauge configuration if needed
@@ -317,7 +317,7 @@ int main(int narg,char **arg)
   
       read_ildg_gauge_conf(gauge_conf,gaugeconf_file);
       
-      master_printf("plaq: %.10g\n",global_plaquette_lx_conf(gauge_conf));
+      MASTER_PRINTF("plaq: %.10g\n",global_plaquette_lx_conf(gauge_conf));
       
       Pmunu_term(Pmunu,gauge_conf);
       nissa_free(gauge_conf);
@@ -332,14 +332,14 @@ int main(int narg,char **arg)
       int iblock_last=min_int((iblock+1)*nprop_per_block,nprop_list1);
       int iblock_length=iblock_last-iblock_first;
       
-      master_printf("Block %d/%d length: %d\n",iblock+1,nblocks,iblock_length);
+      MASTER_PRINTF("Block %d/%d length: %d\n",iblock+1,nblocks,iblock_length);
       
       //now read the whole first block
       for(int iprop1=0;iprop1<iblock_length;iprop1++)
       {
 	int counter=iblock_first+iprop1;
 	
-	master_printf("Going to read propagator %d/%d: %s\n",iprop1+1,iblock_length,base_filename1[counter]);
+	MASTER_PRINTF("Going to read propagator %d/%d: %s\n",iprop1+1,iblock_length,base_filename1[counter]);
 	tot_reading_time-=take_time();
 	read_colorspinspin(spinor1[iprop1],base_filename1[counter],NULL);
 	tot_reading_time+=take_time();
@@ -359,13 +359,13 @@ int main(int narg,char **arg)
 	      if(strcmp(base_filename1[counter],base_filename2[iprop2])==0)
 		{
 		  spinor2_ptr=spinor1[iprop1];
-		  master_printf("Propagator %s found in the position %d of the first list\n",base_filename2[iprop2],counter);
+		  MASTER_PRINTF("Propagator %s found in the position %d of the first list\n",base_filename2[iprop2],counter);
 		}
 	    }
 	  //if not found in the first list, load it
 	  if(spinor2_ptr==spinor2)
 	    {
-	      master_printf("Going to read propagator %d/%d: %s\n",iprop2+1,nprop_list2,base_filename2[iprop2]);
+	      MASTER_PRINTF("Going to read propagator %d/%d: %s\n",iprop2+1,nprop_list2,base_filename2[iprop2]);
 	      tot_reading_time-=take_time();
 	      read_colorspinspin(spinor2,base_filename2[iprop2],NULL);
 	      tot_reading_time+=take_time();
@@ -383,7 +383,7 @@ int main(int narg,char **arg)
 	      if(rank==0)
 		fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass_prop1[counter],theta_prop1[counter],r_prop1[counter],mass_prop2[iprop2],theta_prop2[iprop2],r_prop2[iprop2]);
 
-	      master_printf("Going to perform (prop%d,prop%d) contractions\n",iprop1+1,iprop2+1);
+	      MASTER_PRINTF("Going to perform (prop%d,prop%d) contractions\n",iprop1+1,iprop2+1);
 	      tot_contract_time-=take_time();
 	      meson_two_points(contr,op1,spinor1[iprop1],op2,spinor2_ptr,ncontr,phys_prop1[counter],r_prop1[counter],phys_prop2[iprop2],r_prop2[iprop2]);
 
@@ -406,10 +406,10 @@ int main(int narg,char **arg)
   
   //take final time
   tot_time+=take_time();
-  master_printf("\nTotal time elapsed: %f s of which:\n",tot_time);
-  master_printf(" - %f s (%2.2f/100) to read %d propagators  (aver. %f s/prop) s\n",
+  MASTER_PRINTF("\nTotal time elapsed: %f s of which:\n",tot_time);
+  MASTER_PRINTF(" - %f s (%2.2f/100) to read %d propagators  (aver. %f s/prop) s\n",
 		tot_reading_time,tot_reading_time/tot_time*100,tot_prop_read,tot_reading_time/tot_prop_read);
-  master_printf(" - %f s (%2.2f/100) to make %d contractions (aver. %f s/contr) s\n",
+  MASTER_PRINTF(" - %f s (%2.2f/100) to make %d contractions (aver. %f s/contr) s\n",
 		tot_contract_time,tot_contract_time/tot_time*100,tot_contr,tot_contract_time/tot_contr);
   
   ///////////////////////////////////////////
@@ -447,9 +447,9 @@ int main(int narg,char **arg)
   nissa_free(op1);
   nissa_free(op2);
   
-  master_printf("\nEverything ok, exiting!\n");
+  MASTER_PRINTF("\nEverything ok, exiting!\n");
   
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

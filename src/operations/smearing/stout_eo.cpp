@@ -1,196 +1,244 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
-
-#include <math.h>
-#include <complex>
 
 #include "operations/su3_paths/plaquette.hpp"
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"
-#include "base/vectors.hpp"
-#include "communicate/edges.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "linalgs/linalgs.hpp"
-#include "new_types/complex.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 #include "stout.hpp"
 
 namespace nissa
 {
-  //compute the staples for the link U_A_mu weighting them with rho
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,eo_ptr<quad_su3> conf,int p,int A,int mu,double rho)
-  {
-    //put staples to zero
-    su3_put_to_zero(staples);
-    
-    //summ the 6 staples, each weighted with rho (eq. 1)
-    su3 temp1,temp2;
-    for(int nu=0;nu<4;nu++)                   //  E---F---C
-      if(nu!=mu)                              //  |   |   | mu
-	{                                     //  D---A---B
-	  int B=loceo_neighup[p][A][nu];      //        nu
-	  int F=loceo_neighup[p][A][mu];
-	  unsafe_su3_prod_su3(    temp1,conf[p][A][nu],conf[!p][B][mu]);
-	  unsafe_su3_prod_su3_dag(temp2,temp1,         conf[!p][F][nu]);
-	  su3_summ_the_prod_double(staples,temp2,rho);
-	  
-	  int D=loceo_neighdw[p][A][nu];
-	  int E=loceo_neighup[!p][D][mu];
-	  unsafe_su3_dag_prod_su3(temp1,conf[!p][D][nu],conf[!p][D][mu]);
-	  unsafe_su3_prod_su3(    temp2,temp1,          conf[ p][E][nu]);
-	  su3_summ_the_prod_double(staples,temp2,rho);
-	}
-  }
-  
-  //compute the parameters needed to smear a link, that can be used to smear it or to compute the
-  
-  //partial derivative of the force
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,eo_ptr<quad_su3> conf,int p,int A,int mu,double rho)
-  {
-    //compute the staples
-    stout_smear_compute_weighted_staples(out->C,conf,p,A,mu,rho);
-    
-    //build Omega (eq. 2.b)
-    unsafe_su3_prod_su3_dag(out->Omega,out->C,conf[p][A][mu]);
-    
-    //compute Q (eq. 2.a)
-    su3 iQ;
-    unsafe_su3_traceless_anti_hermitian_part(iQ,out->Omega);
-    su3_prod_idouble(out->Q,iQ,-1);
-  }
-  
   //smear the configuration according to Peardon paper
-  void stout_smear_single_level(eo_ptr<quad_su3> out,eo_ptr<quad_su3> in,double rho,const which_dir_t& dirs)
+  void stout_smear_single_level(EoField<quad_su3>& out,
+				const EoField<quad_su3>& in,
+				const double& rho,
+				const WhichDirs& dirs)
   {
-    
     START_TIMING(sto_time,nsto);
     
-    if(in==out) crash("in==out");
-    communicate_eo_quad_su3_edges((eo_ptr<quad_su3>)in);
+    if(in==out) CRASH("in==out");
     
-    //allocate a temporary conf if going to smear iteratively or out==ext_in
+    in.updateEdges();
     
-    for(int p=0;p<2;p++)
+    VERBOSITY_LV2_MASTER_PRINTF("Stouting dirs: %d %d %d %d with rho=%lg\n",dirs[0],dirs[1],dirs[2],dirs[3],rho);
+    
+    // MASTER_PRINTF("Test, in 1:\n");
+    // for(int par=0;par<1;par++)
+    //   for(int mu=0;mu<1;mu++)
+    // 	{
+    // 	  MASTER_PRINTF("par %d mu %d\n",par,mu);
+	  
+    // 	  //compute the staples needed to smear
+    // 	  MASTER_PRINTF("in\n");
+    // 	  if(is_master_rank())
+    // 	    su3_print(in[par][1][mu]);
+    // 	  stout_link_staples sto_ste;
+    // 	  stout_smear_compute_staples(sto_ste,in,par,1,mu,rho);
+    // 	  MASTER_PRINTF("C\n");
+    // 	  if(is_master_rank())
+    // 	    su3_print(sto_ste.C);
+    // 	  MASTER_PRINTF("omeg\n");
+    // 	  if(is_master_rank())
+    // 	    su3_print(sto_ste.Omega);
+    // 	  MASTER_PRINTF("Q\n");
+    // 	  if(is_master_rank())
+    // 	    su3_print(sto_ste.Q);
+	  
+    // 	  su3 expiQ;
+    // 	  safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
+    // 	  MASTER_PRINTF("expiQ\n");
+    // 	  if(is_master_rank())
+    // 	    su3_print(expiQ);
+    // 	  su3 t;
+    // 	  unsafe_su3_prod_su3(t,expiQ,in[par][1][mu]);
+    // 	  MASTER_PRINTF("t\n");
+    // 	  if(is_master_rank())
+    // 	    su3_print(t);
+    // 	}
+    
+    for(int par=0;par<2;par++)
       for(int mu=0;mu<NDIM;mu++)
 	if(dirs[mu])
-	  NISSA_PARALLEL_LOOP(A,0,locVolh)
+	  PAR(0,
+	      locVolh,
+	      CAPTURE(par,
+		      mu,
+		      rho,
+		      TO_READ(in),
+		      TO_WRITE(out)),
+	      A,
 	    {
 	      //compute the staples needed to smear
 	      stout_link_staples sto_ste;
-	      stout_smear_compute_staples(&sto_ste,in,p,A,mu,rho);
+	      stout_smear_compute_staples(sto_ste,in,par,A,mu,rho);
 	      
 	      //exp(iQ)*U (eq. 3)
 	      su3 expiQ;
 	      safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
-	      unsafe_su3_prod_su3(out[p][A][mu],expiQ,in[p][A][mu]);
-	    }
-        NISSA_PARALLEL_LOOP_END;
-	
-    //invalid the border and free allocated memory, if any
-    for(int eo=0;eo<2;eo++)
-      set_borders_invalid((quad_su3*)out[eo]);
+	      unsafe_su3_prod_su3(out[par][A][mu],expiQ,in[par][A][mu]);
+	    });
+	else
+	  PAR(0,
+	      locVolh,
+	      CAPTURE(par,
+		      mu,
+		      TO_READ(in),
+		      TO_WRITE(out)),
+	      A,
+	    {
+	      su3_copy(out[par][A][mu],in[par][A][mu]);
+	    });
     
+    // MASTER_PRINTF("Test, links in 1 (%p %p):\n",&(out[0][0][0][0][0][0]),&(in[0][0][0][0][0][0]));
+    // for(int par=0;par<1;par++)
+    //   for(int mu=0;mu<1;mu++)
+    // 	{
+    // 	  MASTER_PRINTF("par %d mu %d\n",par,mu);
+    // 	  MASTER_PRINTF("in\n");
+    // 	  if(is_master_rank())
+    // 	    su3_print(in[par][1][mu]);
+    // 	  MASTER_PRINTF("out\n");
+    // 	  if(is_master_rank())
+    // 	    su3_print(out[par][1][mu]);
+    // 	}
+    
+    // MASTER_PRINTF("Test again, in 1:\n");
+    // for(int par=0;par<1;par++)
+    //   for(int mu=0;mu<1;mu++)
+    // 	{
+    // 	  MASTER_PRINTF("par %d mu %d\n",par,mu);
+	  
+    // 	  //compute the staples needed to smear
+    // 	  MASTER_PRINTF("in\n");
+    // 	  if(is_master_rank())
+    // 	    su3_print(in[par][1][mu]);
+    // 	  stout_link_staples sto_ste;
+    // 	  stout_smear_compute_staples(sto_ste,in,par,1,mu,rho);
+    // 	  MASTER_PRINTF("C\n");
+    // 	  if(is_master_rank())
+    // 	    su3_print(sto_ste.C);
+    // 	  MASTER_PRINTF("omeg\n");
+    // 	  if(is_master_rank())
+    // 	    su3_print(sto_ste.Omega);
+    // 	  MASTER_PRINTF("Q\n");
+    // 	  if(is_master_rank())
+    // 	    su3_print(sto_ste.Q);
+	  
+    // 	  su3 expiQ;
+    // 	  safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
+    // 	  MASTER_PRINTF("expiQ\n");
+    // 	  if(is_master_rank())
+    // 	    su3_print(expiQ);
+    // 	  su3 t;
+    // 	  unsafe_su3_prod_su3(t,expiQ,in[par][1][mu]);
+    // 	  MASTER_PRINTF("t\n");
+    // 	  if(is_master_rank())
+    // 	    su3_print(t);
+    // 	}
+    
+    // CRASH("w");
     STOP_TIMING(sto_time);
   }
   
   //smear n times, using only one additional vectors
-  void stout_smear(eo_ptr<quad_su3> ext_out,eo_ptr<quad_su3> ext_in,stout_pars_t* stout_pars,const which_dir_t& dirs)
+  void stout_smear(EoField<quad_su3>& out,
+		   const EoField<quad_su3>& in,
+		   const stout_pars_t& stout_pars,
+		   const WhichDirs& dirs)
   {
-    verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
-    switch(stout_pars->nlevels)
+    const int nlevels=stout_pars.nlevels;
+    
+    VERBOSITY_LV1_MASTER_PRINTF("sme_step 0/%d, plaquette: %16.16lg\n",nlevels,global_plaquette_eo_conf(in));
+    
+    if(nlevels==0)
+      out=in;
+    else
       {
-      case 0: if(ext_out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(ext_out[eo],ext_in[eo]);break;
-      case 1:
-	if(ext_out==ext_in) crash("in==out");
-	stout_smear_single_level(ext_out,ext_in,stout_pars->rho,dirs);
-	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_out));
-	break;
-      default:
-	//allocate temp
-	eo_ptr<quad_su3> in,out;
-    	for(int eo=0;eo<2;eo++)
-	  {
-	    in[eo]=nissa_malloc("in",locVolh+bord_volh+edge_volh,quad_su3);
-	    out[eo]=nissa_malloc("out",locVolh+bord_volh+edge_volh,quad_su3);
-	    vector_copy(in[eo],ext_in[eo]);
-	  }
+	stout_smear_single_level(out,in,stout_pars.rho,dirs);
+	VERBOSITY_LV1_MASTER_PRINTF("sme_step 1/%d, plaquette: %16.16lg\n",nlevels,global_plaquette_eo_conf(out));
 	
-    verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
-    //verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(in));
-	for(int i=0;i<stout_pars->nlevels;i++)
+	if(stout_pars.nlevels>1)
 	  {
-	    stout_smear_single_level(out,in,stout_pars->rho,dirs);
-	    if(i!=stout_pars->nlevels-1)
-	      for(int eo=0;eo<2;eo++)
-		vector_copy(in[eo],out[eo]);
-	      
-            verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i+1,global_plaquette_eo_conf(out));
-	  }
-	
-	for(int eo=0;eo<2;eo++)
-	  vector_copy(ext_out[eo],out[eo]);
-	
-	//free temp
-	for(int eo=0;eo<2;eo++)
-	  {
-	    nissa_free(in[eo]);
-	    nissa_free(out[eo]);
+	    //allocate temp
+	    EoField<quad_su3> tmp("tmp",WITH_HALO_EDGES);
+	    
+	    for(int i=1;i<nlevels;i++)
+	      {
+		tmp=out;
+		stout_smear_single_level(out,tmp,stout_pars.rho,dirs);
+		VERBOSITY_LV1_MASTER_PRINTF("sme_step %d/%d, plaquette: %16.16lg\n",i+1,nlevels,global_plaquette_eo_conf(out));
+	      }
 	  }
       }
   }
   
   //allocate all the stack for smearing
-  void stout_smear_conf_stack_allocate(eo_ptr<quad_su3>** out,eo_ptr<quad_su3> in,int nlev)
+  void stout_smear_conf_stack_allocate(std::vector<EoField<quad_su3>*>& out,
+				       EoField<quad_su3>& in,
+				       const int& nlev)
   {
-    (*out)=nissa_malloc("out**",nlev+1,eo_ptr<quad_su3>);
-    (*out)[0]=in;
+    out.resize(nlev+1);
+    out[0]=&in;
     for(int i=1;i<=nlev;i++)
-      for(int eo=0;eo<2;eo++) (*out)[i][eo]=nissa_malloc("out",locVolh+bord_volh+edge_volh,quad_su3);
+      out[i]=new EoField<quad_su3>("stsm",WITH_HALO_EDGES);
   }
   
   //free all the stack of allocated smeared conf
-  void stout_smear_conf_stack_free(eo_ptr<quad_su3>** out,int nlev)
+  void stout_smear_conf_stack_free(std::vector<EoField<quad_su3>*>& out,
+				   const int& nlev)
   {
     for(int i=1;i<=nlev;i++)
-	for(int eo=0;eo<2;eo++) nissa_free((*out)[i][eo]);
-    nissa_free(*out);
+      delete out[i];
   }
   
   //smear iteratively retainig all the stack
-  void stout_smear_whole_stack(eo_ptr<quad_su3>* out,eo_ptr<quad_su3> in,stout_pars_t* stout_pars,const which_dir_t& dirs)
+  void stout_smear_whole_stack(std::vector<EoField<quad_su3>*>& out,
+			       const EoField<quad_su3>& in,
+			       const stout_pars_t& stout_pars,
+			       const WhichDirs& dirs)
   {
-    verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
-    for(int i=1;i<=stout_pars->nlevels;i++)
+    VERBOSITY_LV2_MASTER_PRINTF("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(*(out[0])));
+    for(int i=1;i<=stout_pars.nlevels;i++)
       {
-	stout_smear_single_level(out[i],out[i-1],stout_pars->rho,dirs);
-	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(out[i]));
+	stout_smear_single_level(*(out[i]),*(out[i-1]),stout_pars.rho,dirs);
+	VERBOSITY_LV2_MASTER_PRINTF("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(*(out[i])));
       }
   }
   
   //remap the force to one smearing level less
-  void stouted_force_remap_step(eo_ptr<quad_su3> F,eo_ptr<quad_su3> conf,double rho)
+  void stouted_force_remap_step(EoField<quad_su3>& F,
+				const EoField<quad_su3>& conf,
+				const double& rho)
   {
-    communicate_eo_quad_su3_edges(conf);
+    conf.updateEdges();
     
-    eo_ptr<quad_su3> Lambda;
-    for(int eo=0;eo<2;eo++)
-      Lambda[eo]=nissa_malloc("Lambda",locVolh+bord_volh+edge_volh,quad_su3);
+    EoField<quad_su3> Lambda("Lambda",WITH_HALO_EDGES);
     
     for(int p=0;p<2;p++)
       for(int mu=0;mu<NDIM;mu++)
-	NISSA_PARALLEL_LOOP(A,0,locVolh)
+	PAR(0,
+	    locVolh,
+	    CAPTURE(p,
+		    mu,
+		    rho,
+		    TO_READ(conf),
+		    TO_WRITE(F),
+		    TO_WRITE(Lambda)),
+	    A,
 	  {
 	    //compute the ingredients needed to smear
 	    stout_link_staples sto_ste;
-	    stout_smear_compute_staples(&sto_ste,conf,p,A,mu,rho);
+	    stout_smear_compute_staples(sto_ste,conf,p,A,mu,rho);
 	    
 	    //compute the ingredients needed to exponentiate
 	    hermitian_exp_ingredients ing;
-	    hermitian_exact_i_exponentiate_ingredients(ing,sto_ste.Q);
+	    ing.prepareIngredients(sto_ste.Q);
 	    
 	    //compute the Lambda
 	    stouted_force_compute_Lambda(Lambda[p][A][mu],conf[p][A][mu],F[p][A][mu],&ing);
@@ -209,88 +257,86 @@ namespace nissa
 	    
 	    //put together first and second piece
 	    su3_summ(F[p][A][mu],temp1,temp3);
-	  }
-    NISSA_PARALLEL_LOOP_END;
-    
-    for(int p=0;p<2;p++) set_borders_invalid(Lambda[p]);
+	  });
     
     //compute the third piece of eq. (75)
-    communicate_eo_quad_su3_edges(Lambda);
+    Lambda.updateEdges();
     
     for(int p=0;p<2;p++)
       for(int mu=0;mu<4;mu++)
 	for(int nu=0;nu<4;nu++)
 	  if(mu!=nu)
 	    {
-	      NISSA_PARALLEL_LOOP(A,0,locVolh)        //   b1 --<-- f1 -->-- +
-		{                                      //    |        |       |
-		  int f1=loceo_neighup[ p][ A][mu];    //    V   B    |   F   V     ^
-		  int f2=loceo_neighup[ p][ A][nu];    //    |        |       |     m
-		  int f3=A;                            //  b23 -->-- f3 --<-- f2    u
-		  int b1=loceo_neighdw[!p][f1][nu];    //             A             +  nu ->
-		  int b2=loceo_neighdw[ p][b1][mu];
-		  int b3=b2;
-		  
-		  su3 temp1,temp2,temp3;
-		  
-		  //first term, insertion on f3 along nu
-		  unsafe_su3_prod_su3_dag(temp1,conf[!p][f1][nu],conf[!p][f2][mu]);
-		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[p][f3][nu]);
-		  unsafe_su3_prod_su3(temp3,temp2,Lambda[p][f3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
-		  
-		  //second term, insertion on b2 along mu
-		  unsafe_su3_dag_prod_su3_dag(temp1,conf[p][b1][nu],conf[!p][b2][mu]);
-		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][b2][mu]);
-		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
-		  
-		  //third term, insertion on b1 along nu
-		  unsafe_su3_dag_prod_su3(temp1,conf[p][b1][nu],Lambda[p][b1][nu]);
-		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[!p][b2][mu]);
-		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
-		  
-		  //fourth term, insertion on b3 along nu
-		  unsafe_su3_dag_prod_su3_dag(temp1,conf[p][b1][nu],conf[!p][b2][mu]);
-		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][b3][nu]);
-		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,+rho);
-		  
-		  //fifth term, insertion on f1 along nu
-		  unsafe_su3_prod_su3(temp1,Lambda[!p][f1][nu],conf[!p][f1][nu]);
-		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[!p][f2][mu]);
-		  unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,+rho);
-		  
-		  //sixth term, insertion on f2 along mu
-		  unsafe_su3_prod_su3_dag(temp1,conf[!p][f1][nu],conf[!p][f2][mu]);
-		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][f2][mu]);
-		  unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
-		}
-	      NISSA_PARALLEL_LOOP_END;
+	      PAR(0,
+		  locVolh,
+		  CAPTURE(p,mu,nu,rho,
+			  TO_READ(Lambda),
+			  TO_WRITE(F),
+			  TO_READ(conf)),
+		  A,                                     //   b1 --<-- f1 -->-- +
+		  {                                      //    |        |       |
+		    int f1=loceo_neighup[ p][ A][mu];    //    V   B    |   F   V     ^
+		    int f2=loceo_neighup[ p][ A][nu];    //    |        |       |     m
+		    int f3=A;                            //  b23 -->-- f3 --<-- f2    u
+		    int b1=loceo_neighdw[!p][f1][nu];    //             A             +  nu ->
+		    int b2=loceo_neighdw[ p][b1][mu];
+		    int b3=b2;
+		    
+		    su3 temp1,temp2,temp3;
+		    
+		    //first term, insertion on f3 along nu
+		    unsafe_su3_prod_su3_dag(temp1,conf[!p][f1][nu],conf[!p][f2][mu]);
+		    unsafe_su3_prod_su3_dag(temp2,temp1,conf[p][f3][nu]);
+		    unsafe_su3_prod_su3(temp3,temp2,Lambda[p][f3][nu]);
+		    su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
+		    
+		    //second term, insertion on b2 along mu
+		    unsafe_su3_dag_prod_su3_dag(temp1,conf[p][b1][nu],conf[!p][b2][mu]);
+		    unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][b2][mu]);
+		    unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
+		    su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
+		    
+		    //third term, insertion on b1 along nu
+		    unsafe_su3_dag_prod_su3(temp1,conf[p][b1][nu],Lambda[p][b1][nu]);
+		    unsafe_su3_prod_su3_dag(temp2,temp1,conf[!p][b2][mu]);
+		    unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
+		    su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
+		    
+		    //fourth term, insertion on b3 along nu
+		    unsafe_su3_dag_prod_su3_dag(temp1,conf[p][b1][nu],conf[!p][b2][mu]);
+		    unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][b3][nu]);
+		    unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
+		    su3_summ_the_prod_idouble(F[p][A][mu],temp3,+rho);
+		    
+		    //fifth term, insertion on f1 along nu
+		    unsafe_su3_prod_su3(temp1,Lambda[!p][f1][nu],conf[!p][f1][nu]);
+		    unsafe_su3_prod_su3_dag(temp2,temp1,conf[!p][f2][mu]);
+		    unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
+		    su3_summ_the_prod_idouble(F[p][A][mu],temp3,+rho);
+		    
+		    //sixth term, insertion on f2 along mu
+		    unsafe_su3_prod_su3_dag(temp1,conf[!p][f1][nu],conf[!p][f2][mu]);
+		    unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][f2][mu]);
+		    unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
+		    su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
+		  });
 	    }
-    
-    for(int eo=0;eo<2;eo++) nissa_free(Lambda[eo]);
   }
   
   //remap iteratively the force, adding the missing pieces of the chain rule derivation
-  void stouted_force_remap(eo_ptr<quad_su3> F,eo_ptr<quad_su3>* sme_conf,stout_pars_t* stout_pars)
+  void stouted_force_remap(EoField<quad_su3>& F,
+			   const std::vector<EoField<quad_su3>*>& sme_conf,
+			   const stout_pars_t& stout_pars)
   {
+    sto_remap_time-=take_time();
+    nsto_remap++;
     
-    if(IS_MASTER_THREAD)
+    for(int i=stout_pars.nlevels-1;i>=0;i--)
       {
-	sto_remap_time-=take_time();
-	nsto_remap++;
+	VERBOSITY_LV2_MASTER_PRINTF("Remapping the force, step: %d/%d\n",i+1,stout_pars.nlevels);
+	stouted_force_remap_step(F,*(sme_conf[i]),stout_pars.rho);
       }
     
-    for(int i=stout_pars->nlevels-1;i>=0;i--)
-      {
-	verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i+1,stout_pars->nlevels);
-	stouted_force_remap_step(F,sme_conf[i],stout_pars->rho);
-      }
-    
-    if(IS_MASTER_THREAD) sto_remap_time+=take_time();
+    sto_remap_time+=take_time();
   }
 }

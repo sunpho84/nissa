@@ -9,20 +9,54 @@ namespace nissa
 {
   struct minmax_eigenvalues_meas_pars_t : base_fermionic_meas_t
   {
-    std::string def_path(){return "plover";}
+    std::string def_path() const
+    {
+      return "plover";
+    }
     
     int neigs;
+    
     int wspace_size;
+    
     int min_max;
+    
     smooth_pars_t smooth_pars;
     
-    int def_neigs(){return 5;}
-    int def_min_max(){return 0;}
-    int def_wspace_size(){return 100;}
-    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(bool full=false);
+    int def_neigs() const
+    {
+      return 5;
+    }
     
-    int is_nonstandard()
+    int def_min_max() const
+    {
+      return 0;
+    }
+    
+    int def_wspace_size() const
+    {
+      return 100;
+    }
+    
+    int master_fprintf(FILE *fout,bool full) const
+    {
+      return nissa::master_fprintf(fout,"%s",get_str().c_str());
+    }
+    
+    std::string get_str(const bool& full=false) const
+    {
+      std::ostringstream os;
+      
+      os<<"MeasMinMaxEigenval\n";
+      os<<base_fermionic_meas_t::get_str(full);
+      if(neigs!=def_neigs() or full) os<<" Neigs\t\t=\t"<<neigs<<"\n";
+      if(wspace_size!=def_wspace_size() or full) os<<" WSpaceSize\t\t=\t"<<wspace_size<<"\n";
+      if(min_max!=def_min_max() or full) os<<" MinMax\t\t=\t"<<min_max<<"\n";
+      os<<smooth_pars.get_str(full);
+      
+      return os.str();
+    }
+    
+    int is_nonstandard() const
     {
       return
 	base_fermionic_meas_t::is_nonstandard() or
@@ -41,8 +75,12 @@ namespace nissa
     {
       path=def_path();
     }
-    virtual ~minmax_eigenvalues_meas_pars_t(){}
+    
+    virtual ~minmax_eigenvalues_meas_pars_t()
+    {
+    }
   };
+  
   void measure_minmax_eigenvalues(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,minmax_eigenvalues_meas_pars_t &meas_pars,int iconf,int conf_created);
 }
 

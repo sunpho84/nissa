@@ -82,7 +82,7 @@ int main(int narg,char **arg)
 	loc_d+=t*t;
       }
   double glb_d=sqrt(glb_reduce_double(loc_d)/glb_vol);
-  master_printf("\n\nAverage norm2 difference between fft and inv computed tlSym propagators: %lg\n\n",glb_d);
+  MASTER_PRINTF("\n\nAverage norm2 difference between fft and inv computed tlSym propagators: %lg\n\n",glb_d);
   */
   
   close_test();

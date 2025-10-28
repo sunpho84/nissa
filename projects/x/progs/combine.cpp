@@ -16,7 +16,7 @@ void init_calc(int narg,char **arg)
   //Basic mpi initialization
   init_nissa(narg,arg);
   
-  if(narg<6||narg%2) crash("use %s T L outfile file1 weight1 file2...",arg[0]);
+  if(narg<6||narg%2) CRASH("use %s T L outfile file1 weight1 file2...",arg[0]);
   
   int T=atoi(arg[1]);
   int L=atoi(arg[2]);
@@ -49,7 +49,7 @@ int main(int narg,char **arg)
     {
       double w;
       sscanf(arg[i+1],"%lg",&w);
-      master_printf("Loading file %s and combining with weight %lg\n",arg[i],w);
+      MASTER_PRINTF("Loading file %s and combining with weight %lg\n",arg[i],w);
       
       read_corr16(loaded_corr,arg[i]);
       

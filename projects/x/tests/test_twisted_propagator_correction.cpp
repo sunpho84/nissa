@@ -59,7 +59,7 @@ int main(int narg,char **arg)
   //Basic mpi initialization
   init_nissa(narg,arg);
   
-  if(narg<2) crash("use: %s L",arg[0]);
+  if(narg<2) CRASH("use: %s L",arg[0]);
   int L=atoi(arg[1]);
   
   init_grid(2*L,L);
@@ -143,7 +143,7 @@ int main(int narg,char **arg)
 	      compute_dist2_max_coord_angle(d2,max_coord,angle,x);
 	      if(angle<=30 && max_coord<=4)
 		{
-		  master_printf("%d %lg %lg\n",d2,self_corr[ivol][igamma][REIM]*norm,tad_corr[ivol][igamma][REIM]*norm);
+		  MASTER_PRINTF("%d %lg %lg\n",d2,self_corr[ivol][igamma][REIM]*norm,tad_corr[ivol][igamma][REIM]*norm);
 		  np++;
 		}
 	    }

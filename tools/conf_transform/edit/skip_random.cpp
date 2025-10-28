@@ -5,14 +5,14 @@ using namespace nissa;
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_nissa(narg,arg);
+  initNissa(narg,arg);
   
-  if(narg<7) crash("use: %s T X Y Z file_in file_out",arg[0]);
+  if(narg<7) CRASH("use: %s T X Y Z file_in file_out",arg[0]);
 
   for(int mu=0;mu<4;mu++) glbSize[mu]=atoi(arg[mu+1]);
 
   //Init the MPI grid 
-  init_grid(0,0);
+  initGrid(0,0);
 
   //////////////////////////// read the conf /////////////////////////////
 
@@ -42,7 +42,7 @@ int main(int narg,char **arg)
       }
   
   //if message with string not found start from input seed
-  if(glb_rnd_gen_inited==0) crash("RND_gen status not found inside conf, starting from input passed seed");
+  if(glb_rnd_gen_inited==0) CRASH("RND_gen status not found inside conf, starting from input passed seed");
   
   //////////////////////////// write the conf ////////////////////////////
   
@@ -51,7 +51,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

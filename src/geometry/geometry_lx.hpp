@@ -2,185 +2,386 @@
 #define _GEOMETRY_LX_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
-#endif
-
-#ifdef USE_MPI
- #include <mpi.h>
+# include "config.hpp"
 #endif
 
 #include <stdint.h>
+
+#ifdef USE_MPI
+# include <mpi.h>
+#endif
+
+#include <metaprogramming/globalVariable.hpp>
+
 #include <routines/math_routines.hpp>
 
 #ifndef EXTERN_GEOMETRY_LX
- #define EXTERN_GEOMETRY_LX extern
- #define ONLY_INSTANTIATION
+# define EXTERN_GEOMETRY_LX extern
+# define ONLY_INSTANTIATION
 #endif
 
 #define NISSA_LOC_VOL_LOOP(a) for(int a=0;a<locVol;a++)
 
+#define NDIM 4
+
 namespace nissa
 {
+  /// Simple array needed to be used also on device
   template <typename T,
 	    size_t N>
-  struct my_array
+  struct MyArray
   {
+    /// Internal data
     T data[N];
     
-    CUDA_HOST_AND_DEVICE inline T& operator[](const size_t i)
+    /// Access to the i-th element
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    T& operator[](const size_t& i)
     {
       return data[i];
     }
     
-    CUDA_HOST_AND_DEVICE const inline T& operator[](const size_t i) const 
+    /// Constant access to the i-th element
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    const T& operator[](const size_t& i) const
     {
       return data[i];
+    }
+    
+    /// Compare
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    bool operator<(const MyArray& oth) const
+    {
+      for(size_t i=0;i<N;i++)
+	{
+	  if(data[i]<oth.data[i])
+	    return true;
+	  if(data[i]>oth.data[i])
+	    return false;
+	}
+      
+      return false;
+    }
+    
+    /// Compare
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    bool operator==(const MyArray& oth) const
+    {
+      for(size_t i=0;i<N;i++)
+	if(data[i]!=oth.data[i])
+	  return false;
+      
+      return true;
     }
   };
   
-  typedef my_array<bool,NDIM> which_dir_t;
-  typedef my_array<int,NDIM> coords_t;
-  typedef my_array<double,NDIM> momentum_t;
+  /// Type used to specify which direction to use
+  typedef MyArray<bool,NDIM> WhichDirs;
   
-  //nomenclature:
-  //-glb is relative to the global grid
-  //-loc to the local one
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t glbSize,locSize;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t glbVol,glbSpatVol,glbVolh;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t locVol,locSpatVol,locVolh;
-  EXTERN_GEOMETRY_LX int64_t bulkVol,nonBwSurfVol,nonFwSurfVol;
-  EXTERN_GEOMETRY_LX int64_t surfVol,bwSurfVol,fwSurfVol;
-  EXTERN_GEOMETRY_LX double glb_vol2,loc_vol2;
-  //-lx is lexicografic
-  //box, division in 2^NDIM of the lattice
-  EXTERN_GEOMETRY_LX coords_t box_coord[1<<NDIM];
-  EXTERN_GEOMETRY_LX coords_t box_size[1<<NDIM];
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int nsite_per_box[1<<NDIM];
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t *glbCoordOfLoclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t *locCoordOfLoclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *glblxOfLoclx;
-  EXTERN_GEOMETRY_LX int *glblxOfBordlx;
-  EXTERN_GEOMETRY_LX int *loclxOfBordlx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflxOfBordlx;
-  EXTERN_GEOMETRY_LX int *glblxOfEdgelx;
-  EXTERN_GEOMETRY_LX int *loclxOfBulklx;
-  EXTERN_GEOMETRY_LX int *loclxOfSurflx;
-  EXTERN_GEOMETRY_LX int *loclxOfNonBwSurflx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *loclxOfNonFwSurflx;
-  EXTERN_GEOMETRY_LX int *loclxOfBwSurflx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *loclxOfFwSurflx;
-  EXTERN_GEOMETRY_LX int lxGeomInited;
-  //neighbours of local volume + borders
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t *loclxNeighdw,*loclxNeighup;
-  EXTERN_GEOMETRY_LX coords_t *loclx_neigh[2];
-  //ranks
-  EXTERN_GEOMETRY_LX coords_t fix_nranks;
-  EXTERN_GEOMETRY_LX int rank,nranks,cart_rank;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t rank_coord;
-  EXTERN_GEOMETRY_LX coords_t rank_neigh[2],rank_neighdw,rank_neighup;
-  EXTERN_GEOMETRY_LX coords_t plan_rank,line_rank,line_coord_rank;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t nrank_dir;
-  EXTERN_GEOMETRY_LX int grid_inited;
-  EXTERN_GEOMETRY_LX int nparal_dir;
-  EXTERN_GEOMETRY_LX coords_t paral_dir;
+  /// Coordinates
+  typedef MyArray<int,NDIM> Coords;
+  
+  /// Momentum components
+  typedef MyArray<double,NDIM> Momentum;
+  
+  /// Type to specify the number of sites in a box
+  typedef MyArray<int,1<<NDIM> nsite_per_box_t;
+  
+  PROVIDE_GLOBAL_VAR(int64_t,locVol)
+  
+  PROVIDE_GLOBAL_VAR(int64_t,locSpatVol)
+  
+  PROVIDE_GLOBAL_VAR(int64_t,locVolh)
+  
+  PROVIDE_GLOBAL_VAR(Coords,locSize)
+  
+  PROVIDE_GLOBAL_VAR(int64_t,glbVol)
+  
+  PROVIDE_GLOBAL_VAR(int64_t,glbSpatVol)
+  
+  PROVIDE_GLOBAL_VAR(int64_t,glbVolh)
+  
+  PROVIDE_GLOBAL_VAR(Coords,glbSize)
+  
+  inline int64_t bulkVol;
+  
+  inline int64_t nonBwSurfVol;
+  
+  inline int64_t nonFwSurfVol;
+  
+  inline int64_t surfVol;
+  
+  inline int64_t bwSurfVol;
+  
+  inline int64_t fwSurfVol;
+  
+  inline double glbVol2;
+  
+  inline double locVol2;
+  
+  inline Coords boxCoord[1<<NDIM];
+  
+  inline Coords boxSize[1<<NDIM];
+  
+  PROVIDE_GLOBAL_VAR(nsite_per_box_t,nsite_per_box);
+  
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Coords *glbCoordOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Coords *locCoordOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *glblxOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *glblxOfBordlx;
+  EXTERN_GEOMETRY_LX int64_t *loclxOfBordlx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *surflxOfBordlx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *surflxOfEdgelx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *glblxOfEdgelx;
+  EXTERN_GEOMETRY_LX int64_t *loclxOfBulklx;
+  EXTERN_GEOMETRY_LX int64_t *loclxOfSurflx;
+  EXTERN_GEOMETRY_LX int64_t *loclxOfNonBwSurflx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *loclxOfNonFwSurflx;
+  EXTERN_GEOMETRY_LX int64_t *loclxOfBwSurflx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *loclxOfFwSurflx;
+  
+  inline bool lxGeomInited;
+  
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Coords *loclxNeighdw,*loclxNeighup;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Coords *loclx_neigh[2];
+  
+  inline Coords fix_nranks;
+  
+  inline int rank;
+  
+  inline int loc_rank;
+  
+  inline int nranks;
+  
+  inline int nloc_ranks;
+  
+  inline int cartRank;
+  
+  inline Coords rankCoord;
+  
+  inline Coords rankNeigh[2];
+  
+  inline Coords rankNeighdw;
+  
+  inline Coords rankNeighup;
+  
+  PROVIDE_GLOBAL_VAR(Coords,nRanksDir);
+  
+  inline int gridInited;
+  
+  inline int nParalDir;
+  
+  PROVIDE_GLOBAL_VAR(Coords,isDirParallel);
+  
   //size of the border and edges
-  EXTERN_GEOMETRY_LX int bord_vol,bord_volh;
-  EXTERN_GEOMETRY_LX int edge_vol,edge_volh;
-  //size along various dir
-  EXTERN_GEOMETRY_LX int bord_dir_vol[NDIM],bord_offset[NDIM];
-  EXTERN_GEOMETRY_LX int edge_dir_vol[NDIM*(NDIM+1)/2],edge_offset[NDIM*(NDIM+1)/2];
+  PROVIDE_GLOBAL_VAR(int64_t,bordVol);
+  
+  PROVIDE_GLOBAL_VAR(int64_t,bordVolh);
+  
+  PROVIDE_GLOBAL_VAR(int64_t,edgeVol);
+  
+  PROVIDE_GLOBAL_VAR(int64_t,edgeVolh);
+  
+  constexpr int nEdges=
+	      NDIM*(NDIM-1)/2;
+  
+  inline int64_t bordDirVol[NDIM];
+  
+  inline int64_t bordOffset[NDIM];
+  
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t edge_dir_vol[nEdges],edge_offset[nEdges];
+  
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_dirs[nEdges][2];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX bool isEdgeParallel[nEdges];
+  EXTERN_GEOMETRY_LX int rank_edge_neigh[2][2][nEdges];
   CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
+  
   //mapping of ILDG data
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t scidac_mapping;
-  //perpendicular dir
-  EXTERN_GEOMETRY_LX which_dir_t all_dirs;
-  EXTERN_GEOMETRY_LX which_dir_t only_dir[NDIM];
-  EXTERN_GEOMETRY_LX which_dir_t all_other_dirs[NDIM];
-  EXTERN_GEOMETRY_LX which_dir_t all_other_spat_dirs[NDIM];
-#if NDIM >= 2
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int perp_dir[NDIM][NDIM-1];
-#endif
-#if NDIM >= 3
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int perp2_dir[NDIM][NDIM-1][NDIM-2];
-#endif
-#if NDIM >= 4
-  EXTERN_GEOMETRY_LX int perp3_dir[NDIM][NDIM-1][NDIM-2][NDIM-3];
-#endif
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int igamma_of_mu[4]
-#ifndef ONLY_INSTANTIATION
-  ={4,1,2,3}
-#endif
-    ;
+  constexpr Coords scidacMapping{0,3,2,1};
   
-  CUDA_HOST_AND_DEVICE coords_t get_stagphase_of_lx(const int& ivol);
-  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(const int& ivol,const int& mu);
+  constexpr WhichDirs allDirs{1,1,1,1};
   
-  int bordlx_of_coord(const coords_t& x,const int& mu);
-  int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
-  coords_t coord_of_lx(int ilx,const coords_t s);
-  coords_t coord_of_rank(const int& irank);
+  constexpr WhichDirs onlyDir[NDIM]
+    {{1,0,0,0},
+     {0,1,0,0},
+     {0,0,1,0},
+     {0,0,0,1}};
   
-  inline coords_t coord_summ(const coords_t& a1,const coords_t& a2,const coords_t& l)
+  constexpr WhichDirs allOtherDirs[NDIM]
+    {{0,1,1,1},
+     {1,0,1,1},
+     {1,1,0,1},
+     {1,1,1,0}};
+  
+  constexpr WhichDirs allOtherSpatDirs[NDIM]
+    {{0,1,1,1},
+     {0,0,1,1},
+     {0,1,0,1},
+     {0,1,1,0}};
+  
+  using PerpDirs=
+    MyArray<MyArray<int,NDIM-1>,NDIM>;
+  
+  PROVIDE_GLOBAL_VAR(PerpDirs,perpDirs);
+  
+  constexpr MyArray<MyArray<MyArray<int,NDIM-2>,NDIM-1>,NDIM> perp2Dirs
+    {{{{{2,3},{1,3},{1,2}}},
+      {{{2,3},{0,3},{0,2}}},
+      {{{1,3},{0,3},{0,1}}},
+      {{{1,2},{0,2},{0,1}}}}};
+  
+  constexpr MyArray<MyArray<MyArray<int,NDIM-2>,NDIM-1>,NDIM> perp3Dirs
+    {{{{{3,2},{3,1},{2,1}}},
+      {{{3,2},{3,0},{2,0}}},
+      {{{3,1},{3,0},{1,0}}},
+      {{{2,1},{2,0},{1,0}}}}};
+  
+  constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  int iGammaOfMu(const int& mu)
   {
-    coords_t s;
+    return
+      Coords{4,1,2,3}[mu];
+  }
+  
+  CUDA_HOST_AND_DEVICE Coords getStagphaseOfLx(const int64_t& ivol);
+  
+  CUDA_HOST_AND_DEVICE int getStagphaseOfLx(const int64_t& ivol,
+					    const int& mu);
+  
+  int64_t bordlxOfCoord(const Coords& x,
+			const int& mu);
+  
+  int bordlxOfCoordList(const int& x0,
+			const int& x1,
+			const int& x2,
+			const int& x3,
+			const int& mu);
+  
+  Coords coordOfLx(const int64_t& ilx,
+		   const Coords& s);
+  
+  Coords coordOfRank(const int& irank);
+  
+  inline Coords coordsSum(const Coords& a1,
+			  const Coords& a2,
+			  const Coords& l)
+  {
+    Coords s;
     
-    for(int mu=0;mu<NDIM;mu++) s[mu]=(a1[mu]+a2[mu])%l[mu];
+    for(int mu=0;mu<NDIM;mu++)
+      s[mu]=(a1[mu]+a2[mu])%l[mu];
     
     return s;
   }
   
-  inline void coord_summassign(coords_t& s,const coords_t& a,const coords_t& l)
+  inline void coordsSummassign(Coords& s,
+			       const Coords& a,
+			       const Coords& l)
   {
-    s=coord_summ(s,a,l);
+    s=coordsSum(s,a,l);
   }
   
-  int edgelx_of_coord(const coords_t& x,const int& mu,const int& nu);
-  int full_lx_of_coords_list(const int t,const int x,const int y,const int z);
-  int glblx_neighdw(const int& gx,const int& mu);
-  int glblx_neighup(const int& gx,const int& mu);
-  int glblx_of_comb(int b,int wb,int c,int wc);
-  int glblx_of_coord(const coords_t& x);
-  int glblx_of_coord_list(int x0,int x1,int x2,int x3);
-  int glblx_of_diff(const int& b,const int& c);
-  int glblx_of_summ(const int& b,const int& c);
-  int glblx_opp(const int& b);
-  CUDA_HOST_AND_DEVICE int loclx_of_coord(const coords_t& x);
+  int64_t edgelxOfCoord(const Coords &x,
+			  const int &mu,
+			  const int &nu);
   
-  inline int loclx_of_coord_list(int x0,int x1,int x2,int x3)
+  int fullLxOfCoordsList(const int t,
+			 const int x,
+			 const int y,
+			 const int z);
+  
+  int64_t glblxNeighdw(const int64_t& gx,
+			const int& mu);
+  
+  int64_t glblxNeighup(const int64_t& gx,
+			const int& mu);
+  
+  int64_t glblxOfComb(const int64_t& b,
+			const int& wb,
+			const int64_t& c,
+			const int& wc);
+  
+  int64_t glblxOfCoord(const Coords& x);
+  
+  int64_t glblxOfCoordList(const int& x0,
+			      const int& x1,
+			      const int& x2,
+			      const int& x3);
+  
+  int64_t glblxOfDiff(const int64_t& b,
+			const int64_t& c);
+  
+  int64_t glblxOfSum(const int64_t& b,
+			const int64_t& c);
+  
+  int64_t glblxOpp(const int64_t& b);
+  
+  CUDA_HOST_AND_DEVICE int64_t loclxOfCoord(const Coords& x);
+  
+  inline int64_t loclxOfCoordList(const int& x0,
+				  const int& x1,
+				  const int& x2,
+				  const int& x3)
   {
-    const coords_t c={x0,x1,x2,x3};
-    return loclx_of_coord(c);
+    return loclxOfCoord(Coords{x0,x1,x2,x3});
   }
   
-  CUDA_HOST_AND_DEVICE int lx_of_coord(const coords_t& x,const coords_t& s);
-  int vol_of_lx(const coords_t& size);
-  int rank_hosting_glblx(const int& gx);
-  int rank_hosting_site_of_coord(const coords_t& x);
-  int rank_of_coord(const coords_t& x);
-  void get_loclx_and_rank_of_coord(int& ivol,int& rank,const coords_t& g);
-  void get_loclx_and_rank_of_glblx(int& lx,int& rx,const int& gx);
-  coords_t glb_coord_of_glblx(int gx);
+  CUDA_HOST_AND_DEVICE int64_t lxOfCoord(const Coords& x,
+					 const Coords& s);
+  
+  int64_t volOfLx(const Coords& size);
+  
+  int rankHostingGlblx(const int64_t& gx);
+  
+  int rankHostingSiteOfCoords(const Coords& x);
+  
+  int rankOfCoords(const Coords& x);
+  
+  Coords glbCoordOfGlblx(const int64_t& gx);
+  
+  /// Return the local site and rank containing the global coordinates
+  inline std::pair<int,int64_t> getLoclxAndRankOfCoords(const Coords& g)
+  {
+    Coords l,p;
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	p[mu]=g[mu]/locSize[mu];
+	l[mu]=g[mu]-p[mu]*locSize[mu];
+      }
+    
+    const int rank=rankOfCoords(p);
+    const int64_t ivol=loclxOfCoord(l);
+    
+    return {rank,ivol};
+  }
+  
+  /// Return the local site and rank containing the global site
+  inline std::pair<int,int64_t> getLoclxAndRankOfGlblx(const int64_t& gx)
+  {
+    return getLoclxAndRankOfCoords(glbCoordOfGlblx(gx));
+  }
+  
   void initialize_lx_edge_receivers_of_kind(MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
   void initialize_lx_edge_senders_of_kind(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *base);
-  coords_t rank_coord_of_site_of_coord(const coords_t& glb_coord);
+  Coords rankCoordsOfSiteOfCoord(const Coords& glb_coord);
   void set_lx_edge_senders_and_receivers(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
   void set_lx_geometry();
   void unset_lx_geometry();
-  coords_t get_mirrorized_site_coords(const coords_t& c,const int& imir);
-  coords_t red_coords_of_hypercubic_red_point(int hyp_red);
-  coords_t lx_coords_of_hypercube_vertex(int hyp_cube);
-  int hypercubic_red_point_of_red_coords(const coords_t& h);
+  Coords get_mirrorized_site_coords(const Coords& c,const int& imir);
   
   //get mirrorized coord
-  inline int get_mirrorized_site_coord(const int& c,const int& mu,const bool& flip)
+  inline int get_mirrorized_site_coord(const int& c,
+				       const int& mu,
+				       const bool& flip)
   {
     return (glbSize[mu]+(1-2*flip)*c)%glbSize[mu];
   }
   
   //get mirrorized coords according to a bit decomposition of imir
-  inline coords_t get_mirrorized_site_coords(const coords_t& c,const int& imir)
+  inline Coords get_mirrorized_site_coords(const Coords& c,
+					   const int& imir)
   {
-    coords_t cmir;
+    Coords cmir;
     
     for(int mu=0;mu<NDIM;mu++)
       cmir[mu]=get_mirrorized_site_coord(c[mu],mu,get_bit(imir,mu));

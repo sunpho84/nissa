@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "base/debug.hpp"
+#include "base/vectors.hpp"
 #include "io/buffer.hpp"
 #include "routines/ios.hpp"
 
@@ -15,59 +16,117 @@ namespace nissa
   struct rat_approx_t
   {
     char name[20];
-    double minimum;
-    double maximum;
-    double maxerr;
-    double cons;
-    int num,den;
+    
+    double minimum{0};
+    
+    double maximum{0};
+    
+    double maxerr{0};
+    
+    double cons{0};
+    
+    int num{0};
+    
+    int den{0};
+    
     std::vector<double> poles;
+    
     std::vector<double> weights;
-    rat_approx_t() :
-      minimum(0),maximum(0),maxerr(0),cons(0),
-      num(0),den(0){name[0]='\0';}
+    
+    rat_approx_t()
+    {
+      name[0]='\0';
+    }
     
     //return the degree
-    int degree(){return poles.size();}
+    int degree() const
+    {
+      return poles.size();
+    }
     
     //resize
-    void resize(int size){poles.resize(size);weights.resize(size);}
+    void resize(const int& size)
+    {
+      poles.resize(size);
+      weights.resize(size);
+    }
     
-    std::string get_str();
-    int master_fprintf(FILE *fout,int full=false);
-    int master_fprintf_expr(FILE *fout);
+    std::string get_str(const bool& full=false) const
+    {
+      std::ostringstream out;
+      
+      out.precision(16);
+      out<<"Rational approximation \""<<name<<"\" of x^("<<num<<"/"<<den<<"):\n";
+      out<<"  valid in the interval: "<<minimum<<" "<<maximum<<" with a maximal relative error of: "<<maxerr<<"\n";
+      out<<"  const: "<<cons<<"\n";
+      out<<"  degree: "<<degree()<<"\n";
+      
+      for(int iterm=0;iterm<degree();iterm++)
+	out<<"   "<<iterm<<") pole: "<<poles[iterm]<<", weight: "<<weights[iterm]<<"\n";
+      
+      return out.str();
+    }
     
-    void shift_all_poles(double sh) {for(int iterm=0;iterm<degree();iterm++) poles[iterm]+=sh;}
+    int master_fprintf(FILE *fout,
+		       const bool& full=false)
+    {
+      return nissa::master_fprintf(fout,"%s",get_str().c_str());
+    }
+    
+    int master_fprintf_expr(FILE *fout) const
+    {
+      int rc=0;
+      rc+=nissa::master_fprintf(fout,"%.16lg",cons);
+      
+      for(int i=0;i<degree();i++)
+	rc+=nissa::master_fprintf(fout,"+%.16lg/(x+%.16lg)",weights[i],poles[i]);
+      
+      rc+=nissa::master_fprintf(fout,"%.16lg\n",cons);
+      
+      return rc;
+    }
+    
+    void shift_all_poles(const double& sh)
+    {
+      for(int iterm=0;iterm<degree();iterm++)
+	poles[iterm]+=sh;
+    }
   };
   
   //read from buffer
-  inline buffer_t& operator>>(buffer_t &s,rat_approx_t &appr)
+  inline buffer_t& operator>>(buffer_t &s,
+			      rat_approx_t &appr)
   {
     //read name and degree
     int degree;
-    if(!(s>>degree)) crash("reading degree");
+    if(not (s>>degree))
+      CRASH("reading degree");
+    appr.resize(degree);
+    
     s.read(appr.name,20);
     
     //create the appr and read it
-    if(!(s>>appr.minimum)) crash("reading minimum");
-    if(!(s>>appr.maximum)) crash("reading maximum");
-    if(!(s>>appr.maxerr)) crash("reading maxerr");
-    if(!(s>>appr.num)) crash("reading num");
-    if(!(s>>appr.den)) crash("reading den");
-    if(!(s>>appr.cons)) crash("reading cons");
+    if(not (s>>appr.minimum)) CRASH("reading minimum");
+    if(not (s>>appr.maximum)) CRASH("reading maximum");
+    if(not (s>>appr.maxerr)) CRASH("reading maxerr");
+    if(not (s>>appr.num)) CRASH("reading num");
+    if(not (s>>appr.den)) CRASH("reading den");
+    if(not (s>>appr.cons)) CRASH("reading cons");
+    
     for(int j=0;j<degree;j++)
       {
-	double pole,weight;
-	if(!(s>>pole)) crash("reading pole %d",j);
-	if(!(s>>weight)) crash("reading weight %d",j);
-	appr.poles.push_back(pole);
-	appr.weights.push_back(weight);
+	if(not (s>>appr.poles[j]))
+	  CRASH("reading pole %d",j);
+	if(not (s>>appr.weights[j]))
+	  CRASH("reading weight %d",j);
       }
     
     return s;
   }
   
   //write to buffer
-  inline buffer_t& operator<<(buffer_t &s,rat_approx_t appr)
+  inline buffer_t& operator<<(buffer_t &s,
+			      const rat_approx_t& appr)
   {
     s<<appr.degree();
     s.write(appr.name,20);
@@ -83,8 +142,54 @@ namespace nissa
     return s;
   }
   
-  void convert_rat_approx(char *&data,int &data_length,std::vector<rat_approx_t> &appr);
-  std::vector<rat_approx_t> convert_rat_approx(const char *data,size_t len);
+  //convert from a stored approximation
+  inline std::vector<rat_approx_t> convert_rat_approx(const char *data,
+						      const size_t& len)
+  {
+    std::vector<rat_approx_t> out;
+    
+    //create a stream
+    buffer_t s;
+    s.write(data,len);
+    
+    //read nflav
+    int nflav;
+    if(not (s>>nflav)) CRASH("reading nflav");
+    VERBOSITY_LV3_MASTER_PRINTF("NFlav read: %d\n",nflav);
+    
+    //create the approximations
+    for(int i=0;i<nflav*3;i++)
+      {
+	rat_approx_t appr;
+	s>>appr;
+	
+	out.push_back(appr);
+	if(VERBOSITY_LV3) MASTER_PRINTF("%s",appr.get_str().c_str());
+      }
+    
+    return out;
+  }
+  
+  //convert an approximation to store it
+  inline void convert_rat_approx(char *&data,
+				 int &data_length,
+				 const std::vector<rat_approx_t> &appr)
+  {
+    buffer_t s;
+    
+    //write nflav
+    s<<(int)(appr.size()/3);
+    
+    //store each approx
+    for(size_t i=0;i<appr.size();i++) s<<appr[i];
+    
+    //allocate data
+    data_length=s.size();
+    data=nissa_malloc("data",data_length,char);
+    
+    //copy data
+    s.read(data,data_length);
+  }
 }
 
 #endif

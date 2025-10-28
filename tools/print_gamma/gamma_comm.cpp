@@ -3,7 +3,7 @@
 #include "nissa.h"
 
 int main(int narg,char **arg)
-{  init_nissa();
+{  initNissa();
   
   if(rank==0)
     {
@@ -33,7 +33,7 @@ int main(int narg,char **arg)
 	}
     }
     
-  close_nissa();
+  closeNissa();
 
   return 0;
 }

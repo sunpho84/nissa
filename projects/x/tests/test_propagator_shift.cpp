@@ -83,14 +83,14 @@ int main(int narg,char **arg)
 
   /////////////////////////// compare ////////////////////////////////////
     
-  master_printf("\n");
-  master_printf("Difference between shift1 and shift: %lg\n",glb_diff(q_prop_sh1,q_prop_sh2));
-  master_printf("\n");
+  MASTER_PRINTF("\n");
+  MASTER_PRINTF("Difference between shift1 and shift: %lg\n",glb_diff(q_prop_sh1,q_prop_sh2));
+  MASTER_PRINTF("\n");
   
   
   // test2
   
-  if(nranks>1) master_printf("test2 meaningful only in scalar, skipping\n");
+  if(nranks>1) MASTER_PRINTF("test2 meaningful only in scalar, skipping\n");
   else
     {
       //take a random point
@@ -122,23 +122,23 @@ int main(int narg,char **arg)
       spinspin_subt(D,OP_shift,OP_reve);
       
       //compare
-      master_printf("\n");
+      MASTER_PRINTF("\n");
       double er=sqrt(real_part_of_trace_spinspin_prod_spinspin_dag(D,D));
-      master_printf("Diff between hand revert and revert: %lg\n",er);
-      master_printf("\n");
+      MASTER_PRINTF("Diff between hand revert and revert: %lg\n",er);
+      MASTER_PRINTF("\n");
       
-      master_printf("ORI:\n");
+      MASTER_PRINTF("ORI:\n");
       spinspin_print(PO);
-      master_printf("\n");
-      master_printf("Reve:\n");
+      MASTER_PRINTF("\n");
+      MASTER_PRINTF("Reve:\n");
       spinspin_print(OP_reve);
-      master_printf("\n");
-      master_printf("Shift:\n");
+      MASTER_PRINTF("\n");
+      MASTER_PRINTF("Shift:\n");
       spinspin_print(OP_shift);
-      master_printf("\n");
-      master_printf("Equi:\n");
+      MASTER_PRINTF("\n");
+      MASTER_PRINTF("Equi:\n");
       spinspin_print(OP_equi);
-      master_printf("\n");
+      MASTER_PRINTF("\n");
     }
   
   close_test();

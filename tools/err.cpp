@@ -28,35 +28,35 @@ void load_file(double *in,char *path,int nel_exp)
   
   //read
   for(int iel=0;iel<nel_exp;iel++)
-    if(fscanf(fin,"%lg",in+iel)!=1) crash("error reading element %d",iel);
+    if(fscanf(fin,"%lg",in+iel)!=1) CRASH("error reading element %d",iel);
   
   //verify to have reached eof
   //double dum;
-  //if(fscanf(fin,"%lg",&dum)==1) crash("error, the file contains more data than lines, read: %lg",dum);
+  //if(fscanf(fin,"%lg",&dum)==1) CRASH("error, the file contains more data than lines, read: %lg",dum);
   
   fclose(fin);
 }
 
 int main(int narg,char **arg)
 {
-  init_nissa();
+  initNissa();
   
-  if(narg<2) crash("Use %s file",arg[0]);
+  if(narg<2) CRASH("Use %s file",arg[0]);
   char *path=arg[1];
   
   //count the number of lines
   int nline=count_nline(path);
-  master_printf("The file contains %d lines\n",nline);
+  MASTER_PRINTF("The file contains %d lines\n",nline);
 
   //round to next power of 2
   int buf_nel=1;
   while(2*buf_nel<nline) buf_nel*=2;
-  master_printf("Buf size: %d\n",buf_nel);
+  MASTER_PRINTF("Buf size: %d\n",buf_nel);
   nline=buf_nel;
   
   //init the grid
   nissa_use_eo_geom=false;
-  init_grid(buf_nel,1);
+  initGrid(buf_nel,1);
   
   //load the file
   double *in=nissa_malloc("in",nline,double);
@@ -99,7 +99,7 @@ int main(int narg,char **arg)
   nissa_free(buf);
   nissa_free(in);
   
-  close_nissa();
+  closeNissa();
   
   return 0;
 }

@@ -5,56 +5,66 @@ using namespace nissa;
 int T,L;
 vector_remap_t *remapper;
 
-void index_from_lx_to_Neo(int &rank_out,int &iel_out,int iel_in,void *pars)
+std::pair<int,int> index_from_lx_to_Neo(const int& iel_in)
 {
-  int mu_ord[4]={0,3,2,1};
-  int ilx=iel_in/4;
-  int mu=iel_in-ilx*4;
+  const int mu_ord[4]={0,3,2,1};
+  const int ilx=iel_in/4;
+  const int mu=iel_in-ilx*4;
   
   //odd sites goes with themseleves
-  int shift_comp=(loclx_parity[ilx]==0);
+  const int shift_comp=(loclx_parity[ilx]==0);
   
-  coords_t g;
+  Coords g;
   for(int nu=0;nu<4;nu++) g[mu_ord[nu]]=glbCoordOfLoclx[ilx][nu];
   if(shift_comp) g[mu_ord[mu]]=(g[mu_ord[mu]]+1)%glbSize[mu_ord[mu]];
   
-  int glb_site_dest=(glblx_of_coord(g)/2)*8+mu_ord[mu]*2+shift_comp;
-  rank_out=glb_site_dest/(8*locVolh);
-  iel_out=glb_site_dest-rank_out*8*locVolh;
+  const int glb_site_dest=(glblxOfCoord(g)/2)*8+mu_ord[mu]*2+shift_comp;
+  const int rank_out=glb_site_dest/(8*locVolh);
+  const int iel_out=glb_site_dest-rank_out*8*locVolh;
+  
+  return {rank_out,iel_out};
 }
 
 void conf_convert(char *outpath,char *inpath)
 {
-  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
+  LxField<quad_su3> conf("conf",WITH_HALO);
   read_ildg_gauge_conf(conf,inpath);
   
   //compute and convert the plaquette
-  double plaq=global_plaquette_lx_conf(conf)*3;
-  if(!little_endian) change_endianness(&plaq,&plaq,1);
+  double plaq=
+    global_plaquette_lx_conf(conf)*3;
+  fixFromNativeEndianness<LittleEndian>(plaq);
   
   //convert the lattice size
-  coords_t temp;
-  if(!little_endian) change_endianness((uint32_t*)&temp[0],(uint32_t*)&glbSize[0],4);
-  else               temp=glbSize;
+  Coords temp=glbSize;
+  for(int mu=0;mu<NDIM;mu++)
+    fixFromNativeEndianness<LittleEndian>(temp[mu]);
   
   //write the header
   FILE *fout=fopen(outpath,"w");
   if(rank==0)
     {
       int nw;
-      nw=fwrite(&temp[0],sizeof(coords_t),1,fout);
-      if(nw!=1) crash("did not success in writing");
+      nw=fwrite(&temp[0],sizeof(Coords),1,fout);
+      if(nw!=1) CRASH("did not success in writing");
       nw=fwrite(&plaq,sizeof(double),1,fout);
-      if(nw!=1) crash("did not success in writing");
+      if(nw!=1) CRASH("did not success in writing");
     }
   MPI_Barrier(MPI_COMM_WORLD);
   
   //if needed convert the endianess of the conf
-  if(!little_endian) change_endianness((double*)conf,(double*)conf,locVol*4*18);
+  if(nativeEndianness!=LittleEndian)
+    FOR_EACH_SITE_DEG_OF_FIELD(conf,
+			       CAPTURE(TO_WRITE(conf)),
+			       site,
+			       iDeg,
+			       {
+				 fixFromNativeEndianness<LittleEndian>(conf(site,iDeg));
+			       });
   
   //reorder
-  char *buf=nissa_malloc("buf",locVol*sizeof(quad_su3),char);
-  remapper->remap(buf,conf,sizeof(su3));
+  char *buf=new char[locVol*sizeof(quad_su3)];
+  remapper->remap(buf,conf.getPtr<defaultMemorySpace>(),sizeof(su3));
   
   //seek to the correct point
   fseek(fout,24+rank*sizeof(quad_su3)*locVol,SEEK_SET);
@@ -62,7 +72,7 @@ void conf_convert(char *outpath,char *inpath)
   
   //write
   int nw=fwrite(buf,sizeof(quad_su3),locVol,fout);
-  if(nw!=locVol) crash("did not success in writing");
+  if(nw!=locVol) CRASH("did not success in writing");
   MPI_Barrier(MPI_COMM_WORLD);
   
   //flush
@@ -73,13 +83,14 @@ void conf_convert(char *outpath,char *inpath)
   fclose(fout);
   MPI_Barrier(MPI_COMM_WORLD);
   
-  nissa_free(buf);
-  nissa_free(conf);
+  delete[] buf;
 }
 
-void in_main(int narg,char **arg)
+int main(int narg,char **arg)
 {
-  if(narg<2) crash("Use: %s input",arg[0]);
+  initNissa(narg,arg);
+  
+  if(narg<2) CRASH("Use: %s input",arg[0]);
   
   open_input(arg[1]);
   
@@ -90,10 +101,10 @@ void in_main(int narg,char **arg)
   read_str_int("T",&T);
   
   //Init the MPI grid
-  init_grid(T,L);
+  initGrid(T,L);
   
   //init the remapper
-  remapper=new vector_remap_t(4*locVol,index_from_lx_to_Neo,NULL);
+  remapper=new vector_remap_t(4*locVol,index_from_lx_to_Neo);
   
   //read the number of gauge configurations
   int N;
@@ -110,7 +121,7 @@ void in_main(int narg,char **arg)
       if(not file_exists(out))
 	 conf_convert(out,in);
       else
-	master_printf("Skipping conf %s\n",in);
+	MASTER_PRINTF("Skipping conf %s\n",in);
   }
   
   close_input();
@@ -118,12 +129,8 @@ void in_main(int narg,char **arg)
   ///////////////////////////////////////////
   
   delete remapper;
-}
-
-int main(int narg,char **arg)
-{
-  init_nissa_threaded(narg,arg,in_main);
-  close_nissa();
+  
+  closeNissa();
   
   return 0;
 }

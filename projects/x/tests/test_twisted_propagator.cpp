@@ -86,7 +86,7 @@ int main(int narg,char **arg)
 
   /////////////////////////////////////////// output ////////////////////////////////////////////////
   
-  master_printf("\nComparing the pion correlator\n");
+  MASTER_PRINTF("\nComparing the pion correlator\n");
   
   print_contractions_to_file(stdout,1,five,five,pion_corr_fft,0,"",1.0);
   print_contractions_to_file(stdout,1,five,five,pion_corr_inv,0,"",1.0);
@@ -108,18 +108,18 @@ int main(int narg,char **arg)
 	loc_d+=t*t;
       }
   double glb_d=sqrt(glb_reduce_double(loc_d)/glb_vol);
-  master_printf("\n\nAverage norm2 difference between fft and inv computed propagators: %lg\n\n",glb_d);
+  MASTER_PRINTF("\n\nAverage norm2 difference between fft and inv computed propagators: %lg\n\n",glb_d);
 
   ////////////////////////////////// check single point calculation //////////////////////////////
   
   coords sour={1,2,0,3},sink={3,1,2,1};
   int isour=glblx_of_coord(sour),isink=glblx_of_coord(sink);
-  master_printf("Checking computation of prop between points %d and %d\n",isour,isink);
+  MASTER_PRINTF("Checking computation of prop between points %d and %d\n",isour,isink);
   
   //take the backward propagator
   spinspin bprop;
   compute_x_space_propagator_to_sink_from_source(bprop,prop_inv,qu.bc,sink,sour);
-  master_printf("\n backward prop:\n");
+  MASTER_PRINTF("\n backward prop:\n");
   if(rank==0) spinspin_print(bprop);
 
   //take g5*forw_prop^dag*g5
@@ -135,11 +135,11 @@ int main(int narg,char **arg)
   safe_spinspin_prod_dirac(g5_fwprop_dag_g5,g5_fwprop_dag_g5,&(base_gamma[5]));
   safe_dirac_prod_spinspin(g5_fwprop_dag_g5,&(base_gamma[5]),g5_fwprop_dag_g5);
   safe_spinspin_hermitian(g5_fwprop_dag_g5,g5_fwprop_dag_g5);
-  master_printf("\n reverted forward prop:\n");
+  MASTER_PRINTF("\n reverted forward prop:\n");
   if(rank==0) spinspin_print(g5_fwprop_dag_g5);
   
   spinspin_subt(g5_fwprop_dag_g5,bprop,g5_fwprop_dag_g5);
-  master_printf("\n diff: %lg\n",sqrt(real_part_of_trace_spinspin_prod_spinspin_dag(g5_fwprop_dag_g5,g5_fwprop_dag_g5)));
+  MASTER_PRINTF("\n diff: %lg\n",sqrt(real_part_of_trace_spinspin_prod_spinspin_dag(g5_fwprop_dag_g5,g5_fwprop_dag_g5)));
   //if(rank==0) spinspin_print(g5_fwprop_dag_g5);
 
   close_test();

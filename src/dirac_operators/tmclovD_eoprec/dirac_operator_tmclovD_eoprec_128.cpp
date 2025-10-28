@@ -20,56 +20,64 @@ namespace nissa
   //implement ee or oo part of Dirac operator, equation(3)
   void tmclovDee_or_oo_eos_128(spincolor_128* out,double kappa,clover_term_t* Cl,bool dag,double mu,spincolor_128* in)
   {
-    if(dag) mu=-mu;
+    CRASH("reimplement");
     
-    if(in==out) crash("in==out!");
+    // if(dag) mu=-mu;
     
-    NISSA_PARALLEL_LOOP(X,0,locVolh)
-      {
-	 apply_point_twisted_clover_term_to_halfspincolor_128(&(out[X][0*NDIRAC/2]),+mu,kappa,&(Cl[X][0*NDIRAC/2]),&(in[X][0*NDIRAC/2]));
-	 apply_point_twisted_clover_term_to_halfspincolor_128(&(out[X][1*NDIRAC/2]),-mu,kappa,&(Cl[X][1*NDIRAC/2]),&(in[X][1*NDIRAC/2]));
-      }
-    NISSA_PARALLEL_LOOP_END;
+    // if(in==out) CRASH("in==out!");
     
-    set_borders_invalid(out);
+    // NISSA_PARALLEL_LOOP(X,0,locVolh)
+    //   {
+    // 	 apply_point_twisted_clover_term_to_halfspincolor_128(&(out[X][0*NDIRAC/2]),+mu,kappa,&(Cl[X][0*NDIRAC/2]),&(in[X][0*NDIRAC/2]));
+    // 	 apply_point_twisted_clover_term_to_halfspincolor_128(&(out[X][1*NDIRAC/2]),-mu,kappa,&(Cl[X][1*NDIRAC/2]),&(in[X][1*NDIRAC/2]));
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
+    
+    // set_borders_invalid(out);
   }
   
   //inverse
   void inv_tmclovDee_or_oo_eos_128(spincolor_128* out,inv_clover_term_t* invCl,bool dag,spincolor_128* in)
   {
-    if(in==out) crash("in==out!");
+    CRASH("reimplement");
     
-    //if dagger, swaps the sign of mu, which means taking the hermitian of the inverse
-    int high=0,low=1;
-    if(dag) std::swap(low,high);
+    // if(in==out) CRASH("in==out!");
     
-    NISSA_PARALLEL_LOOP(X,0,locVolh)
-      {
-	typedef halfspincolor_128 hs;
-    	unsafe_halfspincolor_halfspincolor_times_halfspincolor_128 (((hs*)(out[X]))[high],invCl[X][high],((hs*)(in[X]))[high]);
-    	unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor_128(((hs*)(out[X]))[low],invCl[X][low],((hs*)(in[X]))[low]);
-      }
-    NISSA_PARALLEL_LOOP_END;
+    // //if dagger, swaps the sign of mu, which means taking the hermitian of the inverse
+    // int high=0,low=1;
+    // if(dag) std::swap(low,high);
     
-    set_borders_invalid(out);
+    // NISSA_PARALLEL_LOOP(X,0,locVolh)
+    //   {
+    // 	typedef halfspincolor_128 hs;
+    // 	unsafe_halfspincolor_halfspincolor_times_halfspincolor_128 (((hs*)(out[X]))[high],invCl[X][high],((hs*)(in[X]))[high]);
+    // 	unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor_128(((hs*)(out[X]))[low],invCl[X][low],((hs*)(in[X]))[low]);
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
+    
+    // set_borders_invalid(out);
   }
   
   //implement Koo defined in equation (7)
   void tmclovDkern_eoprec_eos_128(spincolor_128* out,spincolor_128* temp,eo_ptr<quad_su3> conf,double kappa,clover_term_t* Cl_odd,inv_clover_term_t* invCl_evn,bool dag,double mu,spincolor_128* in)
   {
-    tmn2Deo_eos_128(out,conf,in);
-    inv_tmclovDee_or_oo_eos_128(temp,invCl_evn,dag,out);
-    tmn2Doe_eos_128(out,conf,temp);
+    CRASH("reimplement");
     
-    tmclovDee_or_oo_eos_128(temp,kappa,Cl_odd,dag,mu,in);
+    // tmn2Deo_eos_128(out,conf,in);
+    // inv_tmclovDee_or_oo_eos_128(temp,invCl_evn,dag,out);
+    // tmn2Doe_eos_128(out,conf,temp);
     
-    tmDkern_eoprec_eos_put_together_and_include_gamma5_128(out,temp);
+    // tmclovDee_or_oo_eos_128(temp,kappa,Cl_odd,dag,mu,in);
+    
+    // tmDkern_eoprec_eos_put_together_and_include_gamma5_128(out,temp);
   }
   
   //square of Koo
   void tmclovDkern_eoprec_square_eos_128(spincolor_128 *out,spincolor_128 *temp1,spincolor_128 *temp2,eo_ptr<quad_su3> conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,spincolor_128 *in)
   {
-    tmclovDkern_eoprec_eos_128(temp1,temp2,conf,kappa,Cl_odd,invCl_evn,true,  mu,in   );
-    tmclovDkern_eoprec_eos_128(out,  temp2,conf,kappa,Cl_odd,invCl_evn,false, mu,temp1);
+    CRASH("reimplement");
+    
+    // tmclovDkern_eoprec_eos_128(temp1,temp2,conf,kappa,Cl_odd,invCl_evn,true,  mu,in   );
+    // tmclovDkern_eoprec_eos_128(out,  temp2,conf,kappa,Cl_odd,invCl_evn,false, mu,temp1);
   }
 }

@@ -13,56 +13,58 @@ namespace nissa
   //gather the whole field on a single rank, reordering data
   void vector_gather(char *glb,char *loc,size_t bps,int dest_rank)
   {
-    if(dest_rank==rank)
-      {
-	//copy local data
-	memcpy(glb+rank*locVol*bps,loc,locVol*bps);
+    CRASH("reimplement");
+    
+    // if(dest_rank==rank)
+    //   {
+    // 	//copy local data
+    // 	memcpy(glb+rank*locVol*bps,loc,locVol*bps);
 	
-	//open incoming communications for non-local data
-	MPI_Request req[nranks-1];
-	int ireq=0;
-	for(int irank=0;irank<nranks;irank++)
-	  if(irank!=rank)
-	    MPI_Irecv(glb+irank*locVol*bps,locVol*bps,MPI_CHAR,irank,239+irank,MPI_COMM_WORLD,&(req[ireq++]));
-	//wait all incoming data
-	MPI_Waitall(ireq,req,MPI_STATUS_IGNORE);
+    // 	//open incoming communications for non-local data
+    // 	MPI_Request req[nranks-1];
+    // 	int ireq=0;
+    // 	for(int irank=0;irank<nranks;irank++)
+    // 	  if(irank!=rank)
+    // 	    MPI_Irecv(glb+irank*locVol*bps,locVol*bps,MPI_CHAR,irank,239+irank,MPI_COMM_WORLD,&(req[ireq++]));
+    // 	//wait all incoming data
+    // 	MPI_Waitall(ireq,req,MPI_STATUS_IGNORE);
 	
-	//reorder data
-	int *ord=nissa_malloc("ord",glbVol,int);
-	coords_t r;
-	for(r[0]=0;r[0]<nrank_dir[0];r[0]++)
-	  for(r[1]=0;r[1]<nrank_dir[1];r[1]++)
-	    for(r[2]=0;r[2]<nrank_dir[2];r[2]++)
-	      for(r[3]=0;r[3]<nrank_dir[3];r[3]++)
-		{
-		  int irank=rank_of_coord(r);
-		  coords_t l;
-		  for(l[0]=0;l[0]<locSize[0];l[0]++)
-		    for(l[1]=0;l[1]<locSize[1];l[1]++)
-		      for(l[2]=0;l[2]<locSize[2];l[2]++)
-			for(l[3]=0;l[3]<locSize[3];l[3]++)
-			  {
-			    coords_t g;
-			    for(int mu=0;mu<4;mu++) g[mu]=r[mu]*locSize[mu]+l[mu];
+    // 	//reorder data
+    // 	int *ord=nissa_malloc("ord",glbVol,int);
+    // 	Coords r;
+    // 	for(r[0]=0;r[0]<nrank_dir[0];r[0]++)
+    // 	  for(r[1]=0;r[1]<nrank_dir[1];r[1]++)
+    // 	    for(r[2]=0;r[2]<nrank_dir[2];r[2]++)
+    // 	      for(r[3]=0;r[3]<nrank_dir[3];r[3]++)
+    // 		{
+    // 		  int irank=rank_of_coord(r);
+    // 		  Coords l;
+    // 		  for(l[0]=0;l[0]<locSize[0];l[0]++)
+    // 		    for(l[1]=0;l[1]<locSize[1];l[1]++)
+    // 		      for(l[2]=0;l[2]<locSize[2];l[2]++)
+    // 			for(l[3]=0;l[3]<locSize[3];l[3]++)
+    // 			  {
+    // 			    Coords g;
+    // 			    for(int mu=0;mu<4;mu++) g[mu]=r[mu]*locSize[mu]+l[mu];
 			    
-			    int ivol=locVol*irank+loclx_of_coord(l);
-			    int glb_site=glblx_of_coord(g);
+    // 			    int ivol=locVol*irank+loclx_of_coord(l);
+    // 			    int glb_site=glblx_of_coord(g);
 			    
-			    ord[ivol]=glb_site;
-			  }
-		}
+    // 			    ord[ivol]=glb_site;
+    // 			  }
+    // 		}
 	
-	reorder_vector(glb,ord,glbVol,bps);
+    // 	reorder_vector(glb,ord,glbVol,bps);
 	
-	nissa_free(ord);
-      }
-    else
-      {
-	//send non-local data
-	MPI_Request req;
-	MPI_Isend(loc,locVol*bps,MPI_CHAR,dest_rank,239+rank,MPI_COMM_WORLD,&req);
-	MPI_Waitall(1,&req,MPI_STATUS_IGNORE);
-      }
+    // 	nissa_free(ord);
+    //   }
+    // else
+    //   {
+    // 	//send non-local data
+    // 	MPI_Request req;
+    // 	MPI_Isend(loc,locVol*bps,MPI_CHAR,dest_rank,239+rank,MPI_COMM_WORLD,&req);
+    // 	MPI_Waitall(1,&req,MPI_STATUS_IGNORE);
+    //   }
   }
   
   //average over all the passed sites
@@ -85,7 +87,7 @@ namespace nissa
   //ipercubicly mirrorize an already gathered vector
   void gathered_vector_mirrorize(double *vec,int dps)
   {
-    if(glbSize[0]%2 || glbSize[1]%2) crash("Error, impossible to mirrorize if sites are odds");
+    if(glbSize[0]%2 || glbSize[1]%2) CRASH("Error, impossible to mirrorize if sites are odds");
     
     int TH=glbSize[0]/2;
     int LH=glbSize[1]/2;
@@ -100,10 +102,10 @@ namespace nissa
 	      int ivol[8];
 	      for(int imirr=0;imirr<8;imirr++)
 		{
-		  coords_t xmirr;
+		  Coords xmirr;
 		  for(int mu=0;mu<4;mu++)
 		    xmirr[mu]=(imirr & (1<<mu)) ? (glbSize[mu]-x[mu])%glbSize[mu] : x[mu];
-		  ivol[imirr]=glblx_of_coord(xmirr);
+		  ivol[imirr]=glblxOfCoord(xmirr);
 		}
 	      
 	      //average
@@ -114,7 +116,7 @@ namespace nissa
   //symmetrize an already gathered vector
   void gathered_vector_cubic_symmetrize(double *vec,int dps)
   {
-    if(glbSize[0]%2 || glbSize[1]%2) crash("Error, impossible to symmetrize if sites are odds");
+    if(glbSize[0]%2 || glbSize[1]%2) CRASH("Error, impossible to symmetrize if sites are odds");
     
     int TH=glbSize[0]/2;
     int LH=glbSize[1]/2;
@@ -130,7 +132,7 @@ namespace nissa
 	      //find cubic partners
 	      int ivol[6];
 	      for(int iperm=0;iperm<6;iperm++)
-		ivol[iperm]=glblx_of_coord_list(x[0],x[perm[iperm][0]],x[perm[iperm][1]],x[perm[iperm][2]]);
+		ivol[iperm]=glblxOfCoordList(x[0],x[perm[iperm][0]],x[perm[iperm][1]],x[perm[iperm][2]]);
 	      
 	      //average
 	      average_list_of_gathered_vector_sites(vec,ivol,6,dps);

@@ -20,7 +20,7 @@ void init_calc(int narg,char **arg)
   //Basic mpi initialization
   init_nissa(narg,arg);
   
-  if(narg<3) crash("use %s L T [alpha]",arg[0]);
+  if(narg<3) CRASH("use %s L T [alpha]",arg[0]);
   int T=atoi(arg[1]);
   int L=atoi(arg[2]);
   if(narg>=4) sscanf(arg[3],"%lg",&alpha);
@@ -61,7 +61,7 @@ int main(int narg,char **arg)
   //gluon
   double gluon_theta[4]={0,0,0,0};
   gluon_info gl=create_tlSym_gluon_info(alpha,gluon_theta);
-  master_printf("alpha=%lg\n",alpha);
+  MASTER_PRINTF("alpha=%lg\n",alpha);
   
   /////////////////////////////// propagator and pion computed analytically //////////////////////////
   
@@ -75,7 +75,7 @@ int main(int narg,char **arg)
   //compute_all_2pts_qdagq_correlations(corr_p,prop,tad_prop_p);
   
   //NISSA_LOC_VOL_LOOP(P)
-  //master_printf("%d %d %d %d %lg %lg\n",glb_coord_of_loclx[P][0],glb_coord_of_loclx[P][1],glb_coord_of_loclx[P][2],glb_coord_of_loclx[P][3],corr[P][5][0],corr_p[P][5][0]);
+  //MASTER_PRINTF("%d %d %d %d %lg %lg\n",glb_coord_of_loclx[P][0],glb_coord_of_loclx[P][1],glb_coord_of_loclx[P][2],glb_coord_of_loclx[P][3],corr[P][5][0],corr_p[P][5][0]);
   
   write_corr16("tadpole_corr",corr,64);
   

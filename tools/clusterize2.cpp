@@ -137,7 +137,7 @@ void count_corr(char *path)
   for(int icorr_type=0;icorr_type<ncorr_type;icorr_type++)
     for(int jcorr_type=icorr_type+1;jcorr_type<ncorr_type;jcorr_type++)
       if(strcmp(outpath[icorr_type],outpath[jcorr_type])==0)
-	crash("%d corr outpath %s is equal to %d outpath, %s",icorr_type,outpath[icorr_type],jcorr_type,outpath[jcorr_type]);
+	CRASH("%d corr outpath %s is equal to %d outpath, %s",icorr_type,outpath[icorr_type],jcorr_type,outpath[jcorr_type]);
 }
 
 void parse_conf(int iconf,char *path)
@@ -161,7 +161,7 @@ void parse_conf(int iconf,char *path)
 	  {
 	    char *succ=fgets(line,1024,file);
 	    nread_line++;
-	    if(succ!=line) crash("file ended before finishing reading");
+	    if(succ!=line) CRASH("file ended before finishing reading");
 
 	    nonblank=0;
 	    for(size_t i=0;i<strlen(line)-1;i++) nonblank+=(line[i]!=' ');
@@ -177,7 +177,7 @@ void parse_conf(int iconf,char *path)
 		int nonblank;
 		do
 		  {
-		    if(line!=fgets(line,1024,file)) crash("error reading line, obtained: %s",line);
+		    if(line!=fgets(line,1024,file)) CRASH("error reading line, obtained: %s",line);
 		    nonblank=0;
 		    for(size_t i=0;i<strlen(line)-1;i++) nonblank+=(line[i]!=' ');
 		  }
@@ -190,12 +190,12 @@ void parse_conf(int iconf,char *path)
 	    if(use_new_contraction_layout)
 	      {
 		n=sscanf(line,"%lg",&t1);
-		if(n!=1) crash("scanning line '%s' obtained only %d numbers",line,n);
+		if(n!=1) CRASH("scanning line '%s' obtained only %d numbers",line,n);
 	      }
 	    else
 	      {
 		n=sscanf(line,"%lg %lg",&t1,&t2);
-		if(n!=2) crash("scanning line '%s' obtained only %d numbers",line,n);
+		if(n!=2) CRASH("scanning line '%s' obtained only %d numbers",line,n);
 	      }
 	    nread_line++;
 	    
@@ -214,14 +214,14 @@ void parse_conf(int iconf,char *path)
   
   //check to have finished the file
   while(line==fgets(line,1024,file))
-  if(strlen(line)>1) crash("should have reached end and instead got: %s",line);
+  if(strlen(line)>1) CRASH("should have reached end and instead got: %s",line);
   
   fclose(file);
 }
 
 int main(int narg,char **arg)
 {
-  if(narg<2) crash("use %s input",arg[0]);
+  if(narg<2) CRASH("use %s input",arg[0]);
   
   check_endianess();
   
@@ -250,7 +250,7 @@ int main(int narg,char **arg)
 		    {
 		      printf("conf %s not available, skipping",path[iconf][icopy]);
 		      curr_conf+=confs_each;
-		      if(curr_conf>=nconfs_teo*confs_each) crash("finished all available confs");
+		      if(curr_conf>=nconfs_teo*confs_each) CRASH("finished all available confs");
 		    }
 		}
 	      while(!found);
@@ -298,7 +298,7 @@ int main(int narg,char **arg)
 	  if(binary_out)
 	    {
 	      int n=fwrite((void*)(data+ncombo*REIM*T*(njack+1)*icorr_type),sizeof(double),ncombo*REIM*T*(njack+1),file);
-	      if(n!=ncombo*REIM*T*(njack+1)) crash("obtained %d instead of %d",n,ncombo*REIM*T*(njack+1));
+	      if(n!=ncombo*REIM*T*(njack+1)) CRASH("obtained %d instead of %d",n,ncombo*REIM*T*(njack+1));
 	    }
 	  else
 	    for(int i=0;i<ncombo*REIM*T*(njack+1);i++) fprintf(file,"%+016.16lg\n",

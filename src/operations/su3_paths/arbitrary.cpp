@@ -30,12 +30,14 @@ namespace nissa
   void paths_calculation_structure::move_forward(int mu)
   {
     //check not to have passed the max number of steps
-    if(cur_mov==ntot_mov) crash("exceded (%d) the number of allocated movements, %d",cur_mov,ntot_mov);
+    if(cur_mov==ntot_mov) CRASH("exceded (%d) the number of allocated movements, %d",cur_mov,ntot_mov);
     //find global pos
-    int nx=glblx_neighup(pos,mu);
+    const int nx=glblxNeighup(pos,mu);
     //search rank hosting site and loclx
-    int lx,rx;
-    get_loclx_and_rank_of_glblx(lx,rx,pos);
+    
+    const auto [rx,lx]=
+      getLoclxAndRankOfGlblx(pos);
+    
     //if local link, mark it, otherwise add to the list of non-locals
     if(rx==rank) link_for_movements[cur_mov]+=(lx*4+mu)<<nposs_path_flags;
     else
@@ -55,12 +57,13 @@ namespace nissa
     //mark backward move
     link_for_movements[cur_mov]+=DAG_LINK_FLAG;
     //check not to have passed the max number of steps
-    if(cur_mov==ntot_mov) crash("exceeded (%d) the number of allocated movements, %d",cur_mov,ntot_mov);
+    if(cur_mov==ntot_mov) CRASH("exceeded (%d) the number of allocated movements, %d",cur_mov,ntot_mov);
     //find global pos
-    int nx=glblx_neighdw(pos,mu);
+    int nx=glblxNeighdw(pos,mu);
     //search rank hosting site and loclx
-    int lx,rx;
-    get_loclx_and_rank_of_glblx(lx,rx,nx);
+    const auto [rx,lx]=
+      getLoclxAndRankOfGlblx(nx);
+    
     //if local link, mark it, otherwise add to the list of non-locals
     if(rx==rank) link_for_movements[cur_mov]+=(lx*4+mu)<<nposs_path_flags;
     else
@@ -77,8 +80,8 @@ namespace nissa
   //finish settings the paths, setup the send and receiver
   void paths_calculation_structure::finished_last_path()
   {
-    if(cur_path!=npaths) crash("finished the path list at path %d while it was initialized for %d",cur_path,npaths);
-    if(cur_mov!=ntot_mov) crash("finished the path list at mov %d while it was initialized for %d",cur_mov,ntot_mov);
+    if(cur_path!=npaths) CRASH("finished the path list at path %d while it was initialized for %d",cur_path,npaths);
+    if(cur_mov!=ntot_mov) CRASH("finished the path list at mov %d while it was initialized for %d",cur_mov,ntot_mov);
     
     //sort the list
     qsort(movements_nonloc_links_id_list,nnonloc_links,sizeof(movement_link_id),compare_movement_link_id);
@@ -126,7 +129,7 @@ namespace nissa
 	  {
 	    int t=ind_nonloc_links_list[ilink];
 	    int gx=t>>2;
-	    int rx=rank_hosting_glblx(gx);
+	    int rx=rankHostingGlblx(gx);
 	    if(rx==rank_to_recv) nlinks_to_recv++;
 	  }
 	
@@ -146,8 +149,8 @@ namespace nissa
 	    int mu=t%4;
 	    
 	    //get lx and rank hosting the site
-	    int lx,rx;
-	    get_loclx_and_rank_of_glblx(lx,rx,gx);
+	    const auto [rx,lx]=
+	      getLoclxAndRankOfGlblx(gx);
 	    
 	    //copy in the list if appropriate rank
 	    if(rx==rank_to_recv)
@@ -210,7 +213,7 @@ namespace nissa
     su3 *recv_ptr=nonloc_links;
     for(int irecv=0;irecv<nranks_to_recv;irecv++)
       {
-	MPI_Irecv((void*)recv_ptr,nlinks_to_recv_list[irecv],MPI_SU3,ranks_to_recv_list[irecv],rank*nranks+ranks_to_recv_list[irecv],cart_comm,request+irequest++);
+	MPI_Irecv((void*)recv_ptr,nlinks_to_recv_list[irecv],MPI_SU3,ranks_to_recv_list[irecv],rank*nranks+ranks_to_recv_list[irecv],MPI_COMM_WORLD,request+irequest++);
 	
 	if(irecv+1!=nranks_to_recv) recv_ptr+=nlinks_to_recv_list[irecv];
       }
@@ -223,7 +226,7 @@ namespace nissa
     su3 *send_ptr=send_buff;
     for(int isend=0;isend<nranks_to_send;isend++)
       {
-	MPI_Isend((void*)send_ptr,nlinks_to_send_list[isend],MPI_SU3,ranks_to_send_list[isend],ranks_to_send_list[isend]*nranks+rank,cart_comm,request+irequest++);
+	MPI_Isend((void*)send_ptr,nlinks_to_send_list[isend],MPI_SU3,ranks_to_send_list[isend],ranks_to_send_list[isend]*nranks+rank,MPI_COMM_WORLD,request+irequest++);
 	
 	if(isend+1!=nranks_to_send) send_ptr+=nlinks_to_send_list[isend];
       }
@@ -339,7 +342,7 @@ namespace nissa
     //summ last path
     su3_summassign(paths[npaths-1],cur_path);
     
-    if(ipath!=npaths-1) crash("finished the movements at path %d while expecting %d",ipath,npaths);
+    if(ipath!=npaths-1) CRASH("finished the movements at path %d while expecting %d",ipath,npaths);
     
     nissa_free(nonloc_links);
   }
@@ -410,7 +413,7 @@ namespace nissa
     //summ last path
     su3_summassign(paths[npaths-1],cur_path);
     
-    if(ipath!=npaths-1) crash("finished the movements at path %d while expecting %d",ipath,npaths);
+    if(ipath!=npaths-1) CRASH("finished the movements at path %d while expecting %d",ipath,npaths);
     
     nissa_free(nonloc_links);
   }
@@ -420,21 +423,22 @@ namespace nissa
   //initialise to identity
   void init_su3_path(path_drawing_t* c,su3* out)
   {
+    CRASH("reimplement");
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      su3_put_to_id(out[ivol]);
-    NISSA_PARALLEL_LOOP_END;
-    coords_summable_t t;
-    c->push_back(t);
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   su3_put_to_id(out[ivol]);
+    // NISSA_PARALLEL_LOOP_END;
+    // coords_summable_t t;
+    // c->push_back(t);
     
-    set_borders_invalid(out);
+    // set_borders_invalid(out);
   }
   
   //compare start and end
   void crash_if_end_diff_from_start(path_drawing_t *c)
   {
     if(c->back()!=c->front())
-      crash("(end point,[%d %d %d %d])!=(start_point,[%d,%d,%d,%d])",
+      CRASH("(end point,[%d %d %d %d])!=(start_point,[%d,%d,%d,%d])",
 	    c->back()[0],c->back()[1],c->back()[2],c->back()[3],
 	    c->front()[0],c->front()[1],c->front()[2],c->front()[3]);
   }
@@ -442,66 +446,66 @@ namespace nissa
   //elong backward
   void elong_su3_path_BW(path_drawing_t* c,su3* out,quad_su3* conf,int mu,bool both_sides)
   {
+    CRASH("reimplement");
     
-    if(both_sides) crash_if_end_diff_from_start(c);
+    // if(both_sides) crash_if_end_diff_from_start(c);
     
-    su3_vec_single_shift(out,mu,-1);
+    // su3_vec_single_shift(out,mu,-1);
     
-    if(both_sides)
-      {
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  {
-	    su3 temp;
-	    unsafe_su3_prod_su3_dag(temp,out[ivol],conf[ivol][mu]);
-	    unsafe_su3_prod_su3(out[ivol],conf[ivol][mu],temp);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-      }
-    else
-      {
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  safe_su3_prod_su3_dag(out[ivol],out[ivol],conf[ivol][mu]);
-	NISSA_PARALLEL_LOOP_END;
-      }
+    // if(both_sides)
+    //   {
+    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	  {
+    // 	    su3 temp;
+    // 	    unsafe_su3_prod_su3_dag(temp,out[ivol],conf[ivol][mu]);
+    // 	    unsafe_su3_prod_su3(out[ivol],conf[ivol][mu],temp);
+    // 	  }
+    // 	NISSA_PARALLEL_LOOP_END;
+    //   }
+    // else
+    //   {
+    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	  safe_su3_prod_su3_dag(out[ivol],out[ivol],conf[ivol][mu]);
+    // 	NISSA_PARALLEL_LOOP_END;
+    //   }
     
-    coords_summable_t t(c->back());
-    t[mu]--;
-    c->push_back(t);
-    if(both_sides) c->push_front(t);
-    
-    THREAD_BARRIER();
+    // coords_summable_t t(c->back());
+    // t[mu]--;
+    // c->push_back(t);
+    // if(both_sides) c->push_front(t);
   }
   
   //elong forward
   void elong_su3_path_FW(path_drawing_t* c,su3* out,quad_su3* conf,int mu,bool both_sides)
   {
+    CRASH("reimplement");
     
-    if(both_sides) crash_if_end_diff_from_start(c);
+    // if(both_sides) crash_if_end_diff_from_start(c);
     
-    if(both_sides)
-      {
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  {
-	    su3 temp;
-	    unsafe_su3_prod_su3(temp,out[ivol],conf[ivol][mu]);
-	    unsafe_su3_dag_prod_su3(out[ivol],conf[ivol][mu],temp);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-      }
-    else
-      {
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  safe_su3_prod_su3(out[ivol],out[ivol],conf[ivol][mu]);
-	NISSA_PARALLEL_LOOP_END;
-      }
-    THREAD_BARRIER();
+    // if(both_sides)
+    //   {
+    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	  {
+    // 	    su3 temp;
+    // 	    unsafe_su3_prod_su3(temp,out[ivol],conf[ivol][mu]);
+    // 	    unsafe_su3_dag_prod_su3(out[ivol],conf[ivol][mu],temp);
+    // 	  }
+    // 	NISSA_PARALLEL_LOOP_END;
+    //   }
+    // else
+    //   {
+    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	  safe_su3_prod_su3(out[ivol],out[ivol],conf[ivol][mu]);
+    // 	NISSA_PARALLEL_LOOP_END;
+    //   }
+    // THREAD_BARRIER();
     
-    coords_summable_t t(c->back());
-    t[mu]++;
-    c->push_back(t);
-    if(both_sides) c->push_front(t);
+    // coords_summable_t t(c->back());
+    // t[mu]++;
+    // c->push_back(t);
+    // if(both_sides) c->push_front(t);
     
-    su3_vec_single_shift(out,mu,+1);
+    // su3_vec_single_shift(out,mu,+1);
   }
   
   //elong of a certain numer of steps in a certain oriented direction: -1=BW, +1=FW

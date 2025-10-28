@@ -136,72 +136,72 @@ namespace nissa
   //summ the result (no glb reduction)
   void two_pts_comp_t::summ_the_loc_forw_back_contractions(double *out,double *S_forw,double *S_back,int nel,int twall)
   {
-    crash("#warning fix");
+    CRASH("reimplement");
     
-    //define the workload (to be improved)
-    int ncontrib=this->size();
-#if THREADS_TYPE != OPENMP_THREADS
-    int start_contr_t=0,end_contr_t=locSize[0]*ncontrib;
-#else
-      NISSA_CHUNK_WORKLOAD(start_contr_t,chunk_load_contr_t,end_contr_t,0,locSize[0]*ncontrib,THREAD_ID,nthreads);
-      (void)&chunk_load_contr_t;
+//     //define the workload (to be improved)
+//     int ncontrib=this->size();
+// #if THREADS_TYPE != OPENMP_THREADS
+//     int start_contr_t=0,end_contr_t=locSize[0]*ncontrib;
+// #else
+//       NISSA_CHUNK_WORKLOAD(start_contr_t,chunk_load_contr_t,end_contr_t,0,locSize[0]*ncontrib,THREAD_ID,nthreads);
+//       (void)&chunk_load_contr_t;
     
-#endif
+// #endif
     
-    //loop on the whole list
-    int icontrib_t=0;
-    double *temp=nissa_malloc("temp",ncontrib*locSize[0],double);
-    for(int t=0;t<locSize[0];t++)
-      {
-	double *S_forw_t=S_forw+t*nel*32;
-	double *S_back_t=S_back+t*nel*32;
+    // //loop on the whole list
+    // int icontrib_t=0;
+    // double *temp=nissa_malloc("temp",ncontrib*locSize[0],double);
+    // for(int t=0;t<locSize[0];t++)
+    //   {
+    // 	double *S_forw_t=S_forw+t*nel*32;
+    // 	double *S_back_t=S_back+t*nel*32;
 	
-	//loop on all contractions
-	for(two_pts_comp_t::iterator it=this->begin();it!=this->end();it++)
-	  {
-	    if(icontrib_t>=start_contr_t&&icontrib_t<end_contr_t)
-	      {
-		//compute the contribution and summ it to all the correlation where it contribute
-		double *S_forw_t_id=S_forw_t+nel*it->first.first;
-		double *S_back_t_id=S_back_t+nel*it->first.second;
+    // 	//loop on all contractions
+    // 	for(two_pts_comp_t::iterator it=this->begin();it!=this->end();it++)
+    // 	  {
+    // 	    if(icontrib_t>=start_contr_t&&icontrib_t<end_contr_t)
+    // 	      {
+    // 		//compute the contribution and summ it to all the correlation where it contribute
+    // 		double *S_forw_t_id=S_forw_t+nel*it->first.first;
+    // 		double *S_back_t_id=S_back_t+nel*it->first.second;
 		
-		//compute the local product
-		double loc_temp=0;
-		for(int iel=0;iel<nel;iel++) loc_temp+=S_forw_t_id[iel]*S_back_t_id[iel];
-		temp[icontrib_t]=loc_temp;
-	      }
-	    icontrib_t++;
-	  }
-      }
+    // 		//compute the local product
+    // 		double loc_temp=0;
+    // 		for(int iel=0;iel<nel;iel++) loc_temp+=S_forw_t_id[iel]*S_back_t_id[iel];
+    // 		temp[icontrib_t]=loc_temp;
+    // 	      }
+    // 	    icontrib_t++;
+    // 	  }
+    //   }
     
-    THREAD_BARRIER();
+    // THREAD_BARRIER();
     
-    crash("#warning not implemented");
+    // CRASH("#warning not implemented");
     
-    //summ the result to all the corr to which it contributes
-    NISSA_PARALLEL_LOOP(loc_t,0,locSize[0])
-      {
-	// //set in and out
-	// icontrib_t=ncontrib*loc_t;
-	// int t=(glb_size[0]+loc_size[0]*rank_coord[0]+loc_t-twall)%glb_size[0];
+    // //summ the result to all the corr to which it contributes
+    // NISSA_PARALLEL_LOOP(loc_t,0,locSize[0])
+    //   {
+    // 	// //set in and out
+    // 	// icontrib_t=ncontrib*loc_t;
+    // 	// int t=(glb_size[0]+loc_size[0]*rank_coord[0]+loc_t-twall)%glb_size[0];
 	
-	// //loop on all contributions
-	// for(two_pts_comp_t::iterator it=this->begin();it!=this->end();it++)
-	//   {
-	//     //loop on all correlation to which it contributes
-	//     for(corr_id_weight_t::iterator jt=it->second.begin();jt!=it->second.end();jt++)
-	//       {
-	// 	uint16_t corr_id=jt->first;
-	// 	double weight=jt->second;
+    // 	// //loop on all contributions
+    // 	// for(two_pts_comp_t::iterator it=this->begin();it!=this->end();it++)
+    // 	//   {
+    // 	//     //loop on all correlation to which it contributes
+    // 	//     for(corr_id_weight_t::iterator jt=it->second.begin();jt!=it->second.end();jt++)
+    // 	//       {
+    // 	// 	uint16_t corr_id=jt->first;
+    // 	// 	double weight=jt->second;
 		
-	// 	out[glb_size[0]*corr_id+t]+=weight*temp[icontrib_t];
-	//       }
-	//     icontrib_t++;
-	//   }
-      }
-    NISSA_PARALLEL_LOOP_END;
+    // 	// 	out[glb_size[0]*corr_id+t]+=weight*temp[icontrib_t];
+    // 	//       }
+    // 	//     icontrib_t++;
+    // 	//   }
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
     
-    nissa_free(temp);
+    // nissa_free(temp);
   }
   
   //print optimized correlations to file

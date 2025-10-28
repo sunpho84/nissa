@@ -5,7 +5,7 @@ using namespace nissa;
 void put_current_to_one_in_time(spin1field* J)
 {
   
-  master_printf("Putting to zero all spatial, 1 time\n");
+  MASTER_PRINTF("Putting to zero all spatial, 1 time\n");
   
   NISSA_PARALLEL_LOOP(ivol,0,locVol)
     for(int mu=0;mu<NDIM;mu++)
@@ -18,7 +18,7 @@ void put_current_to_one_in_time(spin1field* J)
 void in_main(int narg,char **arg)
 {
   //check argument
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   //open input file
   const char *path=arg[1];
