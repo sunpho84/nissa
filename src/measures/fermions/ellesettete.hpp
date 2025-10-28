@@ -113,7 +113,11 @@ namespace nissa
     }
   };
   
-  void measure_ellesettete(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,ellesettete_meas_pars_t &meas_pars,int iconf,int conf_created);
+  void measure_ellesettete(const EoField<quad_su3>& conf,
+			   const theory_pars_t& tp,
+			   const ellesettete_meas_pars_t& pars,
+			   const int& iconf,
+			   const int& conf_created);
 }
 
 #endif

@@ -33,34 +33,34 @@ namespace nissa
   
   namespace stag
   {
-    typedef eo_ptr<color> field_t;
-#define NEW_FIELD_T(A)					\
-    field_t A;						\
-    A[0]=nissa_malloc(#A,locVolh+bord_volh,color);	\
-    A[1]=nissa_malloc(#A,locVolh+bord_volh,color)
-#define DELETE_FIELD_T(A)				\
-    nissa_free(A[0]);					\
-    nissa_free(A[1]);
+    typedef EoField<color> field_t;
+    
+#define NEW_FIELD_T(A)				\
+    field_t A(#A,WITH_HALO)
+    
 #define MINV(out,iflav,in)					\
-    mult_Minv(out,conf,&theory_pars,iflav,meas_pars.residue,in)
-#define MASSY_INV(out,iflav,mass,in)      \
-    mult_Minv(out,conf,theory_pars.backfield[iflav],mass,meas_pars.residue,in)  
+    mult_Minv(out,conf,theory_pars,iflav,meas_pars.residue,in)
+    
+#define MASSY_INV(out,iflav,mass,in)					\
+    mult_Minv(out,conf,theory_pars.backfield[iflav],mass,meas_pars.residue,in)
+    
 #define DMDMU(out,iflav,ord,in)				\
     mult_dMdmu(out,&theory_pars,conf,iflav,ord,in)
+    
 #define NEW_TRACE_RES(o)			\
     complex o={0,0}
+    
 #define NEW_TRACE_RES_VEC(o,n)			\
-    double o[n];memset(o,0,sizeof(double)*n)
+    double o[n];				\
+    memset(o,0,sizeof(double)*n)
+    
 #define NEW_TIME_CORR(o)						\
-    double *NAME2(glb,o)=nissa_malloc("glb"#o,glb_size[0],double);	\
-    double *NAME2(loc,o)=new double[glb_size[0]];			\
-    vector_reset(NAME2(glb,o));						\
+    double NAME2(glb,o)[glbSize[0]);					\
     memset(NAME2(loc,o),0,sizeof(double)*glb_size[0]
-#define DELETE_TIME_CORR(o)			\
-    nissa_free(NAME2(glb,o));			\
-    delete[] NAME2(loc,o)
+    
 #define PRINT(A)							\
       master_fprintf(file,"%+16.16lg %+16.16lg\n",A[0]/(meas_pars.nhits*glbSpatVol),A[1]/(meas_pars.nhits*glbSpatVol))
+    
 #define PRINT_VEC(A)							\
     {									\
       master_fprintf(file," # %s flav %d\n",#A,iflav);			\
@@ -70,13 +70,19 @@ namespace nissa
     }
     
 #define SUMM_THE_TRACE_PRINT_AT_LAST_HIT(A,B,C)				\
-    summ_the_trace((double*)A,point_result,B,C);			\
-    if(ihit==meas_pars.nhits-1) PRINT(A)
+    summ_the_trace(A,point_result,B,C);					\
+    if(ihit==meas_pars.nhits-1)						\
+      PRINT(A)
+    
 #define SUMM_THE_TIME_TRACE_PRINT_AT_LAST_HIT(A,B,C)		\
     summ_the_time_trace(A,point_result,B,C);			\
-    if(ihit==meas_pars.nhits-1) PRINT_VEC(A)
+    if(ihit==meas_pars.nhits-1)					\
+      PRINT_VEC(A)
     
-    void fill_source(eo_ptr<color> src,int twall,rnd_t noise_type);
+    void fill_source(EoField<color>& src,
+		     const int& twall,
+		     const rnd_t& noise_type);
+    
     void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> right,complex *point_result);
     
     void mult_Minv(EoField<color>& prop,
