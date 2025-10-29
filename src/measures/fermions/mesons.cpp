@@ -28,13 +28,18 @@ namespace nissa
   }
   
   //compute the index where to store
-  inline int icombo(const int& iflav,
+  inline int icombo(const int& iflav_so,
+			const int& iflav_si,
 		    const int& iop_so,
 		    const int& iop_si,
 		    const int& i_dir,
 		    const int& dir)
   {
-    return i_dir+glbSize[dir]*(iop_si+nop*(iop_so+nop*iflav));
+    return i_dir
+		+glbSize[dir]*(iop_si
+		+nop*(iop_so
+		+nop*(iflav_si
+		+nflavs*iflav_so)));
   }
   
   void compute_meson_corr(complex* corr,
@@ -52,21 +57,22 @@ namespace nissa
     std::vector<EoField<color>> temp;
     for(int i=0;i<2;i++)
       temp.emplace_back("temp",WITH_HALO);
-    std::vector<EoField<color>> quark;
-    std::vector<EoField<color>> quark0s;
-    
-    for(int iop=0;iop<nop;iop++)
-      {
-	quark.emplace_back("quark",WITH_HALO);
-	quark0s.emplace_back("quark0s",WITH_HALO);
-      }
+    std::vector<EoField<color>> quark(nflavs*nop, EoField<color>("quark", WITH_HALO));
+    std::vector<EoField<color>> quark0s(nflavs*nop, EoField<color>("quark0s", WITH_HALO));
+	
+	//maybe not needed if we preallocate above
+	//for(int iflav=0;iflav<nflavs;iflav++)
+    //  for(int iop=0;iop<nop;iop++)
+    //  {
+	//  quark.emplace_back("quark",WITH_HALO);
+	//  quark0s.emplace_back("quark0s",WITH_HALO);
+    //  }
     
     //form the masks
     int mask[nop],shift[nop];
     for(int iop=0;iop<nop;iop++)
       {
-	const auto& [spin,taste]=
-	  meas_pars.mesons[iop];
+	const auto& [spin,taste]=meas_pars.mesons[iop];
 	shift[iop]=(spin^taste);
 	mask[iop]=form_stag_meson_pattern_with_g5g5(spin,taste);
 	//if((shift[iop])&1) CRASH("operator %d (%d %d) has unmatched number of g0",iop,spin,taste);
@@ -89,29 +95,38 @@ namespace nissa
 	//generate source
 	generate_fully_undiluted_eo_source(ori_source,meas_pars.rnd_type,source_coord,dir);
 	
-	//generate source
-	generate_fully_undiluted_eo_source(ori_source,meas_pars.rnd_type,source_coord);
+	//generate source  (Why two times and without dir?)
+	//generate_fully_undiluted_eo_source(ori_source,meas_pars.rnd_type,source_coord);
 	
 	for(int iflav=0;iflav<nflavs;iflav++)
 	  {
 	    for(int iop=0;iop<nop;iop++)
 	      {
-		apply_shift_op(source,temp[0],temp[1],conf,tp.backfield[iflav],shift[iop],ori_source);
-		put_stag_phases(source,mask[iop]);
-		
-		mult_Minv(quark[iop],conf,tp,iflav,meas_pars.residue,source);
+			const int idx=iflav*nop+iop;
+			apply_shift_op(source,temp[0],temp[1],conf,tp.backfield[iflav],shift[iop],ori_source);
+			put_stag_phases(source,mask[iop]);
+			mult_Minv(quark[idx],conf,tp,iflav,meas_pars.residue,source);
 	      }
-	    
+	  }
 	    /// Sink
+	for(int iflav=0;iflav<nflavs;iflav++)
+	  {
 	    for(int iop=0;iop<nop;iop++)
 	      {
-		apply_shift_op(quark0s[iop],temp[0],temp[1],conf,tp.backfield[iflav],shift[iop],quark[0]);
-		put_stag_phases(quark0s[iop],mask[iop]);
+			const int idx = iflav*nop + iop;
+			apply_shift_op(quark0s[idx],temp[0],temp[1],conf,tp.backfield[iflav],shift[iop],quark[idx]);
+			put_stag_phases(quark0s[idx],mask[iop]);
 	      }
-	    
+	  }
+
+	// contratc all flavs and ops
+	for(int iflav_so=0;iflav_so<nflavs;iflav_so++)
+	  for(int iflav_si=0;iflav_si<nflavs;iflav_si++)
 	    for(int iop_so=0;iop_so<nop;iop_so++)
 	      for(int iop_si=0;iop_si<nop;iop_si++)
 		{
+          const int idx_so=iflav_so*nop+iop_so;
+		  const int idx_si=iflav_si*nop+iop_si;		
 		  LxField<complex> loc_contr("loc_contr");
 		  
 		  for(int eo=0;eo<2;eo++)
@@ -119,8 +134,8 @@ namespace nissa
 		      PAR(0,
 			  locVolh,
 			  CAPTURE(eo,
-				  q0s=quark0s[iop_si].getReadable(),
-				  q=quark[iop_si].getReadable(),
+				  q0s=quark0s[idx_si].getReadable(),
+				  q=quark[idx_so].getReadable(),
 				  TO_WRITE(loc_contr)),
 			  ieo,
 			  {
@@ -138,14 +153,12 @@ namespace nissa
 		  
 		  for(int glb_idir=0;glb_idir<glbSize[dir];glb_idir++)
 		    {
-		      /// Distance from source
-		      const int d_dir=
+		    /// Distance from source
+		    const int d_dir=
 			(glb_idir-source_coord+glbSize[dir])%glbSize[dir];
-		      
-		      complex_summassign(corr[icombo(iflav,iop_so,iop_si,d_dir,dir)],unshiftedGlbContr[glb_idir]);
+		      complex_summassign(corr[icombo(iflav_so,iflav_si,iop_so,iop_si,d_dir,dir)],unshiftedGlbContr[glb_idir]);
 		    }
 		}
-	  }
       }
     
   }
@@ -164,7 +177,7 @@ namespace nissa
     
     VERBOSITY_LV1_MASTER_PRINTF("Meson correlator: type=%s, dir=%d, extent=%d\n",(dir==0)?"temporal":"spatial",dir,glbSize[dir]);
 
-    ncombo=icombo(nflavs-1,nop-1,nop-1,glbSize[dir]-1,dir)+1;
+    ncombo=icombo(nflavs-1,nflavs-1,nop-1,nop-1,glbSize[dir]-1,dir)+1;
     const double orthVol=double(glbVol)/double(glbSize[dir]);
     double norm=1.0/(meas_pars.nhits*orthVol);
     
@@ -181,7 +194,8 @@ namespace nissa
 	//open the file, allocate point result and source
 	for(int iop_so=0;iop_so<nop;iop_so++)
 	  for(int iop_si=0;iop_si<nop;iop_si++)
-	    for(int iflav=0;iflav<nflavs;iflav++)
+	    for(int iflav_so=0;iflav_so<nflavs;iflav_so++)
+		  for(int iflav_si=0;iflav_si<nflavs;iflav_si++)
 	      {
 		int spin_so=meas_pars.mesons[iop_so].first;
 		int taste_so=meas_pars.mesons[iop_so].second;
@@ -190,11 +204,10 @@ namespace nissa
 		master_fprintf(file," # conf %d ;"
 			       " iop_so %d , spin_so %d , taste_so %d ;"
 			       " iop_si %d , spin_si %d , taste_si %d ;"
-			       " flv = %d , m = %lg\n",
-			       iconf,iop_so,spin_so,taste_so,iop_si,spin_si,taste_si,iflav,tp.quarks[iflav].mass);
-		for(int d_dir=0;d_dir<glbSize[dir];d_dir++)
+			       " flv_so = %d , m_so = %lg\n ; flv_si = %d , m_si = %lg\n",
+			       iconf,iop_so,spin_so,taste_so,iop_si,spin_si,taste_si,iflav_so,tp.quarks[iflav_so].mass, iflav_si,tp.quarks[iflav_si].mass); 
 		  {
-		    int ic=icombo(iflav,iop_so,iop_si,d_dir,dir);
+		    int ic=icombo(iflav_so,iflav_si,iop_so,iop_si,d_dir,dir);
 		    master_fprintf(file,"%d %+16.16lg %+16.16lg\n",d_dir,corr[ic][RE]*norm,corr[ic][IM]*norm);
 		  }
 		master_fprintf(file,"\n");
