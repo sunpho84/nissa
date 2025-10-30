@@ -326,7 +326,7 @@ namespace nissa
 	    *(const D*)this;
 	  
 	  const F& oth=
-	    *(const F*)this;
+	    **_oth;
 	  
 	  PAR(0,self.nSites(),
 	      CAPTURE(TO_WRITE(buf),

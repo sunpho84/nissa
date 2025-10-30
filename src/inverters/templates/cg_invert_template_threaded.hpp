@@ -29,7 +29,6 @@ namespace nissa
     T p("p",WITH_HALO);
     T r("r");
     
-    //macro to be defined externally, allocating all the required additional vectors
     if(guess)
 	sol=*guess;
     else
