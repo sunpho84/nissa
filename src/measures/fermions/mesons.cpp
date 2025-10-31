@@ -204,7 +204,7 @@ namespace nissa
 		master_fprintf(file," # conf %d ;"
 			       " iop_so %d , spin_so %d , taste_so %d ;"
 			       " iop_si %d , spin_si %d , taste_si %d ;"
-			       " flv_so = %d , m_so = %lg\n ; flv_si = %d , m_si = %lg\n",
+			       " flv_so = %d , m_so = %lg ; flv_si = %d , m_si = %lg\n",
 			       iconf,iop_so,spin_so,taste_so,iop_si,spin_si,taste_si,iflav_so,tp.quarks[iflav_so].mass, iflav_si,tp.quarks[iflav_si].mass);
 		for(int d_dir=0;d_dir<glbSize[dir];d_dir++)
 		  {
