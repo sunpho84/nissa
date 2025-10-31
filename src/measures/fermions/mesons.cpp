@@ -29,7 +29,7 @@ namespace nissa
   
   //compute the index where to store
   inline int icombo(const int& iflav_so,
-			const int& iflav_si,
+		    const int& iflav_si,
 		    const int& iop_so,
 		    const int& iop_si,
 		    const int& i_dir,
@@ -37,9 +37,9 @@ namespace nissa
   {
     return i_dir
 		+glbSize[dir]*(iop_si
-		+nop*(iop_so
-		+nop*(iflav_si
-		+nflavs*iflav_so)));
+			       +nop*(iop_so
+				     +nop*(iflav_si
+					   +nflavs*iflav_so)));
   }
   
   void compute_meson_corr(complex* corr,
@@ -54,25 +54,17 @@ namespace nissa
     EoField<color> ori_source("ori_source",WITH_HALO);
     EoField<color> source("source",WITH_HALO);
     EoField<color> sol("sol",WITH_HALO);
-    std::vector<EoField<color>> temp;
-    for(int i=0;i<2;i++)
-      temp.emplace_back("temp",WITH_HALO);
-    std::vector<EoField<color>> quark(nflavs*nop, EoField<color>("quark", WITH_HALO));
-    std::vector<EoField<color>> quark0s(nflavs*nop, EoField<color>("quark0s", WITH_HALO));
-	
-	//maybe not needed if we preallocate above
-	//for(int iflav=0;iflav<nflavs;iflav++)
-    //  for(int iop=0;iop<nop;iop++)
-    //  {
-	//  quark.emplace_back("quark",WITH_HALO);
-	//  quark0s.emplace_back("quark0s",WITH_HALO);
-    //  }
+    std::vector<EoField<color>> temp(2,{"temp",WITH_HALO});
+    std::vector<EoField<color>> quark(nflavs*nop,{"quark",WITH_HALO});
+    std::vector<EoField<color>> quark0s(nflavs*nop,{"quark0s",WITH_HALO});
     
     //form the masks
     int mask[nop],shift[nop];
     for(int iop=0;iop<nop;iop++)
       {
-	const auto& [spin,taste]=meas_pars.mesons[iop];
+	const auto& [spin,taste]=
+	  meas_pars.mesons[iop];
+	
 	shift[iop]=(spin^taste);
 	mask[iop]=form_stag_meson_pattern_with_g5g5(spin,taste);
 	//if((shift[iop])&1) CRASH("operator %d (%d %d) has unmatched number of g0",iop,spin,taste);
@@ -95,9 +87,6 @@ namespace nissa
 	//generate source
 	generate_fully_undiluted_eo_source(ori_source,meas_pars.rnd_type,source_coord,dir);
 	
-	//generate source  (Why two times and without dir?)
-	//generate_fully_undiluted_eo_source(ori_source,meas_pars.rnd_type,source_coord);
-	
 	for(int iflav=0;iflav<nflavs;iflav++)
 	  {
 	    for(int iop=0;iop<nop;iop++)
@@ -118,15 +107,16 @@ namespace nissa
 			put_stag_phases(quark0s[idx],mask[iop]);
 	      }
 	  }
-
-	// contratc all flavs and ops
+	
+	// contract all flavs and ops
 	for(int iflav_so=0;iflav_so<nflavs;iflav_so++)
 	  for(int iflav_si=0;iflav_si<nflavs;iflav_si++)
 	    for(int iop_so=0;iop_so<nop;iop_so++)
 	      for(int iop_si=0;iop_si<nop;iop_si++)
 		{
-          const int idx_so=iflav_so*nop+iop_so;
-		  const int idx_si=iflav_si*nop+iop_si;		
+		  const int idx_so=iflav_so*nop+iop_so;
+		  const int idx_si=iflav_si*nop+iop_si;
+		  
 		  LxField<complex> loc_contr("loc_contr");
 		  
 		  for(int eo=0;eo<2;eo++)
@@ -153,9 +143,10 @@ namespace nissa
 		  
 		  for(int glb_idir=0;glb_idir<glbSize[dir];glb_idir++)
 		    {
-		    /// Distance from source
-		    const int d_dir=
+		      /// Distance from source
+		      const int d_dir=
 			(glb_idir-source_coord+glbSize[dir])%glbSize[dir];
+		      
 		      complex_summassign(corr[icombo(iflav_so,iflav_si,iop_so,iop_si,d_dir,dir)],unshiftedGlbContr[glb_idir]);
 		    }
 		}
@@ -172,11 +163,11 @@ namespace nissa
   {
     nop=meas_pars.mesons.size();
     nflavs=tp.nflavs();
-
+    
     const int& dir=meas_pars.dir;
     
     VERBOSITY_LV1_MASTER_PRINTF("Meson correlator: type=%s, dir=%d, extent=%d\n",(dir==0)?"temporal":"spatial",dir,glbSize[dir]);
-
+    
     ncombo=icombo(nflavs-1,nflavs-1,nop-1,nop-1,glbSize[dir]-1,dir)+1;
     const double orthVol=double(glbVol)/double(glbSize[dir]);
     double norm=1.0/(meas_pars.nhits*orthVol);
