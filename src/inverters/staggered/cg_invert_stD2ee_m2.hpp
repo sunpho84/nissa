@@ -8,6 +8,7 @@
 #include <optional>
 
 #include "base/field.hpp"
+#include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "inverters/templates/cg_invert_template_threaded.hpp"
 #include "new_types/su3.hpp"
 
