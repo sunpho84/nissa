@@ -248,9 +248,18 @@ namespace nissa
     
     if(is_master_rank())
       {
-	last_write_time(runningPath(),
-			file_time_type::clock::now());
-	printf("Updating running file %s\n",runningPath().c_str());
+	const std::chrono::time_point now=
+	  file_time_type::clock::now();
+	
+	last_write_time(runningPath(),now);
+	
+	//In c++20 we will be able to easily cast
+	const time_t snow=
+	  std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	
+	printf("Updating running file %s at time %s\n",
+	       runningPath().c_str(),
+	       ctime(&snow));
 	fflush(stdout);
       }
   }
