@@ -55,6 +55,8 @@ namespace nissa
   
   EXTERN_PARS int doNotAverageHits INIT_TO(0);
   
+  EXTERN_PARS int doNotShiftSourceOfHits INIT_TO(0);
+  
   EXTERN_PARS int preservePartialData INIT_TO(0);
   
   EXTERN_PARS int nMaxTrials INIT_TO(3);

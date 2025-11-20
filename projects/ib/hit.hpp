@@ -425,10 +425,10 @@ namespace nissa
 	}
     }
     
-    void start_hit(const int& ihit,
+    void start_hit(const int& iHit,
 		   const bool& skip=false)
     {
-      MASTER_PRINTF("\n=== Hit %d/%d ====\n",ihit+1,nHits);
+      MASTER_PRINTF("\n=== Hit %d/%d ====\n",iHit+1,nHits);
       
       if(doNotAverageHits)
 	clearCorrelations();
@@ -438,7 +438,9 @@ namespace nissa
 	  using C=double[1];
 	  C c;
 	  field_rng_stream.drawScalar(c);
-	  oriCoords[mu]=c[0]*glbSize[mu];
+	  
+	  if(iHit==0 or not doNotShiftSourceOfHits)
+	    oriCoords[mu]=c[0]*glbSize[mu];
 	}
       
       if(stoch_source)
@@ -451,10 +453,10 @@ namespace nissa
 	  if(skip)
 	    generate_photon_source(*photon_eta);
 	  else
-	    generate_photon_stochastic_propagator(ihit);
+	    generate_photon_stochastic_propagator(iHit);
 	}
       
-      generate_original_sources(ihit,skip);
+      generate_original_sources(iHit,skip);
     }
     
     /// Perform one of step: dryRun, or eval

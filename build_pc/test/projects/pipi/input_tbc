@@ -25,7 +25,7 @@ cSW	  0.0001
 NProps 13
 
 Name            	Ins     SourceName      Tins    Kappa           Mass     R       Charge  ThetaX  ThetaY  ThetaZ  Residue Store
-sm0_ph0        		SM      0		-1      0.4e-20  			 50      	 0.0     0.0     0.0      	  0
+sm0_ph0        		SM      0		-1      0.4  			 50      	 0.0     0.0     0.0      	  0
 			
 Sr0_sm0_ph0		-       sm0_ph0  	-1      0.1770000     0.50000000   0     0.0     0.0     0.0     0.0       1e-20   0
 Sr1_sm0_ph0		-       sm0_ph0   	-1      0.1770000     0.50000000   1     0.0     0.0     0.0     0.0       1e-20   0
@@ -34,12 +34,12 @@ Sr1_smM_phM		-       sm0_ph0     	-1      0.1770000     0.50000000   1     0.0  
 Sr0_smP_phP		-       sm0_ph0     	-1      0.1770000     0.50000000   0     0.0     0.0     0.0     +2.0      1e-20   0
 Sr1_smP_phP		-       sm0_ph0     	-1      0.1770000     0.50000000   1     0.0     0.0     0.0     +2.0      1e-20   0
 
-ph0_sm0_Sr0_sm0_ph0	SM      Sr0_sm0_ph0	-1      0.4e-20  			 50      	 0.0     0.0     0.0   	  	  0
-ph0_sm0_Sr1_sm0_ph0	SM      Sr1_sm0_ph0	-1      0.4e-20  			 50      	 0.0     0.0     0.0   	  	  0
-phP_smP_Sr0_smM_phM	SM      Sr0_smM_phM	-1      0.4e-20  			 50      	 0.0     0.0     0.0   	  	  0
-phP_smP_Sr1_smM_phM	SM      Sr1_smM_phM	-1      0.4e-20  			 50      	 0.0     0.0     0.0   	  	  0
-phM_smM_Sr0_smP_phP	SM      Sr0_smP_phP	-1      0.4e-20  			 50      	 0.0     0.0     0.0   	  	  0
-phM_smM_Sr1_smP_phP	SM      Sr1_smP_phP	-1      0.4e-20  			 50      	 0.0     0.0     0.0   	  	  0
+ph0_sm0_Sr0_sm0_ph0	SM      Sr0_sm0_ph0	-1      0.4  			 50      	 0.0     0.0     0.0   	  	  0
+ph0_sm0_Sr1_sm0_ph0	SM      Sr1_sm0_ph0	-1      0.4  			 50      	 0.0     0.0     0.0   	  	  0
+phP_smP_Sr0_smM_phM	SM      Sr0_smM_phM	-1      0.4  			 50      	 0.0     0.0     0.0   	  	  0
+phP_smP_Sr1_smM_phM	SM      Sr1_smM_phM	-1      0.4  			 50      	 0.0     0.0     0.0   	  	  0
+phM_smM_Sr0_smP_phP	SM      Sr0_smP_phP	-1      0.4  			 50      	 0.0     0.0     0.0   	  	  0
+phM_smM_Sr1_smP_phP	SM      Sr1_smP_phP	-1      0.4  			 50      	 0.0     0.0     0.0   	  	  0
 
 
 ZeroModeSubtraction UNNO_ALEMANNA

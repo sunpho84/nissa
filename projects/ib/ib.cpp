@@ -597,13 +597,19 @@ void in_main(int narg,char **arg)
       MASTER_PRINTF("No maximum number of propagators to be allocated passed\n");
       MASTER_PRINTF("Optionally specify the maximal number of propagators to be allocated by exporting %s\n",NMAX_PROPS_ALLOCATED_STR);
     }
+
+#define PROVIDE_DO_NOT(WHAT,VAR,EXPLAIN)				\
+  constexpr char DO_NOT_ ## WHAT ## _HITS_STR[]="DO_NOT_" #WHAT "_HITS";	\
+  VAR=getenv(DO_NOT_## WHAT ## _HITS_STR)!=nullptr;		\
+  if(VAR)							\
+    MASTER_PRINTF("%s exported, not " EXPLAIN" hits\n",DO_NOT_ ## WHAT ## _HITS_STR);	\
+  else									\
+    MASTER_PRINTF("As default, " EXPLAIN" hits, export %s if needed otherwise\n",DO_NOT_ ## WHAT ## _HITS_STR)
   
-  constexpr char DO_NOT_AVERAGE_HITS_STR[]="DO_NOT_AVERAGE_HITS";
-  doNotAverageHits=getenv(DO_NOT_AVERAGE_HITS_STR)!=nullptr;
-  if(doNotAverageHits)
-    MASTER_PRINTF("%s exported, not averaging hits\n",DO_NOT_AVERAGE_HITS_STR);
-  else
-    MASTER_PRINTF("Averaging hits, export %s if needed otherwise\n",DO_NOT_AVERAGE_HITS_STR);
+  PROVIDE_DO_NOT(AVERAGE,doNotAverageHits,"averaging");
+  PROVIDE_DO_NOT(SHIFT_SOURCE_OF,doNotShiftSourceOfHits,"shifting the source of");
+  
+#undef PROVIDE_DO_NOT
   
   //loop over the configs
   int iconf=0;
