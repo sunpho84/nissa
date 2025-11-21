@@ -452,9 +452,9 @@ namespace nissa
 		  const Momentum& th)
   {
     
-    for(int mu=1;mu<NDIM;mu++)
-      if(fabs((int)(th[mu]/2)-th[mu]/2)>1e-10)
-	CRASH("Error: phase %lg must be an even integer",th[mu]);
+    // for(int mu=1;mu<NDIM;mu++)
+    //   if(fabs((int)(th[mu]/2)-th[mu]/2)>1e-10)
+    // 	CRASH("Error: phase %lg must be an even integer",th[mu]);
     
     out.reset();
     PAR(0,locVol,
@@ -717,7 +717,8 @@ namespace nissa
     source_time-=take_time();
     
     int rel_t=t;
-    if(rel_t!=-1) rel_t=(t+oriCoords[0])%glbSize[0];
+    if(rel_t!=-1)
+      rel_t=(t+oriCoords[0])%glbSize[0];
     
     LxField<quad_su3> *conf;
     switch(inser)
@@ -956,7 +957,8 @@ namespace nissa
 	    else
 	      {
 		//otherwise compute it
-		if(q.insertion==PROP) get_qprop(sol,*loop_source,q.kappa,q.mass,q.r,q.charge,q.residue,q.theta);
+		if(q.insertion==PROP)
+		  get_qprop(sol,*loop_source,q.kappa,q.mass,q.r,q.charge,q.residue,q.theta);
 		else    *sol=*loop_source;
 		
 		//and store if needed
