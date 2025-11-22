@@ -21,41 +21,6 @@ namespace nissa
     
     nlevels=3;
     
-    for(int ilev=0;ilev<nlevels;ilev++) nsetups[ilev]=4;
-    for(int ilev=0;ilev<nlevels;ilev++) mu_factor[ilev]=1;
-    for(int ilev=0;ilev<nlevels;ilev++) mu_factor_no_deflation[ilev]=1;
-    for(int ilev=0;ilev<nlevels;ilev++) nu_pre[ilev]=0;
-    for(int ilev=0;ilev<nlevels;ilev++) nu_post[ilev]=7;
-    
-    constexpr double def_coarse_solver_tol[MAX_MG_LEVELS]={0.15,0.22,0.46};
-    for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++)
-      {
-	coarse_solver_tol_no_deflation[ilev]=
-	  coarse_solver_tol[ilev]=
-	  def_coarse_solver_tol[ilev];
-      }
-    constexpr int def_coarse_solver_maxiter[MAX_MG_LEVELS]={100,100,100};
-    for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++)
-      {
-	coarse_solver_maxiter_no_deflation[ilev]=
-	  coarse_solver_maxiter[ilev]=
-	  def_coarse_solver_maxiter[ilev];
-      }
-    constexpr double def_smoother_tol[MAX_MG_LEVELS]={0.1,0.1,0.15};
-    for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++)
-      {
-	smoother_tol_no_deflation[ilev]=
-	  smoother_tol[ilev]=
-	  def_smoother_tol[ilev];
-      }
-    constexpr double def_omega[MAX_MG_LEVELS]={0.85,0.85,0.85};
-    for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++)
-      {
-	omega_no_deflation[ilev]=
-	  omega[ilev]=
-	  def_omega[ilev];
-      }
-    
     
     if(nissa::fileExists(path))
       {
@@ -86,14 +51,24 @@ namespace nissa
 		      MASTER_PRINTF("DD: read " #NAME "[%d]=" SHORT "\n",ilev,NAME[ilev]); \
 		    }
 		
+		using namespace nissa::multiGrid::internal;
+		
+#define READ_ARR_OPT_DEFL(TYPE,SHORT,NAME)				\
+		READ_ARR(TYPE,SHORT,NAME);				\
+		READ_ARR(TYPE,SHORT,NAME ## _no_deflation)
+		
+#define READ_VAR_OPT_DEFL(TYPE,SHORT,NAME)				\
+		READ_VAR(TYPE,SHORT,NAME);				\
+		READ_VAR(TYPE,SHORT,NAME ## _no_deflation)
+		
 		READ_VAR(int,"%d",nlevels);
 		READ_VAR(int,"%d",smoother_iterations);
 		READ_VAR(double,"%lg",max_mass_for_deflation);
 		READ_VAR(double,"%lg",max_mass);
 		
 		READ_ARR(int,"%d",nsetups);
-		READ_ARR(double,"%lg",mu_factor);
-		READ_ARR(double,"%lg",mu_factor_no_deflation);
+		
+		READ_ARR_OPT_DEFL(double,"%lg",mu_factor);
 		
 		//size of the blocks, nb ought to historic bugs, one needs to provide block size in the order XTZY
 		if(strcasecmp(tag,"block_size")==0)
@@ -109,26 +84,22 @@ namespace nissa
 		    }
 #ifdef USE_QUDA
 		READ_VAR(double,"%lg",setup_refresh_tol);
-		READ_VAR(double,"%lg",reliable_delta);
-		READ_VAR(double,"%lg",reliable_delta_refinement);
 		READ_VAR(int,"%d",nEigenvectors);
 		READ_VAR(int,"%d",gcrNkrylov);
 		READ_VAR(double,"%lg",eig_min);
 		READ_VAR(double,"%lg",eig_max);
 		READ_VAR(double,"%lg",setup_refresh_tol);
 		
-		READ_ARR(double,"%lg",omega);
-		READ_ARR(double,"%lg",omega_no_deflation);
-		READ_ARR(double,"%lg",coarse_solver_tol);
-		READ_ARR(double,"%lg",coarse_solver_tol_no_deflation);
-		READ_ARR(int,"%d",coarse_solver_maxiter);
-		READ_ARR(int,"%d",coarse_solver_maxiter_no_deflation);
-		READ_ARR(double,"%lg",smoother_tol);
-		READ_ARR(double,"%lg",smoother_tol_no_deflation);
-		READ_ARR(int,"%d",nu_pre);
-		READ_ARR(int,"%d",nu_pre_no_deflation);
-		READ_ARR(int,"%d",nu_post);
-		READ_ARR(int,"%d",nu_post_no_deflation);
+		READ_VAR_OPT_DEFL(double,"%lg",reliable_delta);
+		READ_VAR_OPT_DEFL(double,"%lg",reliable_delta_refinement);
+		
+		READ_ARR_OPT_DEFL(int,"%d",nu_post);
+		READ_ARR_OPT_DEFL(double,"%lg",coarse_solver_tol);
+		READ_ARR_OPT_DEFL(int,"%d",coarse_solver_maxiter);
+		READ_ARR_OPT_DEFL(double,"%lg",smoother_tol);
+		READ_ARR_OPT_DEFL(int,"%d",nu_pre);
+		READ_ARR_OPT_DEFL(int,"%d",nu_post);
+		READ_ARR_OPT_DEFL(double,"%lg ",omega);
 #endif
 	      }
 	    else MASTER_PRINTF("Finished reading the file '%s'\n",path);
@@ -142,4 +113,6 @@ namespace nissa
   
   #undef READ_ARR
   #undef READ_VAR
+  #undef READ_ARR_OPT_DEFL
+  #undef READ_VAR_OPT_DEFL
 }

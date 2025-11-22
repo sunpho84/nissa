@@ -24,26 +24,92 @@ namespace nissa
     EXTERN_MULTIGRID int nsetups[MAX_MG_LEVELS];
     EXTERN_MULTIGRID int smoother_iterations;
     EXTERN_MULTIGRID int gcrNkrylov INIT_TO(24);
-    EXTERN_MULTIGRID double mu_factor[MAX_MG_LEVELS];
-    EXTERN_MULTIGRID double mu_factor_no_deflation[MAX_MG_LEVELS];
-    EXTERN_MULTIGRID double coarse_solver_tol[MAX_MG_LEVELS];
-    EXTERN_MULTIGRID double coarse_solver_tol_no_deflation[MAX_MG_LEVELS];
-    EXTERN_MULTIGRID int coarse_solver_maxiter[MAX_MG_LEVELS];
-    EXTERN_MULTIGRID int coarse_solver_maxiter_no_deflation[MAX_MG_LEVELS];
-    EXTERN_MULTIGRID double smoother_tol[MAX_MG_LEVELS];
-    EXTERN_MULTIGRID double smoother_tol_no_deflation[MAX_MG_LEVELS];
-    EXTERN_MULTIGRID int nu_pre[MAX_MG_LEVELS];
-    EXTERN_MULTIGRID int nu_pre_no_deflation[MAX_MG_LEVELS];
-    EXTERN_MULTIGRID int nu_post[MAX_MG_LEVELS];
-    EXTERN_MULTIGRID int nu_post_no_deflation[MAX_MG_LEVELS];
-    EXTERN_MULTIGRID double omega[MAX_MG_LEVELS];
-    EXTERN_MULTIGRID double omega_no_deflation[MAX_MG_LEVELS];
-    EXTERN_MULTIGRID double max_mass INIT_TO(1e300);
-    EXTERN_MULTIGRID double reliable_delta INIT_TO(0.01);
-    EXTERN_MULTIGRID double reliable_delta_refinement INIT_TO(0.0001);
+    
     EXTERN_MULTIGRID double max_mass_for_deflation INIT_TO(1e300);
     EXTERN_MULTIGRID bool block_size_set INIT_TO(false);
     EXTERN_MULTIGRID nissa::Coords block_size[MAX_MG_LEVELS];
+    EXTERN_MULTIGRID double max_mass INIT_TO(1e300);
+    
+    struct SetupPars
+    {
+      double mu_factor[MAX_MG_LEVELS]{};
+      
+      double coarse_solver_tol[MAX_MG_LEVELS]{};
+      
+      int coarse_solver_maxiter[MAX_MG_LEVELS]{};
+      
+      double smoother_tol[MAX_MG_LEVELS]{};
+      
+      int nu_pre[MAX_MG_LEVELS]{};
+      
+      int nu_post[MAX_MG_LEVELS]{};
+      
+      double omega[MAX_MG_LEVELS]{};
+      
+      double reliable_delta{0.01};
+      
+      double reliable_delta_refinement{0.0001};
+      
+      SetupPars()
+      {
+	for(int ilev=0;ilev<nlevels;ilev++)
+	  nsetups[ilev]=4;
+	
+	for(int ilev=0;ilev<nlevels;ilev++)
+	  mu_factor[ilev]=1;
+	
+	for(int ilev=0;ilev<nlevels;ilev++)
+	  nu_pre[ilev]=0;
+	
+	for(int ilev=0;ilev<nlevels;ilev++)
+	  nu_post[ilev]=7;
+    
+	constexpr double def_coarse_solver_tol[MAX_MG_LEVELS]={0.15,0.22,0.46};
+	
+	for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++)
+	  coarse_solver_tol[ilev]=
+	  def_coarse_solver_tol[ilev];
+	
+	constexpr int def_coarse_solver_maxiter[MAX_MG_LEVELS]={100,100,100};
+	for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++)
+	  coarse_solver_maxiter[ilev]=
+	  def_coarse_solver_maxiter[ilev];
+	
+	constexpr double def_smoother_tol[MAX_MG_LEVELS]={0.1,0.1,0.15};
+	for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++)
+	  smoother_tol[ilev]=
+	  def_smoother_tol[ilev];
+	
+	constexpr double def_omega[MAX_MG_LEVELS]={0.85,0.85,0.85};
+	for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++)
+	  omega[ilev]=
+	    def_omega[ilev];
+      }
+    };
+    
+    EXTERN_MULTIGRID SetupPars pars;
+    
+    //if no deflation is used, the suffix "no_defl" is not used
+    EXTERN_MULTIGRID SetupPars pars_no_defl;
+    
+#define PROVIDE_ALIAS(X)					\
+    inline auto& X=multiGrid::pars.X;				\
+    inline auto& X ## _no_deflation=multiGrid::pars_no_defl.X
+    
+    namespace internal
+    {
+      PROVIDE_ALIAS(mu_factor);
+      PROVIDE_ALIAS(coarse_solver_tol);
+      PROVIDE_ALIAS(coarse_solver_maxiter);
+      PROVIDE_ALIAS(smoother_tol);
+      PROVIDE_ALIAS(nu_pre);
+      PROVIDE_ALIAS(nu_post);
+      PROVIDE_ALIAS(omega);
+      PROVIDE_ALIAS(reliable_delta);
+      PROVIDE_ALIAS(reliable_delta_refinement);
+    }
+    
+#undef PROVIDE_ALIAS
     
     EXTERN_MULTIGRID bool setup_valid INIT_TO(false);
     EXTERN_MULTIGRID double setup_refresh_tol INIT_TO(1e3);

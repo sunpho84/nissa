@@ -826,7 +826,7 @@ namespace nissa
       *nissa::loop_source;
     
     switch(inser)
-      {
+      { //warning, not all insertions use properly rel_t
       case PROP:
       case SCALAR:prop_multiply_with_gamma(loop_source,0,ori,rel_t);break;
       case PSEUDO:prop_multiply_with_gamma(loop_source,5,ori,rel_t);break;
