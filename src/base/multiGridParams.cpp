@@ -93,7 +93,6 @@ namespace nissa
 		READ_VAR_OPT_DEFL(double,"%lg",reliable_delta);
 		READ_VAR_OPT_DEFL(double,"%lg",reliable_delta_refinement);
 		
-		READ_ARR_OPT_DEFL(int,"%d",nu_post);
 		READ_ARR_OPT_DEFL(double,"%lg",coarse_solver_tol);
 		READ_ARR_OPT_DEFL(int,"%d",coarse_solver_maxiter);
 		READ_ARR_OPT_DEFL(double,"%lg",smoother_tol);
