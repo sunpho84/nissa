@@ -439,7 +439,9 @@ namespace nissa
 	  C c;
 	  field_rng_stream.drawScalar(c);
 	  
-	  if(iHit==0 or not doNotShiftSourceOfHits)
+	  if(doNotShiftSourceOfHits)
+	    oriCoords[mu]=0;
+	  else
 	    oriCoords[mu]=c[0]*glbSize[mu];
 	}
       
