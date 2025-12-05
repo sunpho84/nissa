@@ -110,77 +110,76 @@ namespace nissa
     
     mes2pts_move_to_make_readable_time-=take_time();
     
-    std::vector<std::string> toErase;
-    for(auto& [n,v] : mes2ptsPropsLib)
-      if(n!=m.a and n!=m.b)
-	toErase.push_back(n);
-    for(const std::string& n : toErase)
-      removeMes2PtsProp(n);
-    
-    for(const std::string& n : {m.a,m.b})
-      if(mes2ptsPropsLib.find(n)==mes2ptsPropsLib.end())
-	{
-	  MASTER_PRINTF("Allocating %s in the contr prop list\n",n.c_str());
-	  
-	  mes2ptsPropsLib[n].resize(nso_col*nso_spi);
-	  for(int i=0;i<nso_col*nso_spi;i++)
-#ifdef USE_CUDA
-	    {
-	      mes2ptsPropsLib[n][i]=new ContrProp(Q[n][i].name(),Q[n][i].haloEdgesPresence);
-	      *(mes2ptsPropsLib[n][i])=Q[n][i];
-	    }
-#else
-	  mes2ptsPropsLib[n][i]=&Q[n][i];
-#endif
-	}
-      else
-	MASTER_PRINTF("Prop %s already in the contr prop list\n",n.c_str());
-    
-    std::vector<ContrProp*>& Q1=mes2ptsPropsLib[m.a];
-    std::vector<ContrProp*>& Q2=mes2ptsPropsLib[m.b];
-    
-    nmes2pts_move_to_make_readable_made++;
-    mes2pts_move_to_make_readable_time+=take_time();
-    
-    for(size_t ihadr_contr=0;ihadr_contr<m.gammaList.size();ihadr_contr++)
+    // To ease the memory occupation, we move the color loop outside
+    for(int so_col=0;so_col<nso_col;so_col++)
       {
-	int ig_so=m.gammaList[ihadr_contr].so;
-	int ig_si=m.gammaList[ihadr_contr].si;
-	if(nso_spi==1 and ig_so!=5)
-	  CRASH("implemented only g5 contraction on the source for non-diluted source");
+	MASTER_PRINTF("Source color id %d\n",so_col);
 	
-	loc_contr->reset();
+	std::map<std::string,std::vector<ContrProp*>> mes2ptsPropsLib;
 	
-	for(int i=0;i<nso_spi;i++)
+	for(const std::string& n : {m.a,m.b})
+	  if(mes2ptsPropsLib.find(n)==mes2ptsPropsLib.end())
+	    {
+	      MASTER_PRINTF("Allocating %s in the contr prop list\n",n.c_str());
+	      
+	      mes2ptsPropsLib[n].resize(nso_spi);
+	      for(int so_spi=0;so_spi<nso_spi;so_spi++)
+		{
+		  const int i=so_sp_col_ind(so_spi,so_col);
+#ifdef USE_CUDA
+		  mes2ptsPropsLib[n][so_spi]=new ContrProp(Q[n][i].name(),Q[n][i].haloEdgesPresence);
+		  *(mes2ptsPropsLib[n][so_spi])=Q[n][i];
+#else
+		  mes2ptsPropsLib[n][so_spi]=&Q[n][i];
+#endif
+		}
+	    }
+	  else
+	    MASTER_PRINTF("Prop %s already in the contr prop list\n",n.c_str());
+	
+	std::vector<ContrProp*>& Q1=mes2ptsPropsLib[m.a];
+	std::vector<ContrProp*>& Q2=mes2ptsPropsLib[m.b];
+	
+	nmes2pts_move_to_make_readable_made++;
+	mes2pts_move_to_make_readable_time+=take_time();
+	
+	for(size_t ihadr_contr=0;ihadr_contr<m.gammaList.size();ihadr_contr++)
 	  {
-	    int j=(base_gamma+ig_so)->pos[i];
+	    int ig_so=m.gammaList[ihadr_contr].so;
+	    int ig_si=m.gammaList[ihadr_contr].si;
+	    if(nso_spi==1 and ig_so!=5)
+	      CRASH("implemented only g5 contraction on the source for non-diluted source");
 	    
-	    complex A;
-	    unsafe_complex_prod(A,(base_gamma+ig_so)->entr[i],(base_gamma+5)->entr[j]);
-	    
-	    complex AB[NDIRAC];
-	    for(int k=0;k<NDIRAC;k++)
-	      {
-		//compute AB*norm
-		complex B;
-		unsafe_complex_prod(B,(base_gamma+5)->entr[k],(base_gamma+ig_si)->entr[k]);
-		unsafe_complex_prod(AB[k],A,B);
-		complex_prodassign_double(AB[k],norm);
-	      }
-	    
+	    loc_contr->reset();
 	    LxField<complex>& loc_contr=*nissa::loc_contr;
 	    
-	    for(int so_col=0;so_col<nso_col;so_col++)
+	    for(int i=0;i<nso_spi;i++)
 	      {
-		decltype(auto) q1=*Q1[so_sp_col_ind(j,so_col)];
-		decltype(auto) q2=*Q2[so_sp_col_ind(i,so_col)];
+		int j=(base_gamma+ig_so)->pos[i];
+		
+		complex A;
+		unsafe_complex_prod(A,(base_gamma+ig_so)->entr[i],(base_gamma+5)->entr[j]);
+		
+		complex AB[NDIRAC];
+		for(int k=0;k<NDIRAC;k++)
+		  {
+		    //compute AB*norm
+		    complex B;
+		    unsafe_complex_prod(B,(base_gamma+5)->entr[k],(base_gamma+ig_si)->entr[k]);
+		    unsafe_complex_prod(AB[k],A,B);
+		    complex_prodassign_double(AB[k],norm);
+		  }
+		
+		
+		decltype(auto) q1=*Q1[j];
+		decltype(auto) q2=*Q2[i];
 		
 		PAR(0,locVol,
-			CAPTURE(ig_si,AB,
-				TO_WRITE(loc_contr),
-				TO_READ(q1),
-				TO_READ(q2)),
-			ivol,
+		    CAPTURE(ig_si,AB,
+			    TO_WRITE(loc_contr),
+			    TO_READ(q1),
+			    TO_READ(q2)),
+		    ivol,
 		    {
 		      UNROLL_FOR_ALL_SPIN(k)
 			{
@@ -193,13 +192,13 @@ namespace nissa
 			}
 		    });
 	      }
+	    
+	    complex temp_contr[glbSize[0]];
+	    glb_reduce(temp_contr,*loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+	    
+	    for(int t=0;t<glbSize[0];t++)
+	      complex_summassign(m(ihadr_contr,(t+glbSize[0]-oriCoords[0])%glbSize[0]),temp_contr[t]);
 	  }
-	
-	complex temp_contr[glbSize[0]];
-	glb_reduce(temp_contr,*loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
-	
-	for(int t=0;t<glbSize[0];t++)
-	  complex_summassign(m(ihadr_contr,(t+glbSize[0]-oriCoords[0])%glbSize[0]),temp_contr[t]);
       }
     
     nmes2pts_contr_made+=m.gammaList.size();

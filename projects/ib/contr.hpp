@@ -95,15 +95,6 @@ namespace nissa
   CUDA_MANAGED EXTERN_CONTR LxField<complex> *loc_contr;
   
   using ContrProp=LxField<spincolor,defaultSpaceTimeLayout,defaultMemorySpace>;
-  EXTERN_CONTR std::map<std::string,std::vector<ContrProp*>> mes2ptsPropsLib;
-  inline void removeMes2PtsProp(const std::string& n)
-  {
-    MASTER_PRINTF("Removing %s from the mes2ptsPropsLib\n",n.c_str());
-    if constexpr(defaultMemorySpace!=MemorySpace::CPU)
-      for(auto& vi : mes2ptsPropsLib[n])
-	delete vi;
-    mes2ptsPropsLib.erase(n);
-  }
   
   void compute_mes2pt_contr(const size_t& icombo);
   

@@ -580,13 +580,6 @@ namespace nissa
 		    }
 		}
 	    
-	    MASTER_PRINTF("Removing the props from the 2pts contr list\n");
-	    std::vector<std::string> toErase;
-	    for(auto& [n,v] : mes2ptsPropsLib)
-	      toErase.push_back(n);
-	     for(const std::string& n : toErase)
-	      removeMes2PtsProp(n);
-	    
 	    for(auto& [name,hs] : handcuffsSides)
 	      if(const std::string& bw=hs.bw,
 		 fw=hs.fw;

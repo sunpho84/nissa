@@ -34,7 +34,7 @@ void init_simulation(int narg,char **arg)
   else
     {
       MASTER_PRINTF("Time between running file update set to default value: %d s\n",runningUpdateTime);
-      MASTER_PRINTF("To change it, export the envirnoment variable %s\n",RUNNING_UPDATE_TIME_STRING);
+      MASTER_PRINTF("To change it, export the environment variable %s\n",RUNNING_UPDATE_TIME_STRING);
     }
   
   const char *path=arg[1];
