@@ -290,6 +290,18 @@ namespace nissa
     /// Pointer to the data
     Fund* _data;
     
+    /// Returns the total number of elements
+    int64_t nTotalElements() const
+    {
+      return externalSize*nInternalDegs;
+    }
+    
+    /// Returns the total size, in bytes
+    int64_t totalSize() const
+    {
+      return nTotalElements()*sizeof(Fund);
+    }
+    
     /// Calls the asserter to prove that we are running on the proper memory space
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     void assertMemorySpaceIs(const MemorySpace& DMS) const
@@ -1014,7 +1026,7 @@ namespace nissa
     {
       this->externalSize=FieldSizes<fieldCoverage>::nSitesToAllocate(haloEdgesPresence);
       VERBOSITY_LV3_MASTER_PRINTF("Allocating field %s\n",name());
-      this->_data=memoryManager<MS>()->template provide<Fund>(this->externalSize*nInternalDegs);
+      this->_data=memoryManager<MS>()->template provide<Fund>(this->nTotalElements());
     }
     
     /// Construct from other layout
@@ -1420,7 +1432,7 @@ namespace nissa
 	CRASH("can copy across memory spaces only if the edges/halo are present equally on source and destination");
 #ifdef USE_CUDA
       const double initTime=take_time();
-      const size_t size=this->externalSize*nInternalDegs*sizeof(Fund);
+      const size_t size=this->totalSize();
       cudaMemcpy(this->template getPtr<MS>(),
 		 oth.template getPtr<OMS>(),
 		 size,
@@ -1444,7 +1456,7 @@ namespace nissa
 	  Field<T,FC,STL,Dest> out("out",haloEdgesPresence);
 	  out=*this;
 	  
-	  MASTER_PRINTF("Time to copy %zu bytes: %lg s\n",sizeof(Fund)*this->externalSize*nInternalDegs,take_time()-tin);
+	  MASTER_PRINTF("Time to copy %zu bytes: %lg s\n",this->totalSize(),take_time()-tin);
 	  return out;
 	}
       else
