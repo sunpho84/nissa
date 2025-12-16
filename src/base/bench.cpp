@@ -175,11 +175,11 @@ namespace nissa
     
     MASTER_PRINTF("Time to %s: %lg s +/- %lg s\n",
 		  what,g.first,g.second);
-    for(size_t iRank=0;iRank<nranks;iRank++)
+    for(int iRank=0;iRank<nranks;iRank++)
       {
 	if(rank==iRank)
 	  {
-	    printf(" Local estimate on rank %zu: %lg s +/- %lg s\n",
+	    printf(" Local estimate on rank %d: %lg s +/- %lg s\n",
 		   iRank,l.first,l.second);
 	    fflush(stdout);
 	  }
