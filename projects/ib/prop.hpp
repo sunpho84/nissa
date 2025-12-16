@@ -394,15 +394,38 @@ namespace nissa
       std::filesystem::remove(path);
     }
     
+    
+    void fastReadWrite(const bool readWrite,
+		       const char* action)
+    {
+      size_t totIOperformed=0;
+      bool seekingError=false;
+      const size_t totData=v.totalSize();
+#pragma omp parallel reduction(+:totIOperformed) reduction(||:seekingError)
+      {
+	const size_t nThr=omp_get_num_threads();
+	const size_t iThr=omp_get_thread_num();
+	const size_t maxThrData=(totData+nThr-1)/nThr;
+	const size_t begData=maxThrData*iThr;
+	const size_t endData=std::min(begData+maxThrData,totData);
+	const size_t thrData=endData-begData;
+	seekingError|=fseek(fastFile,begData,SEEK_SET);
+	
+	char* p=((char*)v._data)+begData;
+	if(readWrite)
+	  totIOperformed+=fwrite(p,1,thrData,fastFile);
+	else
+	  totIOperformed+=fread(p,1,thrData,fastFile);
+      }
+      
+      if(totIOperformed!=totData or seekingError)
+	CRASH("Problem %s on file %s, total IO performed: %zu when %zu expected, seek worked: %d",action,path.c_str(),totIOperformed,totData,(int)seekingError);
+    }
+    
     void fastRead()
     {
       fastOpen("r");
-      
-      if(const int64_t n=v.nTotalElements(),
-	 m=fread(v._data,sizeof(double),n,fastFile);
-	 n!=m)
-	CRASH("Problem reading %s, %ld vs %ld",path.c_str(),n,m);
-      
+      fastReadWrite(false,"reading");
       fclose(fastFile);
     }
     
@@ -422,29 +445,7 @@ namespace nissa
     void fastWrite()
     {
       fastOpen("w");
-      
-      if(const int64_t n=v.nTotalElements(),
-	 m=fwrite(v._data,sizeof(double),n,fastFile);
-	 n!=m)
-	CRASH("Problem writing %s, %ld vs %ld",path.c_str(),n,m);
-      
-//       size_t written=0;
-//       bool seekingError=false;
-//       const size_t totData=locVol*sizeof(T);
-// #pragma omp parallel reduction(+:written) reduction(||:seekingError)
-//       {
-// 	const size_t nThr=omp_get_num_threads();
-// 	const size_t iThr=omp_get_thread_num();
-// 	const size_t maxThrData=(totData+nThr-1)/nThr;
-// 	const size_t begData=maxThrData*iThr;
-// 	const size_t endData=std::min(begData+maxThrData,totData);
-// 	const size_t thrData=endData-begData;
-// 	seekingError|=fseek(fastFile,begData,SEEK_SET);
-// 	written+=fwrite(v,1,thrData,fastFile);
-//       }
-//       if(written!=totData or seekingError)
-// 	CRASH("Problem writing %s, total written: %zu when %zu expected, seek worked: %d",path.c_str(),written,totData,(int)seekingError);
-      
+      fastReadWrite(true,"writing");
       fclose(fastFile);
     }
     
