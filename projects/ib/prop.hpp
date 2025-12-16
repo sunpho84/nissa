@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <set>
 
+#include <omp.h>
+
 #include "conf.hpp"
 #include "meslep.hpp"
 #include "pars.hpp"
