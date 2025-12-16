@@ -396,11 +396,12 @@ namespace nissa
     
     void fastRead()
     {
-      CRASH("reimplement");
       fastOpen("r");
       
-      // if(fread(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
-      // 	CRASH("Problem reading %s",path.c_str());
+      if(const int64_t n=v.nTotalElements(),
+	 m=fread(v._data,sizeof(double),n,fastFile);
+	 n!=m)
+	CRASH("Problem reading %s, %ld vs %ld",path.c_str(),n,m);
       
       fclose(fastFile);
     }
@@ -412,15 +413,7 @@ namespace nissa
       v.template initOn<defaultMemorySpace>([this](LxField<T>& v)
       {
 	if(fast_read_write_vectors)
-	  {
-	    CRASH("reimplement");
-	    fastOpen("r");
-	    
-	    // if(fread(v,sizeof(T),locVol,fastFile)!=locVol)
-	    //   CRASH("Problem reading %s",path.c_str());
-	    
-	    fclose(fastFile);
-	  }
+	  fastRead();
 	else
 	  read_real_vector(v,path,"scidac-binary-data");
       });
@@ -428,11 +421,12 @@ namespace nissa
     
     void fastWrite()
     {
-      CRASH("reimplement");
       fastOpen("w");
       
-      // if(fwrite(v,sizeof(T),locVol,fastFile)!=(size_t)locVol)
-      // 	CRASH("Problem writing %s",path.c_str());
+      if(const int64_t n=v.nTotalElements(),
+	 m=fwrite(v._data,sizeof(double),n,fastFile);
+	 n!=m)
+	CRASH("Problem writing %s, %ld vs %ld",path.c_str(),n,m);
       
 //       size_t written=0;
 //       bool seekingError=false;
@@ -460,17 +454,15 @@ namespace nissa
       
       if(fast_read_write_vectors)
 	{
-	  fastOpen("w");
-	  if(std::remove_reference_t<decltype(v)>::spaceTimeLayout!=SpaceTimeLayout::CPU)
-	    CRASH("not supported");
-	  //hack
-	  if(fwrite(v.template getPtr<MemorySpace::CPU>(),
-		    sizeof(spincolor),
-		    locVol,
-		    fastFile)!=(size_t)locVol)
-	    CRASH("Problem writing %s",path.c_str());
-	  
-	  fclose(fastFile);
+	  fastWrite();
+	  // if(std::remove_reference_t<decltype(v)>::spaceTimeLayout!=SpaceTimeLayout::CPU)
+	  //   CRASH("not supported");
+	  // //hack
+	  // if(fwrite(v.template getPtr<MemorySpace::CPU>(),
+	  // 	    sizeof(spincolor),
+	  // 	    locVol,
+	  // 	    fastFile)!=(size_t)locVol)
+	  //   CRASH("Problem writing %s",path.c_str());
 	}
       else
 	write_real_vector(path,v.template getSurelyReadableOn<defaultMemorySpace>(),"scidac-binary-data");

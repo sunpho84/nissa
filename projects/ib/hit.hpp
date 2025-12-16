@@ -123,16 +123,17 @@ namespace nissa
       for(const auto& e : toErase)
 	{
 	  propagatorsStatus.erase(e);
-	  Q[e].free_storage();
-	  MASTER_PRINTF("%s freed\n",e.c_str());
 	  
-	  // Phyiscally remove from disk
+	  // Physically remove from disk
 	  if(auto o=offloadedList.find(e);o!=offloadedList.end())
 	    {
 	      MASTER_PRINTF("%s can be deleted from disk\n",e.c_str());
 	      offloadedList.erase(o);
 	      offloadRecallDelete(e,DELETE);
 	    }
+	  
+	  Q[e].free_storage();
+	  MASTER_PRINTF("%s freed\n",e.c_str());
 	}
       
       MASTER_PRINTF("n Live props: %zu\n",propagatorsStatus.size());
