@@ -75,10 +75,10 @@ namespace nissa
 	    switch(ord)
 	      {
 	      case OFFLOAD:
-		rwTest.write();
+		rwTest.fastWrite();
 		break;
 	      case RECALL:
-		rwTest.read();
+		rwTest.fastRead();
 		break;
 	      case DELETE:
 		rwTest.cleanFiles();
