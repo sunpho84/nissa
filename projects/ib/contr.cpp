@@ -199,6 +199,10 @@ namespace nissa
 	    
 	    for(int t=0;t<glbSize[0];t++)
 	      complex_summassign(m(ihadr_contr,(t+glbSize[0]-oriCoords[0])%glbSize[0]),temp_contr[t]);
+	    
+	    for(auto& m : mes2ptsPropsLib)
+	      for(int so_spi=0;so_spi<nso_spi;so_spi++)
+		delete m.second[so_spi];
 	  }
 	
 	complex temp_contr[glbSize[0]];
