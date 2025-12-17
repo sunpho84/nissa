@@ -193,6 +193,12 @@ namespace nissa
 			}
 		    });
 	      }
+	    
+	    complex temp_contr[glbSize[0]];
+	    glb_reduce(temp_contr,*loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+	    
+	    for(int t=0;t<glbSize[0];t++)
+	      complex_summassign(m(ihadr_contr,(t+glbSize[0]-oriCoords[0])%glbSize[0]),temp_contr[t]);
 	  }
 	
 	complex temp_contr[glbSize[0]];
