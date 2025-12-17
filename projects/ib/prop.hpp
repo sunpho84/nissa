@@ -423,7 +423,9 @@ namespace nissa
       
       // if(totIOperformed!=totData or seekingError)
       // 	CRASH("Problem %s on file %s, total IO performed: %zu when %zu expected, seek failed: %d",action,path.c_str(),totIOperformed,totData,(int)seekingError);
-
+      
+      const double initTime=take_time();
+      
       size_t t;
       if(readWrite)
 	t=fwrite(v._data,1,totData,fastFile);
@@ -432,6 +434,8 @@ namespace nissa
       
       if(t!=totData)
 	CRASH("Problem %s on file %s, total IO performed: %zu when %zu expected",action,path.c_str(),t,totData);
+      
+      MASTER_PRINTF("Load/store time for %zu bytes on file %s: %lg s\n",totData,path.c_str(),take_time()-initTime);
     }
     
     void fastRead()
