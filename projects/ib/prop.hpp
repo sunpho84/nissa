@@ -436,7 +436,7 @@ namespace nissa
       if(t!=totData)
 	CRASH("Problem %s on file %s, total IO performed: %zu when %zu expected",action,path.c_str(),t,totData);
       
-      MASTER_PRINTF("Load/store time for %zu bytes on file %s: %lg s\n",totData,path.c_str(),take_time()-initTime);
+      MASTER_PRINTF("%s time for %zu bytes on file %s: %lg s\n",(readWrite?"Store":"Load"),totData,path.c_str(),take_time()-initTime);
     }
     
     void fastRead()
