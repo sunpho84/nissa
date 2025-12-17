@@ -70,7 +70,7 @@ namespace nissa
 	  {
 	    int isou=so_sp_col_ind(id_so,ic_so);
 	    const std::string path=combine("%s/prop%s_idso%d_icso%d",outfolder,name.c_str(),id_so,ic_so);
-	    ReadWriteRealVector<spincolor,defaultSpaceTimeLayout,MemorySpace::CPU> rwTest(q[isou],path);
+	    ReadWriteRealVector<spincolor,defaultSpaceTimeLayout,MemorySpace::CPU> rwTest(q[isou],path,true);
 	    
 	    switch(ord)
 	      {

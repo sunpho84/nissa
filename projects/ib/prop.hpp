@@ -371,11 +371,12 @@ namespace nissa
     FILE* fastFile;
     
     ReadWriteRealVector(LxField<T,STL,MS>& v,
-			const std::string& _path) :
+			const std::string& _path,
+			const bool forceFast=false) :
       v(v),
       path(_path)
     {
-      if(fast_read_write_vectors)
+      if(fast_read_write_vectors or forceFast)
 	path+="_rank"+std::to_string(rank);
     }
     
