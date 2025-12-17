@@ -400,28 +400,38 @@ namespace nissa
     void fastReadWrite(const bool readWrite,
 		       const char* action)
     {
-      size_t totIOperformed=0;
-      bool seekingError=false;
+      // size_t totIOperformed=0;
+      // bool seekingError=false;
       const size_t totData=v.totalSize();
-#pragma omp parallel reduction(+:totIOperformed) reduction(||:seekingError)
-      {
-	const size_t nThr=omp_get_num_threads();
-	const size_t iThr=omp_get_thread_num();
-	const size_t maxThrData=(totData+nThr-1)/nThr;
-	const size_t begData=maxThrData*iThr;
-	const size_t endData=std::min(begData+maxThrData,totData);
-	const size_t thrData=endData-begData;
-	seekingError|=fseek(fastFile,begData,SEEK_SET);
+// #pragma omp parallel reduction(+:totIOperformed) reduction(||:seekingError)
+//       { using threads and file needs some toughts and might be unneeded?
+// 	const size_t nThr=omp_get_num_threads();
+// 	const size_t iThr=omp_get_thread_num();
+// 	const size_t maxThrData=(totData+nThr-1)/nThr;
+// 	const size_t begData=maxThrData*iThr;
+// 	const size_t endData=std::min(begData+maxThrData,totData);
+// 	const size_t thrData=endData-begData;
+// 	seekingError|=fseek(fastFile,begData,SEEK_SET);
+      // 	char* p=((char*)v._data)+begData;
+      // 	if(readWrite)
+      // 	  totIOperformed+=fwrite(p,1,thrData,fastFile);
+      // 	else
+      // 	  totIOperformed+=fread(p,1,thrData,fastFile);
 	
-	char* p=((char*)v._data)+begData;
-	if(readWrite)
-	  totIOperformed+=fwrite(p,1,thrData,fastFile);
-	else
-	  totIOperformed+=fread(p,1,thrData,fastFile);
-      }
+      // 	printf("thread %zu seeking %s to %zu, reading %zu up to %zu, done: %zu\n",iThr,path.c_str(),begData,thrData,begData+thrData);
+      // }
       
-      if(totIOperformed!=totData or seekingError)
-	CRASH("Problem %s on file %s, total IO performed: %zu when %zu expected, seek worked: %d",action,path.c_str(),totIOperformed,totData,(int)seekingError);
+      // if(totIOperformed!=totData or seekingError)
+      // 	CRASH("Problem %s on file %s, total IO performed: %zu when %zu expected, seek failed: %d",action,path.c_str(),totIOperformed,totData,(int)seekingError);
+
+      size_t t;
+      if(readWrite)
+	t=fwrite(v._data,1,totData,fastFile);
+      else
+	t=fread(v._data,1,totData,fastFile);
+      
+      if(t!=totData)
+	CRASH("Problem %s on file %s, total IO performed: %zu when %zu expected",action,path.c_str(),t,totData);
     }
     
     void fastRead()
