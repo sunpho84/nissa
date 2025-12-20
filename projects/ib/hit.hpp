@@ -49,7 +49,8 @@ namespace nissa
     enum ORD{OFFLOAD,RECALL,DELETE};
     
     /// Offload, recall or delete individual propagators
-    void offloadRecallDelete(const std::string& name,const ORD ord)
+    void offloadRecallDelete(const std::string& name,
+			     const ORD& ord)
     {
       qprop_t& q=Q[name];
       

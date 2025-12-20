@@ -866,6 +866,7 @@ namespace nissa
       case DEL_SPIN:select_spin(loop_source,ori,r);break;
       case DEL_COL:select_color(loop_source,ori,r);break;
       case LEP_LOOP:insert_external_source(loop_source,*conf,getLeptonLoop(mass,kappa,theta,residue),ori,rel_t,r,allDirs,loc_hadr_curr);break;
+      case COV_DER:apply_nabla_i(loop_source,ori,*conf,r,rel_t);break;
       }
     
     if(ext_field)

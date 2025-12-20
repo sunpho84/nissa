@@ -162,7 +162,8 @@ namespace nissa
   void apply_nabla_i(LxField<TYPE>& out,				\
 		     const LxField<TYPE>& in,				\
 		     const LxField<quad_su3>& conf,			\
-		     const int& mu)					\
+		     const int& mu,					\
+		     const int& t)					\
   {                                                                     \
                                                                         \
     in.updateHalo();							\
@@ -172,21 +173,25 @@ namespace nissa
     temp.reset();							\
                                                                         \
     PAR(0,locVol,							\
-	CAPTURE(mu,							\
+	CAPTURE(t,							\
+		mu,							\
 		TO_WRITE(temp),						\
 		TO_READ(in),						\
 		TO_READ(conf)),						\
 	ix,								\
-      {                                                                 \
-        const int Xup=loclxNeighup[ix][mu];				\
-        const int Xdw=loclxNeighdw[ix][mu];				\
-									\
-        NAME2(unsafe_su3_prod,TYPE)(      temp[ix],conf[ix][mu] ,in[Xup]); \
-        NAME2(su3_dag_subt_the_prod,TYPE)(temp[ix],conf[Xdw][mu],in[Xdw]); \
-      });								\
+	{								\
+	if(t==-1 or glbCoordOfLoclx[ix][0]==t)				\
+	  {								\
+	    const int Xup=loclxNeighup[ix][mu];				\
+	    const int Xdw=loclxNeighdw[ix][mu];				\
+	    								\
+	    NAME2(unsafe_su3_prod,TYPE)(      temp[ix],conf[ix][mu] ,in[Xup]); \
+	    NAME2(su3_dag_subt_the_prod,TYPE)(temp[ix],conf[Xdw][mu],in[Xdw]); \
+	  }								\
+	});								\
     									\
     out=temp;								\
-}									\
+  }
   
   //instantiate the application function
   APPLY_NABLA_I(spincolor)

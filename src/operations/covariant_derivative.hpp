@@ -11,15 +11,18 @@ namespace nissa
   void apply_nabla_i(LxField<spincolor>& out,
 		     const LxField<spincolor>& in,
 		     const LxField<quad_su3>& conf,
-		     const int& mu);
+		     const int& mu,
+		     const int& t);
   void apply_nabla_i(LxField<colorspinspin>& out,
 		     const LxField<colorspinspin>& in,
 		     const LxField<quad_su3>& conf,
-		     const int& mu);
+		     const int& mu,
+		     const int& t);
   void apply_nabla_i(LxField<su3spinspin>& out,
 		     const LxField<su3spinspin>& in,
 		     const LxField<quad_su3>& conf,
-		     const int& mu);
+		     const int& mu,
+		     const int& t);
   
   void insert_tm_tadpole(LxField<spincolor>& out,
 			 const LxField<quad_su3>& conf,

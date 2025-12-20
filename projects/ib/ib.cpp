@@ -178,9 +178,10 @@ void init_simulation(int narg,char **arg)
       MASTER_PRINTF("Read variable 'Name' with value: %s\n",name);
       
       //ins name
-      char ins[INS_TAG_MAX_LENGTH+1];
-      read_str(ins,INS_TAG_MAX_LENGTH);
-      MASTER_PRINTF("Read variable 'Ins' with value: %s\n",ins);
+      char insName[INS_TAG_MAX_LENGTH+1];
+      read_str(insName,INS_TAG_MAX_LENGTH);
+      MASTER_PRINTF("Read variable 'Ins' with value: %s\n",insName);
+      const auto ins=insFromName(insName);
       
       //source_name
       std::vector<source_term_t> source_terms;
@@ -226,7 +227,7 @@ void init_simulation(int narg,char **arg)
       
       //insertion time
       int tins=-1;
-      if(strcasecmp(ins,ins_tag[DEL_POS])!=0)
+      if(ins!=DEL_POS)
 	{
 	  read_int(&tins);
 	  MASTER_PRINTF("Read variable 'Tins' with value: %d\n",tins);
@@ -241,9 +242,9 @@ void init_simulation(int narg,char **arg)
       
       bool decripted=false;
       
-      if(strcasecmp(ins,ins_tag[PROP])==0 or
-	 strcasecmp(ins,ins_tag[DIROP])==0 or
-	 strcasecmp(ins,ins_tag[LEP_LOOP])==0)
+      if(ins==PROP or
+	 ins==DIROP or
+	 ins==LEP_LOOP)
 	{
 	  decripted=true;
 	  
@@ -263,32 +264,36 @@ void init_simulation(int narg,char **arg)
 	  read_double(&charge);
 	  MASTER_PRINTF("Read variable 'Charge' with value: %lg\n",charge);
 	  read_theta(theta);
-	  if(strcasecmp(ins,ins_tag[DIROP])!=0)
+	  
+	  if(ins!=DIROP)
 	    {
 	      read_double(&residue);
 	      MASTER_PRINTF("Read variable 'Residue' with value: %lg\n",residue);
 	    }
 	}
       
+      const auto insIsIn=
+	[&ins](const auto&...i)
+	{
+	  bool is=false;
+	  
+	  for(const auto& possIns : {i...})
+	    is|=(ins==possIns);
+	  
+	  return is;
+	};
+      
       //read phasing
-      if(strcasecmp(ins,ins_tag[PHASING])==0)
+      if(ins==PHASING)
 	{
 	  decripted=true;
 	  
 	  read_theta(theta);
 	}
       
-      bool vph=false;
-      for(const auto& possIns : {VPHOTON0,VPHOTON1,VPHOTON2,VPHOTON3,
-				 VBHOTON0,VBHOTON1,VBHOTON2,VBHOTON3})
-	vph|=(strcasecmp(ins,ins_tag[possIns])==0);
-      
-      bool ph=false;
-      for(const auto& possIns : {CVEC0,CVECBW0,CVECFW0,
-				 CVEC1,
-				 CVEC2,
-				 CVEC3})
-	ph|=(strcasecmp(ins,ins_tag[possIns])==0);
+      const bool vph=
+	insIsIn(VPHOTON0,VPHOTON1,VPHOTON2,VPHOTON3,
+		VBHOTON0,VBHOTON1,VBHOTON2,VBHOTON3);
       
       if(vph)
 	{
@@ -304,8 +309,12 @@ void init_simulation(int narg,char **arg)
 	  read_theta(theta);
 	}
       
+      const bool ph=
+	insIsIn(CVEC0,CVECBW0,CVECFW0,CVEC1,CVEC2,CVEC3) or
+	ins==COV_DER;
+      
       //read smearing
-      if(strcasecmp(ins,ins_tag[SMEARING])==0 or strcasecmp(ins,ins_tag[WFLOW])==0 or strcasecmp(ins,ins_tag[BACK_WFLOW])==0)
+      if(insIsIn(SMEARING,WFLOW,BACK_WFLOW))
 	{
 	  decripted=true;
 	  
@@ -320,7 +329,7 @@ void init_simulation(int narg,char **arg)
       
       //read smearing
       double kappa1=0.0,kappa2=0.0,kappa3=0.0;
-      if(strcasecmp(ins,ins_tag[ANYSM])==0)
+      if(ins==ANYSM)
 	{
 	  decripted=true;
 	  
@@ -340,7 +349,7 @@ void init_simulation(int narg,char **arg)
 	}
       double kappa_asymm[4]={0.0,kappa1,kappa2,kappa3};
       
-      if(strcasecmp(ins,ins_tag[DEL_POS])==0)
+      if(ins==DEL_POS)
 	{
 	  Coords c;
 	  for(int mu=0;mu<NDIM;mu++)
@@ -358,14 +367,14 @@ void init_simulation(int narg,char **arg)
 	  decripted=true;
 	}
       
-      if(strcasecmp(ins,ins_tag[DEL_SPIN])==0)
+      if(ins==DEL_SPIN)
 	{
 	  read_int(&r);
 	  MASTER_PRINTF("Choosing spin %d\n",r);
 	  decripted=true;
 	}
       
-      if(strcasecmp(ins,ins_tag[DEL_COL])==0)
+      if(ins==DEL_COL)
 	{
 	  read_int(&r);
 	  MASTER_PRINTF("Choosing color %d\n",r);
@@ -376,13 +385,13 @@ void init_simulation(int narg,char **arg)
       if(not decripted)
 	{
 	  //external source
-	  if(strcasecmp(ins,ins_tag[EXT_FIELD])==0)
+	  if(ins==EXT_FIELD)
 	    {
 	      read_str(ext_field_path,32);
 	      MASTER_PRINTF("Read variable 'ext_field_path' with value: %s\n",ext_field_path);
 	    }
 	  
-	  if(twisted_run)
+	  if(twisted_run or ins==COV_DER)
 	    {
 	      read_int(&r);
 	      MASTER_PRINTF("Read variable 'R' with value: %d\n",r);
@@ -413,7 +422,7 @@ void init_simulation(int narg,char **arg)
 	  sprintf(fullName,"%s%s",name,suffix);
 	  if(Q.find(fullName)!=Q.end()) CRASH("name \'%s\' already included",fullName);
 	  
-	  Q[fullName].init_as_propagator(ins_from_tag(ins),source_full_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
+	  Q[fullName].init_as_propagator(ins,source_full_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
 	  qprop_name_list[icopy+nCopies*iq]=fullName;
 	}
     }
