@@ -100,14 +100,15 @@ namespace nissa
   void fprintf_friendly_filesize(FILE *fout,uint64_t quant)
   {fprintf_friendly_units(fout,quant,1024,"Bytes");}
   
-  //create a dir
+  /// Creates a dir
   int create_dir(const std::string& path)
   {
     umask(0);
     int res=is_master_rank() ? mkdir(path.c_str(),0775) : 0;
+    const int locErrNo=errno;
     MPI_Bcast(&res,1,MPI_INT,master_rank,MPI_COMM_WORLD);
     if(res!=0)
-      MASTER_PRINTF("Warning, failed to create dir %s, returned %d. Check that you have permissions and that parent dir exists.\n",path.c_str(),res);
+      MASTER_PRINTF("Warning, failed to create dir %s, returned %d with errno %s. Check that you have permissions and that parent dir exists.\n",path.c_str(),res,strerror(locErrNo));
     
     return res;
   }

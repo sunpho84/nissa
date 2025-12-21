@@ -356,7 +356,8 @@ namespace nissa
 	  read_str(outfolder,1024);
 	  
 	  //Check if the conf has been finished or is already running
-	  MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+	  MASTER_PRINTF("Considering configuration \"%s\" with output path \"%s\", directory exists: %d\n",
+			conf_path,outfolder,std::filesystem::exists(outfolder));
 	  
 	  const bool hasFinished=
 	    fileExists(finishedPath());
