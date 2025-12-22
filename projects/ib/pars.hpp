@@ -77,10 +77,13 @@ namespace nissa
     while(i<nins_kind and strcasecmp(ins_tag[i],tag)) i++;
     if(i>=nins_kind)
       {
-	master_fprintf(stderr,"unable to find tag %s, use one in the list:\n",tag);
-	for(i=0;i<nins_kind;i++) master_fprintf(stderr," %s\n",ins_tag[i]);
-	CRASH("see previous error");
+	std::ostringstream os;
+	os<<"unable to find tag "<<tag<<"use one in the list:\n";
+	for(i=0;i<nins_kind;i++)
+	  os<<ins_tag[i]<<" \n";
+	CRASH("%s",os.str().c_str());
       }
+    
     return ins_list[i];
   }
   
