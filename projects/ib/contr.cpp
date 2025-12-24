@@ -103,12 +103,15 @@ namespace nissa
   {
     mes2pts_contr_time-=take_time();
     
+    /// Parameters of the contraction
     const mes_contr_t& m=
       mes2ptsContr[icombo];
     
+    /// Normalization
     const double norm=
       12/sqrt(Q[m.a].ori_source_norm2*Q[m.b].ori_source_norm2); //12 in case of a point source
     
+    /// Index to access the source, sink and ri components
     const auto soSpiSiSpiRiId=
       [](const int iSoSpi,
 	 const int iSiSpi,
@@ -116,9 +119,12 @@ namespace nissa
       {
 	return ri+2*(iSiSpi+NDIRAC*iSoSpi);
       };
+    
+    /// Number of source X sink comps X 2
     const int nSoSpiSiSpiRi=
       soSpiSiSpiRiId(nso_spi-1,NDIRAC-1,1)+1;
     
+    /// Index to access the cpu version of the field
     auto id=
       [&nSoSpiSiSpiRi](const int bwFw,
 		       const int t,
@@ -130,8 +136,11 @@ namespace nissa
 	return iSpatVol+locSpatVol*(iSiCol+NCOL*(iSoCol+nso_col*(iSoSpiSiSpiRi+nSoSpiSiSpiRi*(t+locSize[0]*bwFw))));
       };
     
+    /// Buffer with cpu version of the fields
     std::vector<double> v(id(1,locSize[0],nSoSpiSiSpiRi-1,nso_col-1,NCOL-1,locSpatVol-1)+1);
     
+    // Transpose all spin indexes, ri and time
+    mes2pts_move_to_make_readable_time-=take_time();
     for(int iSoSpi=0;iSoSpi<nso_spi;iSoSpi++)
       for(int iSoCol=0;iSoCol<nso_col;iSoCol++)
 	for(int bwFw=0;bwFw<2;bwFw++)
@@ -161,13 +170,23 @@ namespace nissa
 				   out=in;
 				 }
 	  });
+    nmes2pts_move_to_make_readable_made+=2;
+    mes2pts_move_to_make_readable_time+=take_time();
     
-    std::map<std::array<int,2>,std::vector<std::pair<std::pair<int,int>,double>>> contrs;
+    /// Contributions of the contraction of a given set of spin indices and ri combo to a specific contr
+    std::map<std::array<int,2>,std::vector<std::pair<std::pair<int,int>,double>>> contrContrs;
+    
+    /// Number of contractions
     const int nGammaContr=(int)m.gammaList.size();
+    
     for(int iGammaContr=0;iGammaContr<nGammaContr;iGammaContr++)
       {
+	/// Gamma matrix of the source
 	const int& igSo=m.gammaList[iGammaContr].so;
+	
+	/// Gamma matrix of the sink
 	const int& igSi=m.gammaList[iGammaContr].si;
+	
 	if(nso_spi==1 and igSo!=5)
 	  CRASH("implemented only g5 contraction on the source for non-diluted source");
 	
@@ -203,11 +222,11 @@ namespace nissa
 			complex pr;
 			unsafe_complex_prod(pr,briBw,briFw);
 			complex_prodassign(pr,AB);
-			MASTER_PRINTF("ihadr_contr %d, iSoSpiBw %d, iSiSpiBw %d, riBw %d, iSoSpiFw %d, iSiSpiFw %d, riFw %d : %lg %lg\n",
-				      iGammaContr,iSoSpiBw,iSiSpiBw,riBw,iSoSpiFw,iSiSpiFw,riFw,pr[0],pr[1]);
+			// MASTER_PRINTF("ihadr_contr %d, iSoSpiBw %d, iSiSpiBw %d, riBw %d, iSoSpiFw %d, iSiSpiFw %d, riFw %d : %lg %lg\n",
+			// 	      iGammaContr,iSoSpiBw,iSiSpiBw,riBw,iSoSpiFw,iSiSpiFw,riFw,pr[0],pr[1]);
 			for(int ri=0;ri<2;ri++)
 			  if(const double c=pr[ri])
-			    contrs[{soSpiSiSpiRiId(iSoSpiBw,iSiSpiBw,riBw),
+			    contrContrs[{soSpiSiSpiRiId(iSoSpiBw,iSiSpiBw,riBw),
 				  soSpiSiSpiRiId(iSoSpiFw,iSiSpiFw,riFw)}].
 			      emplace_back(std::make_pair(std::make_pair(iGammaContr,ri),c));
 		      }
@@ -216,24 +235,25 @@ namespace nissa
 	  }
       }
     
+    /// Contraction
     std::vector<std::array<double,2>> glb(nGammaContr*glbSize[0],{0.0,0.0});
-    for(const auto& [pairId,iContrRiWeight] : contrs)
+    for(const auto& [pairId,iContrRiWeight] : contrContrs)
       {
-	for(int bwFw=0;bwFw<2;bwFw++)
-	  {
-	    const int s=pairId[bwFw];
-	    const char* tag=(bwFw==0)?"bw":"fw";
-	    const int ri=s%2;
-	    const int iSiSpi=(s/2)%NDIRAC;
-	    const int iSoSpi=((s/2)/NDIRAC)%nso_spi;
+	// for(int bwFw=0;bwFw<2;bwFw++)
+	//   {
+	//     const int s=pairId[bwFw];
+	//     const char* tag=(bwFw==0)?"bw":"fw";
+	//     const int ri=s%2;
+	//     const int iSiSpi=(s/2)%NDIRAC;
+	//     const int iSoSpi=((s/2)/NDIRAC)%nso_spi;
 	    
-	    MASTER_PRINTF("%s soSpi %d siSpi%d ri %d\n",tag,iSoSpi,iSiSpi,ri);
-	  }
+	//     MASTER_PRINTF("%s soSpi %d siSpi%d ri %d\n",tag,iSoSpi,iSiSpi,ri);
+	//   }
 	
-	MASTER_PRINTF("contributes to:\n");
-	for(const auto& [iContrRi,w] : iContrRiWeight)
-	  MASTER_PRINTF(" contr %d ri %d weight %lg\n",iContrRi.first,iContrRi.second,w);
-	MASTER_PRINTF("\n");
+	// MASTER_PRINTF("contributes to:\n");
+	// for(const auto& [iContrRi,w] : iContrRiWeight)
+	//   MASTER_PRINTF(" contr %d ri %d weight %lg\n",iContrRi.first,iContrRi.second,w);
+	// MASTER_PRINTF("\n");
 	
 	for(int locT=0;locT<locSize[0];locT++)
 	  {
@@ -247,75 +267,32 @@ namespace nissa
 	    double s=0;
 	    const double* vBw=&v[base[0]];
 	    const double* vFw=&v[base[1]];
-#pragma omp parallel for reduction(+:s)
+#pragma omp parallel for simd reduction(+:s)
 	    for(int i=0;i<locSpatVol*nso_col*NCOL;i++)
-	      {
-		ASM_BOOKMARK_BEGIN("CONTR");
+	      // {
+	      // 	ASM_BOOKMARK_BEGIN("CONTR");
 		s+=vBw[i]*vFw[i];
-		ASM_BOOKMARK_END("CONTR");
-	      }
+	      // 	ASM_BOOKMARK_END("CONTR");
+	      // }
 	    
 	    for(const auto& [iContrRi,w] : iContrRiWeight)
-	      {
-		const auto& [iContr,ri]=iContrRi;
-		glb[glbT+glbSize[0]*iContr][ri]+=s*w*norm;
-		
-		// if(locT==0)
-		//   MASTER_PRINTF("icontr %d ri %d c: %lg\n",iContr,ri,s*w);
-	      }
+	      glb[glbT+glbSize[0]*iContrRi.first][iContrRi.second]+=s*w*norm;
 	  }
       }
     
-    for(int iContr=0;iContr<nGammaContr;iContr++)
-      for(int t=0;t<glbSize[0];t++)
-	{
-	  const std::array<double,2>& c=glb[t+glbSize[0]*iContr];
-	  MASTER_PRINTF("%lg %lg\n",c[0],c[1]);
-	}
+    MPI_Allreduce(MPI_IN_PLACE,&glb[0][0],nGammaContr*glbSize[0]*2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     
-    
-	    // LxField<complex>& loc_contr=*nissa::loc_contr;
-	    
-	      // {
-		
-      // 		PAR(0,locVol,
-      // 			CAPTURE(igSi,AB,
-      // 				TO_WRITE(loc_contr),
-      // 				TO_READ(q1),
-      // 				TO_READ(q2)),
-      // 			ivol,
-      // 		    {
-      // 		      UNROLL_FOR_ALL_SPIN(iSiSpiBw)
-      // 			{
-      // 			  int iSiSpiFw=(base_gamma+igSi)->pos[iSiSpiBw];
-			  
-      // 			  complex c={0,0};
-      // 			  UNROLL_FOR_ALL_COLS(iSiCol)
-      // 			    complex_summ_the_conj1_prod(c,q1[ivol][iSiSpiBw][iSiCol],q2[ivol][iSiSpiFw][iSiCol]);
-      // 			  complex_summ_the_prod(loc_contr[ivol],c,AB[iSiSpiBw]);
-      // 			}
-      // 		    });
-      // 	      }
-      // 	  }
-	
-      // 	complex temp_contr[glbSize[0]];
-      // 	glb_reduce(temp_contr,*loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
-	
-      // 	for(int t=0;t<glbSize[0];t++)
-      // 	  complex_summassign(m(ihadr_contr,(t+glbSize[0]-oriCoords[0])%glbSize[0]),temp_contr[t]);
-      // }
+    for(int i=0;i<nGammaContr*glbSize[0];i++)
+      complex_summassign(mes2ptsContr[icombo].contr[i],glb[i]);
     
     nmes2pts_contr_made+=m.gammaList.size();
-    
     
     mes2pts_contr_time+=take_time();
   }
   
   /// Compute meson contractions, wherever
-  void compute_mes2pt_contr(const size_t& icombo)
+  void compute_mes2pt_contr_classic(const size_t& icombo)
   {
-    compute_mes2pt_contr_on_cpu(icombo);
-    
     mes2pts_contr_time-=take_time();
     
     mes_contr_t& m=mes2ptsContr[icombo];
@@ -418,6 +395,32 @@ namespace nissa
     
     nmes2pts_contr_made+=m.gammaList.size();
     mes2pts_contr_time+=take_time();
+  }
+  
+  /// Compute meson contractions
+  void compute_mes2pt_contr(const size_t& icombo)
+  {
+    static bool checked=false;
+    static bool useCpu{};
+    
+    if(not checked)
+      {
+	checked=true;
+	
+	if(const char CONTRACT_2PTS_ON_CPU_STRING[]=
+	   "CONTRACT_2PTS_ON_CPU";
+	   const char* p=getenv(CONTRACT_2PTS_ON_CPU_STRING))
+	  useCpu=atoi(p);
+	else
+	  MASTER_PRINTF("Optionally compute the 2pts with the cpu (simd) version by exporting %s\n",CONTRACT_2PTS_ON_CPU_STRING);
+	
+	MASTER_PRINTF("Compute the 2pts with the cpu (simd) version set to: %d\n",useCpu);
+      }
+    
+    if(useCpu)
+      compute_mes2pt_contr_on_cpu(icombo);
+    else
+      compute_mes2pt_contr_classic(icombo);
   }
   
   /// Prepares a string containing the origin, if not averaging hits
