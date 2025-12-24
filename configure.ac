@@ -161,6 +161,11 @@ then
 fi
 AX_SUBPACKAGE(cufft,cufft.h,cufft,cufftDestroy,CUFFT)
 
+#check if we enable SIMD autosearch
+AX_SIMD_TYPE(mmx,-mmmx,_mm_load_pd,_mm_store_pd,MMX)
+AX_SIMD_TYPE(avx,-mavx,_mm256_load_pd,_mm256_store_pd,AVX)
+AX_SIMD_TYPE(avx512,-mavx512f,_mm512_load_pd,_mm512_store_pd,AVX512)
+
 #threads
 AC_DEFINE([NO_THREADS],[0],["No thread parallelization used"])
 AC_DEFINE([OPENMP_THREADS],[1],["OpenMP parallelization"])
