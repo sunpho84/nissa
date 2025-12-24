@@ -4,6 +4,7 @@ bin_PROGRAMS+= \
 	$(top_builddir)/bin/checks
 
 assembly_reports+= \
+        %D%/contr.s \
         %D%/test_wip.s
 
 # $(top_builddir)/bin/checks_ib

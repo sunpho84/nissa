@@ -90,21 +90,235 @@ namespace nissa
     glb_reduce(&res,loc,locVol);
   }
   
-  //compute meson contractions
-  void compute_mes2pt_contr(const size_t& icombo)
-  //void compute_mes2pts_contr(int normalize)
+  // Tr [ GSO G5 S1^+ G5 GSI S2 ]      GSI is on the sink
+  // (GSO)_{ij(i)} (G5)_{j(i)} (S1*)^{ab}_{kj(i)} (G5)_k (GSI)_{kl(k)} (S2)^{ab}_{l(k)i}
+  //
+  // A(i)=(GSO)_{ij(i)} (G5)_{j(i)}
+  // B(k)=(G5)_k (GSI)_{kl(k)}
+  //
+  // A(i) (S1*)^{ab}_{kj(i)} B(k) (S2)^{ab}_{l(k)i}
+  
+  /// Compute meson contractions on cpu
+  void compute_mes2pt_contr_on_cpu(const size_t& icombo)
   {
     mes2pts_contr_time-=take_time();
     
-    mes_contr_t& m=mes2ptsContr[icombo];
+    const mes_contr_t& m=
+      mes2ptsContr[icombo];
     
-    // Tr [ GSO G5 S1^+ G5 GSI S2 ]      GSI is on the sink
-    // (GSO)_{ij(i)} (G5)_{j(i)} (S1*)^{ab}_{kj(i)} (G5)_k (GSI)_{kl(k)} (S2)^{ab}_{l(k)i}
-    //
-    // A(i)=(GSO)_{ij(i)} (G5)_{j(i)}
-    // B(k)=(G5)_k (GSI)_{kl(k)}
-    //
-    // A(i) (S1*)^{ab}_{kj(i)} B(k) (S2)^{ab}_{l(k)i}
+    const double norm=
+      12/sqrt(Q[m.a].ori_source_norm2*Q[m.b].ori_source_norm2); //12 in case of a point source
+    
+    const auto soSpiSiSpiRiId=
+      [](const int iSoSpi,
+	 const int iSiSpi,
+	 const int ri)
+      {
+	return ri+2*(iSiSpi+NDIRAC*iSoSpi);
+      };
+    const int nSoSpiSiSpiRi=
+      soSpiSiSpiRiId(nso_spi-1,NDIRAC-1,1)+1;
+    
+    auto id=
+      [&nSoSpiSiSpiRi](const int bwFw,
+		       const int t,
+		       const int iSoSpiSiSpiRi,
+		       const int iSoCol,
+		       const int iSiCol,
+		       const int iSpatVol)
+      {
+	return iSpatVol+locSpatVol*(iSiCol+NCOL*(iSoCol+nso_col*(iSoSpiSiSpiRi+nSoSpiSiSpiRi*(t+locSize[0]*bwFw))));
+      };
+    
+    std::vector<double> v(id(1,locSize[0],nSoSpiSiSpiRi-1,nso_col-1,NCOL-1,locSpatVol-1)+1);
+    
+    for(int iSoSpi=0;iSoSpi<nso_spi;iSoSpi++)
+      for(int iSoCol=0;iSoCol<nso_col;iSoCol++)
+	for(int bwFw=0;bwFw<2;bwFw++)
+	  HOST_PARALLEL_LOOP(0,
+			     locVol,
+			     CAPTURE(&q=Q[(bwFw==0)?m.a:m.b][so_sp_col_ind(iSoSpi,iSoCol)],
+				     &v,
+				     &id,
+				     &iSoSpi,
+				     &iSoCol,
+				     &soSpiSiSpiRiId,
+				     &bwFw),
+			     iVol,
+			     {
+			       UNROLL_FOR_ALL_COLS(iSiCol)
+				 UNROLL_FOR_ALL_SPIN(iSiSpi)
+				 UNROLL_FOR_RI(ri)
+				 {
+				   const int iSoSpiSiSpiRi=
+				     soSpiSiSpiRiId(iSoSpi,iSiSpi,ri);
+				   
+				   const size_t t=iVol/locSpatVol;
+				   const size_t iSpat=iVol%locSpatVol;
+				   double& out=v[id(bwFw,t,iSoSpiSiSpiRi,iSoCol,iSiCol,iSpat)];
+				   const double& in=q[iVol][iSiSpi][iSiCol][ri];
+				   
+				   out=in;
+				 }
+	  });
+    
+    std::map<std::array<int,2>,std::vector<std::pair<std::pair<int,int>,double>>> contrs;
+    const int nGammaContr=(int)m.gammaList.size();
+    for(int iGammaContr=0;iGammaContr<nGammaContr;iGammaContr++)
+      {
+	const int& igSo=m.gammaList[iGammaContr].so;
+	const int& igSi=m.gammaList[iGammaContr].si;
+	if(nso_spi==1 and igSo!=5)
+	  CRASH("implemented only g5 contraction on the source for non-diluted source");
+	
+	for(int iSoSpiFw=0;iSoSpiFw<nso_spi;iSoSpiFw++)
+	  {
+	    const int iSoSpiBw=
+	      base_gamma[igSo].pos[iSoSpiFw];
+	    
+	    complex A;
+	    unsafe_complex_prod(A,base_gamma[igSo].entr[iSoSpiFw],base_gamma[5].entr[iSoSpiBw]);
+	    
+	    for(int iSiSpiBw=0;iSiSpiBw<NDIRAC;iSiSpiBw++)
+	      {
+		const int iSiSpiFw=
+		  base_gamma[igSi].pos[iSiSpiBw];
+		
+		complex B;
+		unsafe_complex_prod(B,base_gamma[5].entr[iSiSpiBw],base_gamma[igSi].entr[iSiSpiBw]);
+		
+		complex AB;
+		unsafe_complex_prod(AB,A,B);
+		
+		for(int riBw=0;riBw<2;riBw++)
+		  {
+		    complex briBw{};
+		    briBw[riBw]=std::array<int,2>{1,-1}[riBw];
+		    
+		    for(int riFw=0;riFw<2;riFw++)
+		      {
+			complex briFw{};
+			briFw[riFw]=+1;
+			
+			complex pr;
+			unsafe_complex_prod(pr,briBw,briFw);
+			complex_prodassign(pr,AB);
+			MASTER_PRINTF("ihadr_contr %d, iSoSpiBw %d, iSiSpiBw %d, riBw %d, iSoSpiFw %d, iSiSpiFw %d, riFw %d : %lg %lg\n",
+				      iGammaContr,iSoSpiBw,iSiSpiBw,riBw,iSoSpiFw,iSiSpiFw,riFw,pr[0],pr[1]);
+			for(int ri=0;ri<2;ri++)
+			  if(const double c=pr[ri])
+			    contrs[{soSpiSiSpiRiId(iSoSpiBw,iSiSpiBw,riBw),
+				  soSpiSiSpiRiId(iSoSpiFw,iSiSpiFw,riFw)}].
+			      emplace_back(std::make_pair(std::make_pair(iGammaContr,ri),c));
+		      }
+		  }
+	      }
+	  }
+      }
+    
+    std::vector<std::array<double,2>> glb(nGammaContr*glbSize[0],{0.0,0.0});
+    for(const auto& [pairId,iContrRiWeight] : contrs)
+      {
+	for(int bwFw=0;bwFw<2;bwFw++)
+	  {
+	    const int s=pairId[bwFw];
+	    const char* tag=(bwFw==0)?"bw":"fw";
+	    const int ri=s%2;
+	    const int iSiSpi=(s/2)%NDIRAC;
+	    const int iSoSpi=((s/2)/NDIRAC)%nso_spi;
+	    
+	    MASTER_PRINTF("%s soSpi %d siSpi%d ri %d\n",tag,iSoSpi,iSiSpi,ri);
+	  }
+	
+	MASTER_PRINTF("contributes to:\n");
+	for(const auto& [iContrRi,w] : iContrRiWeight)
+	  MASTER_PRINTF(" contr %d ri %d weight %lg\n",iContrRi.first,iContrRi.second,w);
+	MASTER_PRINTF("\n");
+	
+	for(int locT=0;locT<locSize[0];locT++)
+	  {
+	    const int glbT=
+	      (locT+glbSize[0]-oriCoords[0]+glbCoordOfLoclx[0][0])%glbSize[0];
+	    
+	    int base[2];
+	    for(int bwFw=0;bwFw<2;bwFw++)
+	      base[bwFw]=id(bwFw,locT,pairId[bwFw],0 /*iSoCol*/,0 /*iSiCol*/,0 /*iSpatVol*/);
+	    
+	    double s=0;
+	    const double* vBw=&v[base[0]];
+	    const double* vFw=&v[base[1]];
+#pragma omp parallel for reduction(+:s)
+	    for(int i=0;i<locSpatVol*nso_col*NCOL;i++)
+	      {
+		ASM_BOOKMARK_BEGIN("CONTR");
+		s+=vBw[i]*vFw[i];
+		ASM_BOOKMARK_END("CONTR");
+	      }
+	    
+	    for(const auto& [iContrRi,w] : iContrRiWeight)
+	      {
+		const auto& [iContr,ri]=iContrRi;
+		glb[glbT+glbSize[0]*iContr][ri]+=s*w*norm;
+		
+		// if(locT==0)
+		//   MASTER_PRINTF("icontr %d ri %d c: %lg\n",iContr,ri,s*w);
+	      }
+	  }
+      }
+    
+    for(int iContr=0;iContr<nGammaContr;iContr++)
+      for(int t=0;t<glbSize[0];t++)
+	{
+	  const std::array<double,2>& c=glb[t+glbSize[0]*iContr];
+	  MASTER_PRINTF("%lg %lg\n",c[0],c[1]);
+	}
+    
+    
+	    // LxField<complex>& loc_contr=*nissa::loc_contr;
+	    
+	      // {
+		
+      // 		PAR(0,locVol,
+      // 			CAPTURE(igSi,AB,
+      // 				TO_WRITE(loc_contr),
+      // 				TO_READ(q1),
+      // 				TO_READ(q2)),
+      // 			ivol,
+      // 		    {
+      // 		      UNROLL_FOR_ALL_SPIN(iSiSpiBw)
+      // 			{
+      // 			  int iSiSpiFw=(base_gamma+igSi)->pos[iSiSpiBw];
+			  
+      // 			  complex c={0,0};
+      // 			  UNROLL_FOR_ALL_COLS(iSiCol)
+      // 			    complex_summ_the_conj1_prod(c,q1[ivol][iSiSpiBw][iSiCol],q2[ivol][iSiSpiFw][iSiCol]);
+      // 			  complex_summ_the_prod(loc_contr[ivol],c,AB[iSiSpiBw]);
+      // 			}
+      // 		    });
+      // 	      }
+      // 	  }
+	
+      // 	complex temp_contr[glbSize[0]];
+      // 	glb_reduce(temp_contr,*loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+	
+      // 	for(int t=0;t<glbSize[0];t++)
+      // 	  complex_summassign(m(ihadr_contr,(t+glbSize[0]-oriCoords[0])%glbSize[0]),temp_contr[t]);
+      // }
+    
+    nmes2pts_contr_made+=m.gammaList.size();
+    
+    
+    mes2pts_contr_time+=take_time();
+  }
+  
+  /// Compute meson contractions, wherever
+  void compute_mes2pt_contr(const size_t& icombo)
+  {
+    compute_mes2pt_contr_on_cpu(icombo);
+    
+    mes2pts_contr_time-=take_time();
+    
+    mes_contr_t& m=mes2ptsContr[icombo];
     
     double norm=12/sqrt(Q[m.a].ori_source_norm2*Q[m.b].ori_source_norm2); //12 in case of a point source
     
