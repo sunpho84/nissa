@@ -1,0 +1,127 @@
+L 4
+T 8
+WallTime 3600
+
+Seed 1623342
+StochSource 1
+DilutedSpin 1
+DilutedColor 1
+DilutedSpace 1
+NHits 1
+
+NSources 1
+Name     NoiseType	Tins    Store
+SOURCE   Z2		0       1
+
+TwistedRun 1
+
+CloverRun 1
+cSw 0.2
+
+NProps 11
+Name	    Ins	    SourceName	    Tins    Kappa	Mass	    R	     Charge	Theta	Residue	Store
+-	    -	    SOURCE	    0	    0.125	0.4	    0	     0		0.0	1e-20	1
+-S	    S	    -		    -1	    	    	     	    0	     0				1
+-S-	    -	    -S		    -1	    0.125	0.4	    0	     0		0.0	1e-20	1
+-P	    P	    -		    -1	    	    	     	    0	     0				1
+-P-	    -	    -P		    -1	    0.125	0.4	    0	     0		0.0	1e-20	1
+-T	    T	    -		    -1	    	    	     	    0	     0			    	1
+-T-	    -	    -T		    -1	    0.125	0.4	    0	     0		0.0	1e-20	1
+-F	    F	    -		    -1	    	    	     	    0	     0			    	1
+-F-	    -	    -F		    -1	    0.125    	0.4    	    0	     0		0.0	1e-20  	1
+-F-F	    F	    -F-		    -1	    	    	     	    0	     0			    	1
+-F-F-	    -	    -F-F	    -1	    0.125    	0.4    	    0	     0		0.0	1e-20  	1
+
+ZeroModeSubtraction PECIONA
+PhotonGauge FEYNMAN
+PhotonDiscretization WILSON
+
+FreeTheory 0
+
+RandomGaugeTransform 0
+LandauGaugeFix 0
+StoreConf 0
+
+LocHadrCurr 0
+LocMuonCurr 0
+
+NMes2PtsContrBlocks 2
+
+NMes2PtsContr 3
+00  -    -
+0S  -    -S-
+0P  -    -P-
+
+NGammaContr 1
+P5P5
+
+NMes2PtsContr 3
+0T  -    -T-
+0M  -    -F-F-
+LL  -F-  -F-
+
+NGammaContr 1
+P5P5
+
+
+NMesLepQ1Q2LepmassMesMass 0
+
+NBar2PtsContr 0
+/*
+ 000  S0 S0 S0
+
+ P00  SP S0 S0
+ 0P0  S0 SP S0
+ 00P  S0 S0 SP
+
+ S00  SS S0 S0
+ 0S0  S0 SS S0
+ 00S  S0 S0 SS
+
+ M00  SM S0 S0
+ 0M0  S0 SM S0
+ 00M  S0 S0 SM
+
+ T00  ST S0 S0
+ 0T0  S0 ST S0
+ 00T  S0 S0 ST
+
+ 0LL  S0 SL SL
+ L0L  SL S0 SL
+ LL0  SL SL S0
+*/
+
+NHandcuffsContr 0
+
+NFftProps	0
+/*
+
+-
+*/
+
+/*
+NFftRanges 1
+L 0 2
+T 0 2
+
+P4FrP22Max 0.29
+
+*/
+
+/* 
+NFftRanges -2
+
+MomentaListPath		mom_list.txt
+Suffix			roman
+
+MomentaListPath		mom_list.txt
+Suffix			roman
+
+ */
+
+ApeSmearingAlpha 0
+ApeSmearingNiters 0
+
+NGaugeConf 1
+../../../../test/data/L4T8conf  out
+
