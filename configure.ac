@@ -304,6 +304,10 @@ AX_SUBPACKAGE(fftw,fftw3.h,fftw3,fftw_plan_dft_r2c_2d,FFTW)
 
 AX_SUBPACKAGE(eigen,Eigen/Dense,,,EIGEN,".",".")
 
+################### parse-pact ##################
+
+AX_SUBPACKAGE(parsePact,parsePact.hpp,,,PARSE_PACT,".",".")
+
 #################### parpack ####################
 
 AX_SUBPACKAGE(parpack,arpack/arpack.h arpack/parpack.h,arpack parpack,cnaupd_c pcnaupd_c,PARPACK)
