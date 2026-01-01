@@ -18,6 +18,8 @@
 
 namespace DD
 {
+  using nissa::multiGrid::internal::mu_factor;
+  
   DDalphaAMG_init init_params;
   DDalphaAMG_parameters params;
   bool inited=false;
