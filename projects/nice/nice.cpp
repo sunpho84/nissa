@@ -25,6 +25,8 @@
 
 #include <nissa.hpp>
 
+#include "nASTy.hpp"
+
 using namespace nissa;
 
 using CAction=
@@ -103,27 +105,27 @@ std::shared_ptr<ASTNodeOp> timeSelect(const int& t)
 
 // #undef PROVIDE_AST_BINOP
 
-enum LineT{QuarkLine,LepLine};
+// enum LineT{QuarkLine,LepLine};
 
-struct Statement
-{
-  std::string out;
+// struct Statement
+// {
+//   std::string out;
   
-  LineT lineT;
+//   LineT lineT;
   
-  std::function<void(void)> eval;
+//   std::function<void(void)> eval;
   
-  std::vector<std::string> in;
-};
+//   std::vector<std::string> in;
+// };
 
-Statement operator*(const TimeSelectPars& pars,
-		    const Statement& oth)
-{
-  return {"DeltaT*"+oth.out,
-    oth.lineT,
-    [](){},
-    {oth.out}};
-}
+// Statement operator*(const TimeSelectPars& pars,
+// 		    const Statement& oth)
+// {
+//   return {"DeltaT*"+oth.out,
+//     oth.lineT,
+//     [](){},
+//     {oth.out}};
+// }
 
 template <typename...Ts>
 struct Overload :
@@ -137,8 +139,32 @@ Overload(Ts...) -> Overload<Ts...>;
 
 int main()
 {
-  const auto eta=
-    source();
+  // pp::internal::verbose=true;
+  
+  const auto parser=
+    getParser();
+  
+  const auto parseTree=
+    createParseTree(parser,"{"
+		    "er=1;"
+		    "}");
+  
+  const auto ptExecutor=
+    getParseTreeExecuctor();
+  
+  const auto ast=
+    ptExecutor.execParseTree(parseTree);
+  
+  /////////////////////////////////////////////////////////////////
+  
+  Evaluator ev;
+  
+  pp::internal::diagnostic("Come on\n");
+  
+  std::visit(ev,*ast);
+  
+  // const auto eta=
+  //   source();
   
   // MASTER_PRINTF("%d %d\n",SourcePars::glbId,std::get_if<SourcePars>(&eta->pars)->id);
   
