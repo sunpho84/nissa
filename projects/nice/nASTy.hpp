@@ -218,6 +218,8 @@ struct AssignNode
   std::shared_ptr<ASTNode> lhs;
   
   std::shared_ptr<ASTNode> rhs;
+  
+  std::function<Value(Value&,const Value&)> op;
 };
 
 struct UnOpNode
@@ -352,7 +354,12 @@ inline auto getParseTreeExecuctor()
   PROVIDE_ACTION_WITH_N_SYMBOLS("convToId",1,
 				return std::make_shared<ASTNode>(IdNode{.name=unvariant<std::string>(fetch<ValueNode>(subNodes,0).value)}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("unaryAssign",2,return std::make_shared<ASTNode>(AssignNode{.lhs=subNodes[0],
-											    .rhs=subNodes[1]}));
+											    .rhs=subNodes[1],
+											    .op=[](Value& lhs,
+												   const Value& rhs)
+											    {
+											      return lhs=rhs;
+											    }}));
   
   return ptExecutor;
 }
@@ -378,8 +385,7 @@ struct Evaluator
       return env.at(idNode.name);
   }
   
-  Value operator()(const ASTNodesNode& astNodesNode,
-    		   const bool isLhs=false)
+  Value operator()(const ASTNodesNode& astNodesNode)
   {
     /// Creates a subev only if there is already one above
     std::shared_ptr<Evaluator> _subev;
@@ -410,16 +416,13 @@ struct Evaluator
   {
     Value _lhs=std::visit(Evaluator(&env,true),*assignNode.lhs);
     
-    if(ValueRef* lhs=std::get_if<ValueRef>(&_lhs))
-      {
-	*lhs->ref=std::visit(*this,*assignNode.rhs);
-	return *lhs->ref;
-      }
-    else
-      {
-	pp::internal::errorEmitter("Lhs does not eval to a l-value ref");
-	return {};
-      }
+    ValueRef* lhs=std::get_if<ValueRef>(&_lhs);
+    
+    if(not lhs)
+      pp::internal::errorEmitter("Lhs does not eval to a l-value ref");
+    
+    return
+      assignNode.op(*lhs->ref,std::visit(*this,*assignNode.rhs));
   }
 };
 
