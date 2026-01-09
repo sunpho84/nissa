@@ -373,7 +373,7 @@ namespace nissa
 	  if(ok_conf)
 	    {
 	      nTrials=getNTrials();
-	      if(nTrials>=nMaxTrials)
+	      if(nMaxTrials and nTrials>=nMaxTrials)
 		{
 		  MASTER_PRINTF("Conf tested already %d times, larger or equal to the maximum number of trials, skipping\n",nTrials);
 		  ok_conf=false;

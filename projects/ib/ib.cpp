@@ -591,7 +591,7 @@ void in_main(int narg,char **arg)
   if(const char* nMaxTrialsStr=getenv(NMAX_TRIALS_STR))
     nMaxTrials=atoi(nMaxTrialsStr);
   else
-    MASTER_PRINTF("Optionally set the maximum number of trials for a conf by exporting %s\n",NMAX_TRIALS_STR);
+    MASTER_PRINTF("Optionally set the maximum number of trials for a conf by exporting %s, set it to zero to bypass, default is: %d\n",NMAX_TRIALS_STR,nMaxTrials);
   
   MASTER_PRINTF("Number of maximum trials per conf set to: %d\n",nMaxTrials);
   
