@@ -134,13 +134,12 @@ namespace nissa
 			      loclx_of_loceo[eo][ieo];
 			    
                             const Coords& c=locCoordOfLoclx[ivol];
-			    int itransp=0;
+			    int itransp=c[dir];
 			    for(int imu=0;imu<NDIM-1;imu++)
 			      {
 				const int mu=perpDirs[dir][imu];
 				itransp=itransp*locSize[mu]+c[mu];
 			      }
-			    itransp=itransp*locSize[dir]+c[dir];
 			    
                             color_scalar_prod(loc_contr[itransp],
 					      q0s[eo][ieo],
