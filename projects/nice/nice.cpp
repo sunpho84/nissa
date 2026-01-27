@@ -147,7 +147,15 @@ int main()
   const auto parseTree=
     createParseTree(parser,"{"
 		    "er=1;"
-		    "}");
+		    "er=2;"
+		    "1+2-3/2*2%5<3>1<=4>=6==3!=8;"
+		    "!2.0;"
+		    "er++;"
+		    "er--;"
+		    "fun cicc(ar,&yt,vf=1,&arrrrg=1) {}"
+		    "l=lambda(){};"
+		    "v=lambda(...){};"
+		    "cicc(ar=1);}");
   
   const auto ptExecutor=
     getParseTreeExecuctor();

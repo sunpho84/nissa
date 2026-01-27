@@ -126,13 +126,22 @@ namespace nissa
 			  CAPTURE(eo,
 				  q0s=quark0s[idx_si].getReadable(),
 				  q=quark[idx_so].getReadable(),
+				  dir,
 				  TO_WRITE(loc_contr)),
 			  ieo,
 			  {
 			    const int ivol=
 			      loclx_of_loceo[eo][ieo];
 			    
-			    color_scalar_prod(loc_contr[ivol],
+                            const Coords& c=locCoordOfLoclx[ivol];
+			    int itransp=c[dir];
+			    for(int imu=0;imu<NDIM-1;imu++)
+			      {
+				const int mu=perpDirs[dir][imu];
+				itransp=itransp*locSize[mu]+c[mu];
+			      }
+			    
+                            color_scalar_prod(loc_contr[itransp],
 					      q0s[eo][ieo],
 					      q[eo][ieo]);
 			  });
