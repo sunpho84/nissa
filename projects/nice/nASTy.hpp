@@ -49,34 +49,34 @@ inline auto getParser()
     "             | forStatement [return]"
     "             | ifStatement [return]"
     "             | functionDefinition [return]"
-    "             | \"return\" expression_statement [funcReturn(1)]"
+    "             | \"return\" expression_statement [funcReturn($1)]"
     "             ;"
-    "   functionDefinition : \"fun\" identifier \"\\(\" parameter_list \"\\)\" compound_statement [funcDef(1,3,5)]"
+    "   functionDefinition : \"fun\" identifier \"\\(\" parameter_list \"\\)\" compound_statement [funcDef($1,$3,$5)]"
     "                      ;"
     "   parameter_list: [emptyParList]"
-    "                 | variadic_parameter [emptyVariadicParList(0)]"
+    "                 | variadic_parameter [emptyVariadicParList($0)]"
     "                 | required_parameter_list [return]"
-    "                 | required_parameter_list \",\" variadic_parameter [makeVariadicParList(0,2)]"
-    "                 | required_parameter_list \",\" optional_parameter_list [mergeParLists(0,2)]"
+    "                 | required_parameter_list \",\" variadic_parameter [makeVariadicParList($0,$2)]"
+    "                 | required_parameter_list \",\" optional_parameter_list [mergeParLists($0,$2)]"
     "                 | optional_parameter_list [return]"
     "                 ;"
-    "   variadic_parameter: \"\\.\\.\\.\" [variadicPar()]"
-    "                     | \"&\" \"\\.\\.\\.\" [refVariadicPar()]"
+    "   variadic_parameter: \"\\.\\.\\.\" [return(1)]"
+    "                     | \"&\" \"\\.\\.\\.\" [return(2)]"
     "                     ;"
     "   required_parameter_list: required_parameter [firstParOfList]"
-    "                          | required_parameter_list \",\" required_parameter [appendParToList(0,2)]"
+    "                          | required_parameter_list \",\" required_parameter [appendParToList($0,$2)]"
     "                          ;"
     "   optional_parameter_list: optional_parameter [firstParOfList]"
-    "                          | optional_parameter_list \",\" optional_parameter [appendParToList(0,2)]"
+    "                          | optional_parameter_list \",\" optional_parameter [appendParToList($0,$2)]"
     "                          ;"
     "   required_parameter: parameter [return]"
     "                     ;"
-    "   optional_parameter: parameter \"=\" expression [addParDefault(0,2)]"
+    "   optional_parameter: parameter \"=\" expression [addParDefault($0,$2)]"
     "                     ;"
-    "   parameter: identifier [parCreate(0)]"
-    "            | \"&\" identifier [refParCreate(1)]"
+    "   parameter: identifier [parCreate($0)]"
+    "            | \"&\" identifier [refParCreate($1)]"
     "            ;"
-    "   forStatement: \"for\" \"\\(\" forInit \";\" forCheck \";\" forIncr \"\\)\" statement [forStatement(2,4,6,8)]"
+    "   forStatement: \"for\" \"\\(\" forInit \";\" forCheck \";\" forIncr \"\\)\" statement [forStatement($2,$4,$6,$8)]"
     "               ;"
     "   forInit: expression [return]"
     "          |"
@@ -87,71 +87,61 @@ inline auto getParser()
     "   forIncr: expression [return]"
     "          |"
     "          ;"
-    "   ifStatement: \"if\" \"\\(\" expression \"\\)\" statement %precedence lowerThanElse [ifStatement(2,4)]"
-    "              | \"if\" \"\\(\" expression \"\\)\" statement \"else\" statement [ifElseStatement(2,4,6)]"
+    "   ifStatement: \"if\" \"\\(\" expression \"\\)\" statement %precedence lowerThanElse [ifStatement($2,$4)]"
+    "              | \"if\" \"\\(\" expression \"\\)\" statement \"else\" statement [ifElseStatement($2,$4,$6)]"
     "              ;"
-    "    compound_statement : \"{\" statements \"}\" [return(1)]"
+    "    compound_statement : \"{\" statements \"}\" [return($1)]"
     "                       ;"
     "    statements : [createStatements]"
     "               | statements statement [appendStatement]"
     "               ;"
-    "    expression_statement : expression \";\" [return(0)]"
+    "    expression_statement : expression \";\" [return($0)]"
     "                         ;"
-    "    expression : postfix_expression %precedence \"\\+\\+\" [return(0)]"
-    "               | expression \"\\+\" expression [binarySum(0,2)]"
-    "               | expression \"\\-\" expression [binaryDiff(0,2)]"
-    "               | expression \"\\*\" expression [binaryProd(0,2)]"
-    "               | expression \"/\" expression [binaryDiv(0,2)]"
-    "               | expression \"%\" expression [binaryMod(0,2)]"
-    "               | \"\\+\" expression %precedence UNARY_ARITHMETIC [unaryPlus(1)]"
-    "               | \"\\-\" expression %precedence UNARY_ARITHMETIC [unaryMinus(1)]"
-    "               | \"!\" expression [unaryNot(1)]"
-    "               | expression \"<\" expression [binarySmaller(0,2)]"
-    "               | expression \">\" expression [binaryGreater(0,2)]"
-    "               | expression \"<=\" expression [binarySmallerEqual(0,2)]"
-    "               | expression \">=\" expression [binaryGreaterEqual(0,2)]"
-    "               | expression \"==\" expression [binaryCompare(0,2)]"
-    "               | expression \"!=\" expression [binaryInequal(0,2)]"
-    "               | expression \"&&|and\" expression [binaryAnd(0,2)]"
-    "               | expression \"\\|\\||or\" expression [binaryOr(0,2)]"
+    "    expression : postfix_expression %precedence \"\\+\\+\" [return($0)]"
+    "               | expression \"\\+\" expression [binarySum($0,$2)]"
+    "               | expression \"\\-\" expression [binaryDiff($0,$2)]"
+    "               | expression \"\\*\" expression [binaryProd($0,$2)]"
+    "               | expression \"/\" expression [binaryDiv($0,$2)]"
+    "               | expression \"%\" expression [binaryMod($0,$2)]"
+    "               | \"\\+\" expression %precedence UNARY_ARITHMETIC [unaryPlus($1)]"
+    "               | \"\\-\" expression %precedence UNARY_ARITHMETIC [unaryMinus($1)]"
+    "               | \"!\" expression [unaryNot($1)]"
+    "               | expression \"<\" expression [binarySmaller($0,$2)]"
+    "               | expression \">\" expression [binaryGreater($0,$2)]"
+    "               | expression \"<=\" expression [binarySmallerEqual($0,$2)]"
+    "               | expression \">=\" expression [binaryGreaterEqual($0,$2)]"
+    "               | expression \"==\" expression [binaryCompare($0,$2)]"
+    "               | expression \"!=\" expression [binaryInequal($0,$2)]"
+    "               | expression \"&&|and\" expression [binaryAnd($0,$2)]"
+    "               | expression \"\\|\\||or\" expression [binaryOr($0,$2)]"
     "               | assign_expression [return]"
     "               | identifier \"\\*=\" expression [unaryProdAssign]"
     "               | identifier \"/=\" expression [unaryDivAssign]"
     "               | identifier \"\\+=\" expression [unarySumAssign]"
     "               | identifier \"\\-=\" expression [unaryDiffAssign]"
     "               ;"
-    "    postfix_expression : primary_expression [return(0)]"
-    "                       | postfix_expression \"\\+\\+\" [unaryPostfixIncrement(0)]"
-    "                       | postfix_expression \"\\-\\-\" [unaryPostfixDecrement(0)]"
-    // "                       | postfix_expression \"\\(\" \"\\)\" %precedence FUNCTION_CALL [emptyFuncCall(0)] "
-    "                       | postfix_expression \"\\(\" funcArgsList \"\\)\" %precedence FUNCTION_CALL [funcCall(0,2)] "
-    "                       | postfix_expression \"\\[\" expression \"\\]\" [subscribe(0,2)] "
+    "    postfix_expression : primary_expression [return($0)]"
+    "                       | postfix_expression \"\\+\\+\" [unaryPostfixIncrement($0)]"
+    "                       | postfix_expression \"\\-\\-\" [unaryPostfixDecrement($0)]"
+    // "                       | postfix_expression \"\\(\" \"\\)\" %precedence FUNCTION_CALL [emptyFuncCall($0)] "
+    "                       | postfix_expression \"\\(\" funcArgsList \"\\)\" %precedence FUNCTION_CALL [funcCall($0,$2)] "
+    "                       | postfix_expression \"\\[\" expression \"\\]\" [subscribe($0,$2)] "
     "                       ;"
-    "    funcArgsList : argList [return]"
-    "                 | namedArgList [return]"
-    "                 | argList \",\" namedArgList [mergeArgLists(0,2)]"
+    "    funcArgsList : [createArgList]"
+    "                 | arg [firstArgOfList]"
+    "                 | funcArgsList \",\" arg [appendArgLists($0,$2)]"
     "                 ;"
-    "    argList : [createArgList]"
-    "            | nonEmptyArgList %precedence \",\" [return]"
-    "            ;"
-    "    nonEmptyArgList : arg [firstArgOfList]"
-    "                    | nonEmptyArgList \",\" expression [appendArgToList(0,2)]"
-    "                    ;"
-    "    arg : expression [exprToArg]"
+    "    arg : \"\\.\" identifier \"=\" expression [createArg($1,$3)]"
+    "        | expression [createArg(\"\",$1)]"
     "        ;"
-    "    namedArgList : namedArg [firstArgOfList]"
-    "                 | namedArgList \",\" namedArg [appendArgToList(0,2)]"
-    "                 ;"
-    "    namedArg : \"\\.\" identifier \"=\" expression [namedArg(1,3)]"
-    "             ;"
     "    primary_expression : identifier [return]"
     "                       | \"[0-9]+\" [convToInt]"
     "                       | \"([0-9]+(\\.[0-9]*)?|(\\.[0-9]+))((e|E)(\\+|\\-)?[0-9]+)?\" [convToFloat]"
     "                       | \"\\\"[^\\\"]*\\\"\" [convToStr]"
-    "                       | \"\\(\" expression \"\\)\" %precedence BRACKETS [return(1)]"
-    "                       | \"lambda\" \"\\(\" parameter_list \"\\)\" compound_statement [lambdaFuncDef(2,4)]"
+    "                       | \"\\(\" expression \"\\)\" %precedence BRACKETS [return($1)]"
+    "                       | \"lambda\" \"\\(\" parameter_list \"\\)\" compound_statement [lambdaFuncDef($2,$4)]"
     "                       ;"
-    "    assign_expression : postfix_expression \"=\" expression %precedence \"=\" [unaryAssign(0,2)]"
+    "    assign_expression : postfix_expression \"=\" expression %precedence \"=\" [unaryAssign($0,$2)]"
     "                      ;"
     // "    expressionList : [createStatements]"
     // "                   | nonEmptyExpressionList %precedence \",\" [return]"
@@ -229,11 +219,18 @@ struct HostFunction;
 struct ValuesList;
 
 using Value=
-  std::variant<std::monostate,std::string,int,double,Function,HostFunction,ValueRef>;
+  std::variant<std::monostate,std::string,int,double,Function,HostFunction,ValueRef,ValuesList>;
 
 struct ValueRef
 {
   std::shared_ptr<Value> ref;
+};
+
+struct ValuesList
+{
+  std::vector<std::shared_ptr<Value>> data;
+  
+  Value& operator[](const int& i);
 };
 
 struct Function
@@ -288,7 +285,22 @@ struct FuncParListNode
 {
   std::vector<FuncParNode> list;
   
-  bool isVariadic{};
+  auto iParOfName(const std::string& name) const
+  {
+    auto it=
+      std::find_if(list.begin(),
+		   list.end(),
+		   [&name](const FuncParNode& par)
+		   {
+		     return par.name==name;
+		   });
+    
+    return std::distance(list.begin(),it);
+  }
+  
+  enum VariadicMode{NONE,BY_VALUE,BY_REF};
+  
+  VariadicMode variadicMode;
 };
 
 struct FuncNode
@@ -307,7 +319,7 @@ struct FuncDefNode
 
 struct FuncCallNode
 {
-  std::shared_ptr<ASTNode> getFun;
+  std::string fun;
   
   FuncArgListNode args;
 };
@@ -354,6 +366,16 @@ struct Environment
   Environment* parent;
   
   std::unordered_map<std::string,std::shared_ptr<Value>> varTable;
+  
+  Environment* uppermost()
+  {
+    Environment* res=this;
+    
+    while(Environment* par=res->parent)
+      res=par;
+    
+    return res;
+  }
   
   std::shared_ptr<Value> find(const std::string& name)
   {
@@ -423,7 +445,7 @@ T& fetch(std::shared_ptr<ASTNode>& subNode,
     std::get_if<T>(&*subNode);
   
   if(not s)
-    errorEmitter("subNode ",comm,"is not of the required type ",typeid(T).name()," but is of type ",variantInnerTypeName(*subNode));
+    errorEmitter("subNode: ",(comm?comm:""),"is not of the required type ",typeid(T).name()," but is of type ",variantInnerTypeName(*subNode));
   
   return *s;
 }
@@ -469,23 +491,26 @@ std::shared_ptr<ASTNode>& mergeLists(std::shared_ptr<ASTNode>& list1,
   return list1;
 }
 
-inline auto getParseTreeExecuctor()
+inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredActions)
 {
   using namespace pp::internal;
   
-  pp::ParseTreeExecutor<ASTNode,ValueNode> ptExecutor;
+  using ParseTreeExecutor=
+    pp::ParseTreeExecutor<ASTNode,ValueNode>;
   
-#define ENSURE_N_SYMBOLS(N)			\
+  std::map<std::string,ParseTreeExecutor::ActionFun> providedActions;
+  
+#define ENSURE_N_SYMBOLS(NAME,N)		\
   if(subNodes.size()!=N)			\
-    errorEmitter("expecting " #N " symbols, obtained ",subNodes.size())
+    errorEmitter("action " NAME " expecting " #N " symbols, obtained ",subNodes.size())
   
 #define PROVIDE_ACTION_WITH_N_SYMBOLS(NAME,				\
 				      N,				\
 				      BODY...)				\
-  ptExecutor.actions[NAME]=						\
+  providedActions[NAME]=						\
     [](std::vector<std::shared_ptr<ASTNode>>& subNodes) -> std::shared_ptr<ASTNode> \
     {									\
-      ENSURE_N_SYMBOLS(N);						\
+      ENSURE_N_SYMBOLS(NAME,N);						\
       									\
       BODY;								\
     }
@@ -494,7 +519,11 @@ inline auto getParseTreeExecuctor()
   PROVIDE_ACTION_WITH_N_SYMBOLS("firstStatement",1,return std::make_shared<ASTNode>(ASTNodesNode{.list{subNodes[0]}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("appendStatement",2,
 				if(ASTNodesNode* l=std::get_if<ASTNodesNode>(&*(subNodes[0]));l==nullptr)
-				  errorEmitter("first argument is not a list of statement: ",std::visit([](const auto& x){return typeid(decltype(x)).name();},*(subNodes[0])));
+				  errorEmitter("first argument is not a list of statement: ",
+					       std::visit([](const auto& x)
+					       {
+						 return typeid(decltype(x)).name();
+					       },*(subNodes[0])));
 				else
 				  l->list.emplace_back(subNodes[1]);
 				return subNodes[0]);
@@ -510,8 +539,7 @@ inline auto getParseTreeExecuctor()
 	  {
 	    return lhs=rhs;
 	  }}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("namedArg",2,return std::make_shared<ASTNode>(FuncArgNode{.name=fetch<IdNode>(subNodes,0).name,.expr=subNodes[1]}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("exprToArg",1,return std::make_shared<ASTNode>(FuncArgNode{.name="",.expr=subNodes[0]}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("createArg",2,printf("Plugging %s arg\n",fetch<IdNode>(subNodes,0).name.c_str());return std::make_shared<ASTNode>(FuncArgNode{.name=fetch<IdNode>(subNodes,0).name,.expr=subNodes[1]}));
   
 #define DEFINE_UNOP(OP,NAME)						\
   PROVIDE_ACTION_WITH_N_SYMBOLS("unary" #NAME,1,return std::make_shared<ASTNode>(UnOpNode{.arg=subNodes[0], \
@@ -607,7 +635,7 @@ inline auto getParseTreeExecuctor()
 #undef PROVIDE_FUNC_LIST_ACTIONS
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("emptyParList",0,return std::make_shared<ASTNode>(FuncParListNode{}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("emptyVariadicParList",0,return std::make_shared<ASTNode>(FuncParListNode{.isVariadic=true}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("emptyVariadicParList",1,return std::make_shared<ASTNode>(FuncParListNode{.variadicMode=FuncParListNode::VariadicMode(unvariant<int>(fetch<ValueNode>(subNodes,0).value))}));
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcDef",3,
 				return std::make_shared<ASTNode>(FuncDefNode{.name=fetch<IdNode>(subNodes,0).name,
@@ -618,10 +646,10 @@ inline auto getParseTreeExecuctor()
 									  subNodes[1]}));
   
   
-  PROVIDE_ACTION_WITH_N_SYMBOLS("funcCall",2,return std::make_shared<ASTNode>(FuncCallNode{.getFun=subNodes[0],
+  PROVIDE_ACTION_WITH_N_SYMBOLS("funcCall",2,return std::make_shared<ASTNode>(FuncCallNode{.fun=fetch<IdNode>(subNodes,0).name,
 											   .args=fetch<FuncArgListNode>(subNodes,1)}));
   
-  return ptExecutor;
+  return ParseTreeExecutor(providedActions,requiredActions);
 }
 
 struct Evaluator
@@ -680,9 +708,155 @@ struct Evaluator
   
   Value operator()(const FuncCallNode& funcCallNode)
   {
-    pp::internal::errorEmitter("incomplete");
+    using namespace pp::internal;
     
-    return {};
+    const std::string name=
+      funcCallNode.fun;
+    
+    diagnostic("Going to call function %s\n",name.c_str());
+    
+    const std::shared_ptr<Value> fv=env.find(name);
+    if(not fv)
+      errorEmitter("unable to find function ",name);
+    
+    if(const Function* _f=std::get_if<Function>(&*fv))
+      {
+	const Function& f=*_f;
+	
+	const FuncNode& fn=*f.fun;
+	const FuncParListNode& pars=fn.pars;
+	
+	Environment* fe=f.env;
+	if(f.env==nullptr)
+	  fe=this->env.uppermost();
+	
+	Evaluator subev{fe};
+	
+	auto getValOrRef=
+	  [this](const std::string& name,
+		 const bool& isRef,
+		 const std::shared_ptr<ASTNode>& expr)
+	  {
+	    std::shared_ptr<Value> v=
+	      std::make_shared<Value>(std::visit(*this,*expr));
+	    
+	    if(isRef)
+	      {
+		if(ValueRef* vr=std::get_if<ValueRef>(&*v))
+		  v=vr->ref;
+		else
+		  errorEmitter("argument ",name," has to be taken by ref but does not evalue to a ref");
+	      }
+	    
+	    return v;
+	  };
+	
+	auto insertInSubev=
+	  [&subev,
+	   &getValOrRef](const std::string& name,
+			 const bool& isRef,
+			 const std::shared_ptr<ASTNode>& expr)
+	  {
+	    auto r=
+	      subev.env.varTable.try_emplace(name,getValOrRef(name,isRef,expr));
+	    
+	    if(not r.second)
+	      errorEmitter("argument ",name," already specified");
+	  };
+	
+	size_t iNextPositionalArg{};
+	bool acceptingOnlyNamedArgs{};
+	std::shared_ptr<Value> vaArgsHandle;
+	const bool nFixedArgs=fn.pars.list.size();
+	for(const FuncArgNode& ap : funcCallNode.args.list)
+	  {
+	    const bool isNamedArg=ap.name!="";
+	    acceptingOnlyNamedArgs|=isNamedArg;
+	    
+	    printf("Studying %s, isnamed: %d\n",ap.name.c_str(),isNamedArg);
+	    if(isNamedArg)
+	      {
+		const std::string& name=
+		  ap.name;
+		
+		const size_t iPar=
+		  pars.iParOfName(name);
+		if(iPar==pars.list.size())
+		  errorEmitter("trying to pass argument ",name," not expected by the function");
+		
+		const FuncParNode& parDef=
+		  pars.list[iPar];
+		
+		printf("Plugging named par: %s\n",name.c_str());
+		insertInSubev(name,parDef.isRef,ap.expr);
+	      }
+	    else
+	      {
+		if(acceptingOnlyNamedArgs)
+		  errorEmitter("Positional arg passed after named ones");
+		
+		if(iNextPositionalArg>=nFixedArgs)
+		  {
+		    if(not vaArgsHandle)
+		      {
+			vaArgsHandle=std::make_shared<Value>(std::in_place_type<ValuesList>);
+			
+			if(pars.variadicMode!=FuncParListNode::VariadicMode::NONE)
+			  errorEmitter("Trying to pass ",iNextPositionalArg," arguments, more than those expected by a non-variadic function");
+		      }
+		    
+		    ValuesList& vaArgs=
+		      std::get<ValuesList>(*vaArgsHandle);
+		    
+		    const bool isRef=
+		      pars.variadicMode==FuncParListNode::VariadicMode::BY_REF;
+		    
+		    vaArgs.data.emplace_back(getValOrRef("Variadic argument number "+std::to_string(iNextPositionalArg-nFixedArgs),isRef,ap.expr));
+		  }
+		else
+		  {
+		    const FuncParNode& par=
+		      pars.list[iNextPositionalArg];
+		    printf("Plugging pos par: %s\n",par.name.c_str());
+		    insertInSubev(par.name,par.isRef,ap.expr);
+		  }
+	      }
+	    
+	    iNextPositionalArg++;
+	  }
+	
+	if(vaArgsHandle)
+	  if(not subev.env.varTable.try_emplace("__VA_ARGS__",vaArgsHandle).second)
+	    errorEmitter("__VA_ARGS__ already defined as a parameter");
+	
+	// diagnostic("Calling function, specified arguments:\n");
+	// subev.env.print();
+	
+	// Put possible default pars
+	for(auto& [aName,isRef,optDef] : fn.pars.list)
+	  if(not subev.env.varTable.contains(aName))
+	    if(optDef)
+	      subev.env[aName]=std::visit(*this,*optDef);
+	    else
+	      errorEmitter("parameter \"",aName,"\" with no default value unspecified when calling the function");
+	  else
+	    {}
+	
+	return std::visit(subev,*fn.body);
+      }
+    else
+      if(const HostFunction* hf=std::get_if<HostFunction>(&*fv))
+	{
+	  std::vector<Value> evArgs;
+	  for(const FuncArgNode& fan : funcCallNode.args.list)
+	    evArgs.emplace_back(std::visit(*this,*fan.expr));
+	  
+	  return (*hf)(evArgs);
+	}
+      else
+	errorEmitter("Variable is of type ",variantInnerTypeName(*fv)," not a ",typeid(Function).name());
+    
+    return std::monostate{};
   }
   
   Value operator()(const FuncDefNode& funcDefNode)
