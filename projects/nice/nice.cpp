@@ -127,19 +127,9 @@ std::shared_ptr<ASTNodeOp> timeSelect(const int& t)
 //     {oth.out}};
 // }
 
-template <typename...Ts>
-struct Overload :
-  Ts...
-{
-  using Ts::operator()...;
-};
-
-template <typename...Ts>
-Overload(Ts...) -> Overload<Ts...>;
-
 int main()
 {
-  // pp::internal::verbose=true;
+  pp::internal::verbose=true;
   
   const auto parser=
     getParser();
@@ -155,10 +145,10 @@ int main()
 		    "fun cicc(ar,&yt,vf=1,&arrrrg=1) {}"
 		    "l=lambda(){};"
 		    "v=lambda(...){};"
-		    "cicc(ar=1);}");
+		    "cicc(.ar=1,4);}");
   
   const auto ptExecutor=
-    getParseTreeExecuctor();
+    getParseTreeExecuctor(parser.actionStrings);
   
   const auto ast=
     ptExecutor.execParseTree(parseTree);
