@@ -115,15 +115,10 @@ inline auto getParser()
     "               | expression \"&&|and\" expression [binaryAnd($0,$2)]"
     "               | expression \"\\|\\||or\" expression [binaryOr($0,$2)]"
     "               | assign_expression [return]"
-    "               | identifier \"\\*=\" expression [unaryProdAssign]"
-    "               | identifier \"/=\" expression [unaryDivAssign]"
-    "               | identifier \"\\+=\" expression [unarySumAssign]"
-    "               | identifier \"\\-=\" expression [unaryDiffAssign]"
     "               ;"
     "    postfix_expression : primary_expression [return($0)]"
     "                       | postfix_expression \"\\+\\+\" [unaryPostfixIncrement($0)]"
     "                       | postfix_expression \"\\-\\-\" [unaryPostfixDecrement($0)]"
-    // "                       | postfix_expression \"\\(\" \"\\)\" %precedence FUNCTION_CALL [emptyFuncCall($0)] "
     "                       | postfix_expression \"\\(\" funcArgsList \"\\)\" %precedence FUNCTION_CALL [funcCall($0,$2)] "
     "                       | postfix_expression \"\\[\" expression \"\\]\" [subscribe($0,$2)] "
     "                       ;"
@@ -142,13 +137,11 @@ inline auto getParser()
     "                       | \"lambda\" \"\\(\" parameter_list \"\\)\" compound_statement [lambdaFuncDef($2,$4)]"
     "                       ;"
     "    assign_expression : postfix_expression \"=\" expression %precedence \"=\" [unaryAssign($0,$2)]"
+    "                      | postfix_expression \"\\*=\" expression [unaryProdAssign($0,$2)]"
+    "                      | postfix_expression \"/=\" expression [unaryDivAssign($0,$2)]"
+    "                      | postfix_expression \"\\+=\" expression [unarySumAssign($0,$2)]"
+    "                      | postfix_expression \"\\-=\" expression [unaryDiffAssign($0,$2)]"
     "                      ;"
-    // "    expressionList : [createStatements]"
-    // "                   | nonEmptyExpressionList %precedence \",\" [return]"
-    // "                   ;"
-    // "    nonEmptyExpressionList : expression [firstStatement]"
-    // "                           | nonEmptyExpressionList \",\" expression [appendStatement(0,2)]"
-    // "                           ;"
     "    identifier : \"[a-zA-Z_][a-zA-Z0-9_]*\" [convToId]"
     "               ;"
     "}";
@@ -170,6 +163,10 @@ struct FuncNode;
 struct FuncDefNode;
 
 struct FuncCallNode;
+
+struct ForNode;
+
+struct IfNode;
 
 struct UnOpNode;
 
@@ -193,11 +190,10 @@ using ASTNode=
   std::variant<ASTNodesNode,
 	       UnOpNode,
 	       BinOpNode,
-	       // ForNode,
-	       // IfNode,
+	       ForNode,
+	       IfNode,
 	       IdNode,
 	       PrePostfixOpNode,
-	       // UPostfixDecrementNode,
 	       FuncNode,
 	       FuncDefNode,
 	       FuncCallNode,
@@ -272,6 +268,11 @@ struct ASTNodesNode
   std::vector<std::shared_ptr<ASTNode>> list;
 };
 
+struct IfNode
+{
+  std::vector<std::shared_ptr<ASTNode>> subNodes;
+};
+
 struct FuncParNode
 {
   std::string name;
@@ -301,6 +302,11 @@ struct FuncParListNode
   enum VariadicMode{NONE,BY_VALUE,BY_REF};
   
   VariadicMode variadicMode;
+};
+
+struct ForNode
+{
+  std::vector<std::shared_ptr<ASTNode>> subNodes;
 };
 
 struct FuncNode
@@ -636,6 +642,9 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("emptyParList",0,return std::make_shared<ASTNode>(FuncParListNode{}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("emptyVariadicParList",1,return std::make_shared<ASTNode>(FuncParListNode{.variadicMode=FuncParListNode::VariadicMode(unvariant<int>(fetch<ValueNode>(subNodes,0).value))}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("makeVariadicParList",2,
+				fetch<FuncParListNode>(subNodes,0).variadicMode=FuncParListNode::VariadicMode(unvariant<int>(fetch<ValueNode>(subNodes,1).value));
+				return subNodes[0]);
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcDef",3,
 				return std::make_shared<ASTNode>(FuncDefNode{.name=fetch<IdNode>(subNodes,0).name,
@@ -649,6 +658,9 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcCall",2,return std::make_shared<ASTNode>(FuncCallNode{.fun=fetch<IdNode>(subNodes,0).name,
 											   .args=fetch<FuncArgListNode>(subNodes,1)}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcReturn",1,return std::make_shared<ASTNode>(ReturnNode{.arg=subNodes[0]}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("forStatement",4,return std::make_shared<ASTNode>(ForNode{.subNodes{subNodes}}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("ifStatement",2,return std::make_shared<ASTNode>(IfNode{.subNodes{subNodes}}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("ifElseStatement",3,return std::make_shared<ASTNode>(IfNode{.subNodes{subNodes}}));
   
 #undef PROVIDE_ACTION_WITH_N_SYMBOLS
   
@@ -687,6 +699,47 @@ struct Evaluator
       return ValueRef{env.getRefOrInsert(idNode.name)};
     else
       return env.at(idNode.name);
+  }
+  
+  Value operator()(const ForNode& forNode)
+  {
+    Evaluator subev{&env};
+    
+    for(std::visit(*this,*forNode.subNodes[0]);
+    	std::visit([](const auto& v)
+	{
+	  if constexpr(std::is_convertible_v<decltype(v),bool>)
+	    return (bool)v;
+	  else
+	    pp::internal::errorEmitter("Cannot convert the type to bool");
+	  
+	  return false;
+	},std::visit(subev,*forNode.subNodes[1]));
+	std::visit(subev,*forNode.subNodes[2]))
+      std::visit(subev,*forNode.subNodes[3]);
+    
+    return std::monostate{};
+  }
+  
+  Value operator()(const IfNode& ifNode)
+  {
+    Evaluator subev{&env};
+    
+    if(std::visit([](const auto& v)
+	{
+	  if constexpr(std::is_convertible_v<decltype(v),bool>)
+	    return (bool)v;
+	  else
+	    pp::internal::errorEmitter("Cannot convert the type to bool");
+	  
+	  return false;
+	},std::visit(subev,*ifNode.subNodes[0])))
+      std::visit(subev,*ifNode.subNodes[1]);
+    else
+      if(ifNode.subNodes.size()>=2)
+	std::visit(subev,*ifNode.subNodes[2]);
+    
+    return std::monostate{};
   }
   
   Value operator()(const FuncParNode&)
