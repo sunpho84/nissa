@@ -648,6 +648,9 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcCall",2,return std::make_shared<ASTNode>(FuncCallNode{.fun=fetch<IdNode>(subNodes,0).name,
 											   .args=fetch<FuncArgListNode>(subNodes,1)}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("funcReturn",1,return std::make_shared<ASTNode>(ReturnNode{.arg=subNodes[0]}));
+  
+#undef PROVIDE_ACTION_WITH_N_SYMBOLS
   
   return ParseTreeExecutor(providedActions,requiredActions);
 }
