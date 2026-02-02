@@ -519,7 +519,7 @@ void measurements(EoField<quad_su3>& temp,
 	
 	RANGE_FERMIONIC_MEAS_DEAD(drv,fermionic_putpourri);
 	RANGE_FERMIONIC_MEAS_DEAD(drv,quark_rendens);
-	RANGE_FERMIONIC_MEAS_DEAD(drv,ellesettete);
+	RANGE_FERMIONIC_MEAS(drv,ellesettete);
 	RANGE_FERMIONIC_MEAS_DEAD(drv,chir_zumba);
 	RANGE_FERMIONIC_MEAS_DEAD(drv,qed_corr);
 	//RANGE_FERMIONIC_MEAS_DEAD_EXTENDED(drv,spinpol,drv->theories[itheory].stout_pars,temp);
