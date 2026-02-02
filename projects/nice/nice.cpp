@@ -145,6 +145,7 @@ int main()
 		    "fun cicc(ar,&yt,vf=1,&arrrrg=1) {}"
 		    "l=lambda(){};"
 		    "v=lambda(...){};"
+		    "a=s[9];"
 		    "cicc(.ar=1,4);}");
   
   const auto ptExecutor=
