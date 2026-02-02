@@ -186,6 +186,8 @@ struct FuncArgListNode;
 
 struct FuncParListNode;
 
+struct SubscribeNode;
+
 using ASTNode=
   std::variant<ASTNodesNode,
 	       UnOpNode,
@@ -199,7 +201,7 @@ using ASTNode=
 	       FuncCallNode,
 	       FuncParNode,
 	       FuncParListNode,
-	       // SubscribeNode,
+	       SubscribeNode,
 	       FuncArgNode,
 	       FuncArgListNode,
 	       ReturnNode,
@@ -256,6 +258,13 @@ struct FuncArgNode
 struct FuncArgListNode
 {
   std::vector<FuncArgNode> list;
+};
+
+struct SubscribeNode
+{
+  std::shared_ptr<ASTNode> base;
+  
+  std::shared_ptr<ASTNode> subscr;
 };
 
 struct ValueNode
@@ -658,6 +667,7 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcCall",2,return std::make_shared<ASTNode>(FuncCallNode{.fun=fetch<IdNode>(subNodes,0).name,
 											   .args=fetch<FuncArgListNode>(subNodes,1)}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcReturn",1,return std::make_shared<ASTNode>(ReturnNode{.arg=subNodes[0]}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("subscribe",2,return std::make_shared<ASTNode>(SubscribeNode{.base=subNodes[0],.subscr=subNodes[1]}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("forStatement",4,return std::make_shared<ASTNode>(ForNode{.subNodes{subNodes}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("ifStatement",2,return std::make_shared<ASTNode>(IfNode{.subNodes{subNodes}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("ifElseStatement",3,return std::make_shared<ASTNode>(IfNode{.subNodes{subNodes}}));
@@ -671,14 +681,20 @@ struct Evaluator
 {
   Environment env;
   
-  bool isLhs=false;
+  int iLhs{};
+  
+  Value maybeEvalAsLhs(std::shared_ptr<ASTNode> arg)
+  {
+    iLhs++;
+    Value _lhs=std::visit(*this,*arg);
+    iLhs--;
+    
+    return _lhs;
+  }
   
   Value& evalAsLhs(std::shared_ptr<ASTNode> arg)
   {
-    const bool backIsLhs=isLhs;
-    isLhs=true;
-    Value _lhs=std::visit(*this,*arg);
-    isLhs=backIsLhs;
+    Value _lhs=maybeEvalAsLhs(arg);
     
     ValueRef* lhs=std::get_if<ValueRef>(&_lhs);
     
@@ -695,10 +711,48 @@ struct Evaluator
   
   Value operator()(const IdNode& idNode)
   {
-    if(isLhs)
+    if(iLhs)
       return ValueRef{env.getRefOrInsert(idNode.name)};
     else
       return env.at(idNode.name);
+  }
+  
+  Value operator()(const SubscribeNode& subscribeNode)
+  {
+    Value b=maybeEvalAsLhs(subscribeNode.base);
+    
+    ValueRef* vr=std::get_if<ValueRef>(&b);
+    Value& v=vr?(*vr->ref):b;
+    
+    Value s=std::visit(*this,*subscribeNode.subscr);
+    
+    using pp::internal::errorEmitter;
+    using pp::internal::variantInnerTypeName;
+    
+    if(ValuesList* vl=std::get_if<ValuesList>(&v))
+      if(int* mi=std::get_if<int>(&s))
+	{
+	  int i=*mi;
+	  
+	  if(i<0)
+	    errorEmitter("Trying to subscribe with negative index ",i);
+	  
+	  if(i>=vl->data.size())
+	    errorEmitter("Trying to subscribe withindex ",i," greater than list size");
+	  
+	  std::shared_ptr<Value> r=vl->data[i];
+	  
+	  if(iLhs)
+	    return (ValueRef){r};
+	  else
+	    return *r;
+	}
+      else
+	errorEmitter("index of subscrition is not an integer but is of type: ",variantInnerTypeName(s));
+    else
+      errorEmitter("trying to subscribe non-list of type: ",variantInnerTypeName(b));
+    
+    return {};
   }
   
   Value operator()(const ForNode& forNode)
