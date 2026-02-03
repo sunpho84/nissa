@@ -145,8 +145,11 @@ int main()
 		    "fun cicc(ar,&yt,vf=1,&arrrrg=1) {}"
 		    "l=lambda(){};"
 		    "v=lambda(...){};"
+		    "s=makeVec(0,1,2,3,4,5,6,7,8,9,10);"
 		    "a=s[9];"
-		    "cicc(.ar=1,4);}");
+		    "a*=3;"
+		    "print(a,\"\n\");"
+		    "cicc(1,4);}");
   
   const auto ptExecutor=
     getParseTreeExecuctor(parser.actionStrings);
@@ -157,6 +160,7 @@ int main()
   /////////////////////////////////////////////////////////////////
   
   Evaluator ev;
+  ev.prepareTopEnv();
   
   pp::internal::diagnostic("Come on\n");
   
