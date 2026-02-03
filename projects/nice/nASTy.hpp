@@ -148,6 +148,8 @@ inline auto getParser()
     pp::createGrammar(cGrammar);
 }
 
+struct Evaluator;
+
 struct Environment;
 
 struct ASTNodesNode;
@@ -237,7 +239,7 @@ struct Function
 };
 
 struct HostFunction :
-  std::function<Value(std::vector<std::shared_ptr<Value>>&&)>
+  std::function<Value(std::vector<std::shared_ptr<Value>>&,Evaluator&)>
 {
 };
 
@@ -717,7 +719,8 @@ struct Evaluator
     
     env["print"]=
       HostFunction{
-      [](std::vector<std::shared_ptr<Value>>&& args)->Value
+      [](std::vector<std::shared_ptr<Value>>& args,
+	 Evaluator&)->Value
       {
 	for(std::shared_ptr<Value>& arg : args)
 	  std::visit([](const auto& v)
@@ -733,23 +736,108 @@ struct Evaluator
     
     env["makeVec"]=
       HostFunction{
-      [](std::vector<std::shared_ptr<Value>>&& args)->Value
+      [](std::vector<std::shared_ptr<Value>>& args,
+	 Evaluator&)->Value
       {
 	return ValuesList{args};
       }};
     
-#define REGISTER_ARGLESS_HOST_FUNCTION(NAME)	\
-    env[#NAME]=					\
-      HostFunction{				\
-      [](std::vector<std::shared_ptr<Value>>&& args)->Value	\
-      {						\
-	return NAME();				\
+    env["forEachEl"]=
+      HostFunction{
+      [](std::vector<std::shared_ptr<Value>>& args,
+	 Evaluator& ev)->Value
+      {
+	using pp::internal::errorEmitter;
+	using pp::internal::variantInnerTypeName;
+	
+	if(const size_t n=args.size();n!=2)
+	  errorEmitter("trying to call forEachEl with ",n," elements in place of 2");
+	
+	std::vector<std::shared_ptr<Value>> v(1);
+	if(ValuesList* l=std::get_if<ValuesList>(&*args[0]))
+	  for(std::shared_ptr<Value> arg : args)
+	    {
+	      v[0]=arg;
+	      
+	      std::visit([&v](auto& f)
+	      {
+		if constexpr(requires{f(v);})
+		  f(v);
+		else
+		  errorEmitter("trying to call a non-callable type ",typeid(f).name());
+	      },*args[1]);
+	    }
+	else
+	  errorEmitter("trying to call \"forEachEl\" on a non-vector type ",variantInnerTypeName(*args[0]));
+	  
+	
+	return {};
+      }};
+    
+    env["seq"]=
+      HostFunction{
+      [](std::vector<std::shared_ptr<Value>>& args,
+	 Evaluator&)->Value
+      {
+	using pp::internal::errorEmitter;
+	
+	auto p=
+	  [&args](const size_t& i) ->int*
+	  {
+	    if(args.size()<=i)
+	      return nullptr;
+	    else
+	      return std::get_if<int>(&*args[i]);
+	  };
+	
+	if(p(3))
+	  errorEmitter("too many argument to init the vec of int");
+	
+	int min{0};
+	int delta{1};
+	int max{};
+	if(int* p0=p(0))
+	  if(int* p1=p(1))
+	    if(int* p2=p(2))
+	      {
+		max=*p2;
+		delta=*p1;
+		min=*p0;
+	      }
+	    else
+	      {
+		max=*p1;
+		min=*p0;
+	      }
+	  else
+	    max=*p0;
+	else
+	  errorEmitter("too few arguments to init the vec of int");
+	
+	if(delta==0)
+	  errorEmitter("asked to create a sequence with zero step");
+	
+	ValuesList v;
+	for(int i=min;i<max;i+=delta)
+	  v.data.push_back(std::make_shared<Value>(i));
+	
+	return v;
+      }};
+    
+#define REGISTER_ARGLESS_HOST_FUNCTION(NAME)		\
+    env[#NAME]=						\
+      HostFunction{					\
+      [](std::vector<std::shared_ptr<Value>>& args,\
+	 Evaluator&)->Value			   \
+      {						   \
+	return NAME();				   \
       }}
     
 #define REGISTER_HOST_FUNCTION(NAME,ARGS...)				\
     env[#NAME]=								\
       HostFunction{							\
-      [](std::vector<std::shared_ptr<Value>>&& args)->Value		\
+      [](std::vector<std::shared_ptr<Value>>& args,			\
+	 Evaluator&)->Value						\
       {									\
 	using pp::internal::errorEmitter;				\
 	constexpr size_t N=						\
@@ -762,7 +850,7 @@ struct Evaluator
 	  errorEmitter("trying to call function ",#NAME,		\
 		       " which expects ",N," args with ",n);		\
 									\
-	return std::visit([](auto&&...args) ->Value			\
+	return std::visit([](auto&...args) ->Value			\
 	{								\
 	  if constexpr(requires {NAME(std::forward<decltype(args)>(args)...);}) \
 	    if constexpr(std::is_same_v<void,decltype(NAME(std::forward<decltype(args)>(args)...))>) \
@@ -1072,7 +1160,7 @@ struct Evaluator
 	  for(const FuncArgNode& fan : funcCallNode.args.list)
 	    evArgs.push_back(std::make_shared<Value>(std::visit(*this,*fan.expr)));
 	  
-	  return (*hf)(std::move(evArgs));
+	  return (*hf)(evArgs,*this);
 	}
       else
 	errorEmitter("Variable is of type ",variantInnerTypeName(*fv)," not a ",typeid(Function).name());
