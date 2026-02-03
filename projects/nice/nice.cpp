@@ -129,7 +129,7 @@ std::shared_ptr<ASTNodeOp> timeSelect(const int& t)
 
 int main()
 {
-  pp::internal::verbose=true;
+  //pp::internal::verbose=true;
   
   const auto parser=
     getParser();
@@ -145,10 +145,12 @@ int main()
 		    "fun cicc(ar,&yt,vf=1,&arrrrg=1) {}"
 		    "l=lambda(){};"
 		    "v=lambda(...){};"
-		    "s=makeVec(0,1,2,3,4,5,6,7,8,9,10);"
+		    "s=seq(10);"
 		    "a=s[9];"
 		    "a*=3;"
-		    "print(a,\"\n\");"
+		    "p=lambda(x){print(x+1,\"\n\");};"
+		    "p(a);"
+		    "forEachEl(s,p);"
 		    "cicc(1,4);}");
   
   const auto ptExecutor=
