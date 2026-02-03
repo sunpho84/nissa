@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include <parsePact.hpp>
 
 inline auto getParser()
@@ -44,47 +46,41 @@ inline auto getParser()
     "   %left \"\\+\\+\";"
     "   %none FUNCTION_CALL;"
     ""
-    "   statement : expression_statement [return]"
-    "             | compound_statement [return]"
-    "             | forStatement [return]"
-    "             | ifStatement [return]"
-    "             | functionDefinition [return]"
+    "   statement : expression_statement [return($0)]"
+    "             | compound_statement [return($0)]"
+    "             | forStatement [return($0)]"
+    "             | ifStatement [return($0)]"
+    "             | functionDefinition [return($0)]"
     "             | \"return\" expression_statement [funcReturn($1)]"
     "             ;"
-    "   functionDefinition : \"fun\" identifier \"\\(\" parameter_list \"\\)\" compound_statement [funcDef($1,$3,$5)]"
+    "   functionDefinition : \"fun\" identifier \"\\(\" variadic_parameter_list \"\\)\" compound_statement [funcDef($1,$3,$5)]"
     "                      ;"
-    "   parameter_list: [emptyParList]"
-    "                 | variadic_parameter [emptyVariadicParList($0)]"
-    "                 | required_parameter_list [return]"
-    "                 | required_parameter_list \",\" variadic_parameter [makeVariadicParList($0,$2)]"
-    "                 | required_parameter_list \",\" optional_parameter_list [mergeParLists($0,$2)]"
-    "                 | optional_parameter_list [return]"
-    "                 ;"
+    "   variadic_parameter_list: [emptyParList]"
+    "                          | parameterList [return($0)]"
+    "                          | variadic_parameter [emptyVariadicParList($0)]"
+    "                          | parameterList \",\" variadic_parameter [makeVariadicParList($0)]"
+    "                          ;"
     "   variadic_parameter: \"\\.\\.\\.\" [return(1)]"
     "                     | \"&\" \"\\.\\.\\.\" [return(2)]"
     "                     ;"
-    "   required_parameter_list: required_parameter [firstParOfList]"
-    "                          | required_parameter_list \",\" required_parameter [appendParToList($0,$2)]"
-    "                          ;"
-    "   optional_parameter_list: optional_parameter [firstParOfList]"
-    "                          | optional_parameter_list \",\" optional_parameter [appendParToList($0,$2)]"
-    "                          ;"
-    "   required_parameter: parameter [return]"
-    "                     ;"
-    "   optional_parameter: parameter \"=\" expression [addParDefault($0,$2)]"
-    "                     ;"
-    "   parameter: identifier [parCreate($0)]"
-    "            | \"&\" identifier [refParCreate($1)]"
+    "   parameterList: parameter [firstParOfList]"
+    "                 | parameterList \",\" parameter [appendParToList($0,$2)]"
+    "                 ;"
+    "   parameter: neededParameter [return($0)]"
+    "            | neededParameter \"=\" expression [addParDefault($0,$2)]"
     "            ;"
+    "   neededParameter: identifier [parCreate(0,$0)]"
+    "                  | \"&\" identifier [parCreate(1,$1)]"
+    "                  ;"
     "   forStatement: \"for\" \"\\(\" forInit \";\" forCheck \";\" forIncr \"\\)\" statement [forStatement($2,$4,$6,$8)]"
     "               ;"
-    "   forInit: expression [return]"
+    "   forInit: expression [return($0)]"
     "          |"
     "          ;"
-    "   forCheck: expression [return]"
+    "   forCheck: expression [return($0)]"
     "           |"
     "           ;"
-    "   forIncr: expression [return]"
+    "   forIncr: expression [return($0)]"
     "          |"
     "          ;"
     "   ifStatement: \"if\" \"\\(\" expression \"\\)\" statement %precedence lowerThanElse [ifStatement($2,$4)]"
@@ -114,7 +110,7 @@ inline auto getParser()
     "               | expression \"!=\" expression [binaryInequal($0,$2)]"
     "               | expression \"&&|and\" expression [binaryAnd($0,$2)]"
     "               | expression \"\\|\\||or\" expression [binaryOr($0,$2)]"
-    "               | assign_expression [return]"
+    "               | assign_expression [return($0)]"
     "               ;"
     "    postfix_expression : primary_expression [return($0)]"
     "                       | postfix_expression \"\\+\\+\" [unaryPostfixIncrement($0)]"
@@ -122,19 +118,21 @@ inline auto getParser()
     "                       | postfix_expression \"\\(\" funcArgsList \"\\)\" %precedence FUNCTION_CALL [funcCall($0,$2)] "
     "                       | postfix_expression \"\\[\" expression \"\\]\" [subscribe($0,$2)] "
     "                       ;"
-    "    funcArgsList : [createArgList]"
-    "                 | arg [firstArgOfList]"
-    "                 | funcArgsList \",\" arg [appendArgLists($0,$2)]"
+    "    funcArgsList : [emptyArgList]"
+    "                 | nonemptyArgsList [return($0)]"
     "                 ;"
+  "      nonemptyArgsList : arg [firstArgOfList]"
+    "                     | funcArgsList \",\" arg [appendArgToList($0,$2)]"
+    "                     ;"
     "    arg : \"\\.\" identifier \"=\" expression [createArg($1,$3)]"
-    "        | expression [createArg(\"\",$1)]"
+    "        | expression [createArg(\"\",$0)]"
     "        ;"
-    "    primary_expression : identifier [return]"
-    "                       | \"[0-9]+\" [convToInt]"
-    "                       | \"([0-9]+(\\.[0-9]*)?|(\\.[0-9]+))((e|E)(\\+|\\-)?[0-9]+)?\" [convToFloat]"
-    "                       | \"\\\"[^\\\"]*\\\"\" [convToStr]"
+    "    primary_expression : identifier [return($0)]"
+    "                       | \"[0-9]+\" [convToInt($0)]"
+    "                       | \"([0-9]+(\\.[0-9]*)?|(\\.[0-9]+))((e|E)(\\+|\\-)?[0-9]+)?\" [convToFloat($0)]"
+    "                       | \"\\\"[^\\\"]*\\\"\" [convToStr($0)]"
     "                       | \"\\(\" expression \"\\)\" %precedence BRACKETS [return($1)]"
-    "                       | \"lambda\" \"\\(\" parameter_list \"\\)\" compound_statement [lambdaFuncDef($2,$4)]"
+    "                       | \"lambda\" \"\\(\" variadic_parameter_list \"\\)\" compound_statement [lambdaFuncDef($2,$4)]"
     "                       ;"
     "    assign_expression : postfix_expression \"=\" expression %precedence \"=\" [unaryAssign($0,$2)]"
     "                      | postfix_expression \"\\*=\" expression [unaryProdAssign($0,$2)]"
@@ -142,7 +140,7 @@ inline auto getParser()
     "                      | postfix_expression \"\\+=\" expression [unarySumAssign($0,$2)]"
     "                      | postfix_expression \"\\-=\" expression [unaryDiffAssign($0,$2)]"
     "                      ;"
-    "    identifier : \"[a-zA-Z_][a-zA-Z0-9_]*\" [convToId]"
+    "    identifier : \"[a-zA-Z_][a-zA-Z0-9_]*\" [convToId($0)]"
     "               ;"
     "}";
   
@@ -239,7 +237,7 @@ struct Function
 };
 
 struct HostFunction :
-  std::function<Value(std::vector<Value>&)>
+  std::function<Value(std::vector<std::shared_ptr<Value>>&&)>
 {
 };
 
@@ -460,7 +458,7 @@ T& fetch(std::shared_ptr<ASTNode>& subNode,
     std::get_if<T>(&*subNode);
   
   if(not s)
-    errorEmitter("subNode: ",(comm?comm:""),"is not of the required type ",typeid(T).name()," but is of type ",variantInnerTypeName(*subNode));
+    errorEmitter("subNode: ",(comm?comm:"")," is not of the required type ",typeid(T).name()," but is of type ",variantInnerTypeName(*subNode));
   
   return *s;
 }
@@ -516,7 +514,7 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   std::map<std::string,ParseTreeExecutor::ActionFun> providedActions;
   
 #define ENSURE_N_SYMBOLS(NAME,N)		\
-  if(subNodes.size()!=N)			\
+  if(subNodes.size()!=N)						\
     errorEmitter("action " NAME " expecting " #N " symbols, obtained ",subNodes.size())
   
 #define PROVIDE_ACTION_WITH_N_SYMBOLS(NAME,				\
@@ -531,7 +529,7 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
     }
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("createStatements",0,return std::make_shared<ASTNode>(ASTNodesNode{}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("firstStatement",1,return std::make_shared<ASTNode>(ASTNodesNode{.list{subNodes[0]}}));
+  //  PROVIDE_ACTION_WITH_N_SYMBOLS("firstStatement",1,return std::make_shared<ASTNode>(ASTNodesNode{.list{subNodes[0]}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("appendStatement",2,
 				if(ASTNodesNode* l=std::get_if<ASTNodesNode>(&*(subNodes[0]));l==nullptr)
 				  errorEmitter("first argument is not a list of statement: ",
@@ -547,14 +545,11 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   PROVIDE_ACTION_WITH_N_SYMBOLS("convToId",1,return std::make_shared<ASTNode>(IdNode{.name=unvariant<std::string>(fetch<ValueNode>(subNodes,0).value)}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("convToFloat",1,return std::make_shared<ASTNode>(ValueNode{strtod(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value).c_str(),nullptr)}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("return",1,return subNodes[0]);
-  PROVIDE_ACTION_WITH_N_SYMBOLS("unaryAssign",2,return std::make_shared<ASTNode>(AssignNode{.lhs=subNodes[0],
-	  .rhs=subNodes[1],
-	  .op=[](Value& lhs,
-		 const Value& rhs)
-	  {
-	    return lhs=rhs;
-	  }}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("createArg",2,printf("Plugging %s arg\n",fetch<IdNode>(subNodes,0).name.c_str());return std::make_shared<ASTNode>(FuncArgNode{.name=fetch<IdNode>(subNodes,0).name,.expr=subNodes[1]}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("createArg",2,
+				std::string name{};
+				if(IdNode* id=std::get_if<IdNode>(&*subNodes[0]))
+				  name=id->name;
+				return std::make_shared<ASTNode>(FuncArgNode{.name=name,.expr=subNodes[1]}));
   
 #define DEFINE_UNOP(OP,NAME)						\
   PROVIDE_ACTION_WITH_N_SYMBOLS("unary" #NAME,1,return std::make_shared<ASTNode>(UnOpNode{.arg=subNodes[0], \
@@ -629,27 +624,27 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 	  }}))
   
   DEFINE_PREPOSTFIX_OP(PostfixIncrement,,++);
-  DEFINE_PREPOSTFIX_OP(PrefixIncrement,++,);
+  //  DEFINE_PREPOSTFIX_OP(PrefixIncrement,++,);
   DEFINE_PREPOSTFIX_OP(PostfixDecrement,,--);
-  DEFINE_PREPOSTFIX_OP(PrefixDecrement,--,);
+  //DEFINE_PREPOSTFIX_OP(PrefixDecrement,--,);
   
 #undef DEFINE_PREPOSTFIX_OP
   
-  PROVIDE_ACTION_WITH_N_SYMBOLS("parCreate",1,return std::make_shared<ASTNode>(FuncParNode{.name=fetch<IdNode>(subNodes,0).name}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("refParCreate",1,return std::make_shared<ASTNode>(FuncParNode{.name=fetch<IdNode>(subNodes,0).name,.isRef=true}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("parCreate",2,return std::make_shared<ASTNode>(FuncParNode{.name=fetch<IdNode>(subNodes,1).name,
+											   .isRef=(bool)unvariant<int>(fetch<ValueNode>(subNodes,0).value)}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("addParDefault",2,const FuncParNode& in=fetch<FuncParNode>(subNodes,0);
 				return std::make_shared<ASTNode>(FuncParNode{.name=in.name,.isRef=in.isRef,.def=subNodes[1]}));
 #define PROVIDE_FUNC_LIST_ACTIONS(NAME)					\
+  PROVIDE_ACTION_WITH_N_SYMBOLS("empty" #NAME "List",0,return std::make_shared<ASTNode>(Func ## NAME ## ListNode{})); \
   PROVIDE_ACTION_WITH_N_SYMBOLS("first" #NAME "OfList",1,return makeFirstOfList<Func ## NAME ## Node,Func ## NAME ## ListNode>(subNodes[0])); \
   PROVIDE_ACTION_WITH_N_SYMBOLS("append" #NAME "ToList",2,return appendToList<Func ##NAME ## Node,Func ## NAME ## ListNode>(subNodes[0],subNodes[1])); \
-  PROVIDE_ACTION_WITH_N_SYMBOLS("merge" #NAME "Lists",2,return mergeLists<Func ## NAME ## ListNode>(subNodes[0],subNodes[1]))
+  //  PROVIDE_ACTION_WITH_N_SYMBOLS("merge" #NAME "Lists",2,return mergeLists<Func ## NAME ## ListNode>(subNodes[0],subNodes[1]))
   
   PROVIDE_FUNC_LIST_ACTIONS(Par);
   PROVIDE_FUNC_LIST_ACTIONS(Arg);
   
 #undef PROVIDE_FUNC_LIST_ACTIONS
   
-  PROVIDE_ACTION_WITH_N_SYMBOLS("emptyParList",0,return std::make_shared<ASTNode>(FuncParListNode{}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("emptyVariadicParList",1,return std::make_shared<ASTNode>(FuncParListNode{.variadicMode=FuncParListNode::VariadicMode(unvariant<int>(fetch<ValueNode>(subNodes,0).value))}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("makeVariadicParList",2,
 				fetch<FuncParListNode>(subNodes,0).variadicMode=FuncParListNode::VariadicMode(unvariant<int>(fetch<ValueNode>(subNodes,1).value));
@@ -672,6 +667,39 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   PROVIDE_ACTION_WITH_N_SYMBOLS("ifStatement",2,return std::make_shared<ASTNode>(IfNode{.subNodes{subNodes}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("ifElseStatement",3,return std::make_shared<ASTNode>(IfNode{.subNodes{subNodes}}));
   
+  PROVIDE_ACTION_WITH_N_SYMBOLS("unaryAssign",2,return std::make_shared<ASTNode>(AssignNode{.lhs=subNodes[0],
+	  .rhs=subNodes[1],
+	  .op=[](Value& lhs,
+		 const Value& rhs)
+	  {
+	    return lhs=rhs;
+	  }}));
+
+#define PROVIDE_ASSIGN(NAME,SYMBOL)					\
+  PROVIDE_ACTION_WITH_N_SYMBOLS("unary" #NAME "Assign",2,return std::make_shared<ASTNode>(AssignNode{.lhs=subNodes[0], \
+	  .rhs=subNodes[1],						\
+	  .op=[](Value& lhs,						\
+		 const Value& rhs)					\
+	  {								\
+	    std::visit([](auto& lhs,					\
+			  const auto& rhs)				\
+	    {								\
+	      if constexpr(requires {lhs SYMBOL ## =rhs;})		\
+		lhs SYMBOL ## =rhs;					\
+	      else							\
+		pp::internal::errorEmitter("Cannot " #SYMBOL" the types:",typeid(lhs).name()," and ",typeid(rhs).name()); \
+	    },lhs,rhs);							\
+	    								\
+	    return lhs;							\
+	  }}))
+  
+  PROVIDE_ASSIGN(Prod,*);
+  PROVIDE_ASSIGN(Div,/);
+  PROVIDE_ASSIGN(Sum,+);
+  PROVIDE_ASSIGN(Diff,-);
+  
+#undef PROVIDE_ASSIGN
+  
 #undef PROVIDE_ACTION_WITH_N_SYMBOLS
   
   return ParseTreeExecutor(providedActions,requiredActions);
@@ -682,6 +710,89 @@ struct Evaluator
   Environment env;
   
   int iLhs{};
+  
+  void prepareTopEnv()
+  {
+    env["M_PI"]=M_PI;
+    
+    env["print"]=
+      HostFunction{
+      [](std::vector<std::shared_ptr<Value>>&& args)->Value
+      {
+	for(std::shared_ptr<Value>& arg : args)
+	  std::visit([](const auto& v)
+	  {
+	    if constexpr(requires {std::cout<<v;})
+	      std::cout<<v;
+	    else
+	      std::cout<<"unprintable type: "<<typeid(decltype(v)).name()<<"\n";
+	  },*arg);
+	
+	return {};
+      }};
+    
+    env["makeVec"]=
+      HostFunction{
+      [](std::vector<std::shared_ptr<Value>>&& args)->Value
+      {
+	return ValuesList{args};
+      }};
+    
+#define REGISTER_ARGLESS_HOST_FUNCTION(NAME)	\
+    env[#NAME]=					\
+      HostFunction{				\
+      [](std::vector<std::shared_ptr<Value>>&& args)->Value	\
+      {						\
+	return NAME();				\
+      }}
+    
+#define REGISTER_HOST_FUNCTION(NAME,ARGS...)				\
+    env[#NAME]=								\
+      HostFunction{							\
+      [](std::vector<std::shared_ptr<Value>>&& args)->Value		\
+      {									\
+	using pp::internal::errorEmitter;				\
+	constexpr size_t N=						\
+	  N_VARIADIC_ARGS(ARGS);					\
+    									\
+	const size_t n=							\
+	  args.size();							\
+									\
+	if(N!=n)							\
+	  errorEmitter("trying to call function ",#NAME,		\
+		       " which expects ",N," args with ",n);		\
+									\
+	return std::visit([](auto&&...args) ->Value			\
+	{								\
+	  if constexpr(requires {NAME(std::forward<decltype(args)>(args)...);}) \
+	    if constexpr(std::is_same_v<void,decltype(NAME(std::forward<decltype(args)>(args)...))>) \
+	      NAME(std::forward<decltype(args)>(args)...);		\
+	    else							\
+	      return NAME(std::forward<decltype(args)>(args)...);	\
+	  else								\
+	    errorEmitter("Trying to call ",#NAME,		\
+				       " function with impossible args ",typeid(args).name()...); \
+	  								\
+	  return std::monostate{};					\
+	}								\
+	  ,ARGS);							\
+      }}
+    
+    REGISTER_ARGLESS_HOST_FUNCTION(rand);
+    
+    REGISTER_HOST_FUNCTION(srand,*args[0]);
+    REGISTER_HOST_FUNCTION(sqrt,*args[0]);
+    REGISTER_HOST_FUNCTION(exp,*args[0]);
+    REGISTER_HOST_FUNCTION(sin,*args[0]);
+    REGISTER_HOST_FUNCTION(cos,*args[0]);
+    REGISTER_HOST_FUNCTION(tan,*args[0]);
+    REGISTER_HOST_FUNCTION(pow,*args[0],*args[1]);
+    
+    {
+      using namespace std;
+      REGISTER_HOST_FUNCTION(to_string,*args[0]);
+    }
+  }
   
   Value maybeEvalAsLhs(std::shared_ptr<ASTNode> arg)
   {
@@ -823,7 +934,7 @@ struct Evaluator
     const std::string name=
       funcCallNode.fun;
     
-    diagnostic("Going to call function %s\n",name.c_str());
+    diagnostic("Going to call function ",name.c_str(),"\n");
     
     const std::shared_ptr<Value> fv=env.find(name);
     if(not fv)
@@ -883,7 +994,6 @@ struct Evaluator
 	    const bool isNamedArg=ap.name!="";
 	    acceptingOnlyNamedArgs|=isNamedArg;
 	    
-	    printf("Studying %s, isnamed: %d\n",ap.name.c_str(),isNamedArg);
 	    if(isNamedArg)
 	      {
 		const std::string& name=
@@ -957,11 +1067,12 @@ struct Evaluator
     else
       if(const HostFunction* hf=std::get_if<HostFunction>(&*fv))
 	{
-	  std::vector<Value> evArgs;
+	  std::vector<std::shared_ptr<Value>> evArgs;
+	  evArgs.reserve(funcCallNode.args.list.size());
 	  for(const FuncArgNode& fan : funcCallNode.args.list)
-	    evArgs.emplace_back(std::visit(*this,*fan.expr));
+	    evArgs.push_back(std::make_shared<Value>(std::visit(*this,*fan.expr)));
 	  
-	  return (*hf)(evArgs);
+	  return (*hf)(std::move(evArgs));
 	}
       else
 	errorEmitter("Variable is of type ",variantInnerTypeName(*fv)," not a ",typeid(Function).name());
