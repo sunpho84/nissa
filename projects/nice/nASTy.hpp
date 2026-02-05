@@ -2,6 +2,8 @@
 
 #include <parsePact.hpp>
 
+using namespace pp::internal;
+
 inline auto getParser()
 {
 #define BARE_WHITESPACES			\
@@ -216,8 +218,10 @@ struct HostFunction;
 
 struct ValuesList;
 
+struct FuncArg;
+
 using Value=
-  std::variant<std::monostate,std::string,int,double,Function,HostFunction,ValueRef,ValuesList>;
+  std::variant<std::monostate,std::string,int,double,Function,FuncArg,HostFunction,ValueRef,ValuesList>;
 
 struct ValueRef
 {
@@ -233,9 +237,9 @@ struct ValuesList
 
 struct Function
 {
-  const FuncNode* fun;
+  const FuncNode* funcNode;
   
-  Environment* env;
+  std::shared_ptr<Environment> env;
 };
 
 struct HostFunction :
@@ -253,6 +257,13 @@ struct FuncArgNode
   std::string name;
   
   std::shared_ptr<ASTNode> expr;
+};
+
+struct FuncArg
+{
+  std::string name;
+  
+  std::shared_ptr<Value> value;
 };
 
 struct FuncArgListNode
@@ -289,6 +300,13 @@ struct FuncParNode
   bool isRef;
   
   std::shared_ptr<ASTNode> def;
+  
+  static constexpr const char VARIADIC_PAR_NAME[]="__VA__ARGS__";
+  
+  static FuncParNode getVariadic(const bool& isRef)
+  {
+    return {.name=VARIADIC_PAR_NAME,.isRef=isRef,.def=std::make_shared<ASTNode>(ValueNode{ValuesList{}})};
+  }
 };
 
 struct FuncParListNode
@@ -308,9 +326,28 @@ struct FuncParListNode
     return std::distance(list.begin(),it);
   }
   
-  enum VariadicMode{NONE,BY_VALUE,BY_REF};
+  bool isVariadic() const
+  {
+    return list.size() and list.back().name==FuncParNode::VARIADIC_PAR_NAME;
+  }
   
-  VariadicMode variadicMode;
+  void makeVariadic(const int& isRef)
+  {
+    if(isVariadic())
+      errorEmitter("Cannot make a list of pars variadic twice");
+    
+    list.push_back(FuncParNode::getVariadic(isRef));
+    
+  };
+  
+  static FuncParListNode getEmptyVariadic(const int& isRef)
+  {
+    FuncParListNode list;
+    
+    list.makeVariadic(isRef);
+    
+    return list;
+  }
 };
 
 struct ForNode
@@ -378,18 +415,18 @@ struct ReturnNode
 
 struct Environment
 {
-  Environment* parent;
+  std::shared_ptr<Environment> parent;
   
   std::unordered_map<std::string,std::shared_ptr<Value>> varTable;
   
-  Environment* uppermost()
+  Environment& uppermost()
   {
     Environment* res=this;
     
-    while(Environment* par=res->parent)
+    while(Environment* par=&*res->parent)
       res=par;
     
-    return res;
+    return *res;
   }
   
   std::shared_ptr<Value> find(const std::string& name)
@@ -408,7 +445,7 @@ struct Environment
     std::shared_ptr<Value> f=find(name);
     
     if(f==nullptr)
-      pp::internal::errorEmitter("Trying to use uninitialized variable ",name);
+      errorEmitter("Trying to use uninitialized variable ",name);
     
     return *f;
   }
@@ -444,8 +481,18 @@ struct Environment
   //     parent->print(i+1);
   // }
   
-  Environment(Environment* parent=nullptr) :
+  Environment(std::shared_ptr<Environment> parent=nullptr) :
     parent(parent)
+  {
+  }
+};
+
+struct CallFrame
+{
+  std::shared_ptr<Environment> env;
+  
+  CallFrame(std::shared_ptr<Environment> parentEnv=nullptr) :
+    env{std::make_shared<Environment>(parentEnv)}
   {
   }
 };
@@ -454,8 +501,6 @@ template <typename T>
 T& fetch(std::shared_ptr<ASTNode>& subNode,
 	 const char* comm=nullptr)
 {
-  using namespace pp::internal;
-  
   T* s=
     std::get_if<T>(&*subNode);
   
@@ -640,16 +685,15 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   PROVIDE_ACTION_WITH_N_SYMBOLS("empty" #NAME "List",0,return std::make_shared<ASTNode>(Func ## NAME ## ListNode{})); \
   PROVIDE_ACTION_WITH_N_SYMBOLS("first" #NAME "OfList",1,return makeFirstOfList<Func ## NAME ## Node,Func ## NAME ## ListNode>(subNodes[0])); \
   PROVIDE_ACTION_WITH_N_SYMBOLS("append" #NAME "ToList",2,return appendToList<Func ##NAME ## Node,Func ## NAME ## ListNode>(subNodes[0],subNodes[1])); \
-  //  PROVIDE_ACTION_WITH_N_SYMBOLS("merge" #NAME "Lists",2,return mergeLists<Func ## NAME ## ListNode>(subNodes[0],subNodes[1]))
   
   PROVIDE_FUNC_LIST_ACTIONS(Par);
   PROVIDE_FUNC_LIST_ACTIONS(Arg);
   
 #undef PROVIDE_FUNC_LIST_ACTIONS
   
-  PROVIDE_ACTION_WITH_N_SYMBOLS("emptyVariadicParList",1,return std::make_shared<ASTNode>(FuncParListNode{.variadicMode=FuncParListNode::VariadicMode(unvariant<int>(fetch<ValueNode>(subNodes,0).value))}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("emptyVariadicParList",1,return std::make_shared<ASTNode>(FuncParListNode::getEmptyVariadic(unvariant<int>(fetch<ValueNode>(subNodes,0).value))));
   PROVIDE_ACTION_WITH_N_SYMBOLS("makeVariadicParList",2,
-				fetch<FuncParListNode>(subNodes,0).variadicMode=FuncParListNode::VariadicMode(unvariant<int>(fetch<ValueNode>(subNodes,1).value));
+				fetch<FuncParListNode>(subNodes,0).makeVariadic(unvariant<int>(fetch<ValueNode>(subNodes,1).value));
 				return subNodes[0]);
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcDef",3,
@@ -689,7 +733,7 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 	      if constexpr(requires {lhs SYMBOL ## =rhs;})		\
 		lhs SYMBOL ## =rhs;					\
 	      else							\
-		pp::internal::errorEmitter("Cannot " #SYMBOL" the types:",typeid(lhs).name()," and ",typeid(rhs).name()); \
+		errorEmitter("Cannot " #SYMBOL" the types:",typeid(lhs).name()," and ",typeid(rhs).name()); \
 	    },lhs,rhs);							\
 	    								\
 	    return lhs;							\
@@ -709,12 +753,42 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 
 struct Evaluator
 {
-  Environment env;
+  std::vector<CallFrame> callFrames;
+  
+  std::shared_ptr<Environment> curEnv;
+  
+  struct EnvironmentWindUnwinder
+  {
+    Evaluator& ev;
+    
+    std::shared_ptr<Environment> prevEnv;
+    
+    EnvironmentWindUnwinder(Evaluator& ev,
+			    std::shared_ptr<Environment> newEnv) :
+      ev{ev},prevEnv{ev.curEnv}
+    {
+      ev.curEnv=newEnv;
+    }
+    
+    ~EnvironmentWindUnwinder()
+    {
+      ev.curEnv=prevEnv;
+    }
+  };
+  
+  EnvironmentWindUnwinder pushNewEnvironment()
+  {
+    return {*this,std::make_shared<Environment>(curEnv)};
+  }
   
   int iLhs{};
   
-  void prepareTopEnv()
+  Evaluator()
   {
+    curEnv=callFrames.emplace_back().env;
+    
+    Environment& env=*curEnv;
+    
     env["M_PI"]=M_PI;
     
     env["print"]=
@@ -747,29 +821,19 @@ struct Evaluator
       [](std::vector<std::shared_ptr<Value>>& args,
 	 Evaluator& ev)->Value
       {
-	using pp::internal::errorEmitter;
-	using pp::internal::variantInnerTypeName;
-	
 	if(const size_t n=args.size();n!=2)
 	  errorEmitter("trying to call forEachEl with ",n," elements in place of 2");
 	
 	std::vector<std::shared_ptr<Value>> v(1);
-	if(ValuesList* l=std::get_if<ValuesList>(&*args[0]))
-	  for(std::shared_ptr<Value> arg : args)
+	if(ValuesList* list=std::get_if<ValuesList>(&*args[0]))
+	  for(std::shared_ptr<Value> val : list->data)
 	    {
-	      v[0]=arg;
+	      v[0]=val;
 	      
-	      std::visit([&v](auto& f)
-	      {
-		if constexpr(requires{f(v);})
-		  f(v);
-		else
-		  errorEmitter("trying to call a non-callable type ",typeid(f).name());
-	      },*args[1]);
+	      ev.callFunction(*args[1],v);
 	    }
 	else
 	  errorEmitter("trying to call \"forEachEl\" on a non-vector type ",variantInnerTypeName(*args[0]));
-	  
 	
 	return {};
       }};
@@ -779,15 +843,19 @@ struct Evaluator
       [](std::vector<std::shared_ptr<Value>>& args,
 	 Evaluator&)->Value
       {
-	using pp::internal::errorEmitter;
-	
 	auto p=
-	  [&args](const size_t& i) ->int*
+	  [&args](const size_t& i)->int*
 	  {
-	    if(args.size()<=i)
+	    if(i>=args.size())
 	      return nullptr;
 	    else
-	      return std::get_if<int>(&*args[i]);
+	      {
+		int* r=std::get_if<int>(&*args[i]);
+		if(not r)
+		  errorEmitter("arg ",i," is of type ",variantInnerTypeName(*args[i])," instead of ",typeid(int).name()," (int)");
+		
+		return r;
+	      }
 	  };
 	
 	if(p(3))
@@ -812,7 +880,7 @@ struct Evaluator
 	  else
 	    max=*p0;
 	else
-	  errorEmitter("too few arguments to init the vec of int");
+	  errorEmitter("too few arguments to init a vec of int, passed ",args.size());
 	
 	if(delta==0)
 	  errorEmitter("asked to create a sequence with zero step");
@@ -839,7 +907,6 @@ struct Evaluator
       [](std::vector<std::shared_ptr<Value>>& args,			\
 	 Evaluator&)->Value						\
       {									\
-	using pp::internal::errorEmitter;				\
 	constexpr size_t N=						\
 	  N_VARIADIC_ARGS(ARGS);					\
     									\
@@ -882,6 +949,65 @@ struct Evaluator
     }
   }
   
+  Value callEmbeddedFunction(const Function& f,
+			     std::vector<std::shared_ptr<Value>>& args)
+  {
+    const FuncNode& fn=*f.funcNode;
+    const FuncParListNode& pars=fn.pars;
+    
+    const size_t nArgs=args.size();
+    const size_t nPars=pars.list.size();
+    
+    if(nArgs!=nPars)
+      errorEmitter("Calling ",(pars.isVariadic()?"variadic ":" "),"function with ",nArgs," args when expecting ",nArgs);
+    
+    CallFrame& cf=callFrames.emplace_back(f.env);
+    
+    EnvironmentWindUnwinder windUnwind(*this,cf.env);
+    
+    for(size_t iPar=0;iPar<nPars;iPar++)
+      {
+	const FuncParNode& par=pars.list[iPar];
+	
+	std::shared_ptr<Value> arg=args[iPar];
+	
+	if(par.isRef)
+	  {
+	    if(ValueRef* vr=std::get_if<ValueRef>(&*arg))
+	      arg=vr->ref;
+	    else
+	      errorEmitter("parameter ",par.name," has to be taken by ref but passed argument is not a ref");
+	  }
+	
+	if(not curEnv->varTable.try_emplace(par.name,arg).second)
+	  errorEmitter("argument ",par.name," already specified");
+      }
+    
+    return std::visit(*this,*fn.body);
+  }
+  
+  Value callFunction(const Value& vFun,
+		     std::vector<std::shared_ptr<Value>>& args)
+  {
+    if(const Function* f=std::get_if<Function>(&vFun))
+      return callEmbeddedFunction(*f,args);
+    else
+      if(const HostFunction* hf=std::get_if<HostFunction>(&vFun))
+	return (*hf)(args,*this);
+      else
+	errorEmitter("Variable is of type ",variantInnerTypeName(vFun)," not a ",typeid(Function).name()," or ",typeid(HostFunction).name());
+    
+    return std::monostate{};
+  }
+  
+  Value callFunction(const std::string& name,
+		     std::vector<std::shared_ptr<Value>>& args)
+  {
+    diagnostic("Going to call function ",name.c_str(),"\n");
+    
+    return callFunction(curEnv->at(name),args);
+  }
+  
   Value maybeEvalAsLhs(std::shared_ptr<ASTNode> arg)
   {
     iLhs++;
@@ -898,7 +1024,7 @@ struct Evaluator
     ValueRef* lhs=std::get_if<ValueRef>(&_lhs);
     
     if(not lhs)
-      pp::internal::errorEmitter("arg does not eval to a l-value ref");
+      errorEmitter("arg does not eval to a l-value ref");
     
     return *lhs->ref;
   }
@@ -911,9 +1037,9 @@ struct Evaluator
   Value operator()(const IdNode& idNode)
   {
     if(iLhs)
-      return ValueRef{env.getRefOrInsert(idNode.name)};
+      return ValueRef{curEnv->getRefOrInsert(idNode.name)};
     else
-      return env.at(idNode.name);
+      return curEnv->at(idNode.name);
   }
   
   Value operator()(const SubscribeNode& subscribeNode)
@@ -924,9 +1050,6 @@ struct Evaluator
     Value& v=vr?(*vr->ref):b;
     
     Value s=std::visit(*this,*subscribeNode.subscr);
-    
-    using pp::internal::errorEmitter;
-    using pp::internal::variantInnerTypeName;
     
     if(ValuesList* vl=std::get_if<ValuesList>(&v))
       if(int* mi=std::get_if<int>(&s))
@@ -956,7 +1079,7 @@ struct Evaluator
   
   Value operator()(const ForNode& forNode)
   {
-    Evaluator subev{&env};
+    EnvironmentWindUnwinder windUnwind=pushNewEnvironment();
     
     for(std::visit(*this,*forNode.subNodes[0]);
     	std::visit([](const auto& v)
@@ -964,33 +1087,33 @@ struct Evaluator
 	  if constexpr(std::is_convertible_v<decltype(v),bool>)
 	    return (bool)v;
 	  else
-	    pp::internal::errorEmitter("Cannot convert the type to bool");
+	    errorEmitter("Cannot convert the type to bool");
 	  
 	  return false;
-	},std::visit(subev,*forNode.subNodes[1]));
-	std::visit(subev,*forNode.subNodes[2]))
-      std::visit(subev,*forNode.subNodes[3]);
+	},std::visit(*this,*forNode.subNodes[1]));
+	std::visit(*this,*forNode.subNodes[2]))
+      std::visit(*this,*forNode.subNodes[3]);
     
     return std::monostate{};
   }
   
   Value operator()(const IfNode& ifNode)
   {
-    Evaluator subev{&env};
+    EnvironmentWindUnwinder windUnwind=pushNewEnvironment();
     
     if(std::visit([](const auto& v)
 	{
 	  if constexpr(std::is_convertible_v<decltype(v),bool>)
 	    return (bool)v;
 	  else
-	    pp::internal::errorEmitter("Cannot convert the type to bool");
+	    errorEmitter("Cannot convert the type to bool");
 	  
 	  return false;
-	},std::visit(subev,*ifNode.subNodes[0])))
-      std::visit(subev,*ifNode.subNodes[1]);
+	},std::visit(*this,*ifNode.subNodes[0])))
+      std::visit(*this,*ifNode.subNodes[1]);
     else
       if(ifNode.subNodes.size()>=2)
-	std::visit(subev,*ifNode.subNodes[2]);
+	std::visit(*this,*ifNode.subNodes[2]);
     
     return std::monostate{};
   }
@@ -1005,167 +1128,133 @@ struct Evaluator
     return std::monostate{};
   }
   
-  Value operator()(const FuncArgNode&)
+  Value operator()(const FuncArgNode& argNode)
   {
-    return std::monostate{};
+    return FuncArg{.name=argNode.name,.value=std::make_shared<Value>(std::visit(*this,*argNode.expr))};
   }
   
-  Value operator()(const FuncArgListNode&)
+  Value operator()(const FuncArgListNode& argListNode)
   {
-    return std::monostate{};
+    ValuesList argList;
+    
+    const size_t nArgs=argListNode.list.size();
+    
+    argList.data.reserve(nArgs);
+    
+    diagnostic("Preparing a list of ",nArgs," args\n");
+    
+    for(const FuncArgNode& argNode : argListNode.list)
+      argList.data.push_back(std::make_shared<Value>((*this)(argNode)));
+    
+    return argList;
   }
   
   Value operator()(const FuncCallNode& funcCallNode)
   {
-    using namespace pp::internal;
+    Value __args=(*this)(funcCallNode.args);
     
-    const std::string name=
+    ValuesList* _args=std::get_if<ValuesList>(&__args);
+    if(not _args)
+      errorEmitter("FuncCallNode args did not evaluate to a ValuesList but of type ",variantInnerTypeName(__args));
+    
+    const std::string fName=
       funcCallNode.fun;
     
-    diagnostic("Going to call function ",name.c_str(),"\n");
+    diagnostic("Going to call function ",fName,"\n");
     
-    const std::shared_ptr<Value> fv=env.find(name);
-    if(not fv)
-      errorEmitter("unable to find function ",name);
+    std::vector<std::shared_ptr<Value>> args;
+    const Value& _fun=curEnv->at(fName);
     
-    if(const Function* _f=std::get_if<Function>(&*fv))
+    if(const HostFunction* fun=std::get_if<HostFunction>(&_fun))
       {
-	const Function& f=*_f;
-	
-	const FuncNode& fn=*f.fun;
-	const FuncParListNode& pars=fn.pars;
-	
-	Environment* fe=f.env;
-	if(f.env==nullptr)
-	  fe=this->env.uppermost();
-	
-	Evaluator subev{fe};
-	
-	auto getValOrRef=
-	  [this](const std::string& name,
-		 const bool& isRef,
-		 const std::shared_ptr<ASTNode>& expr)
+	args.reserve(_args->data.size());
+	for(std::shared_ptr<Value> _arg : _args->data)
 	  {
-	    std::shared_ptr<Value> v=
-	      std::make_shared<Value>(std::visit(*this,*expr));
+	    FuncArg& arg=unvariant<FuncArg>(*_arg);
 	    
-	    if(isRef)
-	      {
-		if(ValueRef* vr=std::get_if<ValueRef>(&*v))
-		  v=vr->ref;
-		else
-		  errorEmitter("argument ",name," has to be taken by ref but does not evalue to a ref");
-	      }
-	    
-	    return v;
-	  };
-	
-	auto insertInSubev=
-	  [&subev,
-	   &getValOrRef](const std::string& name,
-			 const bool& isRef,
-			 const std::shared_ptr<ASTNode>& expr)
-	  {
-	    auto r=
-	      subev.env.varTable.try_emplace(name,getValOrRef(name,isRef,expr));
-	    
-	    if(not r.second)
-	      errorEmitter("argument ",name," already specified");
-	  };
-	
-	size_t iNextPositionalArg{};
-	bool acceptingOnlyNamedArgs{};
-	std::shared_ptr<Value> vaArgsHandle;
-	const bool nFixedArgs=fn.pars.list.size();
-	for(const FuncArgNode& ap : funcCallNode.args.list)
-	  {
-	    const bool isNamedArg=ap.name!="";
-	    acceptingOnlyNamedArgs|=isNamedArg;
-	    
-	    if(isNamedArg)
-	      {
-		const std::string& name=
-		  ap.name;
-		
-		const size_t iPar=
-		  pars.iParOfName(name);
-		if(iPar==pars.list.size())
-		  errorEmitter("trying to pass argument ",name," not expected by the function");
-		
-		const FuncParNode& parDef=
-		  pars.list[iPar];
-		
-		printf("Plugging named par: %s\n",name.c_str());
-		insertInSubev(name,parDef.isRef,ap.expr);
-	      }
-	    else
-	      {
-		if(acceptingOnlyNamedArgs)
-		  errorEmitter("Positional arg passed after named ones");
-		
-		if(iNextPositionalArg>=nFixedArgs)
-		  {
-		    if(not vaArgsHandle)
-		      {
-			vaArgsHandle=std::make_shared<Value>(std::in_place_type<ValuesList>);
-			
-			if(pars.variadicMode!=FuncParListNode::VariadicMode::NONE)
-			  errorEmitter("Trying to pass ",iNextPositionalArg," arguments, more than those expected by a non-variadic function");
-		      }
-		    
-		    ValuesList& vaArgs=
-		      std::get<ValuesList>(*vaArgsHandle);
-		    
-		    const bool isRef=
-		      pars.variadicMode==FuncParListNode::VariadicMode::BY_REF;
-		    
-		    vaArgs.data.emplace_back(getValOrRef("Variadic argument number "+std::to_string(iNextPositionalArg-nFixedArgs),isRef,ap.expr));
-		  }
-		else
-		  {
-		    const FuncParNode& par=
-		      pars.list[iNextPositionalArg];
-		    printf("Plugging pos par: %s\n",par.name.c_str());
-		    insertInSubev(par.name,par.isRef,ap.expr);
-		  }
-	      }
-	    
-	    iNextPositionalArg++;
+	    if(arg.name!="")
+	      errorEmitter("trying to call a host function with named arg ",arg.name);
+	    args.push_back(arg.value);
 	  }
-	
-	if(vaArgsHandle)
-	  if(not subev.env.varTable.try_emplace("__VA_ARGS__",vaArgsHandle).second)
-	    errorEmitter("__VA_ARGS__ already defined as a parameter");
-	
-	// diagnostic("Calling function, specified arguments:\n");
-	// subev.env.print();
-	
-	// Put possible default pars
-	for(auto& [aName,isRef,optDef] : fn.pars.list)
-	  if(not subev.env.varTable.contains(aName))
-	    if(optDef)
-	      subev.env[aName]=std::visit(*this,*optDef);
-	    else
-	      errorEmitter("parameter \"",aName,"\" with no default value unspecified when calling the function");
-	  else
-	    {}
-	
-	return std::visit(subev,*fn.body);
       }
     else
-      if(const HostFunction* hf=std::get_if<HostFunction>(&*fv))
+      if(const Function* fun=std::get_if<Function>(&_fun))
 	{
-	  std::vector<std::shared_ptr<Value>> evArgs;
-	  evArgs.reserve(funcCallNode.args.list.size());
-	  for(const FuncArgNode& fan : funcCallNode.args.list)
-	    evArgs.push_back(std::make_shared<Value>(std::visit(*this,*fan.expr)));
+	  const FuncNode& fn=*fun->funcNode;
+	  const FuncParListNode& pars=fn.pars;
 	  
-	  return (*hf)(evArgs,*this);
+	  const size_t nPars=pars.list.size();
+	  const bool isVariadic=pars.isVariadic();
+	  
+	  args.resize(nPars);
+	  if(isVariadic)
+	    args.back()=std::make_shared<Value>(ValuesList{});
+	  
+	  auto insertNamedOrUnnamed=
+	    [isVariadic,
+	     &args,
+	     &_args,
+	     &pars,
+	     &fName](const bool insertNamed)
+	    {
+	      for(const std::shared_ptr<Value>& __arg : _args->data)
+		{
+		  FuncArg& _arg=unvariant<FuncArg>(*__arg);
+		  std::shared_ptr<Value> arg=_arg.value;
+		  
+		  const std::string& aName=_arg.name;
+		  
+		  const bool isNamedArg=aName!="";
+		  
+		  if(not (isNamedArg xor insertNamed))
+		    {
+		      size_t iPar{};
+		      
+		      if(isNamedArg)
+			{
+			  iPar=
+			    pars.iParOfName(aName);
+			  
+			  diagnostic("Plugging named argument: ",aName," as arg n.",iPar," of function ",fName,"\n");
+			  
+			  if(iPar==pars.list.size())
+			    errorEmitter("trying to pass argument ",aName," not expected by the function ",fName);
+			}
+		      else
+			while(iPar<args.size() and args[iPar])
+			  iPar++;
+		      
+		      if(iPar>=args.size())
+			{
+			  if(isVariadic)
+			    std::get_if<ValuesList>(&*args.back())->data.push_back(arg);
+			  else
+			    errorEmitter("passing too many arguments to non-variadic function ",fName);
+			}
+		      else
+			args[iPar]=arg;
+		    }
+		}
+	    };
+	  
+	  for(const int& namedUnnamed : {0,1})
+	    insertNamedOrUnnamed(namedUnnamed);
+	  
+	  for(size_t iPar=0;iPar<pars.list.size();iPar++)
+	    if(not args[iPar])
+	      {
+		const FuncParNode& par=pars.list[iPar];
+		
+		if(std::optional<std::shared_ptr<ASTNode>> optDef=par.def)
+		  args[iPar]=std::make_shared<Value>(std::visit(*this,**optDef));
+		else
+		  errorEmitter("parameter \"",par.name,"\" with no default value unspecified when calling the function");
+	      }
 	}
       else
-	errorEmitter("Variable is of type ",variantInnerTypeName(*fv)," not a ",typeid(Function).name());
+	errorEmitter("trying to call a non-function variable of kind: ",variantInnerTypeName(_fun));
     
-    return std::monostate{};
+    return callFunction(_fun,args);
   }
   
   Value operator()(const FuncDefNode& funcDefNode)
@@ -1173,38 +1262,41 @@ struct Evaluator
     const std::string& name=
       funcDefNode.name;
     
-    if(env.find(name))
-      pp::internal::errorEmitter("Redefining a function which has a name ",name," already defined");
+    if(curEnv->find(name))
+      errorEmitter("Redefining a function which has a name ",name," already defined");
     
-    env[name]=(*this)(*funcDefNode.fun);
+    (*curEnv)[name]=(*this)(*funcDefNode.fun);
     
     return std::monostate{};
   }
   
   Value operator()(const FuncNode& funcNode)
   {
+    std::shared_ptr<Environment> env=curEnv;
+    while(env)
+      {
+	for(const auto& [tag,val] : curEnv->varTable)
+	  diagnostic(tag," of type ",typeid(tag).name(),"\n");
+	diagnostic("\n");
+	
+	env=env->parent;
+      }
+    
     return
-      Function{.fun=&funcNode,
-	       .env=&env};
+      Function{.funcNode=&funcNode,
+	       .env=curEnv};
   }
   
   Value operator()(const ASTNodesNode& astNodesNode)
   {
-    /// Creates a subev only if there is already one above
-    std::shared_ptr<Evaluator> _subev;
-    Evaluator *subev=this;
-    if(env.parent!=nullptr)
-      {
-	_subev=std::make_shared<Evaluator>(&env);
-	subev=_subev.get();
-      }
+    EnvironmentWindUnwinder windUnwind=pushNewEnvironment();
     
     for(auto& n : astNodesNode.list)
       {
 	if(std::get_if<ReturnNode>(&*n))
-	  return std::visit(*subev,*n);
+	  return std::visit(*this,*n);
 	else
-	  std::visit(*subev,*n);
+	  std::visit(*this,*n);
       }
     
     return {};

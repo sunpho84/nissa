@@ -129,7 +129,7 @@ std::shared_ptr<ASTNodeOp> timeSelect(const int& t)
 
 int main()
 {
-  //pp::internal::verbose=true;
+  pp::internal::verbose=true;
   
   const auto parser=
     getParser();
@@ -147,6 +147,7 @@ int main()
 		    "v=lambda(...){};"
 		    "s=seq(10);"
 		    "a=s[9];"
+		    "print(a,\"\n\");"
 		    "a*=3;"
 		    "p=lambda(x){print(x+1,\"\n\");};"
 		    "p(a);"
@@ -162,7 +163,6 @@ int main()
   /////////////////////////////////////////////////////////////////
   
   Evaluator ev;
-  ev.prepareTopEnv();
   
   pp::internal::diagnostic("Come on\n");
   
