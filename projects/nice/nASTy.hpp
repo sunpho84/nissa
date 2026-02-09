@@ -104,6 +104,7 @@ inline auto getParser()
     "               | \"\\+\" expression %precedence UNARY_ARITHMETIC [unaryPlus($1)]"
     "               | \"\\-\" expression %precedence UNARY_ARITHMETIC [unaryMinus($1)]"
     "               | \"!\" expression [unaryNot($1)]"
+    "               | \"&\" expression %precedence UNARY_ARITHMETIC [unaryReference($1)]"
     "               | expression \"<\" expression [binarySmaller($0,$2)]"
     "               | expression \">\" expression [binaryGreater($0,$2)]"
     "               | expression \"<=\" expression [binarySmallerEqual($0,$2)]"
@@ -172,6 +173,8 @@ struct IfNode;
 
 struct UnOpNode;
 
+struct UnaryRefNode;
+
 struct BinOpNode;
 
 struct IdNode;
@@ -192,6 +195,7 @@ struct SubscribeNode;
 
 using ASTNode=
   std::variant<ASTNodesNode,
+	       UnaryRefNode,
 	       UnOpNode,
 	       BinOpNode,
 	       ForNode,
@@ -392,6 +396,11 @@ struct PrePostfixOpNode
   std::function<Value(Value&)> op;
 };
 
+struct UnaryRefNode
+{
+  std::shared_ptr<ASTNode> arg;
+};
+
 struct UnOpNode
 {
   std::shared_ptr<ASTNode> arg;
@@ -450,17 +459,17 @@ struct Environment
     return *f;
   }
   
-  std::shared_ptr<Value> getRefOrInsert(const std::string& name)
+  std::pair<std::shared_ptr<Value>,bool> getRefOrInsert(const std::string& name)
   {
     if(auto f=find(name))
-      return f;
+      return {f,false};
     else
-      return varTable[name]=std::make_shared<Value>(std::monostate{});
+      return {varTable[name]=std::make_shared<Value>(std::monostate{}),true};
   }
   
   Value& operator[](const std::string& name)
   {
-    return *getRefOrInsert(name);
+    return *getRefOrInsert(name).first;
   }
   
   // void print(const size_t& i=0)
@@ -617,6 +626,9 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   DEFINE_UNOP(!,Not);
   DEFINE_UNOP(+,Plus);
   DEFINE_UNOP(-,Minus);
+  
+  PROVIDE_ACTION_WITH_N_SYMBOLS("unaryReference",1,return std::make_shared<ASTNode>(UnaryRefNode{.arg=subNodes[0]}));
+  
 #undef DEFINE_UNOP
   
 #define DEFINE_BINOP(OP,NAME)						\
@@ -753,6 +765,57 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 
 struct Evaluator
 {
+  struct EvalResult
+  {
+    std::shared_ptr<Value> ref;
+    
+    std::optional<Value> value;
+    
+    Value& asLhs()
+    {
+      if(not ref)
+	errorEmitter("trying to access an evaluation result as an lhs when it is not");
+      
+      return *ref;
+    }
+    
+    static void ensureInitialized(const Value& v)
+    {
+      if(std::get_if<std::monostate>(&v))
+	errorEmitter("using uninitialized value");
+    }
+    
+    const Value& asRhs() const&
+    {
+      if(ref)
+	return *ref;
+      else
+	{
+	  if(not value)
+	    errorEmitter("trying to acces an empty evaluator");
+	  
+	  ensureInitialized(*value);
+	  
+	  return *value;
+	}
+    }
+    
+    Value asRhs() const&&
+    {
+      if(ref)
+	return *ref;
+      else
+	{
+	  if(not value)
+	    errorEmitter("trying to acces an empty evaluator");
+	  
+	  ensureInitialized(*value);
+	  
+	  return std::move(*value);
+	}
+    }
+  };
+  
   std::vector<CallFrame> callFrames;
   
   std::shared_ptr<Environment> curEnv;
@@ -949,7 +1012,7 @@ struct Evaluator
     }
   }
   
-  Value callEmbeddedFunction(const Function& f,
+  EvalResult callEmbeddedFunction(const Function& f,
 			     std::vector<std::shared_ptr<Value>>& args)
   {
     const FuncNode& fn=*f.funcNode;
@@ -986,73 +1049,77 @@ struct Evaluator
     return std::visit(*this,*fn.body);
   }
   
-  Value callFunction(const Value& vFun,
-		     std::vector<std::shared_ptr<Value>>& args)
+  EvalResult callFunction(const Value& vFun,
+			  std::vector<std::shared_ptr<Value>>& args)
   {
     if(const Function* f=std::get_if<Function>(&vFun))
       return callEmbeddedFunction(*f,args);
     else
       if(const HostFunction* hf=std::get_if<HostFunction>(&vFun))
-	return (*hf)(args,*this);
+	return {.value=(*hf)(args,*this)};
       else
 	errorEmitter("Variable is of type ",variantInnerTypeName(vFun)," not a ",typeid(Function).name()," or ",typeid(HostFunction).name());
     
-    return std::monostate{};
+    return {};
   }
   
-  Value callFunction(const std::string& name,
-		     std::vector<std::shared_ptr<Value>>& args)
+  EvalResult callFunction(const std::string& name,
+			  std::vector<std::shared_ptr<Value>>& args)
   {
     diagnostic("Going to call function ",name.c_str(),"\n");
     
     return callFunction(curEnv->at(name),args);
   }
   
-  Value maybeEvalAsLhs(std::shared_ptr<ASTNode> arg)
+  EvalResult maybeEvalAsLhs(std::shared_ptr<ASTNode> arg)
   {
     iLhs++;
-    Value _lhs=std::visit(*this,*arg);
+    EvalResult _lhs=std::visit(*this,*arg);
     iLhs--;
     
     return _lhs;
   }
   
-  Value& evalAsLhs(std::shared_ptr<ASTNode> arg)
+  EvalResult evalAsLhs(std::shared_ptr<ASTNode> arg)
+    {
+      EvalResult res=
+	maybeEvalAsLhs(arg);
+      
+      if(not res.ref)
+	errorEmitter("arg does not eval to a lhs");
+      
+      return res;
+    }
+  
+  EvalResult operator()(const ValueNode& valueNode)
   {
-    Value _lhs=maybeEvalAsLhs(arg);
-    
-    ValueRef* lhs=std::get_if<ValueRef>(&_lhs);
-    
-    if(not lhs)
-      errorEmitter("arg does not eval to a l-value ref");
-    
-    return *lhs->ref;
+    return {.value=valueNode.value};
   }
   
-  Value operator()(const ValueNode& valueNode)
+  EvalResult operator()(const IdNode& idNode)
   {
-    return valueNode.value;
+    return {.ref=curEnv->getRefOrInsert(idNode.name).first};
   }
   
-  Value operator()(const IdNode& idNode)
+  EvalResult operator()(const UnaryRefNode& uRNode)
   {
-    if(iLhs)
-      return ValueRef{curEnv->getRefOrInsert(idNode.name)};
-    else
-      return curEnv->at(idNode.name);
+    EvalResult tmp=std::visit(*this,*uRNode.arg);
+    
+    if(not tmp.ref)
+      errorEmitter("subNode has not returned a reference");
+      
+    return {.value{ValueRef{.ref{tmp.ref}}}};
   }
   
-  Value operator()(const SubscribeNode& subscribeNode)
+#warning improve
+  EvalResult operator()(const SubscribeNode& subscribeNode)
   {
-    Value b=maybeEvalAsLhs(subscribeNode.base);
+    Value& b=std::visit(*this,*subscribeNode.base).asLhs();
     
-    ValueRef* vr=std::get_if<ValueRef>(&b);
-    Value& v=vr?(*vr->ref):b;
+    const Value s=std::visit(*this,*subscribeNode.subscr).asRhs();
     
-    Value s=std::visit(*this,*subscribeNode.subscr);
-    
-    if(ValuesList* vl=std::get_if<ValuesList>(&v))
-      if(int* mi=std::get_if<int>(&s))
+    if(ValuesList* vl=std::get_if<ValuesList>(&b))
+      if(const int* mi=std::get_if<int>(&s))
 	{
 	  int i=*mi;
 	  
@@ -1064,10 +1131,7 @@ struct Evaluator
 	  
 	  std::shared_ptr<Value> r=vl->data[i];
 	  
-	  if(iLhs)
-	    return (ValueRef){r};
-	  else
-	    return *r;
+	  return {.ref=r,.value=*r};
 	}
       else
 	errorEmitter("index of subscrition is not an integer but is of type: ",variantInnerTypeName(s));
@@ -1077,7 +1141,7 @@ struct Evaluator
     return {};
   }
   
-  Value operator()(const ForNode& forNode)
+  EvalResult operator()(const ForNode& forNode)
   {
     EnvironmentWindUnwinder windUnwind=pushNewEnvironment();
     
@@ -1090,14 +1154,14 @@ struct Evaluator
 	    errorEmitter("Cannot convert the type to bool");
 	  
 	  return false;
-	},std::visit(*this,*forNode.subNodes[1]));
-	std::visit(*this,*forNode.subNodes[2]))
+	},std::visit(*this,*forNode.subNodes[1]).asRhs());
+	std::visit(*this,*forNode.subNodes[2]).asRhs())
       std::visit(*this,*forNode.subNodes[3]);
     
-    return std::monostate{};
+    return {};
   }
   
-  Value operator()(const IfNode& ifNode)
+  EvalResult operator()(const IfNode& ifNode)
   {
     EnvironmentWindUnwinder windUnwind=pushNewEnvironment();
     
@@ -1109,31 +1173,32 @@ struct Evaluator
 	    errorEmitter("Cannot convert the type to bool");
 	  
 	  return false;
-	},std::visit(*this,*ifNode.subNodes[0])))
+	},std::visit(*this,*ifNode.subNodes[0]).asRhs()))
       std::visit(*this,*ifNode.subNodes[1]);
     else
       if(ifNode.subNodes.size()>=2)
 	std::visit(*this,*ifNode.subNodes[2]);
     
-    return std::monostate{};
+    return {};
   }
   
-  Value operator()(const FuncParNode&)
+  EvalResult operator()(const FuncParNode&)
   {
-    return std::monostate{};
+    return {};
   }
   
-  Value operator()(const FuncParListNode&)
+  EvalResult operator()(const FuncParListNode&)
   {
-    return std::monostate{};
+    return {};
   }
   
-  Value operator()(const FuncArgNode& argNode)
+  EvalResult operator()(const FuncArgNode& argNode)
   {
-    return FuncArg{.name=argNode.name,.value=std::make_shared<Value>(std::visit(*this,*argNode.expr))};
+    return {.value=FuncArg{.name=argNode.name,
+			   .value=std::make_shared<Value>(std::visit(*this,*argNode.expr).asRhs())}};
   }
   
-  Value operator()(const FuncArgListNode& argListNode)
+  EvalResult operator()(const FuncArgListNode& argListNode)
   {
     ValuesList argList;
     
@@ -1144,14 +1209,14 @@ struct Evaluator
     diagnostic("Preparing a list of ",nArgs," args\n");
     
     for(const FuncArgNode& argNode : argListNode.list)
-      argList.data.push_back(std::make_shared<Value>((*this)(argNode)));
+      argList.data.push_back(std::make_shared<Value>((*this)(argNode).asRhs()));
     
-    return argList;
+    return {.value=argList};
   }
   
-  Value operator()(const FuncCallNode& funcCallNode)
+  EvalResult operator()(const FuncCallNode& funcCallNode)
   {
-    Value __args=(*this)(funcCallNode.args);
+    Value __args=(*this)(funcCallNode.args).asRhs();
     
     ValuesList* _args=std::get_if<ValuesList>(&__args);
     if(not _args)
@@ -1246,7 +1311,7 @@ struct Evaluator
 		const FuncParNode& par=pars.list[iPar];
 		
 		if(std::optional<std::shared_ptr<ASTNode>> optDef=par.def)
-		  args[iPar]=std::make_shared<Value>(std::visit(*this,**optDef));
+		  args[iPar]=std::make_shared<Value>(std::visit(*this,**optDef).asRhs());
 		else
 		  errorEmitter("parameter \"",par.name,"\" with no default value unspecified when calling the function");
 	      }
@@ -1257,7 +1322,7 @@ struct Evaluator
     return callFunction(_fun,args);
   }
   
-  Value operator()(const FuncDefNode& funcDefNode)
+  EvalResult operator()(const FuncDefNode& funcDefNode)
   {
     const std::string& name=
       funcDefNode.name;
@@ -1265,29 +1330,19 @@ struct Evaluator
     if(curEnv->find(name))
       errorEmitter("Redefining a function which has a name ",name," already defined");
     
-    (*curEnv)[name]=(*this)(*funcDefNode.fun);
+    (*curEnv)[name]=(*this)(*funcDefNode.fun).asRhs();
     
-    return std::monostate{};
+    return {};
   }
   
-  Value operator()(const FuncNode& funcNode)
+  EvalResult operator()(const FuncNode& funcNode)
   {
-    std::shared_ptr<Environment> env=curEnv;
-    while(env)
-      {
-	for(const auto& [tag,val] : curEnv->varTable)
-	  diagnostic(tag," of type ",typeid(tag).name(),"\n");
-	diagnostic("\n");
-	
-	env=env->parent;
-      }
-    
     return
-      Function{.funcNode=&funcNode,
-	       .env=curEnv};
+      {.value=Function{.funcNode=&funcNode,
+		       .env=curEnv}};
   }
   
-  Value operator()(const ASTNodesNode& astNodesNode)
+  EvalResult operator()(const ASTNodesNode& astNodesNode)
   {
     EnvironmentWindUnwinder windUnwind=pushNewEnvironment();
     
@@ -1302,31 +1357,33 @@ struct Evaluator
     return {};
   }
   
-  Value operator()(const ReturnNode& returnNode)
+  EvalResult operator()(const ReturnNode& returnNode)
   {
     return std::visit(*this,*returnNode.arg);
   }
   
-  Value operator()(const PrePostfixOpNode& prePostfixOpNode)
+  EvalResult operator()(const PrePostfixOpNode& prePostfixOpNode)
   {
-    return
-      prePostfixOpNode.op(evalAsLhs(prePostfixOpNode.arg));
+    return{.value=prePostfixOpNode.op(std::visit(*this,*prePostfixOpNode.arg).asLhs())};
   }
   
-  Value operator()(const AssignNode& assignNode)
+  EvalResult operator()(const AssignNode& assignNode)
   {
-    return
-      assignNode.op(evalAsLhs(assignNode.lhs),std::visit(*this,*assignNode.rhs));
+    EvalResult _lhs=std::visit(*this,*assignNode.lhs);
+    
+    assignNode.op(_lhs.asLhs(),std::visit(*this,*assignNode.rhs).asRhs());
+    
+    return _lhs;
   }
   
-  Value operator()(const UnOpNode& unOpNode)
+  EvalResult operator()(const UnOpNode& unOpNode)
   {
-    return unOpNode.op(std::visit(*this,*unOpNode.arg));
+    return {.value=unOpNode.op(std::visit(*this,*unOpNode.arg).asRhs())};
   }
   
-  Value operator()(const BinOpNode& binOpNode)
+  EvalResult operator()(const BinOpNode& binOpNode)
   {
-    return binOpNode.op(std::visit(*this,*binOpNode.arg1),std::visit(*this,*binOpNode.arg2));
+    return {.value=binOpNode.op(std::visit(*this,*binOpNode.arg1).asRhs(),std::visit(*this,*binOpNode.arg2).asRhs())};
   }
 };
 

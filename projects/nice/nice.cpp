@@ -20,6 +20,7 @@
   
 **/
 
+#include <filesystem>
 #include <memory>
 #include <variant>
 
@@ -129,30 +130,34 @@ std::shared_ptr<ASTNodeOp> timeSelect(const int& t)
 
 int main()
 {
+  std::vector<char> ext;
+  if(const char* path="/home/francesco/QCD/SORGENTI/nissa/test/projects/nice/input.cpp";
+     std::filesystem::exists(path))
+    {
+      const size_t exs=
+	std::filesystem::file_size(path);
+      ext.resize(exs+1);
+      
+      if(FILE* file=fopen(path,"r"))
+	{
+	  if(const size_t n=fread(&ext[0],1,exs,file);n!=exs)
+	    errorEmitter("expected ",exs," obtained ",n);
+	  ext[exs]='\0';
+	  fclose(file);
+	}
+      else
+	errorEmitter("unable to read ",path);
+    }
+  else
+    errorEmitter("file ",path," does not exists");
+  
   pp::internal::verbose=true;
   
   const auto parser=
     getParser();
   
   const auto parseTree=
-    createParseTree(parser,"{"
-		    "er=1;"
-		    "er=2;"
-		    "1+2-3/2*2%5<3>1<=4>=6==3!=8;"
-		    "!2.0;"
-		    "er++;"
-		    "er--;"
-		    "fun cicc(ar,&yt,vf=1,&arrrrg=1) {}"
-		    "l=lambda(){};"
-		    "v=lambda(...){};"
-		    "s=seq(10);"
-		    "a=s[9];"
-		    "print(a,\"\n\");"
-		    "a*=3;"
-		    "p=lambda(x){print(x+1,\"\n\");};"
-		    "p(a);"
-		    "forEachEl(s,p);"
-		    "cicc(1,4);}");
+    createParseTree(parser,ext.data());
   
   const auto ptExecutor=
     getParseTreeExecuctor(parser.actionStrings);
