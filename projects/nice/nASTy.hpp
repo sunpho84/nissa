@@ -844,8 +844,6 @@ struct Evaluator
     return {*this,std::make_shared<Environment>(curEnv)};
   }
   
-  int iLhs{};
-  
   Evaluator()
   {
     curEnv=callFrames.emplace_back().env;
@@ -1070,26 +1068,6 @@ struct Evaluator
     
     return callFunction(curEnv->at(name),args);
   }
-  
-  EvalResult maybeEvalAsLhs(std::shared_ptr<ASTNode> arg)
-  {
-    iLhs++;
-    EvalResult _lhs=std::visit(*this,*arg);
-    iLhs--;
-    
-    return _lhs;
-  }
-  
-  EvalResult evalAsLhs(std::shared_ptr<ASTNode> arg)
-    {
-      EvalResult res=
-	maybeEvalAsLhs(arg);
-      
-      if(not res.ref)
-	errorEmitter("arg does not eval to a lhs");
-      
-      return res;
-    }
   
   EvalResult operator()(const ValueNode& valueNode)
   {
