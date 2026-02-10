@@ -88,27 +88,25 @@ namespace nissa
 	generate_fully_undiluted_eo_source(ori_source,meas_pars.rnd_type,source_coord,dir);
 	
 	for(int iflav=0;iflav<nflavs;iflav++)
-	  {
-	    for(int iop=0;iop<nop;iop++)
-	      {
-			const int idx=iflav*nop+iop;
-			apply_shift_op(source,temp[0],temp[1],conf,tp.backfield[iflav],shift[iop],ori_source);
-			put_stag_phases(source,mask[iop]);
-			mult_Minv(quark[idx],conf,tp,iflav,meas_pars.residue,source);
-	      }
-	  }
-	    /// Sink
-	for(int iflav=0;iflav<nflavs;iflav++)
-	  {
-	    for(int iop=0;iop<nop;iop++)
-	      {
-			const int idx = iflav*nop + iop;
-			apply_shift_op(quark0s[idx],temp[0],temp[1],conf,tp.backfield[iflav],shift[iop],quark[idx]);
-			put_stag_phases(quark0s[idx],mask[iop]);
-	      }
-	  }
+	  for(int iop=0;iop<nop;iop++)
+	    {
+	      const int idx=iflav*nop+iop;
+	      apply_shift_op(source,temp[0],temp[1],conf,tp.backfield[iflav],shift[iop],ori_source);
+	      put_stag_phases(source,mask[iop]);
+	      mult_Minv(quark[idx],conf,tp,iflav,meas_pars.residue,source);
+	    }
 	
-	// contract all flavs and ops
+	/// Sink
+	for(int iflav=0;iflav<nflavs;iflav++)
+	  for(int iop=0;iop<nop;iop++)
+	    {
+	      const int idx=iflav*nop+iop;
+	      const int id0=iflav*nop+0;
+	      apply_shift_op(quark0s[idx],temp[0],temp[1],conf,tp.backfield[iflav],shift[iop],quark[id0]);
+	      put_stag_phases(quark0s[idx],mask[iop]);
+	    }
+	
+	// Contract all flavs and ops
 	for(int iflav_so=0;iflav_so<nflavs;iflav_so++)
 	  for(int iflav_si=0;iflav_si<nflavs;iflav_si++)
 	    for(int iop_so=0;iop_so<nop;iop_so++)
@@ -195,7 +193,7 @@ namespace nissa
 	for(int iop_so=0;iop_so<nop;iop_so++)
 	  for(int iop_si=0;iop_si<nop;iop_si++)
 	    for(int iflav_so=0;iflav_so<nflavs;iflav_so++)
-		  for(int iflav_si=0;iflav_si<nflavs;iflav_si++)
+	      for(int iflav_si=0;iflav_si<nflavs;iflav_si++)
 	      {
 		int spin_so=meas_pars.mesons[iop_so].first;
 		int taste_so=meas_pars.mesons[iop_so].second;
