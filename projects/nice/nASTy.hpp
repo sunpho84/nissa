@@ -120,6 +120,7 @@ inline auto getParser()
     "                       | postfix_expression \"\\-\\-\" [unaryPostfixDecrement($0)]"
     "                       | postfix_expression \"\\(\" funcArgsList \"\\)\" %precedence FUNCTION_CALL [funcCall($0,$2)] "
     "                       | postfix_expression \"\\[\" expression \"\\]\" [subscribe($0,$2)] "
+    "                       | postfix_expression \"\\.\" identifier [memberAccess($0,$2)] "
     "                       ;"
     "    funcArgsList : [emptyArgList]"
     "                 | nonemptyArgsList [return($0)]"
@@ -193,6 +194,8 @@ struct FuncParListNode;
 
 struct SubscribeNode;
 
+struct MemberAccessNode;
+
 using ASTNode=
   std::variant<ASTNodesNode,
 	       UnaryRefNode,
@@ -208,6 +211,7 @@ using ASTNode=
 	       FuncParNode,
 	       FuncParListNode,
 	       SubscribeNode,
+	       MemberAccessNode,
 	       FuncArgNode,
 	       FuncArgListNode,
 	       ReturnNode,
@@ -222,10 +226,12 @@ struct HostFunction;
 
 struct ValuesList;
 
+struct EmbeddedStruct;
+
 struct FuncArg;
 
 using Value=
-  std::variant<std::monostate,std::string,int,double,Function,FuncArg,HostFunction,ValueRef,ValuesList>;
+  std::variant<std::monostate,std::string,int,double,Function,FuncArg,HostFunction,ValueRef,ValuesList,EmbeddedStruct>;
 
 struct ValueRef
 {
@@ -237,6 +243,11 @@ struct ValuesList
   std::vector<std::shared_ptr<Value>> data;
   
   Value& operator[](const int& i);
+};
+
+struct EmbeddedStruct
+{
+  std::unordered_map<std::string,std::shared_ptr<Value>> members;
 };
 
 struct Function
@@ -280,6 +291,13 @@ struct SubscribeNode
   std::shared_ptr<ASTNode> base;
   
   std::shared_ptr<ASTNode> subscr;
+};
+
+struct MemberAccessNode
+{
+  std::shared_ptr<ASTNode> base;
+  
+  std::string member;
 };
 
 struct ValueNode
@@ -721,6 +739,7 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 											   .args=fetch<FuncArgListNode>(subNodes,1)}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcReturn",1,return std::make_shared<ASTNode>(ReturnNode{.arg=subNodes[0]}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("subscribe",2,return std::make_shared<ASTNode>(SubscribeNode{.base=subNodes[0],.subscr=subNodes[1]}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("memberAccess",2,return std::make_shared<ASTNode>(MemberAccessNode{.base=subNodes[0],.member=fetch<IdNode>(subNodes,1).name}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("forStatement",4,return std::make_shared<ASTNode>(ForNode{.subNodes{subNodes}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("ifStatement",2,return std::make_shared<ASTNode>(IfNode{.subNodes{subNodes}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("ifElseStatement",3,return std::make_shared<ASTNode>(IfNode{.subNodes{subNodes}}));
@@ -1089,12 +1108,11 @@ struct Evaluator
     return {.value{ValueRef{.ref{tmp.ref}}}};
   }
   
-#warning improve
   EvalResult operator()(const SubscribeNode& subscribeNode)
   {
-    Value& b=std::visit(*this,*subscribeNode.base).asLhs();
-    
+    EvalResult _b=std::visit(*this,*subscribeNode.base);
     const Value s=std::visit(*this,*subscribeNode.subscr).asRhs();
+    Value& b=_b.ref?*_b.ref:*_b.value;
     
     if(ValuesList* vl=std::get_if<ValuesList>(&b))
       if(const int* mi=std::get_if<int>(&s))
@@ -1109,12 +1127,35 @@ struct Evaluator
 	  
 	  std::shared_ptr<Value> r=vl->data[i];
 	  
-	  return {.ref=r,.value=*r};
+	  if(_b.ref)
+	    return {.ref=r};
+	  else
+	    return {.value=*r};
 	}
       else
 	errorEmitter("index of subscrition is not an integer but is of type: ",variantInnerTypeName(s));
     else
       errorEmitter("trying to subscribe non-list of type: ",variantInnerTypeName(b));
+    
+    return {};
+  }
+  
+  EvalResult operator()(const MemberAccessNode& memberAccessNode)
+  {
+    EvalResult _b=std::visit(*this,*memberAccessNode.base);
+    const std::string& member=memberAccessNode.member;
+    Value& b=_b.ref?*_b.ref:*_b.value;
+    
+    if(EmbeddedStruct* es=std::get_if<EmbeddedStruct>(&b))
+      if(auto mf=es->members.find(member);mf!=es->members.end())
+	if(_b.ref)
+	  return {.ref=mf->second};
+	else
+	  return {.value=*mf->second};
+      else
+	errorEmitter("member ",member," not found");
+    else
+      errorEmitter("trying to access member ",member," of a non-stuct of type: ",variantInnerTypeName(b));
     
     return {};
   }
