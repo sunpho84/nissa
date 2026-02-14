@@ -1,3 +1,4 @@
+#include <any>
 #include <cmath>
 
 #include <parsePact.hpp>
@@ -255,17 +256,13 @@ struct StructDef;
 
 struct Struct;
 
+struct HObject;
+
 struct FuncArg;
 
-using Value=
-  std::variant<std::monostate,std::string,int,double,Function,FuncArg,HostFunction,ValueRef,ValuesList,StructDef,Struct>;
+struct Value;
 
-struct HostedRef
-{
-  std::function<Value()> get;
-  
-  std::function<void(const AssignMode&,const Value&)> set;
-};
+struct HObjectMemberRef;
 
 struct ValueRef
 {
@@ -277,6 +274,13 @@ struct ValuesList
   std::vector<std::shared_ptr<Value>> data;
   
   Value& operator[](const int& i);
+};
+
+struct FuncArg
+{
+  std::string name;
+  
+  std::shared_ptr<Value> value;
 };
 
 struct Function
@@ -303,6 +307,89 @@ struct Struct
   std::vector<std::shared_ptr<Value>> members;
 };
 
+struct HObjectInfo;
+
+struct HObject
+{
+  const HObjectInfo* info;
+  
+  std::any data;
+  
+  inline HObjectMemberRef getMemberRef(const std::string& memberName);
+};
+
+struct Value
+{
+  using ValueT=std::variant<std::monostate,std::string,int,double,Function,FuncArg,HostFunction,ValueRef,ValuesList,StructDef,Struct,HObject>;
+  
+  Value& operator=(const ValueT& oth)
+  {
+    data=oth;
+    
+    return *this;
+  }
+  
+  Value operator*(const Value& oth) const
+  {
+    return {std::visit([](const auto& lhs,
+			  const auto& rhs)->ValueT
+    {
+       if constexpr(requires {lhs * rhs;})
+	 return lhs * rhs;
+       else
+	 errorEmitter("Cannot "  "assign the types: ",typeid(lhs).name()," and ",typeid(rhs).name());
+       
+       return {};
+    },this->data,oth.data)};
+  }
+  
+  ValueT data;
+};
+
+struct HObjectMemberRef
+{
+  using Getter=
+    std::function<Value()>;
+  
+  using Setter=
+    std::function<void(const AssignMode&,const Value&)>;
+  
+  using Accessors=
+    std::pair<Getter,Setter>;
+  
+  Accessors accessors;
+  
+  Value get() const
+  {
+    return accessors.first();
+  }
+  
+  void set(const AssignMode& mode,
+	   const Value& value)
+  {
+    accessors.second(mode,value);
+  }
+};
+
+struct HObjectInfo
+{
+  std::unordered_map<std::string,std::function<HObjectMemberRef::Accessors(std::any&)>> memberAccessorsProvider;
+};
+
+inline HObjectMemberRef HObject::getMemberRef(const std::string& memberName)
+{
+  auto& ap=info->memberAccessorsProvider;
+  
+  auto rt=ap.find(memberName);
+  
+  if(rt==ap.end())
+    errorEmitter("Trying to subscribe member \"",memberName,"\" but the subscribed object does not have such member");
+  
+  return {rt->second(this->data)};
+}
+
+/////////////////////////////////////////////////////////////////
+
 struct IdNode
 {
   std::string name;
@@ -313,13 +400,6 @@ struct FuncArgNode
   std::string name;
   
   std::shared_ptr<ASTNode> expr;
-};
-
-struct FuncArg
-{
-  std::string name;
-  
-  std::shared_ptr<Value> value;
 };
 
 struct FuncArgListNode
@@ -368,7 +448,7 @@ struct FuncParNode
   
   static FuncParNode getVariadic(const bool& isRef)
   {
-    return {.name=VARIADIC_PAR_NAME,.isRef=isRef,.def=std::make_shared<ASTNode>(ValueNode{ValuesList{}})};
+    return {.name=VARIADIC_PAR_NAME,.isRef=isRef,.def=std::make_shared<ASTNode>(ValueNode{.value{ValuesList{}}})};
   }
 };
 
@@ -681,10 +761,10 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 				else
 				  l->list.emplace_back(subNodes[1]);
 				return subNodes[0]);
-  PROVIDE_ACTION_WITH_N_SYMBOLS("convToInt",1,return std::make_shared<ASTNode>(ValueNode{atoi(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value).c_str())}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("convToStr",1,return std::make_shared<ASTNode>(ValueNode{unescapeString(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value))}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("convToId",1,return std::make_shared<ASTNode>(IdNode{.name=unvariant<std::string>(fetch<ValueNode>(subNodes,0).value)}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("convToFloat",1,return std::make_shared<ASTNode>(ValueNode{strtod(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value).c_str(),nullptr)}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("convToInt",1,return std::make_shared<ASTNode>(ValueNode{.value{atoi(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data).c_str())}}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("convToStr",1,return std::make_shared<ASTNode>(ValueNode{.value{unescapeString(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data))}}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("convToId",1,return std::make_shared<ASTNode>(IdNode{.name=unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data)}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("convToFloat",1,return std::make_shared<ASTNode>(ValueNode{.value{strtod(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data).c_str(),nullptr)}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("return",1,return subNodes[0]);
   PROVIDE_ACTION_WITH_N_SYMBOLS("createFuncArg",2,
 				std::string name{};
@@ -699,13 +779,13 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 	    return std::visit([](const auto& arg) -> Value		\
 	    {								\
 	      if constexpr(requires {OP arg;})				\
-		return OP arg;						\
+		return {OP arg};					\
 	      else							\
 		{							\
 		  errorEmitter("Cannot " #NAME" the type: %s",typeid(arg).name()); \
-		  return std::monostate{};				\
+		  return {std::monostate{}};				\
 		}},							\
-			      arg);				\
+			      arg.data);				\
 	  }}))
   
   DEFINE_UNOP(!,Not);
@@ -726,13 +806,13 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 				 const auto& arg2) -> Value		\
 	    {								\
 	      if constexpr(requires {arg1 OP arg2;})			\
-		return arg1 OP arg2;					\
+		return {arg1 OP arg2};					\
 	      else							\
 		{							\
 		  errorEmitter("Cannot " #NAME" the types: %s %s",typeid(arg1).name(),typeid(arg2).name()); \
-		  return std::monostate{};				\
+		  return {std::monostate{}};				\
 		}},							\
-			      arg1,arg2);				\
+			      arg1.data,arg2.data);				\
 	  }}))
   
   DEFINE_BINOP(+,Sum);
@@ -758,13 +838,13 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 	    return std::visit([](auto& arg) -> Value			\
 	    {								\
 	      if constexpr(requires {PRE arg POST;})			\
-		return PRE arg POST;					\
+		return {PRE arg POST};					\
 	      else							\
 		{							\
 		  errorEmitter("Cannot " #NAME" the type: %s",typeid(arg).name()); \
-		  return std::monostate{};				\
+		  return {std::monostate{}};				\
 		}},							\
-			      arg);				\
+			      arg.data);				\
 	  }}))
   
   DEFINE_PREPOSTFIX_OP(PostfixIncrement,,++);
@@ -779,7 +859,7 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 														.def=subNodes[1]}));
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcParCreate",2,return std::make_shared<ASTNode>(FuncParNode{.name=fetch<IdNode>(subNodes,1).name,
-											   .isRef=(bool)unvariant<int>(fetch<ValueNode>(subNodes,0).value)}));
+											   .isRef=(bool)unvariant<int>(fetch<ValueNode>(subNodes,0).value.data)}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("addFuncParDefault",2,const FuncParNode& in=fetch<FuncParNode>(subNodes,0);
 				return std::make_shared<ASTNode>(FuncParNode{.name=in.name,.isRef=in.isRef,.def=subNodes[1]}));
 #define PROVIDE_FUNC_LIST_ACTIONS(NAME)					\
@@ -793,9 +873,9 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   
 #undef PROVIDE_FUNC_LIST_ACTIONS
   
-  PROVIDE_ACTION_WITH_N_SYMBOLS("emptyVariadicParList",1,return std::make_shared<ASTNode>(FuncParListNode::getEmptyVariadic(unvariant<int>(fetch<ValueNode>(subNodes,0).value))));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("emptyVariadicParList",1,return std::make_shared<ASTNode>(FuncParListNode::getEmptyVariadic(unvariant<int>(fetch<ValueNode>(subNodes,0).value.data))));
   PROVIDE_ACTION_WITH_N_SYMBOLS("makeVariadicParList",2,
-				fetch<FuncParListNode>(subNodes,0).makeVariadic(unvariant<int>(fetch<ValueNode>(subNodes,1).value));
+				fetch<FuncParListNode>(subNodes,0).makeVariadic(unvariant<int>(fetch<ValueNode>(subNodes,1).value.data));
 				return subNodes[0]);
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcDef",3,
@@ -821,7 +901,7 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("assign",3,return std::make_shared<ASTNode>(AssignNode{.lhs=subNodes[0],
 	  .rhs=subNodes[1],
-	  .mode=(AssignMode)unvariant<int>(fetch<ValueNode>(subNodes,2).value)}));
+	  .mode=(AssignMode)unvariant<int>(fetch<ValueNode>(subNodes,2).value.data)}));
   
 #undef PROVIDE_ACTION_WITH_N_SYMBOLS
   
@@ -859,7 +939,7 @@ struct Evaluator
   struct EvalResult
   {
     using Ref=
-      std::variant<std::monostate,ValueRef,HostedRef>;
+      std::variant<std::monostate,ValueRef,HObjectMemberRef>;
     
     Ref ref;
     
@@ -874,12 +954,12 @@ struct Evaluator
 	     const Value& v)
     {
       std::visit(Overload{[&v,
-			   &mode](const ValueRef& vr)
+			   &mode](ValueRef& vr)
       {
 	trySet(*vr.ref,mode,v);
       },
 	    [&v,
-	     &mode](const HostedRef& hr)
+	     &mode](HObjectMemberRef& hr)
 	    {
 	      hr.set(mode,v);
 	    },
@@ -906,7 +986,7 @@ struct Evaluator
     
     static void ensureInitialized(const Value& v)
     {
-      if(std::get_if<std::monostate>(&v))
+      if(std::get_if<std::monostate>(&v.data))
 	errorEmitter("using uninitialized value");
     }
     
@@ -928,7 +1008,7 @@ struct Evaluator
 	      return *value;
 	    }
 	  },
-		[](const HostedRef& hr)->Value
+		[](const HObjectMemberRef& hr)->Value
 		{
 		  return hr.get();
 		},
@@ -936,7 +1016,7 @@ struct Evaluator
 		{
 		  errorEmitter("impossible");
 		  
-		  return {};
+		  return {std::monostate{}};
 		}},ref);
       else
 	return *value;
@@ -979,6 +1059,30 @@ struct Evaluator
     
     env["M_PI"]=M_PI;
     
+    struct Test
+    {
+      int member{10};
+    };
+    
+    static HObjectInfo testInfo;
+    testInfo.memberAccessorsProvider["member"]=
+      [](std::any& _r)
+      {
+	Test& r=*std::any_cast<Test>(&_r);
+	
+	return std::make_pair([&r]()->Value
+	{
+	  return{r.member};
+	},
+	  [&r](const AssignMode& mode,
+	       const Value& v)
+	  {
+	    std::visit([&r,&mode](const auto& v){trySet(r.member,mode,v);},v.data);
+	  });
+      };
+    
+    env["HO"]=HObject{.info=&testInfo,.data{Test{}}};
+    
     env["print"]=
       HostFunction{
       [](std::vector<std::shared_ptr<Value>>& args,
@@ -991,7 +1095,7 @@ struct Evaluator
 	      std::cout<<v;
 	    else
 	      std::cout<<"unprintable type: "<<typeid(decltype(v)).name()<<"\n";
-	  },*arg);
+	  },arg->data);
 	
 	return {};
       }};
@@ -1001,7 +1105,7 @@ struct Evaluator
       [](std::vector<std::shared_ptr<Value>>& args,
 	 Evaluator&)->Value
       {
-	return ValuesList{args};
+	return {ValuesList{.data{args}}};
       }};
     
     env["forEachEl"]=
@@ -1013,7 +1117,7 @@ struct Evaluator
 	  errorEmitter("trying to call forEachEl with ",n," elements in place of 2");
 	
 	std::vector<std::shared_ptr<Value>> v(1);
-	if(ValuesList* list=std::get_if<ValuesList>(&*args[0]))
+	if(ValuesList* list=std::get_if<ValuesList>(&args[0]->data))
 	  for(std::shared_ptr<Value> val : list->data)
 	    {
 	      v[0]=val;
@@ -1021,7 +1125,7 @@ struct Evaluator
 	      ev.callFunction(*args[1],v);
 	    }
 	else
-	  errorEmitter("trying to call \"forEachEl\" on a non-vector type ",variantInnerTypeName(*args[0]));
+	  errorEmitter("trying to call \"forEachEl\" on a non-vector type ",variantInnerTypeName(args[0]->data));
 	
 	return {};
       }};
@@ -1038,9 +1142,9 @@ struct Evaluator
 	      return nullptr;
 	    else
 	      {
-		int* r=std::get_if<int>(&*args[i]);
+		int* r=std::get_if<int>(&args[i]->data);
 		if(not r)
-		  errorEmitter("arg ",i," is of type ",variantInnerTypeName(*args[i])," instead of ",typeid(int).name()," (int)");
+		  errorEmitter("arg ",i," is of type ",variantInnerTypeName(args[i]->data)," instead of ",typeid(int).name()," (int)");
 		
 		return r;
 	      }
@@ -1077,7 +1181,7 @@ struct Evaluator
 	for(int i=min;i<max;i+=delta)
 	  v.data.push_back(std::make_shared<Value>(i));
 	
-	return v;
+	return {v};
       }};
     
 #define REGISTER_ARGLESS_HOST_FUNCTION(NAME)		\
@@ -1086,7 +1190,7 @@ struct Evaluator
       [](std::vector<std::shared_ptr<Value>>& args,\
 	 Evaluator&)->Value			   \
       {						   \
-	return NAME();				   \
+	return {NAME()};			   \
       }}
     
 #define REGISTER_HOST_FUNCTION(NAME,ARGS...)				\
@@ -1105,35 +1209,38 @@ struct Evaluator
 	  errorEmitter("trying to call function ",#NAME,		\
 		       " which expects ",N," args with ",n);		\
 									\
-	return std::visit([](auto&...args) ->Value			\
+	return std::visit([](auto&...args)->Value			\
 	{								\
-	  if constexpr(requires {NAME(std::forward<decltype(args)>(args)...);}) \
-	    if constexpr(std::is_same_v<void,decltype(NAME(std::forward<decltype(args)>(args)...))>) \
-	      NAME(std::forward<decltype(args)>(args)...);		\
+	  if constexpr(requires {NAME(args...);})			\
+	    if constexpr(std::is_same_v<void,decltype(NAME(args...))>)	\
+	      {								\
+		NAME(args...);						\
+		return {std::monostate{}};				\
+	      }								\
 	    else							\
-	      return NAME(std::forward<decltype(args)>(args)...);	\
+	      return {NAME(args...)};					\
 	  else								\
-	    errorEmitter("Trying to call ",#NAME,		\
-				       " function with impossible args ",typeid(args).name()...); \
+	    errorEmitter("Trying to call ",#NAME,			\
+			 " function with impossible args ",typeid(args).name()...); \
 	  								\
-	  return std::monostate{};					\
+	  return {std::monostate{}};					\
 	}								\
 	  ,ARGS);							\
       }}
     
     REGISTER_ARGLESS_HOST_FUNCTION(rand);
     
-    REGISTER_HOST_FUNCTION(srand,*args[0]);
-    REGISTER_HOST_FUNCTION(sqrt,*args[0]);
-    REGISTER_HOST_FUNCTION(exp,*args[0]);
-    REGISTER_HOST_FUNCTION(sin,*args[0]);
-    REGISTER_HOST_FUNCTION(cos,*args[0]);
-    REGISTER_HOST_FUNCTION(tan,*args[0]);
-    REGISTER_HOST_FUNCTION(pow,*args[0],*args[1]);
+    REGISTER_HOST_FUNCTION(srand,args[0]->data);
+    REGISTER_HOST_FUNCTION(sqrt,args[0]->data);
+    REGISTER_HOST_FUNCTION(exp,args[0]->data);
+    REGISTER_HOST_FUNCTION(sin,args[0]->data);
+    REGISTER_HOST_FUNCTION(cos,args[0]->data);
+    REGISTER_HOST_FUNCTION(tan,args[0]->data);
+    REGISTER_HOST_FUNCTION(pow,args[0]->data,args[1]->data);
     
     {
       using namespace std;
-      REGISTER_HOST_FUNCTION(to_string,*args[0]);
+      REGISTER_HOST_FUNCTION(to_string,args[0]->data);
     }
   }
   
@@ -1152,7 +1259,7 @@ struct Evaluator
       
     Struct res{.structDefNode=def.structDefNode,.members=args};
     
-    return {.value=res};
+    return {.value{res}};
   }
   
   EvalResult callEmbeddedFunction(const Function& f,
@@ -1179,7 +1286,7 @@ struct Evaluator
 	
 	if(par.isRef)
 	  {
-	    if(ValueRef* vr=std::get_if<ValueRef>(&*arg))
+	    if(ValueRef* vr=std::get_if<ValueRef>(&arg->data))
 	      arg=vr->ref;
 	    else
 	      errorEmitter("parameter ",par.name," has to be taken by ref but passed argument is not a ref");
@@ -1195,16 +1302,16 @@ struct Evaluator
   EvalResult callFunction(const Value& vFun,
 			  std::vector<std::shared_ptr<Value>>& args)
   {
-    if(const Function* f=std::get_if<Function>(&vFun))
+    if(const Function* f=std::get_if<Function>(&vFun.data))
       return callEmbeddedFunction(*f,args);
     else
-      if(const HostFunction* hf=std::get_if<HostFunction>(&vFun))
+      if(const HostFunction* hf=std::get_if<HostFunction>(&vFun.data))
 	return {.value=(*hf)(args,*this)};
       else
-	if(const StructDef* sd=std::get_if<StructDef>(&vFun))
+	if(const StructDef* sd=std::get_if<StructDef>(&vFun.data))
 	  return createStruct(*sd,args);
 	else
-	  errorEmitter("Variable is of type ",variantInnerTypeName(vFun)," not supported by the callFunction backend");
+	  errorEmitter("Variable is of type ",variantInnerTypeName(vFun.data)," not supported by the callFunction backend");
     
     return {};
   }
@@ -1261,8 +1368,8 @@ struct Evaluator
     const Value s=std::visit(*this,*subscribeNode.subscr).asRhs();
     Value& b=_b.hasRef()?_b.asLhs():*_b.value;
     
-    if(ValuesList* vl=std::get_if<ValuesList>(&b))
-      if(const int* mi=std::get_if<int>(&s))
+    if(ValuesList* vl=std::get_if<ValuesList>(&b.data))
+      if(const int* mi=std::get_if<int>(&s.data))
 	{
 	  int i=*mi;
 	  
@@ -1280,9 +1387,9 @@ struct Evaluator
 	    return {.value=*r};
 	}
       else
-	errorEmitter("index of subscrition is not an integer but is of type: ",variantInnerTypeName(s));
+	errorEmitter("index of subscrition is not an integer but is of type: ",variantInnerTypeName(s.data));
     else
-      errorEmitter("trying to subscribe non-list of type: ",variantInnerTypeName(b));
+      errorEmitter("trying to subscribe non-list of type: ",variantInnerTypeName(b.data));
     
     return {};
   }
@@ -1294,7 +1401,7 @@ struct Evaluator
     
     const std::string& memberName=memberAccessNode.member;
     
-    if(Struct* es=std::get_if<Struct>(&b))
+    if(Struct* es=std::get_if<Struct>(&b.data))
       {
 	const StructDefNode* sd=es->structDefNode;
 	
@@ -1310,7 +1417,10 @@ struct Evaluator
 	  return {.value=*mf};
       }
     else
-      errorEmitter("trying to access member ",memberName," of a non-stuct of type: ",variantInnerTypeName(b));
+      if(HObject* hObject=std::get_if<HObject>(&b.data))
+	return {.ref{hObject->getMemberRef(memberName)}};
+      else
+	errorEmitter("trying to access member ",memberName," of a non-stuct of type: ",variantInnerTypeName(b.data));
     
     return {};
   }
@@ -1328,8 +1438,8 @@ struct Evaluator
 	    errorEmitter("Cannot convert the type to bool");
 	  
 	  return false;
-	},std::visit(*this,*forNode.subNodes[1]).asRhs());
-	std::visit(*this,*forNode.subNodes[2]).asRhs())
+	},std::visit(*this,*forNode.subNodes[1]).asRhs().data);
+	std::visit(*this,*forNode.subNodes[2]))
       std::visit(*this,*forNode.subNodes[3]);
     
     return {};
@@ -1347,7 +1457,7 @@ struct Evaluator
 	    errorEmitter("Cannot convert the type to bool");
 	  
 	  return false;
-	},std::visit(*this,*ifNode.subNodes[0]).asRhs()))
+	},std::visit(*this,*ifNode.subNodes[0]).asRhs().data))
       std::visit(*this,*ifNode.subNodes[1]);
     else
       if(ifNode.subNodes.size()>=2)
@@ -1369,9 +1479,9 @@ struct Evaluator
   EvalResult operator()(const StructMemberNode& structMemberNode)
   {
     if(std::shared_ptr<ASTNode> def=structMemberNode.def)
-      return {.value=std::visit(*this,*def).asRhs()};
+      return {.value{std::visit(*this,*def).asRhs().data}};
     else
-      return {.value=std::monostate{}};
+      return {.value{std::monostate{}}};
   }
   
   EvalResult operator()(const StructMemberListNode& structMemberListNode)
@@ -1387,13 +1497,13 @@ struct Evaluator
     for(const StructMemberNode& structMemberNode : structMemberListNode.list)
       memberList.data.push_back(std::make_shared<Value>((*this)(structMemberNode).asRhs()));
     
-    return {.value=memberList};
+    return {.value{memberList}};
   }
   
   EvalResult operator()(const FuncArgNode& argNode)
   {
-    return {.value=FuncArg{.name=argNode.name,
-			   .value=std::make_shared<Value>(std::visit(*this,*argNode.expr).asRhs())}};
+    return {.value{FuncArg{.name=argNode.name,
+			   .value{std::make_shared<Value>(std::visit(*this,*argNode.expr).asRhs())}}}};
   }
   
   EvalResult operator()(const FuncArgListNode& argListNode)
@@ -1409,16 +1519,16 @@ struct Evaluator
     for(const FuncArgNode& argNode : argListNode.list)
       argList.data.push_back(std::make_shared<Value>((*this)(argNode).asRhs()));
     
-    return {.value=argList};
+    return {.value{argList}};
   }
   
   EvalResult operator()(const FuncCallNode& funcCallNode)
   {
     Value __args=(*this)(funcCallNode.args).asRhs();
     
-    ValuesList* _args=std::get_if<ValuesList>(&__args);
+    ValuesList* _args=std::get_if<ValuesList>(&__args.data);
     if(not _args)
-      errorEmitter("FuncCallNode args did not evaluate to a ValuesList but of type ",variantInnerTypeName(__args));
+      errorEmitter("FuncCallNode args did not evaluate to a ValuesList but of type ",variantInnerTypeName(__args.data));
     
     const std::string fName=
       funcCallNode.fun;
@@ -1428,12 +1538,12 @@ struct Evaluator
     std::vector<std::shared_ptr<Value>> args;
     const Value& _fun=curEnv->at(fName);
     
-    if(const HostFunction* fun=std::get_if<HostFunction>(&_fun))
+    if(const HostFunction* fun=std::get_if<HostFunction>(&_fun.data))
       {
 	args.reserve(_args->data.size());
 	for(std::shared_ptr<Value> _arg : _args->data)
 	  {
-	    FuncArg& arg=unvariant<FuncArg>(*_arg);
+	    FuncArg& arg=unvariant<FuncArg>(_arg->data);
 	    
 	    if(arg.name!="")
 	      errorEmitter("trying to call a host function with named arg ",arg.name);
@@ -1441,7 +1551,7 @@ struct Evaluator
 	  }
       }
     else
-      if(const Function* fun=std::get_if<Function>(&_fun))
+      if(const Function* fun=std::get_if<Function>(&_fun.data))
 	{
 	  const FuncNode& fn=*fun->funcNode;
 	  const FuncParListNode& pars=fn.pars;
@@ -1462,7 +1572,7 @@ struct Evaluator
 	    {
 	      for(const std::shared_ptr<Value>& __arg : _args->data)
 		{
-		  FuncArg& _arg=unvariant<FuncArg>(*__arg);
+		  FuncArg& _arg=unvariant<FuncArg>(__arg->data);
 		  std::shared_ptr<Value> arg=_arg.value;
 		  
 		  const std::string& aName=_arg.name;
@@ -1490,7 +1600,7 @@ struct Evaluator
 		      if(iPar>=args.size())
 			{
 			  if(isVariadic)
-			    std::get_if<ValuesList>(&*args.back())->data.push_back(arg);
+			    std::get_if<ValuesList>(&args.back()->data)->data.push_back(arg);
 			  else
 			    errorEmitter("passing too many arguments to non-variadic function ",fName);
 			}
@@ -1515,7 +1625,7 @@ struct Evaluator
 	      }
 	}
       else
-	if(const StructDef* _sd=std::get_if<StructDef>(&_fun))
+	if(const StructDef* _sd=std::get_if<StructDef>(&_fun.data))
 	  {
 	    const StructDefNode& sd=*_sd->structDefNode;
 	    const StructMemberListNode& members=sd.members;
@@ -1531,7 +1641,7 @@ struct Evaluator
 	      {
 		for(const std::shared_ptr<Value>& __arg : _args->data)
 		  {
-		    FuncArg& _arg=unvariant<FuncArg>(*__arg);
+		    FuncArg& _arg=unvariant<FuncArg>(__arg->data);
 		    std::shared_ptr<Value> arg=_arg.value;
 		    
 		    const std::string& aName=_arg.name;
@@ -1583,7 +1693,7 @@ struct Evaluator
 		}
 	  }
 	else
-	  errorEmitter("trying to call a non-callable variable of kind: ",variantInnerTypeName(_fun));
+	  errorEmitter("trying to call a non-callable variable of kind: ",variantInnerTypeName(_fun.data));
     
     return callFunction(_fun,args);
   }
@@ -1604,8 +1714,8 @@ struct Evaluator
   EvalResult operator()(const FuncNode& funcNode)
   {
     return
-      {.value=Function{.funcNode=&funcNode,
-		       .env=curEnv}};
+      {.value{Function{.funcNode=&funcNode,
+		       .env=curEnv}}};
   }
   
   EvalResult operator()(const ASTNodesNode& astNodesNode)
