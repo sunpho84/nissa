@@ -53,27 +53,41 @@ inline auto getParser()
     "             | forStatement [return($0)]"
     "             | ifStatement [return($0)]"
     "             | functionDefinition [return($0)]"
+    "             | structDefinition [return($0)]"
     "             | \"return\" expression_statement [funcReturn($1)]"
     "             ;"
-    "   functionDefinition : \"fun\" identifier \"\\(\" variadic_parameter_list \"\\)\" compound_statement [funcDef($1,$3,$5)]"
+    "   functionDefinition : \"fun\" identifier \"\\(\" variadicFuncParList \"\\)\" compound_statement [funcDef($1,$3,$5)]"
     "                      ;"
-    "   variadic_parameter_list: [emptyParList]"
-    "                          | parameterList [return($0)]"
-    "                          | variadic_parameter [emptyVariadicParList($0)]"
-    "                          | parameterList \",\" variadic_parameter [makeVariadicParList($0)]"
-    "                          ;"
-    "   variadic_parameter: \"\\.\\.\\.\" [return(1)]"
-    "                     | \"&\" \"\\.\\.\\.\" [return(2)]"
-    "                     ;"
-    "   parameterList: parameter [firstParOfList]"
-    "                 | parameterList \",\" parameter [appendParToList($0,$2)]"
-    "                 ;"
-    "   parameter: neededParameter [return($0)]"
-    "            | neededParameter \"=\" expression [addParDefault($0,$2)]"
-    "            ;"
-    "   neededParameter: identifier [parCreate(0,$0)]"
-    "                  | \"&\" identifier [parCreate(1,$1)]"
+    "   structDefinition : \"struct\" identifier \"{\" structMemberList \"}\" \";\" [structDef($1,$3)]"
+    "                    ;"
+    "   structMemberList : [emptyStructMemberList]"
+    "                    | nonEmptyStructMemberList [return($0)]"
+    "                    ;"
+    "   nonEmptyStructMemberList : structMember \";\" [firstStructMemberOfList($0)]"
+    "                            | nonEmptyStructMemberList structMember \";\" [appendStructMemberToList($0,$1)]"
+    "                            ;"
+    "   structMember : identifier [structMemberCreate($0)]"
+    "                | identifier \"=\" expression [structMemberCreateWithDef($0,$2)]"
+    "                ;"
+    "   variadicFuncParList: funcParList [return($0)]"
+    "                      | variadicFuncPar [emptyVariadicParList($0)]"
+    "                      | nonEmptyFuncParList \",\" variadicFuncPar [makeVariadicParList($0)]"
+    "                      ;"
+    "   variadicFuncPar: \"\\.\\.\\.\" [return(1)]"
+    "                  | \"&\" \"\\.\\.\\.\" [return(2)]"
     "                  ;"
+    "   funcParList: [emptyFuncParList]"
+    "              | nonEmptyFuncParList [return($0)]"
+    "              ;"
+    "   nonEmptyFuncParList: funcPar [firstFuncParOfList]"
+    "                      | nonEmptyFuncParList \",\" funcPar [appendFuncParToList($0,$2)]"
+    "                       ;"
+    "   funcPar: neededFuncPar [return($0)]"
+    "          | neededFuncPar \"=\" expression [addFuncParDefault($0,$2)]"
+    "          ;"
+    "   neededFuncPar: identifier [funcParCreate(0,$0)]"
+    "                | \"&\" identifier [funcParCreate(1,$1)]"
+    "                ;"
     "   forStatement: \"for\" \"\\(\" forInit \";\" forCheck \";\" forIncr \"\\)\" statement [forStatement($2,$4,$6,$8)]"
     "               ;"
     "   forInit: expression [return($0)]"
@@ -122,27 +136,27 @@ inline auto getParser()
     "                       | postfix_expression \"\\[\" expression \"\\]\" [subscribe($0,$2)] "
     "                       | postfix_expression \"\\.\" identifier [memberAccess($0,$2)] "
     "                       ;"
-    "    funcArgsList : [emptyArgList]"
-    "                 | nonemptyArgsList [return($0)]"
+    "    funcArgsList : [emptyFuncArgList]"
+    "                 | nonemptyFuncArgsList [return($0)]"
     "                 ;"
-  "      nonemptyArgsList : arg [firstArgOfList]"
-    "                     | funcArgsList \",\" arg [appendArgToList($0,$2)]"
-    "                     ;"
-    "    arg : \"\\.\" identifier \"=\" expression [createArg($1,$3)]"
-    "        | expression [createArg(\"\",$0)]"
+    "    nonemptyFuncArgsList : arg [firstFuncArgOfList]"
+    "                         | funcArgsList \",\" arg [appendFuncArgToList($0,$2)]"
+    "                         ;"
+    "    arg : \"\\.\" identifier \"=\" expression [createFuncArg($1,$3)]"
+    "        | expression [createFuncArg(\"\",$0)]"
     "        ;"
     "    primary_expression : identifier [return($0)]"
     "                       | \"[0-9]+\" [convToInt($0)]"
     "                       | \"([0-9]+(\\.[0-9]*)?|(\\.[0-9]+))((e|E)(\\+|\\-)?[0-9]+)?\" [convToFloat($0)]"
     "                       | \"\\\"[^\\\"]*\\\"\" [convToStr($0)]"
     "                       | \"\\(\" expression \"\\)\" %precedence BRACKETS [return($1)]"
-    "                       | \"lambda\" \"\\(\" variadic_parameter_list \"\\)\" compound_statement [lambdaFuncDef($2,$4)]"
+    "                       | \"lambda\" \"\\(\" variadicFuncParList \"\\)\" compound_statement [lambdaFuncDef($2,$4)]"
     "                       ;"
-    "    assign_expression : postfix_expression \"=\" expression %precedence \"=\" [unaryAssign($0,$2)]"
-    "                      | postfix_expression \"\\*=\" expression [unaryProdAssign($0,$2)]"
-    "                      | postfix_expression \"/=\" expression [unaryDivAssign($0,$2)]"
-    "                      | postfix_expression \"\\+=\" expression [unarySumAssign($0,$2)]"
-    "                      | postfix_expression \"\\-=\" expression [unaryDiffAssign($0,$2)]"
+    "    assign_expression : postfix_expression \"=\" expression %precedence \"=\" [assign($0,$2,0)]"
+    "                      | postfix_expression \"\\*=\" expression [assign($0,$2,1)]"
+    "                      | postfix_expression \"/=\" expression [assign($0,$2,2)]"
+    "                      | postfix_expression \"\\+=\" expression [assign($0,$2,3)]"
+    "                      | postfix_expression \"\\-=\" expression [assign($0,$2,4)]"
     "                      ;"
     "    identifier : \"[a-zA-Z_][a-zA-Z0-9_]*\" [convToId($0)]"
     "               ;"
@@ -151,6 +165,8 @@ inline auto getParser()
   return
     pp::createGrammar(cGrammar);
 }
+
+enum class AssignMode{PLAIN,PROD,DIV,SUM,SUB};
 
 struct Evaluator;
 
@@ -192,6 +208,12 @@ struct FuncArgListNode;
 
 struct FuncParListNode;
 
+struct StructMemberNode;
+
+struct StructMemberListNode;
+
+struct StructDefNode;
+
 struct SubscribeNode;
 
 struct MemberAccessNode;
@@ -211,9 +233,12 @@ using ASTNode=
 	       FuncParNode,
 	       FuncParListNode,
 	       SubscribeNode,
-	       MemberAccessNode,
 	       FuncArgNode,
 	       FuncArgListNode,
+	       StructMemberNode,
+	       StructMemberListNode,
+	       StructDefNode,
+	       MemberAccessNode,
 	       ReturnNode,
 	       ValueNode,
 	       AssignNode>;
@@ -226,12 +251,21 @@ struct HostFunction;
 
 struct ValuesList;
 
-struct EmbeddedStruct;
+struct StructDef;
+
+struct Struct;
 
 struct FuncArg;
 
 using Value=
-  std::variant<std::monostate,std::string,int,double,Function,FuncArg,HostFunction,ValueRef,ValuesList,EmbeddedStruct>;
+  std::variant<std::monostate,std::string,int,double,Function,FuncArg,HostFunction,ValueRef,ValuesList,StructDef,Struct>;
+
+struct HostedRef
+{
+  std::function<Value()> get;
+  
+  std::function<void(const AssignMode&,const Value&)> set;
+};
 
 struct ValueRef
 {
@@ -245,11 +279,6 @@ struct ValuesList
   Value& operator[](const int& i);
 };
 
-struct EmbeddedStruct
-{
-  std::unordered_map<std::string,std::shared_ptr<Value>> members;
-};
-
 struct Function
 {
   const FuncNode* funcNode;
@@ -260,6 +289,18 @@ struct Function
 struct HostFunction :
   std::function<Value(std::vector<std::shared_ptr<Value>>&,Evaluator&)>
 {
+};
+
+struct StructDef
+{
+  const StructDefNode* structDefNode;
+};
+
+struct Struct
+{
+  const StructDefNode* structDefNode;
+  
+  std::vector<std::shared_ptr<Value>> members;
 };
 
 struct IdNode
@@ -331,22 +372,29 @@ struct FuncParNode
   }
 };
 
-struct FuncParListNode
+template <typename D>
+struct Searchable
 {
-  std::vector<FuncParNode> list;
-  
   auto iParOfName(const std::string& name) const
   {
+    const auto& list=((const D*)this)->list;
+    
     auto it=
       std::find_if(list.begin(),
 		   list.end(),
-		   [&name](const FuncParNode& par)
+		   [&name](const auto& par)
 		   {
 		     return par.name==name;
 		   });
     
     return std::distance(list.begin(),it);
   }
+};
+
+struct FuncParListNode:
+  Searchable<FuncParListNode>
+{
+  std::vector<FuncParNode> list;
   
   bool isVariadic() const
   {
@@ -398,13 +446,33 @@ struct FuncCallNode
   FuncArgListNode args;
 };
 
+struct StructMemberNode
+{
+  std::string name;
+  
+  std::shared_ptr<ASTNode> def;
+};
+
+struct StructMemberListNode:
+  Searchable<StructMemberListNode>
+{
+  std::vector<StructMemberNode> list;
+};
+
+struct StructDefNode
+{
+  std::string name;
+  
+  StructMemberListNode members;
+};
+
 struct AssignNode
 {
   std::shared_ptr<ASTNode> lhs;
   
   std::shared_ptr<ASTNode> rhs;
   
-  std::function<Value(Value&,const Value&)> op;
+  AssignMode mode;
 };
 
 struct PrePostfixOpNode
@@ -603,7 +671,6 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
     }
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("createStatements",0,return std::make_shared<ASTNode>(ASTNodesNode{}));
-  //  PROVIDE_ACTION_WITH_N_SYMBOLS("firstStatement",1,return std::make_shared<ASTNode>(ASTNodesNode{.list{subNodes[0]}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("appendStatement",2,
 				if(ASTNodesNode* l=std::get_if<ASTNodesNode>(&*(subNodes[0]));l==nullptr)
 				  errorEmitter("first argument is not a list of statement: ",
@@ -619,7 +686,7 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   PROVIDE_ACTION_WITH_N_SYMBOLS("convToId",1,return std::make_shared<ASTNode>(IdNode{.name=unvariant<std::string>(fetch<ValueNode>(subNodes,0).value)}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("convToFloat",1,return std::make_shared<ASTNode>(ValueNode{strtod(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value).c_str(),nullptr)}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("return",1,return subNodes[0]);
-  PROVIDE_ACTION_WITH_N_SYMBOLS("createArg",2,
+  PROVIDE_ACTION_WITH_N_SYMBOLS("createFuncArg",2,
 				std::string name{};
 				if(IdNode* id=std::get_if<IdNode>(&*subNodes[0]))
 				  name=id->name;
@@ -707,17 +774,22 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   
 #undef DEFINE_PREPOSTFIX_OP
   
-  PROVIDE_ACTION_WITH_N_SYMBOLS("parCreate",2,return std::make_shared<ASTNode>(FuncParNode{.name=fetch<IdNode>(subNodes,1).name,
+  PROVIDE_ACTION_WITH_N_SYMBOLS("structMemberCreate",1,return std::make_shared<ASTNode>(StructMemberNode{.name=fetch<IdNode>(subNodes,0).name}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("structMemberCreateWithDef",2,return std::make_shared<ASTNode>(StructMemberNode{.name=fetch<IdNode>(subNodes,0).name,
+														.def=subNodes[1]}));
+  
+  PROVIDE_ACTION_WITH_N_SYMBOLS("funcParCreate",2,return std::make_shared<ASTNode>(FuncParNode{.name=fetch<IdNode>(subNodes,1).name,
 											   .isRef=(bool)unvariant<int>(fetch<ValueNode>(subNodes,0).value)}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("addParDefault",2,const FuncParNode& in=fetch<FuncParNode>(subNodes,0);
+  PROVIDE_ACTION_WITH_N_SYMBOLS("addFuncParDefault",2,const FuncParNode& in=fetch<FuncParNode>(subNodes,0);
 				return std::make_shared<ASTNode>(FuncParNode{.name=in.name,.isRef=in.isRef,.def=subNodes[1]}));
 #define PROVIDE_FUNC_LIST_ACTIONS(NAME)					\
-  PROVIDE_ACTION_WITH_N_SYMBOLS("empty" #NAME "List",0,return std::make_shared<ASTNode>(Func ## NAME ## ListNode{})); \
-  PROVIDE_ACTION_WITH_N_SYMBOLS("first" #NAME "OfList",1,return makeFirstOfList<Func ## NAME ## Node,Func ## NAME ## ListNode>(subNodes[0])); \
-  PROVIDE_ACTION_WITH_N_SYMBOLS("append" #NAME "ToList",2,return appendToList<Func ##NAME ## Node,Func ## NAME ## ListNode>(subNodes[0],subNodes[1])); \
+  PROVIDE_ACTION_WITH_N_SYMBOLS("empty" #NAME "List",0,return std::make_shared<ASTNode>(NAME ## ListNode{})); \
+  PROVIDE_ACTION_WITH_N_SYMBOLS("first" #NAME "OfList",1,return makeFirstOfList<NAME ## Node,NAME ## ListNode>(subNodes[0])); \
+  PROVIDE_ACTION_WITH_N_SYMBOLS("append" #NAME "ToList",2,return appendToList<NAME ## Node,NAME ## ListNode>(subNodes[0],subNodes[1])); \
   
-  PROVIDE_FUNC_LIST_ACTIONS(Par);
-  PROVIDE_FUNC_LIST_ACTIONS(Arg);
+  PROVIDE_FUNC_LIST_ACTIONS(FuncPar);
+  PROVIDE_FUNC_LIST_ACTIONS(FuncArg);
+  PROVIDE_FUNC_LIST_ACTIONS(StructMember);
   
 #undef PROVIDE_FUNC_LIST_ACTIONS
   
@@ -730,6 +802,9 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 				return std::make_shared<ASTNode>(FuncDefNode{.name=fetch<IdNode>(subNodes,0).name,
 									     .fun=std::make_shared<FuncNode>(fetch<FuncParListNode>(subNodes,1),
 													     subNodes[2])}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("structDef",2,
+				return std::make_shared<ASTNode>(StructDefNode{.name=fetch<IdNode>(subNodes,0).name,
+									     .members=fetch<StructMemberListNode>(subNodes,1)}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("lambdaFuncDef",2,
 				return std::make_shared<ASTNode>(FuncNode{fetch<FuncParListNode>(subNodes,0),
 									  subNodes[1]}));
@@ -744,58 +819,89 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   PROVIDE_ACTION_WITH_N_SYMBOLS("ifStatement",2,return std::make_shared<ASTNode>(IfNode{.subNodes{subNodes}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("ifElseStatement",3,return std::make_shared<ASTNode>(IfNode{.subNodes{subNodes}}));
   
-  PROVIDE_ACTION_WITH_N_SYMBOLS("unaryAssign",2,return std::make_shared<ASTNode>(AssignNode{.lhs=subNodes[0],
+  PROVIDE_ACTION_WITH_N_SYMBOLS("assign",3,return std::make_shared<ASTNode>(AssignNode{.lhs=subNodes[0],
 	  .rhs=subNodes[1],
-	  .op=[](Value& lhs,
-		 const Value& rhs)
-	  {
-	    return lhs=rhs;
-	  }}));
-
-#define PROVIDE_ASSIGN(NAME,SYMBOL)					\
-  PROVIDE_ACTION_WITH_N_SYMBOLS("unary" #NAME "Assign",2,return std::make_shared<ASTNode>(AssignNode{.lhs=subNodes[0], \
-	  .rhs=subNodes[1],						\
-	  .op=[](Value& lhs,						\
-		 const Value& rhs)					\
-	  {								\
-	    std::visit([](auto& lhs,					\
-			  const auto& rhs)				\
-	    {								\
-	      if constexpr(requires {lhs SYMBOL ## =rhs;})		\
-		lhs SYMBOL ## =rhs;					\
-	      else							\
-		errorEmitter("Cannot " #SYMBOL" the types:",typeid(lhs).name()," and ",typeid(rhs).name()); \
-	    },lhs,rhs);							\
-	    								\
-	    return lhs;							\
-	  }}))
-  
-  PROVIDE_ASSIGN(Prod,*);
-  PROVIDE_ASSIGN(Div,/);
-  PROVIDE_ASSIGN(Sum,+);
-  PROVIDE_ASSIGN(Diff,-);
-  
-#undef PROVIDE_ASSIGN
+	  .mode=(AssignMode)unvariant<int>(fetch<ValueNode>(subNodes,2).value)}));
   
 #undef PROVIDE_ACTION_WITH_N_SYMBOLS
   
   return ParseTreeExecutor(providedActions,requiredActions);
 }
 
+template <typename L,
+	  typename R>
+void trySet(L& lhs,
+	    const AssignMode& mode,
+	    const R& rhs)
+{
+ switch(mode)
+   {
+#define CASE(MODE,SYMBOL,DESCR)						\
+     case AssignMode::MODE:						\
+       if constexpr(requires {lhs SYMBOL rhs;})				\
+	 lhs SYMBOL rhs;						\
+       else								\
+	 errorEmitter("Cannot " DESCR "assign the types: ",typeid(lhs).name()," and ",typeid(rhs).name()); \
+       break
+     
+      CASE(PLAIN,=,"");
+      CASE(PROD,*=,"multiply-");
+      CASE(DIV,/=,"divide-");
+      CASE(SUM,+=,"sum-");
+      CASE(SUB,-=,"sub-");
+      
+#undef CASE
+    }
+}
+
 struct Evaluator
 {
   struct EvalResult
   {
-    std::shared_ptr<Value> ref;
+    using Ref=
+      std::variant<std::monostate,ValueRef,HostedRef>;
+    
+    Ref ref;
+    
+    bool hasRef() const
+    {
+      return not std::holds_alternative<std::monostate>(ref);
+    }
     
     std::optional<Value> value;
     
+    void set(const AssignMode& mode,
+	     const Value& v)
+    {
+      std::visit(Overload{[&v,
+			   &mode](const ValueRef& vr)
+      {
+	trySet(*vr.ref,mode,v);
+      },
+	    [&v,
+	     &mode](const HostedRef& hr)
+	    {
+	      hr.set(mode,v);
+	    },
+	    [](const std::monostate&)
+	    {
+	      errorEmitter("trying to set a non lhs");
+	    }},ref);
+    }
+    
     Value& asLhs()
     {
-      if(not ref)
+      ValueRef* _cRefP=std::get_if<ValueRef>(&ref);
+      
+      if(not _cRefP)
+	errorEmitter("trying to use a non-concrete type as lhs");
+      
+      ValueRef& cRefP=*_cRefP;
+      
+      if(not cRefP.ref)
 	errorEmitter("trying to access an evaluation result as an lhs when it is not");
       
-      return *ref;
+      return *cRefP.ref;
     }
     
     static void ensureInitialized(const Value& v)
@@ -804,34 +910,36 @@ struct Evaluator
 	errorEmitter("using uninitialized value");
     }
     
-    const Value& asRhs() const&
+    Value asRhs() const
     {
-      if(ref)
-	return *ref;
+      if(hasRef())
+	return
+	  std::visit(Overload{[this](const ValueRef& vr)->Value
+	  {
+	    if(const std::shared_ptr<Value>& r=vr.ref)
+	      return *r;
+	    else
+	    {
+	      if(not value)
+		errorEmitter("trying to acces an empty evaluator result");
+	      
+	      ensureInitialized(*value);
+	      
+	      return *value;
+	    }
+	  },
+		[](const HostedRef& hr)->Value
+		{
+		  return hr.get();
+		},
+		[](const std::monostate&) ->Value
+		{
+		  errorEmitter("impossible");
+		  
+		  return {};
+		}},ref);
       else
-	{
-	  if(not value)
-	    errorEmitter("trying to acces an empty evaluator");
-	  
-	  ensureInitialized(*value);
-	  
-	  return *value;
-	}
-    }
-    
-    Value asRhs() const&&
-    {
-      if(ref)
-	return *ref;
-      else
-	{
-	  if(not value)
-	    errorEmitter("trying to acces an empty evaluator");
-	  
-	  ensureInitialized(*value);
-	  
-	  return std::move(*value);
-	}
+	return *value;
     }
   };
   
@@ -1029,8 +1137,26 @@ struct Evaluator
     }
   }
   
+  EvalResult createStruct(const StructDef& def,
+			  std::vector<std::shared_ptr<Value>>& args)
+  {
+    const std::string& name=def.structDefNode->name;
+    
+    diagnostic("Creating struct ",name,"\n");
+    
+    const size_t nArgs=args.size();
+    const size_t nMembers=def.structDefNode->members.list.size();
+    
+    if(args.size()!=nMembers)
+      errorEmitter("Calling struct ",name," constructor with ",nArgs," args when expecting ",nMembers);
+      
+    Struct res{.structDefNode=def.structDefNode,.members=args};
+    
+    return {.value=res};
+  }
+  
   EvalResult callEmbeddedFunction(const Function& f,
-			     std::vector<std::shared_ptr<Value>>& args)
+				  std::vector<std::shared_ptr<Value>>& args)
   {
     const FuncNode& fn=*f.funcNode;
     const FuncParListNode& pars=fn.pars;
@@ -1075,7 +1201,10 @@ struct Evaluator
       if(const HostFunction* hf=std::get_if<HostFunction>(&vFun))
 	return {.value=(*hf)(args,*this)};
       else
-	errorEmitter("Variable is of type ",variantInnerTypeName(vFun)," not a ",typeid(Function).name()," or ",typeid(HostFunction).name());
+	if(const StructDef* sd=std::get_if<StructDef>(&vFun))
+	  return createStruct(*sd,args);
+	else
+	  errorEmitter("Variable is of type ",variantInnerTypeName(vFun)," not supported by the callFunction backend");
     
     return {};
   }
@@ -1095,24 +1224,42 @@ struct Evaluator
   
   EvalResult operator()(const IdNode& idNode)
   {
-    return {.ref=curEnv->getRefOrInsert(idNode.name).first};
+    return {.ref=ValueRef(curEnv->getRefOrInsert(idNode.name).first)};
   }
   
   EvalResult operator()(const UnaryRefNode& uRNode)
   {
     EvalResult tmp=std::visit(*this,*uRNode.arg);
     
-    if(not tmp.ref)
+    ValueRef* _vr=std::get_if<ValueRef>(&tmp.ref);
+    if(not _vr)
+      errorEmitter("cannot take the reference of a non-embedded object");
+    
+    ValueRef& vr=*_vr;
+    if(vr.ref)
       errorEmitter("subNode has not returned a reference");
       
-    return {.value{ValueRef{.ref{tmp.ref}}}};
+    return {.value{vr}};
+  }
+  
+  EvalResult operator()(const StructDefNode& structDefNode)
+  {
+    const std::string& name=
+      structDefNode.name;
+    
+    if(curEnv->find(name))
+      errorEmitter("Redefining a struct which has a name ",name," already defined");
+    
+    (*curEnv)[name]=StructDef{.structDefNode=&structDefNode};
+    
+    return {};
   }
   
   EvalResult operator()(const SubscribeNode& subscribeNode)
   {
     EvalResult _b=std::visit(*this,*subscribeNode.base);
     const Value s=std::visit(*this,*subscribeNode.subscr).asRhs();
-    Value& b=_b.ref?*_b.ref:*_b.value;
+    Value& b=_b.hasRef()?_b.asLhs():*_b.value;
     
     if(ValuesList* vl=std::get_if<ValuesList>(&b))
       if(const int* mi=std::get_if<int>(&s))
@@ -1120,15 +1267,15 @@ struct Evaluator
 	  int i=*mi;
 	  
 	  if(i<0)
-	    errorEmitter("Trying to subscribe with negative index ",i);
+	    errorEmitter("trying to subscribe with negative index ",i);
 	  
 	  if(i>=vl->data.size())
-	    errorEmitter("Trying to subscribe withindex ",i," greater than list size");
+	    errorEmitter("trying to subscribe withindex ",i," greater than list size");
 	  
 	  std::shared_ptr<Value> r=vl->data[i];
 	  
-	  if(_b.ref)
-	    return {.ref=r};
+	  if(_b.hasRef())
+	    return {.ref{ValueRef{r}}};
 	  else
 	    return {.value=*r};
 	}
@@ -1143,19 +1290,27 @@ struct Evaluator
   EvalResult operator()(const MemberAccessNode& memberAccessNode)
   {
     EvalResult _b=std::visit(*this,*memberAccessNode.base);
-    const std::string& member=memberAccessNode.member;
-    Value& b=_b.ref?*_b.ref:*_b.value;
+    Value& b=_b.hasRef()?_b.asLhs():*_b.value;
     
-    if(EmbeddedStruct* es=std::get_if<EmbeddedStruct>(&b))
-      if(auto mf=es->members.find(member);mf!=es->members.end())
-	if(_b.ref)
-	  return {.ref=mf->second};
+    const std::string& memberName=memberAccessNode.member;
+    
+    if(Struct* es=std::get_if<Struct>(&b))
+      {
+	const StructDefNode* sd=es->structDefNode;
+	
+	size_t iMember=sd->members.iParOfName(memberName);
+	
+	if(iMember==es->members.size())
+	  errorEmitter("trying to access to member ",memberName," not present in embedded struct of type: ",sd->name);
+	
+	std::shared_ptr<Value> mf=es->members[iMember];
+	if(_b.hasRef())
+	  return {.ref={ValueRef{mf}}};
 	else
-	  return {.value=*mf->second};
-      else
-	errorEmitter("member ",member," not found");
+	  return {.value=*mf};
+      }
     else
-      errorEmitter("trying to access member ",member," of a non-stuct of type: ",variantInnerTypeName(b));
+      errorEmitter("trying to access member ",memberName," of a non-stuct of type: ",variantInnerTypeName(b));
     
     return {};
   }
@@ -1209,6 +1364,30 @@ struct Evaluator
   EvalResult operator()(const FuncParListNode&)
   {
     return {};
+  }
+  
+  EvalResult operator()(const StructMemberNode& structMemberNode)
+  {
+    if(std::shared_ptr<ASTNode> def=structMemberNode.def)
+      return {.value=std::visit(*this,*def).asRhs()};
+    else
+      return {.value=std::monostate{}};
+  }
+  
+  EvalResult operator()(const StructMemberListNode& structMemberListNode)
+  {
+    ValuesList memberList;
+    
+    const size_t nMembers=structMemberListNode.list.size();
+    
+    memberList.data.reserve(nMembers);
+    
+    diagnostic("Preparing a list of ",nMembers," members\n");
+    
+    for(const StructMemberNode& structMemberNode : structMemberListNode.list)
+      memberList.data.push_back(std::make_shared<Value>((*this)(structMemberNode).asRhs()));
+    
+    return {.value=memberList};
   }
   
   EvalResult operator()(const FuncArgNode& argNode)
@@ -1329,14 +1508,82 @@ struct Evaluator
 	      {
 		const FuncParNode& par=pars.list[iPar];
 		
-		if(std::optional<std::shared_ptr<ASTNode>> optDef=par.def)
-		  args[iPar]=std::make_shared<Value>(std::visit(*this,**optDef).asRhs());
+		if(std::shared_ptr<ASTNode> optDef=par.def)
+		  args[iPar]=std::make_shared<Value>(std::visit(*this,*optDef).asRhs());
 		else
 		  errorEmitter("parameter \"",par.name,"\" with no default value unspecified when calling the function");
 	      }
 	}
       else
-	errorEmitter("trying to call a non-function variable of kind: ",variantInnerTypeName(_fun));
+	if(const StructDef* _sd=std::get_if<StructDef>(&_fun))
+	  {
+	    const StructDefNode& sd=*_sd->structDefNode;
+	    const StructMemberListNode& members=sd.members;
+	    
+	    const size_t nMembers=members.list.size();
+	    args.resize(nMembers);
+	    
+	    auto insertNamedOrUnnamed=
+	      [&args,
+	       &_args,
+	       &members,
+	       &fName](const bool insertNamed)
+	      {
+		for(const std::shared_ptr<Value>& __arg : _args->data)
+		  {
+		    FuncArg& _arg=unvariant<FuncArg>(*__arg);
+		    std::shared_ptr<Value> arg=_arg.value;
+		    
+		    const std::string& aName=_arg.name;
+		    
+		    const bool isNamedArg=aName!="";
+		    
+		    if(not (isNamedArg xor insertNamed))
+		      {
+			size_t iMember{};
+			
+			if(isNamedArg)
+			  {
+			    iMember=
+			      members.iParOfName(aName);
+			    
+			    diagnostic("Plugging named argument: ",aName," as member n.",iMember," of struct ",fName,"\n");
+			    
+			    if(iMember==members.list.size())
+			      errorEmitter("trying to pass argument ",aName," not expected by the struct ",fName);
+			  }
+			else
+			  while(iMember<args.size() and args[iMember])
+			    iMember++;
+			
+			if(iMember>=args.size())
+			  errorEmitter("passing too many arguments to struct ",fName);
+			else
+			  args[iMember]=arg;
+		      }
+		  }
+	      };
+	    
+	    for(const int& namedUnnamed : {0,1})
+	      insertNamedOrUnnamed(namedUnnamed);
+	    
+	    for(size_t iMember=0;iMember<members.list.size();iMember++)
+	      if(not args[iMember])
+		{
+		  const StructMemberNode& member=members.list[iMember];
+		  
+		  if(std::shared_ptr<ASTNode> optDef=member.def)
+		    {
+		      diagnostic("Member ",member.name," missing value, adding its default\n");
+		      
+		      args[iMember]=std::make_shared<Value>(std::visit(*this,*optDef).asRhs());
+		    }
+		  else
+		    errorEmitter("member \"",member.name,"\" with no default value unspecified when calling the struct constructor");
+		}
+	  }
+	else
+	  errorEmitter("trying to call a non-callable variable of kind: ",variantInnerTypeName(_fun));
     
     return callFunction(_fun,args);
   }
@@ -1390,7 +1637,7 @@ struct Evaluator
   {
     EvalResult _lhs=std::visit(*this,*assignNode.lhs);
     
-    assignNode.op(_lhs.asLhs(),std::visit(*this,*assignNode.rhs).asRhs());
+    _lhs.set(assignNode.mode,std::visit(*this,*assignNode.rhs).asRhs());
     
     return _lhs;
   }
