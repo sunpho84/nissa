@@ -309,6 +309,9 @@ struct Struct
 
 struct HObjectInfo;
 
+using ValueT=
+  std::variant<std::monostate,std::string,int,double,Function,FuncArg,HostFunction,ValueRef,ValuesList,StructDef,Struct,HObject>;
+
 struct HObject
 {
   const HObjectInfo* info;
@@ -316,12 +319,12 @@ struct HObject
   std::any data;
   
   inline HObjectMemberRef getMemberRef(const std::string& memberName);
+  
+  ValueT operator*(const ValueT&) const;
 };
 
 struct Value
 {
-  using ValueT=std::variant<std::monostate,std::string,int,double,Function,FuncArg,HostFunction,ValueRef,ValuesList,StructDef,Struct,HObject>;
-  
   Value& operator=(const ValueT& oth)
   {
     data=oth;
@@ -782,7 +785,7 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 		return {OP arg};					\
 	      else							\
 		{							\
-		  errorEmitter("Cannot " #NAME" the type: %s",typeid(arg).name()); \
+		  errorEmitter("Cannot " #NAME" the type: ",typeid(arg).name()); \
 		  return {std::monostate{}};				\
 		}},							\
 			      arg.data);				\
@@ -809,15 +812,15 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 		return {arg1 OP arg2};					\
 	      else							\
 		{							\
-		  errorEmitter("Cannot " #NAME" the types: %s %s",typeid(arg1).name(),typeid(arg2).name()); \
+		  errorEmitter("Cannot " #NAME" the types: ",typeid(arg1).name()," and ",typeid(arg2).name()); \
 		  return {std::monostate{}};				\
 		}},							\
-			      arg1.data,arg2.data);				\
+			      arg1.data,arg2.data);			\
 	  }}))
   
   DEFINE_BINOP(+,Sum);
   DEFINE_BINOP(-,Diff);
-  DEFINE_BINOP(-,Prod);
+  DEFINE_BINOP(*,Prod);
   DEFINE_BINOP(/,Div);
   DEFINE_BINOP(%,Mod);
   DEFINE_BINOP(<,Smaller);
