@@ -305,7 +305,13 @@ struct Struct
   const StructDefNode* structDefNode;
   
   std::vector<std::shared_ptr<Value>> members;
+  
+  inline Struct(const StructDef& def,
+		std::vector<std::shared_ptr<Value>>& members);
 };
+
+inline std::ostream& operator<<(std::ostream& os,
+				const Struct& s);
 
 struct HObjectInfo;
 
@@ -319,8 +325,6 @@ struct HObject
   std::any data;
   
   inline HObjectMemberRef getMemberRef(const std::string& memberName);
-  
-  ValueT operator*(const ValueT&) const;
 };
 
 struct Value
@@ -332,22 +336,36 @@ struct Value
     return *this;
   }
   
-  Value operator*(const Value& oth) const
-  {
-    return {std::visit([](const auto& lhs,
-			  const auto& rhs)->ValueT
-    {
-       if constexpr(requires {lhs * rhs;})
-	 return lhs * rhs;
-       else
-	 errorEmitter("Cannot "  "assign the types: ",typeid(lhs).name()," and ",typeid(rhs).name());
+  // ValueT operator*(const Value& oth) const
+  // {
+  //   return {std::visit([](const auto& lhs,
+  // 			  const auto& rhs)->ValueT
+  //   {
+  //      if constexpr(requires {lhs * rhs;})
+  // 	 return {lhs*rhs};
+  //      else
+  // 	 errorEmitter("Cannot "  "assign the types: ",typeid(lhs).name()," and ",typeid(rhs).name());
        
-       return {};
-    },this->data,oth.data)};
-  }
+  //      return {};
+  //   },this->data,oth.data)};
+  // }
   
   ValueT data;
 };
+
+inline std::ostream& operator<<(std::ostream& os,
+				const Value& v)
+{
+  std::visit([&os](const auto& v)
+  {
+    if constexpr(requires {os<<v;})
+      os<<v;
+    else
+      os<<"unprintable type: "<<typeid(decltype(v)).name()<<"\n";
+  },v.data);
+  
+  return os;
+}
 
 struct HObjectMemberRef
 {
@@ -548,6 +566,36 @@ struct StructDefNode
   
   StructMemberListNode members;
 };
+
+inline std::ostream& operator<<(std::ostream& os,
+				const Struct& s)
+{
+  const StructDefNode& def=*s.structDefNode;
+  
+  os<<"Struct "<<def.name<<"\n";
+  for(size_t i=0;i<def.members.list.size();i++)
+    os<<" "<<def.members.list[i].name<<" "<<*s.members[i]<<"\n";
+  
+  return os;
+};
+
+inline Struct::Struct(const StructDef& def,
+		      std::vector<std::shared_ptr<Value>>& members) :
+  structDefNode(def.structDefNode),
+  members(members)
+{
+  const std::string& name=
+    def.structDefNode->name;
+  
+  diagnostic("Creating struct ",name,"\n");
+    
+  const size_t nArgs=members.size();
+  const size_t nMembers=
+    def.structDefNode->members.list.size();
+  
+  if(members.size()!=nMembers)
+    errorEmitter("Calling struct ",name," constructor with ",nArgs," args when expecting ",nMembers);
+}
 
 struct AssignNode
 {
@@ -1000,7 +1048,11 @@ struct Evaluator
 	  std::visit(Overload{[this](const ValueRef& vr)->Value
 	  {
 	    if(const std::shared_ptr<Value>& r=vr.ref)
-	      return *r;
+	      {
+		ensureInitialized(*r);
+		
+		return *r;
+	      }
 	    else
 	    {
 	      if(not value)
@@ -1062,29 +1114,27 @@ struct Evaluator
     
     env["M_PI"]=M_PI;
     
-    struct Test
-    {
-      int member{10};
-    };
+    // struct Test
+    // {
+    //   int member{10};
+    // };
     
-    static HObjectInfo testInfo;
-    testInfo.memberAccessorsProvider["member"]=
-      [](std::any& _r)
-      {
-	Test& r=*std::any_cast<Test>(&_r);
+    // static HObjectInfo testInfo;
+    // testInfo.memberAccessorsProvider["member"]=
+    //   [](std::any& _r)
+    //   {
+    // 	Test& r=*std::any_cast<Test>(&_r);
 	
-	return std::make_pair([&r]()->Value
-	{
-	  return{r.member};
-	},
-	  [&r](const AssignMode& mode,
-	       const Value& v)
-	  {
-	    std::visit([&r,&mode](const auto& v){trySet(r.member,mode,v);},v.data);
-	  });
-      };
-    
-    env["HO"]=HObject{.info=&testInfo,.data{Test{}}};
+    // 	return std::make_pair([&r]()->Value
+    // 	{
+    // 	  return{r.member};
+    // 	},
+    // 	  [&r](const AssignMode& mode,
+    // 	       const Value& v)
+    // 	  {
+    // 	    std::visit([&r,&mode](const auto& v){trySet(r.member,mode,v);},v.data);
+    // 	  });
+    //   };
     
     env["print"]=
       HostFunction{
@@ -1187,6 +1237,8 @@ struct Evaluator
 	return {v};
       }};
     
+    
+    
 #define REGISTER_ARGLESS_HOST_FUNCTION(NAME)		\
     env[#NAME]=						\
       HostFunction{					\
@@ -1260,7 +1312,7 @@ struct Evaluator
     if(args.size()!=nMembers)
       errorEmitter("Calling struct ",name," constructor with ",nArgs," args when expecting ",nMembers);
       
-    Struct res{.structDefNode=def.structDefNode,.members=args};
+    Struct res(def,args);
     
     return {.value{res}};
   }
