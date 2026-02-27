@@ -66,6 +66,27 @@ namespace nissa
 	  su3_copy(u[isite],buf);
       });
   }
+  
+  inline LxField<quad_su3> quad_su3_vec_single_shift(const LxField<quad_su3>& u,
+						     const int& mu,
+						     const int& sign)
+  {
+    LxField<quad_su3> res=u;
+    
+    u.updateHalo();
+    
+    PAR(0,locVol,
+	CAPTURE(mu,
+		sign,
+		TO_READ(u),
+		TO_WRITE(res)),
+	ivol,
+	{
+	  quad_su3_copy(res[ivol],u[loclx_neigh[1-sign][ivol][mu]]);
+	});
+    
+    return res;
+  }
 }
 
 #endif
