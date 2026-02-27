@@ -6,39 +6,41 @@ int L,T;
 
 void new_cool_eo_conf(eo_ptr<quad_su3> eo_conf,int over_flag,double over_exp)
 {
+      CRASH("reimplement");
     
-  //loop on parity and directions
-  for(int mu=0;mu<4;mu++)
-    for(int par=0;par<2;par++)
-      {
-	communicate_eo_quad_su3_edges(eo_conf);
-	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  {
-	    //compute the staple
-	    su3 staple;
-	    compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
-	    //find the link that maximize the plaquette
-	    su3_unitarize_maximal_trace_projecting_iteration(eo_conf[par][ieo][mu],staple);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	set_borders_invalid(eo_conf[par]);
-      }
+  // //loop on parity and directions
+  // for(int mu=0;mu<4;mu++)
+  //   for(int par=0;par<2;par++)
+  //     {
+  // 	communicate_eo_quad_su3_edges(eo_conf);
+  // 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
+  // 	  {
+  // 	    //compute the staple
+  // 	    su3 staple;
+  // 	    compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
+  // 	    //find the link that maximize the plaquette
+  // 	    su3_unitarize_maximal_trace_projecting_iteration(eo_conf[par][ieo][mu],staple);
+  // 	  }
+  // 	NISSA_PARALLEL_LOOP_END;
+  // 	set_borders_invalid(eo_conf[par]);
+  //     }
 }
 
 void unitarize_conf_max(EoField<quad_su3>& conf)
 {
-    for(int par=0;par<2;par++)
-      {
-	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  for(int idir=0;idir<4;idir++)
-	    {
-	      su3 t;
-	      su3_unitarize_orthonormalizing(t,conf[par][ieo][idir]);
-	      su3_copy(conf[par][ieo][idir],t);
-	    }
-	NISSA_PARALLEL_LOOP_END;
-	set_borders_invalid(conf[par]);
-      }
+      CRASH("reimplement");
+    // for(int par=0;par<2;par++)
+    //   {
+    // 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
+    // 	  for(int idir=0;idir<4;idir++)
+    // 	    {
+    // 	      su3 t;
+    // 	      su3_unitarize_orthonormalizing(t,conf[par][ieo][idir]);
+    // 	      su3_copy(conf[par][ieo][idir],t);
+    // 	    }
+    // 	NISSA_PARALLEL_LOOP_END;
+    // 	set_borders_invalid(conf[par]);
+    //   }
 }
 
 void in_main(int narg,char **arg)
@@ -97,15 +99,16 @@ void in_main(int narg,char **arg)
   MASTER_PRINTF("Cooling time: %lg\n",cool_time);
   
   //write the conf
-  paste_eo_parts_and_write_ildg_gauge_conf(pathout,conf,64);
+  // paste_eo_parts_and_write_ildg_gauge_conf(pathout,conf,64);
   
   ILDG_message_free_all(&mess);
 }
 
 int main(int narg,char **arg)
 {
-  initNissa_threaded(narg,arg,in_main);
-  closeNissa();
+      CRASH("reimplement");
+  // initNissa_threaded(narg,arg,in_main);
+  // closeNissa();
   
   return 0;
 }

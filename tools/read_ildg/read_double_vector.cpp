@@ -26,18 +26,19 @@ void in_main(int narg,char **arg)
   do
     {
       ILDG_header head=ILDG_File_get_next_record_header(fin);
-      MASTER_PRINTF("%s %lld\n",head.type,head.data_length);
+      MASTER_PRINTF("%s %ld\n",head.type,head.data_length);
       
-      found=(strcasecmp(head.type,tag)==0);
-      if(found) read_real_vector(v,fin,head,nbps);
-      else
-	{
-	  char *mess=(char*)malloc(head.data_length+1);
-	  ILDG_File_read_all(mess,fin,head.data_length);
-	  mess[head.data_length]='\0';
-	  MASTER_PRINTF("%s\n================================================\n",mess);
-	  free(mess);
-	}
+      CRASH("reimplement");
+      // found=(strcasecmp(head.type,tag)==0);
+      // if(found) read_real_vector(v,fin,head,nbps);
+      // else
+      // 	{
+      // 	  char *mess=(char*)malloc(head.data_length+1);
+      // 	  ILDG_File_read_all(mess,fin,head.data_length);
+      // 	  mess[head.data_length]='\0';
+      // 	  MASTER_PRINTF("%s\n================================================\n",mess);
+      // 	  free(mess);
+      // 	}
     }
   while(not found);
   
@@ -65,7 +66,8 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  initNissa_threaded(narg,arg,in_main);
+      CRASH("reimplement");
+  // initNissa_threaded(narg,arg,in_main);
   
   closeNissa();
   

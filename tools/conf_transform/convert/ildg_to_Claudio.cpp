@@ -123,11 +123,15 @@ int main(int narg,char **arg)
 	  for(int icol=0;icol<NCOL;icol++)
 	    for(int jcol=0;jcol<NCOL;jcol++)
 	      {
-		complex o;
+		union
+		{
+		  complex o;
+		  std::array<double,2> d2;
+		};
 		complex_copy(o,out_conf[ivol][mu][icol][jcol]);
 		
 		if(nativeEndianness==LittleEndian)
-		  fixToNativeEndianness<BigEndian>(o);
+		  fixToNativeEndianness<BigEndian>(d2);
 		
 		double od[2]{o[RE],o[IM]};
 		

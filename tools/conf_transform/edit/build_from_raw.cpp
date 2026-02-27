@@ -29,7 +29,8 @@ FILE* find_conf_beginning(std::string path)
 	    }
 	  //read
 	  int nr=fread(link,sizeof(su3),1,fin);
-	  if(little_endian) change_endianness((double*)link,(double*)link,sizeof(su3)/sizeof(double));
+      CRASH("reimplement");
+	  // if(little_endian) change_endianness((double*)link,(double*)link,sizeof(su3)/sizeof(double));
 	  
 	  if(nr!=1)
 	    {
@@ -80,31 +81,34 @@ int main(int narg,char **arg)
   initGrid(T,L);
   //////////////////////////// read the conf /////////////////////////////
   
-  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
+      CRASH("reimplement");
+  // quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
   
-  FILE *fin=find_conf_beginning(arg[3]);
-  int rc=fread(conf,sizeof(quad_su3),glbVol,fin);
-  if(rc!=glbVol) CRASH("Unable to read, returned: %d",rc);
-  close_file(fin);
+  // FILE *fin=find_conf_beginning(arg[3]);
+  // int rc=fread(conf,sizeof(quad_su3),glbVol,fin);
+  // if(rc!=glbVol) CRASH("Unable to read, returned: %d",rc);
+  // close_file(fin);
   
-  //convert and reorder
-  if(little_endian) change_endianness((double*)conf,(double*)conf,glbVol*sizeof(quad_su3)/sizeof(double));
-  vector_remap_t(locVol,index_from_ILDG_remapping).remap(conf,conf,sizeof(quad_su3));
-  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    quad_su3_ildg_to_nissa_reord(conf[ivol],conf[ivol]);
-  NISSA_PARALLEL_LOOP_END;
+  // //convert and reorder
+  // if(little_endian) change_endianness((double*)conf,(double*)conf,glbVol*sizeof(quad_su3)/sizeof(double));
+  // vector_remap_t(locVol,index_from_ILDG_remapping).remap(conf,conf,sizeof(quad_su3));
+  // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+  //   quad_su3_ildg_to_nissa_reord(conf[ivol],conf[ivol]);
+  // NISSA_PARALLEL_LOOP_END;
   
-  //perform unitarity test
-  unitarity_check_result_t unitarity_check_result;
-  unitarity_check_lx_conf(unitarity_check_result,conf);
+  // //perform unitarity test
+  // unitarity_check_result_t unitarity_check_result;
+  // unitarity_check_lx_conf(unitarity_check_result,conf);
   
-  VERBOSITY_LV1_MASTER_PRINTF("Plaquette of read conf: %16.16lg\n",global_plaquette_lx_conf(conf));
-  VERBOSITY_LV1_MASTER_PRINTF("Deviation from unitarity: %lg average, %lg max\n",unitarity_check_result.average_diff,unitarity_check_result.max_diff);
+      CRASH("reimplement");
+  // VERBOSITY_LV1_MASTER_PRINTF("Plaquette of read conf: %16.16lg\n",global_plaquette_lx_conf(conf));
+  // VERBOSITY_LV1_MASTER_PRINTF("Deviation from unitarity: %lg average, %lg max\n",unitarity_check_result.average_diff,unitarity_check_result.max_diff);
   
   //////////////////////////// write the conf ////////////////////////////
   
-  write_ildg_gauge_conf(arg[4],conf,64);
-  nissa_free(conf);
+      CRASH("reimplement");
+  // write_ildg_gauge_conf(arg[4],conf,64);
+  // nissa_free(conf);
   
   ///////////////////////////////////////////
   

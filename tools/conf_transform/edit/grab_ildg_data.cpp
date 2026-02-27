@@ -16,13 +16,15 @@ int main(int narg,char **arg)
   initGrid(T,L);
   //////////////////////////// read the conf /////////////////////////////
   
-  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
-  read_ildg_gauge_conf(conf,arg[3]);
+      CRASH("reimplement");
+  // quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
+  // read_ildg_gauge_conf(conf,arg[3]);
   
-  //////////////////////////// write the conf ////////////////////////////
+  // //////////////////////////// write the conf ////////////////////////////
   
-  write_ildg_gauge_conf(arg[4],conf,64);
-  nissa_free(conf);
+  // write_ildg_gauge_conf(arg[4],conf,64);
+      CRASH("reimplement");
+  // nissa_free(conf);
   
   ///////////////////////////////////////////
   
