@@ -118,7 +118,7 @@ int main(int narg,char **arg)
       read_str(in,1024);
       read_str(out,1024);
       
-      if(not file_exists(out))
+      if(not fileExists(out))
 	 conf_convert(out,in);
       else
 	MASTER_PRINTF("Skipping conf %s\n",in);
