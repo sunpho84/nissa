@@ -179,55 +179,31 @@ namespace nissa
       }
   }
   
-  //compute the functional that gets minimised
+  /// Compute the functional that gets minimized
   double compute_Landau_or_Coulomb_functional(const LxField<quad_su3>& conf,
 					      const int& start_mu,
-					      const LxField<double> *_F_offset=nullptr,
-					      LxField<double> *ext_loc_F=nullptr)
+					      const LxField<double> *_F_offset=nullptr)
   {
-    LxField<double> *_loc_F=ext_loc_F;
-    if(ext_loc_F==nullptr)
-      _loc_F=new LxField<double>("loc_F");
+    LxField<double> loc_F("loc_F");
     
-    LxField<double>& loc_F=*_loc_F;
+    PAR(0,locVol,
+	CAPTURE(start_mu,
+		TO_WRITE(loc_F),
+		TO_READ(conf)),
+	ivol,
+	{
+	  loc_F[ivol]=0;
+	  
+	  for(int mu=start_mu;mu<NDIM;mu++)
+	    loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
+	});
     
     if(_F_offset)
-      {
-	const LxField<double>& F_offset=*_F_offset;
-	PAR(0,locVol,
-	    CAPTURE(start_mu,
-		    TO_WRITE(loc_F),
-		    TO_READ(conf),
-		    TO_READ(F_offset)),
-	    ivol,
-	    {
-	      loc_F[ivol]=-F_offset[ivol];
-	      
-	      for(int mu=start_mu;mu<NDIM;mu++)
-		loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
-	    });
-      }
-    else
-      {
-	PAR(0,locVol,
-	    CAPTURE(start_mu,
-		    TO_WRITE(loc_F),
-		    TO_READ(conf)),
-	    ivol,
-	    {
-	      loc_F[ivol]=0;
-	      
-	      for(int mu=start_mu;mu<NDIM;mu++)
-		loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
-	    });
-      }
+      loc_F-=*_F_offset;
     
     //collapse
     double F;
     loc_F.preciseReduce(F);
-    
-    if(ext_loc_F==nullptr)
-      delete _loc_F;
     
     return F;
   }
@@ -713,11 +689,10 @@ namespace nissa
 					   double &func,
 					   const LxField<quad_su3>& fixed_conf,
 					   const LC_gauge_fixing_pars_t::gauge_t& gauge,
-					   const double& target_prec,
-					   LxField<double>* loc_F)
+					   const double& target_prec)
   {
     prec=compute_Landau_or_Coulomb_gauge_fixing_quality(fixed_conf,gauge);
-    func=compute_Landau_or_Coulomb_functional(fixed_conf,gauge,nullptr,loc_F);
+    func=compute_Landau_or_Coulomb_functional(fixed_conf,gauge,nullptr);
     
     const bool get_out=
       (prec<=target_prec);
