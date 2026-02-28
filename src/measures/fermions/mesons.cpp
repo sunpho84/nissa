@@ -86,7 +86,8 @@ namespace nissa
       //fill_eo_from_lx(eo,lx_buf);
 
 	  split_lx_vector_into_eo_parts(eo,lx_buf);
-      set_borders_invalid(eo);
+      set_borders_invalid(eo[0]);
+      set_borders_invalid(eo[1]);
     }
   
   
