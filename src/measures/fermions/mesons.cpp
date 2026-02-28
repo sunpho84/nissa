@@ -26,7 +26,7 @@ namespace nissa
     int nop;
     int ncombo;
     int nflavs;
-  
+  /*
   template <typename T>
   void fill_lx_from_eo(LxField<T>& out, const EoField<T>& in_eo)
   {
@@ -64,7 +64,7 @@ namespace nissa
 			});
 	  }
 	  set_borders_invalid(out_eo);
-  }
+  }*/
 
   // reuse gaussian_smearing using lx as buffer
   template <typename T>
@@ -126,7 +126,7 @@ namespace nissa
     std::vector<EoField<color>> quark0s(nflavs*nop,{"quark0s",WITH_HALO});
     
 	LxField<quad_su3> conf_lx("conf_lx",WITH_HALO);
-    fill_lx_from_eo(conf_lx,conf);
+    //fill_lx_from_eo(conf_lx,conf);
 	paste_eo_parts_into_lx_vector(conf_lx,conf);
 	set_borders_invalid(conf_lx);
 	//conf_lx.updateEdges(); gauss smear already does it 
