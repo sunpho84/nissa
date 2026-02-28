@@ -232,6 +232,11 @@
 %type <int_pair_list> operators
 %token TK_DIR
 %type <int_numb> dir
+%token TK_GAUSS_KAPPA
+%token TK_GAUSS_NITER_SRC
+%token TK_GAUSS_NITER_SNK
+%type <double_numb> gauss_kappa
+%type <int_numb> gauss_niter_src gauss_niter_snk
 //putpourri
 %type <fermionic_putpourri_meas> fermionic_putpourri_meas
 %token TK_MEAS_PUTPOURRI
@@ -601,9 +606,21 @@ meson_corr_meas: TK_MEAS_MESON_CORRS {$$=new meson_corr_meas_pars_t();}
 		   if((*$2)[0]!=std::make_pair(15,15)) CRASH("first entry of the meson list must be 15,15, instead it is: %d %d",(*$2)[0].first,(*$2)[0].second);
 		   $$->mesons=(*$2);delete $2;}
                |meson_corr_meas dir {$$->dir=$2;}
+               | meson_corr_meas gauss_kappa {$$->gauss_kappa=$2;}
+               | meson_corr_meas gauss_niter_src {$$->gauss_niter_src=$2;}
+               | meson_corr_meas gauss_niter_snk {$$->gauss_niter_snk=$2;}
 ;
 
 dir: TK_DIR '=' int_numb {$$=$3;}
+;
+
+gauss_kappa: TK_GAUSS_KAPPA '=' double_numb {$$=$3;}
+;
+
+gauss_niter_src: TK_GAUSS_NITER_SRC '=' int_numb {$$=$3;}
+;
+
+gauss_niter_snk: TK_GAUSS_NITER_SNK '=' int_numb {$$=$3;}
 ;
 
 operators: TK_OPERATORS '=' int_pair_list {
