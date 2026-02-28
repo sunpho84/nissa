@@ -182,7 +182,7 @@ namespace nissa
   //compute the functional that gets minimised
   double compute_Landau_or_Coulomb_functional(const LxField<quad_su3>& conf,
 					      const int& start_mu,
-					      const LxField<double> *F_offset=nullptr,
+					      const LxField<double> *_F_offset=nullptr,
 					      LxField<double> *ext_loc_F=nullptr)
   {
     LxField<double> *_loc_F=ext_loc_F;
@@ -191,18 +191,36 @@ namespace nissa
     
     LxField<double>& loc_F=*_loc_F;
     
-    PAR(0,locVol,
-	CAPTURE(F_offset,start_mu,
-		TO_WRITE(loc_F),
-		TO_READ(conf)),
-	ivol,
-	{
-	  if(F_offset) loc_F[ivol]=-(*F_offset)[ivol];
-	  else         loc_F[ivol]=0;
-	  
-	  for(int mu=start_mu;mu<NDIM;mu++)
-	    loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
-	});
+    if(_F_offset)
+      {
+	const LxField<double>& F_offset=*_F_offset;
+	PAR(0,locVol,
+	    CAPTURE(start_mu,
+		    TO_WRITE(loc_F),
+		    TO_READ(conf),
+		    TO_READ(F_offset)),
+	    ivol,
+	    {
+	      loc_F[ivol]=-F_offset[ivol];
+	      
+	      for(int mu=start_mu;mu<NDIM;mu++)
+		loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
+	    });
+      }
+    else
+      {
+	PAR(0,locVol,
+	    CAPTURE(start_mu,
+		    TO_WRITE(loc_F),
+		    TO_READ(conf)),
+	    ivol,
+	    {
+	      loc_F[ivol]=0;
+	      
+	      for(int mu=start_mu;mu<NDIM;mu++)
+		loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
+	    });
+      }
     
     //collapse
     double F;
