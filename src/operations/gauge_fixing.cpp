@@ -689,10 +689,11 @@ namespace nissa
 					   double &func,
 					   const LxField<quad_su3>& fixed_conf,
 					   const LC_gauge_fixing_pars_t::gauge_t& gauge,
-					   const double& target_prec)
+					   const double& target_prec,
+					   const LxField<double> *_F_offset=nullptr)
   {
     prec=compute_Landau_or_Coulomb_gauge_fixing_quality(fixed_conf,gauge);
-    func=compute_Landau_or_Coulomb_functional(fixed_conf,gauge,nullptr);
+    func=compute_Landau_or_Coulomb_functional(fixed_conf,gauge,_F_offset);
     
     const bool get_out=
       (prec<=target_prec);
