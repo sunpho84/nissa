@@ -129,6 +129,11 @@ Operators DEBUG_PRINTF("Found Operators\n");return TK_OPERATORS;
  /* direction */
 Dir DEBUG_PRINTF("Found Dir\n");return TK_DIR;
 
+  /* gaussian smearing (meson corrs) */
+GaussKappa DEBUG_PRINTF("Found GaussKappa\n");return TK_GAUSS_KAPPA;
+GaussNiterSrc DEBUG_PRINTF("Found GaussNiterSrc\n");return TK_GAUSS_NITER_SRC;
+GaussNiterSnk DEBUG_PRINTF("Found GaussNiterSnk\n");return TK_GAUSS_NITER_SNK;
+
  /* rendens pars */
 MaxOrder DEBUG_PRINTF("Found MaxOrder\n");return TK_MAX_ORDER;
 
