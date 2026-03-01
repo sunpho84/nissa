@@ -120,7 +120,7 @@ namespace nissa
   {
     if(nterm==0 or (nterm==1 and exponent[0]==0 and coeff[0]==1))
       {
-	if(smear_sc!=origi_sc) smear_sc==origi_sc;
+	if(smear_sc!=origi_sc) smear_sc=origi_sc;
       }
     else
       {
@@ -157,7 +157,7 @@ namespace nissa
   
   template <typename T>
   void gaussian_smearing(LxField<T>& smear_sc,
-			 const LxField<T> origi_sc,
+			 const LxField<T>& origi_sc,
 			 const LxField<quad_su3>& conf,
 			 const double& kappa_iso,
 			 const int& niter,

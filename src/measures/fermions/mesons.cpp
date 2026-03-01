@@ -15,6 +15,7 @@
 #include "operations/gauge_fixing.hpp"
 #include "routines/mpi_routines.hpp"
 #include "stag.hpp"
+#include "operations/smearing/gaussian.hpp"
 
 namespace nissa
 {
@@ -25,7 +26,29 @@ namespace nissa
     int nop;
     int ncombo;
     int nflavs;
-  }
+  
+  // reuse gaussian_smearing using lx as buffer
+  template <typename T>
+	void gaussian_smear_eo(EoField<T>& out,
+                       const EoField<T>& in,
+                       LxField<T>& lx_buf,
+                       LxField<T>& lx_temp,
+                       LxField<T>& lx_H,
+                       const LxField<quad_su3>& conf_lx,
+                       const double gauss_kappa,
+                       const int gauss_niter)
+    {
+      if(gauss_niter<=0){
+		out = in; 
+		return;
+		}
+
+	  paste_eo_parts_into_lx_vector(lx_buf,in);
+      gaussian_smearing(lx_buf,lx_buf,conf_lx,gauss_kappa,gauss_niter,&lx_temp,&lx_H);
+	  split_lx_vector_into_eo_parts(out,lx_buf);
+
+    }
+  
   
   //compute the index where to store
   inline int icombo(const int& iflav_so,
@@ -41,6 +64,7 @@ namespace nissa
 				     +nop*(iflav_si
 					   +nflavs*iflav_so)));
   }
+}
   
   void compute_meson_corr(complex* corr,
 			  const EoField<quad_su3>& conf,
@@ -49,6 +73,9 @@ namespace nissa
   {
     const int& dir=
       meas_pars.dir;
+	const double gauss_kappa=meas_pars.gauss_kappa;
+	const int gauss_niter_src=meas_pars.gauss_niter_src;
+	const int gauss_niter_snk=meas_pars.gauss_niter_snk;
     
     //allocate
     EoField<color> ori_source("ori_source",WITH_HALO);
@@ -58,6 +85,13 @@ namespace nissa
     std::vector<EoField<color>> quark(nflavs*nop,{"quark",WITH_HALO});
     std::vector<EoField<color>> quark0s(nflavs*nop,{"quark0s",WITH_HALO});
     
+	LxField<quad_su3> conf_lx("conf_lx",WITH_HALO);
+	paste_eo_parts_into_lx_vector(conf_lx,conf);
+
+    LxField<color> gauss_lx_buf("gauss_lx_buf",WITH_HALO);
+    LxField<color> gauss_lx_temp("gauss_lx_temp",WITH_HALO);
+    LxField<color> gauss_lx_H("gauss_lx_H",WITH_HALO);
+
     //form the masks
     int mask[nop],shift[nop];
     for(int iop=0;iop<nop;iop++)
@@ -87,16 +121,28 @@ namespace nissa
 	//generate source
 	generate_fully_undiluted_eo_source(ori_source,meas_pars.rnd_type,source_coord,dir);
 	
+	EoField<color> smeared_ori_source("smeared_ori_source",WITH_HALO);
+    gaussian_smear_eo(smeared_ori_source, ori_source,
+                              gauss_lx_buf, gauss_lx_temp, gauss_lx_H,
+                              conf_lx, gauss_kappa, gauss_niter_src);
+
 	for(int iflav=0;iflav<nflavs;iflav++)
-	  for(int iop=0;iop<nop;iop++)
-	    {
-	      const int idx=iflav*nop+iop;
-	      apply_shift_op(source,temp[0],temp[1],conf,tp.backfield[iflav],shift[iop],ori_source);
-	      put_stag_phases(source,mask[iop]);
-	      mult_Minv(quark[idx],conf,tp,iflav,meas_pars.residue,source);
-	    }
-	
-	/// Sink
+	  {
+	    for(int iop=0;iop<nop;iop++)
+	      {
+			const int idx=iflav*nop+iop;
+			apply_shift_op(source,temp[0],temp[1],conf,tp.backfield[iflav],shift[iop],smeared_ori_source);
+			put_stag_phases(source,mask[iop]);
+
+			mult_Minv(quark[idx],conf,tp,iflav,meas_pars.residue,source);
+
+			//smear also the sink prop before contraction
+			gaussian_smear_eo(quark[idx], quark[idx],
+							  gauss_lx_buf, gauss_lx_temp, gauss_lx_H,
+							  conf_lx, gauss_kappa, gauss_niter_snk);
+	      }
+	  }
+	    /// Sink
 	for(int iflav=0;iflav<nflavs;iflav++)
 	  for(int iop=0;iop<nop;iop++)
 	    {
