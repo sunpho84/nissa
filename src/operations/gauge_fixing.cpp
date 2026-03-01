@@ -3,7 +3,6 @@
 #endif
 
 #include <math.h>
-#include <string.h>
 
 #include <base/debug.hpp>
 #include <base/field.hpp>
@@ -162,7 +161,7 @@ namespace nissa
     return F;
   }
   
-  //derivative of the functional
+  /// Derivative of the functional for a given site
   template <typename C>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void compute_Landau_or_Coulomb_functional_der(su3& out,
@@ -208,24 +207,23 @@ namespace nissa
     return F;
   }
   
-  //compute the quality of the Landau or Coulomb gauge fixing
+  /// Compute the quality of the Landau or Coulomb gauge fixing
   double compute_Landau_or_Coulomb_gauge_fixing_quality(const LxField<quad_su3>& conf,
-							const int& start_mu)
+							const int& startMu)
   {
     conf.updateHalo();
     
     LxField<double> loc_omega("loc_omega");
     
     PAR(0,locVol,
-	CAPTURE(start_mu,
+	CAPTURE(startMu,
 		TO_WRITE(loc_omega),
 		TO_READ(conf)),
 	ivol,
 	{
-	  su3 delta;
-	  su3_put_to_zero(delta);
+	  su3 delta{};
 	  
-	  for(int mu=start_mu;mu<NDIM;mu++)
+	  for(int mu=startMu;mu<NDIM;mu++)
 	    {
 	      su3_subtassign(delta,conf[ivol][mu]);
 	      su3_summassign(delta,conf[loclxNeighdw[ivol][mu]][mu]);
@@ -375,7 +373,8 @@ namespace nissa
 	  
 	  //build the factor
 	  double fact=num;
-	  if(fabs(den)>1e-10) fact/=den;
+	  if(fabs(den)>1e-10)
+	    fact/=den;
 	  
 	  //put the factor
 	  su3_prodassign_double(der[imom],fact);
@@ -741,10 +740,10 @@ namespace nissa
       {
 	double time=-take_time();
 	
-	const bool use_fft_acc=pars.use_fft_acc;
-	bool use_adapt=pars.use_adaptative_search;
-	bool use_GCG=pars.use_generalized_cg;
-	if(pars.use_generalized_cg) allocate_GCG_stuff();
+	const bool use_fft_acc=pars.useFftAcc;
+	bool use_adapt=pars.useAdaptativeSearch;
+	bool use_GCG=pars.useGeneralizedCg;
+	if(pars.useGeneralizedCg) allocate_GCG_stuff();
 	
 	fixed_conf=ext_conf;
 	
@@ -759,7 +758,7 @@ namespace nissa
 	
 	LxField<double> F_offset("F_offset");
 	double prec,func;
-	bool really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars.gauge,pars.target_precision,&F_offset);
+	bool really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars.gauge,pars.targetPrecision,&F_offset);
 	int iter=0,nskipped_adapt=0;
 	do
 	  {
@@ -771,10 +770,10 @@ namespace nissa
 		
 		switch(pars.method)
 		  {
-		  case LC_gauge_fixing_pars_t::exponentiate:
-		    Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars.gauge,pars.alpha_exp,ext_conf,F_offset,func,use_fft_acc,use_adapt,nskipped_adapt,use_GCG,iter);break;
-		  case LC_gauge_fixing_pars_t::overrelax:
-		    Landau_or_Coulomb_gauge_fixing_overrelax(fixed_conf,pars.gauge,pars.overrelax_prob,fixer,ext_conf);break;
+		  case LC_gauge_fixing_pars_t::EXPONENTIATE:
+		    Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars.gauge,pars.alphaExp,ext_conf,F_offset,func,use_fft_acc,use_adapt,nskipped_adapt,use_GCG,iter);break;
+		  case LC_gauge_fixing_pars_t::OVERRELAX:
+		    Landau_or_Coulomb_gauge_fixing_overrelax(fixed_conf,pars.gauge,pars.overrelaxProb,fixer,ext_conf);break;
 		  default:
 		    CRASH("unknown method %d",pars.method);
 		  }
@@ -782,9 +781,9 @@ namespace nissa
 		
 		//print out the precision reached and the functional
 		get_out=false;
-		get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars.gauge,pars.target_precision,&F_offset);
-		get_out|=(not (iter<pars.nmax_iterations));
-		get_out|=(not (iter%pars.unitarize_each==0));
+		get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars.gauge,pars.targetPrecision,&F_offset);
+		get_out|=(not (iter<pars.nmaxIterations));
+		get_out|=(not (iter%pars.unitarizeEach==0));
 		
 		//switch off adaptative search if skipped too many times
 		int nskipped_adapt_tol=5;
@@ -817,16 +816,16 @@ namespace nissa
 	    
 	    //check if really get out
 	    really_get_out=false;
-	    really_get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars.gauge,pars.target_precision,&F_offset);
-	    really_get_out|=(not (iter<pars.nmax_iterations));
+	    really_get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars.gauge,pars.targetPrecision,&F_offset);
+	    really_get_out|=(not (iter<pars.nmaxIterations));
 	  }
 	while(not really_get_out);
 	
 	//crash if this did not work
-	if(not really_get_out) CRASH("unable to fix to precision %16.16lg in %d iterations",pars.target_precision,pars.nmax_iterations);
+	if(not really_get_out) CRASH("unable to fix to precision %16.16lg in %d iterations",pars.targetPrecision,pars.nmaxIterations);
 	
 	//free
-	if(pars.use_generalized_cg) free_GCG_stuff();
+	if(pars.useGeneralizedCg) free_GCG_stuff();
 	
 	MASTER_PRINTF("Gauge fix time: %lg\n",time+take_time());
       }
