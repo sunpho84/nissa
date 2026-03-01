@@ -12,8 +12,11 @@ namespace nissa
     std::vector<std::pair<int,int>> mesons;
     
     int dir;
+    
     double gauss_kappa;
+    
     int gauss_niter_src;
+    
     int gauss_niter_snk;
     
     /// Time direction by defaul
@@ -21,11 +24,22 @@ namespace nissa
     {
       return 0;
     }
-
+    
     // Smearing defaults: disabled
-    double def_gauss_kappa() const { return 0.0; }
-    int def_gauss_niter_src() const { return 0; }
-    int def_gauss_niter_snk() const { return 0; }
+    double def_gauss_kappa() const
+    {
+      return 0.0;
+    }
+    
+    int def_gauss_niter_src() const
+    {
+      return 0;
+    }
+    
+    int def_gauss_niter_snk() const
+    {
+      return 0;
+    }
     
     std::string def_path() const
     {
@@ -44,7 +58,7 @@ namespace nissa
       
       os<<"MeasMesonCorrs\n";
       os<<base_fermionic_meas_t::get_str(full);
-
+      
       if(dir!=def_dir() or full)
 	os<<" Dir\t\t=\t"<<dir<<"\n";
       
@@ -58,12 +72,15 @@ namespace nissa
 	    }
 	  os<<"}\n";
 	}
-    if(gauss_kappa!=def_gauss_kappa() or full)
-      os<<" GaussKappa\t=\t"<<gauss_kappa<<"\n";
-    if(gauss_niter_src!=def_gauss_niter_src() or full)
-      os<<" GaussNiterSrc\t=\t"<<gauss_niter_src<<"\n";
-    if(gauss_niter_snk!=def_gauss_niter_snk() or full)
-      os<<" GaussNiterSnk\t=\t"<<gauss_niter_snk<<"\n";
+      
+      if(gauss_kappa!=def_gauss_kappa() or full)
+	os<<" GaussKappa\t=\t"<<gauss_kappa<<"\n";
+      
+      if(gauss_niter_src!=def_gauss_niter_src() or full)
+	os<<" GaussNiterSrc\t=\t"<<gauss_niter_src<<"\n";
+      
+      if(gauss_niter_snk!=def_gauss_niter_snk() or full)
+	os<<" GaussNiterSnk\t=\t"<<gauss_niter_snk<<"\n";
       
       return os.str();
     }
@@ -74,9 +91,9 @@ namespace nissa
 	base_fermionic_meas_t::is_nonstandard() or
 	mesons.size() or
 	dir!=def_dir() or
-  gauss_kappa!=def_gauss_kappa() or
-  gauss_niter_src!=def_gauss_niter_src() or
-  gauss_niter_snk!=def_gauss_niter_snk() or
+	gauss_kappa!=def_gauss_kappa() or
+	gauss_niter_src!=def_gauss_niter_src() or
+	gauss_niter_snk!=def_gauss_niter_snk() or
 	path!=def_path();
     }
     
