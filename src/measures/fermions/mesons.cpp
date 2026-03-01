@@ -26,68 +26,27 @@ namespace nissa
     int nop;
     int ncombo;
     int nflavs;
-  /*
-  template <typename T>
-  void fill_lx_from_eo(LxField<T>& out, const EoField<T>& in_eo)
-  {
-	out.reset();
-	auto in_view = in_eo.getReadable(); // maybe boh
-
-	for(int eo=0; eo<2; eo++)
-	  {
-	    PAR(0,locVolh,
-			CAPTURE(eo,
-			in_view,
-			TO_WRITE(out)),
-			ieo,
-			{
-			  const int ivol=loclx_of_loceo[eo][ieo];
-			  out[ivol]=in_view[eo][ieo];
-			});
-	  }
-	  set_borders_invalid(out);
-  }
-  template <typename T>
-  void fill_eo_from_lx(EoField<T>& out_eo, const LxField<T>& in_lx)
-  { 
-	auto out_view = out_eo.getWritable(); // maybe boh
-	for(int eo=0; eo<2; eo++)
-	  {
-	    PAR(0,locVolh,
-			CAPTURE(eo,
-			out_view,
-			TO_READ(in_lx)),
-			ieo,
-			{
-			  const int ivol=loclx_of_loceo[eo][ieo];
-			  out_view[eo][ieo]=in_lx[ivol];
-			});
-	  }
-	  set_borders_invalid(out_eo);
-  }*/
-
+  
   // reuse gaussian_smearing using lx as buffer
   template <typename T>
-    void gaussian_smear_eo_inplace(EoField<T>& eo,
-                                  LxField<T>& lx_buf,
-                                  LxField<T>& lx_temp,
-                                  LxField<T>& lx_H,
-                                  const LxField<quad_su3>& conf_lx,
-                                  const double gauss_kappa,
-                                  const int gauss_niter)
+	void gaussian_smear_eo(EoField<T>& out,
+                       const EoField<T>& in,
+                       LxField<T>& lx_buf,
+                       LxField<T>& lx_temp,
+                       LxField<T>& lx_H,
+                       const LxField<quad_su3>& conf_lx,
+                       const double gauss_kappa,
+                       const int gauss_niter)
     {
-      if(gauss_niter<=0) return;
+      if(gauss_niter<=0){
+		out = in; 
+		return;
+		}
 
-      //fill_lx_from_eo(lx_buf,eo); -> I found the following already implemnted routine after i wrote mine, but I guess these are more trustworthy
-	  paste_eo_parts_into_lx_vector(lx_buf,eo);
-      set_borders_invalid(lx_buf);
-	
+	  paste_eo_parts_into_lx_vector(lx_buf,in);
       gaussian_smearing(lx_buf,lx_buf,conf_lx,gauss_kappa,gauss_niter,&lx_temp,&lx_H);
-      //fill_eo_from_lx(eo,lx_buf);
+	  split_lx_vector_into_eo_parts(out,lx_buf);
 
-	  split_lx_vector_into_eo_parts(eo,lx_buf);
-      set_borders_invalid(eo[0]);
-      set_borders_invalid(eo[1]);
     }
   
   
@@ -127,10 +86,7 @@ namespace nissa
     std::vector<EoField<color>> quark0s(nflavs*nop,{"quark0s",WITH_HALO});
     
 	LxField<quad_su3> conf_lx("conf_lx",WITH_HALO);
-    //fill_lx_from_eo(conf_lx,conf);
 	paste_eo_parts_into_lx_vector(conf_lx,conf);
-	set_borders_invalid(conf_lx);
-	//conf_lx.updateEdges(); gauss smear already does it 
 
     LxField<color> gauss_lx_buf("gauss_lx_buf",WITH_HALO);
     LxField<color> gauss_lx_temp("gauss_lx_temp",WITH_HALO);
@@ -166,8 +122,7 @@ namespace nissa
 	generate_fully_undiluted_eo_source(ori_source,meas_pars.rnd_type,source_coord,dir);
 	
 	EoField<color> smeared_ori_source("smeared_ori_source",WITH_HALO);
-    smeared_ori_source = ori_source;
-    gaussian_smear_eo_inplace(smeared_ori_source,
+    gaussian_smear_eo(smeared_ori_source, ori_source,
                               gauss_lx_buf, gauss_lx_temp, gauss_lx_H,
                               conf_lx, gauss_kappa, gauss_niter_src);
 
@@ -179,13 +134,12 @@ namespace nissa
 			apply_shift_op(source,temp[0],temp[1],conf,tp.backfield[iflav],shift[iop],smeared_ori_source);
 			put_stag_phases(source,mask[iop]);
 
-			//smear the source, done before cause it would mess up with stag operator
-			//gaussian_smear_eo_inplace(source, gauss_lx_buf, gauss_lx_temp, gauss_lx_H, conf_lx, gauss_kappa, gauss_niter_src);
-
 			mult_Minv(quark[idx],conf,tp,iflav,meas_pars.residue,source);
 
 			//smear also the sink prop before contraction
-			gaussian_smear_eo_inplace(quark[idx], gauss_lx_buf, gauss_lx_temp, gauss_lx_H, conf_lx, gauss_kappa, gauss_niter_snk);
+			gaussian_smear_eo(quark[idx], quark[idx],
+							  gauss_lx_buf, gauss_lx_temp, gauss_lx_H,
+							  conf_lx, gauss_kappa, gauss_niter_snk);
 	      }
 	  }
 	    /// Sink
