@@ -650,6 +650,7 @@ namespace nissa
     //take the derivative
     LxField<su3> der("der");
     
+    const double t1=take_time();
     PAR(0,locVol,
 	CAPTURE(gauge,TO_WRITE(der),
 		TO_READ(fixed_conf)),
@@ -659,12 +660,23 @@ namespace nissa
 	compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,gauge);
 	unsafe_su3_traceless_anti_hermitian_part(der[ivol],temp);
       });
+    VERBOSITY_LV2_MASTER_PRINTF("Time to compute the functional derivative: %lg s\n",take_time()-t1);
     
     //put the kernel
-    if(use_FACC) Fourier_accelerate_derivative(der);
+    if(use_FACC)
+      {
+	const double t1=take_time();
+	Fourier_accelerate_derivative(der);
+	VERBOSITY_LV2_MASTER_PRINTF("Time to fourier accelerate: %lg s\n",take_time()-t1);
+      }
     
     //make the CG improvement
-    if(use_GCG) GCG_improve_gauge_fixer(der,use_GCG,iter);
+    if(use_GCG)
+      {
+	const double t1=take_time();
+	GCG_improve_gauge_fixer(der,use_GCG,iter);
+	VERBOSITY_LV2_MASTER_PRINTF("Time to make gcg: %lg s\n",take_time()-t1);
+      }
     
     //decides what to use
     LxField<su3>& v=(use_GCG?s:der);
@@ -674,14 +686,28 @@ namespace nissa
     
     //set alpha
     double alpha;
-    if(use_adapt) alpha=adapt_alpha(fixed_conf,fixer,gauge,v,alpha_def,ori_conf,&F_offset,func,use_adapt,nskipped_adapt);
-    else          alpha=alpha_def;
+    if(use_adapt)
+      {
+	const double t1=take_time();
+	alpha=adapt_alpha(fixed_conf,fixer,gauge,v,alpha_def,ori_conf,&F_offset,func,use_adapt,nskipped_adapt);
+	VERBOSITY_LV2_MASTER_PRINTF("Time to make adaptative alpha: %lg s\n",take_time()-t1);
+      }
+    else
+      alpha=alpha_def;
     
-    exp_der_alpha_half(g,v,alpha);
+    {
+      const double t1=take_time();
+      exp_der_alpha_half(g,v,alpha);
+      VERBOSITY_LV2_MASTER_PRINTF("Time to eponentiate: %lg s\n",take_time()-t1);
+    }
     
     //put the transformation
-    add_current_transformation(fixer,g,fixer);
-    gauge_transform_conf(fixed_conf,fixer,ori_conf);
+    {
+      const double t1=take_time();
+      add_current_transformation(fixer,g,fixer);
+      gauge_transform_conf(fixed_conf,fixer,ori_conf);
+      VERBOSITY_LV2_MASTER_PRINTF("Time to make final transf: %lg s\n",take_time()-t1);
+    }
   }
   
   //check if gauge fixed or not
