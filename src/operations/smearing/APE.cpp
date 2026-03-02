@@ -12,7 +12,7 @@ namespace nissa
 		      const int& nSteps,
 		      const WhichDirs& dirs,
 		      const int& minStapleDir,
-			  const int skipStapleDir)
+			  const int& skipStapleDir)
   {
     char listed_dirs[21]="";
     for(int mu=0;mu<NDIM;mu++)
