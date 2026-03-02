@@ -70,7 +70,6 @@ namespace nissa
     }
   
   
-}
   
   void compute_meson_corr(complex* corr,
 			  const EoField<quad_su3>& conf,
