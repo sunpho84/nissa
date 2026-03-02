@@ -12,9 +12,6 @@ namespace nissa
     std::vector<std::pair<int,int>> mesons;
     
     int dir;
-    double gauss_kappa;
-    int gauss_niter_src;
-    int gauss_niter_snk;
     double ape_alpha;
     int ape_niter;
 
@@ -33,10 +30,6 @@ namespace nissa
       return 0;
     }
 
-    // Smearing defaults: disabled
-    double def_gauss_kappa() const { return 0.0; }
-    int def_gauss_niter_src() const { return 0; }
-    int def_gauss_niter_snk() const { return 0; }
     
     // Smearing defaults: disabled
     double def_gauss_kappa() const
