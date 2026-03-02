@@ -4,7 +4,8 @@ using namespace nissa;
 
 void inMain(int narg,char **arg)
 {
-  if(narg<2) CRASH("Use: %s input_file",arg[0]);
+  if(narg<2)
+    CRASH("Use: %s input_file",arg[0]);
   
   open_input(arg[1]);
   
@@ -17,15 +18,20 @@ void inMain(int narg,char **arg)
   char inPath[1024];
   read_str_str("InGaugePath",inPath,1024);
   
-  double precision;
-  read_str_double("Precision",&precision);
-  
   char outPath[1024];
   read_str_str("OutGaugePath",outPath,1024);
   
+  LC_gauge_fixing_pars_t pars;
+  pars.gauge=LC_gauge_fixing_pars_t::LANDAU;
+  read_str_double("Precision",&pars.targetPrecision);
+  read_str_int("UseFftAcc",&pars.useFftAcc);
+  read_str_int("UseAdaptativeSearch",&pars.useAdaptativeSearch);
+  read_str_int("UseGeneralizedCG",&pars.useGeneralizedCg);
+  
   close_input();
   
-  start_loc_rnd_gen(1000);
+  //set pars
+  field_rng_stream.init(3472291050);
   
   ///////////////////////////////////////////
   
@@ -33,11 +39,6 @@ void inMain(int narg,char **arg)
   LxField<quad_su3> fixedConf("FixedConf",WITH_HALO);
   
   read_ildg_gauge_conf(conf,inPath);
-  
-  //set pars
-  LC_gauge_fixing_pars_t pars;
-  pars.gauge=LC_gauge_fixing_pars_t::Landau;
-  pars.target_precision=precision;
   
   Landau_or_Coulomb_gauge_fix(fixedConf,pars,conf);
   

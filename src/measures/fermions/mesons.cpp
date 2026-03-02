@@ -52,19 +52,25 @@ namespace nissa
     }
   
   
-  //compute the index where to store
-  inline int icombo(const int& iflav_so,
-		    const int& iflav_si,
-		    const int& iop_so,
-		    const int& iop_si,
-		    const int& i_dir,
-		    const int& dir)
+  // Reuse gaussian_smearing using lx as buffer
+  template <typename T>
+  void gaussian_smear_eo(EoField<T>& out,
+			 const EoField<T>& in,
+			 LxField<T>& lx_buf,
+			 LxField<T>& lx_temp,
+			 LxField<T>& lx_H,
+			 const LxField<quad_su3>& conf_lx,
+			 const double gauss_kappa,
+			 const int gauss_niter)
   {
-    return i_dir
-		+glbSize[dir]*(iop_si
-			       +nop*(iop_so
-				     +nop*(iflav_si
-					   +nflavs*iflav_so)));
+    if(gauss_niter<=0)
+      out=in;
+    else
+      {    
+	paste_eo_parts_into_lx_vector(lx_buf,in);
+	gaussian_smearing(lx_buf,lx_buf,conf_lx,gauss_kappa,gauss_niter,&lx_temp,&lx_H);
+	split_lx_vector_into_eo_parts(out,lx_buf);
+      }
   }
 }
   

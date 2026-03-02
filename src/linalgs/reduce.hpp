@@ -131,7 +131,7 @@ namespace nissa
     
     for(int islice=0;islice<nslices;islice++)
       {
-	if constexpr(std::is_pod_v<T> and not std::is_array_v<T>)
+	if constexpr(std::is_standard_layout_v<T> and std::is_trivial_v<T> and not std::is_array_v<T>)
 	  {
 #ifdef USE_CUDA
 	    cudaMemcpy(&loc_res[islice],buf.template getPtrTo<defaultMemorySpace>(islice*nori_per_slice,0),sizeof(T),cudaMemcpyDeviceToHost);

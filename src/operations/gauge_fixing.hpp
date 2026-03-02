@@ -12,19 +12,23 @@ namespace nissa
 {
   struct LC_gauge_fixing_pars_t
   {
-    //direction from which to start
-    enum gauge_t{Landau=0,Coulomb=1};
+    /// At the same time this defines the method and the direction from which to start... maybe disentangle?
+    enum gauge_t{LANDAU=0,COULOMB=1};
     
-    static inline std::string gauge_tag(gauge_t gauge)
+    /// Minimization method
+    enum method_t{OVERRELAX,EXPONENTIATE};
+    
+    /// Converts the gauge to a string
+    static inline std::string gaugeTag(const gauge_t& gauge)
     {
       std::string res;
       
       switch(gauge)
 	{
-	case Landau:
+	case LANDAU:
 	  res="Landau";
 	  break;
-	case Coulomb:
+	case COULOMB:
 	  res="Coulomb";
 	  break;
 	default:
@@ -34,63 +38,80 @@ namespace nissa
       return res;
     }
     
-    static inline gauge_t gauge_from_tag(const char *tag)
+    /// Converts a string to a enum
+    static inline gauge_t gaugeFromTag(const std::string_view& tag)
     {
-      if(strcasecmp(tag,"Landau")==0)
-	return Landau;
+      if(tag=="Landau")
+	return LANDAU;
       
-      if(strcasecmp(tag,"Coulomb")==0)
-	return Coulomb;
+      if(tag=="Coulomb")
+	return COULOMB;
       
-      CRASH("Unknown gauge %s, use \"Landau\" or \"Coulomb\"",tag);
+      CRASH("Unknown gauge %s, use \"Landau\" or \"Coulomb\"",tag.begin());
       
-      return Landau;
+      return {};
     }
     
-    gauge_t def_gauge() const
-    {
-      return Landau;
-    }
+    /// Precision for minimization
+    static constexpr double defTargetPrecision=1e-14;
+    
+    /// Default gauge
+    static constexpr gauge_t defGauge=LANDAU;
+    
+    /// Max number of iterations
+    static constexpr int defNmaxIterations=100000;
+    
+    /// Iterations between reunitarization
+    static constexpr int defUnitarizeEach=100;
+    
+    /// Default method
+    static constexpr method_t defMethod=EXPONENTIATE;
+    
+    // Default robability to overrelax
+    static constexpr double defOverrelaxProb=0.9;
+    
+    /// Alpha in exp(-i alpha der /2)
+    static constexpr double defAlphaExp=0.16;
+    
+    /// Use or not the adaptative search of 1405.5812
+    static constexpr int defUseAdaptativeSearch=true;
+    
+    /// Use or not the generalized cg
+    static constexpr int defUseGeneralizedCg=true;
+    
+    /// Use or not fft to accelerate
+    static constexpr int defUseFftAcc=true;
     
     gauge_t gauge;
     
-    //precision for minimization
-    double def_target_precision() const
-    {
-      return 1e-14;
-    }
+    double targetPrecision;
     
-    double target_precision;
+    int nmaxIterations;
     
-    //max number of iterations
-    int def_nmax_iterations() const
-    {
-      return 100000;
-    }
+    int unitarizeEach;
     
-    int nmax_iterations;
+    method_t method;
     
-    //iterations between reunitarization
-    int def_unitarize_each() const
-    {
-      return 100;
-    }
+    double overrelaxProb;
     
-    int unitarize_each;
+    double alphaExp;
     
-    //minimization method
-    enum method_t{overrelax,exponentiate};
+    int useAdaptativeSearch;
     
-    static inline std::string method_tag(method_t method)
+    int useGeneralizedCg;
+    
+    int useFftAcc;
+    
+    static inline std::string methodTag(const method_t& method)
     {
       std::string res;
       
       switch(method)
 	{
-	case overrelax:
+	case OVERRELAX:
 	  res="Overrelax";
 	  break;
-	case exponentiate:
+	case EXPONENTIATE:
 	  res="Exponentiate";
 	  break;
 	default:
@@ -100,87 +121,41 @@ namespace nissa
       return res;
     }
     
-    static inline method_t method_from_tag(const char *tag)
+    static inline method_t methodFromTag(const std::string_view& tag)
     {
-      if(strcasecmp(tag,"Overrelax")==0)
-	return overrelax;
+      if(tag=="Overrelax")
+	return OVERRELAX;
       
-      if(strcasecmp(tag,"Exponentiate")==0)
-	return exponentiate;
+      if(tag=="Exponentiate")
+	return EXPONENTIATE;
       
-      CRASH("Unknown method %s, use \"Overrelax\" or \"Exponentiate\"",tag);
+      CRASH("Unknown method %s, use \"Overrelax\" or \"Exponentiate\"",tag.begin());
       
-      return overrelax;
+      return {};
     }
     
-    method_t def_method() const
-    {
-      return exponentiate;
-    }
-    
-    method_t method;
-    
-    //probability to overrelax
-    double def_overrelax_prob() const
-    {
-      return 0.9;
-    }
-    
-    double overrelax_prob;
-    
-    //parameter for alpha in exp(-i alpha der /2)
-    double def_alpha_exp() const
-    {
-      return 0.16;
-    }
-    
-    double alpha_exp;
-    
-    //use or not the adaptative search of 1405.5812
-    int def_use_adaptative_search() const
-    {
-      return 1;
-    }
-    
-    int use_adaptative_search;
-    
-    //use or not the generalized cg
-    int def_use_generalized_cg() const
-    {
-      return 1;
-    }
-    
-    int use_generalized_cg;
-    
-    //use or not fft to accelerate
-    int def_use_fft_acc() const
-    {
-      return 1;
-    }
-    
-    int use_fft_acc;
-    
-    int master_fprintf(FILE *fout,const int full=false)
+    int master_fprintf(FILE* fout,
+		       const int full=false) const 
     {
       return nissa::master_fprintf(fout,"%s",get_str().c_str());
     }
     
-    std::string get_str(int full=false) const
+    std::string get_str(const bool& full=false) const
     {
       std::ostringstream os;
       if(full or is_nonstandard())
 	{
 	  os<<"GaugeFix\n";
-	  if(full or gauge!=def_gauge()) os<<" Gauge\t=\t"<<gauge_tag(gauge)<<"\n";
-	  if(full or target_precision!=def_target_precision()) os<<" TargetPrecision\t=\t"<<target_precision<<"\n";
-	  if(full or nmax_iterations!=def_nmax_iterations()) os<<" TargetPrecision\t=\t"<<nmax_iterations<<"\n";
-	  if(full or unitarize_each!=def_unitarize_each()) os<<" TargetPrecision\t=\t"<<unitarize_each<<"\n";
-	  if(full or method!=def_method()) os<<" Method\t=\t"<<method_tag(method)<<"\n";
-	  if(full or overrelax_prob!=def_overrelax_prob()) os<<" OverrelaxProb\t=\t"<<overrelax_prob<<"\n";
-	  if(full or alpha_exp!=def_alpha_exp()) os<<" AlphaExp\t=\t"<<alpha_exp<<"\n";
-	  if(full or use_adaptative_search!=def_use_adaptative_search()) os<<" UseAdaptativeSearch\t=\t"<<use_adaptative_search<<"\n";
-	  if(full or use_generalized_cg!=def_use_generalized_cg()) os<<" UseGeneralizedCg\t=\t"<<use_generalized_cg<<"\n";
-	  if(full or use_fft_acc!=def_use_fft_acc()) os<<" UseFFTacc\t=\t"<<use_fft_acc<<"\n";
+	  if(full or gauge!=defGauge) os<<" Gauge\t=\t"<<gaugeTag(gauge)<<"\n";
+	  if(full or targetPrecision!=defTargetPrecision) os<<" TargetPrecision\t=\t"<<targetPrecision<<"\n";
+	  if(full or nmaxIterations!=defNmaxIterations) os<<" TargetPrecision\t=\t"<<nmaxIterations<<"\n";
+	  if(full or unitarizeEach!=defUnitarizeEach) os<<" TargetPrecision\t=\t"<<unitarizeEach<<"\n";
+	  if(full or method!=defMethod) os<<" Method\t=\t"<<methodTag(method)<<"\n";
+	  if(full or overrelaxProb!=defOverrelaxProb) os<<" OverrelaxProb\t=\t"<<overrelaxProb<<"\n";
+	  if(full or alphaExp!=defAlphaExp) os<<" AlphaExp\t=\t"<<alphaExp<<"\n";
+	  if(full or useAdaptativeSearch!=defUseAdaptativeSearch) os<<" UseAdaptativeSearch\t=\t"<<useAdaptativeSearch<<"\n";
+	  if(full or useGeneralizedCg!=defUseGeneralizedCg) os<<" UseGeneralizedCg\t=\t"<<useGeneralizedCg<<"\n";
+	  if(full or useFftAcc!=defUseFftAcc) os<<" UseFFTacc\t=\t"<<useFftAcc<<"\n";
 	}
       return os.str();
     }
@@ -188,30 +163,31 @@ namespace nissa
     bool is_nonstandard() const
     {
       return
-	gauge!=def_gauge() or
-	target_precision!=def_target_precision() or
-	nmax_iterations!=def_nmax_iterations() or
-	unitarize_each!=def_unitarize_each() or
-	method!=def_method() or
-	overrelax_prob!=def_overrelax_prob() or
-	alpha_exp!=def_alpha_exp() or
-	use_adaptative_search!=def_use_adaptative_search() or
-	use_generalized_cg!=def_use_generalized_cg() or
-	use_fft_acc!=def_use_fft_acc();
+	gauge!=defGauge or
+	targetPrecision!=defTargetPrecision or
+	nmaxIterations!=defNmaxIterations or
+	unitarizeEach!=defUnitarizeEach or
+	method!=defMethod or
+	overrelaxProb!=defOverrelaxProb or
+	alphaExp!=defAlphaExp or
+	useAdaptativeSearch!=defUseAdaptativeSearch or
+	useGeneralizedCg!=defUseGeneralizedCg or
+	useFftAcc!=defUseFftAcc;
     }
     
     LC_gauge_fixing_pars_t() :
-      gauge(def_gauge()),
-      target_precision(def_target_precision()),
-      nmax_iterations(def_nmax_iterations()),
-      unitarize_each(def_unitarize_each()),
-      method(def_method()),
-      overrelax_prob(def_overrelax_prob()),
-      alpha_exp(def_alpha_exp()),
-      use_adaptative_search(def_use_adaptative_search()),
-      use_generalized_cg(def_use_generalized_cg()),
-      use_fft_acc(def_use_fft_acc())
-    {}
+      gauge(defGauge),
+      targetPrecision(defTargetPrecision),
+      nmaxIterations(defNmaxIterations),
+      unitarizeEach(defUnitarizeEach),
+      method(defMethod),
+      overrelaxProb(defOverrelaxProb),
+      alphaExp(defAlphaExp),
+      useAdaptativeSearch(defUseAdaptativeSearch),
+      useGeneralizedCg(defUseGeneralizedCg),
+      useFftAcc(defUseFftAcc)
+    {
+    }
   };
   
   //read all Landau or Coulomb gauge fixing pars
@@ -219,23 +195,23 @@ namespace nissa
   {
     char gauge_tag[200];
     read_str_str("Gauge",gauge_tag,200);
-    pars.gauge=LC_gauge_fixing_pars_t::gauge_from_tag(gauge_tag);
-    read_str_double("TargetPrecision",&pars.target_precision);
-    read_str_int("NMaxIterations",&pars.nmax_iterations);
-    read_str_int("UnitarizeEach",&pars.unitarize_each);
+    pars.gauge=LC_gauge_fixing_pars_t::gaugeFromTag(gauge_tag);
+    read_str_double("TargetPrecision",&pars.targetPrecision);
+    read_str_int("NMaxIterations",&pars.nmaxIterations);
+    read_str_int("UnitarizeEach",&pars.unitarizeEach);
     char method_tag[200];
     read_str_str("Method",method_tag,200);
-    pars.method=LC_gauge_fixing_pars_t::method_from_tag(method_tag);
+    pars.method=LC_gauge_fixing_pars_t::methodFromTag(method_tag);
     switch(pars.method)
       {
-      case LC_gauge_fixing_pars_t::overrelax:
-	read_str_double("OverrelaxProb",&pars.overrelax_prob);
+      case LC_gauge_fixing_pars_t::OVERRELAX:
+	read_str_double("OverrelaxProb",&pars.overrelaxProb);
 	break;
-      case LC_gauge_fixing_pars_t::exponentiate:
-	read_str_double("AlphaExp",&pars.alpha_exp);
-	read_str_int("UseAdaptativeSearch",&pars.use_adaptative_search);
-	read_str_int("UseGeneralizedCg",&pars.use_generalized_cg);
-	read_str_int("UseFFTacc",&pars.use_fft_acc);
+      case LC_gauge_fixing_pars_t::EXPONENTIATE:
+	read_str_double("AlphaExp",&pars.alphaExp);
+	read_str_int("UseAdaptativeSearch",&pars.useAdaptativeSearch);
+	read_str_int("UseGeneralizedCg",&pars.useGeneralizedCg);
+	read_str_int("UseFFTacc",&pars.useFftAcc);
 	break;
       default:
 	CRASH("unkown method %d",pars.method);

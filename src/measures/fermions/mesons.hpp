@@ -21,6 +21,12 @@ namespace nissa
     double def_ape_alpha() const { return 0.5; }
     int def_ape_niter() const { return 20; }
     
+    double gauss_kappa;
+    
+    int gauss_niter_src;
+    
+    int gauss_niter_snk;
+    
     /// Time direction by defaul
     int def_dir() const
     {
@@ -31,6 +37,22 @@ namespace nissa
     double def_gauss_kappa() const { return 0.0; }
     int def_gauss_niter_src() const { return 0; }
     int def_gauss_niter_snk() const { return 0; }
+    
+    // Smearing defaults: disabled
+    double def_gauss_kappa() const
+    {
+      return 0.0;
+    }
+    
+    int def_gauss_niter_src() const
+    {
+      return 0;
+    }
+    
+    int def_gauss_niter_snk() const
+    {
+      return 0;
+    }
     
     std::string def_path() const
     {
@@ -49,7 +71,7 @@ namespace nissa
       
       os<<"MeasMesonCorrs\n";
       os<<base_fermionic_meas_t::get_str(full);
-
+      
       if(dir!=def_dir() or full)
 	os<<" Dir\t\t=\t"<<dir<<"\n";
       
@@ -74,6 +96,15 @@ namespace nissa
       os<<" GaussNiterSrc\t=\t"<<gauss_niter_src<<"\n";
     if(gauss_niter_snk!=def_gauss_niter_snk() or full)
       os<<" GaussNiterSnk\t=\t"<<gauss_niter_snk<<"\n";
+      
+      if(gauss_kappa!=def_gauss_kappa() or full)
+	os<<" GaussKappa\t=\t"<<gauss_kappa<<"\n";
+      
+      if(gauss_niter_src!=def_gauss_niter_src() or full)
+	os<<" GaussNiterSrc\t=\t"<<gauss_niter_src<<"\n";
+      
+      if(gauss_niter_snk!=def_gauss_niter_snk() or full)
+	os<<" GaussNiterSnk\t=\t"<<gauss_niter_snk<<"\n";
       
       return os.str();
     }
