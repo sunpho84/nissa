@@ -11,7 +11,8 @@ namespace nissa
 		      const double& alpha,
 		      const int& nSteps,
 		      const WhichDirs& dirs,
-		      const int& minStapleDir)
+		      const int& minStapleDir,
+			  const int skipStapleDir)
   {
     char listed_dirs[21]="";
     for(int mu=0;mu<NDIM;mu++)
@@ -44,10 +45,10 @@ namespace nissa
 		    su3 stap,temp1,temp2;
 		    su3_put_to_zero(stap);
 		    
-		    for(int nu=minStapleDir;nu<NDIM;nu++)     //  E---F---C
-		      if(nu!=mu)                              //  |   |   | mu
-			{                                     //  D---A---B
-			  const int A=ivol;                   //   nu
+		    for(int nu=minStapleDir;nu<NDIM;nu++)     							//  E---F---C
+		      if(nu!=mu and (skipStapleDir<0 || nu!=skipStapleDir))             //  |   |   | mu
+			{                                     							//  D---A---B
+			  const int A=ivol;                  							//   nu
 			  const int B=loclxNeighup[A][nu];
 			  const int F=loclxNeighup[A][mu];
 			  unsafe_su3_prod_su3(temp1,conf[A][nu],conf[B][mu]);

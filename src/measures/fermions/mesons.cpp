@@ -16,6 +16,7 @@
 #include "routines/mpi_routines.hpp"
 #include "stag.hpp"
 #include "operations/smearing/gaussian.hpp"
+#include "operations/smearing/APE.hpp"
 
 namespace nissa
 {
@@ -36,7 +37,8 @@ namespace nissa
                        LxField<T>& lx_H,
                        const LxField<quad_su3>& conf_lx,
                        const double gauss_kappa,
-                       const int gauss_niter)
+                       const int gauss_niter,
+					   const int corr_dir)
     {
       if(gauss_niter<=0){
 		out = in; 
@@ -44,7 +46,7 @@ namespace nissa
 		}
 
 	  paste_eo_parts_into_lx_vector(lx_buf,in);
-      gaussian_smearing(lx_buf,lx_buf,conf_lx,gauss_kappa,gauss_niter,&lx_temp,&lx_H);
+      gaussian_smearing(lx_buf,lx_buf,conf_lx,gauss_kappa,gauss_niter,corr_dir,&lx_temp,&lx_H);
 	  split_lx_vector_into_eo_parts(out,lx_buf);
 
     }
@@ -76,6 +78,9 @@ namespace nissa
 	const double gauss_kappa=meas_pars.gauss_kappa;
 	const int gauss_niter_src=meas_pars.gauss_niter_src;
 	const int gauss_niter_snk=meas_pars.gauss_niter_snk;
+	const double ape_alpha=meas_pars.ape_alpha;
+	const int ape_niter=meas_pars.ape_niter;
+
     
     //allocate
     EoField<color> ori_source("ori_source",WITH_HALO);
@@ -86,7 +91,9 @@ namespace nissa
     std::vector<EoField<color>> quark0s(nflavs*nop,{"quark0s",WITH_HALO});
     
 	LxField<quad_su3> conf_lx("conf_lx",WITH_HALO);
+	LxField<quad_su3> conf_lx_ape("conf_lx_ape",WITH_HALO);
 	paste_eo_parts_into_lx_vector(conf_lx,conf);
+	ape_orth_dir_smear_conf(conf_lx_ape, conf_lx, ape_alpha, ape_niter, dir);
 
     LxField<color> gauss_lx_buf("gauss_lx_buf",WITH_HALO);
     LxField<color> gauss_lx_temp("gauss_lx_temp",WITH_HALO);
@@ -124,7 +131,7 @@ namespace nissa
 	EoField<color> smeared_ori_source("smeared_ori_source",WITH_HALO);
     gaussian_smear_eo(smeared_ori_source, ori_source,
                               gauss_lx_buf, gauss_lx_temp, gauss_lx_H,
-                              conf_lx, gauss_kappa, gauss_niter_src);
+                              conf_lx_ape, gauss_kappa, gauss_niter_src, dir);
 
 	for(int iflav=0;iflav<nflavs;iflav++)
 	  {
@@ -139,7 +146,7 @@ namespace nissa
 			//smear also the sink prop before contraction
 			gaussian_smear_eo(quark[idx], quark[idx],
 							  gauss_lx_buf, gauss_lx_temp, gauss_lx_H,
-							  conf_lx, gauss_kappa, gauss_niter_snk);
+							  conf_lx_ape, gauss_kappa, gauss_niter_snk, dir);
 	      }
 	  }
 	    /// Sink

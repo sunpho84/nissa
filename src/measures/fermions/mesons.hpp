@@ -15,6 +15,11 @@ namespace nissa
     double gauss_kappa;
     int gauss_niter_src;
     int gauss_niter_snk;
+    double ape_alpha;
+    int ape_niter;
+
+    double def_ape_alpha() const { return 0.5; }
+    int def_ape_niter() const { return 20; }
     
     /// Time direction by defaul
     int def_dir() const
@@ -58,6 +63,11 @@ namespace nissa
 	    }
 	  os<<"}\n";
 	}
+
+    if(ape_alpha!=def_ape_alpha() or full)
+      os<<" ApeAlpha\t=\t"<<ape_alpha<<"\n";
+    if(ape_niter!=def_ape_niter() or full)
+      os<<" ApeNiter\t=\t"<<ape_niter<<"\n";
     if(gauss_kappa!=def_gauss_kappa() or full)
       os<<" GaussKappa\t=\t"<<gauss_kappa<<"\n";
     if(gauss_niter_src!=def_gauss_niter_src() or full)
@@ -77,6 +87,8 @@ namespace nissa
   gauss_kappa!=def_gauss_kappa() or
   gauss_niter_src!=def_gauss_niter_src() or
   gauss_niter_snk!=def_gauss_niter_snk() or
+  ape_alpha!=def_ape_alpha() or
+  ape_niter!=def_ape_niter() or
 	path!=def_path();
     }
     
@@ -85,7 +97,9 @@ namespace nissa
       dir(def_dir()),
       gauss_kappa(def_gauss_kappa()),
       gauss_niter_src(def_gauss_niter_src()),
-      gauss_niter_snk(def_gauss_niter_snk())
+      gauss_niter_snk(def_gauss_niter_snk()),
+      ape_alpha(def_ape_alpha()),
+      ape_niter(def_ape_niter())
     {
       path=def_path();
     }
