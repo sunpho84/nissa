@@ -33,7 +33,7 @@ namespace nissa
 	conf.updateEdges();
 	
 	PAR(0,locVol,
-	    CAPTURE(alpha,dirs,minStapleDir,
+	    CAPTURE(alpha,dirs,minStapleDir,skipStapleDir,
 		    TO_READ(conf),
 		    TO_WRITE(smearConf)),
 	    ivol,
