@@ -91,8 +91,8 @@ namespace nissa
     std::vector<EoField<color>> quark(nflavs*nop,{"quark",WITH_HALO});
     std::vector<EoField<color>> quark0s(nflavs*nop,{"quark0s",WITH_HALO});
     
-	LxField<quad_su3> conf_lx("conf_lx",WITH_HALO);
-	LxField<quad_su3> conf_lx_ape("conf_lx_ape",WITH_HALO);
+	LxField<quad_su3> conf_lx("conf_lx",WITH_HALO_EDGES);
+	LxField<quad_su3> conf_lx_ape("conf_lx_ape",WITH_HALO_EDGES);
 	paste_eo_parts_into_lx_vector(conf_lx,conf);
 	ape_orth_dir_smear_conf(conf_lx_ape, conf_lx, ape_alpha, ape_niter, dir);
 
