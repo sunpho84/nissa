@@ -12,11 +12,10 @@ namespace nissa
     std::vector<std::pair<int,int>> mesons;
     
     int dir;
-    double ape_alpha;
-    int ape_niter;
 
-    double def_ape_alpha() const { return 0.5; }
-    int def_ape_niter() const { return 20; }
+    double ape_alpha;
+
+    int ape_niter;
     
     double gauss_kappa;
     
@@ -30,7 +29,17 @@ namespace nissa
       return 0;
     }
 
-    
+    //ape smearing default disabled
+    double def_ape_alpha() const 
+    {
+       return 0.5;
+    }
+
+    int def_ape_niter() const 
+    { 
+      return 0;
+    }
+
     // Smearing defaults: disabled
     double def_gauss_kappa() const
     {
@@ -80,15 +89,19 @@ namespace nissa
 	}
 
     if(ape_alpha!=def_ape_alpha() or full)
-      os<<" ApeAlpha\t=\t"<<ape_alpha<<"\n";
+  os<<" ApeAlpha\t=\t"<<ape_alpha<<"\n";
+
     if(ape_niter!=def_ape_niter() or full)
-      os<<" ApeNiter\t=\t"<<ape_niter<<"\n";
+  os<<" ApeNiter\t=\t"<<ape_niter<<"\n";
+
     if(gauss_kappa!=def_gauss_kappa() or full)
-      os<<" GaussKappa\t=\t"<<gauss_kappa<<"\n";
+  os<<" GaussKappa\t=\t"<<gauss_kappa<<"\n";
+
     if(gauss_niter_src!=def_gauss_niter_src() or full)
-      os<<" GaussNiterSrc\t=\t"<<gauss_niter_src<<"\n";
+  os<<" GaussNiterSrc\t=\t"<<gauss_niter_src<<"\n";
+
     if(gauss_niter_snk!=def_gauss_niter_snk() or full)
-      os<<" GaussNiterSnk\t=\t"<<gauss_niter_snk<<"\n";
+  os<<" GaussNiterSnk\t=\t"<<gauss_niter_snk<<"\n";
       
       if(gauss_kappa!=def_gauss_kappa() or full)
 	os<<" GaussKappa\t=\t"<<gauss_kappa<<"\n";
