@@ -132,11 +132,11 @@ namespace nissa
     meson_corr_meas_pars_t() :
       base_fermionic_meas_t(),
       dir(def_dir()),
-      gauss_kappa(def_gauss_kappa()),
-      gauss_niter_src(def_gauss_niter_src()),
-      gauss_niter_snk(def_gauss_niter_snk()),
       ape_alpha(def_ape_alpha()),
       ape_niter(def_ape_niter())
+      gauss_kappa(def_gauss_kappa()),
+      gauss_niter_src(def_gauss_niter_src()),
+      gauss_niter_snk(def_gauss_niter_snk())
     {
       path=def_path();
     }
