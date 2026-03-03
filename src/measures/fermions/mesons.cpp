@@ -58,17 +58,15 @@ namespace nissa
                        const int gauss_niter,
 					   const int corr_dir)
     {
-      if(gauss_niter<=0){
+      if(gauss_niter<=0)
 		out = in; 
-		return;
-		}
-
+	  else
+		{
 	  paste_eo_parts_into_lx_vector(lx_buf,in);
       gaussian_smearing(lx_buf,lx_buf,conf_lx,gauss_kappa,gauss_niter,corr_dir,&lx_temp,&lx_H);
 	  split_lx_vector_into_eo_parts(out,lx_buf);
-
-    }
-  
+    	}
+	}
   
   
   void compute_meson_corr(complex* corr,
@@ -102,6 +100,12 @@ namespace nissa
     LxField<color> gauss_lx_temp("gauss_lx_temp",WITH_HALO);
     LxField<color> gauss_lx_H("gauss_lx_H",WITH_HALO);
 
+	auto gSmear =
+      [&](EoField<color>& out, const int& nIter, const EoField<color>& in)
+      {
+        gaussian_smear_eo(out, in, gauss_lx_buf, gauss_lx_temp, gauss_lx_H, conf_lx_ape, gauss_kappa, nIter, dir);
+      };
+
     //form the masks
     int mask[nop],shift[nop];
     for(int iop=0;iop<nop;iop++)
@@ -132,9 +136,7 @@ namespace nissa
 	generate_fully_undiluted_eo_source(ori_source,meas_pars.rnd_type,source_coord,dir);
 	
 	EoField<color> smeared_ori_source("smeared_ori_source",WITH_HALO);
-    gaussian_smear_eo(smeared_ori_source, ori_source,
-                              gauss_lx_buf, gauss_lx_temp, gauss_lx_H,
-                              conf_lx_ape, gauss_kappa, gauss_niter_src, dir);
+    gSmear(smeared_ori_source, gauss_niter_src, ori_source);
 
 	for(int iflav=0;iflav<nflavs;iflav++)
 	  {
@@ -147,9 +149,7 @@ namespace nissa
 			mult_Minv(quark[idx],conf,tp,iflav,meas_pars.residue,source);
 
 			//smear also the sink prop before contraction
-			gaussian_smear_eo(quark[idx], quark[idx],
-							  gauss_lx_buf, gauss_lx_temp, gauss_lx_H,
-							  conf_lx_ape, gauss_kappa, gauss_niter_snk, dir);
+			gSmear(quark[idx], gauss_niter_snk, quark[idx]);
 	      }
 	  }
 	    /// Sink
