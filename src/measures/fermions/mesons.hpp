@@ -103,14 +103,6 @@ namespace nissa
     if(gauss_niter_snk!=def_gauss_niter_snk() or full)
   os<<" GaussNiterSnk\t=\t"<<gauss_niter_snk<<"\n";
       
-      if(gauss_kappa!=def_gauss_kappa() or full)
-	os<<" GaussKappa\t=\t"<<gauss_kappa<<"\n";
-      
-      if(gauss_niter_src!=def_gauss_niter_src() or full)
-	os<<" GaussNiterSrc\t=\t"<<gauss_niter_src<<"\n";
-      
-      if(gauss_niter_snk!=def_gauss_niter_snk() or full)
-	os<<" GaussNiterSnk\t=\t"<<gauss_niter_snk<<"\n";
       
       return os.str();
     }
