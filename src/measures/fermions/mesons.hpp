@@ -133,7 +133,7 @@ namespace nissa
       base_fermionic_meas_t(),
       dir(def_dir()),
       ape_alpha(def_ape_alpha()),
-      ape_niter(def_ape_niter())
+      ape_niter(def_ape_niter()),
       gauss_kappa(def_gauss_kappa()),
       gauss_niter_src(def_gauss_niter_src()),
       gauss_niter_snk(def_gauss_niter_snk())
