@@ -12,6 +12,10 @@ namespace nissa
     std::vector<std::pair<int,int>> mesons;
     
     int dir;
+
+    double ape_alpha;
+
+    int ape_niter;
     
     double gauss_kappa;
     
@@ -24,7 +28,18 @@ namespace nissa
     {
       return 0;
     }
-    
+
+    //ape smearing default disabled
+    double def_ape_alpha() const 
+    {
+       return 0.5;
+    }
+
+    int def_ape_niter() const 
+    { 
+      return 0;
+    }
+
     // Smearing defaults: disabled
     double def_gauss_kappa() const
     {
@@ -72,15 +87,22 @@ namespace nissa
 	    }
 	  os<<"}\n";
 	}
+
+    if(ape_alpha!=def_ape_alpha() or full)
+  os<<" ApeAlpha\t=\t"<<ape_alpha<<"\n";
+
+    if(ape_niter!=def_ape_niter() or full)
+  os<<" ApeNiter\t=\t"<<ape_niter<<"\n";
+
+    if(gauss_kappa!=def_gauss_kappa() or full)
+  os<<" GaussKappa\t=\t"<<gauss_kappa<<"\n";
+
+    if(gauss_niter_src!=def_gauss_niter_src() or full)
+  os<<" GaussNiterSrc\t=\t"<<gauss_niter_src<<"\n";
+
+    if(gauss_niter_snk!=def_gauss_niter_snk() or full)
+  os<<" GaussNiterSnk\t=\t"<<gauss_niter_snk<<"\n";
       
-      if(gauss_kappa!=def_gauss_kappa() or full)
-	os<<" GaussKappa\t=\t"<<gauss_kappa<<"\n";
-      
-      if(gauss_niter_src!=def_gauss_niter_src() or full)
-	os<<" GaussNiterSrc\t=\t"<<gauss_niter_src<<"\n";
-      
-      if(gauss_niter_snk!=def_gauss_niter_snk() or full)
-	os<<" GaussNiterSnk\t=\t"<<gauss_niter_snk<<"\n";
       
       return os.str();
     }
@@ -91,15 +113,19 @@ namespace nissa
 	base_fermionic_meas_t::is_nonstandard() or
 	mesons.size() or
 	dir!=def_dir() or
-	gauss_kappa!=def_gauss_kappa() or
-	gauss_niter_src!=def_gauss_niter_src() or
-	gauss_niter_snk!=def_gauss_niter_snk() or
+  gauss_kappa!=def_gauss_kappa() or
+  gauss_niter_src!=def_gauss_niter_src() or
+  gauss_niter_snk!=def_gauss_niter_snk() or
+  ape_alpha!=def_ape_alpha() or
+  ape_niter!=def_ape_niter() or
 	path!=def_path();
     }
     
     meson_corr_meas_pars_t() :
       base_fermionic_meas_t(),
       dir(def_dir()),
+      ape_alpha(def_ape_alpha()),
+      ape_niter(def_ape_niter()),
       gauss_kappa(def_gauss_kappa()),
       gauss_niter_src(def_gauss_niter_src()),
       gauss_niter_snk(def_gauss_niter_snk())

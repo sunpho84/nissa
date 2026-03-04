@@ -67,9 +67,9 @@ namespace nissa
 	if(ext_H==nullptr) _H=new LxField<TYPE>("H",WITH_HALO);	\
 	LxField<TYPE>& H=*_H;						\
   									\
-	const double norm_fact=1/(1+2*(kappa[1]+kappa[2]+kappa[3]));	\
+	const double norm_fact=1/(1+2*(kappa[0]+kappa[1]+kappa[2]+kappa[3]));	\
 									\
-	VERBOSITY_LV2_MASTER_PRINTF("GAUSSIAN smearing with kappa={%g,%g,%g}, %d iterations\n",kappa[1],kappa[2],kappa[3],niter); \
+	VERBOSITY_LV2_MASTER_PRINTF("GAUSSIAN smearing with kappa={%g,%g,%g,%g}, %d iterations\n",kappa[0],kappa[1],kappa[2],kappa[3],niter); \
 									\
 	/*iter 0*/							\
 	temp=origi_sc;							\
@@ -77,7 +77,7 @@ namespace nissa
 	/*loop over gaussian iterations*/				\
 	for(int iter=0;iter<niter;iter++)				\
 	  {								\
-	    VERBOSITY_LV3_MASTER_PRINTF("GAUSSIAN smearing with kappa={%g,%g,%g} iteration %d of %d\n",kappa[1],kappa[2],kappa[3],iter,niter); \
+	    VERBOSITY_LV3_MASTER_PRINTF("GAUSSIAN smearing with kappa={%g,%g,%g,%g} iteration %d of %d\n",kappa[0],kappa[1],kappa[2],kappa[3],iter,niter); \
 									\
 	    /*apply kappa*H*/						\
 	    NAME2(gaussian_smearing_apply_kappa_H,TYPE)(H,kappa,conf,temp); \
@@ -168,6 +168,35 @@ namespace nissa
     
     gaussian_smearing(smear_sc,origi_sc,conf,kappa,niter,ext_temp,ext_H);
   }
+
+  template <typename T>
+  void gaussian_smearing(LxField<T>& smear_sc,
+                         const LxField<T>& origi_sc,
+                         const LxField<quad_su3>& conf,
+                         double kappa_val,
+                         int niter,
+                         int corr_dir, // dir along which the correlator is measured
+                         LxField<T>* ext_temp=nullptr,
+                         LxField<T>* ext_H=nullptr)
+  {
+    Momentum kappa = {0.0, 0.0, 0.0, 0.0};
+    for(int mu=0; mu<NDIM; mu++)
+      if(mu != corr_dir)
+        kappa[mu] = kappa_val;
+
+    /* I've just added kappa[0] in the computation of norm above, it should work 
+    double norm_sum = 0.0;
+    for(int mu=0; mu<NDIM; mu++)
+      if(mu != corr_dir)
+        norm_sum += kappa[mu];
+    double norm_fact = 1.0 / (1.0 + 2.0 * norm_sum);
+	*/
+    
+    gaussian_smearing(smear_sc, origi_sc, conf, kappa, niter, ext_temp, ext_H);
+  }
+
+ 
+
 }
 
 #endif
