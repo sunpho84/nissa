@@ -181,28 +181,36 @@ namespace nissa
   /// Compute the functional that gets minimized
   double compute_Landau_or_Coulomb_functional(const LxField<quad_su3>& conf,
 					      const int& start_mu,
-					      const LxField<double> *_F_offset=nullptr)
+					      const LxField<double>* offsetF=nullptr,
+					      LxField<double>* resLocF=nullptr)
   {
-    LxField<double> loc_F("loc_F");
+    LxField<double>* _locF{};
+    if(not resLocF)
+      _locF=new LxField<double>("_locF");
+    
+    LxField<double>& locF=*(_locF?_locF:resLocF);
     
     PAR(0,locVol,
 	CAPTURE(start_mu,
-		TO_WRITE(loc_F),
+		TO_WRITE(locF),
 		TO_READ(conf)),
 	ivol,
 	{
-	  loc_F[ivol]=0;
+	  locF[ivol]=0;
 	  
 	  for(int mu=start_mu;mu<NDIM;mu++)
-	    loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
+	    locF[ivol]-=su3_real_trace(conf[ivol][mu]);
 	});
     
-    if(_F_offset)
-      loc_F-=*_F_offset;
+    if(offsetF)
+      locF-=*offsetF;
     
     //collapse
     double F;
-    loc_F.preciseReduce(F);
+    locF.preciseReduce(F);
+    
+    if(_locF)
+      delete _locF;
     
     return F;
   }
@@ -423,7 +431,7 @@ namespace nissa
 		     const LxField<su3>& der,
 		     const double& alpha_def,
 		     const LxField<quad_su3>& ori_conf,
-		     const LxField<double> *F_offset,
+		     const LxField<double>& F_offset,
 		     const double& func,
 		     const bool& use_adapt,
 		     int& nskipped_adapt)
@@ -460,7 +468,7 @@ namespace nissa
 	    
 	    //transform and compute potential
 	    gauge_transform_conf(fixed_conf,fixer,ori_conf);
-	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,F_offset);
+	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,&F_offset);
 	  }
 	
 	[[maybe_unused]] double c=F[0];
@@ -688,7 +696,7 @@ namespace nissa
     if(use_adapt)
       {
 	const double t1=take_time();
-	alpha=adapt_alpha(fixed_conf,fixer,gauge,v,alpha_def,ori_conf,&F_offset,func,use_adapt,nskipped_adapt);
+	alpha=adapt_alpha(fixed_conf,fixer,gauge,v,alpha_def,ori_conf,F_offset,func,use_adapt,nskipped_adapt);
 	VERBOSITY_LV2_MASTER_PRINTF("Time to make adaptative alpha: %lg s\n",take_time()-t1);
       }
     else
@@ -715,10 +723,10 @@ namespace nissa
 					   const LxField<quad_su3>& fixed_conf,
 					   const LC_gauge_fixing_pars_t::gauge_t& gauge,
 					   const double& target_prec,
-					   const LxField<double> *_F_offset=nullptr)
+					   LxField<double>* loc_F)
   {
     prec=compute_Landau_or_Coulomb_gauge_fixing_quality(fixed_conf,gauge);
-    func=compute_Landau_or_Coulomb_functional(fixed_conf,gauge,_F_offset);
+    func=compute_Landau_or_Coulomb_functional(fixed_conf,gauge,nullptr,loc_F);
     
     const bool get_out=
       (prec<=target_prec);
