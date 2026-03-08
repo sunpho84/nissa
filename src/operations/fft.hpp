@@ -60,7 +60,11 @@ namespace nissa
 	      auto* fptr=
 		f.template getPtr<defaultMemorySpace>();
 	      
-	      remap_lx_vector_to_locd(buf,fptr,ncpp*sizeof(complex),mu);
+	      {
+		const double tin=take_time();
+		remap_lx_vector_to_locd(buf,fptr,ncpp*sizeof(complex),mu);
+		VERBOSITY_LV3_MASTER_PRINTF("Time to remap to locd: %lg s\n",take_time()-tin);
+	      }
 	      
 #ifdef USE_CUDA
 	      auto decryptFftError=
@@ -88,40 +92,52 @@ namespace nissa
 	      /// Temporary hack, we need to fuse this step with the previous remap
 	      complex *tmp=
 		memoryManager<defaultMemorySpace>()->provide<complex>(locVol*ncpp);
-	      PAR(0,
-		  locd_perp_size_per_dir[mu],
-		  CAPTURE(tmp,
-			  ncpp,
-			  mu,
-			  buf),
-		  iPerp,
-		  {
-		    for(int t=0;t<glbSize[mu];t++)
-		      for(int icpp=0;icpp<ncpp;icpp++)
-			complex_copy(tmp[t+glbSize[mu]*(icpp+ncpp*iPerp)],buf[icpp+ncpp*(t+glbSize[mu]*iPerp)]);
-		  });
+	      {
+		const double tin=take_time();
+		PAR(0,
+		    locd_perp_size_per_dir[mu],
+		    CAPTURE(tmp,
+			    ncpp,
+			    mu,
+			    buf),
+		    iPerp,
+		    {
+		      for(int t=0;t<glbSize[mu];t++)
+			for(int icpp=0;icpp<ncpp;icpp++)
+			  complex_copy(tmp[t+glbSize[mu]*(icpp+ncpp*iPerp)],buf[icpp+ncpp*(t+glbSize[mu]*iPerp)]);
+		    });
+		VERBOSITY_LV3_MASTER_PRINTF("Time to make hacj locd: %lg s\n",take_time()-tin);
+	      }
 	      
 	      cufftHandle plan;
 	      const int stride=1;
 	      const int dist=n;
-	      decryptFftError(cufftPlanMany(&plan,1,&n,nullptr,stride,dist,nullptr,stride,dist,CUFFT_Z2Z,locd_perp_size_per_dir[mu]*ncpp),"creating the plan");
-	      decryptFftError(cufftExecZ2Z(plan,(cufftDoubleComplex*)tmp,(cufftDoubleComplex*)tmp,sign),"executing the transform");
-	      DECRYPT_CUDA_ERROR(cudaDeviceSynchronize(),"synchronizing at the end of fft");
+	      {
+		const double tin=take_time();
+		decryptFftError(cufftPlanMany(&plan,1,&n,nullptr,stride,dist,nullptr,stride,dist,CUFFT_Z2Z,locd_perp_size_per_dir[mu]*ncpp),"creating the plan");
+		decryptFftError(cufftExecZ2Z(plan,(cufftDoubleComplex*)tmp,(cufftDoubleComplex*)tmp,sign),"executing the transform");
+		DECRYPT_CUDA_ERROR(cudaDeviceSynchronize(),"synchronizing at the end of fft");
+		
+		decryptFftError(cufftDestroy(plan),"destroying the plan");
+		VERBOSITY_LV3_MASTER_PRINTF("Time to remap to carry out fft: %lg s\n",take_time()-tin);
+	      }
 	      
-	      decryptFftError(cufftDestroy(plan),"destroying the plan");
-	      
-	      PAR(0,
-		  locd_perp_size_per_dir[mu],
-		  CAPTURE(tmp,
-			  ncpp,
-			  mu,
-			  buf),
-		  iPerp,
-		  {
-		    for(int t=0;t<glbSize[mu];t++)
-		      for(int icpp=0;icpp<ncpp;icpp++)
-			complex_copy(buf[icpp+ncpp*(t+glbSize[mu]*iPerp)],tmp[t+glbSize[mu]*(icpp+ncpp*iPerp)]);
-		  });
+	      {
+		const double tin=take_time();
+		PAR(0,
+		    locd_perp_size_per_dir[mu],
+		    CAPTURE(tmp,
+			    ncpp,
+			    mu,
+			    buf),
+		    iPerp,
+		    {
+		      for(int t=0;t<glbSize[mu];t++)
+			for(int icpp=0;icpp<ncpp;icpp++)
+			  complex_copy(buf[icpp+ncpp*(t+glbSize[mu]*iPerp)],tmp[t+glbSize[mu]*(icpp+ncpp*iPerp)]);
+		    });
+		VERBOSITY_LV3_MASTER_PRINTF("Time to make inverse hack: %lg s\n",take_time()-tin);
+	      }
 	      
 	      memoryManager<defaultMemorySpace>()->release(tmp);
 #else
@@ -145,8 +161,12 @@ namespace nissa
 #endif
 	      
 #endif
-	      
-	      remap_locd_vector_to_lx(fptr,buf,ncpp*sizeof(complex),mu);
+
+	      {
+		const double tin=take_time();
+		remap_locd_vector_to_lx(fptr,buf,ncpp*sizeof(complex),mu);
+		VERBOSITY_LV3_MASTER_PRINTF("Time to remap from locd: %lg s\n",take_time()-tin);
+	      }
 	      
 	      norm*=glbSize[mu];
 	    }

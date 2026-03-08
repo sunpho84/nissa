@@ -448,7 +448,7 @@ namespace nissa
     
     //int nneg_pos_vert=0;
     int iter=0;
-    const int nadapt_iter_max=5;
+    const int nadapt_iter_max=15;
     bool found=false,give_up=false;
     do
       {
@@ -516,7 +516,8 @@ namespace nissa
       }
     while((not found) and (not give_up));
     
-    if(found) nskipped_adapt=0;
+    if(found)
+      nskipped_adapt=0;
     else
       {
 	nskipped_adapt++;
