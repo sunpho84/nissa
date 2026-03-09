@@ -106,7 +106,7 @@ namespace nissa
 			for(int icpp=0;icpp<ncpp;icpp++)
 			  complex_copy(tmp[t+glbSize[mu]*(icpp+ncpp*iPerp)],buf[icpp+ncpp*(t+glbSize[mu]*iPerp)]);
 		    });
-		VERBOSITY_LV3_MASTER_PRINTF("Time to make hacj locd: %lg s\n",take_time()-tin);
+		VERBOSITY_LV3_MASTER_PRINTF("Time to make hack locd: %lg s\n",take_time()-tin);
 	      }
 	      
 	      cufftHandle plan;
@@ -119,7 +119,7 @@ namespace nissa
 		DECRYPT_CUDA_ERROR(cudaDeviceSynchronize(),"synchronizing at the end of fft");
 		
 		decryptFftError(cufftDestroy(plan),"destroying the plan");
-		VERBOSITY_LV3_MASTER_PRINTF("Time to remap to carry out fft: %lg s\n",take_time()-tin);
+		VERBOSITY_LV3_MASTER_PRINTF("Time to carry out fft: %lg s\n",take_time()-tin);
 	      }
 	      
 	      {

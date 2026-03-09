@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "base/debug.hpp"
+#include "base/memory_manager.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "routines/ios.hpp"
@@ -16,62 +17,56 @@ namespace nissa
 {
   temp_build_t::temp_build_t()
   {
-    nper_rank_to_temp=nissa_malloc("nper_rank_to_temp",nranks,int);
-    nper_rank_fr_temp=nissa_malloc("nper_rank_fr_temp",nranks,int);
-  }
-  temp_build_t::~temp_build_t()
-  {
-    nissa_free(nper_rank_to_temp);
-    nissa_free(nper_rank_fr_temp);
-    nissa_free(out_buf_cur_per_rank);
-    nissa_free(in_buf_cur_per_rank);
+    nper_rank_to_temp.resize(nranks);
+    nper_rank_fr_temp.resize(nranks);
   }
   
   //find (communicating) the complementary info
-  void all_to_all_comm_t::setup_nper_rank_other_temp(int *nper_rank_other_temp,int *nper_rank_temp)
+  void all_to_all_comm_t::setup_nper_rank_other_temp(std::vector<int>& nper_rank_other_temp,
+						     const std::vector<int>& nper_rank_temp)
   {
     //send and receive the number of elements to communicate with
     for(int delta_rank=0;delta_rank<nranks;delta_rank++)
       {
-	int dest_rank=(rank+nranks+delta_rank)%nranks;
-	int recv_rank=(rank+nranks-delta_rank)%nranks;
-	MPI_Sendrecv(nper_rank_temp+dest_rank,1,MPI_INT,dest_rank,0,
-		     nper_rank_other_temp+recv_rank,1,MPI_INT,recv_rank,0,
+	const int dest_rank=(rank+nranks+delta_rank)%nranks;
+	const int recv_rank=(rank+nranks-delta_rank)%nranks;
+	MPI_Sendrecv(&nper_rank_temp[dest_rank],1,MPI_INT,dest_rank,0,
+		     &nper_rank_other_temp[recv_rank],1,MPI_INT,recv_rank,0,
 		     MPI_COMM_WORLD,MPI_STATUS_IGNORE);
       }
     
     //send and receive the number of elements to communicate with
     for(int delta_rank=0;delta_rank<nranks;delta_rank++)
       {
-	int dest_rank=(rank+nranks+delta_rank)%nranks;
-	int recv_rank=(rank+nranks-delta_rank)%nranks;
-	MPI_Sendrecv(nper_rank_temp+dest_rank,1,MPI_INT,dest_rank,0,
-		     nper_rank_other_temp+recv_rank,1,MPI_INT,recv_rank,0,
+	const int dest_rank=(rank+nranks+delta_rank)%nranks;
+	const int recv_rank=(rank+nranks-delta_rank)%nranks;
+	MPI_Sendrecv(&nper_rank_temp[dest_rank],1,MPI_INT,dest_rank,0,
+		     &nper_rank_other_temp[recv_rank],1,MPI_INT,recv_rank,0,
 		     MPI_COMM_WORLD,MPI_STATUS_IGNORE);
       }
     VERBOSITY_LV3_MASTER_PRINTF("finished communicating setup_nper_rank_other_temp\n");
   }
   
   //common part of initialization
-  void all_to_all_comm_t::common_setup_part1(temp_build_t &build)
+  void all_to_all_comm_t::common_setup_part1(temp_build_t& build)
   {
-    
     //count the number of different ranks to send and receive from
-    int nranks_to_loc=0,nranks_fr_loc=0; //local: structure could be global!
+    nranks_to=nranks_fr=0;
     for(int irank=0;irank<nranks;irank++)
       {
-	if(build.nper_rank_to_temp[irank]!=0) nranks_to_loc++;
-	if(build.nper_rank_fr_temp[irank]!=0) nranks_fr_loc++;
+	if(build.nper_rank_to_temp[irank]!=0)
+	  nranks_to++;
+	
+	if(build.nper_rank_fr_temp[irank]!=0)
+	  nranks_fr++;
       }
     inited=true;
-    nranks_to=nranks_to_loc;
-    nranks_fr=nranks_fr_loc;
-    list_ranks_to=nissa_malloc("list_ranks_to",nranks_to,int);
-    list_ranks_fr=nissa_malloc("list_ranks_fr",nranks_fr,int);
+    list_ranks_to.resize(nranks_to);
+    list_ranks_fr.resize(nranks_fr);
     
     //store the true list of ranks to communicate with and the number of elements to send to each rank
-    nper_rank_to=nissa_malloc("nper_rank_to",nranks_to,int);
-    nper_rank_fr=nissa_malloc("nper_rank_fr",nranks_fr,int);
+    nper_rank_to.resize(nranks_to);
+    nper_rank_fr.resize(nranks_fr);
     int irank_to=0,irank_fr=0;
     for(int irank=0;irank<nranks;irank++)
       {
@@ -104,10 +99,10 @@ namespace nissa
     nel_out=nel_out_loc;
     
     //compute the offset and the current indexing element (temporary info)
-    out_buf_off_per_rank=nissa_malloc("out_buf_off",nranks_to,int);
-    in_buf_off_per_rank=nissa_malloc(" in_buf_off",nranks_fr,int);
-    build.out_buf_cur_per_rank=nissa_malloc("out_buf_cur",nranks_to,int);
-    build.in_buf_cur_per_rank=nissa_malloc(" in_buf_cur",nranks_fr,int);
+    out_buf_off_per_rank.resize(nranks_to);
+    in_buf_off_per_rank .resize(nranks_fr);
+    build.out_buf_cur_per_rank.resize(nranks_to);
+    build.in_buf_cur_per_rank .resize(nranks_fr);
     
     if(nranks_to!=0)
       {
@@ -131,39 +126,57 @@ namespace nissa
   //explain to each rank how to sort out or fill data from the buff
   //"expl" target the ranks to instruct
   //"note" means the ranks from which learning
-  void all_to_all_comm_t::common_setup_part2(int nel_note,
-    int *&buf_note,int nranks_note,int *list_ranks_note,int *buf_note_off_per_rank,int *nper_rank_note,
-    int *buf_expl,int nranks_expl,int *list_ranks_expl,int *buf_expl_off_per_rank,int *nper_rank_expl)
+  void all_to_all_comm_t::common_setup_part2(const int& nel_note,
+					     int*& buf_note,
+					     const int& nranks_note,
+					     const std::vector<int>& list_ranks_note,
+					     const std::vector<int>& buf_note_off_per_rank,
+					     const std::vector<int>& nper_rank_note,
+					     const std::vector<int>& buf_expl,
+					     const int& nranks_expl,
+					     const std::vector<int>& list_ranks_expl,
+					     const std::vector<int>& buf_expl_off_per_rank,
+					     const std::vector<int>& nper_rank_expl)
   {
-    
     buf_note=nissa_malloc("buf_note",nel_note,int);
     
     MPI_Request req_list[nranks_note+nranks_expl];
     int ireq=0;
     for(int irank_expl=0;irank_expl<nranks_expl;irank_expl++)
-      MPI_Isend(buf_expl+buf_expl_off_per_rank[irank_expl],nper_rank_expl[irank_expl],MPI_INT,
-		list_ranks_expl[irank_expl],909,MPI_COMM_WORLD,&req_list[ireq++]);
+      MPI_Isend(&buf_expl[buf_expl_off_per_rank[irank_expl]],
+		nper_rank_expl[irank_expl],
+		MPI_INT,
+		list_ranks_expl[irank_expl],
+		909,
+		MPI_COMM_WORLD,
+		&req_list[ireq++]);
     for(int irank_note=0;irank_note<nranks_note;irank_note++)
-	  MPI_Irecv(buf_note+buf_note_off_per_rank[irank_note],nper_rank_note[irank_note],MPI_INT,
-		    list_ranks_note[irank_note],909,MPI_COMM_WORLD,&req_list[ireq++]);
-    if(ireq!=nranks_note+nranks_expl) CRASH("expected %d request, obtained %d",nranks_note+nranks_expl,ireq);
+	  MPI_Irecv(&buf_note[buf_note_off_per_rank[irank_note]],
+		    nper_rank_note[irank_note],
+		    MPI_INT,
+		    list_ranks_note[irank_note],
+		    909,
+		    MPI_COMM_WORLD,
+		    &req_list[ireq++]);
+    
+    if(ireq!=nranks_note+nranks_expl)
+      CRASH("expected %d request, obtained %d",nranks_note+nranks_expl,ireq);
     MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
     
     //check
     int max_nel_in=0;
-    for(int iel_in=0;iel_in<nel_in;iel_in++) max_nel_in=std::max(max_nel_in,in_buf_dest[iel_in]);
+    for(int iel_in=0;iel_in<nel_in;iel_in++)
+      max_nel_in=std::max(max_nel_in,in_buf_dest[iel_in]);
     
-    int *in_buf_dest_check=nissa_malloc("in_buf_dest_check",max_nel_in+1,int);
-    vector_reset(in_buf_dest_check);
+    std::vector<int> in_buf_dest_check(max_nel_in+1,0);
     for(int iel_in=0;iel_in<nel_in;iel_in++)
       {
 	int idest=in_buf_dest[iel_in];
 	
 	//if(idest<0 or idest>=nel_in) CRASH("in_buf_dest[%d] point to %d not in the range [0,nel_in=%d)",iel_in,idest,nel_in);
-	if(in_buf_dest_check[idest]++==1) CRASH("multiple assignement of %d",idest);
+	if(in_buf_dest_check[idest]++==1)
+	  CRASH("multiple assignement of %d",idest);
       }
-    
-    nissa_free(in_buf_dest_check);
   }
   
   //build knowing where to send
@@ -173,18 +186,23 @@ namespace nissa
   }
   void all_to_all_comm_t::setup_knowing_where_to_send(const all_to_all_scattering_list_t &sl)
   {
-    
     //count the number of elements to send
     temp_build_t build;
     nel_out=sl.size();
     VERBOSITY_LV3_MASTER_PRINTF("nel to be scattered out: %d\n",nel_out);
     
     //count how many elements to send to each rank
-    vector_reset(build.nper_rank_to_temp);
+    for(int& i : build.nper_rank_to_temp)
+      i=0;
+    
     for(int iel_out=0;iel_out<nel_out;iel_out++)
       {
-	int rank_to=sl[iel_out].second%nranks;
-	if(rank_to>=nranks or rank_to<0) CRASH("destination rank %d does not exist!",rank_to);
+	const int rank_to=
+	  sl[iel_out].second%nranks;
+	
+	if(rank_to>=nranks or rank_to<0)
+	  CRASH("destination rank %d does not exist!",rank_to);
+	
 	build.nper_rank_to_temp[rank_to]++;
       }
     
@@ -194,35 +212,52 @@ namespace nissa
     out_buf_source=nissa_malloc("out_buf_source",nel_out,int);
     
     //save where to store and fill where to load each element in the temporary buffer
-    int *in_buf_dest_expl=nissa_malloc("in_buf_dest_expl",nel_out,int);
+    std::vector<int> in_buf_dest_expl(nel_out);
     for(int iel_out=0;iel_out<nel_out;iel_out++)
       {
-	int rank_iel_to=sl[iel_out].second;
-	int iel_to=rank_iel_to/nranks,rank_to=rank_iel_to-nranks*iel_to;
-	int ilist_rank_to=build.rank_to_map_list_ranks_to[rank_to];
-	int ipos=build.out_buf_cur_per_rank[ilist_rank_to]++;
+	const int rank_iel_to=sl[iel_out].second;
+	
+	const int iel_to=rank_iel_to/nranks;
+	
+	const int rank_to=rank_iel_to-nranks*iel_to;
+	
+	const int ilist_rank_to=build.rank_to_map_list_ranks_to[rank_to];
+	
+	const int ipos=build.out_buf_cur_per_rank[ilist_rank_to]++;
+	
 	out_buf_source[ipos]=sl[iel_out].first;
+	
 	in_buf_dest_expl[ipos]=iel_to;
       }
     
-    common_setup_part2(nel_in,in_buf_dest,nranks_fr,list_ranks_fr,in_buf_off_per_rank,nper_rank_fr, 
-		       in_buf_dest_expl,nranks_to,list_ranks_to,out_buf_off_per_rank,nper_rank_to);
-    nissa_free(in_buf_dest_expl);
+    common_setup_part2(nel_in,
+		       in_buf_dest,
+		       nranks_fr,
+		       list_ranks_fr,
+		       in_buf_off_per_rank,
+		       nper_rank_fr,
+		       in_buf_dest_expl,
+		       nranks_to,
+		       list_ranks_to,
+		       out_buf_off_per_rank,
+		       nper_rank_to);
   }
   
   //build knowing where to send
-  all_to_all_comm_t::all_to_all_comm_t(const all_to_all_gathering_list_t &gl)
+  all_to_all_comm_t::all_to_all_comm_t(const all_to_all_gathering_list_t& gl)
   {
     setup_knowing_what_to_ask(gl);
   }
-  void all_to_all_comm_t::setup_knowing_what_to_ask(const all_to_all_gathering_list_t &gl)
+  
+  void all_to_all_comm_t::setup_knowing_what_to_ask(const all_to_all_gathering_list_t& gl)
   {
-    
     temp_build_t build;
     nel_in=gl.size();
     
     //count how many elements to send to each rank
-    vector_reset(build.nper_rank_fr_temp);
+    for(int& i : build.nper_rank_fr_temp)
+      i=0;
+    
     for(auto it=gl.begin();it!=gl.end();it++)
       {
 	int rank_fr=it->first%nranks;
@@ -236,29 +271,56 @@ namespace nissa
     in_buf_dest=nissa_malloc("in_buf_dest",nel_in,int);
     
     //save the explenations to each rank on how to fill outbuffers
-    int *out_buf_source_expl=nissa_malloc("out_buf_source_expl",nel_in,int);
+    std::vector<int> out_buf_source_expl(nel_in);
     for(auto it=gl.begin();it!=gl.end();it++)
       {
-	int rank_iel_fr=it->first;
-	int iel_fr=rank_iel_fr/nranks,rank_fr=rank_iel_fr-iel_fr*nranks;
-	int ilist_rank_fr=build.rank_fr_map_list_ranks_fr[rank_fr];
-	int ipos=build.in_buf_cur_per_rank[ilist_rank_fr]++;
+	const int rank_iel_fr=it->first;
+	
+	const int iel_fr=rank_iel_fr/nranks;
+	
+	const int rank_fr=rank_iel_fr-iel_fr*nranks;
+	
+	const int ilist_rank_fr=build.rank_fr_map_list_ranks_fr[rank_fr];
+	
+	const int ipos=build.in_buf_cur_per_rank[ilist_rank_fr]++;
+	
 	in_buf_dest[ipos]=it->second;
 	  out_buf_source_expl[ipos]=iel_fr;
 	}
     
-    common_setup_part2(nel_out,out_buf_source,nranks_to,list_ranks_to,out_buf_off_per_rank,nper_rank_to,
-		       out_buf_source_expl,nranks_fr,list_ranks_fr,in_buf_off_per_rank,nper_rank_fr);
-    nissa_free(out_buf_source_expl);
+    common_setup_part2(nel_out,
+		       out_buf_source,
+		       nranks_to,
+		       list_ranks_to,
+		       out_buf_off_per_rank,
+		       nper_rank_to,
+		       out_buf_source_expl,
+		       nranks_fr,
+		       list_ranks_fr,
+		       in_buf_off_per_rank,
+		       nper_rank_fr);
   }
   
   //perform the remapping
-  void all_to_all_comm_t::communicate(void *out,void *in,size_t bps,void *ext_out_buf,void *ext_in_buf,int tag) const
+  void all_to_all_comm_t::communicate(void* out,
+				      void* in,
+				      const size_t& bps,
+				      void* ext_out_buf,
+				      void* ext_in_buf,
+				      const int& tag) const
   {
     //allocate a buffer where to repack data
-    char *out_buf=(ext_out_buf==NULL)?nissa_malloc("out_buf",nel_out*bps,char):(char*)ext_out_buf;
-    char *in_buf=(ext_in_buf==NULL)?nissa_malloc("in_buf",nel_in*bps,char):(char*)ext_in_buf;
-    int *source=
+    char* out_buf=
+      ext_out_buf?
+      (char*)ext_out_buf:
+      memoryManager<defaultMemorySpace>()->provide<char>(nel_out*bps);
+    
+    char* in_buf=
+      ext_in_buf?
+      (char*)ext_in_buf:
+      memoryManager<defaultMemorySpace>()->provide<char>(nel_in*bps);
+    
+    const int* source=
       this->out_buf_source;
     
     //copy data on the out-going buffer
@@ -273,8 +335,8 @@ namespace nissa
 		});
     
     /// Returns the argument after checking that does not exceed the max count
-    auto check_not_above_max_count=
-      [](const size_t n)
+    const auto check_not_above_max_count=
+      [](const size_t& n)
       {
 	if(n>std::numeric_limits<int>::max())
 	  CRASH("trying to send or receive %zu elements, max value is %d",n,std::numeric_limits<int>::max());
@@ -317,7 +379,7 @@ namespace nissa
     // MASTER_PRINTF("waiting for %d reqs\n",ireq);
     MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
     
-    int *dest=in_buf_dest;
+    const int* dest=in_buf_dest;
     
     PAR(0,nel_out,
 	CAPTURE(bps,
@@ -329,8 +391,11 @@ namespace nissa
 	  memcpy((char*)out+dest[iel_in]*bps,in_buf+iel_in*bps,bps);
 	});
     
-    if(ext_out_buf==NULL) nissa_free(out_buf);
-    if(ext_in_buf==NULL) nissa_free(in_buf);
+    if(not ext_out_buf)
+      memoryManager<defaultMemorySpace>()->release(out_buf);
+    
+    if(not ext_in_buf)
+      memoryManager<defaultMemorySpace>()->release(in_buf);
   }
   
   //add links to the buffer of the conf if needed
