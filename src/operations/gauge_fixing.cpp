@@ -361,7 +361,7 @@ namespace nissa
     fft4d(der,FFT_MINUS,FFT_NORMALIZE);
     
     //compute 4*\sum_mu sin^2(2*pi*(L_mu-1))
-    double num=16;
+    const double num=16;
     
     //put the kernel and the prefactor
     PAR(0,
@@ -374,7 +374,7 @@ namespace nissa
 	  double den=0;
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
-	      double p=2*M_PI*glbCoordOfLoclx[imom][mu]/glbSize[mu];
+	      const double p=2*M_PI*glbCoordOfLoclx[imom][mu]/glbSize[mu];
 	      den+=sqr(sin(0.5*p));
 	    }
 	  den*=4;
@@ -488,12 +488,13 @@ namespace nissa
 	  }
 	else
 	  {
-	    double vert=-b/(2*a);
+	    const double vert=-b/(2*a);
 	    pos_curv=(a>0);
-	    bool brack_vert=(fabs(2*alpha)>fabs(vert));
+	    const bool brack_vert=(fabs(2*alpha)>fabs(vert));
 	    
 	    VERBOSITY_LV3_MASTER_PRINTF("Vertex position: %lg\n",vert);
 	    VERBOSITY_LV3_MASTER_PRINTF("Curvature is positive: %d\n",pos_curv);
+	    VERBOSITY_LV3_MASTER_PRINTF("Relative distance between alpha and vert: %lg\n",fabs(vert/alpha-1)*100);
 	    
 	    alpha=vert;
 	    if(not brack_vert)

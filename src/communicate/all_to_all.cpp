@@ -180,11 +180,12 @@ namespace nissa
   }
   
   //build knowing where to send
-  all_to_all_comm_t::all_to_all_comm_t(const all_to_all_scattering_list_t &sl)
+  all_to_all_comm_t::all_to_all_comm_t(const all_to_all_scattering_list_t& sl)
   {
     setup_knowing_where_to_send(sl);
   }
-  void all_to_all_comm_t::setup_knowing_where_to_send(const all_to_all_scattering_list_t &sl)
+  
+  void all_to_all_comm_t::setup_knowing_where_to_send(const all_to_all_scattering_list_t& sl)
   {
     //count the number of elements to send
     temp_build_t build;
@@ -305,19 +306,13 @@ namespace nissa
   void all_to_all_comm_t::communicate(void* out,
 				      void* in,
 				      const size_t& bps,
-				      void* ext_out_buf,
-				      void* ext_in_buf,
 				      const int& tag) const
   {
     //allocate a buffer where to repack data
     char* out_buf=
-      ext_out_buf?
-      (char*)ext_out_buf:
       memoryManager<defaultMemorySpace>()->provide<char>(nel_out*bps);
     
     char* in_buf=
-      ext_in_buf?
-      (char*)ext_in_buf:
       memoryManager<defaultMemorySpace>()->provide<char>(nel_in*bps);
     
     const int* source=
@@ -350,8 +345,12 @@ namespace nissa
     for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
       if(list_ranks_fr[irank_fr]!=rank)
 	{
-	  MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,check_not_above_max_count(nper_rank_fr[irank_fr]*bps),MPI_CHAR,
-		    list_ranks_fr[irank_fr],909,MPI_COMM_WORLD,&req_list[ireq++]);
+	  MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,
+		    check_not_above_max_count(nper_rank_fr[irank_fr]*bps),
+		    MPI_CHAR,
+		    list_ranks_fr[irank_fr],
+		    909,
+		    MPI_COMM_WORLD,&req_list[ireq++]);
 	  // MASTER_PRINTF("Going to receive from rank %d, nreq: %d\n",list_ranks_fr[irank_fr],ireq);
 	}
       else
@@ -361,8 +360,12 @@ namespace nissa
     for(int irank_to=0;irank_to<nranks_to;irank_to++)
       if(list_ranks_to[irank_to]!=rank)
 	{
-	  MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,check_not_above_max_count(nper_rank_to[irank_to]*bps),MPI_CHAR,
-		    list_ranks_to[irank_to],909,MPI_COMM_WORLD,&req_list[ireq++]);
+	  MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,
+		    check_not_above_max_count(nper_rank_to[irank_to]*bps),
+		    MPI_CHAR,
+		    list_ranks_to[irank_to],
+		    909,
+		    MPI_COMM_WORLD,&req_list[ireq++]);
 	  // MASTER_PRINTF("Going to send to rank %d, nreq: %d\n",list_ranks_to[irank_to],ireq);
 	}
       else
@@ -391,27 +394,26 @@ namespace nissa
 	  memcpy((char*)out+dest[iel_in]*bps,in_buf+iel_in*bps,bps);
 	});
     
-    if(not ext_out_buf)
-      memoryManager<defaultMemorySpace>()->release(out_buf);
+    memoryManager<defaultMemorySpace>()->release(out_buf);
     
-    if(not ext_in_buf)
-      memoryManager<defaultMemorySpace>()->release(in_buf);
+    memoryManager<defaultMemorySpace>()->release(in_buf);
   }
   
   //add links to the buffer of the conf if needed
-  int all_to_all_gathering_list_t::add_conf_link_for_paths(const Coords& g,const int& mu)
+  int all_to_all_gathering_list_t::add_conf_link_for_paths(const Coords& g,
+							   const int& mu)
   {
     //find rank and local position
     const auto[ivol,irank]=
       getLoclxAndRankOfCoords(g);
     
-    int ilink_asked=NDIM*ivol+mu;
+    const int ilink_asked=NDIM*ivol+mu;
     
     //if it is local, return local position
     if(irank==rank) return ilink_asked;
     else
       {
-	int irank_link_asked=ilink_asked*nranks+irank;
+	const int irank_link_asked=ilink_asked*nranks+irank;
 	
 	//if it is non local search it in the list of to-be-gathered
 	all_to_all_gathering_list_t::iterator it=this->find(irank_link_asked);

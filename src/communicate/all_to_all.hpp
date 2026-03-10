@@ -90,16 +90,14 @@ namespace nissa
 	}
     }
     
-    void communicate(void *out,
-		     void *in,
+    void communicate(void* out,
+		     void* in,
 		     const size_t& bps,
-		     void *buf_out=nullptr,
-		     void *buf_in=nullptr,
 		     const int& tag=-1) const;
     
-    void setup_knowing_where_to_send(const all_to_all_scattering_list_t &sl);
+    void setup_knowing_where_to_send(const all_to_all_scattering_list_t& sl);
     
-    void setup_knowing_what_to_ask(const all_to_all_gathering_list_t &gl);
+    void setup_knowing_what_to_ask(const all_to_all_gathering_list_t& gl);
     
     void setup_nper_rank_other_temp(std::vector<int>& nper_rank_other_temp,
 				    const std::vector<int>& nper_rank_temp);
@@ -121,7 +119,7 @@ namespace nissa
     all_to_all_comm_t() :
       inited(false)
     {
-    };
+    }
   };
 }
 
