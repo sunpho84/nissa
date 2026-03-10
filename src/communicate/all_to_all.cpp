@@ -376,8 +376,14 @@ namespace nissa
 	if(nper_rank_to[irank_to_this]!=nper_rank_fr[irank_fr_this])
 	  CRASH("unmatched what to copy locally");
 	else
-	  memcpy(in_buf+in_buf_off_per_rank[irank_fr_this]*bps,out_buf+out_buf_off_per_rank[irank_to_this]*bps,nper_rank_to[irank_fr_this]*bps);
-      }
+	  PAR(0,nper_rank_to[irank_fr_this],
+	      CAPTURE(bps,
+		      lhs=in_buf+in_buf_off_per_rank[irank_fr_this]*bps,
+		      rhs=out_buf+out_buf_off_per_rank[irank_to_this]*bps),
+	      i,
+	      {
+		memcpy(lhs+i*bps,rhs+i*bps,bps);
+	      });
     
     // MASTER_PRINTF("waiting for %d reqs\n",ireq);
     MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
