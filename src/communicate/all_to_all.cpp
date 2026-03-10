@@ -384,6 +384,7 @@ namespace nissa
 	      {
 		memcpy(lhs+i*bps,rhs+i*bps,bps);
 	      });
+      }
     
     // MASTER_PRINTF("waiting for %d reqs\n",ireq);
     MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
@@ -404,8 +405,8 @@ namespace nissa
     
     memoryManager<defaultMemorySpace>()->release(in_buf);
   }
-  
-  //add links to the buffer of the conf if needed
+    
+    //add links to the buffer of the conf if needed
   int all_to_all_gathering_list_t::add_conf_link_for_paths(const Coords& g,
 							   const int& mu)
   {
