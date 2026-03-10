@@ -497,7 +497,7 @@ namespace nissa
 	    
 	    VERBOSITY_LV3_MASTER_PRINTF("Vertex position: %lg\n",vert);
 	    VERBOSITY_LV3_MASTER_PRINTF("Curvature is positive: %d\n",pos_curv);
-	    VERBOSITY_LV3_MASTER_PRINTF("Relative distance between alpha and vert: %lg\n",relDist*100);
+	    VERBOSITY_LV3_MASTER_PRINTF("Relative distance between alpha and vert: %lg %%\n",relDist*100);
 	    
 	    if(not brack_vert)
 	      VERBOSITY_LV3_MASTER_PRINTF("Not bracketing the vertex, changing alpha to %lg\n",vert);
@@ -659,6 +659,8 @@ namespace nissa
 						   bool &use_GCG,
 						   const int& iter)
   {
+    const double t0=take_time();
+    
     auto& s=*GCG::_s;
     
     fixed_conf.updateHalo();
@@ -676,14 +678,14 @@ namespace nissa
 	compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,gauge);
 	unsafe_su3_traceless_anti_hermitian_part(der[ivol],temp);
       });
-    VERBOSITY_LV2_MASTER_PRINTF("Time to compute the functional derivative: %lg s\n",take_time()-t1);
+    VERBOSITY_LV2_MASTER_PRINTF(" Time to compute the functional derivative: %lg s\n",take_time()-t1);
     
     //put the kernel
     if(use_FACC)
       {
 	const double t1=take_time();
 	Fourier_accelerate_derivative(der);
-	VERBOSITY_LV2_MASTER_PRINTF("Time to fourier accelerate: %lg s\n",take_time()-t1);
+	VERBOSITY_LV2_MASTER_PRINTF(" Time to fourier accelerate: %lg s\n",take_time()-t1);
       }
     
     //make the CG improvement
@@ -691,7 +693,7 @@ namespace nissa
       {
 	const double t1=take_time();
 	GCG_improve_gauge_fixer(der,use_GCG,iter);
-	VERBOSITY_LV2_MASTER_PRINTF("Time to make gcg: %lg s\n",take_time()-t1);
+	VERBOSITY_LV2_MASTER_PRINTF(" Time to make gcg: %lg s\n",take_time()-t1);
       }
     
     //decides what to use
@@ -706,7 +708,7 @@ namespace nissa
       {
 	const double t1=take_time();
 	alpha=adapt_alpha(fixed_conf,fixer,gauge,v,alpha_def,ori_conf,F_offset,func,use_adapt,nskipped_adapt);
-	VERBOSITY_LV2_MASTER_PRINTF("Time to make adaptative alpha: %lg s\n",take_time()-t1);
+	VERBOSITY_LV2_MASTER_PRINTF(" Time to make adaptative alpha: %lg s\n",take_time()-t1);
       }
     else
       alpha=alpha_def;
@@ -714,7 +716,7 @@ namespace nissa
     {
       const double t1=take_time();
       exp_der_alpha_half(g,v,alpha);
-      VERBOSITY_LV2_MASTER_PRINTF("Time to eponentiate: %lg s\n",take_time()-t1);
+      VERBOSITY_LV2_MASTER_PRINTF(" Time to eponentiate: %lg s\n",take_time()-t1);
     }
     
     //put the transformation
@@ -722,8 +724,10 @@ namespace nissa
       const double t1=take_time();
       add_current_transformation(fixer,g,fixer);
       gauge_transform_conf(fixed_conf,fixer,ori_conf);
-      VERBOSITY_LV2_MASTER_PRINTF("Time to make final transf: %lg s\n",take_time()-t1);
+      VERBOSITY_LV2_MASTER_PRINTF(" Time to make final transf: %lg s\n",take_time()-t1);
     }
+    
+    VERBOSITY_LV2_MASTER_PRINTF("Time to make iteration: %lg s\n",take_time()-t0);
   }
   
   //check if gauge fixed or not
