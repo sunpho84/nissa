@@ -450,6 +450,8 @@ namespace nissa
     int iter=0;
     const int nadapt_iter_max=15;
     bool found=false,give_up=false;
+    const double minRelDist=0.05;
+    
     do
       {
 	VERBOSITY_LV3_MASTER_PRINTF("---iter %d---\n",iter);
@@ -489,21 +491,26 @@ namespace nissa
 	else
 	  {
 	    const double vert=-b/(2*a);
+	    const double relDist=fabs(vert/alpha-1);
 	    pos_curv=(a>0);
 	    const bool brack_vert=(fabs(2*alpha)>fabs(vert));
 	    
 	    VERBOSITY_LV3_MASTER_PRINTF("Vertex position: %lg\n",vert);
 	    VERBOSITY_LV3_MASTER_PRINTF("Curvature is positive: %d\n",pos_curv);
-	    VERBOSITY_LV3_MASTER_PRINTF("Relative distance between alpha and vert: %lg\n",fabs(vert/alpha-1)*100);
+	    VERBOSITY_LV3_MASTER_PRINTF("Relative distance between alpha and vert: %lg\n",relDist*100);
 	    
-	    alpha=vert;
 	    if(not brack_vert)
-	      VERBOSITY_LV3_MASTER_PRINTF("Not bracketing the vertex, changing alpha to %lg\n",alpha);
+	      VERBOSITY_LV3_MASTER_PRINTF("Not bracketing the vertex, changing alpha to %lg\n",vert);
 	    else
 	      {
-		found=true;
-		VERBOSITY_LV3_MASTER_PRINTF("Bracketting the vertex, jumping to %lg\n",alpha);
+		VERBOSITY_LV3_MASTER_PRINTF("Bracketting the vertex, jumping to %lg\n",vert);
+		if(relDist<minRelDist)
+		  {
+		    VERBOSITY_LV3_MASTER_PRINTF("Relative distance lower than %lg, accepted\n",minRelDist);
+		    found=true;
+		  }
 	      }
+	    alpha=vert;
 	  }
 	
 	iter++;
