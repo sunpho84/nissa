@@ -27,22 +27,30 @@ namespace nissa
 			    const LxField<su3>& g,
 			    const LxField<quad_su3>& uin)
   {
-    g.updateHalo();
+    {
+      const double t1=take_time();
+      g.updateHalo();
+      VERBOSITY_LV3_MASTER_PRINTF("  Time to update halo: %lg s\n",take_time()-t1);
+    }
     
     //transform
-    PAR(0,locVol,
-	CAPTURE(TO_WRITE(uout),
-		TO_READ(uin),
-		TO_READ(g)),
-	ivol,
-	{
-	  for(int mu=0;mu<NDIM;mu++)
-	    {
-	      su3 temp;
-	      unsafe_su3_prod_su3_dag(temp,uin[ivol][mu],g[loclxNeighup[ivol][mu]]);
-	      unsafe_su3_prod_su3(uout[ivol][mu],g[ivol],temp);
-	    }
-	});
+    {
+      const double t1=take_time();
+      PAR(0,locVol,
+	  CAPTURE(TO_WRITE(uout),
+		  TO_READ(uin),
+		  TO_READ(g)),
+	  ivol,
+	  {
+	    for(int mu=0;mu<NDIM;mu++)
+	      {
+		su3 temp;
+		unsafe_su3_prod_su3_dag(temp,uin[ivol][mu],g[loclxNeighup[ivol][mu]]);
+		unsafe_su3_prod_su3(uout[ivol][mu],g[ivol],temp);
+	      }
+	  });
+      VERBOSITY_LV3_MASTER_PRINTF("  Time to make actual gauge transform: %lg s\n",take_time()-t1);
+    }
   }
   
   //e/o version
