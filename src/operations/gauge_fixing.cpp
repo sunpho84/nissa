@@ -441,7 +441,11 @@ namespace nissa
     
     //store original fixer
     LxField<su3> ori_fixer("ori_fixer",WITH_HALO);
-    ori_fixer=fixer;
+    {
+      const double t1=take_time();
+      ori_fixer=fixer;
+      VERBOSITY_LV3_MASTER_PRINTF(" Time to copy the fixer: %lg s\n",take_time()-t1);
+    }
     
     //current transform
     LxField<su3> g("g");
@@ -456,7 +460,11 @@ namespace nissa
       {
 	VERBOSITY_LV3_MASTER_PRINTF("---iter %d---\n",iter);
 	//take the exponent
-	exp_der_alpha_half(g,der,alpha);
+	{
+	  const double t1=take_time();
+	  exp_der_alpha_half(g,der,alpha);
+	  VERBOSITY_LV3_MASTER_PRINTF(" Time to exp: %lg s\n",take_time()-t1);
+	}
 	
 	//compute three points at 0,alpha and 2alpha
 	double F[3];
@@ -466,11 +474,24 @@ namespace nissa
 	
 	for(int i=1;i<=2;i++)
 	  {
-	    add_current_transformation(fixer,g,fixer);
+	    {
+	      const double t1=take_time();
+	      add_current_transformation(fixer,g,fixer);
+	      VERBOSITY_LV3_MASTER_PRINTF(" Time to add current transf: %lg s\n",take_time()-t1);
+	    }
 	    
 	    //transform and compute potential
-	    gauge_transform_conf(fixed_conf,fixer,ori_conf);
-	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,&F_offset);
+	    {
+	      const double t1=take_time();
+	      gauge_transform_conf(fixed_conf,fixer,ori_conf);
+	      VERBOSITY_LV3_MASTER_PRINTF(" Time to gauge transform: %lg s\n",take_time()-t1);
+	    }
+	    
+	    {
+	      const double t1=take_time();
+	      F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,&F_offset);
+	      VERBOSITY_LV3_MASTER_PRINTF(" Time to compute the potential: %lg s\n",take_time()-t1);
+	    }
 	  }
 	
 	[[maybe_unused]] double c=F[0];
