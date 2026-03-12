@@ -565,7 +565,7 @@ namespace nissa
     max_locd_size=0;
     for(int mu=0;mu<NDIM;mu++)
       {
-	remap_lx_to_locd[mu]=remap_locd_to_lx[mu]=NULL;
+	_remapLxToLocd[mu]=_remap_locd_to_lx[mu]=nullptr;
 	max_locd_perp_size_per_dir[mu]=(glbVol/glbSize[mu]+nranks-1)/nranks;
 	locd_perp_size_per_dir[mu]=(int)std::min((int64_t)max_locd_perp_size_per_dir[mu],glbVol/glbSize[mu]-max_locd_perp_size_per_dir[mu]*rank);
 	VERBOSITY_LV3_MASTER_PRINTF("rank %d locd_perp_size_per_dir[%d]: %d\n",rank,mu,locd_perp_size_per_dir[mu]);

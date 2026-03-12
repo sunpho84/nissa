@@ -304,7 +304,7 @@ namespace nissa
   
   //perform the remapping
   void all_to_all_comm_t::communicate(void* out,
-				      void* in,
+				      const void* in,
 				      const size_t& bps,
 				      const int& tag) const
   {

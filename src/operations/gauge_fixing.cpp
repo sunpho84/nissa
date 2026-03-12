@@ -567,7 +567,7 @@ namespace nissa
     return alpha;
   }
   
-  //GCG stuff - taken from 1405.5812
+  //GCG stuff - taken from arXiv:1405.5812
   namespace GCG
   {
     CUDA_MANAGED LxField<su3> *_prev_der;
@@ -600,7 +600,7 @@ namespace nissa
   
   //apply GCG acceleration
   void GCG_improve_gauge_fixer(LxField<su3>& der,
-			       bool &use_GCG,
+			       bool& use_GCG,
 			       const int& iter)
   {
     auto& prev_der=*GCG::_prev_der;
@@ -656,12 +656,14 @@ namespace nissa
 	    VERBOSITY_LV2_MASTER_PRINTF("Switching off GCG at iter %d, fabs(num)[%lg]<gcg_tol[%lg] or fabs(den)[%lg]<gcg_tol[%lg]\n",iter,fabs(num),gcg_tol,fabs(den),gcg_tol);
 	  }
       }
-    else beta=0;
+    else
+      beta=0;
     VERBOSITY_LV3_MASTER_PRINTF("beta: %lg\n",beta);
     
     //store prev_der, increase s (der) and store prev_s
     prev_der=der;
-    if(iter%10==0) s=der;
+    if(iter%10==0)
+      s=der;
     else
       FOR_EACH_SITE_DEG_OF_FIELD(s,
 				 CAPTURE(beta,

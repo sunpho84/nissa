@@ -5,7 +5,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/fourier_transform.cpp \
 	%D%/gauge_fixing.cpp \
 	%D%/gaugeconf.cpp \
-	%D%/remap_vector.cpp \
 	%D%/remez/remez_algorithm.cpp \
 	%D%/source.cpp \
 	%D%/smearing/APE.cpp \

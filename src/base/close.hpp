@@ -31,8 +31,10 @@ namespace nissa
     //unset remappers
     for(int mu=0;mu<NDIM;mu++)
       {
-	if(remap_lx_to_locd[mu]) delete remap_lx_to_locd[mu];
-	if(remap_locd_to_lx[mu]) delete remap_locd_to_lx[mu];
+	if(_remapLxToLocd[mu])
+	  delete _remapLxToLocd[mu];
+	if(_remap_locd_to_lx[mu])
+	  delete _remap_locd_to_lx[mu];
       }
     
 #ifdef USE_QUDA

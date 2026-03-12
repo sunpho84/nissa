@@ -114,7 +114,7 @@ namespace nissa
     }
     
     void communicate(void* out,
-		     void* in,
+		     const void* in,
 		     const size_t& bps,
 		     const int& tag=-1) const;
     

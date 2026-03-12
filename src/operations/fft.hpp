@@ -62,7 +62,7 @@ namespace nissa
 	    
 	    {
 	      const double tin=take_time();
-	      remap_lx_vector_to_locd(buf,fptr,ncpp*sizeof(complex),mu);
+	      remapLxVectorToLocd(buf,fptr,ncpp*sizeof(complex),mu);
 	      VERBOSITY_LV3_MASTER_PRINTF("Time to remap to locd: %lg s\n",take_time()-tin);
 	    }
 	    
@@ -164,7 +164,7 @@ namespace nissa
 
 	      {
 		const double tin=take_time();
-		remap_locd_vector_to_lx(fptr,buf,ncpp*sizeof(complex),mu);
+		remapLocdVectorToLx(fptr,buf,ncpp*sizeof(complex),mu);
 		VERBOSITY_LV3_MASTER_PRINTF("Time to remap from locd: %lg s\n",take_time()-tin);
 	      }
 	      
