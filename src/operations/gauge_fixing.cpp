@@ -27,30 +27,30 @@ namespace nissa
 			    const LxField<su3>& g,
 			    const LxField<quad_su3>& uin)
   {
-    {
-      const double t1=take_time();
-      g.updateHalo();
-      VERBOSITY_LV3_MASTER_PRINTF("  Time to update halo: %lg s\n",take_time()-t1);
-    }
+    // {
+    //   const double t1=take_time();
+    g.updateHalo();
+    //   VERBOSITY_LV3_MASTER_PRINTF("  Time to update halo: %lg s\n",take_time()-t1);
+    // }
     
     //transform
-    {
-      const double t1=take_time();
-      PAR(0,locVol,
-	  CAPTURE(TO_WRITE(uout),
-		  TO_READ(uin),
-		  TO_READ(g)),
-	  ivol,
-	  {
-	    for(int mu=0;mu<NDIM;mu++)
-	      {
-		su3 temp;
-		unsafe_su3_prod_su3_dag(temp,uin[ivol][mu],g[loclxNeighup[ivol][mu]]);
-		unsafe_su3_prod_su3(uout[ivol][mu],g[ivol],temp);
-	      }
-	  });
-      VERBOSITY_LV3_MASTER_PRINTF("  Time to make actual gauge transform: %lg s\n",take_time()-t1);
-    }
+    // {
+    //   const double t1=take_time();
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(uout),
+		TO_READ(uin),
+		TO_READ(g)),
+	ivol,
+	{
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      su3 temp;
+	      unsafe_su3_prod_su3_dag(temp,uin[ivol][mu],g[loclxNeighup[ivol][mu]]);
+	      unsafe_su3_prod_su3(uout[ivol][mu],g[ivol],temp);
+	    }
+	});
+    // VERBOSITY_LV3_MASTER_PRINTF("  Time to make actual gauge transform: %lg s\n",take_time()-t1);
+    // }
   }
   
   //e/o version
@@ -449,11 +449,11 @@ namespace nissa
     
     //store original fixer
     LxField<su3> ori_fixer("ori_fixer",WITH_HALO);
-    {
-      const double t1=take_time();
-      ori_fixer=fixer;
-      VERBOSITY_LV3_MASTER_PRINTF(" Time to copy the fixer: %lg s\n",take_time()-t1);
-    }
+    // {
+    //   const double t1=take_time();
+    ori_fixer=fixer;
+    //   VERBOSITY_LV3_MASTER_PRINTF(" Time to copy the fixer: %lg s\n",take_time()-t1);
+    // }
     
     //current transform
     LxField<su3> g("g");
@@ -468,11 +468,11 @@ namespace nissa
       {
 	VERBOSITY_LV3_MASTER_PRINTF("---iter %d---\n",iter);
 	//take the exponent
-	{
-	  const double t1=take_time();
-	  exp_der_alpha_half(g,der,alpha);
-	  VERBOSITY_LV3_MASTER_PRINTF(" Time to exp: %lg s\n",take_time()-t1);
-	}
+	// {
+	//   const double t1=take_time();
+	exp_der_alpha_half(g,der,alpha);
+	//   VERBOSITY_LV3_MASTER_PRINTF(" Time to exp: %lg s\n",take_time()-t1);
+	// }
 	
 	//compute three points at 0,alpha and 2alpha
 	double F[3];
@@ -482,24 +482,24 @@ namespace nissa
 	
 	for(int i=1;i<=2;i++)
 	  {
-	    {
-	      const double t1=take_time();
-	      add_current_transformation(fixer,g,fixer);
-	      VERBOSITY_LV3_MASTER_PRINTF(" Time to add current transf: %lg s\n",take_time()-t1);
-	    }
+	    // {
+	    //   const double t1=take_time();
+	    add_current_transformation(fixer,g,fixer);
+	    //   VERBOSITY_LV3_MASTER_PRINTF(" Time to add current transf: %lg s\n",take_time()-t1);
+	    // }
 	    
 	    //transform and compute potential
-	    {
-	      const double t1=take_time();
-	      gauge_transform_conf(fixed_conf,fixer,ori_conf);
-	      VERBOSITY_LV3_MASTER_PRINTF(" Time to gauge transform: %lg s\n",take_time()-t1);
-	    }
+	    // {
+	    //   const double t1=take_time();
+	    gauge_transform_conf(fixed_conf,fixer,ori_conf);
+	    //   VERBOSITY_LV3_MASTER_PRINTF(" Time to gauge transform: %lg s\n",take_time()-t1);
+	    // }
 	    
-	    {
-	      const double t1=take_time();
-	      F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,&F_offset);
-	      VERBOSITY_LV3_MASTER_PRINTF(" Time to compute the potential: %lg s\n",take_time()-t1);
-	    }
+	    // {
+	    //   const double t1=take_time();
+	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,&F_offset);
+	    //   VERBOSITY_LV3_MASTER_PRINTF(" Time to compute the potential: %lg s\n",take_time()-t1);
+	    // }
 	  }
 	
 	[[maybe_unused]] double c=F[0];
@@ -697,18 +697,20 @@ namespace nissa
     //take the derivative
     LxField<su3> der("der");
     
-    const double t1=take_time();
+    // {
+    //   const double t1=take_time();
     PAR(0,locVol,
 	CAPTURE(gauge,TO_WRITE(der),
 		TO_READ(fixed_conf)),
 	ivol,
-      {
-	su3 temp;
-	compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,gauge);
-	unsafe_su3_traceless_anti_hermitian_part(der[ivol],temp);
-      });
-    VERBOSITY_LV2_MASTER_PRINTF(" Time to compute the functional derivative: %lg s\n",take_time()-t1);
-    
+	{
+	  su3 temp;
+	  compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,gauge);
+	  unsafe_su3_traceless_anti_hermitian_part(der[ivol],temp);
+	});
+     //  VERBOSITY_LV2_MASTER_PRINTF(" Time to compute the functional derivative: %lg s\n",take_time()-t1);
+     // }
+     
     //put the kernel
     if(use_FACC)
       {
@@ -742,19 +744,19 @@ namespace nissa
     else
       alpha=alpha_def;
     
-    {
-      const double t1=take_time();
-      exp_der_alpha_half(g,v,alpha);
-      VERBOSITY_LV2_MASTER_PRINTF(" Time to eponentiate: %lg s\n",take_time()-t1);
-    }
+    // {
+    //   const double t1=take_time();
+    exp_der_alpha_half(g,v,alpha);
+    //   VERBOSITY_LV2_MASTER_PRINTF(" Time to eponentiate: %lg s\n",take_time()-t1);
+    // }
     
     //put the transformation
-    {
-      const double t1=take_time();
+    // {
+    //   const double t1=take_time();
       add_current_transformation(fixer,g,fixer);
       gauge_transform_conf(fixed_conf,fixer,ori_conf);
-      VERBOSITY_LV2_MASTER_PRINTF(" Time to make final transf: %lg s\n",take_time()-t1);
-    }
+    //   VERBOSITY_LV2_MASTER_PRINTF(" Time to make final transf: %lg s\n",take_time()-t1);
+    // }
     
     VERBOSITY_LV2_MASTER_PRINTF("Time to make iteration: %lg s\n",take_time()-t0);
   }
