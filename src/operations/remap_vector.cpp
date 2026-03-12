@@ -74,7 +74,28 @@ namespace nissa
   void remap_locd_vector_to_lx(void *out,void *in,int nbytes,int mu)
   {
     if(remap_locd_to_lx[mu]==nullptr)
-      remap_locd_to_lx[mu]=new vector_remap_t(locd_size_per_dir[mu],get_index_unmake_loc_dir(mu,max_locd_perp_size_per_dir[mu]));
+      {
+	remap_locd_to_lx[mu]=new vector_remap_t(locd_size_per_dir[mu],get_index_unmake_loc_dir(mu,max_locd_perp_size_per_dir[mu]));
+	
+	auto temp=remap_lx_to_locd[mu]->inverse();
+	
+#define MY_COMP(A)				\
+	if(temp.A!=remap_locd_to_lx[mu]->A)	\
+	  CRASH(#A)
+	
+	MY_COMP(in_buf_off_per_rank);
+	MY_COMP(out_buf_off_per_rank);
+	MY_COMP(nel_in);
+	MY_COMP(nel_out);
+	MY_COMP(nper_rank_fr);
+	MY_COMP(nper_rank_to);
+	MY_COMP(nranks_fr);
+	MY_COMP(nranks_to);
+	MY_COMP(list_ranks_fr);
+	MY_COMP(list_ranks_to);
+	
+	CRASH("ALL CHECKED");
+      }
     remap_locd_to_lx[mu]->remap(out,in,nbytes);
   }
 }

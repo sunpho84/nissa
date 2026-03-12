@@ -40,6 +40,8 @@ namespace nissa
   //all to all communicators
   struct all_to_all_comm_t
   {
+    all_to_all_comm_t()=default;
+    
     all_to_all_comm_t(const all_to_all_comm_t&)=delete;
     
     int inited{false};
@@ -73,6 +75,27 @@ namespace nissa
     all_to_all_comm_t(const all_to_all_scattering_list_t& sl);
     
     all_to_all_comm_t(all_to_all_comm_t&& oth)=default;
+    
+    all_to_all_comm_t inverse() const
+    {
+      all_to_all_comm_t res;
+      
+      res.inited=true;
+      res.nel_out=nel_in;
+      res.nel_in=nel_out;
+      res.nranks_fr=nranks_to;
+      res.list_ranks_fr=list_ranks_to;
+      res.in_buf_dest=nissa_vector_duplicate(out_buf_source,"in_buf_dest");
+      res.nper_rank_fr=nper_rank_to;
+      res.in_buf_off_per_rank=out_buf_off_per_rank;
+      res.nranks_to=nranks_fr;
+      res.list_ranks_to=list_ranks_fr;
+      res.out_buf_source=nissa_vector_duplicate(in_buf_dest,"out_buf_dest");
+      res.nper_rank_to=nper_rank_fr;
+      res.out_buf_off_per_rank=in_buf_off_per_rank;
+      
+      return res;
+    }
     
     ~all_to_all_comm_t()
     {
@@ -115,11 +138,6 @@ namespace nissa
 			    const std::vector<int>& list_ranks_expl,
 			    const std::vector<int>& buf_expl_off_per_rank,
 			    const std::vector<int>& nper_rank_expl);
-    
-    all_to_all_comm_t() :
-      inited(false)
-    {
-    }
   };
 }
 

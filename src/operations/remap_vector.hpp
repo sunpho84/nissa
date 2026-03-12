@@ -13,6 +13,14 @@ namespace nissa
   struct vector_remap_t :
     all_to_all_comm_t
   {
+    vector_remap_t(all_to_all_comm_t&& oth) :
+      all_to_all_comm_t(std::move(oth))
+    {
+    }
+    
+    // /// Default initialization
+    // vector_remap_t()=default;
+    
     /// Initializes the remap, with a lambda
     template <typename F>
     vector_remap_t(const int64_t& nel_fr,
@@ -28,7 +36,13 @@ namespace nissa
 	  
 	  sl.push_back(std::make_pair(iel_fr,iel_to*nranks+rank_to));
 	}
+      
       setup_knowing_where_to_send(sl);
+    }
+    
+    vector_remap_t inverse() const
+    {
+      return ((const all_to_all_comm_t*)this)->inverse();
     }
     
     void remap(void *out,
