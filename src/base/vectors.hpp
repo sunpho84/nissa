@@ -91,7 +91,32 @@ namespace nissa
   void *internal_nissa_malloc(const char *tag,int64_t nel,int64_t size_per_el,const char *type,const char *file,int line);
   void initialize_main_vect();
   void internal_nissa_free(char **arr,const char *file,int line);
+  
   void vector_copy(void *a,const void *b);
+  
+  inline void* internal_vector_duplicate(void* _v,
+					 const char* tag,
+					 const char* file,
+					 const int& line)
+  {
+    const nissa_vect* v=
+      get_vect(_v);
+    
+    void* res=
+      internal_nissa_malloc(tag,
+			    v->nel,
+			    v->size_per_el,
+			    v->type,
+			    file,
+			    line);
+    
+    vector_copy(res,_v);
+    
+    return res;
+  }
+  
+#define nissa_vector_duplicate(A,NAME) (decltype(A))internal_vector_duplicate(A,NAME,__FILE__,__LINE__)
+  
   void vector_reset(void *a);
   void last_vect_content_printf();
   void vect_content_fprintf(FILE *fout,nissa_vect *vect);
