@@ -138,11 +138,11 @@ namespace nissa
   }
   
   /// Gets the locdToLx remapper allocating it if not exists
-  inline vector_remap_t& locdToLxRemapper(const int& mu)
+  inline const vector_remap_t& locdToLxRemapper(const int& mu)
   {
     if(_remapLocdToLx[mu]==nullptr)
       _remapLocdToLx[mu]=
-	new vector_remap_t(lxToLocdRemapper(mu).inverse());
+	new vector_remap_t(locd_size_per_dir[mu],getLocDirIndexUnmaker(mu,max_locd_perp_size_per_dir[mu]));//lxToLocdRemapper(mu).inverse());
     
     return *_remapLocdToLx[mu];
   }
