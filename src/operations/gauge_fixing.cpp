@@ -868,6 +868,19 @@ namespace nissa
 	    
 	    gauge_transform_conf(fixed_conf,fixer,ext_conf);
 	    
+	    int nMax=glbSize[1]/2;
+	    std::vector<double> prof(nMax);
+	    const LxField<quad_su3> p=fixed_conf;
+	    for(int x=0;x<nMax;x++)
+	      {
+		const double f=compute_Landau_or_Coulomb_functional(p,pars.gauge);
+		prof[x]=f;
+		
+		LxField<quad_su3> tmp("tmp",WITH_HALO);
+		tmp=p;
+		tmp.updateHalo();
+	      }
+	    
 	    //check if really get out
 	    really_get_out=false;
 	    really_get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars.gauge,pars.targetPrecision,&F_offset);
@@ -890,13 +903,15 @@ namespace nissa
   {
     LxField<su3> fixm("fixm",WITH_HALO);
     
+    FieldRngOf<su3> drawer(field_rng_stream.getDrawer<su3>());
+    
     //extract random SU(3) matrix
     PAR(0,locVol,
-	CAPTURE(b=maybeBackupLocRndGenForBenchmark(),
+	CAPTURE(drawer,
 		TO_WRITE(fixm)),
 	ivol,
 	{
-	  su3_put_to_rnd(fixm[ivol],loc_rnd_gen[ivol]);
+	  drawer.fillLocSite(fixm,ivol);
 	});
     
     //apply the transformation
