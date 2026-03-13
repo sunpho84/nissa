@@ -24,6 +24,8 @@ void inMain(int narg,char **arg)
   LC_gauge_fixing_pars_t pars;
   pars.gauge=LC_gauge_fixing_pars_t::LANDAU;
   read_str_double("Precision",&pars.targetPrecision);
+  read_str_double("Alpha",&pars.alphaExp);
+  read_str_int("NMaxIters",&pars.nmaxIterations);
   read_str_int("UseFftAcc",&pars.useFftAcc);
   read_str_int("UseAdaptativeSearch",&pars.useAdaptativeSearch);
   read_str_int("UseGeneralizedCG",&pars.useGeneralizedCg);
