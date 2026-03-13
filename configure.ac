@@ -99,6 +99,11 @@ then
 	AC_LANG_PUSH([C++])
 	LX_FIND_MPI
 	AC_LANG_POP([C++])
+	if test "$(basename $CXX)" = "nvcc"; then
+		AC_MSG_NOTICE([NVCC set as CXX, adjusting MPI_CXXLDFLAGS appropriately])
+		# Replace -Wl, with -Xlinker for nvcc
+		MPI_CXXLDFLAGS=$(echo "$MPI_CXXLDFLAGS" | sed 's/-Wl,/ -Xlinker /g')
+	fi
 	AC_MSG_RESULT([with C++ MPI link options... $MPI_CXXLDFLAGS])
 fi
 
