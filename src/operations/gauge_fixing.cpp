@@ -903,16 +903,9 @@ namespace nissa
   {
     LxField<su3> fixm("fixm",WITH_HALO);
     
-    FieldRngOf<su3> drawer(field_rng_stream.getDrawer<su3>());
+    FieldRngOf<su3>(field_rng_stream.getDrawer<su3>())
+    .fillField(fixm);
     
-    //extract random SU(3) matrix
-    PAR(0,locVol,
-	CAPTURE(drawer,
-		TO_WRITE(fixm)),
-	ivol,
-	{
-	  drawer.fillLocSite(fixm,ivol);
-	});
     
     //apply the transformation
     gauge_transform_conf(conf_out,fixm,conf_in);
