@@ -33,8 +33,8 @@ namespace nissa
       {
 	if(_remapLxToLocd[mu])
 	  delete _remapLxToLocd[mu];
-	if(_remap_locd_to_lx[mu])
-	  delete _remap_locd_to_lx[mu];
+	if(_remapLocdToLx[mu])
+	  delete _remapLocdToLx[mu];
       }
     
 #ifdef USE_QUDA

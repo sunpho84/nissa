@@ -19,7 +19,7 @@ namespace nissa
   
   inline vector_remap_t* _remapLxToLocd[NDIM];
   
-  inline vector_remap_t* _remap_locd_to_lx[NDIM];
+  inline vector_remap_t* _remapLocdToLx[NDIM];
   
   struct vector_remap_t :
     all_to_all_comm_t
@@ -140,11 +140,11 @@ namespace nissa
   /// Gets the locdToLx remapper allocating it if not exists
   inline vector_remap_t& locdToLxRemapper(const int& mu)
   {
-    if(_remapLxToLocd[mu]==nullptr)
-      _remapLxToLocd[mu]=
+    if(_remapLocdToLx[mu]==nullptr)
+      _remapLocdToLx[mu]=
 	new vector_remap_t(lxToLocdRemapper(mu).inverse());
     
-    return *_remapLxToLocd[mu];
+    return *_remapLocdToLx[mu];
   }
   
   inline void remapLocdVectorToLx(void* out,
