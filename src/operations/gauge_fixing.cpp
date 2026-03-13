@@ -903,9 +903,17 @@ namespace nissa
   {
     LxField<su3> fixm("fixm",WITH_HALO);
     
-    FieldRngOf<su3>(field_rng_stream.getDrawer<su3>())
-    .fillField(fixm);
+    FieldRngOf<Su3RndCoeffs> gen(field_rng_stream.getDrawer<Su3RndCoeffs>());
     
+    PAR(0,locVol,
+	CAPTURE(&gen,
+		TO_WRITE(fixm)),
+	ivol,
+	{
+	  Su3RndCoeffs c;
+	  gen.fillLocSite(c,ivol);
+	  su3_put_to_rnd(fixm[ivol],c);
+	});
     
     //apply the transformation
     gauge_transform_conf(conf_out,fixm,conf_in);

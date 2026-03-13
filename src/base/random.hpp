@@ -222,7 +222,52 @@ namespace nissa
   void stop_loc_rnd_gen();
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
   
-    /// Put a matrix to random used passed random generator
+  using Su3RndCoeffs=
+    double[NCOL*(NCOL-1)/2][3];
+  
+  /// Put a matrix to random used generated coeffs
+  template <typename U>
+  CUDA_HOST_AND_DEVICE
+  void su3_put_to_rnd(U&& u_ran,
+		      const Su3RndCoeffs& rndCoeffs)
+  {
+    su3_put_to_id(u_ran);
+    
+    int i=0;
+    for(size_t i1=0;i1<NCOL;i1++)
+      for(size_t i2=i1+1;i2<NCOL;i2++)
+	{
+	  //generate u0,u1,u2,u3 random on the four dim. sphere
+	  const double u0=rndCoeffs[i][0]*2-1;
+	  const double alpha=sqrt(1-u0*u0);
+	  const double phi=rndCoeffs[i][1]*2*M_PI;
+	  const double costheta=rndCoeffs[i][2]*2-1;
+	  const double sintheta=sqrt(1-costheta*costheta);
+	  const double u3=alpha*costheta;
+	  const double u1=alpha*sintheta*cos(phi);
+	  const double u2=alpha*sintheta*sin(phi);
+	  
+	  //define u_l as unit matrix ...
+	  su3 u_l;
+	  su3_put_to_id(u_l);
+	  
+	  //... and then modify the elements in the chosen su(2) subgroup
+	  u_l[i1][i1][RE]=u0;
+	  u_l[i1][i1][IM]=u3;
+	  u_l[i1][i2][RE]=u2;
+	  u_l[i1][i2][IM]=u1;
+	  u_l[i2][i1][RE]=-u2;
+	  u_l[i2][i1][IM]=u1;
+	  u_l[i2][i2][RE]=u0;
+	  u_l[i2][i2][IM]=-u3;
+	  
+	  safe_su3_prod_su3(u_ran,u_l,u_ran);
+	  
+	  i++;
+	}
+  }
+  
+  /// Put a matrix to random used passed random generator
   template <typename U>
   CUDA_HOST_AND_DEVICE
   void su3_put_to_rnd(U&& u_ran,
