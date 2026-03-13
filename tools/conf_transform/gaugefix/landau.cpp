@@ -29,11 +29,16 @@ void inMain(int narg,char **arg)
   read_str_int("UseFftAcc",&pars.useFftAcc);
   read_str_int("UseAdaptativeSearch",&pars.useAdaptativeSearch);
   read_str_int("UseGeneralizedCG",&pars.useGeneralizedCg);
+  int preliminaryRandomGaugeTransformation;
+  read_str_int("PreliminaryRandomGaugeTransformation",&preliminaryRandomGaugeTransformation);
+  int seed{};
+  if(preliminaryRandomGaugeTransformation)
+    read_str_int("Seed",&seed);
   
   close_input();
   
   //set pars
-  field_rng_stream.init(3472291050);
+  field_rng_stream.init(seed);
   
   ///////////////////////////////////////////
   
@@ -41,6 +46,8 @@ void inMain(int narg,char **arg)
   LxField<quad_su3> fixedConf("FixedConf",WITH_HALO);
   
   read_ildg_gauge_conf(conf,inPath);
+  if(preliminaryRandomGaugeTransformation)
+    perform_random_gauge_transform(conf,conf);
   
   Landau_or_Coulomb_gauge_fix(fixedConf,pars,conf);
   
