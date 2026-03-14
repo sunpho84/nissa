@@ -867,18 +867,21 @@ namespace nissa
 		});
 	    
 	    gauge_transform_conf(fixed_conf,fixer,ext_conf);
-	    
-	    int nMax=glbSize[1]/2;
-	    std::vector<double> prof(nMax);
-	    const LxField<quad_su3> p=fixed_conf;
-	    for(int x=0;x<nMax;x++)
+
+	    if(0)
 	      {
-		const double f=compute_Landau_or_Coulomb_functional(p,pars.gauge);
-		prof[x]=f;
-		
-		LxField<quad_su3> tmp("tmp",WITH_HALO);
-		tmp=p;
-		tmp.updateHalo();
+		int nMax=glbSize[1]/2;
+		std::vector<double> prof(nMax);
+		const LxField<quad_su3> p=fixed_conf;
+		for(int x=0;x<nMax;x++)
+		  {
+		    const double f=compute_Landau_or_Coulomb_functional(p,pars.gauge);
+		    prof[x]=f;
+		    
+		    LxField<quad_su3> tmp("tmp",WITH_HALO);
+		    tmp=p;
+		    tmp.updateHalo();
+		  }
 	      }
 	    
 	    //check if really get out
