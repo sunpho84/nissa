@@ -906,7 +906,7 @@ namespace nissa
     FieldRngOf<Su3RndCoeffs> gen(field_rng_stream.getDrawer<Su3RndCoeffs>());
     
     PAR(0,locVol,
-	CAPTURE(&gen,
+	CAPTURE(gen,
 		TO_WRITE(fixm)),
 	ivol,
 	{
