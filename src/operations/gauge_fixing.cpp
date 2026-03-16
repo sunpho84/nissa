@@ -797,7 +797,7 @@ namespace nissa
       {
 	double time=-take_time();
 	
-	const int& use_fft_acc=pars.useFftAcc;
+	int use_fft_acc=pars.useFftAcc;
 	bool use_adapt=pars.useAdaptativeSearch;
 	bool use_GCG=pars.useGeneralizedCg;
 	if(pars.useGeneralizedCg) allocate_GCG_stuff();
