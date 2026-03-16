@@ -34,6 +34,12 @@ void inMain(int narg,char **arg)
   int seed{};
   if(preliminaryRandomGaugeTransformation)
     read_str_int("Seed",&seed);
+
+  int computeProfile;
+  read_str_int("ComputeProfile",&computeProfile);
+  char profilePath[1024];
+  if(computeProfile)
+    read_str_str("ProfilePath",profilePath,1024);
   
   close_input();
   
@@ -55,6 +61,57 @@ void inMain(int narg,char **arg)
   
   MASTER_PRINTF("plaq before: %16.16lg\n",global_plaquette_lx_conf(conf));
   MASTER_PRINTF("plaq after: %16.16lg\n",global_plaquette_lx_conf(fixedConf));
+  
+  if(computeProfile)
+    {
+      FILE* profileFile=open_file(profilePath,"w");
+      
+      for(int mu=0;mu<NDIM;mu++)
+	{
+	  LxField<quad_su3> path("path",WITH_HALO);
+	  PAR(0,
+	      locVol,
+	      CAPTURE(TO_WRITE(path)),
+		  iVol,
+	      {
+		su3_put_to_id(path[iVol]);
+	      });
+	  
+	  for(int x=0;x<=glbSize[mu]/2;x++)
+	    {
+	      LxField<double> t("t");
+	      PAR(0,
+		  locVol,
+		  CAPTURE(TO_READ(path),
+			  TO_WRITE(t)),
+		  iVol,
+		  {
+		    t[iVol]=su3_real_trace(path[iVol]);
+		  });
+	      
+	      double p;
+	      t.reduce(p);
+	      p/=glbVol;
+	      
+	      master_fprintf(profileFile,"%d %d %.16lg\n",mu,x,p);
+	      
+	      path.updateHalo();
+	      LxField<quad_su3> tmp("tmp");
+	      PAR(0,
+		  locVol,
+		  CAPTURE(TO_READ(path),
+			  TO_READ(fixedConf),
+			  TO_WRITE(tmp),
+			  mu),
+		  iVol,
+		  {
+		    unsafe_su3_prod_su3(tmp[iVol],fixedConf[iVol][mu],path[loclxNeighup[iVol][mu]]);
+		  });
+	      
+	      path=tmp;
+	    }
+	}
+    }
 }
 
 int main(int narg,char** arg)

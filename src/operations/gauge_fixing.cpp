@@ -684,7 +684,7 @@ namespace nissa
 						   const LxField<quad_su3>& ori_conf,
 						   const LxField<double>& F_offset,
 						   const double& func,
-						   const bool &use_FACC,
+						   int use_FACC,
 						   const bool &use_adapt,
 						   int &nskipped_adapt,
 						   bool &use_GCG,
@@ -719,6 +719,9 @@ namespace nissa
 	const double t1=take_time();
 	Fourier_accelerate_derivative(der);
 	VERBOSITY_LV2_MASTER_PRINTF(" Time to fourier accelerate: %lg s\n",take_time()-t1);
+
+	if(use_FACC<0)
+	  use_FACC++;
       }
     
     //make the CG improvement
@@ -794,7 +797,7 @@ namespace nissa
       {
 	double time=-take_time();
 	
-	const bool use_fft_acc=pars.useFftAcc;
+	const int& use_fft_acc=pars.useFftAcc;
 	bool use_adapt=pars.useAdaptativeSearch;
 	bool use_GCG=pars.useGeneralizedCg;
 	if(pars.useGeneralizedCg) allocate_GCG_stuff();
@@ -867,22 +870,6 @@ namespace nissa
 		});
 	    
 	    gauge_transform_conf(fixed_conf,fixer,ext_conf);
-
-	    if(0)
-	      {
-		int nMax=glbSize[1]/2;
-		std::vector<double> prof(nMax);
-		const LxField<quad_su3> p=fixed_conf;
-		for(int x=0;x<nMax;x++)
-		  {
-		    const double f=compute_Landau_or_Coulomb_functional(p,pars.gauge);
-		    prof[x]=f;
-		    
-		    LxField<quad_su3> tmp("tmp",WITH_HALO);
-		    tmp=p;
-		    tmp.updateHalo();
-		  }
-	      }
 	    
 	    //check if really get out
 	    really_get_out=false;
