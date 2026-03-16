@@ -68,7 +68,7 @@ void inMain(int narg,char **arg)
       
       for(int mu=0;mu<NDIM;mu++)
 	{
-	  LxField<quad_su3> path("path",WITH_HALO);
+	  LxField<su3> path("path",WITH_HALO);
 	  PAR(0,
 	      locVol,
 	      CAPTURE(TO_WRITE(path)),
@@ -96,7 +96,7 @@ void inMain(int narg,char **arg)
 	      master_fprintf(profileFile,"%d %d %.16lg\n",mu,x,p);
 	      
 	      path.updateHalo();
-	      LxField<quad_su3> tmp("tmp");
+	      LxField<su3> tmp("tmp");
 	      PAR(0,
 		  locVol,
 		  CAPTURE(TO_READ(path),
