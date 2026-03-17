@@ -110,6 +110,8 @@ void inMain(int narg,char **arg)
 	      
 	      path=tmp;
 	    }
+	  
+	  master_fprintf(profileFile,"\n");
 	}
     }
 }
