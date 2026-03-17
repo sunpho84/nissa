@@ -684,7 +684,7 @@ namespace nissa
 						   const LxField<quad_su3>& ori_conf,
 						   const LxField<double>& F_offset,
 						   const double& func,
-						   const bool& use_FACC,
+						   const int& use_FACC,
 						   const bool &use_adapt,
 						   int &nskipped_adapt,
 						   bool &use_GCG,
