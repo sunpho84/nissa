@@ -64,47 +64,39 @@ void inMain(int narg,char **arg)
   
   if(computeProfile)
     {
-      fixedConf.updateHalo();
-      
       FILE* profileFile=open_file(profilePath,"w");
-      
-      using Path=su3[2];
       
       for(int mu=0;mu<NDIM;mu++)
 	{
-	  std::vector<double> p(glbSize[mu]+1);
-	  
-	  LxField<Path> path("path",WITH_HALO);
+	  LxField<su3> path("path",WITH_HALO);
 	  PAR(0,
 	      locVol,
 	      CAPTURE(TO_WRITE(path)),
 		  iVol,
 	      {
-		for(int bwFw=0;bwFw<2;bwFw++)
-		  su3_put_to_id(path[iVol][bwFw]);
+		su3_put_to_id(path[iVol]);
 	      });
 	  
 	  for(int x=0;x<=glbSize[mu]/2;x++)
 	    {
-	      LxField<complex> t("t");
+	      LxField<double> t("t");
 	      PAR(0,
 		  locVol,
 		  CAPTURE(TO_READ(path),
 			  TO_WRITE(t)),
 		  iVol,
 		  {
-		    for(int bwFw=0;bwFw<2;bwFw++)
-		      t[iVol][bwFw]=su3_real_trace(path[iVol][bwFw]);
+		    t[iVol]=su3_real_trace(path[iVol]);
 		  });
 	      
-	      complex g;
-	      t.reduce(g);
+	      double p;
+	      t.reduce(p);
+	      p/=glbVol;
 	      
-	      p[glbSize[mu]/2-x]=g[0]/(glbVol*NCOL);
-	      p[glbSize[mu]/2+x]=g[1]/(glbVol*NCOL);
+	      master_fprintf(profileFile,"%d %d %.16lg\n",mu,x,p);
 	      
 	      path.updateHalo();
-	      LxField<Path> tmp("tmp");
+	      LxField<su3> tmp("tmp");
 	      PAR(0,
 		  locVol,
 		  CAPTURE(TO_READ(path),
@@ -113,16 +105,11 @@ void inMain(int narg,char **arg)
 			  mu),
 		  iVol,
 		  {
-		    unsafe_su3_dag_prod_su3(tmp[iVol][0],fixedConf[loclxNeighdw[iVol][mu]][mu],path[loclxNeighdw[iVol][mu]][0]);
-		    unsafe_su3_prod_su3    (tmp[iVol][1],fixedConf[iVol][mu],                  path[loclxNeighup[iVol][mu]][1]);
+		    unsafe_su3_prod_su3(tmp[iVol],fixedConf[iVol][mu],path[loclxNeighup[iVol][mu]]);
 		  });
 	      
 	      path=tmp;
 	    }
-	  
-	  for(int x=0;x<=glbSize[mu];x++)
-	    master_fprintf(profileFile,"%d %d %.16lg\n",mu,x-glbSize[mu]/2,p[x]);
-	  master_fprintf(profileFile,"\n");
 	}
     }
 }
