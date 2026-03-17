@@ -714,6 +714,7 @@ namespace nissa
      // }
      
     //put the kernel
+    VERBOSITY_LV2_MASTER_PRINTF("AAAA %d\n",use_FACC);
     if(use_FACC>0 or iter<-use_FACC)
       {
 	const double t1=take_time();

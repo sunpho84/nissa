@@ -22,7 +22,10 @@ void inMain(int narg,char **arg)
   read_str_str("OutGaugePath",outPath,1024);
   
   LC_gauge_fixing_pars_t pars;
-  pars.gauge=LC_gauge_fixing_pars_t::LANDAU;
+  
+  char gaugeTag[100];
+  read_str_str("Gauge",gaugeTag,100);
+  pars.gauge=LC_gauge_fixing_pars_t::gaugeFromTag(gaugeTag);
   read_str_double("Precision",&pars.targetPrecision);
   read_str_double("Alpha",&pars.alphaExp);
   read_str_int("NMaxIters",&pars.nmaxIterations);
