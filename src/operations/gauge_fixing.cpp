@@ -684,7 +684,7 @@ namespace nissa
 						   const LxField<quad_su3>& ori_conf,
 						   const LxField<double>& F_offset,
 						   const double& func,
-						   int use_FACC,
+						   const bool& use_FACC,
 						   const bool &use_adapt,
 						   int &nskipped_adapt,
 						   bool &use_GCG,
@@ -714,14 +714,11 @@ namespace nissa
      // }
      
     //put the kernel
-    if(use_FACC)
+    if(use_FACC>0 or iter<-use_FACC)
       {
 	const double t1=take_time();
 	Fourier_accelerate_derivative(der);
 	VERBOSITY_LV2_MASTER_PRINTF(" Time to fourier accelerate: %lg s\n",take_time()-t1);
-
-	if(use_FACC<0)
-	  use_FACC++;
       }
     
     //make the CG improvement
@@ -744,7 +741,7 @@ namespace nissa
       {
 	const double t1=take_time();
 	alpha=adapt_alpha(fixed_conf,fixer,gauge,v,alpha_def,ori_conf,F_offset,func,use_adapt,nskipped_adapt);
-	VERBOSITY_LV2_MASTER_PRINTF(" Time to make adaptative alpha: %lg s\n",take_time()-t1);
+	VERBOSITY_LV2_MASTER_PRINTF(" Time to make adaptative alpha (%.16lg): %lg s\n",alpha,take_time()-t1);
       }
     else
       alpha=alpha_def;
@@ -797,10 +794,11 @@ namespace nissa
       {
 	double time=-take_time();
 	
-	int use_fft_acc=pars.useFftAcc;
+	bool use_fft_acc=pars.useFftAcc;
 	bool use_adapt=pars.useAdaptativeSearch;
 	bool use_GCG=pars.useGeneralizedCg;
-	if(pars.useGeneralizedCg) allocate_GCG_stuff();
+	if(use_GCG)
+	  allocate_GCG_stuff();
 	
 	fixed_conf=ext_conf;
 	
