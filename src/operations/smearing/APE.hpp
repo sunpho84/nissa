@@ -67,7 +67,8 @@ namespace nissa
 		      const double& alpha,
 		      const int& nSteps,
 		      const WhichDirs& dirs=allDirs,
-		      const int& minStapleDir=0);
+		      const int& minStapleDir=0,
+          const int& skipStapleDir=-1);
   
   inline void ape_single_dir_smear_conf(LxField<quad_su3>& smear_conf,
 					const LxField<quad_su3>& origi_conf,
@@ -87,6 +88,17 @@ namespace nissa
 				      const int& min_staple_dir=0)
   {
     ape_smear_conf(smear_conf,origi_conf,alpha,nstep,allOtherDirs[mu]);
+  }
+
+  // - smear only mu != corr_dir
+  // - staples use only nu != corr_dir
+  inline void ape_orth_dir_smear_conf(LxField<quad_su3>& smear_conf,
+                                      const LxField<quad_su3>& origi_conf,
+                                      const double& alpha,
+                                      const int& nstep,
+                                      const int& corr_dir)
+  {
+    ape_smear_conf(smear_conf,origi_conf,alpha,nstep,allOtherDirs[corr_dir],0,corr_dir);
   }
   
   inline void ape_temporal_smear_conf(LxField<quad_su3>& smear_conf,

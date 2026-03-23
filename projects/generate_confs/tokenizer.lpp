@@ -134,6 +134,10 @@ GaussKappa DEBUG_PRINTF("Found GaussKappa\n");return TK_GAUSS_KAPPA;
 GaussNiterSrc DEBUG_PRINTF("Found GaussNiterSrc\n");return TK_GAUSS_NITER_SRC;
 GaussNiterSnk DEBUG_PRINTF("Found GaussNiterSnk\n");return TK_GAUSS_NITER_SNK;
 
+ /* ape smearing (meson corrs) */
+ApeAlpha DEBUG_PRINTF("Found ApeAlpha\n");return TK_APE_ALPHA;
+ApeNiter DEBUG_PRINTF("Found ApeNiter\n");return TK_APE_NITER;
+
  /* rendens pars */
 MaxOrder DEBUG_PRINTF("Found MaxOrder\n");return TK_MAX_ORDER;
 
