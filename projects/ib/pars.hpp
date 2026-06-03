@@ -59,7 +59,7 @@ namespace nissa
   
   EXTERN_PARS int preservePartialData INIT_TO(0);
   
-  EXTERN_PARS int anisotropicFermionAction INIT_TO(0);
+  EXTERN_PARS int anisotropicFermionicAction INIT_TO(0);
   
   EXTERN_PARS int nMaxTrials INIT_TO(3);
   
