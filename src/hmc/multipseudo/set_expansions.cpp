@@ -71,13 +71,14 @@ namespace nissa
     double eig_max=0;
     do
       {
+	std::optional<double> anis=std::nullopt;
 	switch(quark.discretiz)
 	  {
 	  case ferm_discretiz::ROOT_STAG:
 	    apply_stD2ee_m2(*out.stag,eo_conf,temp1.stag->castFieldCoverage<ODD_SITES>(),sqr(quark.mass),*in.stag);
 	    break;
 	  case ferm_discretiz::ROOT_TM_CLOV:
-	    tmclovDkern_eoprec_square_eos(out.Wils->castFieldCoverage<ODD_SITES>(),temp1.Wils->castFieldCoverage<ODD_SITES>(),*temp2.Wils,eo_conf,quark.kappa,Cl->oddPart,*invCl_evn,quark.mass,in.Wils->castFieldCoverage<ODD_SITES>());
+	    tmclovDkern_eoprec_square_eos(out.Wils->castFieldCoverage<ODD_SITES>(),temp1.Wils->castFieldCoverage<ODD_SITES>(),*temp2.Wils,eo_conf,quark.kappa,anis,Cl->oddPart,*invCl_evn,quark.mass,in.Wils->castFieldCoverage<ODD_SITES>());
 	    break;
 	  default:
 	    CRASH("not supported yet");

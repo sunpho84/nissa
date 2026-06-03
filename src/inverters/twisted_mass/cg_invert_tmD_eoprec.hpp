@@ -13,6 +13,7 @@ namespace nissa
   //Prepare the source according to Equation (8.b)
   void inv_tmD_cg_eoprec_prepare_source(OddField<spincolor>& varphi,
 					const EoField<quad_su3>& conf_eos,
+					const std::optional<double>& anis,
 					const EvnField<spincolor>& eq8a,
 					const OddField<spincolor>& source_odd);
   
@@ -20,6 +21,7 @@ namespace nissa
 			 std::optional<OddField<spincolor>> guess_Koo,
 			 const LxField<quad_su3>& conf_lx,
 			 const double& kappa,
+			 const std::optional<double>& anis,
 			 const double& mass,
 			 const int& nitermax,
 			 const double& residue,
@@ -27,6 +29,7 @@ namespace nissa
   
   void inv_tmD_cg_eoprec_almost_reco_sol(EvnField<spincolor>& varphi,
 					 const EoField<quad_su3>& conf_eos,
+					 const std::optional<double>& anis,
 					 const OddField<spincolor>& sol_odd,
 					 const EvnField<spincolor>& source_evn);
 }

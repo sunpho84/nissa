@@ -12,6 +12,7 @@ namespace nissa
 						  std::optional<OddField<spincolor>> guess,
 						  const EoField<quad_su3>& conf,
 						  const double& kappa,
+						  const std::optional<double>& anis,
 						  const double& mu,
 						  const int& niter,
 						  const double residue,
@@ -23,10 +24,11 @@ namespace nissa
        temp2=EvnField<spincolor>("temp2",WITH_HALO),
        &conf,
        &kappa,
+       &anis,
        &mu](OddField<spincolor>& out,
 	    const OddField<spincolor>& in) mutable
       {
-	tmDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,mu,in);
+	tmDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,anis,mu,in);
       };
     
     cg_invert(sol,

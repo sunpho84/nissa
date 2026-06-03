@@ -29,6 +29,7 @@ namespace nissa
   void apply_tmQ(LxField<spincolor>& out,
 		 const LxField<quad_su3>& conf,
 		 const double& kappa,
+		 const std::optional<double>& anis,
 		 const double& mass,
 		 const LxField<spincolor>& in)
   {
@@ -38,6 +39,7 @@ namespace nissa
     PAR(0,locVol,
 	CAPTURE(mass,
 		kcf=1/(2*kappa),
+		anis,
 		TO_WRITE(out),
 		TO_READ(in),
 		TO_READ(conf)),X,
@@ -72,6 +74,12 @@ namespace nissa
 	      
 	      unsafe_su3_prod_color(temp_c2,conf[X][mu],temp_c0);
 	      unsafe_su3_prod_color(temp_c3,conf[X][mu],temp_c1);
+	      
+	      if(anis.has_value() and mu>0)
+		{
+		  color_prodassign_double(temp_c2,*anis);
+		  color_prodassign_double(temp_c3,*anis);
+		}
 	      
 	      color_summassign(out[X][0],temp_c2);
 	      color_summassign(out[X][1],temp_c3);
@@ -120,6 +128,12 @@ namespace nissa
 	      
 	      unsafe_su3_dag_prod_color(temp_c2,conf[Xdw][mu],temp_c0);
 	      unsafe_su3_dag_prod_color(temp_c3,conf[Xdw][mu],temp_c1);
+	      
+	      if(anis.has_value() and mu>0)
+		{
+		  color_prodassign_double(temp_c2,*anis);
+		  color_prodassign_double(temp_c3,*anis);
+		}
 	      
 	      color_summassign(out[X][0],temp_c2);
 	      color_summassign(out[X][1],temp_c3);

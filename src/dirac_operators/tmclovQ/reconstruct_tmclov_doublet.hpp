@@ -10,6 +10,7 @@ namespace nissa
 				  LxField<spincolor>& outplus,
 				  const LxField<quad_su3>& conf,
 				  const double& kappa,
+				  const std::optional<double>& anis,
 				  const LxField<clover_term_t>& Cl,
 				  const double& mu,
 				  const LxField<spincolor>& in);

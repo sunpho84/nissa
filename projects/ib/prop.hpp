@@ -47,6 +47,7 @@ namespace nissa
     bool is_source{false};
     
     double kappa{};
+    std::optional<double> anis{};
     Momentum kappa_asymm{};
     double mass{};
     int r{};

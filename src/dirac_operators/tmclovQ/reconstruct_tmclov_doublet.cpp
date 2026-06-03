@@ -15,11 +15,12 @@ namespace nissa
 				  LxField<spincolor>& outplus,
 				  const LxField<quad_su3>& conf,
 				  const double& kappa,
+				  const std::optional<double>& anis,
 				  const LxField<clover_term_t>& Cl,
 				  const double& mu,
 				  const LxField<spincolor>& in)
   {
-    apply_tmclovQ(outminus,conf,kappa,Cl,mu,in);
+    apply_tmclovQ(outminus,conf,kappa,anis,Cl,mu,in);
     
     PAR(0,locVol,
 	CAPTURE(mu,

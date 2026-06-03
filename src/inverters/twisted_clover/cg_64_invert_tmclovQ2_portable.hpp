@@ -16,6 +16,7 @@ namespace nissa
 				   std::optional<LxField<spincolor>> guess,
 				   const LxField<quad_su3>& conf,
 				   const double& kappa,
+				   const std::optional<double>& anis,
 				   const LxField<clover_term_t>& Cl,
 				   const double& mu,
 				   const int& niter,
@@ -27,11 +28,12 @@ namespace nissa
       [temp=LxField<spincolor>("temp",WITH_HALO),
        &conf,
        &kappa,
+       &anis,
        &Cl,
 	       &mu](LxField<spincolor>& out,
 		    const LxField<spincolor>& in) mutable
       {
-	apply_tmclovQ2(out,conf,kappa,Cl,temp,mu,in);
+	apply_tmclovQ2(out,conf,kappa,anis,Cl,temp,mu,in);
       };
     
     cg_invert(sol,

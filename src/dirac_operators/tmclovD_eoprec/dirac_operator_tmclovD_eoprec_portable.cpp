@@ -47,6 +47,7 @@ namespace nissa
 			      EvnField<spincolor>& tmp,
 			      const EoField<quad_su3>& conf,
 			      const double& kappa,
+			      const std::optional<double>& anis,
 			      const OddField<clover_term_t>& Cl_odd,
 			      const EvnField<inv_clover_term_t>& invCl_evn,
 			      const bool& dag,
@@ -57,9 +58,9 @@ namespace nissa
     EvnField<spincolor>& outAsEvnTmp=out.castFieldCoverage<EVEN_SITES>();
     // EvnField<spincolor>& tmpEvn=extTmp.castFieldCoverage<EVEN_SITES>();
     // OddField<spincolor>& tmpOdd=extTmp.castFieldCoverage<ODD_SITES>();
-    tmn2Deo_or_tmn2Doe_eos(outAsEvnTmp,conf,in);
+    tmn2Deo_or_tmn2Doe_eos(outAsEvnTmp,conf,anis,in);
     inv_tmclovDee_or_oo_eos(tmp,invCl_evn,dag,outAsEvnTmp);
-    tmn2Deo_or_tmn2Doe_eos(out,conf,tmp);
+    tmn2Deo_or_tmn2Doe_eos(out,conf,anis,tmp);
     
     tmclovDee_or_oo_eos(tmp.castFieldCoverage<ODD_SITES>(),kappa,Cl_odd,dag,mu,in);
     
@@ -72,12 +73,13 @@ namespace nissa
 				     EvnField<spincolor>& temp2,
 				     const EoField<quad_su3>& conf,
 				     const double& kappa,
+				     const std::optional<double>& anis,
 				     const OddField<clover_term_t>& Cl_odd,
 				     const EvnField<inv_clover_term_t>& invCl_evn,
 				     const double& mu,
 				     const OddField<spincolor>& in)
   {
-    tmclovDkern_eoprec_eos(temp1,temp2,conf,kappa,Cl_odd,invCl_evn,true,  mu,in   );
-    tmclovDkern_eoprec_eos(out,  temp2,conf,kappa,Cl_odd,invCl_evn,false, mu,temp1);
+    tmclovDkern_eoprec_eos(temp1,temp2,conf,kappa,anis,Cl_odd,invCl_evn,true,  mu,in   );
+    tmclovDkern_eoprec_eos(out,  temp2,conf,kappa,anis,Cl_odd,invCl_evn,false, mu,temp1);
   }
 }

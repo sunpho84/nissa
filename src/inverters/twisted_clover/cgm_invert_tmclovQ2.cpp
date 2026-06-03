@@ -10,6 +10,7 @@ namespace nissa
   void inv_tmclovQ2_cgm(std::vector<LxField<spincolor>>& sol,
 			const LxField<quad_su3>& conf,
 			const double& kappa,
+			const std::optional<double>& anis,
 			const LxField<clover_term_t>& Cl,
 			const std::vector<double>& m,
 			const int& niter_max,
@@ -24,7 +25,7 @@ namespace nissa
     
     cgm_invert(sol,
 	       m2,
-	       ApplyTmclovQ2M2Functor(conf,kappa,Cl,temp),
+	       ApplyTmclovQ2M2Functor(conf,kappa,anis,Cl,temp),
 	       niter_max,
 	       req_res,
 	       source);

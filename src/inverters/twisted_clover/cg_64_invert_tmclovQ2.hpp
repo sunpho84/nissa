@@ -13,13 +13,14 @@ namespace nissa
 				 std::optional<LxField<spincolor>> guess,
 				 const LxField<quad_su3>& conf,
 				 const double& kappa,
+				 const std::optional<double>& anis,
 				 const LxField<clover_term_t>& Cl,
 				 const double& mu,
 				 const int& niter,
 				 const double& residue,
 				 const LxField<spincolor>& source)
   {
-    inv_tmclovQ2_cg_64_portable(sol,guess,conf,kappa,Cl,mu,niter,residue,source);
+    inv_tmclovQ2_cg_64_portable(sol,guess,conf,kappa,anis,Cl,mu,niter,residue,source);
   }
 }
 

@@ -36,10 +36,11 @@ namespace nissa
   //Prepare the source according to Equation (8.b)
   void inv_tmD_cg_eoprec_prepare_source(OddField<spincolor>& varphi,
 					const EoField<quad_su3>& conf_eos,
+					const std::optional<double>& anis,
 					const EvnField<spincolor>& eq8a,
 					const OddField<spincolor>& source_odd)
   {
-    tmn2Deo_or_tmn2Doe_eos(varphi,conf_eos,eq8a);
+    tmn2Deo_or_tmn2Doe_eos(varphi,conf_eos,anis,eq8a);
     
     PAR(0,locVolh,
 	CAPTURE(TO_WRITE(varphi),
@@ -61,6 +62,7 @@ namespace nissa
 					std::optional<OddField<spincolor>> guess,
 					const EoField<quad_su3>& conf,
 					const double& kappa,
+					const std::optional<double>& anis,
 					const double& mass,
 					const int& nitermax,
 					const double& residue,
@@ -72,16 +74,17 @@ namespace nissa
 	//inv_tmDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,mass,nitermax,residue,source);
       }
     else
-      inv_tmDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,mass,nitermax,residue,source);
+      inv_tmDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,anis,mass,nitermax,residue,source);
   }
   
   //Eq.(11) up to last piece
   void inv_tmD_cg_eoprec_almost_reco_sol(EvnField<spincolor>& varphi,
 					 const EoField<quad_su3>& conf_eos,
+					 const std::optional<double>& anis,
 					 const OddField<spincolor>& sol_odd,
 					 const EvnField<spincolor>& source_evn)
   {
-    tmn2Deo_or_tmn2Doe_eos(varphi,conf_eos,sol_odd);
+    tmn2Deo_or_tmn2Doe_eos(varphi,conf_eos,anis,sol_odd);
     
     PAR(0,locVolh,
 	CAPTURE(TO_WRITE(varphi),
@@ -100,6 +103,7 @@ namespace nissa
 				std::optional<OddField<spincolor>> guess_Koo,
 				const LxField<quad_su3>& conf_lx,
 				const double& kappa,
+				const std::optional<double>& anis,
 				const double& mass,
 				const int& nitermax,
 				const double& residue,
@@ -126,18 +130,18 @@ namespace nissa
     
     //Prepare the source according to Equation (8.b)
     OddField<spincolor> varphi("varphi",WITH_HALO);
-    inv_tmD_cg_eoprec_prepare_source(varphi,conf_eos,evnTemp,source_eos.oddPart);
+    inv_tmD_cg_eoprec_prepare_source(varphi,conf_eos,anis,evnTemp,source_eos.oddPart);
     
     //Equation (9) using solution_eos[EVN] as temporary vector
     OddField<spincolor> oddTemp("oddTemp",WITH_HALO);
-    inv_tmDkern_eoprec_square_eos_cg(oddTemp,guess_Koo,conf_eos,kappa,mass,nitermax,residue,varphi);
+    inv_tmDkern_eoprec_square_eos_cg(oddTemp,guess_Koo,conf_eos,kappa,anis,mass,nitermax,residue,varphi);
     if(guess_Koo) *guess_Koo=oddTemp; //if a guess was passed, return new one
     
     //Equation (10)
-    tmDkern_eoprec_eos(solution_eos.oddPart,solution_eos.evenPart,conf_eos,kappa,-mass,oddTemp);
+    tmDkern_eoprec_eos(solution_eos.oddPart,solution_eos.evenPart,conf_eos,kappa,anis,-mass,oddTemp);
     
     //Equation (11)
-    inv_tmD_cg_eoprec_almost_reco_sol(evnTemp,conf_eos,solution_eos.oddPart,source_eos.evenPart);
+    inv_tmD_cg_eoprec_almost_reco_sol(evnTemp,conf_eos,anis,solution_eos.oddPart,source_eos.evenPart);
     inv_tmDee_or_oo_eos(solution_eos.evenPart,kappa,mass,evnTemp);
     
     /////////////////////////// paste the e/o parts of the solution together and free ///////////////////
@@ -149,6 +153,7 @@ namespace nissa
 			 std::optional<OddField<spincolor>> guess_Koo,
 			 const LxField<quad_su3>& conf_lx,
 			 const double& kappa,
+			 const std::optional<double>& anis,
 			 const double& mass,
 			 const int& nitermax,
 			 const double& residue,
@@ -182,14 +187,14 @@ namespace nissa
 #endif
     
     if(not solved)
-      inv_tmD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,mass,nitermax,residue,source_lx);
+      inv_tmD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,anis,mass,nitermax,residue,source_lx);
     
     //check solution
     double check_time=take_time();
     LxField<spincolor> residueVec("residueVec");
     LxField<spincolor> temp("temp",WITH_HALO);
     temp=solution_lx;
-    apply_tmQ(residueVec,conf_lx,kappa,mass,temp);
+    apply_tmQ(residueVec,conf_lx,kappa,anis,mass,temp);
     PAR(0,locVol,
 	CAPTURE(TO_WRITE(residueVec)),
 	ivol,

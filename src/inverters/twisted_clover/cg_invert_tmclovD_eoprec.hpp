@@ -11,6 +11,7 @@ namespace nissa
 			     std::optional<OddField<spincolor>> guess_Koo,
 			     const LxField<quad_su3>& conf_lx,
 			     const double& kappa,
+			     const std::optional<double>& anis,
 			     const LxField<clover_term_t>& Cl_lx,
 			     const LxField<inv_clover_term_t>* ext_invCl_lx,
 			     const double& cSW,

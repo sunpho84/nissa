@@ -37,6 +37,16 @@ void init_simulation(int narg,char **arg)
       MASTER_PRINTF("To change it, export the envirnoment variable %s\n",RUNNING_UPDATE_TIME_STRING);
     }
   
+  const char ANISOTROPIC_FERMION_ACTION_STRING[]=
+    "ANISOTROPIC_FERMION_ACTION";
+  if(const char* p=getenv(ANISOTROPIC_FERMION_ACTION_STRING))
+    {
+      anisotropicFermionAction=atoi(p);
+      MASTER_PRINTF("Enabled the anisotropic fermionic action: %d\n",anisotropicFermionAction);
+    }
+  else
+    MASTER_PRINTF("To enable the anistropic fermionic action export the string: %s\n",ANISOTROPIC_FERMION_ACTION_STRING);
+  
   const char *path=arg[1];
   
   //parse the rest of the args
@@ -161,6 +171,8 @@ void init_simulation(int narg,char **arg)
   expect_str("SourceName");
   expect_str("Tins");
   expect_str("Kappa");
+  if(anisotropicFermionAction)
+    expect_str("Anis");
   if(twisted_run)
     {
       expect_str("Mass");
@@ -232,8 +244,9 @@ void init_simulation(int narg,char **arg)
 	  read_int(&tins);
 	  MASTER_PRINTF("Read variable 'Tins' with value: %d\n",tins);
 	}
-      
-      double kappa=0.125,mass=0.0,charge=0,residue=1e-16;
+
+      constexpr double defaultAnis=1.0;
+      double kappa=0.125,anis=defaultAnis,mass=0.0,charge=0,residue=1e-16;
       Momentum theta;
       char ext_field_path[32]="";
       theta[0]=temporal_bc;
@@ -250,6 +263,13 @@ void init_simulation(int narg,char **arg)
 	  
 	  read_double(&kappa);
 	  MASTER_PRINTF("Read variable 'Kappa' with value: %lg\n",kappa);
+	  
+	  if(anisotropicFermionAction)
+	    {
+	      read_double(&anis);
+	      MASTER_PRINTF("Read variable 'Anisotropy' with value: %lg\n",anis);
+	    }
+	  
 	  if(twisted_run)
 	    {
 	      read_double(&mass);
@@ -423,6 +443,8 @@ void init_simulation(int narg,char **arg)
 	  if(Q.find(fullName)!=Q.end()) CRASH("name \'%s\' already included",fullName);
 	  
 	  Q[fullName].init_as_propagator(ins,source_full_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
+	  if(anisotropicFermionAction and anis!=defaultAnis)
+	    Q[fullName].anis=anis;
 	  qprop_name_list[icopy+nCopies*iq]=fullName;
 	}
     }

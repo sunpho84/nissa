@@ -41,6 +41,7 @@ namespace nissa
   void get_qprop(LxField<spincolor>& out,
 		 LxField<spincolor>& in,
 		 const double& kappa,
+		 const std::optional<double>& anis,
 		 const double& mass,
 		 const int& r,
 		 const double charge,
@@ -90,9 +91,9 @@ namespace nissa
 	const LxField<quad_su3>* conf=get_updated_conf(charge,theta,*glb_conf);
 	
 	if(clover_run)
-	  inv_tmclovD_cg_eoprec(out,std::nullopt,*conf,kappa,*Cl,invCl,glb_cSW,mass,1000000,residue,in);
+	  inv_tmclovD_cg_eoprec(out,std::nullopt,*conf,kappa,anis,*Cl,invCl,glb_cSW,mass,1000000,residue,in);
 	else
-	  inv_tmD_cg_eoprec(out,std::nullopt,*conf,kappa,mass,1000000,residue,in);
+	  inv_tmD_cg_eoprec(out,std::nullopt,*conf,kappa,anis,mass,1000000,residue,in);
       }
     
     VERBOSITY_LV1_MASTER_PRINTF("Solving time: %lg s\n",take_time()-tin);
@@ -603,6 +604,7 @@ namespace nissa
   void mult_by_Dop(LxField<spincolor>& out,
 		   const LxField<spincolor>& in,
 		   const double kappa,
+		   const std::optional<double>& anis,
 		   const double mass,
 		   const int r,
 		   const double& charge,
@@ -626,9 +628,9 @@ namespace nissa
       *get_updated_conf(charge,theta,*glb_conf);
     
     if(clover_run)
-      apply_tmclovQ(out,conf,kappa,*Cl,mass,tmp);
+      apply_tmclovQ(out,conf,kappa,anis,*Cl,mass,tmp);
     else
-      apply_tmQ(out,conf,kappa,mass,tmp);
+      apply_tmQ(out,conf,kappa,anis,mass,tmp);
     
     PAR(0,locVol,
 	CAPTURE(TO_WRITE(out)),
@@ -712,7 +714,7 @@ namespace nissa
   }
   
   //generate a sequential source
-  void generate_source(insertion_t inser,char *ext_field_path,double mass,int r,double charge,double kappa,const Momentum& kappa_asymm,const Momentum& theta,const double& residue,std::vector<source_term_t>& source_terms,int isou,int t)
+  void generate_source(insertion_t inser,char *ext_field_path,double mass,int r,double charge,double kappa,const Momentum& kappa_asymm,const std::optional<double>& anis,const Momentum& theta,const double& residue,std::vector<source_term_t>& source_terms,int isou,int t)
   {
     source_time-=take_time();
     
@@ -861,7 +863,7 @@ namespace nissa
       case WFLOW:flow_prop(loop_source,*conf,ori,rel_t,kappa,r);break;
       case BACK_WFLOW:back_flow_prop(loop_source,*conf,ori,rel_t,kappa,r);break;
       case PHASING:phase_prop(loop_source,ori,rel_t,theta);break;
-      case DIROP:mult_by_Dop(loop_source,ori,kappa,mass,r,charge,theta);break;
+      case DIROP:mult_by_Dop(loop_source,ori,kappa,anis,mass,r,charge,theta);break;
       case DEL_POS:select_position(loop_source,ori,r);break;
       case DEL_SPIN:select_spin(loop_source,ori,r);break;
       case DEL_COL:select_color(loop_source,ori,r);break;
@@ -935,7 +937,7 @@ namespace nissa
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
 	  int isou=so_sp_col_ind(id_so,ic_so);
-	  generate_source(insertion,q.ext_field_path,q.mass,q.r,q.charge,q.kappa,q.kappa_asymm,q.theta,q.residue,q.source_terms,isou,q.tins);
+	  generate_source(insertion,q.ext_field_path,q.mass,q.r,q.charge,q.kappa,q.kappa_asymm,q.anis,q.theta,q.residue,q.source_terms,isou,q.tins);
 	  q[isou].initOn<defaultMemorySpace>([&name,
 					      ihit,
 					      id_so,
@@ -959,7 +961,7 @@ namespace nissa
 	      {
 		//otherwise compute it
 		if(q.insertion==PROP)
-		  get_qprop(sol,*loop_source,q.kappa,q.mass,q.r,q.charge,q.residue,q.theta);
+		  get_qprop(sol,*loop_source,q.kappa,q.anis,q.mass,q.r,q.charge,q.residue,q.theta);
 		else    *sol=*loop_source;
 		
 		//and store if needed
