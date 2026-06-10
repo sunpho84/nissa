@@ -107,9 +107,15 @@ namespace nissa
     {
       is_source=false;
       
-      kappa=_kappa;
+      const auto kappaOfAnis=
+	[&_anis](const double& _kappa)
+	{
+	  return _anis?(1/(1/_kappa+6*(*_anis-1))):_kappa;
+	};
+      
+      kappa=kappaOfAnis(_kappa);
       for(int mu=0;mu<NDIM;mu++)
-	kappa_asymm[mu]=_kappa_asymm[mu];
+	kappa_asymm[mu]=kappaOfAnis(_kappa_asymm[mu]);
       
       mass=_mass;
       
