@@ -46,12 +46,25 @@ namespace nissa
 	
 	spincolor temp;
 	
+	const auto maybeFixAnis=
+	  [&temp_c2,
+	   &temp_c3,
+	   &anis]()
+	  {
+	    if(anis.has_value())
+	      {
+		color_prodassign_double(temp_c2,*anis);
+		color_prodassign_double(temp_c3,*anis);
+	      }
+	  };
+	  
 	//Forward 0
 	Xup=loclxNeighup[X][0];
 	color_summ(temp_c0,in[Xup][0],in[Xup][2]);
 	color_summ(temp_c1,in[Xup][1],in[Xup][3]);
 	unsafe_su3_prod_color(temp[2],conf[X][0],temp_c0);
 	unsafe_su3_prod_color(temp[3],conf[X][0],temp_c1);
+	maybeFixAnis();
 	color_copy(temp[0],temp[2]);
 	color_copy(temp[1],temp[3]);
 	// if(p)
@@ -76,12 +89,7 @@ namespace nissa
 	color_isumm(temp_c1,in[Xup][1],in[Xup][2]);
 	unsafe_su3_prod_color(temp_c2,conf[X][1],temp_c0);
 	unsafe_su3_prod_color(temp_c3,conf[X][1],temp_c1);
-	if(anis.has_value())
-	  {
-	    color_prodassign_double(temp_c2,*anis);
-	    color_prodassign_double(temp_c3,*anis);
-	  }
-	
+	maybeFixAnis();	
 	color_summassign(temp[0],temp_c2);
 	color_summassign(temp[1],temp_c3);
 	color_isubtassign(temp[2],temp_c3);
@@ -95,11 +103,7 @@ namespace nissa
 	color_isubt(temp_c1,in[Xdw][1],in[Xdw][2]);
 	unsafe_su3_dag_prod_color(temp_c2,conf[Xdw][1],temp_c0);
 	unsafe_su3_dag_prod_color(temp_c3,conf[Xdw][1],temp_c1);
-	if(anis.has_value())
-	  {
-	    color_prodassign_double(temp_c2,*anis);
-	    color_prodassign_double(temp_c3,*anis);
-	  }
+	maybeFixAnis();
 	color_summassign(temp[0],temp_c2);
 	color_summassign(temp[1],temp_c3);
 	color_isummassign(temp[2],temp_c3);
@@ -113,11 +117,7 @@ namespace nissa
 	color_subt(temp_c1,in[Xup][1],in[Xup][2]);
 	unsafe_su3_prod_color(temp_c2,conf[X][2],temp_c0);
 	unsafe_su3_prod_color(temp_c3,conf[X][2],temp_c1);
-	if(anis.has_value())
-	  {
-	    color_prodassign_double(temp_c2,*anis);
-	    color_prodassign_double(temp_c3,*anis);
-	  }
+	maybeFixAnis();
 	color_summassign(temp[0],temp_c2);
 	color_summassign(temp[1],temp_c3);
 	color_subtassign(temp[2],temp_c3);
@@ -131,11 +131,7 @@ namespace nissa
 	color_summ(temp_c1,in[Xdw][1],in[Xdw][2]);
 	unsafe_su3_dag_prod_color(temp_c2,conf[Xdw][2],temp_c0);
 	unsafe_su3_dag_prod_color(temp_c3,conf[Xdw][2],temp_c1);
-	if(anis.has_value())
-	  {
-	    color_prodassign_double(temp_c2,*anis);
-	    color_prodassign_double(temp_c3,*anis);
-	  }
+	maybeFixAnis();
 	color_summassign(temp[0],temp_c2);
 	color_summassign(temp[1],temp_c3);
 	color_summassign(temp[2],temp_c3);
@@ -149,11 +145,7 @@ namespace nissa
 	color_isubt(temp_c1,in[Xup][1],in[Xup][3]);
 	unsafe_su3_prod_color(temp_c2,conf[X][3],temp_c0);
 	unsafe_su3_prod_color(temp_c3,conf[X][3],temp_c1);
-	if(anis.has_value())
-	  {
-	    color_prodassign_double(temp_c2,*anis);
-	    color_prodassign_double(temp_c3,*anis);
-	  }
+	maybeFixAnis();
 	color_summassign(temp[0],temp_c2);
 	color_summassign(temp[1],temp_c3);
 	color_isubtassign(temp[2],temp_c2);
@@ -167,11 +159,7 @@ namespace nissa
 	color_isumm(temp_c1,in[Xdw][1],in[Xdw][3]);
 	unsafe_su3_dag_prod_color(temp_c2,conf[Xdw][3],temp_c0);
 	unsafe_su3_dag_prod_color(temp_c3,conf[Xdw][3],temp_c1);
-	if(anis.has_value())
-	  {
-	    color_prodassign_double(temp_c2,*anis);
-	    color_prodassign_double(temp_c3,*anis);
-	  }
+	maybeFixAnis();
 	color_summassign(temp[0],temp_c2);
 	color_summassign(temp[1],temp_c3);
 	color_isummassign(temp[2],temp_c2);
