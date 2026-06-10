@@ -197,7 +197,7 @@ namespace nissa
 		  const int loc_offset=0)
   {
     /// to be improved, catching fields
-    T loc_res[nslices];
+    T* loc_res=new T[nslices];
     memset(loc_res,0,sizeof(T)*nslices);
     
     locReduce(loc_res+loc_offset,
@@ -207,6 +207,8 @@ namespace nissa
 	      GlbReduceSumFunctor());
     
     non_loc_reduce(glb_res,loc_res,nslices);
+    
+    delete[] loc_res;
   }
   
   /// Reduce a vector over all nodes
@@ -221,12 +223,14 @@ namespace nissa
 		 const int nloc_slices=1,
 		 const int loc_offset=0)
   {
-    T loc_res[nslices];
+    T* loc_res=new T[nslices];
     memset(loc_res,0,sizeof(T)*nslices);
     
     locReduce(loc_res+loc_offset,buf,nloc,nloc_slices,f);
     
     non_loc_reduce(glb_res,loc_res,nslices);
+    
+    delete[] loc_res;
   }
 }
 

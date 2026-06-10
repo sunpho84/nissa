@@ -93,13 +93,17 @@ namespace nissa
   inline void print_contractions_to_file(FILE *fout,std::vector<idirac_pair_t> &list,complex *contr,int twall,const char *tag,double norm,int skip_header=false)
   {
     int ncontr=list.size();
-    int gso[ncontr],gsi[ncontr];
+    int* gso=new int[ncontr];
+    int* gsi=new int[ncontr];
     for(int i=0;i<ncontr;i++)
       {
 	gso[i]=list[i].so;
 	gsi[i]=list[i].si;
       }
     print_contractions_to_file(fout,ncontr,gso,gsi,contr,twall,tag,norm,skip_header);
+    
+    delete[] gso;
+    delete[] gsi;
   }
   
   //read from a file, opened only on master rank
