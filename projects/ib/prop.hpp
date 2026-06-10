@@ -97,6 +97,7 @@ namespace nissa
 			    const double& _residue,
 			    const double& _kappa,
 			    const double* _kappa_asymm,
+			    const std::optional<double>& _anis,
 			    const double& _mass,
 			    const char *_ext_field_path,
 			    const int& _r,
@@ -172,6 +173,7 @@ namespace nissa
 	    const double& residue,
 	    const double& kappa,
 	    const double* kappa_asymm,
+	    const std::optional<double>& anis,
 	    const double& mass,
 	    const char* ext_field_path,
 	    const int& r,
@@ -179,7 +181,7 @@ namespace nissa
 	    const Momentum& theta,
 	    const bool& store)
     {
-      init_as_propagator(insertion,source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store);
+      init_as_propagator(insertion,source_terms,tins,residue,kappa,kappa_asymm,anis,mass,ext_field_path,r,charge,theta,store);
     }
     
     qprop_t(const rnd_t& noise_type,

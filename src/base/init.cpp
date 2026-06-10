@@ -80,7 +80,7 @@ namespace nissa
     //set the bordr
     if(width>=message_width)
       {
-	int n=(width-message_width)/2;
+	const int n=(width-message_width)/2;
 	char sp[n+1];
 	for(int i=0;i<n;i++) sp[i]=' ';
 	sp[n]='\0';

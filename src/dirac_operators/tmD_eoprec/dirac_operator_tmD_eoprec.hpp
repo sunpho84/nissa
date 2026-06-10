@@ -17,6 +17,7 @@ namespace nissa
 				 EvnField<spincolor> &temp2,
 				 const EoField<quad_su3>& conf,
 				 const double& kappa,
+				 const std::optional<double>& anis,
 				 const double& mu,
 				 const OddField<spincolor>& in);
   // void tmn2Deo_or_tmn2Doe_eos(spincolor *out,eo_ptr<quad_su3> conf,int eooe,spincolor *in);

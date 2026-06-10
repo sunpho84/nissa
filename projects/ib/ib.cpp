@@ -244,9 +244,9 @@ void init_simulation(int narg,char **arg)
 	  read_int(&tins);
 	  MASTER_PRINTF("Read variable 'Tins' with value: %d\n",tins);
 	}
-
-      constexpr double defaultAnis=1.0;
-      double kappa=0.125,anis=defaultAnis,mass=0.0,charge=0,residue=1e-16;
+      
+      double kappa=0.125,mass=0.0,charge=0,residue=1e-16;
+      std::optional<double> anis;
       Momentum theta;
       char ext_field_path[32]="";
       theta[0]=temporal_bc;
@@ -266,8 +266,10 @@ void init_simulation(int narg,char **arg)
 	  
 	  if(anisotropicFermionicAction)
 	    {
-	      read_double(&anis);
-	      MASTER_PRINTF("Read variable 'Anisotropy' with value: %lg\n",anis);
+	      double _anis;
+	      read_double(&_anis);
+	      anis=_anis;
+	      MASTER_PRINTF("Read variable 'Anisotropy' with value: %lg\n",_anis);
 	    }
 	  
 	  if(twisted_run)
@@ -442,9 +444,7 @@ void init_simulation(int narg,char **arg)
 	  sprintf(fullName,"%s%s",name,suffix);
 	  if(Q.find(fullName)!=Q.end()) CRASH("name \'%s\' already included",fullName);
 	  
-	  Q[fullName].init_as_propagator(ins,source_full_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
-	  if(anisotropicFermionicAction and anis!=defaultAnis)
-	    Q[fullName].anis=anis;
+	  Q[fullName].init_as_propagator(ins,source_full_terms,tins,residue,kappa,kappa_asymm,anis,mass,ext_field_path,r,charge,theta,store_prop);
 	  qprop_name_list[icopy+nCopies*iq]=fullName;
 	}
     }
