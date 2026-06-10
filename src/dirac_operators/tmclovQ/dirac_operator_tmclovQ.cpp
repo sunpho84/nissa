@@ -47,8 +47,8 @@ namespace nissa
 	spincolor temp;
 	
 	const auto maybeFixAnis=
-	  [&anis](complex& t1,
-		  complex& t2)
+	  [&anis](color& t1,
+		  color& t2)
 	  {
 	    if(anis.has_value())
 	      {
