@@ -35,11 +35,14 @@ namespace nissa
     if(const char* data=getenv(STR))
       {
 	std::istringstream is(data);
+	MASTER_PRINTF("%s set to: %s\n",descr,(std::ostringstream()<<val).str().c_str());
 	is>>val;
       }
     else
-      MASTER_PRINTF("Optionally %s by passing %s\n",descr,STR);
-    MASTER_PRINTF("%s: %s\n",descr,(std::ostringstream()<<val).str().c_str());
+      {
+	MASTER_PRINTF("%s set to default value: %s\n",descr,(std::ostringstream()<<val).str().c_str());
+	MASTER_PRINTF("Optionally set %s by passing %s\n",descr,STR);
+      }
   }
   
   //Clover run

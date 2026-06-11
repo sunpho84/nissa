@@ -24,28 +24,11 @@ void init_simulation(int narg,char **arg)
   if(narg<2)
     CRASH("Use: %s input_file [stop_path]|periodic/antiperiodic|store/load_photons",arg[0]);
   
-  const char RUNNING_UPDATE_TIME_STRING[]=
-    "RUNNING_UPDATE_TIME";
-  if(const char* p=getenv(RUNNING_UPDATE_TIME_STRING))
-    {
-      runningUpdateTime=atoi(p);
-      MASTER_PRINTF("Time between running file update set to: %d s\n",runningUpdateTime);
-    }
-  else
-    {
-      MASTER_PRINTF("Time between running file update set to default value: %d s\n",runningUpdateTime);
-      MASTER_PRINTF("To change it, export the envirnoment variable %s\n",RUNNING_UPDATE_TIME_STRING);
-    }
-  
-  const char ANISOTROPIC_FERMIONIC_ACTION_STRING[]=
-    "ANISOTROPIC_FERMIONIC_ACTION";
-  if(const char* p=getenv(ANISOTROPIC_FERMIONIC_ACTION_STRING))
-    {
-      anisotropicFermionicAction=atoi(p);
-      MASTER_PRINTF("Enabled the anisotropic fermionic action: %d\n",anisotropicFermionicAction);
-    }
-  else
-    MASTER_PRINTF("To enable the anistropic fermionic action export the string: %s\n",ANISOTROPIC_FERMIONIC_ACTION_STRING);
+  getExternalPar(preservePartialData,"PRESERVE_PARTIAL_DATA","Preserve the partial data");
+  getExternalPar(nMaxTrials,"NMAX_TRIALS","Maximum number of trials for a conf");
+  getExternalPar(autoretuneKappaWithAnis,"ANIS_KAPPA_AUTORETUNE","Automatically retune the kappa in presence of anisotropy");
+  getExternalPar(runningUpdateTime,"RUNNING_UPDATE_TIME","Time between running file update");
+  getExternalPar(anisotropicFermionicAction,"ANISOTROPIC_FERMIONIC_ACTION","Anisotropic fermionic action");
   
   const char *path=arg[1];
   
@@ -601,10 +584,6 @@ void in_main(int narg,char **arg)
   
   //init simulation according to input file
   init_simulation(narg,arg);
-  
-  getExternalPar(preservePartialData,"PRESERVE_PARTIAL_DATA","preserve the partial data");
-  getExternalPar(nMaxTrials,"NMAX_TRIALS","maximum number of trials for a conf");
-  getExternalPar(autoretuneKappaWithAnis,"ANIS_KAPPA_AUTORETUNE","automatically retune the kappa in presence of anisotropy");
   
   constexpr char NMAX_PROPS_ALLOCATED_STR[]="NMAX_PROPS_ALLOCATED";
   if(const char* nMaxAllocatedStr=getenv(NMAX_PROPS_ALLOCATED_STR))
