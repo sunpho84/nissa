@@ -602,20 +602,9 @@ void in_main(int narg,char **arg)
   //init simulation according to input file
   init_simulation(narg,arg);
   
-  constexpr char PRESERVE_PARTIAL_DATA_STR[]="PRESERVE_PARTIAL_DATA";
-  if(const char* preservePartialDataStr=getenv(PRESERVE_PARTIAL_DATA_STR))
-    preservePartialData=atoi(preservePartialDataStr);
-  else
-    MASTER_PRINTF("Optionally preserve the partial data by exporting %s\n",PRESERVE_PARTIAL_DATA_STR);
-  MASTER_PRINTF("Preserve partial data: %d\n",preservePartialData);
-  
-  constexpr char NMAX_TRIALS_STR[]="NMAX_TRIALS";
-  if(const char* nMaxTrialsStr=getenv(NMAX_TRIALS_STR))
-    nMaxTrials=atoi(nMaxTrialsStr);
-  else
-    MASTER_PRINTF("Optionally set the maximum number of trials for a conf by exporting %s, set it to zero to bypass, default is: %d\n",NMAX_TRIALS_STR,nMaxTrials);
-  
-  MASTER_PRINTF("Number of maximum trials per conf set to: %d\n",nMaxTrials);
+  getExternalPar(preservePartialData,"PRESERVE_PARTIAL_DATA","preserve the partial data");
+  getExternalPar(nMaxTrials,"NMAX_TRIALS","maximum number of trials for a conf");
+  getExternalPar(autoretuneKappaWithAnis,"ANIS_KAPPA_AUTORETUNE","automatically retune the kappa in presence of anisotropy");
   
   constexpr char NMAX_PROPS_ALLOCATED_STR[]="NMAX_PROPS_ALLOCATED";
   if(const char* nMaxAllocatedStr=getenv(NMAX_PROPS_ALLOCATED_STR))

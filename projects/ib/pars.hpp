@@ -27,6 +27,21 @@ namespace nissa
     else             base=MAX_TWIST_BASE;
   }
   
+  template <typename T>
+  void getExternalPar(T& val,
+		      const char* STR,
+		      const char* descr)
+  {
+    if(const char* data=getenv(STR))
+      {
+	std::istringstream is(data);
+	is>>val;
+      }
+    else
+      MASTER_PRINTF("Optionally %s by passing %s\n",STR);
+    MASTER_PRINTF("%s: %s\n",descr,std::ostringstream(val).str().c_str());
+  }
+  
   //Clover run
   EXTERN_PARS int clover_run;
   EXTERN_PARS double glb_cSW;
@@ -58,6 +73,8 @@ namespace nissa
   EXTERN_PARS int doNotShiftSourceOfHits INIT_TO(0);
   
   EXTERN_PARS int preservePartialData INIT_TO(0);
+  
+  EXTERN_PARS int autoretuneKappaWithAnis INIT_TO(1);
   
   EXTERN_PARS int anisotropicFermionicAction INIT_TO(0);
   
