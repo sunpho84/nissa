@@ -38,8 +38,8 @@ namespace nissa
 	is>>val;
       }
     else
-      MASTER_PRINTF("Optionally %s by passing %s\n",STR);
-    MASTER_PRINTF("%s: %s\n",descr,std::ostringstream(val).str().c_str());
+      MASTER_PRINTF("Optionally %s by passing %s\n",descr,STR);
+    MASTER_PRINTF("%s: %s\n",descr,(std::ostringstream()<<val).str().c_str());
   }
   
   //Clover run
