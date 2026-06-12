@@ -75,7 +75,7 @@ namespace nissa
       }
     else
       {
-	MASTER_PRINTF("   inverting explicitly\n");
+	MASTER_PRINTF("   inverting explicitly, kappa: %lg\n",kappa);
 	
 #ifdef USE_EXTERNAL_SOLVER
 	
