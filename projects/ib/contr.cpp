@@ -386,11 +386,13 @@ namespace nissa
 	      }
 	  }
 	
-	std::vector<complex> temp_contr(glbSize[0]);
-	glb_reduce(temp_contr.data(),*loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+	complex* temp_contr=new complex[glbSize[0]];
+	glb_reduce(temp_contr,*loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
 	
 	for(int t=0;t<glbSize[0];t++)
 	  complex_summassign(m(ihadr_contr,(t+glbSize[0]-oriCoords[0])%glbSize[0]),temp_contr[t]);
+	
+	delete[] temp_contr;
       }
     
     nmes2pts_contr_made+=m.gammaList.size();
