@@ -110,7 +110,10 @@ namespace nissa
       const auto kappaOfAnis=
 	[&_anis](const double& _kappa)
 	{
-	  return _anis?(1/(1/_kappa+6*(*_anis-1))):_kappa;
+	  if(autoretuneKappaWithAnis)
+	    return _anis?(1/(1/_kappa+6*(*_anis-1))):_kappa;
+	  else
+	    return _kappa;
 	};
       
       kappa=kappaOfAnis(_kappa);
