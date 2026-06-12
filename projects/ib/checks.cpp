@@ -62,7 +62,8 @@ double mom_prod(const Momentum& p,const Momentum& q)
   return pro;
 }
 
-void bar_transf(complex *co,TmQuarkInfo qu)
+void bar_transf(std::vector<complex>& co,
+		TmQuarkInfo qu)
 {
   //for(int p=0;p<glb_size[0];p++)
   //MASTER_PRINTF("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
@@ -71,7 +72,7 @@ void bar_transf(complex *co,TmQuarkInfo qu)
   TmQuarkInfo ba=qu;
   ba.bc[0]=1*3; //aperiodic
   
-  complex c[glbSize[0]];
+  std::vector<complex> c(glbSize[0]);
   for(int x=0;x<glbSize[0];x++)
     {
       complex_put_to_zero(c[x]);
@@ -89,8 +90,8 @@ void bar_transf(complex *co,TmQuarkInfo qu)
 void bar_contr_free(complex *mess,TmQuarkInfo qu)
 {
   double mu2=qu.mass*qu.mass;
-  complex co[glbSize[0]];
-  memset(co,0,sizeof(complex)*glbSize[0]);
+  std::vector<complex> co(glbSize[0]);
+  memset(co.data(),0,sizeof(complex)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
       double Mp=M_of_mom(qu,p);
@@ -317,7 +318,8 @@ void check_bar3()
   nissa_free(pho_pro);
 }
 
-void mes_transf(complex *co,TmQuarkInfo qu)
+void mes_transf(std::vector<complex>& co,
+		TmQuarkInfo qu)
 {
   for(int p=0;p<glbSize[0];p++)
     MASTER_PRINTF("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
@@ -326,7 +328,7 @@ void mes_transf(complex *co,TmQuarkInfo qu)
   TmQuarkInfo me=qu;
   me.bc[0]=0;
   
-  complex c[glbSize[0]];
+  std::vector<complex> c(glbSize[0]);
   for(int x=0;x<glbSize[0];x++)
     {
       complex_put_to_zero(c[x]);
@@ -352,8 +354,8 @@ void check_mes_2pts()
   MASTER_PRINTF(" ------------------ meson------------------ \n");
   
   double mu2=qu.mass*qu.mass;
-  complex co[glbSize[0]];
-  memset(co,0,sizeof(complex)*glbSize[0]);
+  std::vector<complex> co(glbSize[0]);
+  memset(co.data(),0,sizeof(complex)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
       Momentum sin_p;
@@ -394,8 +396,8 @@ void check_mes_ins_S_2pts()
   
   MASTER_PRINTF(" ------------------ meson with S insertion ------------------ \n");
   
-  complex co[glbSize[0]];
-  memset(co,0,sizeof(complex)*glbSize[0]);
+  std::vector<complex> co(glbSize[0]);
+  memset(co.data(),0,sizeof(complex)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
       Momentum sin_p;
@@ -441,8 +443,8 @@ void check_mes_ins_P_2pts()
   
   MASTER_PRINTF(" ------------------ meson with P insertion ------------------ \n");
   
-  complex co[glbSize[0]];
-  memset(co,0,sizeof(complex)*glbSize[0]);
+  std::vector<complex> co(glbSize[0]);
+  memset(co.data(),0,sizeof(complex)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
       Momentum sin_p;
@@ -488,8 +490,8 @@ void check_mes_V1V1()
   MASTER_PRINTF(" ------------------ meson_v1v1------------------ \n");
   
   double mu2=qu.mass*qu.mass;
-  complex co[glbSize[0]];
-  memset(co,0,sizeof(complex)*glbSize[0]);
+  std::vector<complex> co(glbSize[0]);
+  memset(co.data(),0,sizeof(complex)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
       Momentum sin_p;
@@ -534,8 +536,8 @@ void check_mes_A1A1()
   MASTER_PRINTF(" ------------------ meson_a1a1------------------ \n");
   
   double mu2=qu.mass*qu.mass;
-  complex co[glbSize[0]];
-  memset(co,0,sizeof(complex)*glbSize[0]);
+  std::vector<complex> co(glbSize[0]);
+  memset(co.data(),0,sizeof(complex)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
       Momentum sin_p;
@@ -585,8 +587,8 @@ void check_mes_self_en()
   double mu2=qu.mass*qu.mass;
   double mu4=mu2*mu2;
   
-  complex co[glbSize[0]];
-  memset(co,0,sizeof(complex)*glbSize[0]);
+  std::vector<complex> co(glbSize[0]);
+  memset(co.data(),0,sizeof(complex)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
       Momentum sin_p;
@@ -652,8 +654,8 @@ void check_mes_cons_self_en()
   double mu2=qu.mass*qu.mass;
   double mu4=mu2*mu2;
   
-  complex co[glbSize[0]];
-  memset(co,0,sizeof(complex)*glbSize[0]);
+  std::vector<complex> co(glbSize[0]);
+  memset(co.data(),0,sizeof(complex)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
       Momentum sin_p;
@@ -728,8 +730,8 @@ void check_handcuffs()
   MASTER_PRINTF(" ------------------ handcuffs ------------------ \n");
   
   double mu2=qu.mass*qu.mass;
-  quad_u1 co[glbSize[0]];
-  memset(co,0,sizeof(quad_u1)*glbSize[0]);
+  std::vector<quad_u1> co(glbSize[0]);
+  memset(co.data(),0,sizeof(quad_u1)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
       Momentum sin_p;
@@ -770,8 +772,8 @@ void check_handcuffs()
 	}
     }
   
-  complex co_f_co[glbSize[0]];
-  memset(co_f_co,0,sizeof(complex)*glbSize[0]);
+  std::vector<complex> co_f_co(glbSize[0]);
+  memset(co_f_co.data(),0,sizeof(complex)*glbSize[0]);
   for(int q0=0;q0<glbSize[0];q0++)
     {
       //spin1prop prop;
@@ -779,7 +781,7 @@ void check_handcuffs()
       // for(int mu=0;mu<NDIM;mu++)
       // 	for(int nu=0;nu<NDIM;nu++)
       // 	  co_f_co[q0][RE]+=co[q0][mu][RE]*prop[mu][nu][RE]*co[q0][nu][RE];
-
+      
       complex_summassign(co_f_co[q0],co[q0][0]);
     }
   

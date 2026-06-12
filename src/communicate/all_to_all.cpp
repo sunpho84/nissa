@@ -140,7 +140,7 @@ namespace nissa
   {
     buf_note=nissa_malloc("buf_note",nel_note,int);
     
-    MPI_Request req_list[nranks_note+nranks_expl];
+    std::vector<MPI_Request> req_list(nranks_note+nranks_expl);
     int ireq=0;
     for(int irank_expl=0;irank_expl<nranks_expl;irank_expl++)
       MPI_Isend(&buf_expl[buf_expl_off_per_rank[irank_expl]],
@@ -161,7 +161,7 @@ namespace nissa
     
     if(ireq!=nranks_note+nranks_expl)
       CRASH("expected %d request, obtained %d",nranks_note+nranks_expl,ireq);
-    MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
+    MPI_Waitall(ireq,req_list.data(),MPI_STATUS_IGNORE);
     
     //check
     int max_nel_in=0;
@@ -339,7 +339,7 @@ namespace nissa
 	return n;
       };
     
-    MPI_Request req_list[nranks_to+nranks_fr];
+    std::vector<MPI_Request> req_list(nranks_to+nranks_fr);
     int ireq=0;
     int irank_fr_this=nranks_fr;
     for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
@@ -387,7 +387,7 @@ namespace nissa
       }
     
     // MASTER_PRINTF("waiting for %d reqs\n",ireq);
-    MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
+    MPI_Waitall(ireq,req_list.data(),MPI_STATUS_IGNORE);
     
     const int* dest=in_buf_dest;
     

@@ -69,25 +69,29 @@ namespace nissa
   }
   
   //factorize a number
-  int factorize(int *list,int N)
+  std::vector<int> factorize(int N)
   {
-    int nfatt=0;
+    std::vector<int> list;
+    
     int fatt=2;
     
     while(N>1)
       {
-	int div=N/fatt;
-	int res=N-div*fatt;
-	if(res!=0) fatt++;
+	const int div=
+	  N/fatt;
+	const int res=
+	  N-div*fatt;
+	
+	if(res!=0)
+	  fatt++;
 	else
 	  {
 	    N=div;
-	    list[nfatt]=fatt;
-	    nfatt++;
+	    list.push_back(fatt);
 	  }
       }
     
-    return nfatt;
+    return list;
   }
   
   //recursive call - see below

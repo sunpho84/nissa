@@ -70,8 +70,8 @@ namespace nissa
   //average over all the passed sites
   void average_list_of_gathered_vector_sites(double *vec,int *sites,int nsites,int dps)
   {
-    double buf[dps];
-    memcpy(buf,vec+dps*sites[0],sizeof(double)*dps);
+    std::vector<double> buf(dps);
+    memcpy(buf.data(),vec+dps*sites[0],sizeof(double)*dps);
     for(int id=0;id<dps;id++)
       {	
 	for(int isite=1;isite<nsites;isite++)
@@ -81,7 +81,7 @@ namespace nissa
     
     //copy the symmetrized buffer over all the different partners
     for(int isite=0;isite<nsites;isite++)
-      memcpy(vec+dps*sites[isite],buf,sizeof(double)*dps);
+      memcpy(vec+dps*sites[isite],buf.data(),sizeof(double)*dps);
   }
   
   //ipercubicly mirrorize an already gathered vector

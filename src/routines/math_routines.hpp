@@ -18,7 +18,9 @@ namespace nissa
   double lfact(double n);
   double metro_tresh(double arg);
   int metro_test(double arg);
-  int factorize(int *list,int N);
+  
+  std::vector<int> factorize(int N);
+  
   int log2N(int N);
   CUDA_HOST_AND_DEVICE void matrix_determinant(complex d,complex *m,int n);
   int bitrev(int in,int l2n);
@@ -29,18 +31,23 @@ namespace nissa
   {return (i>>ibit)&1;}
   
   template <class T>
-  T summ(const T& a,const T& b)
-  {return a+b;}
+  T summ(const T& a,
+	 const T& b)
+  {
+    return a+b;
+  }
   
   template <class T>
-  T nissa_max(const T& a,const T& b)
+  T nissa_max(const T& a,
+	      const T& b)
   {
     return std::max(a,b);
   }
   
   template <class T1,class T2>
   CUDA_HOST_AND_DEVICE
-  auto nissa_min(const T1& a,const T2& b)
+  auto nissa_min(const T1& a,
+		 const T2& b)
   {
     return (a<b)?a:b;
   }

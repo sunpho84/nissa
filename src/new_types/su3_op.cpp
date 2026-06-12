@@ -159,9 +159,13 @@ namespace nissa
   }
   
   //overrelax the link
-  void su3_overrelax(su3 out,const su3 in,const double w,const double *coeff,int ord)
+  void su3_overrelax(su3 out,
+		     const su3 in,
+		     const double w,
+		     const double *coeff,
+		     int ord)
   {
-    su3 t[ord];
+    std::vector<su3> t(ord);
     
     //subtract 1 from in
     su3 f;

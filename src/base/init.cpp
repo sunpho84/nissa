@@ -80,10 +80,15 @@ namespace nissa
     //set the bordr
     if(width>=message_width)
       {
-	const int n=(width-message_width)/2;
-	char sp[n+1];
-	for(int i=0;i<n;i++) sp[i]=' ';
+	const int n=
+	  (width-message_width)/2;
+	
+	char* sp=new char[n+1];
+	
+	for(int i=0;i<n;i++)
+	  sp[i]=' ';
 	sp[n]='\0';
+	
 	MASTER_PRINTF("\n"
 		      "%s███╗   ██╗██╗███████╗███████╗ █████╗ \n"
 		      "%s████╗  ██║██║██╔════╝██╔════╝██╔══██╗\n"
@@ -91,6 +96,8 @@ namespace nissa
 		      "%s██║╚██╗██║██║╚════██║╚════██║██╔══██║\n"
 		      "%s██║ ╚████║██║███████║███████║██║  ██║\n"
 		      "%s╚═╝  ╚═══╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝\n\n",sp,sp,sp,sp,sp,sp);
+	
+	delete[] sp;
       }
   };
   
@@ -386,41 +393,47 @@ namespace nissa
 	int64_t mBV=-1;
 	
 	//factorize the local volume
-	int list_fact_LV[log2N(LV)];
-	int nfact_LV=factorize(list_fact_LV,LV);
+	const std::vector<int> list_fact_LV=
+	  factorize(LV);
 	
 	//factorize the number of rank
-	int list_fact_NR[log2N(NR)];
-	int nfact_NR=factorize(list_fact_NR,NR);
+        const std::vector<int> list_fact_NR=
+	  factorize(NR);
 	
-	//if nfact_LV>=nfact_NR factorize the number of rank, otherwise the local volume
+        //if nfact_LV>=nfact_NR factorize the number of rank, otherwise the local volume
 	//in the first case we find the best way to assign the ranks to different directions
 	//in the second case we find how many sites per direction to assign to each rank
-	int factorize_rank=(nfact_LV>=nfact_NR);
-	int nfact=factorize_rank ? nfact_NR : nfact_LV;
-	int *list_fact=factorize_rank ? list_fact_NR : list_fact_LV;
+	const bool factorize_rank=
+	  (list_fact_LV.size()>=list_fact_NR.size());
+	const std::vector<int>& list_fact=
+	  factorize_rank?list_fact_NR:list_fact_LV;
+	
+	const size_t nFact=
+	  list_fact.size();
 	
 	//compute the number of combinations: this is given by NDIM^nfact
-	int ncombo=1;
-	for(int ifact=0;ifact<nfact;ifact++) ncombo*=NDIM;
+	const int ncombo=
+	  pow(NDIM,nFact);
 	
 	//find the partition which minimize the surface and the surface variance
 	int min_surf_LV=-1;
 	int icombo=0;
-        for(int mu=0;mu<NDIM;mu++) mR[mu]=-1;
+        for(int mu=0;mu<NDIM;mu++)
+	  mR[mu]=-1;
 	
 	do
 	  {
 	    //number of ranks in each direction for current partitioning
             Coords R;
-            for(int mu=0;mu<NDIM;mu++) R[mu]=1;
+            for(int mu=0;mu<NDIM;mu++)
+	      R[mu]=1;
 	    
 	    //compute mask factor
-	    int mask=1;
-	    for(int jfact=0;jfact<nfact-1;jfact++) mask*=NDIM;
+	    int mask=
+	      pow(NDIM,nFact-1);
 	    
 	    //find the partioning corresponding to icombo
-	    int ifact=nfact-1;
+	    int ifact=nFact-1;
 	    int valid_partitioning=1;
 	    do
 	      {
