@@ -165,7 +165,7 @@ namespace nissa
 		     const double *coeff,
 		     int ord)
   {
-    std::vector<su3> t(ord);
+    su3* t=new su3[ord];
     
     //subtract 1 from in
     su3 f;
@@ -187,6 +187,8 @@ namespace nissa
     
     //unitarize
     su3_unitarize_orthonormalizing(out,out);
+    
+    delete[] t;
   }
   
   //exact exponential of i times the *****passed hermitian matrix Q*****
