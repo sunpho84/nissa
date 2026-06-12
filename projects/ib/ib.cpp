@@ -512,12 +512,6 @@ void init_simulation(int narg,char **arg)
   
   ///////////////////// finished reading apart from conf list ///////////////
   
-  if(clover_run)
-    {
-      Cl=new LxField<clover_term_t>("Cl");
-      invCl=new LxField<inv_clover_term_t>("invCl");
-    }
-  
   allocate_loop_source();
   allocate_photon_fields();
   
@@ -567,11 +561,6 @@ void close()
   for(auto &f : fft_filterer)
     if(f.nfft_filtered) f.fft_filter_remap.destroy();
   
-  if(clover_run)
-    {
-      delete Cl;
-      delete invCl;
-    }
   free_bar2pts_contr();
   
   free_confs();

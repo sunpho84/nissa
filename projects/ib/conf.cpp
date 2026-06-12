@@ -83,9 +83,6 @@ namespace nissa
     if(store_conf)
       write_ildg_gauge_conf(combine("%s/conf",outfolder),conf);
     
-    if(clover_run)
-      clover_term(*Cl,glb_cSW,conf);
-    
     //if the copied conf exists, ape smear
     if(ape_smeared_conf)
       {

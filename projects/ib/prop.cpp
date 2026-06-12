@@ -91,7 +91,7 @@ namespace nissa
 	const LxField<quad_su3>* conf=get_updated_conf(charge,theta,*glb_conf);
 	
 	if(clover_run)
-	  inv_tmclovD_cg_eoprec(out,std::nullopt,*conf,kappa,anis,*Cl,invCl,glb_cSW,mass,1000000,residue,in);
+	  inv_tmclovD_cg_eoprec(out,std::nullopt,*conf,kappa,anis,glb_cSW,mass,1000000,residue,in);
 	else
 	  inv_tmD_cg_eoprec(out,std::nullopt,*conf,kappa,anis,mass,1000000,residue,in);
       }
@@ -628,7 +628,11 @@ namespace nissa
       *get_updated_conf(charge,theta,*glb_conf);
     
     if(clover_run)
-      apply_tmclovQ(out,conf,kappa,anis,*Cl,mass,tmp);
+      {
+	LxField<clover_term_t> Cl("Cl");
+	clover_term(Cl,glb_cSW,conf);
+	apply_tmclovQ(out,conf,kappa,anis,Cl,mass,tmp);
+      }
     else
       apply_tmQ(out,conf,kappa,anis,mass,tmp);
     
@@ -898,21 +902,6 @@ namespace nissa
     //write info on mass and r
     if(twisted_run) MASTER_PRINTF(" mass=%lg, r=%d, theta={%lg,%lg,%lg}\n",q.mass,q.r,q.theta[1],q.theta[2],q.theta[3]);
     else            MASTER_PRINTF(" kappa=%lg, theta={%lg,%lg,%lg}\n",q.kappa,q.theta[1],q.theta[2],q.theta[3]);
-    
-    //compute the inverse clover term, if needed
-    if(clover_run and q.insertion==PROP)
-      {
-	static double m=0,k=0;
-	if(m!=q.mass or k!=q.kappa)
-	  {
-	    m=q.mass;
-	    k=q.kappa;
-	    const double init_time=take_time();
-	    MASTER_PRINTF("Inverting clover\n");
-	    invert_twisted_clover_term(*invCl,q.mass,q.kappa,*Cl);
-	    MASTER_PRINTF("Clover inverted in %lg s\n",take_time()-init_time);
-	  }
-      }
     
     //create the description of the source
     std::string source_descr;
@@ -1222,8 +1211,8 @@ namespace nissa
     LxField<spincolor> qtilde("qtilde",WITH_HALO);
     
     int nf=fft_filterer.size();
-    spincolor *qfilt[nf];
-    spincolor *qfilt_temp[nf];
+    std::vector<spincolor*> qfilt(nf);
+    std::vector<spincolor*> qfilt_temp(nf);
     for(int i=0;i<nf;i++)
       {
 	qfilt[i]=nissa_malloc("qfilt",fft_filterer[i].nfft_filtered*nso_spi*nso_col,spincolor);

@@ -59,8 +59,6 @@ namespace nissa
 				    const double& kappa,
 				    const std::optional<double>& anis,
 				    const double& cSW,
-				    const LxField<clover_term_t>& Cl_lx,
-				    const LxField<inv_clover_term_t>* ext_invCl_lx,
 				    const double& mass,
 				    const int& nitermax,
 				    const double& residue,
@@ -71,16 +69,11 @@ namespace nissa
     if(not use_eo_geom)
       CRASH("eo geometry needed to use cg_eoprec");
     
-    const LxField<inv_clover_term_t> *_invCl_lx;
-    if(ext_invCl_lx)
-      _invCl_lx=ext_invCl_lx;
-    else
-      {
-	LxField<inv_clover_term_t>* tmp=new LxField<inv_clover_term_t>("invCl");
-	_invCl_lx=tmp;
-	invert_twisted_clover_term(*tmp,mass,kappa,Cl_lx);
-      }
-    const LxField<inv_clover_term_t> invCl_lx=*_invCl_lx;
+    LxField<clover_term_t> Cl_lx("Cl");
+    clover_term(Cl_lx,cSW,conf_lx);
+    
+    LxField<inv_clover_term_t> invCl_lx("invCl");
+    invert_twisted_clover_term(invCl_lx,mass,kappa,Cl_lx);
     
     //prepare the e/o split version of the source
     EoField<spincolor> source_eos("source_eos",WITH_HALO);
@@ -148,9 +141,6 @@ namespace nissa
     // const double real_residue=check_res.norm2();
     // if(real_residue>residue*1.1)
     //   WARNING("preconditioned tmclovD solver, asked for residual: %lg, obtained %lg\n\n",residue,real_residue);
-    
-    if(ext_invCl_lx==nullptr)
-      delete _invCl_lx;
   }
   
   void inv_tmclovD_cg_eoprec(LxField<spincolor>& solution_lx,
@@ -158,8 +148,6 @@ namespace nissa
 			     const LxField<quad_su3>& conf_lx,
 			     const double& kappa,
 			     const std::optional<double>& anis,
-			     const LxField<clover_term_t>& Cl_lx,
-			     const LxField<inv_clover_term_t>* ext_invCl_lx,
 			     const double& cSW,
 			     const double& mass,
 			     const int& nitermax,
@@ -193,13 +181,15 @@ namespace nissa
 #endif
     
     if(not solved)
-      inv_tmclovD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,anis,cSW,Cl_lx,ext_invCl_lx,mass,nitermax,targResidue,source_lx);
+      inv_tmclovD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,anis,cSW,mass,nitermax,targResidue,source_lx);
     
     if(check_inversion_residue)
       {
 	double check_time=take_time();
 	LxField<spincolor> residueVec("residueVec");
-	apply_tmclovQ(residueVec,conf_lx,kappa,anis,Cl_lx,mass,solution_lx);
+	LxField<clover_term_t> Cl("Cl");
+	clover_term(Cl,cSW,conf_lx);
+	apply_tmclovQ(residueVec,conf_lx,kappa,anis,Cl,mass,solution_lx);
 	
 	PAR(0,locVol,
 	    CAPTURE(TO_WRITE(residueVec)),ivol,
