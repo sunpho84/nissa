@@ -346,6 +346,8 @@ namespace nissa
     if((not asked_stop) and (not asked_restart) and enough_time and still_conf)
       do
 	{
+	  MASTER_PRINTF("-------------\n");
+	  
 	  //Gauge path
 	  read_str(conf_path,1024);
 	  
