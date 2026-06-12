@@ -748,8 +748,8 @@ void check_handcuffs()
   MASTER_PRINTF(" ------------------ handcuffs ------------------ \n");
   
   double mu2=qu.mass*qu.mass;
-  std::vector<quad_u1> co(glbSize[0]);
-  memset(co.data(),0,sizeof(quad_u1)*glbSize[0]);
+  quad_u1* co=new quad_u1[glbSize[0]];
+  memset(co,0,sizeof(quad_u1)*glbSize[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
       Momentum sin_p;
@@ -805,6 +805,7 @@ void check_handcuffs()
   
   mes_transf(co_f_co,qu);
   
+  delete[] co;
   delete[] co_f_co;
 }
 
