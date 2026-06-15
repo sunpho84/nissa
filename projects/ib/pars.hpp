@@ -35,8 +35,8 @@ namespace nissa
     if(const char* data=getenv(STR))
       {
 	std::istringstream is(data);
-	MASTER_PRINTF("%s set to: %s\n",descr,(std::ostringstream()<<val).str().c_str());
 	is>>val;
+	MASTER_PRINTF("%s set to: %s\n",descr,(std::ostringstream()<<val).str().c_str());
       }
     else
       {
