@@ -64,6 +64,9 @@ namespace nissa
 				    const double& residue,
 				    const LxField<spincolor>& source_lx)
   {
+    if(anis)
+      MASTER_PRINTF("%s anis %lg\n",__PRETTY_FUNCTION__,*anis);
+    
     // set_borders_invalid(conf_lx);
     // communicate_lx_quad_su3_borders(conf_lx);
     if(not use_eo_geom)
