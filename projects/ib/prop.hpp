@@ -121,7 +121,7 @@ namespace nissa
 	kappa_asymm[mu]=kappaOfAnis(_kappa_asymm[mu]);
       
       if(_anis and autoretuneKappaWithAnis)
-	MASTER_PRINTF("Changing kappa from %lg to %lg to keep the identity part of the laplacian in presence of anistropy\n",_kappa,kappa);
+	MASTER_PRINTF("Changing kappa from %.16lg to %16lg to keep the identity part of the laplacian in presence of anistropy\n",_kappa,kappa);
       
       anis=_anis;
       
