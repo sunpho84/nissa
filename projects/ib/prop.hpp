@@ -123,6 +123,8 @@ namespace nissa
       if(_anis and autoretuneKappaWithAnis)
 	MASTER_PRINTF("Changing kappa from %lg to %lg to keep the identity part of the laplacian in presence of anistropy\n",_kappa,kappa);
       
+      anis=_anis;
+      
       mass=_mass;
       
       r=_r;
