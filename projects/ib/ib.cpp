@@ -646,13 +646,15 @@ void in_main(int narg,char **arg)
       
       free_confs();
       
-      if(confIsFinished and not doNotAverageHits)
-	print_contractions();
+      if(confIsFinished)
+	{
+	  if(not doNotAverageHits)
+	    print_contractions();
+	  
+	  finalizeConf(hitLooper);
+	}
       
       releaseConf();
-      
-      if(confIsFinished)
-	finalizeConf(hitLooper);
     }
   
   //close the simulation
