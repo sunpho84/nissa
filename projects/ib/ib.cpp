@@ -600,8 +600,9 @@ void in_main(int narg,char **arg)
 #undef PROVIDE_DO_NOT
   
   //loop over the configs
-  int iconf=0;
-  while(read_conf_parameters(iconf) and not fileExists(finishedPath()))
+  int iconf{};
+  bool askedToExit{};
+  while((not askedToExit) and read_conf_parameters(iconf) and not fileExists(finishedPath()))
     {
       HitLooper hitLooper;
       const int nHitsDoneSoFar=
@@ -610,7 +611,8 @@ void in_main(int narg,char **arg)
       if(nHitsDoneSoFar)
 	MASTER_PRINTF("Found partial file with %d hits\n",nHitsDoneSoFar);
       
-      for(int iHit=0;iHit<nHits;iHit++)
+      int iHit=0;
+      while(iHit<nHits and isRemainingTimeEnough())
 	{
 	  const bool skip=
 	    iHit<nHitsDoneSoFar;
@@ -629,18 +631,28 @@ void in_main(int narg,char **arg)
 		print_contractions(iHit);
 	      
 	      hitLooper.writePartialData(iHit+1);
+	      
+	      nTotHitsDone++;
 	    }
+	  
+	  iHit++;
 	}
+      
+      const bool confIsFinished=
+	iHit==nHits;
       
       MASTER_PRINTF("NOffloaded: %d\n",hitLooper.nOffloaded);
       MASTER_PRINTF("NRecalled: %d\n",hitLooper.nRecalled);
       
       free_confs();
       
-      if(not doNotAverageHits)
+      if(confIsFinished and not doNotAverageHits)
 	print_contractions();
       
-      finalizeConf(hitLooper);
+      releaseConf();
+      
+      if(confIsFinished)
+	finalizeConf(hitLooper);
     }
   
   //close the simulation

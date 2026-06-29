@@ -682,7 +682,7 @@ namespace nissa
 	      
 	      for(mes_contr_t& m : mes2ptsContr)
 		if(fread(m.contr,sizeof(complex),m.contrSize,partialFile)!=m.contrSize)
-		CRASH("Failed to load 2pts");
+		  CRASH("Failed to load 2pts");
 	    }
 	  MPI_Bcast(&nHitsDone,1,MPI_INT,master_rank,MPI_COMM_WORLD);
 	  for(mes_contr_t& m : mes2ptsContr)

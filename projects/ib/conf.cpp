@@ -166,27 +166,6 @@ namespace nissa
     return inner_conf;
   }
   
-  //check if the time is enough
-  int check_remaining_time()
-  {
-    if(nanalyzed_conf)
-      {
-	//check remaining time
-	double temp_time=take_time()+tot_prog_time;
-	double ave_time=temp_time/nanalyzed_conf;
-	double left_time=wall_time-temp_time;
-	int enough_time=left_time>(ave_time*1.1);
-	
-	MASTER_PRINTF("\nRemaining time: %lg sec\n",left_time);
-	MASTER_PRINTF("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
-	if(enough_time) MASTER_PRINTF("Time is enough to go on!\n");
-	else MASTER_PRINTF("Not enough time, exiting!\n");
-	
-	return enough_time;
-      }
-    else return true;
-  }
-  
   //init a new conf
   void start_new_conf()
   {
@@ -295,7 +274,10 @@ namespace nissa
       {
 	if(is_master_rank())
 	  if(not (std::ifstream(nTrialsPath())>>ntrials))
-	    CRASH("Unable to read ntrials from %s",nTrialsPath().c_str());
+	    {
+	      MASTER_PRINTF("Warning, unable to read ntrials from %s",nTrialsPath().c_str());
+	      ntrials=0;
+	    }
 	
 	ntrials=broadcast(ntrials);
       }
@@ -305,18 +287,22 @@ namespace nissa
     return ntrials;
   }
   
-  void finalizeConf(const HitLooper& hitLooper)
+  void releaseConf()
   {
-    file_touch(finishedPath());
     removeRunning();
-    removeNTrials();
     crashHook=nullptr;
     if(runningUpdateTime)
       stopRecallingFunction(updateRunningTimer);
+  }
+  
+  void finalizeConf(const HitLooper& hitLooper)
+  {
+    file_touch(finishedPath());
+    removeNTrials();
     
     if(not preservePartialData)
       hitLooper.deletePartialData();
-    nanalyzed_conf++;
+    nAnalyzedConfs++;
   }
   
   //find a new conf
@@ -329,10 +315,6 @@ namespace nissa
     const int asked_restart=fileExists("restart");
     VERBOSITY_LV2_MASTER_PRINTF("Asked to restart: %d\n",asked_restart);
     
-    //check if enough time
-    const int enough_time=check_remaining_time();
-    VERBOSITY_LV2_MASTER_PRINTF("Enough time: %d\n",enough_time);
-    
     //check that there are still conf to go
     int still_conf=iconf<ngauge_conf;
     VERBOSITY_LV2_MASTER_PRINTF("Still conf: %d\n",still_conf);
@@ -343,7 +325,7 @@ namespace nissa
     int nTrials{};
     
     int ok_conf=false;
-    if((not asked_stop) and (not asked_restart) and enough_time and still_conf)
+    if((not asked_stop) and (not asked_restart) and still_conf)
       do
 	{
 	  MASTER_PRINTF("-------------\n");
@@ -492,10 +474,10 @@ namespace nissa
   //print all statisticd
   void print_statistics()
   {
-    if(nanalyzed_conf)
+    if(nAnalyzedConfs)
       {
 	MASTER_PRINTF("\n");
-	MASTER_PRINTF("Inverted %d configurations.\n",nanalyzed_conf);
+	MASTER_PRINTF("Inverted %d configurations.\n",nAnalyzedConfs);
 	MASTER_PRINTF("Total time: %g, of which:\n",tot_prog_time);
 	print_single_statistic(conf_load_time,tot_prog_time,nconf_load,"loading conf");
 	print_single_statistic(smear_oper_time,tot_prog_time,nsmear_oper,"smearing");

@@ -5,33 +5,27 @@
 #include <geometry/geometry_lx.hpp>
 #include <new_types/su3.hpp>
 
-#ifndef EXTERN_CONF
- #define EXTERN_CONF extern
-#define INIT_TO(VAR)
-#else
-#define INIT_TO(VAR) =VAR
-#endif
-
 namespace nissa
 {
-  EXTERN_CONF int nanalyzed_conf;
-  EXTERN_CONF double tot_prog_time,wall_time;
+  inline int nAnalyzedConfs;
+  inline int nTotHitsDone;
+  inline double tot_prog_time,wall_time;
   
-  EXTERN_CONF double conf_load_time;
-  EXTERN_CONF int nconf_load;
+  inline double conf_load_time;
+  inline int nconf_load;
   
-  EXTERN_CONF double ape_time;
-  EXTERN_CONF int nape_tot;
+  inline double ape_time;
+  inline int nape_tot;
   
-  EXTERN_CONF char conf_path[1024],outfolder[1024];
-  EXTERN_CONF int ngauge_conf;
-  EXTERN_CONF int inner_conf_valid;
-  EXTERN_CONF bool conf_allocated INIT_TO(false);
-  EXTERN_CONF LxField<quad_su3>* glb_conf;
-  EXTERN_CONF LxField<quad_su3>* inner_conf;
-  EXTERN_CONF LxField<quad_su3> *ape_smeared_conf;
+  inline char conf_path[1024],outfolder[1024];
+  inline int ngauge_conf;
+  inline int inner_conf_valid;
+  inline bool conf_allocated{false};
+  inline LxField<quad_su3>* glb_conf;
+  inline LxField<quad_su3>* inner_conf;
+  inline LxField<quad_su3> *ape_smeared_conf;
   
-  EXTERN_CONF int lock_fd;
+  inline int lock_fd;
   
   void allocate_confs();
   void free_confs();
@@ -49,11 +43,44 @@ namespace nissa
 		  const int& rnd_gauge_transform,
 		  const int& free_theory);
   
-  int check_remaining_time();
+  /// Check if the time is enough
+  inline bool isRemainingTimeEnough()
+  {
+    if(nTotHitsDone)
+      {
+	const double passedTime=
+	  take_time()+tot_prog_time;
+	
+	const double aveTimePerHit=
+	  passedTime/nTotHitsDone;
+	
+	MASTER_PRINTF("Average time per hit: %lg sec, pessimistically: %lg\n",aveTimePerHit,aveTimePerHit*1.1);
+	
+	const double remainingTime=
+	  wall_time-passedTime;
+	
+	MASTER_PRINTF("\nRemaining time: %lg sec\n",remainingTime);
+	
+	const bool isRemainingTimeEnough=
+	  broadcast(remainingTime>(aveTimePerHit*1.1));
+	
+	if(isRemainingTimeEnough)
+	  MASTER_PRINTF("Time is enough to go on!\n");
+	else
+	  MASTER_PRINTF("Not enough time, exiting!\n");
+	
+	return isRemainingTimeEnough;
+      }
+    else
+      return true;
+  }
+  
   int read_conf_parameters(int &iconf);
   
   /// Forward declaration of the hit looper
   struct HitLooper;
+  
+  void releaseConf();
   
   /// Cleanup the conf
   void finalizeConf(const HitLooper& hitLooper);
@@ -61,8 +88,5 @@ namespace nissa
   void print_statistics();
   void skip_nhits(int a,int b);
 }
-
-#undef EXTERN_CONF
-#undef INIT_TO
 
 #endif
