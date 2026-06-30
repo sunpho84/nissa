@@ -48,6 +48,7 @@ namespace nissa
   {
     if(nTotHitsDone)
       {
+	MASTER_PRINTF("\n");
 	MASTER_PRINTF("Total number of hits done: %d\n",nTotHitsDone);
 	
 	const double passedTime=

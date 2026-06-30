@@ -436,7 +436,8 @@ namespace nissa
 				     const int& niter,
 				     const char *tag)
   {
-    if(niter) MASTER_PRINTF(" - %02.2f%% for %d %s (%2.2gs avg)\n",frac_time/tot_time*100,niter,tag,frac_time/niter);
+    if(niter)
+      MASTER_PRINTF(" - %02.2f%% for %d %s (%2.2gs avg)\n",frac_time/tot_time*100,niter,tag,frac_time/niter);
   }
   
   //print all statisticd
