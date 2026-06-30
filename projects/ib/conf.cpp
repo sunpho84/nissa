@@ -267,7 +267,6 @@ namespace nissa
   void finalizeConf(const HitLooper& hitLooper)
   {
     file_touch(finishedPath());
-removeNTrials()    
     if(not preservePartialData)
       hitLooper.deletePartialData();
     nAnalyzedConfs++;
@@ -284,7 +283,8 @@ removeNTrials()
     VERBOSITY_LV2_MASTER_PRINTF("Asked to restart: %d\n",asked_restart);
     
     //check that there are still conf to go
-    int still_conf=iconf<ngauge_conf;
+    bool still_conf=
+      iconf<nGaugeConfs;
     VERBOSITY_LV2_MASTER_PRINTF("Still conf: %d\n",still_conf);
     
     allocate_confs();
@@ -404,7 +404,7 @@ removeNTrials()
 	    }
 	  iconf++;
 	  
-	  still_conf=(iconf<ngauge_conf);
+	  still_conf=(iconf<nGaugeConfs);
 	}
       while((not ok_conf) and still_conf);
     
@@ -418,7 +418,7 @@ removeNTrials()
       MASTER_PRINTF("Asked to restart\n");
     
     //writing that all confs have been measured and write it
-    if((not ok_conf) and iconf>=ngauge_conf)
+    if((not ok_conf) and iconf>=nGaugeConfs)
       {
 	MASTER_PRINTF("Analyzed all confs, exiting\n\n");
 	file_touch(stopPath);
