@@ -474,10 +474,11 @@ namespace nissa
   //print all statisticd
   void print_statistics()
   {
-    if(nAnalyzedConfs)
+    if(nTotHitsDone)
       {
 	MASTER_PRINTF("\n");
-	MASTER_PRINTF("Inverted %d configurations.\n",nAnalyzedConfs);
+	MASTER_PRINTF("Analyzed %d configurations.\n",nAnalyzedConfs);
+	MASTER_PRINTF("Performed %d hits.\n",nTotHitsDone);
 	MASTER_PRINTF("Total time: %g, of which:\n",tot_prog_time);
 	print_single_statistic(conf_load_time,tot_prog_time,nconf_load,"loading conf");
 	print_single_statistic(smear_oper_time,tot_prog_time,nsmear_oper,"smearing");
