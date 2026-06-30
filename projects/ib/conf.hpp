@@ -5,6 +5,8 @@
 #include <geometry/geometry_lx.hpp>
 #include <new_types/su3.hpp>
 
+#include "pars.hpp"
+
 namespace nissa
 {
   inline int nAnalyzedConfs;
@@ -82,6 +84,37 @@ namespace nissa
   struct HitLooper;
   
   void releaseConf();
+  
+  /// Try to remove a file
+  inline int tryRemove(const std::string& path,
+		       const std::string& descr)
+  {
+    int rc{};
+    
+    if(is_master_rank())
+      {
+	rc=remove(path.c_str());
+	
+	if(rc==0)
+	  fprintf(stderr,"Successfully removed %s file %s\n",descr.c_str(),path.c_str());
+	else
+	  fprintf(stderr,"Impossible to remove %s file %s, returned %d instead of 0\n",descr.c_str(),path.c_str(),rc);
+      }
+    
+    return broadcast(rc);
+  }
+  
+  /// Removes the ntrials file
+  inline void removeNTrials()
+  {
+    tryRemove(nTrialsPath(),"number of trials per conf");
+  }
+  
+  /// Removes the runfile
+  inline void removeRunning()
+  {
+    tryRemove(runningPath(),"running");
+  }
   
   /// Cleanup the conf
   void finalizeConf(const HitLooper& hitLooper);

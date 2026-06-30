@@ -638,6 +638,8 @@ void in_main(int narg,char **arg)
 	  if(not isRemainingTimeEnough())
 	    askedToExit=true;
 	  
+	  removeNTrials();
+	  
 	  iHit++;
 	}
       

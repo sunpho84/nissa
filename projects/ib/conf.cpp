@@ -182,37 +182,6 @@ namespace nissa
       hitLooper.start_hit(ihit,true);
   }
   
-  /// Try to remove a file
-  int tryRemove(const std::string& path,
-		const std::string& descr)
-  {
-    int rc{};
-    
-    if(is_master_rank())
-      {
-	rc=remove(path.c_str());
-	
-	if(rc==0)
-	  fprintf(stderr,"Successfully removed %s file %s\n",descr.c_str(),path.c_str());
-	else
-	  fprintf(stderr,"Impossible to remove %s file %s, returned %d instead of 0\n",descr.c_str(),path.c_str(),rc);
-      }
-    
-    return broadcast(rc);
-  }
-  
-  /// Removes the ntrials file
-  void removeNTrials()
-  {
-    tryRemove(nTrialsPath(),"number of trials per conf");
-  }
-  
-  /// Removes the runfile
-  void removeRunning()
-  {
-    tryRemove(runningPath(),"running");
-  }
-  
   timer_t updateRunningTimer;
   
   /// Touches the runfile
@@ -298,8 +267,7 @@ namespace nissa
   void finalizeConf(const HitLooper& hitLooper)
   {
     file_touch(finishedPath());
-    removeNTrials();
-    
+removeNTrials()    
     if(not preservePartialData)
       hitLooper.deletePartialData();
     nAnalyzedConfs++;
