@@ -612,7 +612,7 @@ void in_main(int narg,char **arg)
 	MASTER_PRINTF("Found partial file with %d hits\n",nHitsDoneSoFar);
       
       int iHit=0;
-      while(iHit<nHits and isRemainingTimeEnough())
+      while((not askedToExit) and iHit<nHits)
 	{
 	  const bool skip=
 	    iHit<nHitsDoneSoFar;
@@ -635,6 +635,9 @@ void in_main(int narg,char **arg)
 	      nTotHitsDone++;
 	    }
 	  
+	  if(not isRemainingTimeEnough())
+	    askedToExit=true;
+	  
 	  iHit++;
 	}
       
@@ -648,6 +651,7 @@ void in_main(int narg,char **arg)
       
       if(confIsFinished)
 	{
+	  MASTER_PRINTF("Conf is finished\n");
 	  if(not doNotAverageHits)
 	    print_contractions();
 	  

@@ -48,18 +48,19 @@ namespace nissa
   {
     if(nTotHitsDone)
       {
+	MASTER_PRINTF("Total number of hits done: %d\n",nTotHitsDone);
+	
 	const double passedTime=
 	  take_time()+tot_prog_time;
+	MASTER_PRINTF("Total elapsed time: %lg s\n",passedTime);
 	
 	const double aveTimePerHit=
 	  passedTime/nTotHitsDone;
-	
 	MASTER_PRINTF("Average time per hit: %lg sec, pessimistically: %lg\n",aveTimePerHit,aveTimePerHit*1.1);
 	
 	const double remainingTime=
 	  wall_time-passedTime;
-	
-	MASTER_PRINTF("\nRemaining time: %lg sec\n",remainingTime);
+	MASTER_PRINTF("Remaining time: %lg sec\n",remainingTime);
 	
 	const bool isRemainingTimeEnough=
 	  broadcast(remainingTime>(aveTimePerHit*1.1));
