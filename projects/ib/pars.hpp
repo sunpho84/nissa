@@ -3,28 +3,23 @@
 
 #include <nissa.hpp>
 
-#include "conf.hpp"
-
-#ifndef EXTERN_PARS
- #define EXTERN_PARS extern
- #define INIT_TO(VAL)
-#else
- #define INIT_TO(VAL) =VAL
-#endif
-
 namespace nissa
 {
 #define PERIODIC_BC 0
 #define ANTIPERIODIC_BC 1
   
   //Twisted run
-  EXTERN_PARS int twisted_run;
-  EXTERN_PARS tm_basis_t base;
+  inline int twisted_run;
+  
+  inline tm_basis_t base;
+  
   inline void read_twisted_run()
   {
     read_str_int("TwistedRun",&twisted_run);
-    if(!twisted_run) base=WILSON_BASE;
-    else             base=MAX_TWIST_BASE;
+    if(not twisted_run)
+      base=WILSON_BASE;
+    else
+      base=MAX_TWIST_BASE;
   }
   
   template <typename T>
@@ -46,19 +41,21 @@ namespace nissa
   }
   
   //Clover run
-  EXTERN_PARS int clover_run;
-  EXTERN_PARS double glb_cSW;
+  inline int clover_run;
+  
+  inline double glb_cSW;
+  
   inline void read_clover_run()
   {
     read_str_int("CloverRun",&clover_run);
     if(clover_run) read_str_double("cSW",&glb_cSW);
   }
   
-  CUDA_MANAGED EXTERN_PARS double temporal_bc INIT_TO(ANTIPERIODIC_BC);
+  CUDA_MANAGED inline double temporal_bc{ANTIPERIODIC_BC};
   
-  CUDA_MANAGED EXTERN_PARS int diluted_spi_source,diluted_col_source,diluted_spat_source;
-  CUDA_MANAGED EXTERN_PARS int nso_spi,nso_col;
-  CUDA_MANAGED EXTERN_PARS Coords oriCoords;
+  CUDA_MANAGED inline int diluted_spi_source,diluted_col_source,diluted_spat_source;
+  CUDA_MANAGED inline int nso_spi,nso_col;
+  CUDA_MANAGED inline Coords oriCoords;
   CUDA_HOST_AND_DEVICE inline int rel_coord_of_glb_coord(int c,int mu)
   {return (glbSize[mu]+c-oriCoords[mu])%glbSize[mu];}
   inline int rel_time_of_glb_time(int t)
@@ -69,19 +66,19 @@ namespace nissa
   {return rel_coord_of_loclx(loclx,0);}
   
   /// Use disk beyond this number of props
-  EXTERN_PARS int nMaxPropsAllocated INIT_TO(0);
+  inline int nMaxPropsAllocated{0};
   
-  EXTERN_PARS int doNotAverageHits INIT_TO(0);
+  inline int doNotAverageHits{0};
   
-  EXTERN_PARS int doNotShiftSourceOfHits INIT_TO(0);
+  inline int doNotShiftSourceOfHits{0};
   
-  EXTERN_PARS int preservePartialData INIT_TO(0);
+  inline int preservePartialData{0};
   
-  EXTERN_PARS int autoretuneKappaWithAnis INIT_TO(1);
+  inline int autoretuneKappaWithAnis{1};
   
-  EXTERN_PARS int anisotropicFermionicAction INIT_TO(0);
+  inline int anisotropicFermionicAction{0};
   
-  EXTERN_PARS int nMaxTrials INIT_TO(3);
+  inline int nMaxTrials{3};
   
   //convention on gospel
   const int follow_chris=0,follow_nazario=1;
@@ -117,8 +114,8 @@ namespace nissa
       (ins==PHOTON_PHI);
   }
   
-  EXTERN_PARS gauge_info photon;
-  EXTERN_PARS Momentum tadpole;
+  inline gauge_info photon;
+  inline Momentum tadpole;
   
   //holds the range of FFT moms
   struct fft_mom_range_t
@@ -127,7 +124,7 @@ namespace nissa
     Coords width;
   };
   //list of propagators to fft
-  EXTERN_PARS std::vector<std::string> fft_prop_list;
+  inline std::vector<std::string> fft_prop_list;
   
   /// List of gamma used for source or sink
   struct LocBilinear
@@ -262,30 +259,33 @@ namespace nissa
   }
   
   //flag to simulate in the free theory
-  EXTERN_PARS int free_theory INIT_TO(false);
+  inline int free_theory{false};
+  
   inline void read_free_theory_flag()
   {
     read_str_int("FreeTheory",&free_theory);
   }
   
   //flag to make the muon with or without the external line
-  CUDA_MANAGED EXTERN_PARS int follow_chris_or_nazario INIT_TO(follow_nazario);
+  CUDA_MANAGED inline int follow_chris_or_nazario{follow_nazario}
+  ;
   inline void read_gospel_convention()
   {
     read_str_int("FollowChrisOrNazario",&follow_chris_or_nazario);
   }
   
   //perform a random gauge transformation
-  EXTERN_PARS int rnd_gauge_transform INIT_TO(0);
+  inline int rnd_gauge_transform{0};
+  
   inline void read_random_gauge_transform()
   {
     read_str_int("RandomGaugeTransform",&rnd_gauge_transform);
   }
   
   //perform a Landau gauge fixing
-  EXTERN_PARS int Landau_gauge_fix_flag INIT_TO(0);
+  inline int Landau_gauge_fix_flag{0};
   
-  EXTERN_PARS LC_gauge_fixing_pars_t gauge_fixing_pars;
+  inline LC_gauge_fixing_pars_t gauge_fixing_pars;
   
   inline void read_Landau_gauge_fix()
   {
@@ -294,35 +294,41 @@ namespace nissa
   }
   
   //store the conf?
-  EXTERN_PARS int store_conf INIT_TO(0);
+  inline int store_conf{0};
+  
   inline void read_store_conf()
   {
     read_str_int("StoreConf",&store_conf);
   }
   
   //local pion or muon current?
-  EXTERN_PARS int loc_hadr_curr INIT_TO(false);
+  inline int loc_hadr_curr{false};
+  
   inline void read_loc_hadr_curr()
   {
     read_str_int("LocHadrCurr",&loc_hadr_curr);
   }
   
-  EXTERN_PARS int loc_muon_curr INIT_TO(false);
+  inline int loc_muon_curr{false};
+  
   inline void read_loc_muon_curr()
   {
     read_str_int("LocMuonCurr",&loc_muon_curr);
   }
   
   //stochastic sources
-  CUDA_MANAGED EXTERN_PARS int stoch_source INIT_TO(0);
+  CUDA_MANAGED inline int stoch_source{0};
+  
   inline void read_stoch_source()
   {
     read_str_int("StochSource",&stoch_source);
   }
   
   //number of hits
-  EXTERN_PARS int nHits INIT_TO(1);
-  EXTERN_PARS int nCopies INIT_TO(1);
+  inline int nHits{1};
+  
+  inline int nCopies{1};
+  
   inline void read_nhits()
   {
     char text[128];
@@ -345,13 +351,17 @@ namespace nissa
       CRASH("nHits must be a positive integer, %d unsupported",nHits);
   }
   
-  //number of configurations
+  inline int nGaugeConfs;
+  
+  /// Number of configurations
   inline void read_ngauge_conf()
-  {read_str_int("NGaugeConf",&ngauge_conf);}
+  {
+    read_str_int("NGaugeConf",&nGaugeConfs);
+  }
   
   //ape smearing pars
-  EXTERN_PARS int ape_smearing_niters;
-  EXTERN_PARS double ape_smearing_alpha;
+  inline int ape_smearing_niters;
+  inline double ape_smearing_alpha;
   inline void read_ape_smearing_pars()
   {
     read_str_double("ApeSmearingAlpha",&ape_smearing_alpha);
@@ -359,7 +369,8 @@ namespace nissa
   }
   
   //read if isothrope theta or not
-  EXTERN_PARS bool iso_theta INIT_TO(false);
+  inline bool iso_theta{false};
+  
   inline void read_iso_theta()
   {
     char theta_tag[1024];
@@ -376,10 +387,12 @@ namespace nissa
       else CRASH("Unknown theta tag: %s",theta_tag);
   }
   
-  EXTERN_PARS std::string stopPath INIT_TO("stop");
+  inline std::string stopPath{"stop"};
+  
+  inline char conf_path[1024],outfolder[1024];
   
 #define PATH_PROVIDER(NAME,BASE_FILE)				\
-  EXTERN_PARS std::string NAME ## Filename INIT_TO(BASE_FILE);	\
+  inline std::string NAME ## Filename{BASE_FILE};		\
 								\
   inline std::string NAME ## Path()				\
   {								\
@@ -414,10 +427,7 @@ namespace nissa
   }
   
   //lock the file to ensure single disk access
-  EXTERN_PARS lock_file_t<uint64_t> lock_file;
+  inline lock_file_t<uint64_t> lock_file;
 }
-
-#undef EXTERN_PARS
-#undef INIT_TO
 
 #endif

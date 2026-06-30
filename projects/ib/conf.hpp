@@ -19,8 +19,6 @@ namespace nissa
   inline double ape_time;
   inline int nape_tot;
   
-  inline char conf_path[1024],outfolder[1024];
-  inline int ngauge_conf;
   inline int inner_conf_valid;
   inline bool conf_allocated{false};
   inline LxField<quad_su3>* glb_conf;
