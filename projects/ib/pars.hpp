@@ -31,12 +31,12 @@ namespace nissa
       {
 	std::istringstream is(data);
 	is>>val;
-	MASTER_PRINTF("%s set to: %s\n",descr,(std::ostringstream()<<val).str().c_str());
+	MASTER_PRINTF("Setting \"%s\" to: %s via external variable \"%s\"\n",descr,(std::ostringstream()<<val).str().c_str(),STR);
       }
     else
       {
-	MASTER_PRINTF("%s set to default value: %s\n",descr,(std::ostringstream()<<val).str().c_str());
-	MASTER_PRINTF("Optionally set %s by passing %s\n",descr,STR);
+	MASTER_PRINTF("Setting \"%s\" to default value: %s\n",descr,(std::ostringstream()<<val).str().c_str());
+	MASTER_PRINTF("Optionally set \"%s\" by passing external variable \"%s\"\n",descr,STR);
       }
   }
   
