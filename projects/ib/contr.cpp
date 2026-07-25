@@ -1,11 +1,9 @@
 #include <nissa.hpp>
 
-#define EXTERN_CONTR
-# include "contr.hpp"
-
 #include <complex>
 #include <set>
 
+#include "contr.hpp"
 #include "prop.hpp"
 
 namespace nissa

@@ -5,24 +5,13 @@
 #include <vector>
 
 #include "geometry/geometry_lx.hpp"
-#include "ib/prop.hpp"
 #include "new_types/dirac.hpp"
 
 #include "pars.hpp"
 
-#include "meslep.hpp"
-
-
-#ifndef EXTERN_CONTR
-# define EXTERN_CONTR extern
-# define INIT_TO(VAR)
-#else
-# define INIT_TO(VAR) =VAR
-#endif
-
 namespace nissa
 {
-  EXTERN_CONTR double contr_print_time INIT_TO(0);
+  inline double contr_print_time{0};
   
   void clearCorrelations();
   
@@ -32,7 +21,7 @@ namespace nissa
   
   ///////////////////////////////////////// meson contractions ///////////////////////////////////////////////////////
   
-  EXTERN_CONTR std::string mes2pts_prefix INIT_TO("mes_contr");
+  inline std::string mes2pts_prefix{"mes_contr"};
   
   struct mes_contr_t
   {
@@ -84,18 +73,18 @@ namespace nissa
     }
   };
   
-  EXTERN_CONTR std::vector<mes_contr_t> mes2ptsContr;
+  inline std::vector<mes_contr_t> mes2ptsContr;
   
-  EXTERN_CONTR int nmes2pts_contr_made INIT_TO(0);
-  EXTERN_CONTR double mes2pts_contr_time INIT_TO(0);
+  inline int nmes2pts_contr_made{0};
+  inline double mes2pts_contr_time{0};
   
-  EXTERN_CONTR int nmes2pts_move_to_make_readable_made INIT_TO(0);
-  EXTERN_CONTR double mes2pts_move_to_make_readable_time INIT_TO(0);
+  inline int nmes2pts_move_to_make_readable_made{0};
+  inline double mes2pts_move_to_make_readable_time{0};
   
-  CUDA_MANAGED EXTERN_CONTR LxField<complex> *loc_contr;
+  CUDA_MANAGED inline LxField<complex> *loc_contr;
   
   using ContrProp=LxField<spincolor,defaultSpaceTimeLayout,defaultMemorySpace>;
-  EXTERN_CONTR std::map<std::string,std::vector<ContrProp*>> mes2ptsPropsLib;
+  inline std::map<std::string,std::vector<ContrProp*>> mes2ptsPropsLib;
   inline void removeMes2PtsProp(const std::string& n)
   {
     MASTER_PRINTF("Removing %s from the mes2ptsPropsLib\n",n.c_str());
@@ -120,7 +109,7 @@ namespace nissa
   
   ///////////////////////////////////////// handcuffs contractions ///////////////////////////////////////////////////////
   
-  EXTERN_CONTR int computeHitSummedHandcuffs;
+  inline int computeHitSummedHandcuffs;
   
   void vector_current_mel(LxField<spin1field>& si,
 			  const dirac_matr& ext_g,
@@ -191,7 +180,7 @@ namespace nissa
     }
   };
   
-  EXTERN_CONTR std::map<std::string,HandcuffsSide> handcuffsSides;
+  inline std::map<std::string,HandcuffsSide> handcuffsSides;
   
   /// Define a handcuff
   struct Handcuff
@@ -222,11 +211,11 @@ namespace nissa
     }
   };
   
-  EXTERN_CONTR std::vector<Handcuff> handcuffs;
+  inline std::vector<Handcuff> handcuffs;
   
-  EXTERN_CONTR double handcuffsContrTime INIT_TO(0);
+  inline double handcuffsContrTime{0};
   
-  EXTERN_CONTR int nhandcuffsContrMade INIT_TO(0);
+  inline int nhandcuffsContrMade{0};
   
   void computeHandcuffSide(HandcuffsSide& h);
   
@@ -246,15 +235,15 @@ namespace nissa
   };
   
   //Cg5
-  CUDA_MANAGED EXTERN_CONTR dirac_matr Cg5;
+  CUDA_MANAGED inline dirac_matr Cg5;
   void set_Cg5();
   
-  EXTERN_CONTR int compute_octet INIT_TO(0);
-  EXTERN_CONTR int compute_decuplet INIT_TO(0);
-  EXTERN_CONTR std::vector<bar_triplet_t> bar2pts_contr_map;
-  EXTERN_CONTR int nbar2pts_contr_made INIT_TO(0);
-  EXTERN_CONTR double bar2pts_contr_time INIT_TO(0);
-  CUDA_MANAGED EXTERN_CONTR complex *bar2pts_contr INIT_TO(NULL);
+  inline int compute_octet{0};
+  inline int compute_decuplet{0};
+  inline std::vector<bar_triplet_t> bar2pts_contr_map;
+  inline int nbar2pts_contr_made{0};
+  inline double bar2pts_contr_time{0};
+  CUDA_MANAGED inline complex *bar2pts_contr{nullptr};
   void set_bar2pts_contr_ins_map();
   void allocate_bar2pts_contr();
   void compute_bar2pts_contr();
@@ -268,7 +257,7 @@ namespace nissa
        (dir_exc+2*
 	icombo));
   }
-  EXTERN_CONTR int bar2pts_contr_size;
+  inline int bar2pts_contr_size;
   
 #define BAR_ALT_LIMITED_PROJ
 
@@ -280,9 +269,9 @@ namespace nissa
  #define NBAR_ALT_SINGLE_PROJ 17
 #endif
 
-  CUDA_MANAGED EXTERN_CONTR complex *bar2pts_alt_contr INIT_TO(NULL);
-  EXTERN_CONTR int nbar2pts_alt_contr_made INIT_TO(0);
-  EXTERN_CONTR double bar2pts_alt_contr_time INIT_TO(0);
+  CUDA_MANAGED inline complex *bar2pts_alt_contr{nullptr};
+  inline int nbar2pts_alt_contr_made{0};
+  inline double bar2pts_alt_contr_time{0};
   void allocate_bar2pts_alt_contr();
   void compute_bar2pts_alt_contr();
   void print_bar2pts_alt_contr(const int iHit);
@@ -295,10 +284,10 @@ namespace nissa
 	(iWick+2*
 	 icombo)));
   }
-  EXTERN_CONTR int bar2pts_alt_contr_size;
+  inline int bar2pts_alt_contr_size;
   
-  EXTERN_CONTR int nsmear_oper INIT_TO(0);
-  EXTERN_CONTR double smear_oper_time INIT_TO(0);
+  inline int nsmear_oper{0};
+  inline double smear_oper_time{0};
   
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
@@ -321,7 +310,5 @@ namespace nissa
     if(compute_decuplet) print_bar2pts_alt_contr(iHit);
   }
 }
-
-#undef INIT_TO
 
 #endif
