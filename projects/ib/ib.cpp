@@ -574,31 +574,9 @@ void in_main(int narg,char **arg)
   //init simulation according to input file
   init_simulation(narg,arg);
   
-  constexpr char NMAX_PROPS_ALLOCATED_STR[]="NMAX_PROPS_ALLOCATED";
-  if(const char* nMaxAllocatedStr=getenv(NMAX_PROPS_ALLOCATED_STR))
-    {
-      nMaxPropsAllocated=atoi(nMaxAllocatedStr);
-      MASTER_PRINTF("%s=%d\n",NMAX_PROPS_ALLOCATED_STR,nMaxPropsAllocated);
-    }
-  else
-    {
-      MASTER_PRINTF("No maximum number of propagators to be allocated passed\n");
-      MASTER_PRINTF("Optionally specify the maximal number of propagators to be allocated by exporting %s\n",NMAX_PROPS_ALLOCATED_STR);
-    }
-
-#define PROVIDE_DO_NOT(WHAT,VAR,EXPLAIN)				\
-  constexpr char DO_NOT_ ## WHAT ## _HITS_STR[]="DO_NOT_" #WHAT "_HITS";	\
-  VAR=getenv(DO_NOT_## WHAT ## _HITS_STR)!=nullptr;		\
-  if(VAR)							\
-    MASTER_PRINTF("%s exported, not " EXPLAIN" hits\n",DO_NOT_ ## WHAT ## _HITS_STR);	\
-  else									\
-    MASTER_PRINTF("As default, " EXPLAIN" hits, export %s if needed otherwise\n",DO_NOT_ ## WHAT ## _HITS_STR)
-  
-  PROVIDE_DO_NOT(AVERAGE,doNotAverageHits,"averaging");
-  PROVIDE_DO_NOT(SHIFT_SOURCE_OF,doNotShiftSourceOfHits,"shifting the source of");
-  
-#undef PROVIDE_DO_NOT
-  
+  getExternalPar(nMaxPropsAllocated,"NMAX_PROPS_ALLOCATED","Maximum number of propagators to be allocated");
+  getExternalPar(doNotAverageHits,"DO_NOT_AVERAGE_HITS","Averaging the hits");
+  getExternalPar(doNotShiftSourceOfHits,"SHIFT_SOURCE_OF_HITS","Shifting the source hits");
   //loop over the configs
   int iconf{};
   bool askedToExit{};

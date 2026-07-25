@@ -408,15 +408,7 @@ namespace nissa
     if(not checked)
       {
 	checked=true;
-	
-	if(const char CONTRACT_2PTS_ON_CPU_STRING[]=
-	   "CONTRACT_2PTS_ON_CPU";
-	   const char* p=getenv(CONTRACT_2PTS_ON_CPU_STRING))
-	  useCpu=atoi(p);
-	else
-	  MASTER_PRINTF("Optionally compute the 2pts with the cpu (simd) version by exporting %s\n",CONTRACT_2PTS_ON_CPU_STRING);
-	
-	MASTER_PRINTF("Compute the 2pts with the cpu (simd) version set to: %d\n",useCpu);
+	getExternalPar(useCpu,"CONTRACT_2PTS_ON_CPU","Compute the 2pts with the cpu (simd)\n");
       }
     
     if(useCpu)
