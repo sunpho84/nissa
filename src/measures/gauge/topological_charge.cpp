@@ -191,13 +191,13 @@ namespace nissa
     MPI_Barrier(MPI_COMM_WORLD);
     
     //find which piece has to write data
-    int64_t tot_data=1;
+    int64_t glbSextinantVolume=1;
     for(int mu=0;mu<NDIM;mu++)
-      tot_data*=glbSize[mu]/2+1;
-    
+      glbSextinantVolume*=glbSize[mu]/2+1;
+    MASTER_PRINTF("Total amount of points: %ld\n",glbSextinantVolume);
     //fix possible exceding boundary
-    const int64_t istart=std::min(tot_data,(int64_t)locVol*rank);
-    const int64_t iend=std::min(tot_data,istart+locVol);
+    const int64_t istart=std::min(glbSextinantVolume,(int64_t)locVol*rank);
+    const int64_t iend=std::min(glbSextinantVolume,istart+locVol);
     const int64_t loc_data=iend-istart;
     
     //take original position of the file
@@ -219,16 +219,16 @@ namespace nissa
 	const double* cpuCorrPtr=
 	  hostCorr.template getPtr<MemorySpace::CPU>();
 	
-	const int nbytes_to_write=
+	const int nbytesToWrite=
 	  loc_data*sizeof(double);
-	const off_t nbytes_wrote=
-	  fwrite(cpuCorrPtr,1,nbytes_to_write,file);
-	if(nbytes_wrote!=nbytes_to_write)
-	  CRASH("wrote %ld bytes instead of %d, error: %s",nbytes_wrote,nbytes_to_write,strerror(errno));
+	const off_t nbytesWrote=
+	  fwrite(cpuCorrPtr,1,nbytesToWrite,file);
+	if(nbytesWrote!=nbytesToWrite)
+	  CRASH("wrote %ld bytes instead of %d, error: %s",nbytesWrote,nbytesToWrite,strerror(errno));
       }
     
     //point to after the data
-    fseek(file,ori+tot_data*sizeof(double),SEEK_SET);
+    fseek(file,ori+glbSextinantVolume*sizeof(double),SEEK_SET);
   }
   
   //measure the topological charge
