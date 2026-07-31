@@ -171,11 +171,6 @@ namespace nissa
 	fixFromNativeEndianness<LittleEndian>(top);
       }
     
-    //offset to mantain 16 byte alignement
-    if(fseek(file,3*sizeof(int),SEEK_CUR))
-      CRASH("seeking to align");
-    MPI_Barrier(MPI_COMM_WORLD);
-    
     //write conf id and top charge
     if(rank==0)
       {
