@@ -238,7 +238,7 @@ namespace nissa
   {
     /// Output file for measure
     FILE* file=
-      open_file(pars.corrPath,confCreated?"w":"a");
+      open_file(pars.path,confCreated?"w":"a");
     
     /// Correlation file
     FILE* corrFile{nullptr};
