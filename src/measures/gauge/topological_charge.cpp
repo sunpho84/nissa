@@ -219,8 +219,8 @@ namespace nissa
 	const LxField<double,SpaceTimeLayout::CPU> hostCorr=
 	  corr;
 	
-	double* cpuCorrPtr=
-	  corr.template getPtr<defaultMemorySpace>();
+	const double* cpuCorrPtr=
+	  hostCorr.template getPtr<defaultMemorySpace>();
 	
 	const int nbytes_to_write=
 	  loc_data*sizeof(double);
