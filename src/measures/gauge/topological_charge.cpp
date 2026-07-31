@@ -213,7 +213,15 @@ namespace nissa
     if(loc_data!=0)
       if(fseek(file,ori+istart*sizeof(double),SEEK_SET))
 	CRASH("seeking");
-    
+
+    for(int irank=0;irank<nranks;irank++)
+      {
+	MPI_Barrier(MPI_COMM_WORLD);
+	fflush(stdout);
+	MPI_Barrier(MPI_COMM_WORLD);
+	if(rank==irank)
+	  MASTER_PRINTF("rank %d print from %ld to %ld\n",rank,istart,iend);
+      }
     MPI_Barrier(MPI_COMM_WORLD);
     
     //write if something has to be written
