@@ -220,7 +220,7 @@ namespace nissa
 	hostCorr=corr;
 	
 	const double* cpuCorrPtr=
-	  hostCorr.template getPtr<defaultMemorySpace>();
+	  hostCorr.template getPtr<MemorySpace::CPU>();
 	
 	const int nbytes_to_write=
 	  loc_data*sizeof(double);
