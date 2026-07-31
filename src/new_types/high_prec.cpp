@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #if HIGH_PREC_TYPE==GMP_HIGH_PREC
@@ -31,6 +31,7 @@ namespace nissa
   int high_prec_nbits() {return 209;}
   void float_high_prec_t_print(float_high_prec_t a){MASTER_PRINTF("%lg %lg %lg %lg\n",a[0],a[1],a[2],a[3]);}
 #endif
+
 #if (HIGH_PREC_TYPE==GMP_HIGH_PREC)
   int mpf_precision;
   int high_prec_nbits(){return mpf_get_default_prec();}
@@ -64,7 +65,9 @@ namespace nissa
   }
   
   //frac power
-  float_high_prec_t float_high_prec_t_pow_int_frac(float_high_prec_t ext_in,int n,int d)
+  float_high_prec_t float_high_prec_t_pow_int_frac(const float_high_prec_t& ext_in,
+						   const int& n,
+						   const int& d)
   {
     //take a copy
     float_high_prec_t in=ext_in;
