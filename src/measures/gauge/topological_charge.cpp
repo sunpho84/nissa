@@ -147,6 +147,7 @@ namespace nissa
   void store_topo_corr(FILE* file,
 		       LxField<double> corr,
 		       const int64_t itraj,
+		       const int64_t nSmooth,
 		       const double& top,
 		       const vector_remap_t& topo_corr_rem)
   {
@@ -174,19 +175,20 @@ namespace nissa
     //write conf id and top charge
     if(rank==0)
       {
-	off_t nwr=
-	  fwrite(&itraj,sizeof(int64_t),1,file);
+	if(const off_t nwr=
+	   fwrite(&itraj,sizeof(int64_t),1,file);nwr!=1)
+	  CRASH("wrote %ld int64_t instead of 1",nwr);
 	
-	if(nwr!=1)
-	  CRASH("wrote %ld int instead of 1",nwr);
-	
-	nwr=fwrite(&top,sizeof(double),1,file);
-	
-	if(nwr!=1)
+	if(const off_t nwr=
+	   fwrite(&top,sizeof(double),1,file);nwr!=1)
 	  CRASH("wrote %ld doubles instead of 1",nwr);
+	
+	if(const off_t nwr=
+	   fwrite(&nSmooth,sizeof(int64_t),1,file);nwr!=1)
+	  CRASH("wrote %ld int64_t instead of 1",nwr);
       }
     else
-      if(fseek(file,sizeof(int64_t)+sizeof(double),SEEK_CUR))
+      if(fseek(file,2*sizeof(int64_t)+sizeof(double),SEEK_CUR))
 	CRASH("seeking");
     MPI_Barrier(MPI_COMM_WORLD);
     
@@ -213,16 +215,6 @@ namespace nissa
     if(loc_data!=0)
       if(fseek(file,ori+istart*sizeof(double),SEEK_SET))
 	CRASH("seeking");
-
-    for(int irank=0;irank<nranks;irank++)
-      {
-	MPI_Barrier(MPI_COMM_WORLD);
-	fflush(stdout);
-	MPI_Barrier(MPI_COMM_WORLD);
-	if(rank==irank)
-	  MASTER_PRINTF("rank %d print from %ld to %ld\n",rank,istart,iend);
-      }
-    MPI_Barrier(MPI_COMM_WORLD);
     
     //write if something has to be written
     if(loc_data!=0)
@@ -275,7 +267,7 @@ namespace nissa
     LxField<quad_su3> smoothedConf("smoothed_conf",WITH_HALO_EDGES);
     smoothedConf=unsmoothedConf;
     
-    int nsmooth=0;
+    int nSmooth=0;
     bool finished;
     do
       {
@@ -289,14 +281,14 @@ namespace nissa
 	double totCharge;
 	charge.reduce(totCharge);
 	
-	master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,nsmooth,totCharge,plaq);
-	finished=smooth_lx_conf_until_next_meas(smoothedConf,pars.smooth_pars,nsmooth);
+	master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,nSmooth,totCharge,plaq);
+	finished=smooth_lx_conf_until_next_meas(smoothedConf,pars.smooth_pars,nSmooth);
 	
 	//correlators if asked
 	if(pars.meas_corr)
 	  {
 	    compute_topo_corr(charge,pars.time_mom_rep);
-	    store_topo_corr(corrFile,charge,iconf,totCharge,lxToSextinantsRemapper());
+	    store_topo_corr(corrFile,charge,iconf,nSmooth,totCharge,lxToSextinantsRemapper());
 	  }
       }
     while(not finished);
