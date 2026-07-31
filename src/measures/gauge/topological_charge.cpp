@@ -195,13 +195,19 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       glbSextinantVolume*=glbSize[mu]/2+1;
     MASTER_PRINTF("Total amount of points: %ld\n",glbSextinantVolume);
+    
     //fix possible exceding boundary
-    const int64_t istart=std::min(glbSextinantVolume,(int64_t)locVol*rank);
-    const int64_t iend=std::min(glbSextinantVolume,istart+locVol);
+    const int64_t locSextinantVolume=
+      (glbSextinantVolume+(nranks-1))/nranks;
+    MASTER_PRINTF("Local amount of points at max: %ld\n",locSextinantVolume);
+    
+    const int64_t istart=std::min(glbSextinantVolume,locSextinantVolume*rank);
+    const int64_t iend=std::min(glbSextinantVolume,istart+locSextinantVolume);
     const int64_t loc_data=iend-istart;
     
     //take original position of the file
-    const off_t ori=ftell(file);
+    const off_t ori=
+      ftell(file);
     
     //jump to the correct point in the file
     if(loc_data!=0)
