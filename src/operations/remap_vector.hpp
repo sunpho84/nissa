@@ -21,7 +21,7 @@ namespace nissa
   
   inline vector_remap_t* _remapLocdToLx[NDIM];
   
-  inline vector_remap_t* _topo_corr_rem;
+  inline vector_remap_t* _remapLxToSextintants;
   
   struct vector_remap_t :
     all_to_all_comm_t
@@ -207,13 +207,13 @@ namespace nissa
   }
   
   /// Gets the topo_corr_rem remapper
-  inline const vector_remap_t& topoCorrRem()
+  inline const vector_remap_t& lxToSextinantsRemapper()
   {
-    if(_topo_corr_rem==nullptr)
-      _topo_corr_rem=
+    if(_remapLxToSextintants==nullptr)
+      _remapLxToSextintants=
 	new vector_remap_t(locVol,index_to_topo_corr_remapping);
     
-    return *_topo_corr_rem;
+    return *_remapLxToSextintants;
   }
 }
 

@@ -285,7 +285,7 @@ namespace nissa
 	if(pars.meas_corr)
 	  {
 	    compute_topo_corr(charge,pars.time_mom_rep);
-	    store_topo_corr(corrFile,charge,iconf,totCharge,topoCorrRem());
+	    store_topo_corr(corrFile,charge,iconf,totCharge,lxToSextinantsRemapper());
 	  }
       }
     while(not finished);

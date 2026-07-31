@@ -37,6 +37,9 @@ namespace nissa
 	  delete _remapLocdToLx[mu];
       }
     
+    if(_remapLxToSextintants)
+      delete _remapLxToSextintants;
+    
 #ifdef USE_QUDA
     if(use_quda)
       {
