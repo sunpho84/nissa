@@ -38,7 +38,7 @@ namespace nissa
 	tmp=f;
 	MASTER_PRINTF("Making a temporary copy of the field changing layout to be 4D-fourier-transformed\n");
 	
-	fft4d(tmp,sign,normalize);
+	fft4d(tmp,dirs,sign,normalize);
 	
 	f=tmp;
       }

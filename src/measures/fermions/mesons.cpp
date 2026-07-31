@@ -58,7 +58,7 @@ namespace nissa
       }
   }
   
-  void compute_meson_corr(std::vector<complex>& corr,
+  void compute_meson_corr(complex* corr,
 			  const EoField<quad_su3>& conf,
 			  const theory_pars_t& tp,
 			  const meson_corr_meas_pars_t& meas_pars)
@@ -188,8 +188,7 @@ namespace nissa
 			  });
 		    }
 		  
-		  std::vector<std::array<double,2>> _unshiftedGlbContr(glbSize[dir]);
-		  complex* unshiftedGlbContr=(complex*)&_unshiftedGlbContr;
+		  PROVIDE_COMPLEX_VECTOR(unshiftedGlbContr,glbSize[dir]);
 		  
 		  glb_reduce(&unshiftedGlbContr[0],loc_contr,locVol,glbSize[dir],locSize[dir],glbCoordOfLoclx[0][dir]);
 		  
@@ -225,7 +224,8 @@ namespace nissa
     double norm=1.0/(meas_pars.nhits*orthVol);
     
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
-    std::vector<complex> corr(ncombo);
+    
+    PROVIDE_COMPLEX_VECTOR(corr,ncombo);
     
     //measure the meson corrs for each quark
     for(int ncopies=meas_pars.ncopies,icopy=0;icopy<ncopies;icopy++)

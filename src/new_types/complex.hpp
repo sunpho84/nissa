@@ -17,6 +17,10 @@
 #define UNROLL_FOR_RI(RI)			\
   UNROLL_FOR(RI,0,2)
 
+#define PROVIDE_COMPLEX_VECTOR(NAME,SIZE)				\
+		  std::vector<std::array<double,2>> _ ## NAME(SIZE);	\
+		  complex* NAME=(complex*)&_ ## NAME
+		  
 namespace nissa
 {
   template <typename F>
