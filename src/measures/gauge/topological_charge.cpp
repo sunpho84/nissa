@@ -222,7 +222,7 @@ namespace nissa
 	const off_t nbytes_wrote=
 	  fwrite(corrPtr,1,nbytes_to_write,file);
 	if(nbytes_wrote!=nbytes_to_write)
-	  CRASH("wrote %ld bytes instead of %d",nbytes_wrote,nbytes_to_write);
+	  CRASH("wrote %ld bytes instead of %d, error: %s",nbytes_wrote,nbytes_to_write,strerror(errno));
       }
     
     //point to after the data
