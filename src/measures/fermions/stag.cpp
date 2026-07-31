@@ -312,7 +312,7 @@ namespace nissa
       local_trace(point_result,A,B);
       
       // reduction over 3-spatial-volume
-      std::vector<complex> temp(glbSize[0]);
+      PROVIDE_COMPLEX_VECTOR(temp,glbSize[0]);
       glb_reduce(&temp[0],point_result,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
       for(int glb_t=0;glb_t<glbSize[0]; glb_t ++)
 	out[glb_t]+=temp[glb_t][RE];
