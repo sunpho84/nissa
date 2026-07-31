@@ -216,8 +216,8 @@ namespace nissa
     //write if something has to be written
     if(loc_data!=0)
       {
-	const LxField<double,SpaceTimeLayout::GPU /* fine */,MemorySpace::CPU> hostCorr=
-	  corr;
+	LxField<double,SpaceTimeLayout::GPU /* fine */,MemorySpace::CPU> hostCorr("hostCorr");
+	hostCorr=corr;
 	
 	const double* cpuCorrPtr=
 	  hostCorr.template getPtr<defaultMemorySpace>();
