@@ -4,17 +4,10 @@
 
 #include <math.h>
 
-#include <memory>
-
-#include "base/random.hpp"
-#include "base/cuda_test.hpp"
-#include "communicate/communicate.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
 #include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
 #include "hmc/hmc.hpp"
-#include "geometry/geometry_eo.hpp"
-#include "linalgs/linalgs.hpp"
 #include "new_types/rat_approx.hpp"
 #include "new_types/su3.hpp"
 #include "operations/remez/remez_algorithm.hpp"
@@ -197,10 +190,10 @@ namespace nissa
     
     //list of rat_approx to recreate
     int nto_recreate=0;
-    int iappr_to_recreate[nappr_per_quark*nflavs];
-    double min_to_recreate[nappr_per_quark*nflavs];
-    double max_to_recreate[nappr_per_quark*nflavs];
-    double maxerr_to_recreate[nappr_per_quark*nflavs];
+    std::vector<int> iappr_to_recreate(nappr_per_quark*nflavs);
+    std::vector<double> min_to_recreate(nappr_per_quark*nflavs);
+    std::vector<double> max_to_recreate(nappr_per_quark*nflavs);
+    std::vector<double> maxerr_to_recreate(nappr_per_quark*nflavs);
     
     //allocate or not clover term and inverse evn clover term
     EoField<clover_term_t>* Cl=nullptr;
@@ -300,7 +293,7 @@ namespace nissa
       }
     
     //find out who recreates what
-    int rank_recreating[nto_recreate];
+    std::vector<int> rank_recreating(nto_recreate);
     int nrecreated_per_rank=(nto_recreate+nranks-1)/nranks;
     VERBOSITY_LV1_MASTER_PRINTF("Need to recreate %d expansions, %d ranks available\n",nto_recreate,nranks);
     for(int ito=0;ito<nto_recreate;ito++)
