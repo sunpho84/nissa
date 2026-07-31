@@ -21,6 +21,8 @@ namespace nissa
   
   inline vector_remap_t* _remapLocdToLx[NDIM];
   
+  inline vector_remap_t* _topo_corr_rem;
+  
   struct vector_remap_t :
     all_to_all_comm_t
   {
@@ -153,6 +155,65 @@ namespace nissa
 				  const int& mu)
   {
     locdToLxRemapper(mu).remap(out,in,nbytes);
+  }
+  
+  /// Finding the index to put only 1/16 of the data
+  inline std::pair<int,int64_t> index_to_topo_corr_remapping(const int& iloc_lx)
+  {
+    int subcube=0,subcube_el=0;
+    int subcube_size[NDIM][2],subcube_coord[NDIM],subcube_el_coord[NDIM];
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	subcube_size[mu][0]=glbSize[mu]/2+1;
+	subcube_size[mu][1]=glbSize[mu]/2-1;
+	
+	//take global coord and identify subcube
+	int glx_mu=glbCoordOfLoclx[iloc_lx][mu];
+	subcube_coord[mu]=(glx_mu>=subcube_size[mu][0]);
+	subcube=subcube*2+subcube_coord[mu];
+	
+	//identify also the local coord
+	subcube_el_coord[mu]=glx_mu-subcube_coord[mu]*subcube_size[mu][0];
+	subcube_el=subcube_el*subcube_size[mu][subcube_coord[mu]]+subcube_el_coord[mu];
+      }
+    
+    //summ the smaller-index cubes
+    Coords nsubcubes_per_dir;
+    for(int mu=0;mu<NDIM;mu++) nsubcubes_per_dir[mu]=2;
+    int64_t minind_cube_vol=0;
+    for(int isubcube=0;isubcube<subcube;isubcube++)
+      {
+	//get coords
+	Coords c=coordOfLx(isubcube,nsubcubes_per_dir);
+	//compute vol
+	int64_t subcube_vol=1;
+	for(int mu=0;mu<NDIM;mu++)
+	  subcube_vol*=subcube_size[mu][c[mu]];
+	minind_cube_vol+=subcube_vol;
+      }
+    
+    const int64_t tmp=
+      subcube_el+minind_cube_vol;
+    
+    /// Destintation rank
+    const int irank=
+      tmp/locVol;
+    
+    /// Dest loclx
+    const int64_t iloc=
+      tmp%locVol;
+    
+    return std::pair{irank,iloc};
+  }
+  
+  /// Gets the topo_corr_rem remapper
+  inline const vector_remap_t& topoCorrRem()
+  {
+    if(_topo_corr_rem==nullptr)
+      _topo_corr_rem=
+	new vector_remap_t(locVol,index_to_topo_corr_remapping);
+    
+    return *_topo_corr_rem;
   }
 }
 
