@@ -51,8 +51,7 @@ namespace nissa
     complex o={0,0}
     
 #define NEW_TRACE_RES_VEC(o,n)			\
-    double o[n];				\
-    memset(o,0,sizeof(double)*n)
+    std::vector<double> o(n,0.0)
     
 #define NEW_TIME_CORR(o)						\
     double NAME2(glb,o)[glbSize[0]);					\
@@ -112,7 +111,7 @@ namespace nissa
 			LxField<complex>& point_result,
 			const EoField<color>& A,
 			const EoField<color>& B);
-    void summ_the_time_trace(double* out,
+    void summ_the_time_trace(std::vector<double>& out,
 			     LxField<complex>& point_result,
 			     const EoField<color>& A,
 			     const EoField<color>& B);

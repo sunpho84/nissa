@@ -303,7 +303,7 @@ namespace nissa
     }
     
     //take the trace between A^dag and B, keeping individual times
-    void summ_the_time_trace(double* out,
+    void summ_the_time_trace(std::vector<double>& out,
 			     LxField<complex>& point_result,
 			     const EoField<color>& A,
 			     const EoField<color>& B)
@@ -312,9 +312,9 @@ namespace nissa
       local_trace(point_result,A,B);
       
       // reduction over 3-spatial-volume
-      complex temp[glbSize[0]];
-      glb_reduce(temp,point_result,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
-      for(int glb_t=0; glb_t<glbSize[0]; glb_t ++)
+      std::vector<complex> temp(glbSize[0]);
+      glb_reduce(&temp[0],point_result,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+      for(int glb_t=0;glb_t<glbSize[0]; glb_t ++)
 	out[glb_t]+=temp[glb_t][RE];
     }
     

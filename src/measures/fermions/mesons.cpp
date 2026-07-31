@@ -57,14 +57,14 @@ namespace nissa
     if(gauss_niter<=0)
       out=in;
     else
-      {    
+      {
 	paste_eo_parts_into_lx_vector(lx_buf,in);
 	gaussian_smearing(lx_buf,lx_buf,conf_lx,gauss_kappa,gauss_niter,&lx_temp,&lx_H);
 	split_lx_vector_into_eo_parts(out,lx_buf);
       }
   }
   
-  void compute_meson_corr(complex* corr,
+  void compute_meson_corr(std::vector<complex>& corr,
 			  const EoField<quad_su3>& conf,
 			  const theory_pars_t& tp,
 			  const meson_corr_meas_pars_t& meas_pars)
@@ -99,7 +99,7 @@ namespace nissa
       };
     
     //form the masks
-    int mask[nop],shift[nop];
+    std::vector<int> mask(nop),shift(nop);
     for(int iop=0;iop<nop;iop++)
       {
 	const auto& [spin,taste]=
@@ -194,8 +194,8 @@ namespace nissa
 			  });
 		    }
 		  
-		  complex unshiftedGlbContr[glbSize[dir]];
-		  glb_reduce(unshiftedGlbContr,loc_contr,locVol,glbSize[dir],locSize[dir],glbCoordOfLoclx[0][dir]);
+		  std::vector<complex> unshiftedGlbContr(glbSize[dir]);
+		  glb_reduce(&unshiftedGlbContr[0],loc_contr,locVol,glbSize[dir],locSize[dir],glbCoordOfLoclx[0][dir]);
 		  
 		  for(int glb_idir=0;glb_idir<glbSize[dir];glb_idir++)
 		    {
@@ -229,7 +229,7 @@ namespace nissa
     double norm=1.0/(meas_pars.nhits*orthVol);
     
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
-    complex corr[ncombo];
+    std::vector<complex> corr(ncombo);
     
     //measure the meson corrs for each quark
     for(int ncopies=meas_pars.ncopies,icopy=0;icopy<ncopies;icopy++)
