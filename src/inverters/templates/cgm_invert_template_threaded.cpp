@@ -21,17 +21,17 @@ namespace nissa
 #endif
   
 #if CGM_NARG == 0
-  void CGM_INVERT(BASETYPE** sol,double* shift,int nshift,int niter_max,double* ext_req_res,BASETYPE* source)
+  void CGM_INVERT(BASETYPE** sol,const std::vector<double>& shift,int nshift,int niter_max,const std::vector<double>& ext_req_res,BASETYPE* source)
 #elif CGM_NARG == 1
-  void CGM_INVERT(BASETYPE** sol,AT1 A1,double* shift,int nshift,int niter_max,double* ext_req_res,BASETYPE* source)
+  void CGM_INVERT(BASETYPE** sol,AT1 A1,const std::vector<double>& shift,int nshift,int niter_max,const std::vector<double>& ext_req_res,BASETYPE* source)
 #elif CGM_NARG == 2
-  void CGM_INVERT(BASETYPE** sol,AT1 A1,AT2 A2,double* shift,int nshift,int niter_max,double* ext_req_res,BASETYPE* source)
+  void CGM_INVERT(BASETYPE** sol,AT1 A1,AT2 A2,const std::vector<double>& shift,int nshift,int niter_max,const std::vector<double>& ext_req_res,BASETYPE* source)
 #elif CGM_NARG == 3
-  void CGM_INVERT(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,double* shift,int nshift,int niter_max,double* ext_req_res,BASETYPE* source)
+  void CGM_INVERT(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,const std::vector<double>& shift,int nshift,int niter_max,const std::vector<double>& ext_req_res,BASETYPE* source)
 #elif CGM_NARG == 4
-  void CGM_INVERT(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,AT4 A4,double* shift,int nshift,int niter_max,double* ext_req_res,BASETYPE* source)
+  void CGM_INVERT(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,AT4 A4,const std::vector<double>& shift,int nshift,int niter_max,const std::vector<double>& ext_req_res,BASETYPE* source)
 #elif CGM_NARG == 5
-  void CGM_INVERT(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,double* shift,int nshift,int niter_max,double* ext_req_res,BASETYPE* source)
+  void CGM_INVERT(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,const std::vector<double>& shift,int nshift,int niter_max,const std::vector<double>& ext_req_res,BASETYPE* source)
 #endif
   {
     CRASH("reimplement");
@@ -295,21 +295,22 @@ namespace nissa
   
 //run higher shifts up to common precision
 #if CGM_NARG == 0
-void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,double* shift,int nshift,int niter_max,double req_res,BASETYPE* source)
+void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,const std::vector<double>& shift,int nshift,int niter_max,double req_res,BASETYPE* source)
 #elif CGM_NARG == 1
-void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,AT1 A1,double* shift,int nshift,int niter_max,double req_res,BASETYPE* source)
+void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,AT1 A1,const std::vector<double>& shift,int nshift,int niter_max,double req_res,BASETYPE* source)
 #elif CGM_NARG == 2
-void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,AT1 A1,AT2 A2,double* shift,int nshift,int niter_max,double req_res,BASETYPE* source)
+void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,AT1 A1,AT2 A2,const std::vector<double>& shift,int nshift,int niter_max,double req_res,BASETYPE* source)
 #elif CGM_NARG == 3
-void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,double* shift,int nshift,int niter_max,double req_res,BASETYPE* source)
+void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,const std::vector<double>& shift,int nshift,int niter_max,double req_res,BASETYPE* source)
 #elif CGM_NARG == 4
-void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,AT4 A4,double* shift,int nshift,int niter_max,double req_res,BASETYPE* source)
+void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,AT4 A4,const std::vector<double>& shift,int nshift,int niter_max,double req_res,BASETYPE* source)
 #elif CGM_NARG == 5
-void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,double* shift,int nshift,int niter_max,double req_res,BASETYPE* source)
+void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,const std::vector<double>& shift,int nshift,int niter_max,double req_res,BASETYPE* source)
 #endif
   {
-    double req_res_int[nshift];
-    for(int ishift=0;ishift<nshift;ishift++) req_res_int[ishift]=req_res;
+    std::vector<double> req_res_int(nshift);
+    for(int ishift=0;ishift<nshift;ishift++)
+      req_res_int[ishift]=req_res;
     CGM_INVERT(sol,CGM_ADDITIONAL_PARAMETERS_CALL shift,nshift,niter_max,req_res_int,source);
   }
   

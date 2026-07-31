@@ -5,8 +5,8 @@
 
 namespace nissa
 {
-  void inv_tmDQ_cgm(spincolor **sol,quad_su3 *conf,double kappa,double *m,int nmass,int niter_max,double *req_res,spincolor *source);
-  void inv_tmQ2_cgm(spincolor **sol,quad_su3 *conf,double kappa,double *m,int nmass,int niter_max,double *req_res,spincolor *source);
+  void inv_tmDQ_cgm(spincolor **sol,quad_su3 *conf,double kappa,const std::vector<double>& m,int nmass,int niter_max,const std::vector<double>& req_res,spincolor *source);
+  void inv_tmQ2_cgm(spincolor **sol,quad_su3 *conf,double kappa,const std::vector<double>& m,int nmass,int niter_max,const std::vector<double>& req_res,spincolor *source);
 }
 
 #endif

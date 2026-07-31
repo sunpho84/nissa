@@ -43,16 +43,17 @@
 
 namespace nissa
 {
-  void inv_tmQ2_cgm(spincolor **sol,quad_su3 *conf,double kappa,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
+  void inv_tmQ2_cgm(spincolor **sol,quad_su3 *conf,double kappa,const std::vector<double>& m,int nmass,int niter_max,const std::vector<double>& req_res,spincolor *source)
   {
-    double m2[nmass];
-    for(int imass=0;imass<nmass;imass++) m2[imass]=m[imass]*m[imass];
+    std::vector<double> m2(nmass);
+    for(int imass=0;imass<nmass;imass++)
+      m2[imass]=m[imass]*m[imass];
     
     inv_tmQ2_m2_cgm(sol,conf,kappa,m2,nmass,niter_max,req_res,source);
   }
   
   //put the g5
-  void inv_tmDQ_cgm(spincolor** sol,quad_su3* conf,double kappa,double* m,int nmass,int niter_max,double* req_res,spincolor* source)
+  void inv_tmDQ_cgm(spincolor** sol,quad_su3* conf,double kappa,const std::vector<double>& m,int nmass,int niter_max,const std::vector<double>& req_res,spincolor* source)
   {
     CRASH("reimplement");
     // NISSA_PARALLEL_LOOP(ivol,0,locVol)
