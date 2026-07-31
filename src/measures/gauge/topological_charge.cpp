@@ -297,11 +297,9 @@ namespace nissa
 				const int& iconf,
 				const bool& conf_created)
   {
-	    CRASH("reimplement");
-    // quad_su3 *unsmoothed_conf_lx=nissa_malloc("unsmoothed_conf_lx",locVol+bord_vol+edge_vol,quad_su3);
-    // paste_eo_parts_into_lx_vector(unsmoothed_conf_lx,unsmoothed_conf_eo);
-    // measure_topology_lx_conf(pars,unsmoothed_conf_lx,iconf,conf_created,false);
-    // nissa_free(unsmoothed_conf_lx);
+    LxField<quad_su3> unsmoothed_conf_lx("unsmoothed_conf_lx",WITHOUT_HALO);
+    paste_eo_parts_into_lx_vector(unsmoothed_conf_lx,unsmoothed_conf_eo);
+    measure_topology_lx_conf(pars,unsmoothed_conf_lx,iconf,conf_created,false);
   }
   
   //compute the topological staples site by site
