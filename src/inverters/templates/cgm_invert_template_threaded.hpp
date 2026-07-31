@@ -59,7 +59,7 @@ namespace nissa
     VERBOSITY_LV2_MASTER_PRINTF("\n");
     
     int final_iter;
-    double final_res[nShift];
+    std::vector<double> final_res(nShift);
     
     int iter=0;
     
@@ -68,9 +68,10 @@ namespace nissa
     
     //     -zps=zas=1
     //     -alphas=0
-    double zps[nShift],zas[nShift],alphas[nShift];
-    double zfs[nShift],betas[nShift];
-    int run_flag[nShift],nrun_shift=nShift;
+    std::vector<double> zps(nShift),zas(nShift),alphas(nShift);
+    std::vector<double> zfs(nShift),betas(nShift);
+    std::vector<int> run_flag(nShift);
+    int nrun_shift=nShift;
     for(size_t ishift=0;ishift<nShift;ishift++)
       {
 	zps[ishift]=zas[ishift]=1;
@@ -88,7 +89,7 @@ namespace nissa
 #endif
     
     double rfrf,betap;
-    double res[nShift];
+    std::vector<double> res(nShift);
     
     Field<double,T::fieldCoverage> buf("buf");
     do

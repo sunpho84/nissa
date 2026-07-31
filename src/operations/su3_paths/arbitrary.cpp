@@ -240,18 +240,18 @@ namespace nissa
   void paths_calculation_structure::gather_nonloc_lx(su3 *nonloc_links,quad_su3 *conf)
   {
     //list of request
-    MPI_Request request[nranks_to_send+nranks_to_recv];
+    std::vector<MPI_Request> request(nranks_to_send+nranks_to_recv);
     int irequest=0;
     
     //open incoming communications
-    gather_nonloc_start(request,irequest,nonloc_links);
+    gather_nonloc_start(&request[0],irequest,nonloc_links);
     
     //allocate the sending buffer, fill them
     su3 *send_buff=nissa_malloc("buff",ntot_links_to_send,su3);
     for(int ilink=0;ilink<ntot_links_to_send;ilink++) su3_copy(send_buff[ilink],((su3*)conf)[links_to_send_list[ilink]]);
     
     //finish the communications
-    gather_nonloc_finish(request,irequest,send_buff);
+    gather_nonloc_finish(&request[0],irequest,send_buff);
     
     nissa_free(send_buff);
   }
@@ -260,11 +260,11 @@ namespace nissa
   void paths_calculation_structure::gather_nonloc_eo(su3 *nonloc_links,quad_su3 **conf)
   {
     //list of request
-    MPI_Request request[nranks_to_send+nranks_to_recv];
+    std::vector<MPI_Request> request(nranks_to_send+nranks_to_recv);
     int irequest=0;
     
     //open incoming communications
-    gather_nonloc_start(request,irequest,nonloc_links);
+    gather_nonloc_start(&request[0],irequest,nonloc_links);
     
     //allocate the sending buffer, fill them
     su3 *send_buff=nissa_malloc("buff",ntot_links_to_send,su3);
@@ -277,7 +277,7 @@ namespace nissa
       }
     
     //finish the communications
-    gather_nonloc_finish(request,irequest,send_buff);
+    gather_nonloc_finish(&request[0],irequest,send_buff);
     
     nissa_free(send_buff);
   }
