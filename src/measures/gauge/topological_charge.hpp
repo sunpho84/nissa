@@ -16,7 +16,7 @@ namespace nissa
     
     std::string path;
     
-    std::string corr_path;
+    std::string corrPath;
     
     bool time_mom_rep;
     
@@ -58,7 +58,7 @@ namespace nissa
 	each!=def_each() or
 	after!=def_after() or
 	path!=def_path() or
-	corr_path!=def_corr_path() or
+	corrPath!=def_corr_path() or
 	time_mom_rep!=def_time_mom_rep() or
 	smooth_pars.is_nonstandard();
     }
@@ -78,7 +78,7 @@ namespace nissa
       if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
       if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
       if(meas_corr!=def_meas_corr() or full) os<<" MeasCorr\t=\t"<<meas_corr<<"\n";
-      if(corr_path!=def_corr_path() or full) os<<" CorrPath\t=\t\""<<corr_path<<"\"\n";
+      if(corrPath!=def_corr_path() or full) os<<" CorrPath\t=\t\""<<corrPath<<"\"\n";
       if(time_mom_rep!=def_time_mom_rep() or full) os<<" TimeMomRep\t=\t"<<time_mom_rep<<"\n";
       os<<smooth_pars.get_str(full);
       
@@ -90,7 +90,7 @@ namespace nissa
       after(def_after()),
       meas_corr(def_meas_corr()),
       path(def_path()),
-      corr_path(def_corr_path()),
+      corrPath(def_corr_path()),
       time_mom_rep(def_time_mom_rep())
     {
     }

@@ -231,33 +231,33 @@ namespace nissa
   
   //measure the topological charge
   void measure_topology_lx_conf(const top_meas_pars_t &pars,
-				const LxField<quad_su3>& unsmoothed_conf,
+				const LxField<quad_su3>& unsmoothedConf,
 				const int& iconf,
-				const bool& conf_created,
-				const bool& preserve_unsmoothed)
+				const bool& confCreated,
+				const bool& preserveUnsmoothed)
   {
     /// Output file for measure
     FILE* file=
-      open_file(pars.path,conf_created?"w":"a");
+      open_file(pars.corrPath,confCreated?"w":"a");
     
     /// Correlation file
-    FILE* corr_file{nullptr};
+    FILE* corrFile{nullptr};
     
     /// Optional remapper
     if(pars.meas_corr)
       {
-	corr_file=fopen(pars.corr_path.c_str(),(conf_created or not fileExists(pars.corr_path))?"w":"r+");
-	if(not corr_file)
-	  CRASH("opening %s",pars.corr_path.c_str());
+	corrFile=fopen(pars.corrPath.c_str(),(confCreated or not fileExists(pars.corrPath))?"w":"r+");
+	if(not corrFile)
+	  CRASH("opening %s",pars.corrPath.c_str());
 	
-	if(fseek(corr_file,0,SEEK_END))
+	if(fseek(corrFile,0,SEEK_END))
 	  CRASH("seeking to the end");
       }
     
     //allocate a temorary conf to be smoothed
     LxField<double> charge("charge");
-    LxField<quad_su3> smoothed_conf("smoothed_conf",WITH_HALO_EDGES);
-    smoothed_conf=unsmoothed_conf;
+    LxField<quad_su3> smoothedConf("smoothed_conf",WITH_HALO_EDGES);
+    smoothedConf=unsmoothedConf;
     
     int nsmooth=0;
     bool finished;
@@ -265,31 +265,29 @@ namespace nissa
       {
 	/// Plaquette
 	const double plaq=
-	  global_plaquette_lx_conf(smoothed_conf);
+	  global_plaquette_lx_conf(smoothedConf);
 	
-	local_topological_charge(charge,smoothed_conf);
+	local_topological_charge(charge,smoothedConf);
 	
 	//total charge
-	double tot_charge;
-	charge.reduce(tot_charge);
+	double totCharge;
+	charge.reduce(totCharge);
 	
-	master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,nsmooth,tot_charge,plaq);
-	finished=smooth_lx_conf_until_next_meas(smoothed_conf,pars.smooth_pars,nsmooth);
+	master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,nsmooth,totCharge,plaq);
+	finished=smooth_lx_conf_until_next_meas(smoothedConf,pars.smooth_pars,nsmooth);
 	
 	//correlators if asked
 	if(pars.meas_corr)
 	  {
 	    compute_topo_corr(charge,pars.time_mom_rep);
-	    store_topo_corr(corr_file,charge,iconf,tot_charge,topoCorrRem());
+	    store_topo_corr(corrFile,charge,iconf,totCharge,topoCorrRem());
 	  }
       }
     while(not finished);
     
-    //discard smoothed conf
-    
     close_file(file);
     if(pars.meas_corr)
-      fclose(corr_file);
+      fclose(corrFile);
   }
   
   void measure_topology_eo_conf(const top_meas_pars_t &pars,
