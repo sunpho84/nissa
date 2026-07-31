@@ -144,17 +144,16 @@ namespace nissa
   }
   
   //store only 1/16 of the file
-  void store_topo_corr(FILE *file,
+  void store_topo_corr(FILE* file,
 		       LxField<double> corr,
 		       int itraj,
 		       const double& top,
 		       const vector_remap_t& topo_corr_rem)
   {
-    //remap
-    double* corrPtr=
+    double* gpuCorrPtr=
       corr.template getPtr<defaultMemorySpace>();
     
-    topo_corr_rem.remap(corrPtr,corrPtr,sizeof(double));
+    topo_corr_rem.remap(gpuCorrPtr,gpuCorrPtr,sizeof(double));
     
     //change endianness to little
     if(not LittleEndian)
@@ -217,10 +216,16 @@ namespace nissa
     //write if something has to be written
     if(loc_data!=0)
       {
+	const LxField<double,SpaceTimeLayout::CPU> hostCorr=
+	  corr;
+	
+	double* cpuCorrPtr=
+	  corr.template getPtr<defaultMemorySpace>();
+	
 	const int nbytes_to_write=
 	  loc_data*sizeof(double);
 	const off_t nbytes_wrote=
-	  fwrite(corrPtr,1,nbytes_to_write,file);
+	  fwrite(cpuCorrPtr,1,nbytes_to_write,file);
 	if(nbytes_wrote!=nbytes_to_write)
 	  CRASH("wrote %ld bytes instead of %d, error: %s",nbytes_wrote,nbytes_to_write,strerror(errno));
       }
