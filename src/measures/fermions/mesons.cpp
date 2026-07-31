@@ -3,17 +3,11 @@
 #endif
 
 #include "base/random.hpp"
-#include "base/vectors.hpp"
-#include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_mix.hpp"
-#include "linalgs/linalgs.hpp"
-#include "linalgs/reduce.hpp"
 #include "mesons.hpp"
 #include "new_types/su3.hpp"
-#include "operations/gauge_fixing.hpp"
-#include "routines/mpi_routines.hpp"
 #include "stag.hpp"
 #include "operations/smearing/gaussian.hpp"
 
@@ -194,7 +188,9 @@ namespace nissa
 			  });
 		    }
 		  
-		  std::vector<complex> unshiftedGlbContr(glbSize[dir]);
+		  std::vector<std::array<double,2>> _unshiftedGlbContr(glbSize[dir]);
+		  complex* unshiftedGlbContr=(complex*)&_unshiftedGlbContr;
+		  
 		  glb_reduce(&unshiftedGlbContr[0],loc_contr,locVol,glbSize[dir],locSize[dir],glbCoordOfLoclx[0][dir]);
 		  
 		  for(int glb_idir=0;glb_idir<glbSize[dir];glb_idir++)
