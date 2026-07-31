@@ -209,8 +209,10 @@ namespace nissa
     const off_t ori=ftell(file);
     
     //jump to the correct point in the file
-    if(fseek(file,ori+istart*sizeof(double),SEEK_SET))
-      CRASH("seeking");
+    if(loc_data!=0)
+      if(fseek(file,ori+istart*sizeof(double),SEEK_SET))
+	CRASH("seeking");
+    
     MPI_Barrier(MPI_COMM_WORLD);
     
     //write if something has to be written
