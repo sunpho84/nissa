@@ -367,7 +367,7 @@ namespace nissa
 	  ph[site][RE]=e*cos(ps)*(tWall>tsite);
 	  ph[site][IM]=e*sin(-ps)*(tWall>tsite);
 	});
-    fft4d(ph,-1,0);
+    fft4d(ph,allDirs,-1,0);
     
     auto lepOthVerse=lep;
     for(int i=0;i<4;i++)
@@ -406,7 +406,7 @@ namespace nissa
 	});
     
     // Go back to x space
-    fft4d(lepton_loop,+1,1);
+    fft4d(lepton_loop,allDirs,+1,1);
     
     multiply_by_tlSym_gauge_propagator(lepton_loop,lepton_loop,photon);
     

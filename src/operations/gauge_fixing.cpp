@@ -366,7 +366,7 @@ namespace nissa
   void Fourier_accelerate_derivative(LxField<su3>& der)
   {
     //Fourier Transform
-    fft4d(der,FFT_MINUS,FFT_NORMALIZE);
+    fft4d(der,allDirs,FFT_MINUS,FFT_NORMALIZE);
     
     //compute 4*\sum_mu sin^2(2*pi*(L_mu-1))
     const double num=16;
@@ -397,7 +397,7 @@ namespace nissa
 	});
     
     //Anti-Fourier Transform
-    fft4d(der,FFT_PLUS,FFT_NO_NORMALIZE);
+    fft4d(der,allDirs,FFT_PLUS,FFT_NO_NORMALIZE);
   }
   
   //take exp(-0.5*alpha*der)

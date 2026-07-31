@@ -26,6 +26,7 @@ namespace nissa
   template <typename T,
 	    SpaceTimeLayout STL>
   void fft4d(LxField<T,STL>& f,
+	     const WhichDirs& dirs,
 	     const double& sign,
 	     const bool& normalize)
   {
@@ -54,18 +55,19 @@ namespace nissa
 	
 	//transpose each dir in turn and take fft
 	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    VERBOSITY_LV2_MASTER_PRINTF("FFT-ing dimension %d\n",mu);
-	    
-	    auto* fptr=
-	      f.template getPtr<defaultMemorySpace>();
-	    
+	  if(dirs[mu])
 	    {
-	      const double tin=take_time();
-	      remapLxVectorToLocd(buf,fptr,ncpp*sizeof(complex),mu);
-	      VERBOSITY_LV3_MASTER_PRINTF("Time to remap to locd: %lg s\n",take_time()-tin);
-	    }
-	    
+	      VERBOSITY_LV2_MASTER_PRINTF("FFT-ing dimension %d\n",mu);
+	      
+	      auto* fptr=
+		f.template getPtr<defaultMemorySpace>();
+	      
+	      {
+		const double tin=take_time();
+		remapLxVectorToLocd(buf,fptr,ncpp*sizeof(complex),mu);
+		VERBOSITY_LV3_MASTER_PRINTF("Time to remap to locd: %lg s\n",take_time()-tin);
+	      }
+	      
 #ifdef USE_CUDA
 	      auto decryptFftError=
 		[](const cufftResult& res,
@@ -75,7 +77,7 @@ namespace nissa
 		    return ;
 		  
 		  for(const auto& [err,name] :
-#define E(A)					\
+#define E(A)						\
 			std::make_tuple(CUFFT_ ## A,#A)
 			{E(INVALID_PLAN),E(ALLOC_FAILED),E(INVALID_VALUE),E(INTERNAL_ERROR),E(SETUP_FAILED),E(INVALID_SIZE)})
 #undef E
@@ -161,7 +163,7 @@ namespace nissa
 #endif
 	      
 #endif
-
+	      
 	      {
 		const double tin=take_time();
 		remapLocdVectorToLx(fptr,buf,ncpp*sizeof(complex),mu);
@@ -170,11 +172,11 @@ namespace nissa
 	      
 	      norm*=glbSize[mu];
 	    }
-	  
-	  if(normalize)
-	    f/=norm;
-	  
-	  memoryManager<defaultMemorySpace>()->release(buf);
+	
+	if(normalize)
+	  f/=norm;
+	
+	memoryManager<defaultMemorySpace>()->release(buf);
       }
   }
 }

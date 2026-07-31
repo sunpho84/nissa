@@ -253,7 +253,7 @@ namespace nissa
       });
     
     //compute the main part of the fft
-    fft4d(out,sign[source_or_sink],0);
+    fft4d(out,allDirs,sign[source_or_sink],0);
     
     //compute steps
     Momentum steps;
@@ -317,7 +317,7 @@ namespace nissa
       });
     
     //compute the main part of the fft
-    fft4d(out,sign[source_or_sink],1);
+    fft4d(out,allDirs,sign[source_or_sink],1);
     
     //multiply by exp(-i p_mu/2)
     PAR(0,locVol,
