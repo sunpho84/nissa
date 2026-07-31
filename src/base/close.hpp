@@ -53,10 +53,12 @@ namespace nissa
       unset_lx_geometry();
     
     //unset eo geometry
-    if(eo_geom_inited) unset_eo_geometry();
+    if(eo_geom_inited)
+      unset_eo_geometry();
     
     //stop the random generator
-    if(loc_rnd_gen_inited) stop_loc_rnd_gen();
+    if(loc_rnd_gen_inited)
+      stop_loc_rnd_gen();
     
     //print information over the maximum amount of memory used
     MASTER_PRINTF("Maximal memory used during the run: %zu bytes (",max_required_memory);

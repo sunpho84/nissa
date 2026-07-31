@@ -146,7 +146,7 @@ namespace nissa
   //store only 1/16 of the file
   void store_topo_corr(FILE* file,
 		       LxField<double> corr,
-		       int itraj,
+		       const int64_t itraj,
 		       const double& top,
 		       const vector_remap_t& topo_corr_rem)
   {
@@ -165,7 +165,7 @@ namespace nissa
 				   site,
 				   iDeg,
 				   {
-				     fixFromNativeEndianness<BigEndian>(corr(site,iDeg));
+				     fixFromNativeEndianness<LittleEndian>(corr(site,iDeg));
 				   });
 	
 	fixFromNativeEndianness<LittleEndian>(top);
@@ -180,7 +180,7 @@ namespace nissa
     if(rank==0)
       {
 	off_t nwr=
-	  fwrite(&itraj,sizeof(int),1,file);
+	  fwrite(&itraj,sizeof(int64_t),1,file);
 	
 	if(nwr!=1)
 	  CRASH("wrote %ld int instead of 1",nwr);
@@ -191,7 +191,7 @@ namespace nissa
 	  CRASH("wrote %ld doubles instead of 1",nwr);
       }
     else
-      if(fseek(file,sizeof(int)+sizeof(double),SEEK_CUR))
+      if(fseek(file,sizeof(int64_t)+sizeof(double),SEEK_CUR))
 	CRASH("seeking");
     MPI_Barrier(MPI_COMM_WORLD);
     
