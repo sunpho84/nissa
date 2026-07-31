@@ -3,6 +3,7 @@
 #endif
 
 #include "smooth.hpp"
+#include "operations/gaugeconf.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
 
 namespace nissa
@@ -13,16 +14,26 @@ namespace nissa
 			       const WhichDirs& dirs,
 			       const int& staple_min_dir)
   {
-    CRASH("reimplement"); //reimplement
-    // VERBOSITY_LV3_MASTER_PRINTF("smoothing one step\n");
-    // switch(sp.method)
-    //   {
-    //   case smooth_pars_t::COOLING: cool_lx_conf(smoothed_conf,get_sweeper(sp.cool.gauge_action));break;
-    //   case smooth_pars_t::STOUT: stout_smear_single_level(smoothed_conf,smoothed_conf,sp.stout.rho,dirs);;break;
-    //   case smooth_pars_t::WFLOW: Wflow_lx_conf(smoothed_conf,sp.Wflow.dt,dirs);break;
-    //   case smooth_pars_t::HYP: hyp_smear_conf(smoothed_conf,smoothed_conf,sp.hyp.alpha0,sp.hyp.alpha1,sp.hyp.alpha2,dirs);break;
-    //   case smooth_pars_t::APE: ape_smear_conf(smoothed_conf,smoothed_conf,sp.ape.alpha,1,dirs,staple_min_dir);break;
-    //   }
+    VERBOSITY_LV3_MASTER_PRINTF("smoothing one step\n");
+    switch(sp.method)
+      {
+      case smooth_pars_t::COOLING:
+	cool_lx_conf(smoothed_conf,get_sweeper(sp.cool.gauge_action));
+	break;
+      case smooth_pars_t::STOUT:
+	stout_smear_single_level(smoothed_conf,smoothed_conf,sp.stout.rho,dirs);
+	break;
+      case smooth_pars_t::WFLOW:
+	Wflow_lx_conf(smoothed_conf,sp.Wflow.dt,dirs);
+	break;
+      case smooth_pars_t::HYP:
+	//hyp_smear_conf(smoothed_conf,smoothed_conf,sp.hyp.alpha0,sp.hyp.alpha1,sp.hyp.alpha2,dirs);
+	CRASH("reimplement");
+	break;
+      case smooth_pars_t::APE:
+	ape_smear_conf(smoothed_conf,smoothed_conf,sp.ape.alpha,1,dirs,staple_min_dir);
+	break;
+      }
   }
   
   /// Smooth a configuration until measure is due

@@ -134,8 +134,15 @@ namespace nissa
 			       const stout_pars_t& stout_pars,
 			       const WhichDirs& dirs=allDirs);
   
-  void stout_smear(quad_su3 *ext_out,quad_su3 *ext_in,stout_pars_t *stout_pars,const WhichDirs& dirs=allDirs);
-  void stout_smear_single_level(quad_su3 *out,quad_su3 *ext_in,double rho,const WhichDirs& dirs=allDirs);
+  void stout_smear(LxField<quad_su3>& out,
+		   const LxField<quad_su3> in,
+		   const stout_pars_t& stout_pars,
+		   const WhichDirs& dirs=allDirs);
+  
+  void stout_smear_single_level(LxField<quad_su3>& out,
+				const LxField<quad_su3>& in,
+				const double& rho,
+				const WhichDirs& dirs=allDirs);
 
   //partial derivative of the force
   template <typename C>

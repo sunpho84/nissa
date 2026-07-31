@@ -309,9 +309,11 @@ namespace nissa
   void cool_lx_conf_handle(su3 out,su3 staple,int ivol,int mu,void *pars)
   {su3_unitarize_maximal_trace_projecting_iteration(out,staple);}
   
-  void cool_lx_conf(LxField<quad_su3>& conf,gauge_sweeper_t* sweeper)
+  void cool_lx_conf(LxField<quad_su3>& conf,
+		    gauge_sweeper_t* sweeper)
   {
-    sweeper->sweep_conf(conf,cool_lx_conf_handle,NULL);}
+    sweeper->sweep_conf(conf,cool_lx_conf_handle,nullptr);
+  }
   
   //measure the average gauge energy
   double average_gauge_energy(const LxField<quad_su3>& conf)

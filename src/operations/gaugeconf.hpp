@@ -161,7 +161,9 @@ namespace nissa
 				 const int& putonbords=false,
 				 const int& putonedges=false);
   
-  void cool_lx_conf(quad_su3 *conf,gauge_sweeper_t *sweeper);
+  void cool_lx_conf(LxField<quad_su3>& conf,
+		    gauge_sweeper_t* sweeper);
+  
   void generate_cold_eo_conf(EoField<quad_su3>& conf);
   void generate_hot_eo_conf(EoField<quad_su3>& conf);
   
