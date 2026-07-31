@@ -874,7 +874,7 @@ top_meas: TK_MEAS_TOP {$$=new top_meas_pars_t();}
         | top_meas path {$$->path=(*$2);delete $2;}
         | top_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
         | top_meas TK_MEAS_CORR '=' int_numb {$$->meas_corr=$4;}
-        | top_meas TK_CORR_PATH '=' text  {$$->corr_path=(*$4);}
+        | top_meas TK_CORR_PATH '=' text  {$$->corrPath=(*$4);}
         | top_meas TK_TIME_MOM_REP '=' int_numb  {$$->time_mom_rep=$4;}
 ;
 
