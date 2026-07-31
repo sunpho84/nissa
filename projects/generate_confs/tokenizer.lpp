@@ -213,6 +213,7 @@ MeasEachNSmooth DEBUG_PRINTF("Found MeasEachNSmooth\n");return TK_MEAS_EACH_NSMO
  /* topo corr */
 MeasCorr DEBUG_PRINTF("Found MeasCorr\n");return TK_MEAS_CORR;
 CorrPath DEBUG_PRINTF("Found CorrPath\n");return TK_CORR_PATH;
+TimeMomRep DEBUG_PRINTF("Found TimeMomRep\n");return TK_TIME_MOM_REP;
 
  /* spatial or temporal */
 Spatial DEBUG_PRINTF("Found Spatial\n");return TK_SPATIAL;

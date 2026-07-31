@@ -18,6 +18,8 @@ namespace nissa
     
     std::string corr_path;
     
+    bool time_mom_rep;
+    
     smooth_pars_t smooth_pars;
     
     int def_each() const
@@ -45,6 +47,11 @@ namespace nissa
       return "TopoCorr";
     }
     
+    int def_time_mom_rep() const
+    {
+      return 0;
+    }
+    
     bool is_nonstandard() const
     {
       return
@@ -52,6 +59,7 @@ namespace nissa
 	after!=def_after() or
 	path!=def_path() or
 	corr_path!=def_corr_path() or
+	time_mom_rep!=def_time_mom_rep() or
 	smooth_pars.is_nonstandard();
     }
     
@@ -71,6 +79,7 @@ namespace nissa
       if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
       if(meas_corr!=def_meas_corr() or full) os<<" MeasCorr\t=\t"<<meas_corr<<"\n";
       if(corr_path!=def_corr_path() or full) os<<" CorrPath\t=\t\""<<corr_path<<"\"\n";
+      if(time_mom_rep!=def_time_mom_rep() or full) os<<" TimeMomRep\t=\t\""<<time_mom_rep<<"\"\n";
       os<<smooth_pars.get_str(full);
       
       return os.str();
@@ -81,7 +90,8 @@ namespace nissa
       after(def_after()),
       meas_corr(def_meas_corr()),
       path(def_path()),
-      corr_path(def_corr_path())
+      corr_path(def_corr_path()),
+      time_mom_rep(def_time_mom_rep())
     {
     }
   };

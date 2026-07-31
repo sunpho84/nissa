@@ -176,6 +176,7 @@
 //topo measure
 %token TK_MEAS_CORR
 %token TK_CORR_PATH
+%token TK_TIME_MOM_REP
 //noise type
 %token TK_NOISE_TYPE
 %token <rnd_type> TK_RND_T
@@ -874,6 +875,7 @@ top_meas: TK_MEAS_TOP {$$=new top_meas_pars_t();}
         | top_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
         | top_meas TK_MEAS_CORR '=' int_numb {$$->meas_corr=$4;}
         | top_meas TK_CORR_PATH '=' text  {$$->corr_path=(*$4);}
+        | top_meas TK_TIME_MOM_REP '=' int_numb  {$$->time_mom_rep=$4;}
 ;
 
 //////////////////////////////////////////// POLYAKOV LOOP CORRELATORS /////////////////////////////////////////////
