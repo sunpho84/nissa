@@ -1593,7 +1593,7 @@ struct Evaluator
     std::vector<std::shared_ptr<Value>> args;
     const Value& _fun=curEnv->at(fName);
     
-    if(const HostFunction* fun=std::get_if<HostFunction>(&_fun.data))
+    if([[maybe_unused]] const HostFunction* fun=std::get_if<HostFunction>(&_fun.data))
       {
 	args.reserve(_args->data.size());
 	for(std::shared_ptr<Value> _arg : _args->data)
