@@ -36,10 +36,14 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       diff|=dirs[mu]!=allDirs[mu];
     
-    if(sp.method==smooth_pars_t::COOLING and diff) CRASH("not implemented");
+    if(sp.method==smooth_pars_t::COOLING and diff)
+      CRASH("not implemented");
     
-    const int next_nsmooth_meas=sp.next_nsmooth_meas(nsmooth);
-    const bool finished=(next_nsmooth_meas>sp.nsmooth());
+    const int next_nsmooth_meas=
+      sp.next_nsmooth_meas(nsmooth);
+    
+    const bool finished=
+      (next_nsmooth_meas>sp.nsmooth());
     
     if(not finished)
       while(nsmooth<next_nsmooth_meas)
@@ -50,14 +54,5 @@ namespace nissa
 	}
     
     return finished;
-  }
-  
-  //smooth a configuration as imposed
-  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,const WhichDirs& dirs,int staple_min_dir)
-  {
-    CRASH("reimplement");
-    
-    // for(int ismooth=0;ismooth<sp.nsmooth();ismooth++)
-    //   smooth_lx_conf_one_step(smoothed_conf,sp,dirs,staple_min_dir);
   }
 }

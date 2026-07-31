@@ -253,10 +253,8 @@ namespace nissa
   bool smooth_lx_conf_until_next_meas(LxField<quad_su3>& smoothed_conf,
 				      const smooth_pars_t &sp,
 				      int &nsmooth,
-				      const WhichDirs& dirs,
+				      const WhichDirs& dirs=allDirs,
 				      const int& staple_min_dir=0);
-  
-  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,const WhichDirs& dirs=allDirs,int staple_min_dir=0);
 }
 
 #endif
