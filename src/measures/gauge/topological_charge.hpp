@@ -6,21 +6,21 @@
 namespace nissa
 {
   //parameters to measure topology properties
-  struct top_meas_pars_t
+  struct TopMeasPars
   {
     int each;
     
     int after;
     
-    int meas_corr;
+    int measCorr;
     
     std::string path;
     
     std::string corrPath;
     
-    bool time_mom_rep;
+    bool timeMomRep;
     
-    smooth_pars_t smooth_pars;
+    smooth_pars_t smoothPars;
     
     int def_each() const
     {
@@ -59,8 +59,8 @@ namespace nissa
 	after!=def_after() or
 	path!=def_path() or
 	corrPath!=def_corr_path() or
-	time_mom_rep!=def_time_mom_rep() or
-	smooth_pars.is_nonstandard();
+	timeMomRep!=def_time_mom_rep() or
+	smoothPars.is_nonstandard();
     }
     
     int master_fprintf(FILE *fout,
@@ -77,31 +77,31 @@ namespace nissa
       if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
       if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
       if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
-      if(meas_corr!=def_meas_corr() or full) os<<" MeasCorr\t=\t"<<meas_corr<<"\n";
+      if(measCorr!=def_meas_corr() or full) os<<" MeasCorr\t=\t"<<measCorr<<"\n";
       if(corrPath!=def_corr_path() or full) os<<" CorrPath\t=\t\""<<corrPath<<"\"\n";
-      if(time_mom_rep!=def_time_mom_rep() or full) os<<" TimeMomRep\t=\t"<<time_mom_rep<<"\n";
-      os<<smooth_pars.get_str(full);
+      if(timeMomRep!=def_time_mom_rep() or full) os<<" TimeMomRep\t=\t"<<timeMomRep<<"\n";
+      os<<smoothPars.get_str(full);
       
       return os.str();
     }
     
-    top_meas_pars_t() :
+    TopMeasPars() :
       each(def_each()),
       after(def_after()),
-      meas_corr(def_meas_corr()),
+      measCorr(def_meas_corr()),
       path(def_path()),
       corrPath(def_corr_path()),
-      time_mom_rep(def_time_mom_rep())
+      timeMomRep(def_time_mom_rep())
     {
     }
   };
   
-  void measure_topology_eo_conf(const top_meas_pars_t &pars,
+  void measure_topology_eo_conf(const TopMeasPars &pars,
 				const EoField<quad_su3>& unsmoothed_conf_eo,
 				const int& iconf,
 				const bool& conf_created);
   
-  void measure_topology_lx_conf(const top_meas_pars_t &pars,
+  void measure_topology_lx_conf(const TopMeasPars &pars,
 				const LxField<quad_su3>& unsmoothed_conf,
 				const int& iconf,
 				const bool& conf_created,

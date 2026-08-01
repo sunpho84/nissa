@@ -238,7 +238,7 @@ namespace nissa
   }
   
   //measure the topological charge
-  void measure_topology_lx_conf(const top_meas_pars_t &pars,
+  void measure_topology_lx_conf(const TopMeasPars &pars,
 				const LxField<quad_su3>& unsmoothedConf,
 				const int& iconf,
 				const bool& confCreated,
@@ -252,7 +252,7 @@ namespace nissa
     FILE* corrFile{nullptr};
     
     /// Optional remapper
-    if(pars.meas_corr)
+    if(pars.measCorr)
       {
 	corrFile=fopen(pars.corrPath.c_str(),(confCreated or not fileExists(pars.corrPath))?"w":"r+");
 	if(not corrFile)
@@ -284,22 +284,22 @@ namespace nissa
 	master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,nSmooth,totCharge,plaq);
 	
 	//correlators if asked
-	if(pars.meas_corr)
+	if(pars.measCorr and nSmooth%pars.measCorr==0)
 	  {
-	    compute_topo_corr(charge,pars.time_mom_rep);
+	    compute_topo_corr(charge,pars.timeMomRep);
 	    storeTopoCorr(corrFile,charge,iconf,nSmooth,totCharge,lxToSextinantsRemapper());
 	  }
 	
-	finished=smooth_lx_conf_until_next_meas(smoothedConf,pars.smooth_pars,nSmooth);
+	finished=smooth_lx_conf_until_next_meas(smoothedConf,pars.smoothPars,nSmooth);
       }
     while(not finished);
     
     close_file(file);
-    if(pars.meas_corr)
+    if(pars.measCorr)
       fclose(corrFile);
   }
   
-  void measure_topology_eo_conf(const top_meas_pars_t &pars,
+  void measure_topology_eo_conf(const TopMeasPars &pars,
 				const EoField<quad_su3>& unsmoothed_conf_eo,
 				const int& iconf,
 				const bool& conf_created)

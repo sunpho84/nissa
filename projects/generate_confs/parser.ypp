@@ -872,10 +872,10 @@ top_meas: TK_MEAS_TOP {$$=new top_meas_pars_t();}
         | top_meas each {$$->each=$2;}
         | top_meas after {$$->after=$2;}
         | top_meas path {$$->path=(*$2);delete $2;}
-        | top_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
-        | top_meas TK_MEAS_CORR '=' int_numb {$$->meas_corr=$4;}
+        | top_meas smooth_pars {$$->smoothPars=(*$2);delete $2;}
+        | top_meas TK_MEAS_CORR '=' int_numb {$$->measCorr=$4;}
         | top_meas TK_CORR_PATH '=' text  {$$->corrPath=(*$4);}
-        | top_meas TK_TIME_MOM_REP '=' int_numb  {$$->time_mom_rep=$4;}
+        | top_meas TK_TIME_MOM_REP '=' int_numb  {$$->timeMomRep=$4;}
 ;
 
 //////////////////////////////////////////// POLYAKOV LOOP CORRELATORS /////////////////////////////////////////////

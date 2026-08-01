@@ -97,14 +97,14 @@ namespace nissa
 
     //gauge measures
     std::vector<gauge_obs_meas_pars_t> plaq_pol_meas;
-    std::vector<top_meas_pars_t> top_meas;
+    std::vector<TopMeasPars> top_meas;
     std::vector<poly_corr_meas_pars_t> luppoli_meas;
     std::vector<watusso_meas_pars_t> watusso_meas;
     std::vector<all_rects_meas_pars_t> all_rects_meas;
     
     //add
     void add_plaq_pol_meas(gauge_obs_meas_pars_t &m){plaq_pol_meas.push_back(m);}
-    void add_top_meas(top_meas_pars_t &m){top_meas.push_back(m);}
+    void add_top_meas(TopMeasPars &m){top_meas.push_back(m);}
     void add_luppoli_meas(poly_corr_meas_pars_t &m){luppoli_meas.push_back(m);}
     void add_watusso_meas(watusso_meas_pars_t &m){watusso_meas.push_back(m);}
     void add_all_rects_meas(all_rects_meas_pars_t &m){all_rects_meas.push_back(m);}
