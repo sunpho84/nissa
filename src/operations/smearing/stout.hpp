@@ -143,7 +143,7 @@ namespace nissa
 				const LxField<quad_su3>& in,
 				const double& rho,
 				const WhichDirs& dirs=allDirs);
-
+  
   //partial derivative of the force
   template <typename C>
   CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples& out,

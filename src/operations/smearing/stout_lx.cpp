@@ -1,21 +1,15 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <math.h>
-#include <complex>
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"
 #include "base/field.hpp"
-#include "base/vectors.hpp"
-#include "communicate/edges.hpp"
-#include "linalgs/linalgs.hpp"
-#include "new_types/complex.hpp"
 #include "new_types/su3.hpp"
 #include "operations/su3_paths/plaquette.hpp"
 #include "routines/ios.hpp"
-#include "routines/mpi_routines.hpp"
 #include "stout.hpp"
 
 namespace nissa
@@ -78,31 +72,33 @@ namespace nissa
 				const double& rho,
 				const WhichDirs& dirs)
   {
-    START_TIMING(sto_time,nsto);
-    
     if(out==in)
-      CRASH("cannot be used with same input and output");
-    
-    in.updateEdges();
-    
-    for(int mu=0;mu<NDIM;mu++)
-      if(dirs[mu])
-	PAR(0,locVol,
-	    CAPTURE(mu,rho,TO_READ(in),
-		    TO_WRITE(out)),
-	    A,
-	    {
-	      //compute the staples needed to smear
-	      stout_link_staples sto_ste;
-	      stout_smear_compute_staples(&sto_ste,in,A,mu,rho);
-	      
-	      //exp(iQ)*U (eq. 3)
-	      su3 expiQ;
-	      safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
-	      unsafe_su3_prod_su3(out[A][mu],expiQ,in[A][mu]);
-	    });
-    
-    STOP_TIMING(sto_time);
+      stout_smear_single_level(out,(LxField<quad_su3>)in,rho,dirs);
+    else
+      {
+	START_TIMING(sto_time,nsto);
+	
+	in.updateEdges();
+	
+	for(int mu=0;mu<NDIM;mu++)
+	  if(dirs[mu])
+	    PAR(0,locVol,
+		CAPTURE(mu,rho,TO_READ(in),
+			TO_WRITE(out)),
+		A,
+		{
+		  //compute the staples needed to smear
+		  stout_link_staples sto_ste;
+		  stout_smear_compute_staples(&sto_ste,in,A,mu,rho);
+		  
+		  //exp(iQ)*U (eq. 3)
+		  su3 expiQ;
+		  safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
+		  unsafe_su3_prod_su3(out[A][mu],expiQ,in[A][mu]);
+		});
+	
+	STOP_TIMING(sto_time);
+      }
   }
   
   //smear n times, using only one additional vectors
@@ -127,7 +123,7 @@ namespace nissa
 	    stout_smear_single_level(out,temp,stout_pars.rho,dirs);
 	    VERBOSITY_LV2_MASTER_PRINTF("sme_step %d, plaquette: %16.16lg\n",iter+1,global_plaquette_lx_conf(out));
 	  }
-    }
+      }
   }
   
   //allocate all the stack for smearing
