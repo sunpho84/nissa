@@ -144,12 +144,12 @@ namespace nissa
   }
   
   //store only 1/16 of the file
-  void store_topo_corr(FILE* file,
-		       LxField<double> corr,
-		       const int64_t itraj,
-		       const int64_t nSmooth,
-		       const double& top,
-		       const vector_remap_t& topo_corr_rem)
+  void storeTopoCorr(FILE* file,
+		     LxField<double> corr,
+		     const int64_t itraj,
+		     const int64_t nSmooth,
+		     const double& top,
+		     const vector_remap_t& topo_corr_rem)
   {
     double* gpuCorrPtr=
       corr.template getPtr<defaultMemorySpace>();
@@ -282,14 +282,15 @@ namespace nissa
 	charge.reduce(totCharge);
 	
 	master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,nSmooth,totCharge,plaq);
-	finished=smooth_lx_conf_until_next_meas(smoothedConf,pars.smooth_pars,nSmooth);
 	
 	//correlators if asked
 	if(pars.meas_corr)
 	  {
 	    compute_topo_corr(charge,pars.time_mom_rep);
-	    store_topo_corr(corrFile,charge,iconf,nSmooth,totCharge,lxToSextinantsRemapper());
+	    storeTopoCorr(corrFile,charge,iconf,nSmooth,totCharge,lxToSextinantsRemapper());
 	  }
+	
+	finished=smooth_lx_conf_until_next_meas(smoothedConf,pars.smooth_pars,nSmooth);
       }
     while(not finished);
     
