@@ -62,7 +62,7 @@
     nissa::qed_corr_meas_pars_t *qed_corr_meas;
     nissa::fermionic_putpourri_meas_pars_t *fermionic_putpourri_meas;
     nissa::gauge_obs_meas_pars_t *plaq_pol_meas;
-    nissa::top_meas_pars_t *top_meas;
+    nissa::TopMeasPars *top_meas;
     nissa::poly_corr_meas_pars_t *luppoli_meas;
     nissa::watusso_meas_pars_t *watusso_meas;
     nissa::all_rects_meas_pars_t *all_rects_meas;
@@ -868,7 +868,7 @@ plaq_pol_meas: TK_MEAS_PLAQ_POL {$$=new gauge_obs_meas_pars_t();}
 
 //////////////////////////////////////////////// TOPO CHARGE ////////////////////////////////////////////////////////
 
-top_meas: TK_MEAS_TOP {$$=new top_meas_pars_t();}
+top_meas: TK_MEAS_TOP {$$=new TopMeasPars();}
         | top_meas each {$$->each=$2;}
         | top_meas after {$$->after=$2;}
         | top_meas path {$$->path=(*$2);delete $2;}
