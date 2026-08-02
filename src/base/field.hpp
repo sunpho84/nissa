@@ -661,7 +661,8 @@ namespace nissa
     FieldFeat<Field<T,FC,STL,MS>>,
     FieldSizes<FC>
   {
-    using FD=FieldData<Field<T,FC,STL,MS>,T,MS>;
+    using FD=
+      FieldData<Field<T,FC,STL,MS>,T,MS>;
     
     /// Coefficent which divides the space time, if the field is covering only half the space
     static constexpr const int divCoeff=

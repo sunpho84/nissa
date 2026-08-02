@@ -4,15 +4,11 @@
 
 #include "base/bench.hpp"
 #include "base/random.hpp"
-#include "communicate/borders.hpp"
-#include "communicate/edges.hpp"
 #include "geometry/geometry_eo.hpp"
-#include "linalgs/reduce.hpp"
 #include "new_types/su3_op.hpp"
 #include "operations/gaugeconf.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
 #include "measures/gauge/topological_charge.hpp"
-#include "routines/mpi_routines.hpp"
 
 /*
   rotate a field anti-clockwise by 90 degrees

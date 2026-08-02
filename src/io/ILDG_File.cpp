@@ -11,11 +11,8 @@
 
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "operations/remap_vector.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
-#include "threads/threads.hpp"
 
 #include "endianness.hpp"
 

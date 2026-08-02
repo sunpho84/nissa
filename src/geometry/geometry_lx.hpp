@@ -12,13 +12,7 @@
 #endif
 
 #include <metaprogramming/globalVariable.hpp>
-
 #include <routines/math_routines.hpp>
-
-#ifndef EXTERN_GEOMETRY_LX
-# define EXTERN_GEOMETRY_LX extern
-# define ONLY_INSTANTIATION
-#endif
 
 #define NISSA_LOC_VOL_LOOP(a) for(int a=0;a<locVol;a++)
 
@@ -125,25 +119,25 @@ namespace nissa
   
   PROVIDE_GLOBAL_VAR(nsite_per_box_t,nsite_per_box);
   
-  CUDA_MANAGED EXTERN_GEOMETRY_LX Coords *glbCoordOfLoclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX Coords *locCoordOfLoclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *glblxOfLoclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *glblxOfBordlx;
-  EXTERN_GEOMETRY_LX int64_t *loclxOfBordlx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *surflxOfBordlx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *surflxOfEdgelx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *glblxOfEdgelx;
-  EXTERN_GEOMETRY_LX int64_t *loclxOfBulklx;
-  EXTERN_GEOMETRY_LX int64_t *loclxOfSurflx;
-  EXTERN_GEOMETRY_LX int64_t *loclxOfNonBwSurflx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *loclxOfNonFwSurflx;
-  EXTERN_GEOMETRY_LX int64_t *loclxOfBwSurflx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t *loclxOfFwSurflx;
+  CUDA_MANAGED inline Coords* glbCoordOfLoclx;
+  CUDA_MANAGED inline Coords* locCoordOfLoclx;
+  CUDA_MANAGED inline int64_t* glblxOfLoclx;
+  CUDA_MANAGED inline int64_t* glblxOfBordlx;
+  inline int64_t* loclxOfBordlx;
+  CUDA_MANAGED inline int64_t* surflxOfBordlx;
+  CUDA_MANAGED inline int64_t* surflxOfEdgelx;
+  CUDA_MANAGED inline int64_t* glblxOfEdgelx;
+  inline int64_t* loclxOfBulklx;
+  inline int64_t* loclxOfSurflx;
+  inline int64_t* loclxOfNonBwSurflx;
+  CUDA_MANAGED inline int64_t* loclxOfNonFwSurflx;
+  inline int64_t* loclxOfBwSurflx;
+  CUDA_MANAGED inline int64_t* loclxOfFwSurflx;
   
   inline bool lxGeomInited;
   
-  CUDA_MANAGED EXTERN_GEOMETRY_LX Coords *loclxNeighdw,*loclxNeighup;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX Coords *loclx_neigh[2];
+  CUDA_MANAGED inline Coords* loclxNeighdw,*loclxNeighup;
+  CUDA_MANAGED inline Coords* loclx_neigh[2];
   
   inline Coords fix_nranks;
   
@@ -189,12 +183,12 @@ namespace nissa
   
   inline int64_t bordOffset[NDIM];
   
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t edge_dir_vol[nEdges],edge_offset[nEdges];
+  CUDA_MANAGED inline int64_t edge_dir_vol[nEdges],edge_offset[nEdges];
   
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_dirs[nEdges][2];
-  CUDA_MANAGED EXTERN_GEOMETRY_LX bool isEdgeParallel[nEdges];
-  EXTERN_GEOMETRY_LX int rank_edge_neigh[2][2][nEdges];
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
+  CUDA_MANAGED inline int edge_dirs[nEdges][2];
+  CUDA_MANAGED inline bool isEdgeParallel[nEdges];
+  inline int rank_edge_neigh[2][2][nEdges];
+  CUDA_MANAGED inline int edge_numb[NDIM][NDIM];
   
   //mapping of ILDG data
   constexpr Coords scidacMapping{0,3,2,1};
@@ -282,8 +276,8 @@ namespace nissa
   }
   
   int64_t edgelxOfCoord(const Coords &x,
-			  const int &mu,
-			  const int &nu);
+			const int &mu,
+			const int &nu);
   
   int fullLxOfCoordsList(const int t,
 			 const int x,
@@ -294,25 +288,25 @@ namespace nissa
 			const int& mu);
   
   int64_t glblxNeighup(const int64_t& gx,
-			const int& mu);
+		       const int& mu);
   
   int64_t glblxOfComb(const int64_t& b,
-			const int& wb,
-			const int64_t& c,
-			const int& wc);
+		      const int& wb,
+		      const int64_t& c,
+		      const int& wc);
   
   int64_t glblxOfCoord(const Coords& x);
   
   int64_t glblxOfCoordList(const int& x0,
-			      const int& x1,
-			      const int& x2,
-			      const int& x3);
+			   const int& x1,
+			   const int& x2,
+			   const int& x3);
   
   int64_t glblxOfDiff(const int64_t& b,
-			const int64_t& c);
+		      const int64_t& c);
   
   int64_t glblxOfSum(const int64_t& b,
-			const int64_t& c);
+		     const int64_t& c);
   
   int64_t glblxOpp(const int64_t& b);
   
@@ -361,10 +355,10 @@ namespace nissa
     return getLoclxAndRankOfCoords(glbCoordOfGlblx(gx));
   }
   
-  void initialize_lx_edge_receivers_of_kind(MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
-  void initialize_lx_edge_senders_of_kind(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *base);
+  void initialize_lx_edge_receivers_of_kind(MPI_Datatype* MPI_EDGE_RECE,MPI_Datatype* base);
+  void initialize_lx_edge_senders_of_kind(MPI_Datatype* MPI_EDGE_SEND,MPI_Datatype* base);
   Coords rankCoordsOfSiteOfCoord(const Coords& glb_coord);
-  void set_lx_edge_senders_and_receivers(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
+  void set_lx_edge_senders_and_receivers(MPI_Datatype* MPI_EDGE_SEND,MPI_Datatype* MPI_EDGE_RECE,MPI_Datatype* base);
   void set_lx_geometry();
   void unset_lx_geometry();
   Coords get_mirrorized_site_coords(const Coords& c,const int& imir);
@@ -389,7 +383,5 @@ namespace nissa
     return cmir;
   }
 }
-
-#undef EXTERN_GEOMETRY_LX
 
 #endif
