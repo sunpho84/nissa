@@ -427,37 +427,39 @@ namespace nissa
 					  const int& source_or_sink,
 					  const bool& include_phases)
   {
-    // constexpr std::array<int,2> sign={-1,+1};
-    // const int s=sign[source_or_sink]*include_phases;
+    constexpr std::array<int,2> sign={-1,+1};
+    const int s=sign[source_or_sink]*include_phases;
     
     //compute the main part of the fft
-    CRASH("reimplement");
-    //fft4d((complex*)out,(complex*)in,dirs,sizeof(spincolor)/sizeof(complex),sign[source_or_sink],0);
+    out=in;
+    fft4d(out,dirs,sign[source_or_sink],0);
     
-    // //compute steps
-    // Momentum steps;
-    // for(int mu=0;mu<NDIM;mu++)
-    //   steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
+    //compute steps
+    Momentum steps;
+    for(int mu=0;mu<NDIM;mu++)
+      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
     
-    // //add the fractional phase
-    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    //   {
-    // 	//compute phase exponent
-    // 	double arg=0;
-    // 	for(int mu=0;mu<NDIM;mu++)
-    // 	  arg+=steps[mu]*glbCoordOfLoclx[ivol][mu];
+    //add the fractional phase
+    PAR(0,
+	locVol,
+	CAPTURE(steps,
+		TO_READ(in),
+		TO_WRITE(out)),
+	ivol,
+      {
+	//compute phase exponent
+	double arg=0;
+	for(int mu=0;mu<NDIM;mu++)
+	  arg+=steps[mu]*glbCoordOfLoclx[ivol][mu];
 	
-    // 	//compute the phase
-    // 	complex ph={cos(arg),sin(arg)};
+	//compute the phase
+	const complex ph={cos(arg),sin(arg)};
 	
-    // 	//adapt the phase
-    // 	for(int id=0;id<NDIRAC;id++)
-    // 	  for(int ic=0;ic<NCOL;ic++)
-    // 	    safe_complex_prod(out[ivol][id][ic],out[ivol][id][ic],ph);
-    //   }
-    // NISSA_PARALLEL_LOOP_END;
-    
-    // set_borders_invalid(out);
+	//adapt the phase
+	for(int id=0;id<NDIRAC;id++)
+	  for(int ic=0;ic<NCOL;ic++)
+	    safe_complex_prod(out[ivol][id][ic],out[ivol][id][ic],ph);
+      });
   }
   
   void pass_spincolor_from_x_to_mom_space(LxField<spincolor>& out,
@@ -467,36 +469,37 @@ namespace nissa
 					  const int& source_or_sink,
 					  const bool& include_phases)
   {
+    constexpr std::array<int,2> sign={+1,-1};
+    const int s=sign[source_or_sink]*include_phases;
     
-    // constexpr std::array<int,2> sign={+1,-1};
-    // const int s=sign[source_or_sink]*include_phases;
+    //compute steps
+    Momentum steps;
+    for(int mu=0;mu<NDIM;mu++)
+      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
     
-    // //compute steps
-    // Momentum steps;
-    // for(int mu=0;mu<NDIM;mu++)
-    //   steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
-    
-    // //add the fractional phase
-    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    //   {
-    // 	//compute phase exponent
-    // 	double arg=0;
-    // 	for(int mu=0;mu<NDIM;mu++)
-    // 	  arg+=steps[mu]*glbCoordOfLoclx[ivol][mu];
+    //add the fractional phase
+    PAR(0,
+	locVol,
+	CAPTURE(steps,
+		TO_READ(in),
+		TO_WRITE(out)),
+	ivol,
+      {
+	//compute phase exponent
+	double arg=0;
+	for(int mu=0;mu<NDIM;mu++)
+	  arg+=steps[mu]*glbCoordOfLoclx[ivol][mu];
 	
-    // 	//compute the phase
-    // 	complex ph={cos(arg),sin(arg)};
+	//compute the phase
+	complex ph={cos(arg),sin(arg)};
 	
-    // 	//adapt the phase
-    // 	for(int id=0;id<NDIRAC;id++)
-    // 	  for(int ic=0;ic<NCOL;ic++)
-    // 	    safe_complex_prod(out[ivol][id][ic],in[ivol][id][ic],ph);
-    //   }
-    // NISSA_PARALLEL_LOOP_END;
-    // set_borders_invalid(out);
+	//adapt the phase
+	for(int id=0;id<NDIRAC;id++)
+	  for(int ic=0;ic<NCOL;ic++)
+	    safe_complex_prod(out[ivol][id][ic],in[ivol][id][ic],ph);
+      });
     
     //compute the main part of the fft
-    CRASH("reimplement");
-    //fft4d((complex*)out,(complex*)out,dirs,sizeof(spincolor)/sizeof(complex),sign[source_or_sink],1);
+    fft4d(out,dirs,sign[source_or_sink],1);
   }
 }

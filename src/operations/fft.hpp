@@ -63,7 +63,7 @@ namespace nissa
 		f.template getPtr<defaultMemorySpace>();
 	      
 	      {
-		const double tin=take_time();
+		[[maybe_unused]] const double tin=take_time();
 		remapLxVectorToLocd(buf,fptr,ncpp*sizeof(complex),mu);
 		VERBOSITY_LV3_MASTER_PRINTF("Time to remap to locd: %lg s\n",take_time()-tin);
 	      }
@@ -95,7 +95,7 @@ namespace nissa
 	      complex *tmp=
 		memoryManager<defaultMemorySpace>()->provide<complex>(locVol*ncpp);
 	      {
-		const double tin=take_time();
+		[[maybe_unused]] const double tin=take_time();
 		PAR(0,
 		    locd_perp_size_per_dir[mu],
 		    CAPTURE(tmp,
@@ -115,7 +115,7 @@ namespace nissa
 	      const int stride=1;
 	      const int dist=n;
 	      {
-		const double tin=take_time();
+		[[maybe_unused]] const double tin=take_time();
 		decryptFftError(cufftPlanMany(&plan,1,&n,nullptr,stride,dist,nullptr,stride,dist,CUFFT_Z2Z,locd_perp_size_per_dir[mu]*ncpp),"creating the plan");
 		decryptFftError(cufftExecZ2Z(plan,(cufftDoubleComplex*)tmp,(cufftDoubleComplex*)tmp,sign),"executing the transform");
 		DECRYPT_CUDA_ERROR(cudaDeviceSynchronize(),"synchronizing at the end of fft");
@@ -125,7 +125,7 @@ namespace nissa
 	      }
 	      
 	      {
-		const double tin=take_time();
+		[[maybe_unused]] const double tin=take_time();
 		PAR(0,
 		    locd_perp_size_per_dir[mu],
 		    CAPTURE(tmp,
@@ -165,7 +165,7 @@ namespace nissa
 #endif
 	      
 	      {
-		const double tin=take_time();
+		[[maybe_unused]] const double tin=take_time();
 		remapLocdVectorToLx(fptr,buf,ncpp*sizeof(complex),mu);
 		VERBOSITY_LV3_MASTER_PRINTF("Time to remap from locd: %lg s\n",take_time()-tin);
 	      }
