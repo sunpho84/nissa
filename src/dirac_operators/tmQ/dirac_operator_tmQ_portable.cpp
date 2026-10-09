@@ -332,11 +332,13 @@ namespace nissa
 	      
 	      spincolor t;
 	      spincolor_copy(t,in[Xup]);
-	      spincolor u;
-	      unsafe_dirac_prod_spincolor(u,base_gamma[iGammaOfMu(mu)],t);
-	      spincolor_summ_the_prod_double(t,u,mu?anis:1.0);
+	      {
+		spincolor u;
+		unsafe_dirac_prod_spincolor(u,base_gamma[iGammaOfMu(mu)],t);
+		spincolor_summ_the_prod_double(t,u,mu?anis:1.0);
+	      }
 	      spincolor v;
-	      unsafe_su3_prod_spincolor(v,conf[X][mu],u);
+	      unsafe_su3_prod_spincolor(v,conf[X][mu],t);
 	      
 	      spincolor_summassign(out[X],v);
 	    }
@@ -348,11 +350,13 @@ namespace nissa
 	      
 	      spincolor t;
 	      spincolor_copy(t,in[Xdw]);
-	      spincolor u;
-	      unsafe_dirac_prod_spincolor(u,base_gamma[iGammaOfMu(mu)],t);
-	      spincolor_summ_the_prod_double(t,u,-(mu?anis:1.0));
+	      {
+		spincolor u;
+		unsafe_dirac_prod_spincolor(u,base_gamma[iGammaOfMu(mu)],t);
+		spincolor_summ_the_prod_double(t,u,-(mu?anis:1.0));
+	      }
 	      spincolor v;
-	      unsafe_su3_dag_prod_spincolor(v,conf[Xdw][mu],u);
+	      unsafe_su3_dag_prod_spincolor(v,conf[Xdw][mu],t);
 	      
 	      spincolor_summassign(out[X],v);
 	    }
