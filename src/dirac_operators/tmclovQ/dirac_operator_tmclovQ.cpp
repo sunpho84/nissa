@@ -172,7 +172,7 @@ namespace nissa
 				      const double& anis,
 				      const LxField<clover_term_t>& Cl,
 				      const double& mu,
-		     const LxField<spincolor>& in)
+				      const LxField<spincolor>& in)
   {
     in.updateHalo();
     conf.updateHalo();
