@@ -1,9 +1,8 @@
 #ifndef _CG_INVERT_TMCLOVD_EOPREC_HPP
 #define _CG_INVERT_TMCLOVD_EOPREC_HPP
 
-#include <optional>
-
 #include <base/field.hpp>
+#include <dirac_operators/tmQ/dirac_operator_tmQ.hpp>
 
 namespace nissa
 {
@@ -11,7 +10,7 @@ namespace nissa
 			     std::optional<OddField<spincolor>> guess_Koo,
 			     const LxField<quad_su3>& conf_lx,
 			     const double& kappa,
-			     const std::optional<double>& anis,
+			     const AnisDopPars& anisDopPars,
 			     const double& cSW,
 			     const double& mass,
 			     const int& nitermax,

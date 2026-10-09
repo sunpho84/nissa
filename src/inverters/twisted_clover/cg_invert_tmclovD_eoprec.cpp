@@ -35,7 +35,7 @@ namespace nissa
 					    std::optional<OddField<spincolor>> guess,
 					    const EoField<quad_su3>& conf,
 					    const double& kappa,
-					    const std::optional<double>& anis,
+					    const AnisDopPars& anisDopPars,
 					    const double& cSW,
 					    const OddField<clover_term_t>& Cl_odd,
 					    const EvnField<inv_clover_term_t>& invCl_evn,
@@ -49,7 +49,8 @@ namespace nissa
 	CRASH("reimplement");
 	//inv_tmclovDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,cSW,Cl_odd,invCl_evn,mass,nitermax,residue,source);
       }
-    else inv_tmclovDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,anis,Cl_odd,invCl_evn,mass,nitermax,residue,source);
+    else
+      inv_tmclovDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,anisDopPars,Cl_odd,invCl_evn,mass,nitermax,residue,source);
   }
   
   //Invert twisted clover operator using e/o preconditioning.
@@ -57,7 +58,7 @@ namespace nissa
 				    std::optional<OddField<spincolor>> guess_Koo,
 				    const LxField<quad_su3>& conf_lx,
 				    const double& kappa,
-				    const std::optional<double>& anis,
+				    const AnisDopPars& anisDopPars,
 				    const double& cSW,
 				    const double& mass,
 				    const int& nitermax,
@@ -102,18 +103,18 @@ namespace nissa
     
     //Equation (8.b)
     OddField<spincolor> varphi("varphi",WITH_HALO);
-    inv_tmD_cg_eoprec_prepare_source(varphi,conf_eos,anis,evnTemp,source_eos.oddPart);
+    inv_tmD_cg_eoprec_prepare_source(varphi,conf_eos,anisDopPars,evnTemp,source_eos.oddPart);
     
     //Equation (9) using solution_eos[EVN] as temporary vector
     OddField<spincolor> oddTemp("oddTemp",WITH_HALO);
-    inv_tmclovDkern_eoprec_square_eos_cg(oddTemp,guess_Koo,conf_eos,kappa,anis,cSW,Cl_odd,invCl_evn,mass,nitermax,residue,varphi);
+    inv_tmclovDkern_eoprec_square_eos_cg(oddTemp,guess_Koo,conf_eos,kappa,anisDopPars,cSW,Cl_odd,invCl_evn,mass,nitermax,residue,varphi);
     if(guess_Koo) (*guess_Koo)=oddTemp; //if a guess was passed, return new one
     
     //Equation (10)
-    tmclovDkern_eoprec_eos(solution_eos.oddPart,solution_eos.evenPart,conf_eos,kappa,anis,Cl_odd,invCl_evn,true,mass,oddTemp);
+    tmclovDkern_eoprec_eos(solution_eos.oddPart,solution_eos.evenPart,conf_eos,kappa,anisDopPars,Cl_odd,invCl_evn,true,mass,oddTemp);
     
     //Equation (11)
-    inv_tmD_cg_eoprec_almost_reco_sol(evnTemp,conf_eos,anis,solution_eos.oddPart,source_eos.evenPart);
+    inv_tmD_cg_eoprec_almost_reco_sol(evnTemp,conf_eos,anisDopPars,solution_eos.oddPart,source_eos.evenPart);
     inv_tmclovDee_or_oo_eos(solution_eos.evenPart,invCl_evn,false,evnTemp);
     
     /////////////////////////// paste the e/o parts of the solution together and free ///////////////////
@@ -147,7 +148,7 @@ namespace nissa
 			     std::optional<OddField<spincolor>> guess_Koo,
 			     const LxField<quad_su3>& conf_lx,
 			     const double& kappa,
-			     const std::optional<double>& anis,
+			     const AnisDopPars& anisDopPars,
 			     const double& cSW,
 			     const double& mass,
 			     const int& nitermax,
@@ -181,7 +182,7 @@ namespace nissa
 #endif
     
     if(not solved)
-      inv_tmclovD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,anis,cSW,mass,nitermax,targResidue,source_lx);
+      inv_tmclovD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,anisDopPars,cSW,mass,nitermax,targResidue,source_lx);
     
     if(check_inversion_residue)
       {
@@ -189,7 +190,7 @@ namespace nissa
 	LxField<spincolor> residueVec("residueVec");
 	LxField<clover_term_t> Cl("Cl");
 	clover_term(Cl,cSW,conf_lx);
-	apply_tmclovQ(residueVec,conf_lx,kappa,anis,Cl,mass,solution_lx);
+	apply_tmclovQ(residueVec,conf_lx,kappa,anisDopPars,Cl,mass,solution_lx);
 	
 	PAR(0,locVol,
 	    CAPTURE(TO_WRITE(residueVec)),ivol,

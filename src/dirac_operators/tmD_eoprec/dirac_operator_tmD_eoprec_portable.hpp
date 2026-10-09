@@ -6,6 +6,7 @@
 #endif
 
 #include "base/field.hpp"
+#include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
 #include "new_types/su3_op.hpp"
 
 namespace nissa
@@ -14,7 +15,7 @@ namespace nissa
 			  EvnField<spincolor>& temp,
 			  const EoField<quad_su3>& conf,
 			  const double& kappa,
-			  const std::optional<double>& anis,
+			  const AnisDopPars& anisDopPars,
 			  const double& mu,
 			  const OddField<spincolor>& in);
   
@@ -23,7 +24,7 @@ namespace nissa
 				 EvnField<spincolor>& temp2,
 				 const EoField<quad_su3>& conf,
 				 const double& kappa,
-				 const std::optional<double>& anis,
+				 const AnisDopPars& anisDopPars,
 				 const double& mu,
 				 const OddField<spincolor>& in);
   
@@ -33,10 +34,9 @@ namespace nissa
   /// Apply even-odd or odd-even part of tmD, multiplied by -2
   template <typename O,
 	    typename I>
-  void tmn2Deo_or_tmn2Doe_eos(O& out,
-			      const EoField<quad_su3>& conf,
-			      const std::optional<double>& anis,
-			      const I& in)
+  void tmn2Deo_or_tmn2Doe_eos_no_anis(O& out,
+				      const EoField<quad_su3>& conf,
+				      const I& in)
   {
     constexpr int xPar=O::fieldCoverage;
     static_assert(xPar!=I::fieldCoverage,"calling with messed up parities");
@@ -47,7 +47,6 @@ namespace nissa
     PAR(0,locVolh,
 	CAPTURE(TO_WRITE(out),
 		TO_READ(in),
-		anis,
 		TO_READ(conf)),
 	X,
 	{
@@ -81,12 +80,6 @@ namespace nissa
 	      
 	      unsafe_su3_prod_color(temp_c2,conf[xPar][X][mu],temp_c0);
 	      unsafe_su3_prod_color(temp_c3,conf[xPar][X][mu],temp_c1);
-	      
-	      if(anis and mu>0)
-		{
-		  color_prodassign_double(temp_c2,*anis);
-		  color_prodassign_double(temp_c3,*anis);
-		}
 	      
 	      color_summassign(out[X][0],temp_c2);
 	      color_summassign(out[X][1],temp_c3);
@@ -136,11 +129,137 @@ namespace nissa
 	      unsafe_su3_dag_prod_color(temp_c2,conf[!xPar][Xdw][mu],temp_c0);
 	      unsafe_su3_dag_prod_color(temp_c3,conf[!xPar][Xdw][mu],temp_c1);
 	      
-	      if(anis and mu>0)
+	      color_summassign(out[X][0],temp_c2);
+	      color_summassign(out[X][1],temp_c3);
+	      
+	      switch(mu)
 		{
-		  color_prodassign_double(temp_c2,*anis);
-		  color_prodassign_double(temp_c3,*anis);
+		case 0:
+		  color_subtassign(out[X][2],temp_c2);
+		  color_subtassign(out[X][3],temp_c3);
+		  break;
+		case 1:
+		  color_isummassign(out[X][2],temp_c3);
+		  color_isummassign(out[X][3],temp_c2);
+		  break;
+		case 2:
+		  color_summassign(out[X][2],temp_c3);
+		  color_subtassign(out[X][3],temp_c2);
+		  break;
+		case 3:
+		  color_isummassign(out[X][2],temp_c2);
+		  color_isubtassign(out[X][3],temp_c3);
+		  break;
 		}
+	    }
+	});
+  }
+  
+  /// Apply even-odd or odd-even part of tmD, multiplied by -2
+  template <typename O,
+	    typename I>
+  void tmn2Deo_or_tmn2Doe_eos_anis_also_Wilson(O& out,
+					       const EoField<quad_su3>& conf,
+					       const double& anis,
+					       const I& in)
+  {
+    constexpr int xPar=O::fieldCoverage;
+    static_assert(xPar!=I::fieldCoverage,"calling with messed up parities");
+    
+    conf.updateHalo();
+    in.updateHalo();
+    
+    PAR(0,locVolh,
+	CAPTURE(TO_WRITE(out),
+		TO_READ(in),
+		anis,
+		TO_READ(conf)),
+	X,
+	{
+	  spincolor_put_to_zero(out[X]);
+	  
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      color temp_c0,temp_c1,temp_c2,temp_c3;
+	      
+	      //Forward
+	      const int Xup=O::locNeighup(X,mu);
+	      switch(mu)
+		{
+		case 0:
+		  color_summ(temp_c0,in[Xup][0],in[Xup][2]);
+		  color_summ(temp_c1,in[Xup][1],in[Xup][3]);
+		  break;
+		case 1:
+		  color_isumm(temp_c0,in[Xup][0],in[Xup][3]);
+		  color_isumm(temp_c1,in[Xup][1],in[Xup][2]);
+		  break;
+		case 2:
+		  color_summ(temp_c0,in[Xup][0],in[Xup][3]);
+		  color_subt(temp_c1,in[Xup][1],in[Xup][2]);
+		  break;
+		case 3:
+		  color_isumm(temp_c0,in[Xup][0],in[Xup][2]);
+		  color_isubt(temp_c1,in[Xup][1],in[Xup][3]);
+		  break;
+		}
+	      
+	      unsafe_su3_prod_color(temp_c2,conf[xPar][X][mu],temp_c0);
+	      unsafe_su3_prod_color(temp_c3,conf[xPar][X][mu],temp_c1);
+	      
+	      color_prodassign_double(temp_c2,anis);
+	      color_prodassign_double(temp_c3,anis);
+	      
+	      color_summassign(out[X][0],temp_c2);
+	      color_summassign(out[X][1],temp_c3);
+	      
+	      switch(mu)
+		{
+		case 0:
+		  color_summassign(out[X][2],temp_c2);
+		  color_summassign(out[X][3],temp_c3);
+		  break;
+		case 1:
+		  color_isubtassign(out[X][2],temp_c3);
+		  color_isubtassign(out[X][3],temp_c2);
+		  break;
+		case 2:
+		  color_subtassign(out[X][2],temp_c3);
+		  color_summassign(out[X][3],temp_c2);
+		  break;
+		case 3:
+		  color_isubtassign(out[X][2],temp_c2);
+		  color_isummassign(out[X][3],temp_c3);
+		  break;
+		}
+	      
+	      //Backward
+	      const int Xdw=O::locNeighdw(X,mu);
+	      switch(mu)
+		{
+		case 0:
+		  color_subt(temp_c0,in[Xdw][0],in[Xdw][2]);
+		  color_subt(temp_c1,in[Xdw][1],in[Xdw][3]);
+		  break;
+		case 1:
+		  color_isubt(temp_c0,in[Xdw][0],in[Xdw][3]);
+		  color_isubt(temp_c1,in[Xdw][1],in[Xdw][2]);
+		  break;
+		case 2:
+		  color_subt(temp_c0,in[Xdw][0],in[Xdw][3]);
+		  color_summ(temp_c1,in[Xdw][1],in[Xdw][2]);
+		  break;
+		case 3:
+		  color_isubt(temp_c0,in[Xdw][0],in[Xdw][2]);
+		  color_isumm(temp_c1,in[Xdw][1],in[Xdw][3]);
+		  break;
+		}
+	      
+	      unsafe_su3_dag_prod_color(temp_c2,conf[!xPar][Xdw][mu],temp_c0);
+	      unsafe_su3_dag_prod_color(temp_c3,conf[!xPar][Xdw][mu],temp_c1);
+	      
+	      color_prodassign_double(temp_c2,anis);
+	      color_prodassign_double(temp_c3,anis);
 	      
 	      color_summassign(out[X][0],temp_c2);
 	      color_summassign(out[X][1],temp_c3);
@@ -166,6 +285,82 @@ namespace nissa
 		}
 	    }
 	});
+  }
+  
+  /// Apply even-odd or odd-even part of tmD, multiplied by -2
+  template <typename O,
+	    typename I>
+  void tmn2Deo_or_tmn2Doe_eos_anis(O& out,
+				   const EoField<quad_su3>& conf,
+				   const double& anis,
+				   const I& in)
+  {
+    constexpr int xPar=O::fieldCoverage;
+    static_assert(xPar!=I::fieldCoverage,"calling with messed up parities");
+    
+    conf.updateHalo();
+    in.updateHalo();
+    
+    PAR(0,locVolh,
+	CAPTURE(TO_WRITE(out),
+		TO_READ(in),
+		anis,
+		TO_READ(conf)),
+	X,
+	{
+	  spincolor_put_to_zero(out[X]);
+	  
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      //Forward
+	      const int Xup=O::locNeighup(X,mu);
+	      
+	      spincolor t;
+	      spincolor_copy(t,in[Xup]);
+	      spincolor u;
+	      unsafe_dirac_prod_spincolor(u,base_gamma[iGammaOfMu(mu)],t);
+	      spincolor_summ_the_prod_double(t,u,mu?anis:1.0);
+	      spincolor v;
+	      unsafe_su3_prod_spincolor(v,conf[xPar][X][mu],u);
+	      
+	      spincolor_summassign(out[X],v);
+	    }
+	  
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      //Backward
+	      const int Xdw=O::locNeighdw(X,mu);
+	      
+	      spincolor t;
+	      spincolor_copy(t,in[Xdw]);
+	      spincolor u;
+	      unsafe_dirac_prod_spincolor(u,base_gamma[iGammaOfMu(mu)],t);
+	      spincolor_summ_the_prod_double(t,u,-(mu?anis:1.0));
+	      spincolor v;
+	      unsafe_su3_dag_prod_spincolor(v,conf[!xPar][Xdw][mu],u);
+	      
+	      spincolor_summassign(out[X],v);
+	    }
+	});
+  }
+  
+  /// Apply even-odd or odd-even part of tmD, multiplied by -2
+  template <typename O,
+	    typename I>
+  void tmn2Deo_or_tmn2Doe_eos(O& out,
+			      const EoField<quad_su3>& conf,
+			      const AnisDopPars& anisDopPars,
+			      const I& in)
+  {
+    if(anisDopPars.isAnis)
+      {
+	if(anisDopPars.wilsonIsAnis)
+	  tmn2Deo_or_tmn2Doe_eos_anis_also_Wilson(out,conf,anisDopPars.anis,in);
+	else
+	  tmn2Deo_or_tmn2Doe_eos_anis(out,conf,anisDopPars.anis,in);
+      }
+    else
+      tmn2Deo_or_tmn2Doe_eos_no_anis(out,conf,in);
   }
   
   //implement ee or oo part of Dirac operator, equation(3)

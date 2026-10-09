@@ -3,6 +3,7 @@
 
 #include <optional>
 
+#include <dirac_operators/tmQ/dirac_operator_tmQ.hpp>
 #include <dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp>
 #include <inverters/templates/cg_invert_template_threaded.hpp>
 
@@ -12,7 +13,7 @@ namespace nissa
 							       std::optional<OddField<spincolor>> guess,
 							       const EoField<quad_su3>& conf,
 							       const double& kappa,
-							       const std::optional<double>& anis,
+							       const AnisDopPars& anisDopPars,
 							       const OddField<clover_term_t>& Cl_odd,
 							       const EvnField<inv_clover_term_t>& invCl_evn,
 							       const double& mu,
@@ -26,13 +27,13 @@ namespace nissa
        temp2=EvnField<spincolor>("temp2",WITH_HALO),
        &conf,
        &kappa,
-       &anis,
+       &anisDopPars,
        &Cl_odd,
        &invCl_evn,
        &mu](OddField<spincolor>& out,
 	    const OddField<spincolor>& in) mutable
       {
-	tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,anis,Cl_odd,invCl_evn,mu,in);
+	tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,anisDopPars,Cl_odd,invCl_evn,mu,in);
       };
     
     cg_invert(sol,
@@ -48,7 +49,7 @@ namespace nissa
 						      std::optional<OddField<spincolor>> guess,
 						      const EoField<quad_su3>& conf,
 						      const double& kappa,
-						      const std::optional<double>& anis,
+						      const AnisDopPars& anisDopPars,
 						      const OddField<clover_term_t>& Cl_odd,
 						      const EvnField<inv_clover_term_t>& invCl_evn,
 						      const double& mu,
@@ -78,7 +79,7 @@ namespace nissa
     // else
     MASTER_PRINTF("DDalpha not yet working, probably expecting a different layout\n");
 #endif
-    inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,conf,kappa,anis,Cl_odd,invCl_evn,mu,niter,residue,source);
+    inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,conf,kappa,anisDopPars,Cl_odd,invCl_evn,mu,niter,residue,source);
   }
 }
 

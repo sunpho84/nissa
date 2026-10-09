@@ -76,6 +76,8 @@ namespace nissa
   
   inline int autoretuneKappaWithAnis{1};
   
+  inline int anisWilsonFlag{1};
+  
   inline int anisotropicFermionicAction{0};
   
   inline int nMaxTrials{3};

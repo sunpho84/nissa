@@ -37,13 +37,13 @@ namespace nissa
 			  EvnField<spincolor>& temp,
 			  const EoField<quad_su3>& conf,
 			  const double& kappa,
-			  const std::optional<double>& anis,
+			  const AnisDopPars& anisDopPars,
 			  const double& mu,
 			  const OddField<spincolor>& in)
   {
-    tmn2Deo_or_tmn2Doe_eos(out.castFieldCoverage<EVEN_SITES>(),conf,anis,in);
+    tmn2Deo_or_tmn2Doe_eos(out.castFieldCoverage<EVEN_SITES>(),conf,anisDopPars,in);
     inv_tmDee_or_oo_eos(temp,kappa,mu,out);
-    tmn2Deo_or_tmn2Doe_eos(out,conf,anis,temp);
+    tmn2Deo_or_tmn2Doe_eos(out,conf,anisDopPars,temp);
     
     tmDee_or_oo_eos(temp,kappa,mu,in);
     
@@ -56,11 +56,11 @@ namespace nissa
 				 EvnField<spincolor>& temp2,
 				 const EoField<quad_su3>& conf,
 				 const double& kappa,
-				 const std::optional<double>& anis,
+				 const AnisDopPars& anisDopPars,
 				 const double& mu,
 				 const OddField<spincolor>& in)
   {
-    tmDkern_eoprec_eos(temp1,temp2,conf,kappa,anis,-mu, in   );
-    tmDkern_eoprec_eos(out,  temp2,conf,kappa,anis,+mu, temp1);
+    tmDkern_eoprec_eos(temp1,temp2,conf,kappa,anisDopPars,-mu, in   );
+    tmDkern_eoprec_eos(out,  temp2,conf,kappa,anisDopPars,+mu, temp1);
   }
 }

@@ -1,3 +1,4 @@
+#include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
 #ifdef HAVE_CONFIG_H
  #include "config.hpp"
 #endif
@@ -26,12 +27,11 @@ namespace nissa
   // D_{x,y}=[-i g5 t3/(2k)+mass] \delta_{x,y}-1/2*
   //          \sum_mu{[-i g5 t3-gmu]U_x,mu\delta_{x+\hat{mu},y}+(-i g5 t3+gmu)U^+_{x-\hat{\mu},\mu}\delta_{x-\hat{\mu}}}
   //
-  void apply_tmQ(LxField<spincolor>& out,
-		 const LxField<quad_su3>& conf,
-		 const double& kappa,
-		 const std::optional<double>& anis,
-		 const double& mass,
-		 const LxField<spincolor>& in)
+  void apply_tmQ_no_anis(LxField<spincolor>& out,
+			 const LxField<quad_su3>& conf,
+			 const double& kappa,
+			 const double& mass,
+			 const LxField<spincolor>& in)
   {
     conf.updateHalo();
     in.updateHalo();
@@ -39,7 +39,6 @@ namespace nissa
     PAR(0,locVol,
 	CAPTURE(mass,
 		kcf=1/(2*kappa),
-		anis,
 		TO_WRITE(out),
 		TO_READ(in),
 		TO_READ(conf)),X,
@@ -74,12 +73,6 @@ namespace nissa
 	      
 	      unsafe_su3_prod_color(temp_c2,conf[X][mu],temp_c0);
 	      unsafe_su3_prod_color(temp_c3,conf[X][mu],temp_c1);
-	      
-	      if(anis.has_value() and mu>0)
-		{
-		  color_prodassign_double(temp_c2,*anis);
-		  color_prodassign_double(temp_c3,*anis);
-		}
 	      
 	      color_summassign(out[X][0],temp_c2);
 	      color_summassign(out[X][1],temp_c3);
@@ -129,11 +122,148 @@ namespace nissa
 	      unsafe_su3_dag_prod_color(temp_c2,conf[Xdw][mu],temp_c0);
 	      unsafe_su3_dag_prod_color(temp_c3,conf[Xdw][mu],temp_c1);
 	      
-	      if(anis.has_value() and mu>0)
+	      color_summassign(out[X][0],temp_c2);
+	      color_summassign(out[X][1],temp_c3);
+	      
+	      switch(mu)
 		{
-		  color_prodassign_double(temp_c2,*anis);
-		  color_prodassign_double(temp_c3,*anis);
+		case 0:
+		  color_subtassign(out[X][2],temp_c2);
+		  color_subtassign(out[X][3],temp_c3);
+		  break;
+		case 1:
+		  color_isummassign(out[X][2],temp_c3);
+		  color_isummassign(out[X][3],temp_c2);
+		  break;
+		case 2:
+		  color_summassign(out[X][2],temp_c3);
+		  color_subtassign(out[X][3],temp_c2);
+		  break;
+		case 3:
+		  color_isummassign(out[X][2],temp_c2);
+		  color_isubtassign(out[X][3],temp_c3);
+		  break;
 		}
+	    }
+	  
+	  //Put the -1/2 factor on derivative, the gamma5, and the imu
+	  //ok this is horrible, but fast
+	  for(int c=0;c<3;c++)
+	    {
+	      out[X][0][c][0]=-0.5*out[X][0][c][0]+kcf*in[X][0][c][0]-mass*in[X][0][c][1];
+	      out[X][0][c][1]=-0.5*out[X][0][c][1]+kcf*in[X][0][c][1]+mass*in[X][0][c][0];
+	      out[X][1][c][0]=-0.5*out[X][1][c][0]+kcf*in[X][1][c][0]-mass*in[X][1][c][1];
+	      out[X][1][c][1]=-0.5*out[X][1][c][1]+kcf*in[X][1][c][1]+mass*in[X][1][c][0];
+	      out[X][2][c][0]=+0.5*out[X][2][c][0]-kcf*in[X][2][c][0]-mass*in[X][2][c][1];
+	      out[X][2][c][1]=+0.5*out[X][2][c][1]-kcf*in[X][2][c][1]+mass*in[X][2][c][0];
+	      out[X][3][c][0]=+0.5*out[X][3][c][0]-kcf*in[X][3][c][0]-mass*in[X][3][c][1];
+	      out[X][3][c][1]=+0.5*out[X][3][c][1]-kcf*in[X][3][c][1]+mass*in[X][3][c][0];
+	    }
+	});
+  }
+  
+  void apply_tmQ_anis_also_Wilson(LxField<spincolor>& out,
+				  const LxField<quad_su3>& conf,
+				  const double& kappa,
+				  const double& anis,
+				  const double& mass,
+				  const LxField<spincolor>& in)
+  {
+    conf.updateHalo();
+    in.updateHalo();
+    
+    PAR(0,locVol,
+	CAPTURE(mass,
+		kcf=1/(2*kappa),
+		anis,
+		TO_WRITE(out),
+		TO_READ(in),
+		TO_READ(conf)),X,
+	{
+	  spincolor_put_to_zero(out[X]);
+	  
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      color temp_c0,temp_c1,temp_c2,temp_c3;
+	      
+	      //Forward
+	      const int Xup=loclxNeighup[X][mu];
+	      switch(mu)
+		{
+		case 0:
+		  color_summ(temp_c0,in[Xup][0],in[Xup][2]);
+		  color_summ(temp_c1,in[Xup][1],in[Xup][3]);
+		  break;
+		case 1:
+		  color_isumm(temp_c0,in[Xup][0],in[Xup][3]);
+		  color_isumm(temp_c1,in[Xup][1],in[Xup][2]);
+		  break;
+		case 2:
+		  color_summ(temp_c0,in[Xup][0],in[Xup][3]);
+		  color_subt(temp_c1,in[Xup][1],in[Xup][2]);
+		  break;
+		case 3:
+		  color_isumm(temp_c0,in[Xup][0],in[Xup][2]);
+		  color_isubt(temp_c1,in[Xup][1],in[Xup][3]);
+		  break;
+		}
+	      
+	      unsafe_su3_prod_color(temp_c2,conf[X][mu],temp_c0);
+	      unsafe_su3_prod_color(temp_c3,conf[X][mu],temp_c1);
+	      
+	      color_prodassign_double(temp_c2,anis);
+	      color_prodassign_double(temp_c3,anis);
+	      
+	      color_summassign(out[X][0],temp_c2);
+	      color_summassign(out[X][1],temp_c3);
+	      
+	      switch(mu)
+		{
+		case 0:
+		  color_summassign(out[X][2],temp_c2);
+		  color_summassign(out[X][3],temp_c3);
+		  break;
+		case 1:
+		  color_isubtassign(out[X][2],temp_c3);
+		  color_isubtassign(out[X][3],temp_c2);
+		  break;
+		case 2:
+		  color_subtassign(out[X][2],temp_c3);
+		  color_summassign(out[X][3],temp_c2);
+		  break;
+		case 3:
+		  color_isubtassign(out[X][2],temp_c2);
+		  color_isummassign(out[X][3],temp_c3);
+		  break;
+		}
+	      
+	      //Backward
+	      const int Xdw=loclxNeighdw[X][mu];
+	      switch(mu)
+		{
+		case 0:
+		  color_subt(temp_c0,in[Xdw][0],in[Xdw][2]);
+		  color_subt(temp_c1,in[Xdw][1],in[Xdw][3]);
+		  break;
+		case 1:
+		  color_isubt(temp_c0,in[Xdw][0],in[Xdw][3]);
+		  color_isubt(temp_c1,in[Xdw][1],in[Xdw][2]);
+		  break;
+		case 2:
+		  color_subt(temp_c0,in[Xdw][0],in[Xdw][3]);
+		  color_summ(temp_c1,in[Xdw][1],in[Xdw][2]);
+		  break;
+		case 3:
+		  color_isubt(temp_c0,in[Xdw][0],in[Xdw][2]);
+		  color_isumm(temp_c1,in[Xdw][1],in[Xdw][3]);
+		  break;
+		}
+	      
+	      unsafe_su3_dag_prod_color(temp_c2,conf[Xdw][mu],temp_c0);
+	      unsafe_su3_dag_prod_color(temp_c3,conf[Xdw][mu],temp_c1);
+	      
+	      color_prodassign_double(temp_c2,anis);
+	      color_prodassign_double(temp_c3,anis);
 	      
 	      color_summassign(out[X][0],temp_c2);
 	      color_summassign(out[X][1],temp_c3);
@@ -173,5 +303,91 @@ namespace nissa
 	      out[X][3][c][1]=+0.5*out[X][3][c][1]-kcf*in[X][3][c][1]+mass*in[X][3][c][0];
 	    }
 	});
+  }
+  
+  void apply_tmQ_anis(LxField<spincolor>& out,
+		      const LxField<quad_su3>& conf,
+		      const double& kappa,
+		      const double& anis,
+		      const double& mass,
+		      const LxField<spincolor>& in)
+  {
+    conf.updateHalo();
+    in.updateHalo();
+    
+    PAR(0,locVol,
+	CAPTURE(mass,
+		kcf=1/(2*kappa),
+		anis,
+		TO_WRITE(out),
+		TO_READ(in),
+		TO_READ(conf)),X,
+	{
+	  spincolor_put_to_zero(out[X]);
+	  
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      //Forward
+	      const int Xup=loclxNeighup[X][mu];
+	      
+	      spincolor t;
+	      spincolor_copy(t,in[Xup]);
+	      spincolor u;
+	      unsafe_dirac_prod_spincolor(u,base_gamma[iGammaOfMu(mu)],t);
+	      spincolor_summ_the_prod_double(t,u,mu?anis:1.0);
+	      spincolor v;
+	      unsafe_su3_prod_spincolor(v,conf[X][mu],u);
+	      
+	      spincolor_summassign(out[X],v);
+	    }
+	  
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      //Backward
+	      const int Xdw=loclxNeighdw[X][mu];
+	      
+	      spincolor t;
+	      spincolor_copy(t,in[Xdw]);
+	      spincolor u;
+	      unsafe_dirac_prod_spincolor(u,base_gamma[iGammaOfMu(mu)],t);
+	      spincolor_summ_the_prod_double(t,u,-(mu?anis:1.0));
+	      spincolor v;
+	      unsafe_su3_dag_prod_spincolor(v,conf[Xdw][mu],u);
+	      
+	      spincolor_summassign(out[X],v);
+	    }
+	  
+	  //Put the -1/2 factor on derivative, the gamma5, and the imu
+	  //ok this is horrible, but fast
+	  for(int c=0;c<3;c++)
+	    {
+	      out[X][0][c][0]=-0.5*out[X][0][c][0]+kcf*in[X][0][c][0]-mass*in[X][0][c][1];
+	      out[X][0][c][1]=-0.5*out[X][0][c][1]+kcf*in[X][0][c][1]+mass*in[X][0][c][0];
+	      out[X][1][c][0]=-0.5*out[X][1][c][0]+kcf*in[X][1][c][0]-mass*in[X][1][c][1];
+	      out[X][1][c][1]=-0.5*out[X][1][c][1]+kcf*in[X][1][c][1]+mass*in[X][1][c][0];
+	      out[X][2][c][0]=+0.5*out[X][2][c][0]-kcf*in[X][2][c][0]-mass*in[X][2][c][1];
+	      out[X][2][c][1]=+0.5*out[X][2][c][1]-kcf*in[X][2][c][1]+mass*in[X][2][c][0];
+	      out[X][3][c][0]=+0.5*out[X][3][c][0]-kcf*in[X][3][c][0]-mass*in[X][3][c][1];
+	      out[X][3][c][1]=+0.5*out[X][3][c][1]-kcf*in[X][3][c][1]+mass*in[X][3][c][0];
+	    }
+	});
+  }
+  
+  void apply_tmQ(LxField<spincolor>& out,
+		 const LxField<quad_su3>& conf,
+		 const double& kappa,
+		 const AnisDopPars& anisDopPars,
+		 const double& mass,
+		 const LxField<spincolor>& in)
+  {
+    if(anisDopPars.isAnis)
+      {
+	if(anisDopPars.wilsonIsAnis)
+	  apply_tmQ_anis_also_Wilson(out,conf,kappa,anisDopPars.anis,mass,in);
+	else
+	  apply_tmQ_anis(out,conf,kappa,anisDopPars.anis,mass,in);
+      }
+    else
+      apply_tmQ_no_anis(out,conf,kappa,mass,in);
   }
 }

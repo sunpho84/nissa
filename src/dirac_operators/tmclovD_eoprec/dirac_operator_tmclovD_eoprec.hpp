@@ -2,6 +2,7 @@
 #define _DIRAC_OPERATOR_TMCLOVD_EOPREC_HPP
 
 #include "base/field.hpp"
+#include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
 #include "new_types/su3_op.hpp"
 
 namespace nissa
@@ -12,7 +13,7 @@ namespace nissa
 			      EvnField<spincolor>& tmp,
 			      const EoField<quad_su3>& conf,
 			      const double& kappa,
-			      const std::optional<double>& anis,
+			      const AnisDopPars& anisDopPars,
 			      const OddField<clover_term_t>& Cl_odd,
 			      const EvnField<inv_clover_term_t>& invCl_evn,
 			      const bool& dag,
@@ -48,7 +49,7 @@ namespace nissa
 				     EvnField<spincolor>& temp2,
 				     const EoField<quad_su3>& conf,
 				     const double& kappa,
-				     const std::optional<double>& anis,
+				     const AnisDopPars& anisDopPars,
 				     const OddField<clover_term_t>& Cl_odd,
 				     const EvnField<inv_clover_term_t>& invCl_evn,
 				     const double& mu,

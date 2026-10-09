@@ -1,9 +1,8 @@
 #ifndef _CG_64_INVERT_TMDEOIMPR_HPP
 #define _CG_64_INVERT_TMDEOIMPR_HPP
 
-#include <optional>
-
 #include <dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp>
+#include <dirac_operators/tmQ/dirac_operator_tmQ.hpp>
 #include <inverters/templates/cg_invert_template_threaded.hpp>
 
 namespace nissa
@@ -12,7 +11,7 @@ namespace nissa
 						  std::optional<OddField<spincolor>> guess,
 						  const EoField<quad_su3>& conf,
 						  const double& kappa,
-						  const std::optional<double>& anis,
+						  const AnisDopPars& anisDopPars,
 						  const double& mu,
 						  const int& niter,
 						  const double residue,
@@ -24,11 +23,11 @@ namespace nissa
        temp2=EvnField<spincolor>("temp2",WITH_HALO),
        &conf,
        &kappa,
-       &anis,
+       &anisDopPars,
        &mu](OddField<spincolor>& out,
 	    const OddField<spincolor>& in) mutable
       {
-	tmDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,anis,mu,in);
+	tmDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,anisDopPars,mu,in);
       };
     
     cg_invert(sol,

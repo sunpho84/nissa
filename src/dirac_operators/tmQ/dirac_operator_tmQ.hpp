@@ -5,10 +5,19 @@
 
 namespace nissa
 {
+  struct AnisDopPars
+  {
+    bool isAnis{};
+    
+    double anis{};
+    
+    bool wilsonIsAnis{};
+  };
+  
   void apply_tmQ(LxField<spincolor>& out,
 		 const LxField<quad_su3>& conf,
 		 const double& kappa,
-		 const std::optional<double>& anis,
+		 const AnisDopPars& anis,
 		 const double& mu,
 		 const LxField<spincolor>& in);
     

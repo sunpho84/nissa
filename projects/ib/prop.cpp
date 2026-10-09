@@ -90,10 +90,12 @@ namespace nissa
 	
 	const LxField<quad_su3>* conf=get_updated_conf(charge,theta,*glb_conf);
 	
+	const AnisDopPars anisDopPars{.isAnis=anis.has_value(),.anis=anis.value_or(1.0),.wilsonIsAnis=(bool)anisWilsonFlag};
+	
 	if(clover_run)
-	  inv_tmclovD_cg_eoprec(out,std::nullopt,*conf,kappa,anis,glb_cSW,mass,1000000,residue,in);
+	  inv_tmclovD_cg_eoprec(out,std::nullopt,*conf,kappa,anisDopPars,glb_cSW,mass,1000000,residue,in);
 	else
-	  inv_tmD_cg_eoprec(out,std::nullopt,*conf,kappa,anis,mass,1000000,residue,in);
+	  inv_tmD_cg_eoprec(out,std::nullopt,*conf,kappa,anisDopPars,mass,1000000,residue,in);
       }
     
     VERBOSITY_LV1_MASTER_PRINTF("Solving time: %lg s\n",take_time()-tin);
@@ -627,14 +629,16 @@ namespace nissa
     LxField<quad_su3>& conf=
       *get_updated_conf(charge,theta,*glb_conf);
     
+    const AnisDopPars anisDopPars{.isAnis=anis.has_value(),.anis=anis.value_or(1.0),.wilsonIsAnis=(bool)anisWilsonFlag};
+    
     if(clover_run)
       {
 	LxField<clover_term_t> Cl("Cl");
 	clover_term(Cl,glb_cSW,conf);
-	apply_tmclovQ(out,conf,kappa,anis,Cl,mass,tmp);
+	apply_tmclovQ(out,conf,kappa,anisDopPars,Cl,mass,tmp);
       }
     else
-      apply_tmQ(out,conf,kappa,anis,mass,tmp);
+      apply_tmQ(out,conf,kappa,anisDopPars,mass,tmp);
     
     PAR(0,locVol,
 	CAPTURE(TO_WRITE(out)),
