@@ -159,7 +159,7 @@ namespace nissa
     bool solved=false;
     
 #ifdef USE_QUDA
-    if(use_quda and not solved and not (anis.value_or(1.0)!=1.0))
+    if(use_quda and not solved and not (anisDopPars.isAnis))
       {
 	const double call_time=take_time();
 	solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,targResidue,source_lx);
