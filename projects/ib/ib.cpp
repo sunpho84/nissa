@@ -27,12 +27,12 @@ void init_simulation(int narg,char **arg)
   getExternalPar(preservePartialData,"PRESERVE_PARTIAL_DATA","Preserve the partial data");
   getExternalPar(nMaxTrials,"NMAX_TRIALS","Maximum number of trials for a conf");
   getExternalPar(autoretuneKappaWithAnis,"ANIS_KAPPA_AUTORETUNE","Automatically retune the kappa in presence of anisotropy");
-  getExternalPar(anisWilsonFlag,"ANIS_WILSON","Make the Wilson term anistropic");
+  getExternalPar(anisWilsonTerm,"ANIS_WILSON_TERM","Make the Wilson term anistropic");
   getExternalPar(runningUpdateTime,"RUNNING_UPDATE_TIME","Time between running file update");
   getExternalPar(anisotropicFermionicAction,"ANISOTROPIC_FERMIONIC_ACTION","Anisotropic fermionic action");
   
-  if(autoretuneKappaWithAnis and not anisWilsonFlag)
-    MASTER_PRINTF("WARNING it is inconsistent to set ANIS_KAPPA_AUTORETUNE and not set ANIS_WILSON");
+  if(autoretuneKappaWithAnis and not anisWilsonTerm)
+    MASTER_PRINTF("WARNING it is inconsistent to set ANIS_KAPPA_AUTORETUNE=1 and not set ANIS_WILSON_TERM=0");
   
   const char *path=arg[1];
   

@@ -90,7 +90,7 @@ namespace nissa
 	
 	const LxField<quad_su3>* conf=get_updated_conf(charge,theta,*glb_conf);
 	
-	const AnisDopPars anisDopPars{.isAnis=anis.has_value(),.anis=anis.value_or(1.0),.wilsonIsAnis=(bool)anisWilsonFlag};
+	const AnisDopPars anisDopPars{.isAnis=anis.has_value(),.anis=anis.value_or(1.0),.wilsonIsAnis=(bool)anisWilsonTerm};
 	
 	if(clover_run)
 	  inv_tmclovD_cg_eoprec(out,std::nullopt,*conf,kappa,anisDopPars,glb_cSW,mass,1000000,residue,in);
@@ -629,7 +629,7 @@ namespace nissa
     LxField<quad_su3>& conf=
       *get_updated_conf(charge,theta,*glb_conf);
     
-    const AnisDopPars anisDopPars{.isAnis=anis.has_value(),.anis=anis.value_or(1.0),.wilsonIsAnis=(bool)anisWilsonFlag};
+    const AnisDopPars anisDopPars{.isAnis=anis.has_value(),.anis=anis.value_or(1.0),.wilsonIsAnis=(bool)anisWilsonTerm};
     
     if(clover_run)
       {
