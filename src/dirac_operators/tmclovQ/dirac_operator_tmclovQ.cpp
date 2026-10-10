@@ -366,42 +366,42 @@ namespace nissa
 	
 	spincolor temp{};
 	
-	  for(int mu=0;mu<NDIM;mu++)
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    //Forward
+	    const int Xup=loclxNeighup[X][mu];
+	    
+	    spincolor t;
+	    spincolor_copy(t,in[Xup]);
 	    {
-	      //Forward
-	      const int Xup=loclxNeighup[X][mu];
-	      
-	      spincolor t;
-	      spincolor_copy(t,in[Xup]);
-	      {
-		spincolor u;
-		unsafe_dirac_prod_spincolor(u,base_gamma[iGammaOfMu(mu)],t);
-		spincolor_summ_the_prod_double(t,u,mu?anis:1.0);
-	      }
-	      spincolor v;
-	      unsafe_su3_prod_spincolor(v,conf[X][mu],t);
-	      
-	      spincolor_summassign(temp,v);
+	      spincolor u;
+	      unsafe_dirac_prod_spincolor(u,base_gamma[iGammaOfMu(mu)],t);
+	      spincolor_summ_the_prod_double(t,u,mu?anis:1.0);
 	    }
-	  
-	  for(int mu=0;mu<NDIM;mu++)
+	    spincolor v;
+	    unsafe_su3_prod_spincolor(v,conf[X][mu],t);
+	    
+	    spincolor_summassign(temp,v);
+	  }
+	
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    //Backward
+	    const int Xdw=loclxNeighdw[X][mu];
+	    
+	    spincolor t;
+	    spincolor_copy(t,in[Xdw]);
 	    {
-	      //Backward
-	      const int Xdw=loclxNeighdw[X][mu];
-	      
-	      spincolor t;
-	      spincolor_copy(t,in[Xdw]);
-	      {
-		spincolor u;
-		unsafe_dirac_prod_spincolor(u,base_gamma[iGammaOfMu(mu)],t);
-		spincolor_summ_the_prod_double(t,u,-(mu?anis:1.0));
-	      }
-	      spincolor v;
-	      unsafe_su3_dag_prod_spincolor(v,conf[Xdw][mu],t);
-	      
-	      spincolor_summassign(temp,v);
+	      spincolor u;
+	      unsafe_dirac_prod_spincolor(u,base_gamma[iGammaOfMu(mu)],t);
+	      spincolor_summ_the_prod_double(t,u,-(mu?anis:1.0));
 	    }
-	  
+	    spincolor v;
+	    unsafe_su3_dag_prod_spincolor(v,conf[Xdw][mu],t);
+	    
+	    spincolor_summassign(temp,v);
+	  }
+	
 	//Put the -1/2 factor on derivative and the gamma5
 	//ok this is horrible, but fast
 	for(int c=0;c<NCOL;c++)
