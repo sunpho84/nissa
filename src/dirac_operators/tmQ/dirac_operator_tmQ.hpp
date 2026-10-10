@@ -11,7 +11,7 @@ namespace nissa
     
     double anis{};
     
-    bool wilsonIsAnis{};
+    bool wilsonTermIsAnis{};
   };
   
   void apply_tmQ(LxField<spincolor>& out,

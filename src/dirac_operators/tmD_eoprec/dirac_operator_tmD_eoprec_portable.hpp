@@ -360,7 +360,7 @@ namespace nissa
   {
     if(anisDopPars.isAnis)
       {
-	if(anisDopPars.wilsonIsAnis)
+	if(anisDopPars.wilsonTermIsAnis)
 	  tmn2Deo_or_tmn2Doe_eos_anis_also_Wilson(out,conf,anisDopPars.anis,in);
 	else
 	  tmn2Deo_or_tmn2Doe_eos_anis(out,conf,anisDopPars.anis,in);

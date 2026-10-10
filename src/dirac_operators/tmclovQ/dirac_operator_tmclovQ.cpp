@@ -431,7 +431,7 @@ namespace nissa
   {
     if(anisDopPars.isAnis)
       {
-	if(anisDopPars.wilsonIsAnis)
+	if(anisDopPars.wilsonTermIsAnis)
 	  apply_tmclovQ_anis_also_Wilson(out,conf,kappa,anisDopPars.anis,Cl,mu,in);
 	else
 	  apply_tmclovQ_anis(out,conf,kappa,anisDopPars.anis,Cl,mu,in);
