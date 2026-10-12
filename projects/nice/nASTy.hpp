@@ -16,7 +16,8 @@ inline auto getParser()
 #define C_COMMENT				\
   "/\\*([^\\*]|\\*[^/])+\\*/"
     
-    const char cGrammar[]=
+    // The returned grammar retains string views into this storage.
+    static constexpr char cGrammar[]=
     "c {"
     "   %whitespace \"" BARE_WHITESPACES "|" CPP_COMMENT "|" C_COMMENT "\";"
     "   %none lowerThanElse;"
@@ -293,6 +294,8 @@ struct Function
 struct HostFunction :
   std::function<Value(std::vector<std::shared_ptr<Value>>&,Evaluator&)>
 {
+  /// Optional signature for host constructors; omitted arguments remain null.
+  std::vector<std::string> argumentNames;
 };
 
 struct StructDef
@@ -320,7 +323,7 @@ using ValueT=
 
 struct HObject
 {
-  const HObjectInfo* info;
+  std::shared_ptr<const HObjectInfo> info;
   
   std::any data;
   
@@ -1452,7 +1455,7 @@ struct Evaluator
   EvalResult operator()(const MemberAccessNode& memberAccessNode)
   {
     EvalResult _b=std::visit(*this,*memberAccessNode.base);
-    Value& b=_b.hasRef()?_b.asLhs():*_b.value;
+    Value b=_b.asRhs();
     
     const std::string& memberName=memberAccessNode.member;
     
@@ -1473,7 +1476,28 @@ struct Evaluator
       }
     else
       if(HObject* hObject=std::get_if<HObject>(&b.data))
-	return {.ref{hObject->getMemberRef(memberName)}};
+	{
+          // Validate the member even when this expression is only used as an lhs.
+          HObjectMemberRef member=hObject->getMemberRef(memberName);
+          if(not _b.hasRef())
+            return {.value=member.get()};
+
+          // Retain the parent reference, not a pointer into a temporary payload.
+          // Read it again on each access so RHS changes to siblings are preserved.
+          HObjectMemberRef nested{{
+            [base=_b,memberName]()->Value
+            {
+              Value parent=base.asRhs();
+              return unvariant<HObject>(parent.data).getMemberRef(memberName).get();
+            },
+            [base=_b,memberName](const AssignMode& mode,const Value& value) mutable
+            {
+              Value parent=base.asRhs();
+              unvariant<HObject>(parent.data).getMemberRef(memberName).set(mode,value);
+              base.set(AssignMode::PLAIN,parent);
+            }}};
+          return {.ref{nested}};
+        }
       else
 	errorEmitter("trying to access member ",memberName," of a non-stuct of type: ",variantInnerTypeName(b.data));
     
@@ -1595,14 +1619,41 @@ struct Evaluator
     
     if([[maybe_unused]] const HostFunction* fun=std::get_if<HostFunction>(&_fun.data))
       {
-	args.reserve(_args->data.size());
+        const auto& names=
+	  fun->argumentNames;
+        if(not names.empty())
+          args.resize(names.size());
+	
+        size_t positional{};
 	for(std::shared_ptr<Value> _arg : _args->data)
 	  {
 	    FuncArg& arg=unvariant<FuncArg>(_arg->data);
 	    
-	    if(arg.name!="")
-	      errorEmitter("trying to call a host function with named arg ",arg.name);
-	    args.push_back(arg.value);
+            if(names.empty())
+              {
+                if(arg.name!="")
+                  errorEmitter("trying to call a host function with named arg ",arg.name);
+                args.push_back(arg.value);
+              }
+            else
+              {
+                size_t i=positional;
+                if(arg.name.empty())
+                  positional++;
+                else
+                  {
+                    i=0;
+                    while(i<names.size() and names[i]!=arg.name)
+                      i++;
+                    if(i==names.size())
+                      errorEmitter("unknown argument ",arg.name," to ",fName);
+                  }
+                if(i>=args.size())
+                  errorEmitter("too many arguments to ",fName);
+                if(args[i])
+                  errorEmitter("argument ",names[i]," specified twice to ",fName);
+                args[i]=arg.value;
+              }
 	  }
       }
     else
