@@ -1,5 +1,9 @@
 #include <any>
 #include <cmath>
+#include <optional>
+#include <tuple>
+#include <utility>
+#include <type_traits>
 
 #include <parsePact.hpp>
 
@@ -339,19 +343,9 @@ struct Value
   /// support that cast.
   /// T need not be a variant alternative; HObject payloads are handled outside.
   template <typename T,
-	    typename...From>
+	    VariantAlternative<ValueT>...From>
   std::optional<T> tryAs() const
   {
-    // Reject proposed source types that can never match the variant.
-    constexpr auto isAlternative=
-      []<typename S,
-	 typename...Alternatives>(const std::variant<Alternatives...>*)
-      {
-	return (std::is_same_v<S,Alternatives> or ...);
-      };
-    static_assert((isAlternative.template operator()<From>(static_cast<const ValueT*>(nullptr)) and ...),
-		  "tryAs: each From type must be a ValueT alternative");
-    
     /// Store the result and is returned
     std::optional<T> result;
     
@@ -1915,4 +1909,137 @@ struct Evaluator
     return {.value=binOpNode.op(std::visit(*this,*binOpNode.arg1).asRhs(),std::visit(*this,*binOpNode.arg2).asRhs())};
   }
 };
+
+
+/// Describes a field without binding it to a particular object instance.
+template <typename T,
+          typename M>
+struct HostMemberInfo
+{
+  /// Name of the member
+  std::string name;
+  
+  /// Pointer to the member
+  M T::* pointer;
+  
+  /// Type descriptor
+  std::shared_ptr<const HObjectInfo> memberType;
+};
+
+/// Registers a value-owning constructor and its fields in the evaluator.
+/// Tuple order determines positional arguments; omitted fields retain T{} defaults.
+/// Metadata is shared, but each HObject contains its own copy of T.
+/// Returns the metadata needed to register T as a member of another host type.
+template <typename T,
+	  typename...Members>
+std::shared_ptr<const HObjectInfo> registerHObject(Evaluator& ev,
+						   const std::string& name,
+						   const std::tuple<Members...>& members)
+{
+  /// Description of the object
+  auto info=
+    std::make_shared<HObjectInfo>();
+  
+  // Constructor argument names, in the same order as the member tuple.
+  std::vector<std::string> names;
+  
+  // Register each member and the callbacks used to access it.
+  std::apply([&](const auto&...field)
+  {
+    auto add=
+      [&](const auto& field)
+      {
+	using M=
+	  std::remove_cvref_t<decltype(std::declval<T>().*(field.pointer))>;
+	
+	if(field.name.empty() or info->memberAccessorsProvider.contains(field.name))
+	  errorEmitter("empty or duplicate host member name in ",name,": ",field.name);
+	
+	constexpr bool scalar=
+	  std::is_same_v<M,int> or std::is_same_v<M,double> or
+	  std::is_same_v<M,bool> or std::is_same_v<M,std::string>;
+	
+	// Nested host members require their own previously registered metadata.
+	if constexpr(not scalar)
+	  if(not field.memberType)
+	    errorEmitter("missing host metadata for member ",field.name," in ",name);
+	
+	names.push_back(field.name);
+	
+	// Bind accessors to the payload of the particular object being accessed.
+	info->memberAccessorsProvider.emplace(field.name,[field](std::any& data)
+	{
+	  return HObjectMemberRef::Accessors{
+	    // Read a scalar value or wrap a copy of the nested host member.
+	    [&data,field]()->Value
+	    {
+	      const M& value=
+		std::any_cast<const T&>(data).*(field.pointer);
+	      
+	      if constexpr(scalar)
+		{
+		  // Script values represent booleans as integers.
+		  using ScriptType=
+		    std::conditional_t<std::is_same_v<M,bool>,int,M>;
+		  
+		  return {ScriptType(value)};
+		}
+	      else
+		return {HObject{field.memberType,value}};
+	    },
+	    // Apply plain or compound assignment to the concrete C++ member.
+	    [&data,field](const AssignMode& mode,
+			  const Value& value)
+	    {
+	      M& target=
+		std::any_cast<T&>(data).*(field.pointer);
+	      
+	      // Preserve the RHS type so assignment uses C++ conversion rules.
+	      if constexpr(scalar)
+		std::visit([&](const auto& rhs)
+		{
+		  trySet(target,mode,rhs);
+		},value.data);
+	      else
+		{
+		  // Extract the concrete payload before assigning a host member.
+		  if(const HObject* object=std::get_if<HObject>(&value.data))
+		    if(const M* payload=std::any_cast<M>(&object->data))
+		      {
+			trySet(target,mode,*payload);
+			return;
+		      }
+		  
+		  errorEmitter("invalid value for host member ",field.name,
+			       " (expected ",typeid(M).name(),")");
+		}
+	    }};
+	});
+      };
+    
+    (add(field),...);
+  },members);
+  
+  // Register the script-visible constructor under the requested type name.
+  // The evaluator uses names to place positional and named arguments in args.
+  (*ev.curEnv)[name]=HostFunction{
+    [info,names,name](std::vector<std::shared_ptr<Value>>& args,
+		      Evaluator&)->Value
+    {
+      if(args.size()>names.size())
+	errorEmitter("too many arguments to ",name);
+      
+      // Start with T{} defaults; omitted arguments have null entries.
+      HObject object{info,T{}};
+      
+      // Initialize supplied members through the same setters as assignment.
+      for(size_t i=0;i<args.size();i++)
+	if(args[i])
+	  object.getMemberRef(names[i]).set(AssignMode::PLAIN,*args[i]);
+      
+      return {object};
+    },names};
+  
+  return info;
+}
 
