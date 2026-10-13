@@ -334,6 +334,9 @@ struct HObject
   inline HObjectMemberRef getMemberRef(const std::string& memberName);
 };
 
+inline std::ostream& operator<<(std::ostream& os,
+				const HObject& obj);
+
 struct Value
 {
   /// Returns the stored value as T, or an empty optional if no type matches.
@@ -438,8 +441,24 @@ struct HObjectMemberRef
 
 struct HObjectInfo
 {
+  std::string name;
+  
   std::unordered_map<std::string,std::function<HObjectMemberRef::Accessors(std::any&)>> memberAccessorsProvider;
+  
+  std::function<void(std::ostream&,const std::any&)> streamOp;
 };
+
+inline std::ostream& operator<<(std::ostream& os,
+				const HObject& obj)
+{
+  if(const auto& sOp=obj.info->streamOp)
+    sOp(os,obj.data);
+  else
+    errorEmitter("Unable to print host object of type \"",obj.info->name,"\" (stream operator not registered)");
+  
+  return os;
+}
+
 
 inline HObjectMemberRef HObject::getMemberRef(const std::string& memberName)
 {
@@ -1522,7 +1541,7 @@ struct Evaluator
           HObjectMemberRef member=hObject->getMemberRef(memberName);
           if(not _b.hasRef())
             return {.value=member.get()};
-
+	  
           // Retain the parent reference, not a pointer into a temporary payload.
           // Read it again on each access so RHS changes to siblings are preserved.
           HObjectMemberRef nested{{
@@ -1940,6 +1959,8 @@ std::shared_ptr<const HObjectInfo> registerHObject(Evaluator& ev,
   auto info=
     std::make_shared<HObjectInfo>();
   
+  info->name=name;
+  
   // Constructor argument names, in the same order as the member tuple.
   std::vector<std::string> names;
   
@@ -2043,3 +2064,22 @@ std::shared_ptr<const HObjectInfo> registerHObject(Evaluator& ev,
   return info;
 }
 
+/// Registers Type under its C++ identifier, using its static members() function.
+/// Use an unqualified type name or alias that is also a valid script identifier.
+/// Returns the shared metadata, just like registerHObject.
+#define REGISTER_HOBJECT(EV,TYPE) \
+  ::registerHObject<TYPE>((EV),#TYPE,TYPE::members())
+
+/// Describes a member with the same name in C++ and the script.
+/// Use inside PROVIDE_MEMBERS, which supplies the local Self alias.
+#define MEMB(NAME) \
+  HostMemberInfo{#NAME,&Self::NAME}
+
+/// Defines static members() from descriptors such as MEMB(field).
+/// Explicit HostMemberInfo descriptors may also be included in the list.
+#define PROVIDE_MEMBERS(TYPE,...)	 \
+  static auto members()			 \
+  {					 \
+    using Self=TYPE;			 \
+    return std::make_tuple(__VA_ARGS__); \
+  }
