@@ -2,7 +2,7 @@
 
 /**
   The logic
-
+  
   Creation of the AST
   -------------------
   Within a script, one can define sources, operators, and functions,
@@ -30,6 +30,20 @@
 
 using namespace nissa;
 
+/// Describes a field without binding it to a particular object instance.
+template <typename T,
+          typename M>
+struct HostMemberInfo
+{
+  /// Name of the member
+  std::string name;
+  
+  /// Pointer to the member
+  M T::* pointer;
+  
+  /// Type descriptor
+  std::shared_ptr<const HObjectInfo> memberType;
+};
 using CAction=
   std::tuple<std::string,std::function<void()>,std::vector<std::string>>;
 

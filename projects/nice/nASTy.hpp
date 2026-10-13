@@ -332,6 +332,53 @@ struct HObject
 
 struct Value
 {
+  /// Returns the stored value as T, or an empty optional if no type matches.
+  /// First tries to retrieve T itself from the variant. Otherwise, tries the
+  /// proposed From types in order and converts the first matching alternative
+  /// to T using static_cast. Each From must be a variant alternative and
+  /// support that cast.
+  /// T need not be a variant alternative; HObject payloads are handled outside.
+  template <typename T,
+	    typename...From>
+  std::optional<T> tryAs() const
+  {
+    // Reject proposed source types that can never match the variant.
+    constexpr auto isAlternative=
+      []<typename S,
+	 typename...Alternatives>(const std::variant<Alternatives...>*)
+      {
+	return (std::is_same_v<S,Alternatives> or ...);
+      };
+    static_assert((isAlternative.template operator()<From>(static_cast<const ValueT*>(nullptr)) and ...),
+		  "tryAs: each From type must be a ValueT alternative");
+    
+    /// Store the result and is returned
+    std::optional<T> result;
+    
+    // Try to retrieve the stored value as S and convert it to T.
+    auto attempt=
+      [&]<typename S>()
+      {
+	return std::visit([&](const auto& source)
+	{
+	  // Match the proposed source type, not any type convertible to T.
+	  if constexpr(std::is_same_v<S,std::remove_cvref_t<decltype(source)>>)
+	    {
+	      result.emplace(static_cast<T>(source));
+	      return true;
+	    }
+	  else
+	    return false;
+	},data);
+      };
+    
+    // Try T first, then From in order, stopping at the first match.
+    (attempt.template operator()<T>() or ... or
+     attempt.template operator()<From>());
+    
+    return result;
+  }
+  
   Value& operator=(const ValueT& oth)
   {
     data=oth;
