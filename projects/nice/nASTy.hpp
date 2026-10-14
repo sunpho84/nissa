@@ -1,3 +1,6 @@
+#ifndef _NASTY_HPP
+#define _NASTY_HPP
+
 #include <any>
 #include <cmath>
 #include <optional>
@@ -1951,7 +1954,7 @@ struct HostMemberInfo
 /// Returns the metadata needed to register T as a member of another host type.
 template <typename T,
 	  typename...Members>
-std::shared_ptr<const HObjectInfo> registerHObject(Evaluator& ev,
+std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
 						   const std::string& name,
 						   const std::tuple<Members...>& members)
 {
@@ -2075,6 +2078,10 @@ std::shared_ptr<const HObjectInfo> registerHObject(Evaluator& ev,
 #define MEMB(NAME) \
   HostMemberInfo{#NAME,&Self::NAME}
 
+/// Describes a nested host member using its registered type metadata.
+#define HMEMB(NAME,INFO) \
+  HostMemberInfo{#NAME,&Self::NAME,(INFO)}
+
 /// Defines static members() from descriptors such as MEMB(field).
 /// Explicit HostMemberInfo descriptors may also be included in the list.
 #define PROVIDE_MEMBERS(TYPE,...)	 \
@@ -2083,3 +2090,5 @@ std::shared_ptr<const HObjectInfo> registerHObject(Evaluator& ev,
     using Self=TYPE;			 \
     return std::make_tuple(__VA_ARGS__); \
   }
+
+#endif
