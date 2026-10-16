@@ -1,24 +1,20 @@
-// Nissa Interface for Correlator Evaluation
+// NICE: Nissa Interpreter for Correlation Evaluation
 
 /**
-  The logic
-  
-  Creation of the AST
-  -------------------
-  Within a script, one can define sources, operators, and functions,
-  which are multiplied or summed. This are represented in terms of an
-  AST, including function definitions and calls, assignement, etc.
-  
-  Execution of the AST
-  -------------------
-  When the AST is exectued, variables are
-  
-  Creation of the lines
-  -------------------------------
-   (contraction for now) triggers the
-  creation of the lines
-  
-**/
+ * NICE uses the general-purpose nASTy parser and evaluator to interpret scripts
+ * for correlation-function work. Scripts can define variables, functions, and
+ * structs, and call registered C++ functions and constructors. NICE supplies
+ * the correlation-specific bindings and will wire them into calculations
+ *
+ * The prepareInput bindings expose concrete parameters, such as Momentum and
+ * Prop, as host objects. Their metadata defines the fields scripts may read
+ * or assign and the function used to print them. These values can then be
+ * extracted as their C++ types for use by the prepareInput compiler
+ *
+ * Command-line test modes exercise parsing, evaluation, and the bindings
+ * Registered products build native Oper and Line values. Scheduling complete
+ * calculations and numerical execution remain separate integration steps
+ */
 
 #include <filesystem>
 #include <memory>
