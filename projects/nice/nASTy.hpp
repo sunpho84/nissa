@@ -2367,6 +2367,84 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
   return info;
 }
 
+/// Extract a typed lambda's argument types and invoke it with script values
+template <typename Signature>
+struct HostCallableSignature;
+
+template <typename Owner,
+          typename Return,
+          typename...Arguments>
+struct HostCallableSignature<Return (Owner::*)(Arguments...) const>
+{
+  static constexpr std::size_t arity=sizeof...(Arguments);
+  
+  /// Concretize required arguments in signature order, then call the lambda
+  template <typename Callable>
+  static Value invoke(Callable& callable,
+                      const std::vector<std::shared_ptr<Value>>& values,
+                      const char* functionName)
+  {
+    auto arguments=
+      hostArgumentsTypeConcretizer<std::remove_cvref_t<Arguments>...>(values,functionName);
+    
+    if constexpr(std::is_void_v<Return>)
+      {
+        std::apply(callable,arguments);
+        
+        return {};
+      }
+    else if constexpr(std::is_same_v<Return,Value>)
+      return std::apply(callable,arguments);
+    else
+      return {std::apply(callable,arguments)};
+  }
+};
+
+/// Mutable lambdas have the same script argument contract
+template <typename Owner,
+          typename Return,
+          typename...Arguments>
+struct HostCallableSignature<Return (Owner::*)(Arguments...)> :
+  HostCallableSignature<Return (Owner::*)(Arguments...) const>
+{
+};
+
+/// Install a typed C++ lambda as a script function
+/// The provided names correspond to its parameters and enable named arguments
+/// Its captured references must outlive the evaluator's registered function
+template <typename Callable>
+void registerHostFunction(Evaluator& evaluator,
+                          const std::string& name,
+                          std::vector<std::string> argumentNames,
+                          Callable callable)
+{
+  using Signature=
+    HostCallableSignature<decltype(&Callable::operator())>;
+  
+  if(name.empty())
+    errorEmitter("host function name must not be empty");
+  
+  if(argumentNames.size()!=Signature::arity)
+    errorEmitter("argument name count does not match signature of ",name);
+  
+  for(std::size_t i=0;i<argumentNames.size();++i)
+    {
+      if(argumentNames[i].empty())
+        errorEmitter("empty argument name in ",name);
+      
+      for(std::size_t j=0;j<i;++j)
+        if(argumentNames[i]==argumentNames[j])
+          errorEmitter("duplicate argument name ",argumentNames[i]," in ",name);
+    }
+  
+  (*evaluator.curEnv)[name]=HostFunction{
+    [callable=std::move(callable),name](std::vector<std::shared_ptr<Value>>& values,
+                                      Evaluator&) mutable -> Value
+    {
+      return Signature::invoke(callable,values,name.c_str());
+    },std::move(argumentNames)};
+}
+
 /// Registers Type under its C++ identifier, using its static members() function
 /// Use an unqualified type name or alias that is also a valid script identifier
 /// Returns the shared metadata, just like registerHObject
