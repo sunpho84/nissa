@@ -443,6 +443,51 @@ struct Value
   ValueT data;
 };
 
+/// Recover the actual C++ type T from the given positional host-function argument
+/// Named script arguments have already been placed in their signature positions
+/// T is either a ValueT alternative or the concrete payload of an HObject
+/// Require an exact type match, without copying or performing numeric conversions
+/// The returned reference borrows the argument cell and must not outlive it
+template <typename T>
+const T& hostArgumentTypeConcretizer(const std::vector<std::shared_ptr<Value>>& arguments,
+                                    const std::size_t index,
+                                    const char* functionName)
+{
+  if(index>=arguments.size() or not arguments[index])
+    errorEmitter("missing argument ",index," to ",functionName);
+  
+  const ValueT& data=
+    arguments[index]->data;
+  const T* value=nullptr;
+  
+  if constexpr(VariantAlternative<T,ValueT>)
+    value=std::get_if<T>(&data);
+  else if(const auto* object=std::get_if<HObject>(&data))
+    value=std::any_cast<T>(&object->data);
+  
+  if(not value)
+    errorEmitter("invalid argument ",index," to ",functionName,
+                 " (expected ",typeid(T).name(),")");
+  
+  return *value;
+}
+
+/// Recover positional arguments as a tuple of their actual C++ types for std::apply
+/// Types follow signature order; every argument is required and extras are rejected
+/// Tuple elements are const references borrowing the argument cells
+template <typename...T>
+std::tuple<const T&...> hostArgumentsTypeConcretizer(const std::vector<std::shared_ptr<Value>>& arguments,
+                                                   const char* functionName)
+{
+  if(arguments.size()>sizeof...(T))
+    errorEmitter("too many arguments to ",functionName);
+  
+  return [&]<std::size_t...I>(std::index_sequence<I...>)
+  {
+    return std::tuple<const T&...>{hostArgumentTypeConcretizer<T>(arguments,I,functionName)...};
+  }(std::index_sequence_for<T...>{});
+}
+
 inline std::ostream& operator<<(std::ostream& os,
 				const Value& v)
 {
