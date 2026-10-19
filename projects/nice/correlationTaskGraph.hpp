@@ -1,5 +1,5 @@
-#ifndef _TASK_GRAPH_HPP
-#define _TASK_GRAPH_HPP
+#ifndef _CORRELATION_TASK_GRAPH_HPP
+#define _CORRELATION_TASK_GRAPH_HPP
 
 #include "corrParts.hpp"
 
@@ -79,8 +79,8 @@ namespace nissa::nice
     bool operator==(const OutputBlock&) const=default;
   };
   
-  /// Complete graph of reusable tasks; validate after any direct edits
-  struct TaskGraph
+  /// Validated correlation-building steps; validate after any direct edits
+  struct CorrelationTaskGraph
   {
     /// Tasks in stable dependency-first ID order
     std::vector<Task> tasks;
@@ -89,7 +89,7 @@ namespace nissa::nice
     std::vector<OutputBlock> outputs;
     
     /// Take ownership of a complete graph and validate its structure
-    TaskGraph(std::vector<Task> tasks,
+    CorrelationTaskGraph(std::vector<Task> tasks,
 	      std::vector<OutputBlock> outputs) :
       tasks(std::move(tasks)),
       outputs(std::move(outputs))

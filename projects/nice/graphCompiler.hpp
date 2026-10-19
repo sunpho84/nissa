@@ -2,7 +2,7 @@
 #define _GRAPH_COMPILER_HPP
 
 #include "nice/correlations.hpp"
-#include "taskGraph.hpp"
+#include "correlationTaskGraph.hpp"
 
 namespace nissa::nice
 {
@@ -92,7 +92,7 @@ namespace nissa::nice
       }
       
       /// Lower each requested trace and preserve the block's output order
-      TaskGraph build(const Correlations& correlations)
+      CorrelationTaskGraph build(const Correlations& correlations)
       {
         std::set<std::string> blockNames;
         
@@ -124,13 +124,13 @@ namespace nissa::nice
             outputs.push_back(std::move(output));
           }
         
-        return TaskGraph(std::move(tasks),std::move(outputs));
+        return CorrelationTaskGraph(std::move(tasks),std::move(outputs));
       }
     };
   }
   
   /// Lower requested symbolic lines and traces into one validated reusable graph
-  inline TaskGraph buildTaskGraph(const Correlations& correlations)
+  inline CorrelationTaskGraph buildTaskGraph(const Correlations& correlations)
   {
     internal::GraphBuilder builder;
     

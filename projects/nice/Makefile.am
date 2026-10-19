@@ -10,7 +10,9 @@ __top_builddir__bin_nice_SOURCES= \
 	%D%/graphCompiler.hpp \
 	%D%/niceSetup.cpp \
 	%D%/niceSetup.hpp \
-	%D%/taskGraph.hpp
+	%D%/correlationTaskGraph.hpp \
+	%D%/compiledCorrelations.hpp \
+	%D%/schedulingStrategies.hpp
 
 if USE_PREPARE_INPUT
 __top_builddir__bin_nice_SOURCES+=%D%/prepareInput.cpp
