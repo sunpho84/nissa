@@ -17,7 +17,14 @@ __top_builddir__bin_nice_SOURCES= \
 	%D%/legacyInputWriter.cpp \
 	%D%/legacyInputWriter.hpp
 
-if USE_PREPARE_INPUT
-__top_builddir__bin_nice_SOURCES+=%D%/prepareInput.cpp
-endif
+check_PROGRAMS= \
+	$(top_builddir)/bin/nice_validate
+
+TESTS=$(check_PROGRAMS)
+
+__top_builddir__bin_nice_validate_SOURCES= \
+	%D%/validate.cpp \
+	%D%/niceSetup.cpp \
+	%D%/legacyInputWriter.cpp \
+	%D%/corrParts.cpp
 endif
