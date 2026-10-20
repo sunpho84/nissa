@@ -463,6 +463,78 @@ void validateScriptBindings()
   assert(legacyText.find("NGammaContr 1\nV1V1\n")!=std::string::npos);
 }
 
+/// Small parameter type demonstrating the registration contract
+struct ExamplePars
+{
+  int t{4};
+  double weight{1.0};
+  std::string label{"source"};
+  bool enabled{true};
+
+  PROVIDE_NICE_MEMBERS(ExamplePars,
+		 MEMB(t),
+		 MEMB(weight),
+		 MEMB(label),
+		 MEMB(enabled))
+};
+
+/// Concrete nested types; HObject remains an interpreter implementation detail
+struct ExampleGroup
+{
+  ExamplePars pars;
+  int tag{1};
+};
+
+struct ExampleEnvelope
+{
+  ExampleGroup group;
+};
+
+/// Runs through the real parser and evaluator, then checks the concrete C++ values
+void validateHostObjects(const std::string& script)
+{
+  Evaluator ev;
+  const auto parsInfo=REGISTER_HOBJECT(ev,ExamplePars);
+  const auto groupInfo=registerHObject<ExampleGroup>(ev,"ExampleGroup",
+    std::make_tuple(HostMemberInfo{"pars",&ExampleGroup::pars,parsInfo},
+                    HostMemberInfo{"tag",&ExampleGroup::tag}));
+  registerHObject<ExampleEnvelope>(ev,"ExampleEnvelope",
+    std::make_tuple(HostMemberInfo{"group",&ExampleEnvelope::group,groupInfo}));
+  // Keep the checked variables in the outer scope of the script block
+  for(const char* name : {"p","q","defaults","temporary","nested","copy","detached","nestedTemporary","replaced"})
+    (*ev.curEnv)[name]=std::monostate{};
+  const auto parser=getParser();
+  const auto tree=createParseTree(parser,script.c_str());
+  const auto executor=getParseTreeExecuctor(parser.actionStrings);
+  const auto ast=executor.execParseTree(tree);
+  std::visit(ev,*ast);
+
+  auto pars=[&](const std::string& name)->const ExamplePars&
+  {
+    return std::any_cast<const ExamplePars&>(std::get<HObject>(ev.curEnv->at(name).data).data);
+  };
+  const auto& p=pars("p");
+  const auto& q=pars("q");
+  const auto& defaults=pars("defaults");
+  if(p.t!=7 or p.weight!=2.5 or p.label!="original" or not p.enabled or
+     q.t!=10 or q.weight!=5.0 or q.label!="copy" or q.enabled or
+     defaults.t!=4 or defaults.weight!=1.0 or defaults.label!="source" or not defaults.enabled or
+     std::get<int>(ev.curEnv->at("temporary").data)!=9)
+    errorEmitter("host object registration test failed");
+  auto envelope=[&](const std::string& name)->const ExampleEnvelope&
+  {
+    return std::any_cast<const ExampleEnvelope&>(std::get<HObject>(ev.curEnv->at(name).data).data);
+  };
+  const auto& nested=envelope("nested");
+  const auto& copy=envelope("copy");
+  if(nested.group.pars.t!=14 or nested.group.pars.weight!=6.0 or nested.group.tag!=17 or
+     copy.group.pars.t!=7 or copy.group.pars.weight!=2.5 or
+     pars("detached").t!=99 or envelope("replaced").group.pars.t!=21 or
+     envelope("replaced").group.pars.weight!=1.0 or
+     std::get<int>(ev.curEnv->at("nestedTemporary").data)!=4)
+    errorEmitter("nested host reference test failed");
+}
+
 int main(int argc,char** argv)
 {
   validateCorrParts();
@@ -471,4 +543,32 @@ int main(int argc,char** argv)
   validateScheduling(argc,argv);
   validateLegacyWriter(argc,argv);
   validateScriptBindings();
+  validateHostObjects(R"(
+    {
+      defaults = ExamplePars();
+      p = ExamplePars(7, .label="original", .weight=2.5);
+      q = p;
+      q.t += 3;
+      q.weight *= 2;
+      q.label = "copy";
+      q.enabled = 0;
+      temporary = ExamplePars(.t=9).t;
+      nested = ExampleEnvelope(.group=ExampleGroup(.pars=p));
+      copy = nested;
+      detached = nested.group.pars;
+      detached.t = 99;
+      nested.group.pars.t += 5;
+      nested.group.pars.weight = 6;
+      nested.group.tag = 8;
+      fun changeSibling()
+      {
+        nested.group.tag = 17;
+        return 2;
+      }
+      nested.group.pars.t += changeSibling();
+      replaced = nested;
+      replaced.group.pars = ExamplePars(.t=21);
+      nestedTemporary = ExampleEnvelope().group.pars.t;
+    }
+    )");
 }
