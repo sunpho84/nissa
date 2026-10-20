@@ -1,7 +1,10 @@
 #include "niceSetup.hpp"
 
 #include "correlations.hpp"
+#include "graphCompiler.hpp"
+#include "legacyInputWriter.hpp"
 #include "nASTy.hpp"
+#include "schedulingStrategies.hpp"
 
 #include <string>
 
@@ -154,6 +157,16 @@ namespace nissa::nice
                                          const Line& forward)
     {
       correlations.block(name).addTrace(backward,forward);
+    });
+    
+    registerHostFunction(evaluator,"writeLegacyInput",{},[&correlations]()
+    {
+      const CorrelationTaskGraph graph=
+        buildTaskGraph(correlations);
+      const CompiledCorrelations compiled=
+        scheduleCorrelations(graph);
+      
+      return writeLegacyInput(compiled);
     });
   }
 }
