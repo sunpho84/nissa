@@ -128,18 +128,18 @@ those mechanisms.
 compiled instructions as prepareInput source, propagator, and contraction
 tables. It derives display names locally, including deterministic generated
 names, and represents weighted dependencies with the legacy `LINCOMB` field.
-Those names do not affect task identity or scheduling. A small fixture in
-[`legacyInputWriter.cpp` (test)](../test/projects/nice/legacyInputWriter.cpp)
-compares the output byte for byte with the old `Run` printer.
+Those names do not affect task identity or scheduling. A fixture in
+[`validate.cpp`](../projects/nice/validate.cpp) compares the output byte for
+byte with the old `Run` printer.
 
-With ParsePact enabled, build and run the NICE tests using:
+With ParsePact enabled, build and run the NICE validation executable using:
 
 ```sh
 make -C <build-directory>/projects check
 ```
 
-The six tests cover correlation parts, graph validation, lowering, scheduling,
-legacy output, and the script binding chain. The executable's
+The single validation executable checks correlation parts, graph validation,
+lowering, scheduling, legacy output, and the script binding chain. The executable's
 `--test-hobjects` mode exercises generic host-object registration. The old
 `prepareInput.cpp` adapter and its `--test-prepare-*` modes have been removed.
 
