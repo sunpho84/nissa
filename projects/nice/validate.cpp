@@ -5,6 +5,7 @@
 #include "schedulingStrategies.hpp"
 #include "legacyInputWriter.hpp"
 #include "niceSetup.hpp"
+#include "nice.hpp"
 #include "nASTy.hpp"
 
 #include <algorithm>
@@ -323,7 +324,8 @@ void validateLegacyWriter(int argc,char** argv)
 
 void validateScriptBindings()
 {
-  Correlations correlations;
+  Nice nice;
+  Correlations& correlations=nice.correlations;
   Evaluator evaluator;
   setupNice(evaluator,correlations);
   registerHostFunction(evaluator,"identity",{"value"},[](const int value)
@@ -417,7 +419,7 @@ void validateScriptBindings()
     )");
   
   const CorrelationTaskGraph graph=buildTaskGraph(correlations);
-  const CompiledCorrelations compiled=scheduleCorrelations(graph,scheduleByOutput);
+  const CompiledCorrelations compiled=nice.compile(scheduleByOutput);
   assert(compiled.outputs.size()==1);
   assert(compiled.instructions.size()==graph.tasks.size());
 
@@ -456,7 +458,7 @@ void validateScriptBindings()
   assert(momentumProduct==Momentum({2,4,6}));
   const std::string& legacyText=
     std::get<std::string>(evaluator.curEnv->at("legacyText").data);
-  assert(legacyText==writeLegacyInput(scheduleCorrelations(buildTaskGraph(correlations))));
+  assert(legacyText==writeLegacyInput(nice.compile()));
   assert(legacyText.find("NMes2PtsContrBlocks  2\n")!=std::string::npos);
   assert(legacyText.find("NGammaContr 1\nV1V1\n")!=std::string::npos);
 }

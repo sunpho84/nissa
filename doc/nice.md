@@ -49,19 +49,19 @@ rejected. A `Source` has a realization identity: copying it retains that
 identity, while constructing another source allocates a new one. Scripts can
 read its `tSelect` field but cannot assign its internal `count` identity.
 
-A C++ caller can build a request and compile it directly:
+A C++ caller can use [`nice.hpp`](../projects/nice/nice.hpp) to own requests
+and compile them:
 
 ```cpp
 using namespace nissa::nice;
 
-Correlations correlations;
-auto& block=correlations.addBlock("pion");
+Nice nice;
+auto& block=nice.correlations.addBlock("pion");
 block.addGammas(5,5);
 const Line line(Source{0});
 block.addTrace(line,line);
 
-const CorrelationTaskGraph graph=buildTaskGraph(correlations);
-const CompiledCorrelations compiled=scheduleCorrelations(graph);
+const CompiledCorrelations compiled=nice.compile();
 const std::string text=writeLegacyInput(compiled);
 ```
 
@@ -116,8 +116,9 @@ correlations)`, a script can express:
 }
 ```
 
-The caller owns `Correlations` and must keep it alive while the evaluator's
-registered functions use it. [`nASTy.hpp`](../projects/nice/nASTy.hpp)
+The caller keeps the `Correlations` object, or its owning `Nice` instance,
+alive while the evaluator's registered functions use it.
+[`nASTy.hpp`](../projects/nice/nASTy.hpp)
 provides generic host-object registration and positional/named argument
 conversion; [`host-objects.md`](../projects/nice/host-objects.md) documents
 those mechanisms.
@@ -139,7 +140,7 @@ make -C <build-directory>/projects check
 ```
 
 The single validation executable checks correlation parts, graph validation,
-lowering, scheduling, legacy output, and the script binding chain. The executable's
-`--test-hobjects` mode exercises generic host-object registration. The old
+lowering, scheduling, legacy output, the script binding chain, the `Nice`
+facade, and generic host-object registration. The old
 `prepareInput.cpp` adapter and its `--test-prepare-*` modes have been removed.
 

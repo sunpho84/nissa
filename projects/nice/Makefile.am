@@ -1,10 +1,12 @@
 if USE_PARSE_PACT
-bin_PROGRAMS+= \
-	$(top_builddir)/bin/nice
+check_PROGRAMS= \
+	$(top_builddir)/bin/nice_validate
 
-__top_builddir__bin_nice_SOURCES= \
-	%D%/nice.cpp \
-	%D%/corrParts.cpp \
+TESTS=$(check_PROGRAMS)
+
+__top_builddir__bin_nice_validate_SOURCES= \
+	%D%/validate.cpp \
+	%D%/nice.hpp \
 	%D%/corrParts.hpp \
 	%D%/correlations.hpp \
 	%D%/graphCompiler.hpp \
@@ -15,16 +17,6 @@ __top_builddir__bin_nice_SOURCES= \
 	%D%/compiledCorrelations.hpp \
 	%D%/schedulingStrategies.hpp \
 	%D%/legacyInputWriter.cpp \
-	%D%/legacyInputWriter.hpp
-
-check_PROGRAMS= \
-	$(top_builddir)/bin/nice_validate
-
-TESTS=$(check_PROGRAMS)
-
-__top_builddir__bin_nice_validate_SOURCES= \
-	%D%/validate.cpp \
-	%D%/niceSetup.cpp \
-	%D%/legacyInputWriter.cpp \
+	%D%/legacyInputWriter.hpp \
 	%D%/corrParts.cpp
 endif
