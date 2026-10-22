@@ -16,7 +16,9 @@
 */
 
 #include <any>
+#include <array>
 #include <cmath>
+#include <functional>
 #include <optional>
 #include <tuple>
 #include <utility>
@@ -531,6 +533,36 @@ struct HObjectMemberRef
   }
 };
 
+/// Adapt a native binary functor and a diagnostic name to script dispatch
+/// std::array is a structural C++20 template argument for the name
+template <typename NativeOperator,
+          auto Name>
+struct BinaryOperator
+{
+  static constexpr const char* name=Name.data();
+  
+  template <typename L,
+            typename R>
+  requires requires(const L& lhs,
+                    const R& rhs)
+  {
+    NativeOperator{}(lhs,rhs);
+  }
+  auto operator()(const L& lhs,
+                  const R& rhs) const
+  {
+    return NativeOperator{}(lhs,rhs);
+  }
+};
+
+/// Addition with its script error name
+using SumOperator=
+  BinaryOperator<std::plus<>,std::to_array("sum")>;
+
+/// Multiplication with its script error name
+using ProductOperator=
+  BinaryOperator<std::multiplies<>,std::to_array("product")>;
+
 /// Shared description of a registered host type and its supported operations
 /// Member providers bind accessors to an individual value supplied at access time
 struct HObjectInfo
@@ -541,93 +573,118 @@ struct HObjectInfo
   /// Factories binding named member accessors to the supplied concrete value
   std::unordered_map<std::string,std::function<HObjectMemberRef::Accessors(std::any&)>> memberAccessorsProvider;
   
-  /// Type needed to store the product with other
-  using Product=
+  /// Callable for one concrete pair of binary operands
+  using BinaryFunction=
     std::function<Value(const std::any&,const std::any&)>;
   
-  /// Product with the other type which is used as key map
-  std::unordered_map<std::type_index,Product> products;
+  /// Concrete overloads for one binary operator
+  struct BinaryOverloads
+  {
+    /// Right operand types when this host object is on the left
+    std::unordered_map<std::type_index,BinaryFunction> rightOperands;
+    
+    /// Left scalar types when this host object is on the right
+    std::unordered_map<std::type_index,BinaryFunction> leftOperands;
+  };
   
-  /// Products with a scalar on the left and present host type on the right
-  std::unordered_map<std::type_index,Product> leftProducts;
+  /// Binary operators keyed by their operation type
+  std::unordered_map<std::type_index,BinaryOverloads> binaryOperations;
   
   /// Write the value to the stream
   std::function<void(std::ostream&,const std::any&)> streamOp;
 };
 
-/// Multiply scalar values directly, or dispatch using a host operand's metadata
-/// Host-host products are looked up on the left operand; operand order is retained
-inline Value multiplyValues(const Value& lhs,
-			    const Value& rhs)
+/// Dispatch a registered host operation or apply it to script values directly
+/// Host-host and host-scalar pairs preserve their original operand order
+template <typename Operator>
+Value applyBinaryOperator(const Value& lhs,
+                          const Value& rhs)
 {
   return std::visit([]<typename L,
-		    typename R>(const L& left,
-				const R& right)->Value
-		    {
-		      if constexpr(std::is_same_v<L,HObject>)
-			{
-			  if constexpr(std::is_same_v<R,HObject>)
-			    {
-			      if(auto it=left.info->products.find(right.data.type());it!=left.info->products.end())
-				return it->second(left.data,right.data);
-			      errorEmitter("unsupported product: ",left.info->name," * ",right.info->name);
-			    }
-			  else
-			    {
-			      if(auto it=left.info->products.find(typeid(R));it!=left.info->products.end())
-				return it->second(left.data,std::any(right));
-			      errorEmitter("unsupported product: ",left.info->name," * ",typeid(R).name());
-			    }
-			}
-		      else if constexpr(std::is_same_v<R,HObject>)
-			{
-			  if(auto it=right.info->leftProducts.find(typeid(L));it!=right.info->leftProducts.end())
-			    return it->second(std::any(left),right.data);
-			  errorEmitter("unsupported product: ",typeid(L).name()," * ",right.info->name);
-			}
-		      else if constexpr(requires {left*right;})
-			return {left*right};
-		      else
-			errorEmitter("unsupported product: ",typeid(L).name()," * ",typeid(R).name());
-		      
-		      return {};
-		    },lhs.data,rhs.data);
+                     typename R>(const L& left,
+                                 const R& right)->Value
+  {
+    const auto typeName=[](const auto& operand)->std::string
+    {
+      if constexpr(std::is_same_v<std::remove_cvref_t<decltype(operand)>,HObject>)
+        return operand.info->name;
+      else
+        return typeid(operand).name();
+    };
+    
+    if constexpr(std::is_same_v<L,HObject>)
+      {
+        const auto operation=left.info->binaryOperations.find(typeid(Operator));
+        if(operation!=left.info->binaryOperations.end())
+          {
+            if constexpr(std::is_same_v<R,HObject>)
+              {
+                const auto found=operation->second.rightOperands.find(right.data.type());
+                if(found!=operation->second.rightOperands.end())
+                  return found->second(left.data,right.data);
+              }
+            else
+              {
+                const auto found=operation->second.rightOperands.find(typeid(R));
+                if(found!=operation->second.rightOperands.end())
+                  return found->second(left.data,std::any(right));
+              }
+          }
+      }
+    else if constexpr(std::is_same_v<R,HObject>)
+      {
+        const auto operation=right.info->binaryOperations.find(typeid(Operator));
+        if(operation!=right.info->binaryOperations.end())
+          {
+            const auto found=operation->second.leftOperands.find(typeid(L));
+            if(found!=operation->second.leftOperands.end())
+              return found->second(std::any(left),right.data);
+          }
+      }
+    else if constexpr(requires {Operator{}(left,right);})
+      return {Operator{}(left,right)};
+    
+    errorEmitter("unsupported ",Operator::name,": ",typeName(left),
+                 " and ",typeName(right));
+    return {};
+  },lhs.data,rhs.data);
 }
 
-/// Bind a native L * R expression to host metadata; a scalar operand has null metadata
-/// resultInfo must describe decltype(L * R). Register the result type first
-/// The evaluator owns result metadata; weak captures avoid cycles in registered functions
-template <typename L,
-	  typename R>
+/// Bind a native binary operation to host metadata
+/// A scalar operand has null metadata; result metadata must already exist
+template <typename Operator,
+          typename L,
+          typename R>
 requires requires(const L& lhs,
-		  const R& rhs)
+                  const R& rhs)
 {
-  lhs*rhs;
+  Operator{}(lhs,rhs);
 }
-void registerHObjectProduct(const std::shared_ptr<HObjectInfo>& lhsInfo,
-			    const std::shared_ptr<HObjectInfo>& rhsInfo,
-			    const std::shared_ptr<HObjectInfo>& resultInfo)
+void registerHObjectBinaryOperator(const std::shared_ptr<HObjectInfo>& lhsInfo,
+                                   const std::shared_ptr<HObjectInfo>& rhsInfo,
+                                   const std::shared_ptr<HObjectInfo>& resultInfo)
 {
   if(not resultInfo or (not lhsInfo and not rhsInfo))
-    errorEmitter("a host product requires operand and result metadata");
+    errorEmitter("a host binary operation requires operand and result metadata");
   
-  HObjectInfo::Product product=
+  HObjectInfo::BinaryFunction function=
     [result=std::weak_ptr<HObjectInfo>(resultInfo)](const std::any& lhs,
-						    const std::any& rhs)->Value
-    {
-      auto info=
-	result.lock();
-      
-      if(not info)
-	errorEmitter("product result metadata is no longer registered");
-      
-      return {HObject{info,std::any_cast<const L&>(lhs)*std::any_cast<const R&>(rhs)}};
-    };
+                                                    const std::any& rhs)->Value
+  {
+    auto info=result.lock();
+    if(not info)
+      errorEmitter("binary operation result metadata is no longer registered");
+    
+    return {HObject{info,Operator{}(std::any_cast<const L&>(lhs),
+                                    std::any_cast<const R&>(rhs))}};
+  };
   
   if(lhsInfo)
-    lhsInfo->products[typeid(R)]=std::move(product);
+    lhsInfo->binaryOperations[typeid(Operator)].rightOperands[typeid(R)]=
+      std::move(function);
   else
-    rhsInfo->leftProducts[typeid(L)]=std::move(product);
+    rhsInfo->binaryOperations[typeid(Operator)].leftOperands[typeid(L)]=
+      std::move(function);
 }
 
 inline std::ostream& operator<<(std::ostream& os,
@@ -1158,11 +1215,13 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 			      arg1.data,arg2.data);			\
 	  }}))
   
-  DEFINE_BINOP(+,Sum);
+  PROVIDE_ACTION_WITH_N_SYMBOLS("binarySum",2,
+				return std::make_shared<ASTNode>(BinOpNode{
+				  .arg1=subNodes[0],.arg2=subNodes[1],.op=applyBinaryOperator<SumOperator>}));
   DEFINE_BINOP(-,Diff);
   PROVIDE_ACTION_WITH_N_SYMBOLS("binaryProd",2,
 				return std::make_shared<ASTNode>(BinOpNode{
-				  .arg1=subNodes[0],.arg2=subNodes[1],.op=multiplyValues}));
+				  .arg1=subNodes[0],.arg2=subNodes[1],.op=applyBinaryOperator<ProductOperator>}));
   DEFINE_BINOP(/,Div);
   DEFINE_BINOP(%,Mod);
   DEFINE_BINOP(<,Smaller);

@@ -393,7 +393,7 @@ void validateScriptBindings()
   (*evaluator.curEnv)["bw"]=ValueT{HObject{lineInfo,backward}};
   (*evaluator.curEnv)["fw"]=ValueT{HObject{lineInfo,forward}};
   for(const char* name : {"scriptedSource","scriptedCopy","scriptedOper",
-                          "weighted","momentumProduct","legacyText"})
+                          "weighted","sum","momentumProduct","legacyText"})
     (*evaluator.curEnv)[name]=std::monostate{};
   
   const auto parser=
@@ -412,8 +412,10 @@ void validateScriptBindings()
       bw = scriptedOper*scriptedSource;
       fw = Gamma(1)*bw;
       weighted = 2*fw;
+      sum = bw+weighted;
       momentumProduct = 2*Momentum(1,2,3);
       corrTrace(.name="vector",.backward=bw,.forward=fw);
+      corrTrace(.name="vector",.backward=sum,.forward=fw);
       legacyText = writeLegacyInput();
     }
     )");
@@ -450,11 +452,16 @@ void validateScriptBindings()
     std::any_cast<const Oper&>(std::get<HObject>(evaluator.curEnv->at("scriptedOper").data).data);
   const auto& weighted=
     std::any_cast<const Line&>(std::get<HObject>(evaluator.curEnv->at("weighted").data).data);
+  const auto& sum=
+    std::any_cast<const Line&>(std::get<HObject>(evaluator.curEnv->at("sum").data).data);
   const auto& momentumProduct=
     std::any_cast<const Momentum&>(std::get<HObject>(evaluator.curEnv->at("momentumProduct").data).data);
   assert(scriptedSource==scriptedCopy);
   assert(scriptedBackward==scriptedOper*scriptedSource);
   assert(weighted==2*scriptedForward);
+  assert(sum==scriptedBackward+weighted);
+  assert(scripted.traces.size()==2);
+  assert(scripted.traces.back()==std::pair(sum,scriptedForward));
   assert(momentumProduct==Momentum({2,4,6}));
   const std::string& legacyText=
     std::get<std::string>(evaluator.curEnv->at("legacyText").data);

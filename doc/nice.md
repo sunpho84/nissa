@@ -4,9 +4,8 @@ NICE provides C++ types and nASTy bindings for describing correlations,
 turning them into validated tasks, ordering those tasks, and writing a legacy
 prepareInput representation. The correlation types live in
 [`projects/nice/`](../projects/nice/). They do not depend on the old
-prepareInput adapter. Numerical execution and an input-file driver are the
-next development steps, described in
-[`prepare-architecture.md`](../projects/nice/prepare-architecture.md).
+prepareInput adapter. A program frontend and numerical execution are the
+next development steps.
 
 NICE implementation work follows the
 [`implementation conventions`](nissa-conventions.md).
