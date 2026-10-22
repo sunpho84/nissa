@@ -55,10 +55,10 @@ void validateCorrParts()
   assert(reversed.r==1);
   assert(reversed.dag()==prop);
   
-  const Momentum momentum{1,2,3};
+  const SpatMomentum momentum{1,2,3};
   assert(momentum[0]==1 and momentum[2]==3);
   assert(((2.0*momentum).asArray()==std::array<double,3>{2,4,6}));
-  assert(Phase{.mom=momentum}.dag().mom==Momentum({-1,-2,-3}));
+  assert(Phase{.mom=momentum}.dag().mom==SpatMomentum({-1,-2,-3}));
   
   const Oper op=
     prop*Phase{.mom=momentum}*Gamma{.iGamma=5};
@@ -406,14 +406,14 @@ void validateScriptBindings()
       scriptedSource = Source(0);
       scriptedCopy = scriptedSource;
       sm=Smear(.n=2);
-      scriptedOper = Prop(.kappa=0.12,.r=1,.mom=Momentum(1,2,3))
-                     * sm * Phase(.mom=Momentum(.z=1))
+      scriptedOper = Prop(.kappa=0.12,.r=1,.mom=SpatMomentum(1,2,3))
+                     * sm * Phase(.mom=SpatMomentum(.z=1))
                      * Gamma(5) * DeltaT(4);
       bw = scriptedOper*scriptedSource;
       fw = Gamma(1)*bw;
       weighted = 2*fw;
       sum = bw+weighted;
-      momentumProduct = 2*Momentum(1,2,3);
+      momentumProduct = 2*SpatMomentum(1,2,3);
       corrTrace(.name="vector",.backward=bw,.forward=fw);
       corrTrace(.name="vector",.backward=sum,.forward=fw);
       legacyText = writeLegacyInput();
@@ -455,14 +455,14 @@ void validateScriptBindings()
   const auto& sum=
     std::any_cast<const Line&>(std::get<HObject>(evaluator.curEnv->at("sum").data).data);
   const auto& momentumProduct=
-    std::any_cast<const Momentum&>(std::get<HObject>(evaluator.curEnv->at("momentumProduct").data).data);
+    std::any_cast<const SpatMomentum&>(std::get<HObject>(evaluator.curEnv->at("momentumProduct").data).data);
   assert(scriptedSource==scriptedCopy);
   assert(scriptedBackward==scriptedOper*scriptedSource);
   assert(weighted==2*scriptedForward);
   assert(sum==scriptedBackward+weighted);
   assert(scripted.traces.size()==2);
   assert(scripted.traces.back()==std::pair(sum,scriptedForward));
-  assert(momentumProduct==Momentum({2,4,6}));
+  assert(momentumProduct==SpatMomentum({2,4,6}));
   const std::string& legacyText=
     std::get<std::string>(evaluator.curEnv->at("legacyText").data);
   assert(legacyText==writeLegacyInput(nice.compile()));

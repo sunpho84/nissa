@@ -19,16 +19,16 @@
 
 namespace nissa::nice
 {
-  /// Spatial momentum carried by a correlation part
-  struct Momentum
+  /// Three spatial momentum components; temporal boundary conditions are separate
+  struct SpatMomentum
   {
-    /// Momentum component along x
+    /// Spatial momentum component along x
     double x{};
     
-    /// Momentum component along y
+    /// Spatial momentum component along y
     double y{};
     
-    /// Momentum component along z
+    /// Spatial momentum component along z
     double z{};
     
     /// Access x, y or z by axis number; reject any other axis
@@ -39,7 +39,7 @@ namespace nissa::nice
         case 0: return x;
         case 1: return y;
         case 2: return z;
-        default: CRASH("Momentum axis must be 0, 1 or 2");
+        default: CRASH("SpatMomentum axis must be 0, 1 or 2");
         }
     }
     
@@ -51,7 +51,7 @@ namespace nissa::nice
         case 0: return x;
         case 1: return y;
         case 2: return z;
-        default: CRASH("Momentum axis must be 0, 1 or 2");
+        default: CRASH("SpatMomentum axis must be 0, 1 or 2");
         }
     }
     
@@ -62,29 +62,29 @@ namespace nissa::nice
     }
     
     /// Divide each momentum component by the same scalar
-    Momentum operator/(const double divisor) const
+    SpatMomentum operator/(const double divisor) const
     {
       return {x/divisor,y/divisor,z/divisor};
     }
     
     /// Compare momentum components in order
-    auto operator<=>(const Momentum&) const=default;
+    auto operator<=>(const SpatMomentum&) const=default;
   };
   
   /// Print a momentum in the form {x,y,z}
   std::ostream& operator<<(std::ostream& out,
-                           const Momentum& momentum);
+                           const SpatMomentum& momentum);
   
   /// Negate a momentum without creating negative zero components
-  Momentum operator-(const Momentum& momentum);
+  SpatMomentum operator-(const SpatMomentum& momentum);
   
   /// Scale each component of a momentum
-  Momentum operator*(const double weight,
-                     const Momentum& momentum);
+  SpatMomentum operator*(const double weight,
+                         const SpatMomentum& momentum);
   
   /// Scale each component of a momentum with the scalar on the right
-  Momentum operator*(const Momentum& momentum,
-                     const double weight);
+  SpatMomentum operator*(const SpatMomentum& momentum,
+                         const double weight);
   
   /// Smearing parameters, including their momentum phase
   struct Smear
@@ -95,8 +95,8 @@ namespace nissa::nice
     /// Smearing iteration count
     double n{};
     
-    /// Momentum inserted by the smearing
-    Momentum mom{};
+    /// Spatial momentum inserted by the smearing
+    SpatMomentum mom{};
     
     /// Smearing parameters are unchanged by conjugation
     Smear dag() const
@@ -117,11 +117,11 @@ namespace nissa::nice
     auto operator<=>(const Smear&) const=default;
   };
   
-  /// Momentum phase; conjugation reverses its momentum
+  /// Spatial momentum phase; conjugation reverses its momentum
   struct Phase
   {
-    /// Momentum inserted by the phase
-    Momentum mom{};
+    /// Spatial momentum inserted by the phase
+    SpatMomentum mom{};
     
     /// Reverse the momentum under conjugation
     Phase dag() const
@@ -207,7 +207,7 @@ namespace nissa::nice
     double charge{};
     
     /// Propagator momentum
-    Momentum mom{};
+    SpatMomentum mom{};
     
     /// Residue used by the propagator
     double residue{};

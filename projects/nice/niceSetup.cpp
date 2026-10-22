@@ -51,7 +51,7 @@ namespace nissa::nice
               std::remove_cvref_t<decltype(Operator{}(std::declval<Left>(),
                                                        std::declval<R>()))>;
             
-            if constexpr(std::is_same_v<Result,Momentum> or
+            if constexpr(std::is_same_v<Result,SpatMomentum> or
                          std::is_same_v<Result,Oper> or
                          std::is_same_v<Result,Line>)
               registerHObjectBinaryOperator<Operator,Left,R>(
@@ -78,14 +78,14 @@ namespace nissa::nice
     using namespace internal;
     
     auto momentumInfo=
-      registerHObject<Momentum>(evaluator,"Momentum",
-                               std::make_tuple(HostMemberInfo{"x",&Momentum::x},
-                                               HostMemberInfo{"y",&Momentum::y},
-                                               HostMemberInfo{"z",&Momentum::z}));
+      registerHObject<SpatMomentum>(evaluator,"SpatMomentum",
+                                   std::make_tuple(HostMemberInfo{"x",&SpatMomentum::x},
+                                                   HostMemberInfo{"y",&SpatMomentum::y},
+                                                   HostMemberInfo{"z",&SpatMomentum::z}));
     momentumInfo->streamOp=[](std::ostream& out,
                               const std::any& data)
     {
-      out<<std::any_cast<const Momentum&>(data);
+      out<<std::any_cast<const SpatMomentum&>(data);
     };
     
     // A new Source() allocates an identity; copies retain it
@@ -135,9 +135,9 @@ namespace nissa::nice
       registerHObjectType<Line>(evaluator,"Line");
     useDescription<Line>(lineInfo);
     
-    registerBinaryOperators<ProductOperator,int,double,Momentum,Smear,Phase,
+    registerBinaryOperators<ProductOperator,int,double,SpatMomentum,Smear,Phase,
                             Gamma,DeltaT,Prop,Oper,Source,Line>(evaluator);
-    registerBinaryOperators<SumOperator,int,double,Momentum,Smear,Phase,
+    registerBinaryOperators<SumOperator,int,double,SpatMomentum,Smear,Phase,
                             Gamma,DeltaT,Prop,Oper,Source,Line>(evaluator);
   }
   

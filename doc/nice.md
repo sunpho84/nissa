@@ -35,10 +35,13 @@ execute correlations.
 ## Correlation parts and requests
 
 [`corrParts.hpp`](../projects/nice/corrParts.hpp) and
-[`corrParts.cpp`](../projects/nice/corrParts.cpp) define `Momentum`, `Smear`,
+[`corrParts.cpp`](../projects/nice/corrParts.cpp) define `SpatMomentum`, `Smear`,
 `Phase`, `Gamma`, `DeltaT`, `Prop`, `Source`, `Oper`, and `Line`. Products build
 line expressions; line addition and scalar multiplication build weighted
 combinations. The types can be used directly from C++ without nASTy.
+`SpatMomentum` has three spatial components in both C++ and scripts. Temporal
+behavior is specified separately through a boundary condition, normally
+antiperiodic.
 
 [`correlations.hpp`](../projects/nice/correlations.hpp) defines `Correlations`
 as a collection of named `Correlation` blocks. Each block holds distinct

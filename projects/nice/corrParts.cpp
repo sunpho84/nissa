@@ -10,12 +10,12 @@ namespace nissa::nice
   }
   
   std::ostream& operator<<(std::ostream& out,
-                           const Momentum& momentum)
+                           const SpatMomentum& momentum)
   {
     return out<<"{"<<momentum.x<<","<<momentum.y<<","<<momentum.z<<"}";
   }
   
-  Momentum operator-(const Momentum& momentum)
+  SpatMomentum operator-(const SpatMomentum& momentum)
   {
     // Avoid turning a zero component into a negative zero
     const auto negate=
@@ -27,14 +27,14 @@ namespace nissa::nice
     return {negate(momentum.x),negate(momentum.y),negate(momentum.z)};
   }
   
-  Momentum operator*(const double weight,
-                     const Momentum& momentum)
+  SpatMomentum operator*(const double weight,
+                         const SpatMomentum& momentum)
   {
     return {weight*momentum.x,weight*momentum.y,weight*momentum.z};
   }
   
-  Momentum operator*(const Momentum& momentum,
-                     const double weight)
+  SpatMomentum operator*(const SpatMomentum& momentum,
+                         const double weight)
   {
     return weight*momentum;
   }
