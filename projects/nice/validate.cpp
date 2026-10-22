@@ -490,6 +490,42 @@ struct ExampleEnvelope
   ExampleGroup group;
 };
 
+/// Checks unbraced programs, explicit block scope, and an empty program
+void validateProgramGrammar()
+{
+  const auto parser=getParser();
+  const auto executor=getParseTreeExecuctor(parser.actionStrings);
+  
+  int observed{};
+  Evaluator evaluator;
+  registerHostFunction(evaluator,"record",{"value"},[&observed](const int value)
+  {
+    observed=value;
+  });
+  
+  const auto unbracedTree=createParseTree(parser,"value=1; record(value+2);");
+  const auto unbraced=executor.execParseTree(unbracedTree);
+  const auto* unbracedBody=std::get_if<ASTNodesNode>(unbraced.get());
+  assert(unbracedBody and unbracedBody->list.size()==2);
+  std::visit(evaluator,*unbraced);
+  assert(observed==3);
+  
+  const auto bracedTree=createParseTree(parser,"{ value=4; record(value+2); }");
+  const auto braced=executor.execParseTree(bracedTree);
+  const auto* bracedBody=std::get_if<ASTNodesNode>(braced.get());
+  assert(bracedBody and bracedBody->list.size()==1);
+  const auto* block=std::get_if<ASTNodesNode>(bracedBody->list.front().get());
+  assert(block and block->list.size()==2);
+  std::visit(evaluator,*braced);
+  assert(observed==6);
+  
+  const auto emptyTree=createParseTree(parser,"");
+  const auto empty=executor.execParseTree(emptyTree);
+  const auto* emptyBody=std::get_if<ASTNodesNode>(empty.get());
+  assert(emptyBody and emptyBody->list.empty());
+  std::visit(evaluator,*empty);
+}
+
 /// Runs through the real parser and evaluator, then checks the concrete C++ values
 void validateHostObjects(const std::string& script)
 {
@@ -543,6 +579,7 @@ int main(int argc,char** argv)
   validateScheduling(argc,argv);
   validateLegacyWriter(argc,argv);
   validateScriptBindings();
+  validateProgramGrammar();
   validateHostObjects(R"(
     {
       defaults = ExamplePars();

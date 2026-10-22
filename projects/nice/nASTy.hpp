@@ -76,6 +76,8 @@ inline auto getParser()
     "   %left \"\\+\\+\";"
     "   %none FUNCTION_CALL;"
     ""
+    "   program : statements [return($0)]"
+    "           ;"
     "   statement : expression_statement [return($0)]"
     "             | compound_statement [return($0)]"
     "             | forStatement [return($0)]"
