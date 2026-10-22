@@ -92,7 +92,7 @@ operations.
 ## Script bindings
 
 [`niceSetup.cpp`](../projects/nice/niceSetup.cpp) registers the correlation
-parts, their supported products, and these host functions:
+parts, their supported products, `Line + Line`, and these host functions:
 
 - `corrBlock(name)` creates a named block
 - `corrGammas(name,sink,source)` adds a gamma pair to that block
@@ -121,6 +121,11 @@ alive while the evaluator's registered functions use it.
 provides generic host-object registration and positional/named argument
 conversion; [`host-objects.md`](../projects/nice/host-objects.md) documents
 those mechanisms.
+
+The parser accepts multiple top-level statements without enclosing braces.
+Braces create a nested block. A future program frontend can combine the
+top-level statements from files and command-line text into one outer scope;
+names declared inside an explicit block remain local to that block.
 
 ## Legacy output and verification
 
