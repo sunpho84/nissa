@@ -33,39 +33,43 @@ namespace nissa::nice
       return found==evaluator.hostObjectTypes.end()?nullptr:found->second;
     }
     
-    /// Register supported native products for one left operand
-    template <typename Left,
+    /// Register supported native binary operations for one left operand
+    template <typename Operator,
+              typename Left,
               typename...Right>
-    void registerProductsFor(Evaluator& evaluator)
+    void registerBinaryOperatorsFor(Evaluator& evaluator)
     {
       const auto add=[&]<typename R>()
       {
         if constexpr(requires(const Left& left,
                               const R& right)
         {
-          left*right;
+          Operator{}(left,right);
         })
           {
             using Result=
-              std::remove_cvref_t<decltype(std::declval<Left>()*std::declval<R>())>;
+              std::remove_cvref_t<decltype(Operator{}(std::declval<Left>(),
+                                                       std::declval<R>()))>;
             
             if constexpr(std::is_same_v<Result,Momentum> or
                          std::is_same_v<Result,Oper> or
                          std::is_same_v<Result,Line>)
-              registerHObjectProduct<Left,R>(metadata(evaluator,typeid(Left)),
-                                             metadata(evaluator,typeid(R)),
-                                             evaluator.hostObjectTypes.at(typeid(Result)));
+              registerHObjectBinaryOperator<Operator,Left,R>(
+                metadata(evaluator,typeid(Left)),
+                metadata(evaluator,typeid(R)),
+                evaluator.hostObjectTypes.at(typeid(Result)));
           }
       };
       
       (add.template operator()<Right>(),...);
     }
     
-    /// Populate all supported ordered operand pairs
-    template <typename...Types>
-    void registerProducts(Evaluator& evaluator)
+    /// Populate supported ordered operand pairs for one operator
+    template <typename Operator,
+              typename...Types>
+    void registerBinaryOperators(Evaluator& evaluator)
     {
-      (registerProductsFor<Types,Types...>(evaluator),...);
+      (registerBinaryOperatorsFor<Operator,Types,Types...>(evaluator),...);
     }
   }
   
@@ -125,11 +129,16 @@ namespace nissa::nice
       parameter.template operator()<Self>("DeltaT",std::make_tuple(MEMB(t)));
     }
     
-    // Products construct these results; neither type has a default constructor
+    // Binary operations construct these results; neither type has a default constructor
     useDescription<Oper>(registerHObjectType<Oper>(evaluator,"Oper"));
-    useDescription<Line>(registerHObjectType<Line>(evaluator,"Line"));
+    auto lineInfo=
+      registerHObjectType<Line>(evaluator,"Line");
+    useDescription<Line>(lineInfo);
     
-    registerProducts<int,double,Momentum,Smear,Phase,Gamma,DeltaT,Prop,Oper,Source,Line>(evaluator);
+    registerBinaryOperators<ProductOperator,int,double,Momentum,Smear,Phase,
+                            Gamma,DeltaT,Prop,Oper,Source,Line>(evaluator);
+    registerBinaryOperators<SumOperator,int,double,Momentum,Smear,Phase,
+                            Gamma,DeltaT,Prop,Oper,Source,Line>(evaluator);
   }
   
   void setupNice(Evaluator& evaluator,

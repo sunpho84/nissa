@@ -92,7 +92,8 @@ operations.
 ## Script bindings
 
 [`niceSetup.cpp`](../projects/nice/niceSetup.cpp) registers the correlation
-parts, their supported products, `Line + Line`, and these host functions:
+parts, their supported native binary operations (including `Line + Line`),
+and these host functions:
 
 - `corrBlock(name)` creates a named block
 - `corrGammas(name,sink,source)` adds a gamma pair to that block
