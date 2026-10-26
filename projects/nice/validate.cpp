@@ -497,7 +497,7 @@ struct ExampleEnvelope
   ExampleGroup group;
 };
 
-/// Checks unbraced programs, explicit block scope, and an empty program
+/// Check program scope and C/C++ arithmetic precedence and associativity
 void validateProgramGrammar()
 {
   const auto parser=getParser();
@@ -531,6 +531,32 @@ void validateProgramGrammar()
   const auto* emptyBody=std::get_if<ASTNodesNode>(empty.get());
   assert(emptyBody and emptyBody->list.empty());
   std::visit(evaluator,*empty);
+  
+  const std::pair<const char*,int> precedenceChecks[]{
+    {"record(10-3-2);",5},
+    {"record(16/4/2);",2},
+    {"record(8-3+2);",7},
+    {"record(8*3/2);",12},
+    {"record(8%3*2);",4},
+    {"record(20/3%2);",0},
+    {"record(2+3*4);",14},
+    {"record((2+3)*4);",20},
+    {"record((3>2<1)+0);",0},
+    {"record((0==1!=2)+0);",1},
+    {"record((0==1<2)+0);",0},
+    {"record((1 or 0 and 0)+0);",1},
+    {"a=b=7; record(a*10+b);",77},
+    {"a=1; b=2; c=3; a=b=c; record(a*100+b*10+c);",333}};
+  
+  for(const auto& [script,expected] : precedenceChecks)
+    {
+      const auto tree=
+        createParseTree(parser,script);
+      const auto ast=
+        executor.execParseTree(tree);
+      std::visit(evaluator,*ast);
+      assert(observed==expected);
+    }
 }
 
 /// Runs through the real parser and evaluator, then checks the concrete C++ values
