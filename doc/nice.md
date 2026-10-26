@@ -131,6 +131,13 @@ Braces create a nested block. A future program frontend can combine the
 top-level statements from files and command-line text into one outer scope;
 names declared inside an explicit block remain local to that block.
 
+Binary operator precedence follows C/C++ for the supported operators.
+Operators in each group share a precedence level: assignments, equality
+comparisons, relational comparisons, addition/subtraction, and
+multiplication/division/remainder. Arithmetic and comparisons associate to
+the left; assignments associate to the right. Thus `8-3+2` is `(8-3)+2`,
+`8*3/2` is `(8*3)/2`, and `a=b=c` is `a=(b=c)`.
+
 ## Legacy output and verification
 
 [`legacyInputWriter.cpp`](../projects/nice/legacyInputWriter.cpp) renders the
