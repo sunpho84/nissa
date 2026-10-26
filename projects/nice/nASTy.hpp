@@ -1922,7 +1922,7 @@ struct Evaluator
 	},std::visit(*this,*ifNode.subNodes[0]).asRhs().data))
       std::visit(*this,*ifNode.subNodes[1]);
     else
-      if(ifNode.subNodes.size()>=2)
+      if(ifNode.subNodes.size()>=3)
 	std::visit(*this,*ifNode.subNodes[2]);
     
     return {};
