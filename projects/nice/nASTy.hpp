@@ -1348,7 +1348,17 @@ struct Evaluator
       return not std::holds_alternative<std::monostate>(ref);
     }
     
+    /// Temporary value, absent when evaluation produces no value
     std::optional<Value> value;
+    
+    /// Whether a temporary value is available independently of any reference
+    bool hasValue() const
+    {
+      return value.has_value();
+    }
+    
+    /// Whether execution must unwind to the enclosing script function
+    bool isReturn{false};
     
     /// Assign through either reference kind; reject results that are not writable
     void set(const AssignMode& mode,
@@ -1409,14 +1419,14 @@ struct Evaluator
 		return *r;
 	      }
 	    else
-	    {
-	      if(not value)
-		errorEmitter("trying to acces an empty evaluator result");
-	      
-	      ensureInitialized(*value);
-	      
-	      return *value;
-	    }
+	      {
+	        if(not hasValue())
+	          errorEmitter("trying to read an empty evaluator result");
+	        
+	        ensureInitialized(*value);
+	        
+	        return *value;
+	      }
 	  },
 		[](const HObjectMemberRef& hr)->Value
 		{
@@ -1429,7 +1439,12 @@ struct Evaluator
 		  return {std::monostate{}};
 		}},ref);
       else
-	return *value;
+	{
+	  if(not hasValue())
+	    errorEmitter("trying to read an empty evaluator result");
+	  
+	  return *value;
+	}
     }
   };
   
@@ -1716,7 +1731,13 @@ struct Evaluator
 	  errorEmitter("argument ",par.name," already specified");
       }
     
-    return std::visit(*this,*fn.body);
+    EvalResult result=
+      std::visit(*this,*fn.body);
+    
+    // Consume any explicit return signal at the function-call boundary
+    result.isReturn=false;
+    
+    return result;
   }
   
   /// Dispatch prepared arguments to a script closure, host function, or struct constructor
@@ -1890,7 +1911,14 @@ struct Evaluator
 	  return false;
 	},std::visit(*this,*forNode.subNodes[1]).asRhs().data);
 	std::visit(*this,*forNode.subNodes[2]))
-      std::visit(*this,*forNode.subNodes[3]);
+      {
+        EvalResult result=
+          std::visit(*this,*forNode.subNodes[3]);
+        
+        // Leave the loop before its increment and forward the return to the function
+        if(result.isReturn)
+          return result;
+      }
     
     return {};
   }
@@ -1898,7 +1926,10 @@ struct Evaluator
   /// Evaluate the condition in a child scope and execute the selected branch
   EvalResult operator()(const IfNode& ifNode)
   {
-    EnvironmentWindUnwinder windUnwind=pushNewEnvironment();
+    EnvironmentWindUnwinder windUnwind=
+      pushNewEnvironment();
+    
+    int iNodeToRun=0;
     
     if(std::visit([](const auto& v)
 	{
@@ -1909,12 +1940,15 @@ struct Evaluator
 	  
 	  return false;
 	},std::visit(*this,*ifNode.subNodes[0]).asRhs().data))
-      std::visit(*this,*ifNode.subNodes[1]);
+      iNodeToRun=1;
     else
       if(ifNode.subNodes.size()>=3)
-	std::visit(*this,*ifNode.subNodes[2]);
+	iNodeToRun=2;
     
-    return {};
+    if(iNodeToRun)
+      return std::visit(*this,*ifNode.subNodes[iNodeToRun]);
+    else
+      return {};
   }
   
   /// Parameter declarations are consumed during call binding, not executed directly
@@ -2207,26 +2241,34 @@ struct Evaluator
 		       .env=curEnv}}};
   }
   
-  /// Execute a block in a child scope, forwarding a directly encountered ReturnNode
+  /// Execute a block in a child scope until a statement signals a return
   EvalResult operator()(const ASTNodesNode& astNodesNode)
   {
     EnvironmentWindUnwinder windUnwind=pushNewEnvironment();
     
-    for(auto& n : astNodesNode.list)
+    for(const auto& n : astNodesNode.list)
       {
-	if(std::get_if<ReturnNode>(&*n))
-	  return std::visit(*this,*n);
-	else
-	  std::visit(*this,*n);
+        EvalResult result=
+          std::visit(*this,*n);
+        
+        // Stop this block and forward the return through its enclosing statements
+        if(result.isReturn)
+          return result;
       }
     
     return {};
   }
   
-  /// Evaluate the return expression for the enclosing statement block to forward
+  /// Evaluate the expression and signal a return through enclosing statements
   EvalResult operator()(const ReturnNode& returnNode)
   {
-    return std::visit(*this,*returnNode.arg);
+    EvalResult result=
+      std::visit(*this,*returnNode.arg);
+    
+    // Mark the explicit return so enclosing statements stop executing
+    result.isReturn=true;
+    
+    return result;
   }
   
   /// Apply increment/decrement to a concrete script cell and return the operation result
