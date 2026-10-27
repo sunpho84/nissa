@@ -149,6 +149,18 @@ assignments on script variables, for operand pairs supported by the concrete
 C++ types and registered with the evaluator. Plain assignment may replace
 a script variable's stored type.
 
+Variadic script parameters collect extra arguments in `__VA__ARGS__`.
+Use `...` to collect values or `&...` to collect references; each argument
+in a reference pack must be passed explicitly by reference. Fixed parameters
+may precede either kind of pack, and an empty pack is allowed:
+
+```cpp
+fun first(...){ return __VA__ARGS__[0]; }
+fun setFirst(&...){ __VA__ARGS__[0]=7; }
+x=1;
+setFirst(&x);
+```
+
 ## Legacy output and verification
 
 [`legacyInputWriter.cpp`](../projects/nice/legacyInputWriter.cpp) renders the

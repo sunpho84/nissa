@@ -705,6 +705,41 @@ void validateProgramGrammar(int argc,
       assert(observed==expected);
     }
   
+  const std::pair<const char*,int> variadicChecks[]{
+    {"fun f(...){return 1;} record(f());",1},
+    {"fun f(...){return __VA__ARGS__[0]*10+__VA__ARGS__[1];} record(f(2,3));",23},
+    {"fun f(x,...){return x*100+__VA__ARGS__[0]*10+__VA__ARGS__[1];} record(f(1,2,3));",123},
+    {"fun f(x=7,...){return x;} record(f());",7},
+    {"a=1; fun f(...){__VA__ARGS__[0]=9;} f(a); record(a);",1},
+    {"fun f(&...){return 1;} record(f());",1},
+    {"a=1; b=2; fun f(&...){__VA__ARGS__[0]+=2; __VA__ARGS__[1]*=3;} f(&a,&b); record(a*10+b);",36},
+    {"a=1; fun f(x,&...){__VA__ARGS__[0]=x;} f(7,&a); record(a);",7},
+    {"a=1; fun f(&x,...){x=__VA__ARGS__[0];} f(&a,5); record(a);",5},
+    {"a=1; fun inner(&x){x=6;} fun outer(&...){inner(&__VA__ARGS__[0]);} outer(&a); record(a);",6},
+    {"a=1; fun f(&...){return __VA__ARGS__;} refs=f(&a); refs[0]=9; record(a);",9},
+    {"f=lambda(...){return __VA__ARGS__[0];}; record(f(5));",5}};
+  
+  for(const auto& [script,expected] : variadicChecks)
+    {
+      const auto tree=
+        createParseTree(parser,script);
+      const auto ast=
+        executor.execParseTree(tree);
+      observed=-1;
+      std::visit(evaluator,*ast);
+      assert(observed==expected);
+    }
+  
+  if(argc>1 and std::string(argv[1])=="invalid-variadic-reference")
+    {
+      const auto tree=
+        createParseTree(parser,"a=1; fun f(&...){return 1;} f(&a,2);");
+      const auto ast=
+        executor.execParseTree(tree);
+      std::visit(evaluator,*ast);
+      errorEmitter("non-reference variadic argument was unexpectedly accepted");
+    }
+  
   if(argc>1 and std::string(argv[1])=="uninitialized-compound")
     {
       const auto tree=

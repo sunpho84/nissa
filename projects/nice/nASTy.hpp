@@ -92,10 +92,10 @@ inline auto getParser()
     "                ;"
     "   variadicFuncParList: funcParList [return($0)]"
     "                      | variadicFuncPar [emptyVariadicParList($0)]"
-    "                      | nonEmptyFuncParList \",\" variadicFuncPar [makeVariadicParList($0)]"
+    "                      | nonEmptyFuncParList \",\" variadicFuncPar [makeVariadicParList($0,$2)]"
     "                      ;"
-    "   variadicFuncPar: \"\\.\\.\\.\" [return(1)]"
-    "                  | \"&\" \"\\.\\.\\.\" [return(2)]"
+    "   variadicFuncPar: \"\\.\\.\\.\" [return(0)]"
+    "                  | \"&\" \"\\.\\.\\.\" [return(1)]"
     "                  ;"
     "   funcParList: [emptyFuncParList]"
     "              | nonEmptyFuncParList [return($0)]"
@@ -778,7 +778,8 @@ struct FuncParNode
   
   static constexpr const char VARIADIC_PAR_NAME[]="__VA__ARGS__";
   
-  static FuncParNode getVariadic(const bool& isRef)
+  /// Build a variadic parameter whose reference policy applies to each element
+  static FuncParNode getVariadic(const bool isRef)
   {
     return {.name=VARIADIC_PAR_NAME,.isRef=isRef,.def=std::make_shared<ASTNode>(ValueNode{.value{ValuesList{}}})};
   }
@@ -817,7 +818,8 @@ struct FuncParListNode:
     return list.size() and list.back().name==FuncParNode::VARIADIC_PAR_NAME;
   }
   
-  void makeVariadic(const int& isRef)
+  /// Append a variadic parameter with an empty list as its default
+  void makeVariadic(const bool isRef)
   {
     if(isVariadic())
       errorEmitter("Cannot make a list of pars variadic twice");
@@ -826,7 +828,8 @@ struct FuncParListNode:
     
   };
   
-  static FuncParListNode getEmptyVariadic(const int& isRef)
+  /// Build a signature consisting only of a variadic parameter
+  static FuncParListNode getEmptyVariadic(const bool isRef)
   {
     FuncParListNode list;
     
@@ -1498,12 +1501,12 @@ struct Evaluator
 	      }
 	    else
 	      {
-	        if(not hasValue())
-	          errorEmitter("trying to read an empty evaluator result");
-	        
-	        ensureInitialized(*value);
-	        
-	        return *value;
+		if(not hasValue())
+		  errorEmitter("trying to read an empty evaluator result");
+		
+		ensureInitialized(*value);
+		
+		return *value;
 	      }
 	  },
 		[](const HObjectMemberRef& hr)->Value
@@ -1813,10 +1816,35 @@ struct Evaluator
 	
 	if(par.isRef)
 	  {
-	    if(ValueRef* vr=std::get_if<ValueRef>(&arg->data))
-	      arg=vr->ref;
+	    const auto referent=[&par](const std::shared_ptr<Value>& argument)
+	    {
+	      const auto* reference=
+		std::get_if<ValueRef>(&argument->data);
+	      
+	      if(not reference or not reference->ref)
+		errorEmitter("parameter ",par.name," has to be taken by ref but passed argument is not a ref");
+	      
+	      return reference->ref;
+	    };
+	    
+	    if(pars.isVariadic() and iPar+1==nPars)
+	      {
+		const auto* arguments=
+		  std::get_if<ValuesList>(&arg->data);
+		
+		if(not arguments)
+		  errorEmitter("variadic parameter must receive an argument list");
+		
+		// Bind the pack's elements to caller cells without changing the supplied list
+		ValuesList references;
+		references.data.reserve(arguments->data.size());
+		for(const auto& argument : arguments->data)
+		  references.data.push_back(referent(argument));
+		
+		arg=std::make_shared<Value>(std::move(references));
+	      }
 	    else
-	      errorEmitter("parameter ",par.name," has to be taken by ref but passed argument is not a ref");
+	      arg=referent(arg);
 	  }
 	
 	if(not curEnv->varTable.try_emplace(par.name,arg).second)
