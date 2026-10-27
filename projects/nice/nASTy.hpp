@@ -1831,7 +1831,7 @@ struct Evaluator
       errorEmitter("cannot take the reference of a non-embedded object");
     
     ValueRef& vr=*_vr;
-    if(vr.ref)
+    if(not vr.ref)
       errorEmitter("subNode has not returned a reference");
       
     return {.value{vr}};

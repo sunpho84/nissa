@@ -497,7 +497,7 @@ struct ExampleEnvelope
   ExampleGroup group;
 };
 
-/// Check program scope, arithmetic grouping, logical evaluation, and return propagation
+/// Check program scope, expression evaluation, returns, and reference arguments
 void validateProgramGrammar(int argc,
                             char** argv)
 {
@@ -608,6 +608,36 @@ void validateProgramGrammar(int argc,
       observed=-1;
       std::visit(evaluator,*ast);
       assert(observed==expected);
+    }
+  
+  const std::pair<const char*,int> referenceChecks[]{
+    {"a=3; fun f(&x){x=4;} f(&a); record(a);",4},
+    {"a=3; fun f(x){x=4;} f(a); record(a);",3},
+    {"a=3; fun f(&x){x=x+1;} fun relay(&y){f(&y);} relay(&a); record(a);",4},
+    {"a=3; r=&a; fun f(&x){x=4;} f(r); record(a);",4},
+    {"struct S{x;}; s=S(1); fun f(&x){x=7;} f(&s.x); record(s.x);",7},
+    {"a=makeVec(1,2); fun f(&x){x=7;} f(&a[1]); record(a[1]);",7},
+    {"fun init(&x){x=5;} init(&a); record(a);",5}};
+  
+  for(const auto& [script,expected] : referenceChecks)
+    {
+      const auto tree=
+        createParseTree(parser,script);
+      const auto ast=
+        executor.execParseTree(tree);
+      observed=-1;
+      std::visit(evaluator,*ast);
+      assert(observed==expected);
+    }
+  
+  if(argc>1 and std::string(argv[1])=="temporary-reference")
+    {
+      const auto tree=
+        createParseTree(parser,"fun f(&x){x=4;} f(&(1+2));");
+      const auto ast=
+        executor.execParseTree(tree);
+      std::visit(evaluator,*ast);
+      errorEmitter("temporary reference was unexpectedly accepted");
     }
   
   if(argc>1 and std::string(argv[1])=="empty-function-result")
