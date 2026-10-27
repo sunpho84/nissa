@@ -946,11 +946,30 @@ struct UnOpNode
 /// Binary expression with the passed operator
 struct BinOpNode
 {
+  /// Whether both operands or only the logically necessary operands are evaluated
+  enum class EvaluationMode
+  {
+    /// Evaluate both operands and invoke the callable
+    EAGER,
+    
+    /// Skip the right operand when the left operand is false
+    LOGICAL_AND,
+    
+    /// Skip the right operand when the left operand is true
+    LOGICAL_OR
+  };
+  
+  /// Left operand, evaluated before the right operand
   std::shared_ptr<ASTNode> arg1;
   
+  /// Right operand, evaluated only when required by the mode
   std::shared_ptr<ASTNode> arg2;
   
+  /// Callable used by eager operations; logical modes produce Boolean results directly
   std::function<Value(const Value&,const Value&)> op;
+  
+  /// Operand evaluation policy selected when constructing the expression
+  EvaluationMode evaluationMode{EvaluationMode::EAGER};
 };
 
 /// Returning value - node
@@ -1219,10 +1238,19 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   DEFINE_BINOP(>=,GreaterEqual);
   DEFINE_BINOP(==,Compare);
   DEFINE_BINOP(!=,Inequal);
-  DEFINE_BINOP(or,Or);
-  DEFINE_BINOP(and,And);
   
 #undef DEFINE_BINOP
+  
+#define DEFINE_LOGICAL_BINOP(NAME,MODE) \
+  PROVIDE_ACTION_WITH_N_SYMBOLS("binary" #NAME,2, \
+    return std::make_shared<ASTNode>(BinOpNode{ \
+      .arg1=subNodes[0],.arg2=subNodes[1], \
+      .evaluationMode=BinOpNode::EvaluationMode::MODE}))
+  
+  DEFINE_LOGICAL_BINOP(Or,LOGICAL_OR);
+  DEFINE_LOGICAL_BINOP(And,LOGICAL_AND);
+  
+#undef DEFINE_LOGICAL_BINOP
   
 #define DEFINE_PREPOSTFIX_OP(NAME,PRE,POST)					\
   PROVIDE_ACTION_WITH_N_SYMBOLS("unary" #NAME,1,return std::make_shared<ASTNode>(PrePostfixOpNode{.arg=subNodes[0], \
@@ -1447,6 +1475,20 @@ struct Evaluator
 	}
     }
   };
+  
+  /// Convert a condition or logical operand using the script's Boolean conversion rules
+  static bool asBool(const Value& value)
+  {
+    return std::visit([](const auto& data)
+    {
+      if constexpr(std::is_convertible_v<decltype(data),bool>)
+        return static_cast<bool>(data);
+      else
+        errorEmitter("Cannot convert the type to bool");
+      
+      return false;
+    },value.data);
+  }
   
   /// Retained activation frames, starting with the root environment
   std::vector<CallFrame> callFrames;
@@ -1901,15 +1943,7 @@ struct Evaluator
     EnvironmentWindUnwinder windUnwind=pushNewEnvironment();
     
     for(std::visit(*this,*forNode.subNodes[0]);
-    	std::visit([](const auto& v)
-	{
-	  if constexpr(std::is_convertible_v<decltype(v),bool>)
-	    return (bool)v;
-	  else
-	    errorEmitter("Cannot convert the type to bool");
-	  
-	  return false;
-	},std::visit(*this,*forNode.subNodes[1]).asRhs().data);
+        asBool(std::visit(*this,*forNode.subNodes[1]).asRhs());
 	std::visit(*this,*forNode.subNodes[2]))
       {
         EvalResult result=
@@ -1931,15 +1965,7 @@ struct Evaluator
     
     int iNodeToRun=0;
     
-    if(std::visit([](const auto& v)
-	{
-	  if constexpr(std::is_convertible_v<decltype(v),bool>)
-	    return (bool)v;
-	  else
-	    errorEmitter("Cannot convert the type to bool");
-	  
-	  return false;
-	},std::visit(*this,*ifNode.subNodes[0]).asRhs().data))
+    if(asBool(std::visit(*this,*ifNode.subNodes[0]).asRhs()))
       iNodeToRun=1;
     else
       if(ifNode.subNodes.size()>=3)
@@ -2293,10 +2319,28 @@ struct Evaluator
     return {.value=unOpNode.op(std::visit(*this,*unOpNode.arg).asRhs())};
   }
   
-  /// Evaluate both operands and invoke the binary operation function
+  /// Evaluate left first and skip the right operand when the logical mode permits
   EvalResult operator()(const BinOpNode& binOpNode)
   {
-    return {.value=binOpNode.op(std::visit(*this,*binOpNode.arg1).asRhs(),std::visit(*this,*binOpNode.arg2).asRhs())};
+    const Value left=
+      std::visit(*this,*binOpNode.arg1).asRhs();
+    
+    if(binOpNode.evaluationMode!=BinOpNode::EvaluationMode::EAGER)
+      {
+        const bool condition=
+          asBool(left);
+        
+        if((binOpNode.evaluationMode==BinOpNode::EvaluationMode::LOGICAL_AND and not condition) or
+           (binOpNode.evaluationMode==BinOpNode::EvaluationMode::LOGICAL_OR and condition))
+          return {.value=Value{condition}};
+        
+        return {.value=Value{asBool(std::visit(*this,*binOpNode.arg2).asRhs())}};
+      }
+    
+    const Value right=
+      std::visit(*this,*binOpNode.arg2).asRhs();
+    
+    return {.value=binOpNode.op(left,right)};
   }
 };
 

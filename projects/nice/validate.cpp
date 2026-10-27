@@ -497,7 +497,7 @@ struct ExampleEnvelope
   ExampleGroup group;
 };
 
-/// Check program scope, arithmetic grouping, and return propagation
+/// Check program scope, arithmetic grouping, logical evaluation, and return propagation
 void validateProgramGrammar(int argc,
                             char** argv)
 {
@@ -555,6 +555,33 @@ void validateProgramGrammar(int argc,
         createParseTree(parser,script);
       const auto ast=
         executor.execParseTree(tree);
+      std::visit(evaluator,*ast);
+      assert(observed==expected);
+    }
+  
+  const std::pair<const char*,int> logicalChecks[]{
+    {"x=0; 0 && x++; record(x);",0},
+    {"x=0; 1 || x++; record(x);",0},
+    {"x=0; 0 and x++; record(x);",0},
+    {"x=0; 1 or x++; record(x);",0},
+    {"x=0; y=1 && x++; record(y*10+x);",1},
+    {"x=0; y=0 || x++; record(y*10+x);",1},
+    {"x=0; fun step(){x=x+1; return 2;} y=1 and step(); record(y*10+x);",11},
+    {"x=0; fun step(){x=x+1; return 2;} y=0 or step(); record(y*10+x);",11},
+    {"record((0 && (1/0))+0);",0},
+    {"record((1 || missing())+0);",1},
+    {"record(((0 and missing()) or 2)+0);",1},
+    {"x=0; y=(x++==0) && (x==1); record(y*10+x);",11},
+    {"record((0.5 and -2)+0);",1},
+    {"record((0.0 or 0)+0);",0}};
+  
+  for(const auto& [script,expected] : logicalChecks)
+    {
+      const auto tree=
+        createParseTree(parser,script);
+      const auto ast=
+        executor.execParseTree(tree);
+      observed=-1;
       std::visit(evaluator,*ast);
       assert(observed==expected);
     }

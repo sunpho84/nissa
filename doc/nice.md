@@ -138,6 +138,10 @@ multiplication/division/remainder. Arithmetic and comparisons associate to
 the left; assignments associate to the right. Thus `8-3+2` is `(8-3)+2`,
 `8*3/2` is `(8*3)/2`, and `a=b=c` is `a=(b=c)`.
 
+Logical operators evaluate the left operand first. `and`/`&&` skip the right
+operand when the left is false; `or`/`||` skip it when the left is true.
+Their results are Boolean, using the same conversion rules as `if` and `for`.
+
 ## Legacy output and verification
 
 [`legacyInputWriter.cpp`](../projects/nice/legacyInputWriter.cpp) renders the
