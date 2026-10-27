@@ -497,8 +497,9 @@ struct ExampleEnvelope
   ExampleGroup group;
 };
 
-/// Check program scope and C/C++ arithmetic precedence and associativity
-void validateProgramGrammar()
+/// Check program scope, arithmetic grouping, and return propagation
+void validateProgramGrammar(int argc,
+                            char** argv)
 {
   const auto parser=getParser();
   const auto executor=getParseTreeExecuctor(parser.actionStrings);
@@ -557,6 +558,40 @@ void validateProgramGrammar()
       std::visit(evaluator,*ast);
       assert(observed==expected);
     }
+  
+  const std::pair<const char*,int> returnChecks[]{
+    {"fun f(){if(1) return 7; return 9;} record(f());",7},
+    {"fun f(){if(0) return 7; else return 8; return 9;} record(f());",8},
+    {"fun f(){{return 6;} return 9;} record(f());",6},
+    {"fun f(){for(i=0;i<3;i++){if(i==1) return 4;} return 9;} record(f());",4},
+    {"i=0; fun f(){for(i=0;i<3;i++){return 5;} return 9;} x=f(); record(x*10+i);",50},
+    {"fun f(){for(i=0;i<2;i++){for(j=0;j<2;j++){return 6;}} return 9;} record(f());",6},
+    {"fun inner(){return 3;} fun outer(){inner(); return 7;} record(outer());",7},
+    {"fun f(){if(1) 42; 12; return 6;} record(f());",6},
+    {"fun f(){a=13; return a;} record(f());",13},
+    {"fun f(){return 0;} record(f());",0},
+    {"fun f(){a=1;} f(); record(6);",6}};
+  
+  for(const auto& [script,expected] : returnChecks)
+    {
+      const auto tree=
+        createParseTree(parser,script);
+      const auto ast=
+        executor.execParseTree(tree);
+      observed=-1;
+      std::visit(evaluator,*ast);
+      assert(observed==expected);
+    }
+  
+  if(argc>1 and std::string(argv[1])=="empty-function-result")
+    {
+      const auto tree=
+        createParseTree(parser,"fun f(){x=1;} record(f());");
+      const auto ast=
+        executor.execParseTree(tree);
+      std::visit(evaluator,*ast);
+      errorEmitter("empty function result was unexpectedly accepted");
+    }
 }
 
 /// Runs through the real parser and evaluator, then checks the concrete C++ values
@@ -612,7 +647,7 @@ int main(int argc,char** argv)
   validateScheduling(argc,argv);
   validateLegacyWriter(argc,argv);
   validateScriptBindings();
-  validateProgramGrammar();
+  validateProgramGrammar(argc,argv);
   validateHostObjects(R"(
     {
       defaults = ExamplePars();
