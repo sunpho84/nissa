@@ -548,9 +548,17 @@ struct BinaryOperator
 using SumOperator=
   BinaryOperator<std::plus<>,std::to_array("sum")>;
 
+/// Subtraction with its script error name
+using DifferenceOperator=
+  BinaryOperator<std::minus<>,std::to_array("difference")>;
+  
 /// Multiplication with its script error name
 using ProductOperator=
   BinaryOperator<std::multiplies<>,std::to_array("product")>;
+  
+/// Division with its script error name
+using DivisionOperator=
+  BinaryOperator<std::divides<>,std::to_array("division")>;
 
 /// Shared description of a registered host type and its supported operations
 /// Member providers bind accessors to an individual value supplied at access time
@@ -1223,14 +1231,18 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
 			      arg1.data,arg2.data);			\
 	  }}))
   
-  PROVIDE_ACTION_WITH_N_SYMBOLS("binarySum",2,
-				return std::make_shared<ASTNode>(BinOpNode{
-				  .arg1=subNodes[0],.arg2=subNodes[1],.op=applyBinaryOperator<SumOperator>}));
-  DEFINE_BINOP(-,Diff);
-  PROVIDE_ACTION_WITH_N_SYMBOLS("binaryProd",2,
-				return std::make_shared<ASTNode>(BinOpNode{
-				  .arg1=subNodes[0],.arg2=subNodes[1],.op=applyBinaryOperator<ProductOperator>}));
-  DEFINE_BINOP(/,Div);
+#define DEFINE_REGISTERED_BINOP(NAME,OPERATOR) \
+  PROVIDE_ACTION_WITH_N_SYMBOLS("binary" #NAME,2, \
+    return std::make_shared<ASTNode>(BinOpNode{ \
+      .arg1=subNodes[0],.arg2=subNodes[1],.op=applyBinaryOperator<OPERATOR>}))
+  
+  DEFINE_REGISTERED_BINOP(Sum,SumOperator);
+  DEFINE_REGISTERED_BINOP(Diff,DifferenceOperator);
+  DEFINE_REGISTERED_BINOP(Prod,ProductOperator);
+  DEFINE_REGISTERED_BINOP(Div,DivisionOperator);
+  
+#undef DEFINE_REGISTERED_BINOP
+  
   DEFINE_BINOP(%,Mod);
   DEFINE_BINOP(<,Smaller);
   DEFINE_BINOP(>,Greater);
@@ -1358,6 +1370,41 @@ void trySet(L& lhs,
     }
 }
 
+/// Assign script values while preserving native compound-assignment conversions
+/// Plain assignment may replace the stored type; host arithmetic uses registration
+inline void trySet(Value& lhs,
+                   const AssignMode& mode,
+                   const Value& rhs)
+{
+  if(mode==AssignMode::PLAIN)
+    lhs=rhs;
+  else if(std::holds_alternative<HObject>(lhs.data) or
+          std::holds_alternative<HObject>(rhs.data))
+    switch(mode)
+      {
+#define CASE(MODE,OPERATOR) \
+      case AssignMode::MODE: \
+        lhs=applyBinaryOperator<OPERATOR>(lhs,rhs); \
+        break
+        
+      CASE(SUM,SumOperator);
+      CASE(SUB,DifferenceOperator);
+      CASE(PROD,ProductOperator);
+      CASE(DIV,DivisionOperator);
+      
+#undef CASE
+      
+      default:
+	errorEmitter("unsupported compound assignment for host objects");
+      }
+  else
+    std::visit([&mode](auto& left,
+		       const auto& right)
+    {
+      trySet(left,mode,right);
+    },lhs.data,rhs.data);
+}
+
 /// AST visitor with scope management, call binding, and runtime value access
 struct Evaluator
 {
@@ -1395,6 +1442,9 @@ struct Evaluator
       std::visit(pp::internal::Overload{[&v,
 			   &mode](ValueRef& vr)
       {
+	if(mode!=AssignMode::PLAIN)
+	  ensureInitialized(*vr.ref);
+	
 	trySet(*vr.ref,mode,v);
       },
 	    [&v,

@@ -71,6 +71,16 @@ namespace nissa::nice
     {
       (registerBinaryOperatorsFor<Operator,Types,Types...>(evaluator),...);
     }
+    
+    /// Register supported arithmetic for one shared set of operand types
+    template <typename...Types>
+    void registerArithmeticOperators(Evaluator& evaluator)
+    {
+      registerBinaryOperators<SumOperator,Types...>(evaluator);
+      registerBinaryOperators<DifferenceOperator,Types...>(evaluator);
+      registerBinaryOperators<ProductOperator,Types...>(evaluator);
+      registerBinaryOperators<DivisionOperator,Types...>(evaluator);
+    }
   }
   
   void registerCorrParts(Evaluator& evaluator)
@@ -135,10 +145,8 @@ namespace nissa::nice
       registerHObjectType<Line>(evaluator,"Line");
     useDescription<Line>(lineInfo);
     
-    registerBinaryOperators<ProductOperator,int,double,SpatMomentum,Smear,Phase,
-                            Gamma,DeltaT,Prop,Oper,Source,Line>(evaluator);
-    registerBinaryOperators<SumOperator,int,double,SpatMomentum,Smear,Phase,
-                            Gamma,DeltaT,Prop,Oper,Source,Line>(evaluator);
+    registerArithmeticOperators<int,double,SpatMomentum,Smear,Phase,
+                                 Gamma,DeltaT,Prop,Oper,Source,Line>(evaluator);
   }
   
   void setupNice(Evaluator& evaluator,

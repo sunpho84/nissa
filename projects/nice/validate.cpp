@@ -411,9 +411,13 @@ void validateScriptBindings()
                      * Gamma(5) * DeltaT(4);
       bw = scriptedOper*scriptedSource;
       fw = Gamma(1)*bw;
-      weighted = 2*fw;
-      sum = bw+weighted;
+      weighted = fw;
+      weighted *= 2;
+      sum = bw;
+      sum += weighted;
       momentumProduct = 2*SpatMomentum(1,2,3);
+      momentumProduct /= 2;
+      momentumProduct = momentumProduct/0.5;
       corrTrace(.name="vector",.backward=bw,.forward=fw);
       corrTrace(.name="vector",.backward=sum,.forward=fw);
       legacyText = writeLegacyInput();
@@ -497,6 +501,25 @@ struct ExampleEnvelope
   ExampleGroup group;
 };
 
+/// Host type with binary subtraction and division but no compound operators
+struct ExampleNumber
+{
+  /// Integer payload exposed as a script member
+  int value{};
+  
+  /// Return a new value after subtraction
+  ExampleNumber operator-(const int rhs) const
+  {
+    return {value-rhs};
+  }
+  
+  /// Return a new value after division
+  ExampleNumber operator/(const int rhs) const
+  {
+    return {value/rhs};
+  }
+};
+
 /// Check program scope, expression evaluation, returns, and reference arguments
 void validateProgramGrammar(int argc,
                             char** argv)
@@ -510,6 +533,11 @@ void validateProgramGrammar(int argc,
   {
     observed=value;
   });
+  const auto numberInfo=
+    registerHObject<ExampleNumber>(evaluator,"ExampleNumber",
+      std::make_tuple(HostMemberInfo{"value",&ExampleNumber::value}));
+  registerHObjectBinaryOperator<DifferenceOperator,ExampleNumber,int>(numberInfo,nullptr,numberInfo);
+  registerHObjectBinaryOperator<DivisionOperator,ExampleNumber,int>(numberInfo,nullptr,numberInfo);
   
   const auto unbracedTree=createParseTree(parser,"value=1; record(value+2);");
   const auto unbraced=executor.execParseTree(unbracedTree);
@@ -610,6 +638,53 @@ void validateProgramGrammar(int argc,
       assert(observed==expected);
     }
   
+  const std::pair<const char*,int> compoundChecks[]{
+    {"x=1; x+=2; record(x);",3},
+    {"x=9; x-=4; record(x);",5},
+    {"x=3; x*=4; record(x);",12},
+    {"x=9; x/=2; record(x);",4},
+    {"x=3; x+=0.75; record(x);",3},
+    {"x=5; x/=0.5; record(x);",10},
+    {"x=1.0; x+=2; record((x==3.0)+0);",1},
+    {"x=2; x+=x; record(x);",4},
+    {"x=2; record((x*=3)+x);",12},
+    {"a=makeVec(2,3); a[0]+=a[1]; record(a[0]);",5},
+    {"struct S{x;}; s=S(4); s.x*=3; record(s.x);",12},
+    {"fun inc(&a){a+=2;} x=1; inc(&x); record(x);",3},
+    {"x=1; fun rhs(){x=10; return 2;} x+=rhs(); record(x);",12},
+    {"i=0; a=makeVec(1,2); a[i++]+=3; record(i*10+a[0]);",14},
+    {"x=\"a\"; x+=\"b\"; record((x==\"ab\")+0);",1},
+    {"x=1; x=\"hello\"; record((x==\"hello\")+0);",1}};
+  
+  for(const auto& [script,expected] : compoundChecks)
+    {
+      const auto tree=
+        createParseTree(parser,script);
+      const auto ast=
+        executor.execParseTree(tree);
+      observed=-1;
+      std::visit(evaluator,*ast);
+      assert(observed==expected);
+    }
+  
+  const std::pair<const char*,int> hostArithmeticChecks[]{
+    {"a=ExampleNumber(20); b=a-3; record(b.value);",17},
+    {"a=ExampleNumber(20); a-=3; record(a.value);",17},
+    {"a=ExampleNumber(20); b=a/4; record(b.value);",5},
+    {"a=ExampleNumber(20); a/=4; record(a.value);",5},
+    {"a=ExampleNumber(20); a-=3; a/=2; record(a.value);",8}};
+  
+  for(const auto& [script,expected] : hostArithmeticChecks)
+    {
+      const auto tree=
+        createParseTree(parser,script);
+      const auto ast=
+        executor.execParseTree(tree);
+      observed=-1;
+      std::visit(evaluator,*ast);
+      assert(observed==expected);
+    }
+  
   const std::pair<const char*,int> referenceChecks[]{
     {"a=3; fun f(&x){x=4;} f(&a); record(a);",4},
     {"a=3; fun f(x){x=4;} f(a); record(a);",3},
@@ -628,6 +703,26 @@ void validateProgramGrammar(int argc,
       observed=-1;
       std::visit(evaluator,*ast);
       assert(observed==expected);
+    }
+  
+  if(argc>1 and std::string(argv[1])=="uninitialized-compound")
+    {
+      const auto tree=
+        createParseTree(parser,"x+=1;");
+      const auto ast=
+        executor.execParseTree(tree);
+      std::visit(evaluator,*ast);
+      errorEmitter("uninitialized compound assignment was unexpectedly accepted");
+    }
+  
+  if(argc>1 and std::string(argv[1])=="invalid-compound-types")
+    {
+      const auto tree=
+        createParseTree(parser,"x=1; x+=\"a\";");
+      const auto ast=
+        executor.execParseTree(tree);
+      std::visit(evaluator,*ast);
+      errorEmitter("invalid compound assignment was unexpectedly accepted");
     }
   
   if(argc>1 and std::string(argv[1])=="temporary-reference")

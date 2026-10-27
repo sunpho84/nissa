@@ -142,6 +142,13 @@ Logical operators evaluate the left operand first. `and`/`&&` skip the right
 operand when the left is false; `or`/`||` skip it when the left is true.
 Their results are Boolean, using the same conversion rules as `if` and `for`.
 
+Compound assignments (`+=`, `-=`, `*=`, `/=`) update script variables, list
+elements, and struct members using native C++ assignment conversions.
+Registered host arithmetic also supports the corresponding compound
+assignments on script variables, for operand pairs supported by the concrete
+C++ types and registered with the evaluator. Plain assignment may replace
+a script variable's stored type.
+
 ## Legacy output and verification
 
 [`legacyInputWriter.cpp`](../projects/nice/legacyInputWriter.cpp) renders the
