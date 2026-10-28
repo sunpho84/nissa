@@ -522,6 +522,32 @@ struct HObjectMemberRef
   }
 };
 
+/// Enable runtime arithmetic checks in script operators and native compound assignments
+inline constexpr bool performArithmeticValidation=true;
+
+/// Reject invalid integer quotients before division or remainder is evaluated
+/// Check the promoted operand type, preserving mixed and floating-point arithmetic
+template <typename L,
+          typename R>
+void validateIntegerDivision(const L& lhs,
+                             const R& rhs)
+{
+  if constexpr(performArithmeticValidation and
+               std::is_integral_v<L> and std::is_integral_v<R>)
+    {
+      using Result=
+        decltype(lhs/rhs);
+      const Result left=lhs;
+      const Result right=rhs;
+      
+      if(right==0)
+        errorEmitter("integer divisor is zero");
+      else if constexpr(std::is_signed_v<Result>)
+        if(left==std::numeric_limits<Result>::min() and right==-1)
+          errorEmitter("integer division overflow");
+    }
+}
+
 /// Adapt a native binary functor and a diagnostic name to script dispatch
 /// std::array is a structural C++20 template argument for the name
 template <typename NativeOperator,
@@ -540,6 +566,10 @@ struct BinaryOperator
   auto operator()(const L& lhs,
                   const R& rhs) const
   {
+    if constexpr(std::is_same_v<NativeOperator,std::divides<>> or
+                 std::is_same_v<NativeOperator,std::modulus<>>)
+      validateIntegerDivision(lhs,rhs);
+    
     return NativeOperator{}(lhs,rhs);
   }
 };
@@ -559,6 +589,10 @@ using ProductOperator=
 /// Division with its script error name
 using DivisionOperator=
   BinaryOperator<std::divides<>,std::to_array("division")>;
+
+/// Integer remainder with its script error name
+using RemainderOperator=
+  BinaryOperator<std::modulus<>,std::to_array("remainder")>;
 
 /// Shared description of a registered host type and its supported operations
 /// Member providers bind accessors to an individual value supplied at access time
@@ -1243,10 +1277,10 @@ inline auto getParseTreeExecuctor(const std::vector<std::string_view>& requiredA
   DEFINE_REGISTERED_BINOP(Diff,DifferenceOperator);
   DEFINE_REGISTERED_BINOP(Prod,ProductOperator);
   DEFINE_REGISTERED_BINOP(Div,DivisionOperator);
+  DEFINE_REGISTERED_BINOP(Mod,RemainderOperator);
   
 #undef DEFINE_REGISTERED_BINOP
   
-  DEFINE_BINOP(%,Mod);
   DEFINE_BINOP(<,Smaller);
   DEFINE_BINOP(>,Greater);
   DEFINE_BINOP(<=,SmallerEqual);
@@ -1353,6 +1387,9 @@ void trySet(L& lhs,
 	    const AssignMode& mode,
 	    const R& rhs)
 {
+  if(mode==AssignMode::DIV)
+    validateIntegerDivision(lhs,rhs);
+  
  switch(mode)
    {
 #define CASE(MODE,SYMBOL,DESCR)						\

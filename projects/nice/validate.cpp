@@ -538,6 +538,10 @@ void validateProgramGrammar(int argc,
   {
     observedString=value;
   });
+  registerHostFunction(evaluator,"minimumInteger",{},[]()
+  {
+    return std::numeric_limits<int>::min();
+  });
   const auto numberInfo=
     registerHObject<ExampleNumber>(evaluator,"ExampleNumber",
       std::make_tuple(HostMemberInfo{"value",&ExampleNumber::value}));
@@ -806,6 +810,56 @@ void validateProgramGrammar(int argc,
       std::visit(evaluator,*ast);
       assert(observed==expected);
     }
+  
+  const std::pair<const char*,int> integerArithmeticChecks[]{
+    {"record(7/3);",2},
+    {"record(-7/3);",-2},
+    {"record(-7%3);",-1},
+    {"record(7%-3);",1},
+    {"record(minimumInteger()/1);",std::numeric_limits<int>::min()},
+    {"record(minimumInteger()%1);",0},
+    {"x=minimumInteger(); x/=1; record(x);",std::numeric_limits<int>::min()},
+    {"x=-7; x/=3; record(x);",-2},
+    {"record((1/0.5==2.0)+0);",1},
+    {"record((1.0/0>1.0)+0);",1},
+    {"x=7; x/=2.0; record(x);",3},
+    {"x=ExampleNumber(7); x.value/=2; record(x.value);",3}};
+  
+  for(const auto& [script,expected] : integerArithmeticChecks)
+    {
+      const auto tree=
+        createParseTree(parser,script);
+      const auto ast=
+        executor.execParseTree(tree);
+      observed=0;
+      std::visit(evaluator,*ast);
+      assert(observed==expected);
+    }
+  
+  assert(DivisionOperator{}(static_cast<signed char>(-128),-1)==128);
+  assert(RemainderOperator{}(static_cast<signed char>(-128),-1)==0);
+  assert(DivisionOperator{}(std::numeric_limits<unsigned int>::max(),-1)==1u);
+  
+  const std::pair<const char*,const char*> invalidArithmeticChecks[]{
+    {"integer-division-zero","record(1/0);"},
+    {"integer-remainder-zero","record(1%0);"},
+    {"integer-division-overflow","record(minimumInteger()/-1);"},
+    {"integer-remainder-overflow","record(minimumInteger()%-1);"},
+    {"compound-division-zero","x=1; x/=0;"},
+    {"compound-division-overflow","x=minimumInteger(); x/=-1;"},
+    {"member-division-zero","x=ExampleNumber(1); x.value/=0;"},
+    {"member-division-overflow","x=ExampleNumber(minimumInteger()); x.value/=-1;"}};
+  
+  for(const auto& [mode,script] : invalidArithmeticChecks)
+    if(argc>1 and std::string(argv[1])==mode)
+      {
+        const auto tree=
+          createParseTree(parser,script);
+        const auto ast=
+          executor.execParseTree(tree);
+        std::visit(evaluator,*ast);
+        errorEmitter("invalid integer arithmetic was unexpectedly accepted");
+      }
   
   const std::pair<const char*,int> argumentBindingChecks[]{
     {"fun f(x,y){return x*10+y;} record(f(1,.y=2));",12},
