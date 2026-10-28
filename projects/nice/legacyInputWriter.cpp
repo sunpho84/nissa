@@ -119,7 +119,7 @@ namespace nissa::nice
           {
             row[Ins]="SM";
             row[Kappa]=std::format("{}",parameter.kappa);
-            row[R]=std::format("{}",parameter.n);
+            row[R]=std::format("{}",static_cast<int>(parameter.n));
             row[ThetaX]=std::format("{}",parameter.mom.x);
             row[ThetaY]=std::format("{}",parameter.mom.y);
             row[ThetaZ]=std::format("{}",parameter.mom.z);

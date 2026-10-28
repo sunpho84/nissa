@@ -5,6 +5,7 @@
 
 #include <array>
 #include <compare>
+#include <cmath>
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
@@ -89,14 +90,26 @@ namespace nissa::nice
   /// Smearing parameters, including their momentum phase
   struct Smear
   {
+    /// Process-wide defaults captured when constructing a new smearing operator
+    static Smear defaults;
+    
     /// Smearing strength
-    double kappa{};
+    double kappa{defaults.kappa};
     
     /// Smearing iteration count
-    double n{};
+    double n{defaults.n};
     
     /// Spatial momentum inserted by the smearing
-    SpatMomentum mom{};
+    SpatMomentum mom{defaults.mom};
+    
+    /// Require a nonnegative iteration count representable by the backend
+    void validate() const
+    {
+      if(not std::isfinite(n) or n<0 or std::trunc(n)!=n or
+         n>std::numeric_limits<int>::max())
+        CRASH("invalid smearing iteration count %g: expected an integer from 0 through %d",
+              n,std::numeric_limits<int>::max());
+    }
     
     /// Smearing parameters are unchanged by conjugation
     Smear dag() const
@@ -116,6 +129,9 @@ namespace nissa::nice
     /// Compare smearing parameters in member order
     auto operator<=>(const Smear&) const=default;
   };
+  
+  /// Explicit initial values avoid reading defaults while initializing itself
+  inline constinit Smear Smear::defaults{.kappa=0.0,.n=0.0,.mom={}};
   
   /// Spatial momentum phase; conjugation reverses its momentum
   struct Phase
@@ -201,23 +217,26 @@ namespace nissa::nice
   /// Propagator parameters; residue belongs to the propagator alone
   struct Prop
   {
+    /// Process-wide defaults captured when constructing a new propagator
+    static Prop defaults;
+    
     /// Hopping parameter
-    double kappa{};
+    double kappa{defaults.kappa};
     
     /// Bare mass parameter
-    double mass{};
+    double mass{defaults.mass};
     
     /// Wilson sign, -1 or +1; zero leaves the sign unset
-    int r{};
+    int r{defaults.r};
     
     /// Electric charge
-    double charge{};
+    double charge{defaults.charge};
     
     /// Propagator momentum
-    SpatMomentum mom{};
+    SpatMomentum mom{defaults.mom};
     
     /// Residue used by the propagator
-    double residue{};
+    double residue{defaults.residue};
     
     /// Require an explicitly selected Wilson sign
     void validate() const
@@ -254,6 +273,15 @@ namespace nissa::nice
     /// Compare propagator parameters in member order
     auto operator<=>(const Prop&) const=default;
   };
+  
+  /// Explicit initial values avoid reading defaults while initializing itself
+  inline constinit Prop Prop::defaults{
+    .kappa=0.125,
+    .mass=0.0,
+    .r=0,
+    .charge=0.0,
+    .mom={},
+    .residue=0.0};
   
   /// Parameter alternatives accepted by an operator or line extender
   using Pars=

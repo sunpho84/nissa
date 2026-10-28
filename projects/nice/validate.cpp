@@ -41,6 +41,29 @@ bool containsSelection(const Line& line,
 
 void validateCorrParts()
 {
+  static_assert(std::is_aggregate_v<Prop>);
+  const Prop initialDefaults=Prop::defaults;
+  assert(initialDefaults.kappa==0.125 and initialDefaults.r==0);
+  Prop::defaults=Prop{.kappa=0.13,.mass=0.25,.r=-1,.charge=0.5,
+                      .mom={1,2,3},.residue=1e-12};
+  const Prop inherited;
+  assert(inherited==Prop::defaults);
+  const Prop overridden{.kappa=0.14,.r=1};
+  assert(overridden.kappa==0.14 and overridden.r==1);
+  assert(overridden.mass==0.25 and overridden.mom==SpatMomentum({1,2,3}));
+  Prop::defaults=initialDefaults;
+  assert(inherited.r==-1 and inherited.kappa==0.13);
+  
+  static_assert(std::is_aggregate_v<Smear>);
+  const Smear initialSmearDefaults=Smear::defaults;
+  assert(initialSmearDefaults==Smear({.kappa=0,.n=0,.mom={}}));
+  Smear::defaults=Smear{.kappa=0.3,.n=20,.mom={1,2,3}};
+  const Smear inheritedSmear;
+  assert(inheritedSmear==Smear::defaults);
+  assert(Smear{.n=0}.kappa==0.3 and Smear{.n=0}.mom==SpatMomentum({1,2,3}));
+  Smear::defaults=initialSmearDefaults;
+  assert(inheritedSmear.n==20);
+  
   const Source eta(0);
   const Source copy=
     eta;
@@ -172,6 +195,37 @@ void validateTaskGraph(int argc,char** argv)
     {
       Prop{}.dag();
       errorEmitter("unset Wilson sign was unexpectedly conjugated");
+    }
+  
+  for(const double count : {0.0,static_cast<double>(std::numeric_limits<int>::max())})
+    {
+      auto smearingGraph=graph;
+      std::get<ExtendSelectingTPars>(smearingGraph.tasks[1].operation).pars=Smear{.n=count};
+      smearingGraph.validate();
+      assert(not writeLegacyInput(scheduleCorrelations(smearingGraph)).empty());
+    }
+  
+  const std::pair<const char*,double> invalidSmearChecks[]{
+    {"fractional-smear-count",2.5},
+    {"negative-smear-count",-1},
+    {"overflow-smear-count",static_cast<double>(std::numeric_limits<int>::max())+1},
+    {"nan-smear-count",std::numeric_limits<double>::quiet_NaN()},
+    {"infinite-smear-count",std::numeric_limits<double>::infinity()}};
+  
+  for(const auto& [mode,count] : invalidSmearChecks)
+    if(argc>1 and std::string(argv[1])==mode)
+      {
+        std::get<ExtendSelectingTPars>(graph.tasks[1].operation).pars=Smear{.n=count};
+        graph.validate();
+        errorEmitter("invalid smearing count was unexpectedly accepted");
+      }
+  
+  if(argc>1 and std::string(argv[1])=="invalid-compiled-smear-count")
+    {
+      auto compiled=scheduleCorrelations(graph);
+      std::get<ExtendSelectingTPars>(compiled.instructions[1].operation).pars=Smear{.n=2.5};
+      writeLegacyInput(compiled);
+      errorEmitter("invalid compiled smearing count was unexpectedly serialized");
     }
   
   if(argc>1 and std::string(argv[1])=="invalid-cycle")
@@ -399,7 +453,8 @@ void validateLegacyWriter(int argc,char** argv)
   assert(namedOutput.find("named     SOURCE1     SOURCE0")!=std::string::npos);
 }
 
-void validateScriptBindings()
+void validateScriptBindings(int argc,
+                            char** argv)
 {
   Nice nice;
   Correlations& correlations=nice.correlations;
@@ -434,6 +489,18 @@ void validateScriptBindings()
       std::get<HostFunction>(evaluator.curEnv->at(name).data);
     function(arguments,evaluator);
   };
+  
+  if(argc>1 and std::string(argv[1])=="invalid-default-wilson-sign")
+    {
+      call("setDefaultPropR",{value(7)});
+      errorEmitter("invalid default Wilson sign was unexpectedly accepted");
+    }
+  
+  if(argc>1 and std::string(argv[1])=="invalid-default-smear-count")
+    {
+      call("setDefaultSmearN",{value(-1)});
+      errorEmitter("invalid default smearing count was unexpectedly accepted");
+    }
   
   // Tuple extraction borrows the original host payload, without copying the line
   const std::vector<std::shared_ptr<Value>> arguments{
@@ -475,6 +542,72 @@ void validateScriptBindings()
   
   const auto parser=
     getParser();
+  std::vector<Smear> observedSmears;
+  registerHostFunction(evaluator,"recordSmear",{"smear"},[&observedSmears](const Smear& smear)
+  {
+    observedSmears.push_back(smear);
+  });
+  std::vector<Prop> observedProps;
+  registerHostFunction(evaluator,"recordProp",{"prop"},[&observedProps](const Prop& prop)
+  {
+    observedProps.push_back(prop);
+  });
+  const auto defaultsTree=
+    createParseTree(parser,R"(
+      setDefaultPropR(-1);
+      first=Prop();
+      recordProp(first);
+      recordProp(Prop(.kappa=0.13,.r=1));
+      setDefaultPropR(1);
+      recordProp(first);
+      recordProp(Prop());
+      recordProp(Prop(.r=0));
+      setDefaultPropR(0);
+      recordProp(Prop());
+      setDefaultPropKappa(0.14);
+      setDefaultPropMass(0.02);
+      recordProp(Prop());
+      recordProp(Prop(.kappa=0.13,.mass=0));
+      recordProp(first);
+      setDefaultPropKappa(0.125);
+      setDefaultPropMass(0.0);
+      recordSmear(Smear());
+      setDefaultSmearKappa(0.3);
+      setDefaultSmearN(20);
+      smearing=Smear();
+      recordSmear(smearing);
+      recordSmear(Smear(.kappa=0.4,.n=0));
+      setDefaultSmearKappa(0.5);
+      setDefaultSmearN(30);
+      recordSmear(smearing);
+      recordSmear(Smear());
+      setDefaultSmearKappa(0.0);
+      setDefaultSmearN(0);
+      recordSmear(Smear());
+    )");
+  const auto defaultsExecutor=
+    getParseTreeExecuctor(parser.actionStrings);
+  const auto defaultsAst=
+    defaultsExecutor.execParseTree(defaultsTree);
+  std::visit(evaluator,*defaultsAst);
+  assert(observedProps.size()==9);
+  assert(observedProps[0].r==-1 and observedProps[0].kappa==0.125);
+  assert(observedProps[1].r==1 and observedProps[1].kappa==0.13);
+  assert(observedProps[2]==observedProps[0]);
+  assert(observedProps[3].r==1 and observedProps[3].kappa==0.125);
+  assert(observedProps[4].r==0 and observedProps[5].r==0);
+  assert(observedProps[6].kappa==0.14 and observedProps[6].mass==0.02);
+  assert(observedProps[7].kappa==0.13 and observedProps[7].mass==0);
+  assert(observedProps[8]==observedProps[0]);
+  assert(observedSmears.size()==6);
+  assert(observedSmears[0].kappa==0 and observedSmears[0].n==0);
+  assert(observedSmears[1].kappa==0.3 and observedSmears[1].n==20);
+  assert(observedSmears[2].kappa==0.4 and observedSmears[2].n==0);
+  assert(observedSmears[3]==observedSmears[1]);
+  assert(observedSmears[4].kappa==0.5 and observedSmears[4].n==30);
+  assert(observedSmears[5]==observedSmears[0]);
+  assert(Prop{}.r==0);
+  
   const auto tree=
     createParseTree(parser,R"(
     {
@@ -1080,7 +1213,7 @@ int main(int argc,char** argv)
   validateGraphCompiler(argc,argv);
   validateScheduling(argc,argv);
   validateLegacyWriter(argc,argv);
-  validateScriptBindings();
+  validateScriptBindings(argc,argv);
   validateProgramGrammar(argc,argv);
   validateHostObjects(R"(
     {

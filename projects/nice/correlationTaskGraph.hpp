@@ -141,6 +141,8 @@ namespace nissa::nice
 		gamma->validate();
 	      else if(const auto* prop=std::get_if<Prop>(&extension->pars))
 		prop->validate();
+	      else if(const auto* smear=std::get_if<Smear>(&extension->pars))
+		smear->validate();
 	      
 	      if(std::holds_alternative<DeltaT>(extension->pars))
 		CRASH("line extension task %zu contains an unnormalized DeltaT",i);

@@ -154,6 +154,24 @@ namespace nissa::nice
   {
     registerCorrParts(evaluator);
     
+#define REGISTER_DEFAULT_SETTER(TYPE,SUFFIX,MEMBER,ARGTYPE,...) \
+    registerHostFunction(evaluator,"setDefault" #TYPE #SUFFIX,{#MEMBER},[](const ARGTYPE MEMBER) \
+    { \
+      __VA_ARGS__ \
+      TYPE::defaults.MEMBER=MEMBER; \
+    })
+    
+    REGISTER_DEFAULT_SETTER(Prop,Kappa,kappa,double);
+    REGISTER_DEFAULT_SETTER(Prop,Mass,mass,double);
+    REGISTER_DEFAULT_SETTER(Smear,Kappa,kappa,double);
+    REGISTER_DEFAULT_SETTER(Smear,N,n,int,
+      Smear{.n=static_cast<double>(n)}.validate(););
+    REGISTER_DEFAULT_SETTER(Prop,R,r,int,
+      if(r!=0)
+        Prop{.r=r}.validate(););
+    
+#undef REGISTER_DEFAULT_SETTER
+    
     registerHostFunction(evaluator,"corrBlock",{"name"},
                          [&correlations](const std::string& name)
     {

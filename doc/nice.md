@@ -41,8 +41,35 @@ line expressions; line addition and scalar multiplication build weighted
 combinations. The types can be used directly from C++ without nASTy.
 `Gamma` supports only the 16 standard matrices, indexed 0–15, for line
 extensions and contractions; index 0 is the identity.
-`Prop::r` must be explicitly set to `-1` or `+1`; its default `0` means unset
-and is rejected by graph validation and conjugation.
+`Prop` remains an aggregate: omitted members copy the corresponding values
+from the process-wide `Prop::defaults` at construction. Initially `kappa` is
+`0.125` and the other values are zero. The Wilson sign `r` must be `-1` or
+`+1` before graph validation or conjugation; zero means unset.
+`setDefaultPropR(-1)` changes the sign inherited by later propagators;
+`setDefaultPropR(0)` clears that default. Explicit constructor arguments
+always win, and existing objects retain their values. Defaults are shared
+by C++ callers and all evaluators in the process.
+`setDefaultPropKappa(kappa)` and `setDefaultPropMass(mass)` change the
+corresponding propagator defaults. `Smear` uses the same rules through
+`Smear::defaults`, initially zero for kappa, iteration count, and momentum.
+Use `setDefaultSmearKappa(kappa)` and `setDefaultSmearN(n)` to change its
+strength and count. Kappa and mass setters take real arguments (for example
+`0.0`); the iteration setter takes an integer argument (for example `20`).
+Counts must be finite, nonnegative integers representable
+by the backend's `int`; graph validation and the count setter reject other
+values, and the legacy writer emits an integer count.
+
+```cpp
+setDefaultPropKappa(0.125);
+setDefaultPropMass(0.01);
+setDefaultPropR(-1);
+setDefaultSmearKappa(0.3);
+setDefaultSmearN(20);
+prop=Prop();
+smear=Smear();
+unsmeared=Smear(.n=0);
+```
+
 `SpatMomentum` has three spatial components in both C++ and scripts. Temporal
 behavior is specified separately through a boundary condition, normally
 antiperiodic.
@@ -102,6 +129,9 @@ operations.
 parts, their supported native binary operations (including `Line + Line`),
 and these host functions:
 
+- `setDefaultPropKappa(kappa)` and `setDefaultPropMass(mass)` set propagator defaults
+- `setDefaultSmearKappa(kappa)` and `setDefaultSmearN(n)` set smearing defaults
+- `setDefaultPropR(r)` sets the default Wilson sign (`-1` or `+1`), or clears it with `0`
 - `corrBlock(name)` creates a named block
 - `corrGammas(name,sink,source)` adds a gamma pair to that block
 - `corrTrace(name,backward,forward)` adds an ordered line pair
