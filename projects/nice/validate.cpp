@@ -561,6 +561,49 @@ void validateProgramGrammar(int argc,
   assert(emptyBody and emptyBody->list.empty());
   std::visit(evaluator,*empty);
   
+  const char* commentChecks[]{
+    "/**/ record(21);",
+    "/***/record(21);",
+    "/****/record(21);",
+    "/* stars **inside and / slash */record(21);",
+    "/* first\nsecond */record(21);",
+    "//\nrecord(21);",
+    "//\r\nrecord(21);",
+    "// comment\rrecord(21);",
+    "record(21);// trailing",
+    "record(21);//",
+    "\r\nrecord(\r\n21\r\n);\r\n",
+    "record(84/**//4);",
+    "record(20/* first */+1/* second */);"};
+  
+  for(const char* script : commentChecks)
+    {
+      observed=0;
+      const auto tree=
+        createParseTree(parser,script);
+      const auto ast=
+        executor.execParseTree(tree);
+      std::visit(evaluator,*ast);
+      assert(observed==21);
+    }
+  
+  for(const char* script : {"//","// trailing","/**/","/***/"," \r\n\t"})
+    {
+      const auto tree=
+        createParseTree(parser,script);
+      const auto ast=
+        executor.execParseTree(tree);
+      const auto* body=
+        std::get_if<ASTNodesNode>(ast.get());
+      assert(body and body->list.empty());
+    }
+  
+  if(argc>1 and std::string(argv[1])=="unterminated-script-comment")
+    {
+      createParseTree(parser,"record(21); /* missing end");
+      errorEmitter("unterminated script comment was unexpectedly accepted");
+    }
+  
   const std::pair<const char*,int> precedenceChecks[]{
     {"record(10-3-2);",5},
     {"record(16/4/2);",2},

@@ -36,13 +36,13 @@ using namespace pp::internal;
 inline auto getParser()
 {
 #define BARE_WHITESPACES			\
-  "( |\\n|\\t)+"
+  "( |\\n|\\r|\\t)+"
   
 #define CPP_COMMENT				\
-  "//[^\\n]+\\n"
+  "//[^\\n\\r]*"
   
 #define C_COMMENT				\
-  "/\\*([^\\*]|\\*[^/])+\\*/"
+  "/\\*([^\\*]|\\*+[^\\*/])*\\*+/"
     
     // The returned grammar retains string views into this storage
     static constexpr char cGrammar[]=
