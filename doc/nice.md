@@ -41,6 +41,8 @@ line expressions; line addition and scalar multiplication build weighted
 combinations. The types can be used directly from C++ without nASTy.
 `Gamma` supports only the 16 standard matrices, indexed 0–15, for line
 extensions and contractions; index 0 is the identity.
+`Prop::r` must be explicitly set to `-1` or `+1`; its default `0` means unset
+and is rejected by graph validation and conjugation.
 `SpatMomentum` has three spatial components in both C++ and scripts. Temporal
 behavior is specified separately through a boundary condition, normally
 antiperiodic.

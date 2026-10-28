@@ -207,7 +207,7 @@ namespace nissa::nice
     /// Bare mass parameter
     double mass{};
     
-    /// Wilson sign parameter
+    /// Wilson sign, -1 or +1; zero leaves the sign unset
     int r{};
     
     /// Electric charge
@@ -219,11 +219,17 @@ namespace nissa::nice
     /// Residue used by the propagator
     double residue{};
     
+    /// Require an explicitly selected Wilson sign
+    void validate() const
+    {
+      if(r!=-1 and r!=1)
+        CRASH("invalid Wilson sign %d: expected -1 or +1",r);
+    }
+    
     /// Conjugation reverses r and momentum; r must be +1 or -1
     Prop dag() const
     {
-      if(r!=-1 and r!=1)
-        CRASH("Prop::dag requires r to be +1 or -1");
+      validate();
       
       Prop result=
         *this;

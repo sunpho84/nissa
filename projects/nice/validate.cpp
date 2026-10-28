@@ -135,6 +135,45 @@ void validateTaskGraph(int argc,char** argv)
       errorEmitter("invalid compiled gamma was unexpectedly serialized");
     }
   
+  assert(Prop{}.r==0);
+  
+  for(const int sign : {-1,1})
+    {
+      const Prop prop{.r=sign};
+      assert(prop.dag().r==-sign);
+      std::get<ExtendSelectingTPars>(graph.tasks[1].operation).pars=prop;
+      graph.validate();
+      assert(not writeLegacyInput(scheduleCorrelations(graph)).empty());
+    }
+  
+  const std::pair<const char*,int> invalidWilsonChecks[]{
+    {"unset-wilson-sign",0},
+    {"invalid-wilson-positive",7},
+    {"invalid-wilson-negative",-7}};
+  
+  for(const auto& [mode,sign] : invalidWilsonChecks)
+    if(argc>1 and std::string(argv[1])==mode)
+      {
+        std::get<ExtendSelectingTPars>(graph.tasks[1].operation).pars=Prop{.r=sign};
+        graph.validate();
+        errorEmitter("invalid Wilson sign was unexpectedly accepted");
+      }
+  
+  if(argc>1 and std::string(argv[1])=="invalid-compiled-wilson-sign")
+    {
+      auto compiled=
+        scheduleCorrelations(graph);
+      std::get<ExtendSelectingTPars>(compiled.instructions[1].operation).pars=Prop{.r=7};
+      writeLegacyInput(compiled);
+      errorEmitter("invalid compiled Wilson sign was unexpectedly serialized");
+    }
+  
+  if(argc>1 and std::string(argv[1])=="unset-wilson-dagger")
+    {
+      Prop{}.dag();
+      errorEmitter("unset Wilson sign was unexpectedly conjugated");
+    }
+  
   if(argc>1 and std::string(argv[1])=="invalid-cycle")
     {
       graph.tasks[1].inputs[0].task=1;
