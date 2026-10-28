@@ -169,7 +169,7 @@ inline auto getParser()
     "    primary_expression : identifier [return($0)]"
     "                       | \"[0-9]+\" [convToInt($0)]"
     "                       | \"([0-9]+(\\.[0-9]*)?|(\\.[0-9]+))((e|E)(\\+|\\-)?[0-9]+)?\" [convToFloat($0)]"
-    "                       | \"\\\"[^\\\"]*\\\"\" [convToStr($0)]"
+    "                       | \"\\\"([^\\\"\\\\]|\\\\.)*\\\"\" [convToStr($0)]"
     "                       | \"\\(\" expression \"\\)\" %precedence BRACKETS [return($1)]"
     "                       | \"lambda\" \"\\(\" variadicFuncParList \"\\)\" compound_statement [lambdaFuncDef($2,$4)]"
     "                       ;"

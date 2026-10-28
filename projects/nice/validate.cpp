@@ -533,6 +533,11 @@ void validateProgramGrammar(int argc,
   {
     observed=value;
   });
+  std::string observedString;
+  registerHostFunction(evaluator,"recordString",{"value"},[&observedString](const std::string& value)
+  {
+    observedString=value;
+  });
   const auto numberInfo=
     registerHObject<ExampleNumber>(evaluator,"ExampleNumber",
       std::make_tuple(HostMemberInfo{"value",&ExampleNumber::value}));
@@ -560,6 +565,35 @@ void validateProgramGrammar(int argc,
   const auto* emptyBody=std::get_if<ASTNodesNode>(empty.get());
   assert(emptyBody and emptyBody->list.empty());
   std::visit(evaluator,*empty);
+  
+  const std::pair<const char*,std::string> stringChecks[]{
+    {R"(recordString("");)",""},
+    {R"(recordString("plain");)","plain"},
+    {R"(recordString("a\"b");)","a\"b"},
+    {R"(recordString("\\");)","\\"},
+    {R"(recordString("\\\"");)","\\\""},
+    {R"(recordString("left\"middle\"right");)","left\"middle\"right"},
+    {R"(recordString("a\nb\tc\rd\be\f");)","a\nb\tc\rd\be\f"},
+    {R"(recordString("// not a comment /* either */");)","// not a comment /* either */"},
+    {R"(recordString("a\""+"b");)","a\"b"},
+    {R"(recordString("one");recordString("two\"");)","two\""}};
+  
+  for(const auto& [script,expected] : stringChecks)
+    {
+      observedString="not recorded";
+      const auto tree=
+        createParseTree(parser,script);
+      const auto ast=
+        executor.execParseTree(tree);
+      std::visit(evaluator,*ast);
+      assert(observedString==expected);
+    }
+  
+  if(argc>1 and std::string(argv[1])=="unterminated-script-string")
+    {
+      createParseTree(parser,R"(recordString("a\");)");
+      errorEmitter("unterminated script string was unexpectedly accepted");
+    }
   
   const char* commentChecks[]{
     "/**/ record(21);",
