@@ -153,6 +153,13 @@ namespace nissa::nice
     /// Gamma matrix index; zero is the identity/scalar operator
     std::size_t iGamma{};
     
+    /// Accept only the 16 standard gamma matrices
+    void validate() const
+    {
+      if(iGamma>=16)
+        CRASH("invalid gamma matrix index %zu: expected 0 through 15",iGamma);
+    }
+    
     /// Gamma parameters are unchanged by conjugation
     Gamma dag() const
     {

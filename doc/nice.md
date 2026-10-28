@@ -39,6 +39,8 @@ execute correlations.
 `Phase`, `Gamma`, `DeltaT`, `Prop`, `Source`, `Oper`, and `Line`. Products build
 line expressions; line addition and scalar multiplication build weighted
 combinations. The types can be used directly from C++ without nASTy.
+`Gamma` supports only the 16 standard matrices, indexed 0–15, for line
+extensions and contractions; index 0 is the identity.
 `SpatMomentum` has three spatial components in both C++ and scripts. Temporal
 behavior is specified separately through a boundary condition, normally
 antiperiodic.

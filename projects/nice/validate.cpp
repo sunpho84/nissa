@@ -97,6 +97,44 @@ void validateTaskGraph(int argc,char** argv)
   assert(graph.tasks.size()==2);
   assert(graph.outputs.front().name=="empty");
   
+  for(std::size_t index=0;index<16;index++)
+    {
+      auto& extension=
+        std::get<ExtendSelectingTPars>(graph.tasks[1].operation);
+      extension.pars=Gamma{.iGamma=index};
+      graph.validate();
+      const auto compiled=
+        scheduleCorrelations(graph);
+      assert(compiled.instructions.size()==2);
+      assert(writeLegacyInput(compiled).find("NProps 1")!=std::string::npos);
+    }
+  
+  std::get<ExtendSelectingTPars>(graph.tasks[1].operation).pars=Gamma{.iGamma=1};
+  
+  const std::pair<const char*,std::size_t> invalidGammaChecks[]{
+    {"invalid-gamma-boundary",16},
+    {"invalid-gamma-extra-17",17},
+    {"invalid-gamma-extra-18",18},
+    {"invalid-gamma-large",999},
+    {"invalid-gamma-wrapped",std::numeric_limits<std::size_t>::max()}};
+  
+  for(const auto& [mode,index] : invalidGammaChecks)
+    if(argc>1 and std::string(argv[1])==mode)
+      {
+        std::get<ExtendSelectingTPars>(graph.tasks[1].operation).pars=Gamma{.iGamma=index};
+        graph.validate();
+        errorEmitter("invalid extension gamma was unexpectedly accepted");
+      }
+  
+  if(argc>1 and std::string(argv[1])=="invalid-compiled-gamma")
+    {
+      auto compiled=
+        scheduleCorrelations(graph);
+      std::get<ExtendSelectingTPars>(compiled.instructions[1].operation).pars=Gamma{.iGamma=999};
+      writeLegacyInput(compiled);
+      errorEmitter("invalid compiled gamma was unexpectedly serialized");
+    }
+  
   if(argc>1 and std::string(argv[1])=="invalid-cycle")
     {
       graph.tasks[1].inputs[0].task=1;

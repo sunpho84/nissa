@@ -137,6 +137,9 @@ namespace nissa::nice
 	      if(extension->tSelect< -1)
 		CRASH("line extension task %zu has an invalid time selection",i);
 	      
+	      if(const auto* gamma=std::get_if<Gamma>(&extension->pars))
+		gamma->validate();
+	      
 	      if(std::holds_alternative<DeltaT>(extension->pars))
 		CRASH("line extension task %zu contains an unnormalized DeltaT",i);
 	      
