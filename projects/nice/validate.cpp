@@ -352,6 +352,36 @@ void validateScheduling(int argc,char** argv)
   assert(ids(outputFirst)==(std::vector<TaskId>{0,2,1,3}));
   assert(outputFirst.outputs==graph.outputs);
   
+  const CorrelationTaskGraph independent(
+    {Task{.id=0,.operation=backward,.inputs{},.labels{}},
+     Task{.id=1,.operation=forward,.inputs{},.labels{}}},{});
+  assert(ids(scheduleCorrelations(independent))==(std::vector<TaskId>{0,1}));
+  assert(ids(scheduleCorrelations(independent,scheduleByOutput))==(std::vector<TaskId>{0,1}));
+  assert(ids(scheduleCorrelations(independent,[](const CorrelationTaskGraph&)
+  {
+    return std::vector<TaskId>{1,0};
+  }))==(std::vector<TaskId>{1,0}));
+  
+  const CorrelationTaskGraph empty({},{});
+  assert(scheduleCorrelations(empty).instructions.empty());
+  assert(scheduleCorrelations(empty,scheduleByOutput).instructions.empty());
+  
+  const std::pair<const char*,std::vector<TaskId>> invalidSchedules[]{
+    {"omitted-trailing-task",{0}},
+    {"excess-scheduled-tasks",{0,1,0}},
+    {"duplicate-scheduled-task",{0,0}},
+    {"nonexistent-scheduled-task",{0,2}}};
+  
+  for(const auto& [mode,order] : invalidSchedules)
+    if(argc>1 and std::string(argv[1])==mode)
+      {
+        scheduleCorrelations(independent,[&order](const CorrelationTaskGraph&)
+        {
+          return order;
+        });
+        errorEmitter("invalid schedule was unexpectedly accepted");
+      }
+  
   if(argc>1 and std::string(argv[1])=="invalid-order")
     {
       (void)scheduleCorrelations(graph,[](const CorrelationTaskGraph&)

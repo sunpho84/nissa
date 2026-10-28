@@ -64,6 +64,10 @@ namespace nissa::nice
     
     const std::vector<TaskId> order=
       strategy(graph);
+    
+    if(order.size()!=graph.tasks.size())
+      CRASH("schedule returns %zu tasks instead of %zu",order.size(),graph.tasks.size());
+    
     std::vector<Task> instructions;
     instructions.reserve(order.size());
     

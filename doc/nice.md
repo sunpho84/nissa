@@ -116,7 +116,8 @@ editing the public graph fields. A graph may be scheduled more than once.
 provides `scheduleByTaskId` and `scheduleByOutput`. The former follows the
 graph's stable ID order. The latter visits each requested trace and its
 dependencies before moving to the next trace, then includes any remaining
-tasks. `scheduleCorrelations` applies a strategy and returns
+tasks. A strategy must return every graph task ID exactly once, including
+unused tasks. `scheduleCorrelations` applies a strategy and returns
 [`CompiledCorrelations`](../projects/nice/compiledCorrelations.hpp), an ordered
 instruction list plus output references. Its validation requires every task
 exactly once, with dependencies preceding users and outputs referencing valid
