@@ -109,7 +109,9 @@ Tasks receive stable IDs in dependency-first order. Output blocks retain
 request order and refer to their trace task IDs.
 
 Graph construction validates task IDs, dependency order, input shapes,
-coefficients, labels, and output references. Call `validate()` after directly
+coefficients, labels, and output references. Extension and contraction inputs
+must come from sources or line extensions; contraction results cannot be used
+as fields. Call `validate()` after directly
 editing the public graph fields. A graph may be scheduled more than once.
 
 [`schedulingStrategies.hpp`](../projects/nice/schedulingStrategies.hpp)

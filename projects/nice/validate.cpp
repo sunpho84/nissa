@@ -228,6 +228,45 @@ void validateTaskGraph(int argc,char** argv)
       errorEmitter("invalid compiled smearing count was unexpectedly serialized");
     }
   
+  const CorrelationTaskGraph fieldInputs(
+    {Task{.id=0,.operation=source,.inputs{},.labels{}},
+     Task{.id=1,.operation=ExtendSelectingTPars{Pars(Gamma{.iGamma=1})},
+          .inputs{{0,1.0}},.labels{}},
+     Task{.id=2,.operation=TraceContraction{},.inputs{{0,1.0},{1,1.0}},.labels{}}},
+    {OutputBlock{.name="fields",.gammaList{},.traces{2}}});
+  const auto validFields=scheduleCorrelations(fieldInputs);
+  assert(validFields.instructions.size()==3);
+  assert(not writeLegacyInput(validFields).empty());
+  
+  const std::pair<const char*,Task> invalidFieldInputs[]{
+    {"extension-from-trace",Task{.id=3,
+      .operation=ExtendSelectingTPars{Pars(Gamma{.iGamma=1})},
+      .inputs{{2,1.0}},.labels{}}},
+    {"weighted-extension-from-trace",Task{.id=3,
+      .operation=ExtendSelectingTPars{Pars(Gamma{.iGamma=1})},
+      .inputs{{0,1.0},{2,0.5}},.labels{}}},
+    {"trace-from-trace-backward",Task{.id=3,.operation=TraceContraction{},
+      .inputs{{2,1.0},{0,1.0}},.labels{}}},
+    {"trace-from-trace-forward",Task{.id=3,.operation=TraceContraction{},
+      .inputs{{0,1.0},{2,1.0}},.labels{}}}};
+  
+  for(const auto& [mode,task] : invalidFieldInputs)
+    if(argc>1 and std::string(argv[1])==mode)
+      {
+        auto invalid=fieldInputs;
+        invalid.tasks.push_back(task);
+        invalid.validate();
+        errorEmitter("contraction was unexpectedly accepted as a field input");
+      }
+  
+  if(argc>1 and std::string(argv[1])=="compiled-extension-from-trace")
+    {
+      auto invalid=validFields;
+      invalid.instructions.push_back(invalidFieldInputs[0].second);
+      invalid.validate();
+      errorEmitter("compiled contraction was unexpectedly accepted as a field input");
+    }
+  
   if(argc>1 and std::string(argv[1])=="invalid-cycle")
     {
       graph.tasks[1].inputs[0].task=1;

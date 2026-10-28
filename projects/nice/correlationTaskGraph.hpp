@@ -118,6 +118,9 @@ namespace nissa::nice
 	      
 	      if(not std::isfinite(input.weight))
 		CRASH("task %zu has a nonfinite input coefficient",i);
+	      
+	      if(std::holds_alternative<TraceContraction>(tasks[input.task].operation))
+		CRASH("task %zu uses contraction task %zu as a field input",i,input.task);
 	    }
 	  
 	  if(const auto* source=std::get_if<Source>(&task.operation))
