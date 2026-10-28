@@ -807,6 +807,45 @@ void validateProgramGrammar(int argc,
       assert(observed==expected);
     }
   
+  const std::pair<const char*,int> argumentBindingChecks[]{
+    {"fun f(x,y){return x*10+y;} record(f(1,.y=2));",12},
+    {"fun f(x,y){return x*10+y;} record(f(.y=2,1));",12},
+    {"fun f(x,y=2){return x*10+y;} record(f(.x=1));",12},
+    {"fun f(x,...){return x*10+__VA__ARGS__[0];} record(f(1,2));",12},
+    {"struct S{x;y;}; s=S(1,.y=2); record(s.x*10+s.y);",12},
+    {"struct S{x;y;}; s=S(.y=2,1); record(s.x*10+s.y);",12},
+    {"struct S{x;y=2;}; s=S(.x=1); record(s.x*10+s.y);",12}};
+  
+  for(const auto& [script,expected] : argumentBindingChecks)
+    {
+      const auto tree=
+        createParseTree(parser,script);
+      const auto ast=
+        executor.execParseTree(tree);
+      observed=-1;
+      std::visit(evaluator,*ast);
+      assert(observed==expected);
+    }
+  
+  const std::pair<const char*,const char*> duplicateArgumentChecks[]{
+    {"duplicate-function-mixed","fun f(x){return x;} f(1,.x=2);"},
+    {"duplicate-function-reversed","fun f(x){return x;} f(.x=2,1);"},
+    {"duplicate-function-named","fun f(x){return x;} f(.x=1,.x=2);"},
+    {"duplicate-struct-mixed","struct S{x;}; S(1,.x=2);"},
+    {"duplicate-struct-reversed","struct S{x;}; S(.x=2,1);"},
+    {"duplicate-struct-named","struct S{x;}; S(.x=1,.x=2);"}};
+  
+  for(const auto& [mode,script] : duplicateArgumentChecks)
+    if(argc>1 and std::string(argv[1])==mode)
+      {
+        const auto tree=
+          createParseTree(parser,script);
+        const auto ast=
+          executor.execParseTree(tree);
+        std::visit(evaluator,*ast);
+        errorEmitter("duplicate argument was unexpectedly accepted");
+      }
+  
   if(argc>1 and std::string(argv[1])=="invalid-variadic-reference")
     {
       const auto tree=

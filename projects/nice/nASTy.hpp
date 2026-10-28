@@ -2136,6 +2136,19 @@ struct Evaluator
     std::vector<std::shared_ptr<Value>> args;
     const Value& _fun=curEnv->at(fName);
     
+    /// Fill a parameter slot once, using the same diagnostic for every callable
+    const auto insertArgument=
+      [&args,
+       &fName](const size_t index,
+               const std::string& name,
+               const std::shared_ptr<Value>& value)
+      {
+        if(args[index])
+          errorEmitter("argument ",name," specified twice to ",fName);
+        else
+          args[index]=value;
+      };
+    
     if([[maybe_unused]] const HostFunction* fun=std::get_if<HostFunction>(&_fun.data))
       {
         const auto& names=
@@ -2169,9 +2182,7 @@ struct Evaluator
                   }
                 if(i>=args.size())
                   errorEmitter("too many arguments to ",fName);
-                if(args[i])
-                  errorEmitter("argument ",names[i]," specified twice to ",fName);
-                args[i]=arg.value;
+                insertArgument(i,names[i],arg.value);
               }
 	  }
       }
@@ -2193,7 +2204,8 @@ struct Evaluator
 	     &args,
 	     &_args,
 	     &pars,
-	     &fName](const bool insertNamed)
+	     &fName,
+	     &insertArgument](const bool insertNamed)
 	    {
 	      for(const std::shared_ptr<Value>& __arg : _args->data)
 		{
@@ -2230,7 +2242,7 @@ struct Evaluator
 			    errorEmitter("passing too many arguments to non-variadic function ",fName);
 			}
 		      else
-			args[iPar]=arg;
+			insertArgument(iPar,pars.list[iPar].name,arg);
 		    }
 		}
 	    };
@@ -2262,7 +2274,8 @@ struct Evaluator
 	      [&args,
 	       &_args,
 	       &members,
-	       &fName](const bool insertNamed)
+	       &fName,
+	       &insertArgument](const bool insertNamed)
 	      {
 		for(const std::shared_ptr<Value>& __arg : _args->data)
 		  {
@@ -2294,7 +2307,7 @@ struct Evaluator
 			if(iMember>=args.size())
 			  errorEmitter("passing too many arguments to struct ",fName);
 			else
-			  args[iMember]=arg;
+			  insertArgument(iMember,members.list[iMember].name,arg);
 		      }
 		  }
 	      };
