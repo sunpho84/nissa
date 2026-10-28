@@ -66,6 +66,18 @@ namespace nissa::nice
         return std::isspace(character);
       }))
         CRASH("legacy input cannot encode whitespace in name %s",name.c_str());
+      
+      if(name.starts_with("/*"))
+        CRASH("legacy input cannot encode comment prefix in name %s",name.c_str());
+      
+      std::string upper=name;
+      std::transform(upper.begin(),upper.end(),upper.begin(),[](const unsigned char character)
+      {
+        return std::toupper(character);
+      });
+      
+      if(upper=="LINCOMB")
+        CRASH("legacy input cannot encode reserved name %s",name.c_str());
     }
     
     /// Convert a task's weighted dependencies to one legacy SourceName field

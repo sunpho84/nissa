@@ -519,7 +519,54 @@ void validateLegacyWriter(int argc,char** argv)
   const std::string namedOutput=
     writeLegacyInput(scheduleCorrelations(nameCollision));
   assert(namedOutput.find("SOURCE1")!=std::string::npos);
-  assert(namedOutput.find("named     SOURCE1     SOURCE0")!=std::string::npos);
+  assert(namedOutput.find("named     SOURCE1     SOURCE0")!=std::string::npos);  
+  for(const char* name : {"LINCOMB_1","xLINCOMB","x/*comment","*/tail","//name"})
+    {
+      auto safe=compiled;
+      const auto found=
+        std::find_if(safe.instructions.begin(),safe.instructions.end(),[](const Task& task)
+        {
+          return std::holds_alternative<Source>(task.operation);
+        });
+      assert(found!=safe.instructions.end());
+      found->labels={name};
+      assert(writeLegacyInput(safe).find(name)!=std::string::npos);
+    }
+  
+  const std::tuple<const char*,const char*,int> invalidNames[]{
+    {"reserved-source-name","LINCOMB",0},
+    {"reserved-line-name","lincomb",1},
+    {"reserved-block-name","LiNcOmB",2},
+    {"comment-source-name","/*hidden",0},
+    {"comment-line-name","/*",1},
+    {"comment-block-name","/**/",2},
+    {"whitespace-source-name","bad name",0}};
+  
+  for(const auto& [mode,name,role] : invalidNames)
+    if(argc>1 and std::string(argv[1])==mode)
+      {
+        auto invalid=compiled;
+        
+        if(role==2)
+          invalid.outputs.front().name=name;
+        else
+          {
+            const auto found=
+              std::find_if(invalid.instructions.begin(),invalid.instructions.end(),[role](const Task& task)
+              {
+                if(role==0)
+                  return std::holds_alternative<Source>(task.operation);
+                else
+                  return std::holds_alternative<ExtendSelectingTPars>(task.operation);
+              });
+            assert(found!=invalid.instructions.end());
+            found->labels={name};
+          }
+        
+        writeLegacyInput(invalid);
+        errorEmitter("legacy syntax was unexpectedly accepted as a name");
+      }
+
 }
 
 void validateScriptBindings(int argc,

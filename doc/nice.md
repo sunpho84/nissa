@@ -204,7 +204,9 @@ setFirst(&x);
 compiled instructions as prepareInput source, propagator, and contraction
 tables. It derives display names locally, including deterministic generated
 names, and represents weighted dependencies with the legacy `LINCOMB` field.
-Those names do not affect task identity or scheduling. A fixture in
+Those names do not affect task identity or scheduling. The writer rejects
+whitespace, the reserved name `LINCOMB` in any letter case, and names beginning
+with `/*` in source labels, line labels, and output block names. A fixture in
 [`validate.cpp`](../projects/nice/validate.cpp) compares the output byte for
 byte with the old `Run` printer.
 
