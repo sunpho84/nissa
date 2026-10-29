@@ -325,14 +325,17 @@ namespace nissa
     
     /// Gets a number between [0;1)
     ///
-    /// This routine returns precisely the same than std::uniform_distribution
+    /// Consume two 32-bit words, low significance first, and clamp rounded unity
     template <typename G>
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     double getUniformDistributed(G&& g)
     {
       constexpr double F=4294967296.0;
       
-      if(const double res=(g()/F+g())/F;res>=1)
+      const uint32_t low=g();
+      const uint32_t high=g();
+      
+      if(const double res=(low/F+high)/F;res>=1)
 	return 0.999999999999999889;
       else
 	return res;
