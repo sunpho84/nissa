@@ -39,10 +39,20 @@ namespace nissa::nice
     return weight*momentum;
   }
   
-  Pars dag(const Pars& pars)
+  Oper Gamma::dag() const
+  {
+    validate();
+    
+    Oper result(*this);
+    result.weight=(iGamma<6)?1.0:-1.0;
+    
+    return result;
+  }
+  
+  Oper dag(const Pars& pars)
   {
     const auto conjugate=
-      [](const auto& value)->Pars
+      [](const auto& value)->Oper
     {
       return value.dag();
     };
@@ -64,8 +74,8 @@ namespace nissa::nice
   Oper Oper::dag() const
   {
     Oper result=
-      rhs?rhs->dag()*Oper(nissa::nice::dag(pars)):
-      Oper(nissa::nice::dag(pars));
+      rhs?rhs->dag()*nissa::nice::dag(pars):
+      nissa::nice::dag(pars);
     result.weight*=
       weight;
     

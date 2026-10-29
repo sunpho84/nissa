@@ -163,6 +163,9 @@ namespace nissa::nice
     auto operator<=>(const Phase&) const=default;
   };
   
+  /// Forward declaration
+  struct Oper;
+  
   /// Gamma matrix identified by its index; zero denotes the scalar
   struct Gamma
   {
@@ -176,11 +179,8 @@ namespace nissa::nice
         CRASH("invalid gamma matrix index %zu: expected 0 through 15",iGamma);
     }
     
-    /// Gamma parameters are unchanged by conjugation
-    Gamma dag() const
-    {
-      return *this;
-    }
+    /// Hermitian adjoint, carrying the sign of anti-Hermitian matrices as a weight
+    Oper dag() const;
     
     /// Describe the gamma index
     std::string describe() const
@@ -287,8 +287,8 @@ namespace nissa::nice
   using Pars=
     std::variant<Smear,Phase,Gamma,DeltaT,Prop>;
   
-  /// Conjugate whichever parameter alternative is held
-  Pars dag(const Pars& pars);
+  /// Conjugate whichever parameter alternative is held, retaining its scalar factor
+  Oper dag(const Pars& pars);
   
   /// Describe whichever parameter alternative is held
   std::string describe(const Pars& pars);

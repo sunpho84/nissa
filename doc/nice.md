@@ -74,6 +74,13 @@ unsmeared=Smear(.n=0);
 behavior is specified separately through a boundary condition, normally
 antiperiodic.
 
+`dag()` denotes the Hermitian adjoint and reverses operator-product order.
+`Prop::dag()` flips the Wilson sign multiplying the imaginary gamma-five term
+and reverses momentum; `Phase::dag()` reverses its phase momentum. Standard
+gamma indices 0–5 are Hermitian and 6–15 are anti-Hermitian. `Gamma::dag()`
+and `dag(Pars)` therefore return an `Oper`, retaining the adjoint sign in its
+real scalar weight. Existing real weights are unchanged by conjugation.
+
 [`correlations.hpp`](../projects/nice/correlations.hpp) defines `Correlations`
 as a collection of named `Correlation` blocks. Each block holds distinct
 sink/source gamma pairs and ordered backward/forward line pairs. Block names

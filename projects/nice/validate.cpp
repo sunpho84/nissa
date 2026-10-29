@@ -7,9 +7,11 @@
 #include "niceSetup.hpp"
 #include "nice.hpp"
 #include "nASTy.hpp"
+#include "new_types/dirac.hpp"
 
 #include <algorithm>
 #include <cassert>
+#include <complex>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -17,6 +19,8 @@
 #include <vector>
 
 using namespace nissa::nice;
+
+/// Find a gamma extension carrying the requested time selection in a line tree
 bool containsSelection(const Line& line,
                        const int time)
 {
@@ -39,8 +43,10 @@ bool containsSelection(const Line& line,
   return false;
 }
 
+/// Check aggregate defaults, source identities, adjoints, and weighted line construction
 void validateCorrParts()
 {
+  // Propagators inherit every default while explicit members override selected values
   static_assert(std::is_aggregate_v<Prop>);
   const Prop initialDefaults=Prop::defaults;
   assert(initialDefaults.kappa==0.125 and initialDefaults.r==0);
@@ -54,6 +60,7 @@ void validateCorrParts()
   Prop::defaults=initialDefaults;
   assert(inherited.r==-1 and inherited.kappa==0.13);
   
+  // Smearing defaults obey the same snapshot rule and preserve aggregate initialization
   static_assert(std::is_aggregate_v<Smear>);
   const Smear initialSmearDefaults=Smear::defaults;
   assert(initialSmearDefaults==Smear({.kappa=0,.n=0,.mom={}}));
@@ -64,6 +71,7 @@ void validateCorrParts()
   Smear::defaults=initialSmearDefaults;
   assert(inheritedSmear.n==20);
   
+  // Copies retain source identity, but a fresh source at the same time is independent
   const Source eta(0);
   const Source copy=
     eta;
@@ -71,6 +79,7 @@ void validateCorrParts()
   assert(copy==eta);
   assert(independent!=eta);
   
+  // Propagator conjugation reverses the Wilson sign and is an involution
   const Prop prop{.kappa=0.1394267,.mass=0.00066690,.r=-1,
                   .residue=1e-20};
   const Prop reversed=
@@ -78,11 +87,13 @@ void validateCorrParts()
   assert(reversed.r==1);
   assert(reversed.dag()==prop);
   
+  // Momentum scaling and phase conjugation preserve the spatial-component convention
   const SpatMomentum momentum{1,2,3};
   assert(momentum[0]==1 and momentum[2]==3);
   assert(((2.0*momentum).asArray()==std::array<double,3>{2,4,6}));
   assert(Phase{.mom=momentum}.dag().mom==SpatMomentum({-1,-2,-3}));
   
+  // Product adjoints and scalar weights survive copying and a second adjoint
   const Oper op=
     prop*Phase{.mom=momentum}*Gamma{.iGamma=5};
   const Oper reversedOp=
@@ -90,6 +101,7 @@ void validateCorrParts()
   assert(reversedOp.dag()==op);
   assert((2.0*op).weight==2.0);
   
+  // Display labels do not change line identity or erase selected times
   const Line original=
     op*DeltaT{.t=5}*eta;
   const Line named(original,"first");
@@ -98,6 +110,7 @@ void validateCorrParts()
   assert(named.describe()==renamed.describe());
   assert(containsSelection(original,5));
   
+  // An explicitly unmerged sum retains separate weighted input terms
   const Line sum=
     original+2.0*original;
   const auto* extender=
@@ -108,6 +121,88 @@ void validateCorrParts()
   assert(addLines(original,original,false)!=original);
 }
 
+/// Check adjoints against NISSA's actual matrices, including product reversal and signs
+void validateGammaAdjoints()
+{
+  // Use the backend matrices as the reference rather than duplicating an expected-sign table
+  nissa::init_base_gamma();
+  using Matrix=
+    std::array<std::array<std::complex<double>,4>,4>;
+  std::array<Matrix,16> matrices{};
+  
+  // Expand the backend sparse representation: each row stores one nonzero entry
+  for(std::size_t index=0;index<matrices.size();index++)
+    for(std::size_t row=0;row<4;row++)
+      {
+        const auto& gamma=nissa::base_gamma[index];
+        matrices[index][row][gamma.pos[row]]={gamma.entr[row][0],gamma.entr[row][1]};
+      }
+  
+  // Dense multiplication provides an independent check of symbolic product order
+  const auto multiply=[](const Matrix& left,
+                         const Matrix& right)
+  {
+    Matrix result{};
+    for(std::size_t row=0;row<4;row++)
+      for(std::size_t column=0;column<4;column++)
+        for(std::size_t inner=0;inner<4;inner++)
+          result[row][column]+=left[row][inner]*right[inner][column];
+    
+    return result;
+  };
+  
+  // The reference adjoint is the complex-conjugate transpose
+  const auto adjoint=[](const Matrix& matrix)
+  {
+    Matrix result{};
+    for(std::size_t row=0;row<4;row++)
+      for(std::size_t column=0;column<4;column++)
+        result[row][column]=std::conj(matrix[column][row]);
+    
+    return result;
+  };
+  
+  // Evaluate a symbolic gamma product numerically, including every node weight
+  const auto matrixOf=[&](auto&& self,
+                         const Oper& operation)->Matrix
+  {
+    Matrix result=matrices[std::get<Gamma>(operation.pars).iGamma];
+    
+    if(operation.rhs)
+      result=multiply(result,self(self,*operation.rhs));
+    
+    for(auto& row : result)
+      for(auto& entry : row)
+        entry*=operation.weight;
+    
+    return result;
+  };
+  
+  // Entries and weights are exactly representable here, so exact matrix equality is sufficient
+  for(std::size_t left=0;left<matrices.size();left++)
+    {
+      // Check both the direct gamma API and dispatch through the parameter variant
+      const Gamma gamma{.iGamma=left};
+      assert(matrixOf(matrixOf,gamma.dag())==adjoint(matrices[left]));
+      assert(dag(Pars{gamma})==gamma.dag());
+      
+      // All ordered pairs test product reversal, accumulated signs, and a nonunit real weight
+      for(std::size_t right=0;right<matrices.size();right++)
+        {
+          const Oper product=2.0*(Oper(gamma)*Oper(Gamma{.iGamma=right}));
+          assert(matrixOf(matrixOf,product.dag())==adjoint(matrixOf(matrixOf,product)));
+        }
+    }
+  
+  const Source source(0);
+  
+  // The anti-Hermitian sign must also reach the coefficient of a constructed line
+  const Line signedLine=Gamma{.iGamma=6}.dag()*source;
+  const auto& extension=std::get<Extender>(signedLine.data);
+  assert(extension.rhs.front().first==-1.0);
+}
+
+/// Check graph invariants and parameter ranges, with named modes for rejected inputs
 void validateTaskGraph(int argc,char** argv)
 {
   const Source source(0);
@@ -120,6 +215,7 @@ void validateTaskGraph(int argc,char** argv)
   assert(graph.tasks.size()==2);
   assert(graph.outputs.front().name=="empty");
   
+  // All standard gamma entries remain valid through scheduling and serialization
   for(std::size_t index=0;index<16;index++)
     {
       auto& extension=
@@ -134,6 +230,7 @@ void validateTaskGraph(int argc,char** argv)
   
   std::get<ExtendSelectingTPars>(graph.tasks[1].operation).pars=Gamma{.iGamma=1};
   
+  // Reject the first unsupported index, historical extra entries, and wrapped negative values
   const std::pair<const char*,std::size_t> invalidGammaChecks[]{
     {"invalid-gamma-boundary",16},
     {"invalid-gamma-extra-17",17},
@@ -149,6 +246,7 @@ void validateTaskGraph(int argc,char** argv)
         errorEmitter("invalid extension gamma was unexpectedly accepted");
       }
   
+  // Validation must also catch an invalid parameter introduced after scheduling
   if(argc>1 and std::string(argv[1])=="invalid-compiled-gamma")
     {
       auto compiled=
@@ -158,6 +256,7 @@ void validateTaskGraph(int argc,char** argv)
       errorEmitter("invalid compiled gamma was unexpectedly serialized");
     }
   
+  // The initial Wilson default is unset; both physical signs remain valid
   assert(Prop{}.r==0);
   
   for(const int sign : {-1,1})
@@ -169,6 +268,7 @@ void validateTaskGraph(int argc,char** argv)
       assert(not writeLegacyInput(scheduleCorrelations(graph)).empty());
     }
   
+  // Unset and nonphysical signs must fail before the legacy sign mapping
   const std::pair<const char*,int> invalidWilsonChecks[]{
     {"unset-wilson-sign",0},
     {"invalid-wilson-positive",7},
@@ -197,6 +297,7 @@ void validateTaskGraph(int argc,char** argv)
       errorEmitter("unset Wilson sign was unexpectedly conjugated");
     }
   
+  // Accept the iteration-count endpoints without performing any numerical smearing
   for(const double count : {0.0,static_cast<double>(std::numeric_limits<int>::max())})
     {
       auto smearingGraph=graph;
@@ -205,6 +306,7 @@ void validateTaskGraph(int argc,char** argv)
       assert(not writeLegacyInput(scheduleCorrelations(smearingGraph)).empty());
     }
   
+  // Fractional, negative, nonfinite, and excessive counts must not reach integer serialization
   const std::pair<const char*,double> invalidSmearChecks[]{
     {"fractional-smear-count",2.5},
     {"negative-smear-count",-1},
@@ -228,6 +330,7 @@ void validateTaskGraph(int argc,char** argv)
       errorEmitter("invalid compiled smearing count was unexpectedly serialized");
     }
   
+  // Sources and line extensions produce fields that may be contracted
   const CorrelationTaskGraph fieldInputs(
     {Task{.id=0,.operation=source,.inputs{},.labels{}},
      Task{.id=1,.operation=ExtendSelectingTPars{Pars(Gamma{.iGamma=1})},
@@ -238,6 +341,7 @@ void validateTaskGraph(int argc,char** argv)
   assert(validFields.instructions.size()==3);
   assert(not writeLegacyInput(validFields).empty());
   
+  // Contraction results cannot feed an extension or either operand of another trace
   const std::pair<const char*,Task> invalidFieldInputs[]{
     {"extension-from-trace",Task{.id=3,
       .operation=ExtendSelectingTPars{Pars(Gamma{.iGamma=1})},
@@ -280,6 +384,7 @@ void validateTaskGraph(int argc,char** argv)
     }
 }
 
+/// Check stable task identities, shared dependencies, coefficients, and output ordering
 void validateGraphCompiler(int argc,char** argv)
 {
   const Source source(0);
@@ -358,6 +463,7 @@ void validateGraphCompiler(int argc,char** argv)
     }
 }
 
+/// Check complete dependency-compatible schedules, including unused and independent tasks
 void validateScheduling(int argc,char** argv)
 {
   const Source backward(0);
@@ -391,6 +497,7 @@ void validateScheduling(int argc,char** argv)
   assert(ids(outputFirst)==(std::vector<TaskId>{0,2,1,3}));
   assert(outputFirst.outputs==graph.outputs);
   
+  // A schedule must retain unreferenced tasks and may reorder independent ones
   const CorrelationTaskGraph independent(
     {Task{.id=0,.operation=backward,.inputs{},.labels{}},
      Task{.id=1,.operation=forward,.inputs{},.labels{}}},{});
@@ -401,10 +508,12 @@ void validateScheduling(int argc,char** argv)
     return std::vector<TaskId>{1,0};
   }))==(std::vector<TaskId>{1,0}));
   
+  // Both built-in strategies accept an empty graph
   const CorrelationTaskGraph empty({},{});
   assert(scheduleCorrelations(empty).instructions.empty());
   assert(scheduleCorrelations(empty,scheduleByOutput).instructions.empty());
   
+  // A complete schedule needs the right count, unique IDs, and valid references
   const std::pair<const char*,std::vector<TaskId>> invalidSchedules[]{
     {"omitted-trailing-task",{0}},
     {"excess-scheduled-tasks",{0,1,0}},
@@ -445,6 +554,7 @@ void validateScheduling(int argc,char** argv)
     }
 }
 
+/// Compare legacy tables with a reference fixture and reject names interpreted as syntax
 void validateLegacyWriter(int argc,char** argv)
 {
   const Source source(0);
@@ -520,6 +630,7 @@ void validateLegacyWriter(int argc,char** argv)
     writeLegacyInput(scheduleCorrelations(nameCollision));
   assert(namedOutput.find("SOURCE1")!=std::string::npos);
   assert(namedOutput.find("named     SOURCE1     SOURCE0")!=std::string::npos);  
+  // Near-matches remain ordinary legacy tokens unless the reader treats them as syntax
   for(const char* name : {"LINCOMB_1","xLINCOMB","x/*comment","*/tail","//name"})
     {
       auto safe=compiled;
@@ -533,6 +644,7 @@ void validateLegacyWriter(int argc,char** argv)
       assert(writeLegacyInput(safe).find(name)!=std::string::npos);
     }
   
+  // Exercise source labels (0), line labels (1), and output block names (2)
   const std::tuple<const char*,const char*,int> invalidNames[]{
     {"reserved-source-name","LINCOMB",0},
     {"reserved-line-name","lincomb",1},
@@ -569,6 +681,7 @@ void validateLegacyWriter(int argc,char** argv)
 
 }
 
+/// Exercise registered NICE functions and construction-time defaults through the script evaluator
 void validateScriptBindings(int argc,
                             char** argv)
 {
@@ -658,6 +771,7 @@ void validateScriptBindings(int argc,
   
   const auto parser=
     getParser();
+  // Capture constructed values to distinguish inheritance, explicit overrides, and later default changes
   std::vector<Smear> observedSmears;
   registerHostFunction(evaluator,"recordSmear",{"smear"},[&observedSmears](const Smear& smear)
   {
@@ -896,6 +1010,7 @@ void validateProgramGrammar(int argc,
   assert(emptyBody and emptyBody->list.empty());
   std::visit(evaluator,*empty);
   
+  // String tokens retain escaped quotes and backslashes until decoding
   const std::pair<const char*,std::string> stringChecks[]{
     {R"(recordString("");)",""},
     {R"(recordString("plain");)","plain"},
@@ -925,6 +1040,7 @@ void validateProgramGrammar(int argc,
       errorEmitter("unterminated script string was unexpectedly accepted");
     }
   
+  // Comments must compose with tokens, division, CRLF, and end-of-input
   const char* commentChecks[]{
     "/**/ record(21);",
     "/***/record(21);",
@@ -968,6 +1084,7 @@ void validateProgramGrammar(int argc,
       errorEmitter("unterminated script comment was unexpectedly accepted");
     }
   
+  // Mixed operators follow the shared C/C++ precedence and associativity groups
   const std::pair<const char*,int> precedenceChecks[]{
     {"record(10-3-2);",5},
     {"record(16/4/2);",2},
@@ -994,6 +1111,7 @@ void validateProgramGrammar(int argc,
       assert(observed==expected);
     }
   
+  // Short-circuited operands must not execute side effects or invalid expressions
   const std::pair<const char*,int> logicalChecks[]{
     {"x=0; 0 && x++; record(x);",0},
     {"x=0; 1 || x++; record(x);",0},
@@ -1021,6 +1139,7 @@ void validateProgramGrammar(int argc,
       assert(observed==expected);
     }
   
+  // Returns propagate through nested control flow and stop at function-call boundaries
   const std::pair<const char*,int> returnChecks[]{
     {"fun f(){if(1) return 7; return 9;} record(f());",7},
     {"fun f(){if(0) return 7; else return 8; return 9;} record(f());",8},
@@ -1045,6 +1164,7 @@ void validateProgramGrammar(int argc,
       assert(observed==expected);
     }
   
+  // Compound assignment preserves native conversions and updates the original value cell
   const std::pair<const char*,int> compoundChecks[]{
     {"x=1; x+=2; record(x);",3},
     {"x=9; x-=4; record(x);",5},
@@ -1074,6 +1194,7 @@ void validateProgramGrammar(int argc,
       assert(observed==expected);
     }
   
+  // Registered host arithmetic supplies compound operations without native compound operators
   const std::pair<const char*,int> hostArithmeticChecks[]{
     {"a=ExampleNumber(20); b=a-3; record(b.value);",17},
     {"a=ExampleNumber(20); a-=3; record(a.value);",17},
@@ -1092,6 +1213,7 @@ void validateProgramGrammar(int argc,
       assert(observed==expected);
     }
   
+  // Reference arguments mutate caller cells while ordinary arguments remain values
   const std::pair<const char*,int> referenceChecks[]{
     {"a=3; fun f(&x){x=4;} f(&a); record(a);",4},
     {"a=3; fun f(x){x=4;} f(a); record(a);",3},
@@ -1112,6 +1234,7 @@ void validateProgramGrammar(int argc,
       assert(observed==expected);
     }
   
+  // Variadic packs distinguish copied values from shared references, including empty packs
   const std::pair<const char*,int> variadicChecks[]{
     {"fun f(...){return 1;} record(f());",1},
     {"fun f(...){return __VA__ARGS__[0]*10+__VA__ARGS__[1];} record(f(2,3));",23},
@@ -1137,6 +1260,7 @@ void validateProgramGrammar(int argc,
       assert(observed==expected);
     }
   
+  // Valid integer arithmetic retains truncation, remainder signs, promotions, and floating-point behavior
   const std::pair<const char*,int> integerArithmeticChecks[]{
     {"record(7/3);",2},
     {"record(-7/3);",-2},
@@ -1166,6 +1290,7 @@ void validateProgramGrammar(int argc,
   assert(RemainderOperator{}(static_cast<signed char>(-128),-1)==0);
   assert(DivisionOperator{}(std::numeric_limits<unsigned int>::max(),-1)==1u);
   
+  // Named rejection modes verify division diagnostics in ordinary, compound, and member operations
   const std::pair<const char*,const char*> invalidArithmeticChecks[]{
     {"integer-division-zero","record(1/0);"},
     {"integer-remainder-zero","record(1%0);"},
@@ -1187,6 +1312,7 @@ void validateProgramGrammar(int argc,
         errorEmitter("invalid integer arithmetic was unexpectedly accepted");
       }
   
+  // Mixed positional/named binding, defaults, and variadic arguments remain valid
   const std::pair<const char*,int> argumentBindingChecks[]{
     {"fun f(x,y){return x*10+y;} record(f(1,.y=2));",12},
     {"fun f(x,y){return x*10+y;} record(f(.y=2,1));",12},
@@ -1207,6 +1333,7 @@ void validateProgramGrammar(int argc,
       assert(observed==expected);
     }
   
+  // The same parameter may not be filled twice, regardless of argument source order
   const std::pair<const char*,const char*> duplicateArgumentChecks[]{
     {"duplicate-function-mixed","fun f(x){return x;} f(1,.x=2);"},
     {"duplicate-function-reversed","fun f(x){return x;} f(.x=2,1);"},
@@ -1322,9 +1449,11 @@ void validateHostObjects(const std::string& script)
     errorEmitter("nested host reference test failed");
 }
 
+/// Run positive checks normally; a named argument selects an expected fatal diagnostic
 int main(int argc,char** argv)
 {
   validateCorrParts();
+  validateGammaAdjoints();
   validateTaskGraph(argc,argv);
   validateGraphCompiler(argc,argv);
   validateScheduling(argc,argv);
