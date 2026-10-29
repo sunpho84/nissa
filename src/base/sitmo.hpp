@@ -308,9 +308,12 @@ namespace nissa
     
     /// Returns a view on a specific site and real number
     CUDA_HOST_AND_DEVICE
-    RngView getRngViewOnGlbSiteIRndReal(const int& glblx,
-					const int& irnd_real_per_site)
+    RngView getRngViewOnGlbSiteIRndReal(const uint64_t glblx,
+                                        const int irnd_real_per_site)
     {
+      if(nissa::glbVol<=0 or glblx>=static_cast<uint64_t>(nissa::glbVol))
+        CRASH("RNG global site index out of range");
+      
       //Computes the number in the stream of reals
       const uint64_t irnd_double=
 	offsetReal*nissa::glbVol+glblx+nissa::glbVol*irnd_real_per_site;
