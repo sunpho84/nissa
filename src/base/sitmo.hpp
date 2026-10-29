@@ -1,11 +1,15 @@
 #ifndef _SITMO_HPP
 #define _SITMO_HPP
 
+// Single implementation shared by existing consumers and NICE
+// See doc/sitmo.md for numerical compatibility and ongoing runs
+
 #include <cstdint>
 
 #include <base/field.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <threads/threads.hpp>
+#include <new_types/arr.hpp>
 
 /*
 
@@ -44,32 +48,6 @@ FieldRngOf<T>
 -keeps reference to the Sitmo of the FieldRngStream
 -when passed a T, and the local lattice site, it fill T with the required elements
  */
-
-namespace nissa
-{
-  /// Simple array to overcome limitations of std::array
-  template <typename T,
-	    int N>
-  struct Arr
-  {
-    /// Internal data
-    T data[N];
-    
-    /// Access to internal data, constant attribute
-    CUDA_HOST_AND_DEVICE
-    const T& operator[](const int& i) const
-    {
-      return data[i];
-    }
-  
-    /// Access to internal data
-    CUDA_HOST_AND_DEVICE
-    T& operator[](const int& i)
-    {
-      return data[i];
-    }
-  };
-}
 
 namespace Sitmo
 {

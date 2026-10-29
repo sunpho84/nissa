@@ -33,7 +33,7 @@ namespace nissa
   //Source type
   enum source_t{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED_SOURCE,SPINCOLOR_DILUTED_SOURCE};
   
-  /// New generator
+  /// Field random-number stream
   EXTERN_RANDOM FieldRngStream field_rng_stream;
   
   //The structure for the random generator

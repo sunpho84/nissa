@@ -34,6 +34,7 @@ include_HEADERS+= \
 	%D%/memory_manager.hpp \
 	%D%/multiGridParams.hpp \
 	%D%/random.hpp \
+	%D%/sitmo.hpp \
 	%D%/vectors.hpp
 
 if USE_DDALPHAAMG

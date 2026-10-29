@@ -12,6 +12,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/su3_op.cpp
 
 include_HEADERS+= \
+	%D%/arr.hpp \
 	%D%/complex.hpp \
 	%D%/dirac.hpp \
 	%D%/float_128.hpp \
