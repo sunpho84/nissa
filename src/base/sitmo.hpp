@@ -223,21 +223,13 @@ namespace Sitmo
     CUDA_HOST_AND_DEVICE
     ResultType generateNth(const uint64_t& offset)
     {
-      union
-      {
-	/// Temporary result of the encpter
-	Word temp;
-	
-	/// Output to be returned
-	const ResultType out{};
-      };
-      
       /// Shifted state
-      State shiftedState=state+offset;
+      const State shiftedState=state+offset;
       
-      temp=encrypt(key,static_cast<Word>(shiftedState));
+      /// Cipher output whose first word supplies the low 32 bits
+      const Word encrypted=encrypt(key,static_cast<Word>(shiftedState));
       
-      return out;
+      return static_cast<ResultType>(encrypted[0]);
     }
     
     /// Default constructor
