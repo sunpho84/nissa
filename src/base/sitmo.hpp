@@ -98,6 +98,10 @@ namespace Sitmo
 	    }
       }
     
+    // Final key injection
+    for(int i=0;i<4;i++)
+      x[i]+=key[i];
+    
     // Increment entry 3
     x[3]+=5;
     
