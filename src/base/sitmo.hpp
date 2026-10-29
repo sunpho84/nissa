@@ -144,7 +144,7 @@ namespace Sitmo
 	out[0]=(*this)[0]+z;
 	
 	// Overflow check
-	if(out[0]<=(*this)[0])
+	if(out[0]<(*this)[0])
 	  {
 	    /// Digit to check for overflow
 	    int iDigit=1;
