@@ -147,7 +147,7 @@ namespace Sitmo
 	// Increment
 	out[0]=(*this)[0]+z;
 	
-	// Overflow check
+	// Propagate a carry when the low word wraps
 	if(out[0]<(*this)[0])
 	  {
 	    /// Digit to check for overflow
@@ -156,6 +156,10 @@ namespace Sitmo
 	    // Carry over
 	    do out[iDigit]++;
 	    while(out[iDigit++]==0 and iDigit<4);
+	    
+	    // Reject a carry beyond the full four-word counter
+	    if(iDigit==4 and out[3]==0)
+	      CRASH("RNG counter overflow");
 	  }
 	
 	return out;
@@ -248,8 +252,11 @@ namespace nissa
     /// Field random number generator
     Sitmo::Rng ref;
     
-    //Number of uint32_t generated so far
+    /// Next integer draw offset, retained at its maximum after exhaustion
     uint64_t irng;
+    
+    /// Whether the last representable view position has already been consumed
+    bool exhausted{};
     
     //Minimal value
     constexpr uint32_t min()
@@ -276,7 +283,19 @@ namespace nissa
     CUDA_HOST_AND_DEVICE
     uint32_t operator()()
     {
-      return ref.generateNth(irng++);
+      // Reject another draw after the maximum view offset has been consumed
+      if(exhausted)
+        CRASH("RNG view position overflow");
+      
+      const uint32_t result=ref.generateNth(irng);
+      
+      // Consume the final valid offset once without wrapping the next position
+      if(irng==UINT64_MAX)
+        exhausted=true;
+      else
+        irng++;
+      
+      return result;
     }
   };
   
@@ -309,18 +328,33 @@ namespace nissa
     /// Returns a view on a specific site and real number
     CUDA_HOST_AND_DEVICE
     RngView getRngViewOnGlbSiteIRndReal(const uint64_t glblx,
-                                        const int irnd_real_per_site)
+                                        const unsigned int iRndRealPerSite)
     {
+      // Reject invalid sites and prevent division by zero in the overflow check
       if(nissa::glbVol<=0 or glblx>=static_cast<uint64_t>(nissa::glbVol))
         CRASH("RNG global site index out of range");
       
-      //Computes the number in the stream of reals
-      const uint64_t irnd_double=
-	offsetReal*nissa::glbVol+glblx+nissa::glbVol*irnd_real_per_site;
+      const uint64_t volume=static_cast<uint64_t>(nissa::glbVol);
       
-      //Computes the offset in the rng stream
-      const uint64_t irnd_uint32_t=
-	2*irnd_double;
+      // Ensure offsetReal+iRndRealPerSite fits before forming the slot
+      if(iRndRealPerSite>UINT64_MAX-offsetReal)
+        CRASH("RNG field offset overflow");
+      
+      const uint64_t slot=offsetReal+iRndRealPerSite;
+      
+      // Ensure slot*volume+glblx fits before multiplying and adding
+      if(slot>(UINT64_MAX-glblx)/volume)
+        CRASH("RNG field offset overflow");
+      
+      // Position in doubles, checked before converting to integer draws
+      const uint64_t irnd_double=slot*volume+glblx;
+      
+      // Reserve two integer positions per double without overflowing their offset
+      if(irnd_double>UINT64_MAX/2)
+        CRASH("RNG integer draw offset overflow");
+      
+      // Each uniform double consumes two consecutive 32-bit generator outputs
+      const uint64_t irnd_uint32_t=2*irnd_double;
       
       return RngView(rng,irnd_uint32_t);
     }
@@ -423,7 +457,16 @@ namespace nissa
     template <typename T>
     void skipDrawers(const uint64_t& nDrawers)
     {
-      nGeneratedDouble+=FieldRngOf<T>::nRealsPerSite*nDrawers;
+      constexpr uint64_t nReals=FieldRngOf<T>::nRealsPerSite;
+      
+      if constexpr(nReals>0)
+        {
+          // Ensure both the skip product and its addition fit the remaining count
+          if(nDrawers>(UINT64_MAX-nGeneratedDouble)/nReals)
+            CRASH("RNG drawer count overflow");
+          
+          nGeneratedDouble+=nReals*nDrawers;
+        }
     }
     
     /// Return a proxy from which to fetch the random numbers
