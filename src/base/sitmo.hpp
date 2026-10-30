@@ -235,9 +235,9 @@ namespace Sitmo
       state={};
     }
     
-    /// Generate a number with a given offset w.r.t current state
+    /// Generate at a full-width offset without changing the retained state
     CUDA_HOST_AND_DEVICE
-    ResultType generateNth(const uint64_t& offset)
+    ResultType generateNth(const Counter& offset) const
     {
       /// Shifted state
       const State shiftedState=state+offset;
@@ -246,6 +246,13 @@ namespace Sitmo
       const Counter encrypted=encrypt(key,shiftedState);
       
       return static_cast<ResultType>(encrypted[0]);
+    }
+    
+    /// Generate at a single-word offset using the full-width positioning rules
+    CUDA_HOST_AND_DEVICE
+    ResultType generateNth(const uint64_t offset) const
+    {
+      return generateNth(Counter{{{offset,0,0,0}}});
     }
     
     /// Default constructor
