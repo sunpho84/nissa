@@ -10,6 +10,7 @@
 #include <geometry/geometry_lx.hpp>
 #include <threads/threads.hpp>
 #include <new_types/arr.hpp>
+#include <routines/math_routines.hpp>
 
 /*
 
@@ -55,14 +56,14 @@ namespace Sitmo
   using Key=
     nissa::Arr<uint64_t,5>;
   
-  /// Encrypted word
-  using Word=
+  /// Four-word counter, also used to store the cipher output
+  using Counter=
     nissa::Arr<uint64_t,4>;
   
   /// Encrypts the input
   CUDA_HOST_AND_DEVICE
-  inline Word encrypt(const Key& key,  ///< Key to encrypt
-		      Word x)          ///< Input to encrypt
+  inline Counter encrypt(const Key& key,  ///< Key to encrypt
+			 Counter x)       ///< Input to encrypt
   {
     for(int j=0;j<5;j++)
       {
@@ -108,8 +109,8 @@ namespace Sitmo
     return x;
   }
   
-  /// Build a key from a word
-  inline Key buildKey(const Word& word)
+  /// Build a key from a four-word counter
+  inline Key buildKey(const Counter& word)
   {
     /// Output
     Key key;
@@ -135,7 +136,7 @@ namespace Sitmo
     
     /// Holds the state of the generator
     struct State :
-      public Sitmo::Word
+      public Sitmo::Counter
     {
       /// Increment of a certain amount
       CUDA_HOST_AND_DEVICE
@@ -196,12 +197,12 @@ namespace Sitmo
     //   using FRes=typename F::ResultType;
       
     //   /// Number of calls to be issued to fill the state
-    //   constexpr int nCall=sizeof(Word)/sizeof(FRes);
+    //   constexpr int nCall=sizeof(Counter)/sizeof(FRes);
       
     //   union
     //   {
     // 	/// Partial key
-    // 	Word partKey;
+    // 	Counter partKey;
 	
     // 	/// Access to the key in a way which allows to fill with the generator
     // 	FRes rawKey[nCall];
@@ -218,7 +219,7 @@ namespace Sitmo
     void seed(const uint32_t& s)
     {
       /// Partial word to be used
-      const Word& partKey={s};
+      const Counter& partKey={s};
       
       key=buildKey(partKey);
     }
@@ -231,7 +232,7 @@ namespace Sitmo
       const State shiftedState=state+offset;
       
       /// Cipher output whose first word supplies the low 32 bits
-      const Word encrypted=encrypt(key,static_cast<Word>(shiftedState));
+      const Counter encrypted=encrypt(key,static_cast<Counter>(shiftedState));
       
       return static_cast<ResultType>(encrypted[0]);
     }
@@ -336,25 +337,18 @@ namespace nissa
       
       const uint64_t volume=static_cast<uint64_t>(nissa::glbVol);
       
-      // Ensure offsetReal+iRndRealPerSite fits before forming the slot
-      if(iRndRealPerSite>UINT64_MAX-offsetReal)
-        CRASH("RNG field offset overflow");
+      // Form the component slot without overflowing the per-site double count
+      const uint64_t slot=
+        checkedAdd(offsetReal,uint64_t{iRndRealPerSite},"RNG field offset overflow");
       
-      const uint64_t slot=offsetReal+iRndRealPerSite;
-      
-      // Ensure slot*volume+glblx fits before multiplying and adding
-      if(slot>(UINT64_MAX-glblx)/volume)
-        CRASH("RNG field offset overflow");
-      
-      // Position in doubles, checked before converting to integer draws
-      const uint64_t irnd_double=slot*volume+glblx;
-      
-      // Reserve two integer positions per double without overflowing their offset
-      if(irnd_double>UINT64_MAX/2)
-        CRASH("RNG integer draw offset overflow");
+      // Flatten the component and site indices with the site varying fastest
+      const uint64_t irnd_double=
+        checkedAdd(checkedMultiply(slot,volume,"RNG field offset overflow"),
+                   glblx,"RNG field offset overflow");
       
       // Each uniform double consumes two consecutive 32-bit generator outputs
-      const uint64_t irnd_uint32_t=2*irnd_double;
+      const uint64_t irnd_uint32_t=
+        checkedMultiply(irnd_double,uint64_t{2},"RNG integer draw offset overflow");
       
       return RngView(rng,irnd_uint32_t);
     }
@@ -461,11 +455,11 @@ namespace nissa
       
       if constexpr(nReals>0)
         {
-          // Ensure both the skip product and its addition fit the remaining count
-          if(nDrawers>(UINT64_MAX-nGeneratedDouble)/nReals)
-            CRASH("RNG drawer count overflow");
-          
-          nGeneratedDouble+=nReals*nDrawers;
+          // Check both the skip product and its addition to the current count
+          nGeneratedDouble=
+            checkedAdd(nGeneratedDouble,
+                       checkedMultiply(nReals,nDrawers,"RNG drawer count overflow"),
+                       "RNG drawer count overflow");
         }
     }
     

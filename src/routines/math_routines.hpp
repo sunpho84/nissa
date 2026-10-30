@@ -3,6 +3,10 @@
 
 #include <algorithm>
 #include <functional>
+#include <concepts>
+#include <limits>
+
+#include <base/debug.hpp>
 
 #include "new_types/complex.hpp"
 
@@ -15,6 +19,32 @@
 
 namespace nissa
 {
+  /// Add unsigned integers, rejecting overflow before evaluating the sum
+  template <std::unsigned_integral T>
+  CUDA_HOST_AND_DEVICE
+  constexpr T checkedAdd(const T a,
+                         const T b,
+                         const char* error="Unsigned addition overflow")
+  {
+    if(b>std::numeric_limits<T>::max()-a)
+      CRASH("%s",error);
+    
+    return a+b;
+  }
+  
+  /// Multiply unsigned integers, rejecting overflow before evaluating the product
+  template <std::unsigned_integral T>
+  CUDA_HOST_AND_DEVICE
+  constexpr T checkedMultiply(const T a,
+                              const T b,
+                              const char* error="Unsigned multiplication overflow")
+  {
+    if(a!=0 and b>std::numeric_limits<T>::max()/a)
+      CRASH("%s",error);
+    
+    return a*b;
+  }
+  
   double lfact(double n);
   double metro_tresh(double arg);
   int metro_test(double arg);
