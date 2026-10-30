@@ -56,9 +56,61 @@ namespace Sitmo
   using Key=
     nissa::Arr<uint64_t,5>;
   
-  /// Four-word counter, also used to store the cipher output
-  using Counter=
-    nissa::Arr<uint64_t,4>;
+  /// Four-word counter with the least significant word first, also used for cipher output
+  struct Counter :
+    nissa::Arr<uint64_t,4>
+  {
+    /// Add a full-width increment and reject carry beyond the fourth word
+    CUDA_HOST_AND_DEVICE
+    Counter operator+(const Counter& increment) const
+    {
+      Counter out{};
+      bool carry=false;
+      
+      for(int i=0;i<4;i++)
+        {
+          // A wrapped limb is valid here and must carry into the next word
+          const uint64_t sum=(*this)[i]+increment[i];
+          const bool sumCarry=sum<(*this)[i];
+          out[i]=sum+uint64_t{carry};
+          carry=sumCarry or out[i]<sum;
+        }
+      
+      // The complete counter cannot wrap into an already used position
+      if(carry)
+        CRASH("RNG counter overflow");
+      
+      return out;
+    }
+    
+    /// Add a single-word increment using the same carry and overflow rules
+    CUDA_HOST_AND_DEVICE
+    Counter operator+(const uint64_t increment) const
+    {
+      return (*this)+Counter{{{increment,0,0,0}}};
+    }
+    
+    /// Advance in place by a full-width increment
+    CUDA_HOST_AND_DEVICE
+    Counter& operator+=(const Counter& increment)
+    {
+      return (*this)=(*this)+increment;
+    }
+    
+    /// Advance in place by a single-word increment
+    CUDA_HOST_AND_DEVICE
+    Counter& operator+=(const uint64_t increment)
+    {
+      return (*this)=(*this)+increment;
+    }
+    
+    /// Advance by one and return the updated counter
+    CUDA_HOST_AND_DEVICE
+    Counter& operator++()
+    {
+      return (*this)+=uint64_t{1};
+    }
+  };
   
   /// Encrypts the input
   CUDA_HOST_AND_DEVICE
@@ -134,50 +186,8 @@ namespace Sitmo
       return 3472291050;
     }
     
-    /// Holds the state of the generator
-    struct State :
-      public Sitmo::Counter
-    {
-      /// Increment of a certain amount
-      CUDA_HOST_AND_DEVICE
-      State operator+(const uint64_t& z) const
-      {
-	/// Result
-	State out=(*this);
-	
-	// Increment
-	out[0]=(*this)[0]+z;
-	
-	// Propagate a carry when the low word wraps
-	if(out[0]<(*this)[0])
-	  {
-	    /// Digit to check for overflow
-	    int iDigit=1;
-	    
-	    // Carry over
-	    do out[iDigit]++;
-	    while(out[iDigit++]==0 and iDigit<4);
-	    
-	    // Reject a carry beyond the full four-word counter
-	    if(iDigit==4 and out[3]==0)
-	      CRASH("RNG counter overflow");
-	  }
-	
-	return out;
-      }
-      
-      /// Self increment
-      State operator+=(const uint64_t& z)
-      {
-	return(*this)=(*this)+z;
-      }
-      
-      /// Unitary self-increment
-      State operator++()
-      {
-	return (*this)+=1;
-      }
-    };
+    /// Counter position retained under the existing state type name
+    using State=Counter;
     
     /// Seed, used to encrypt
     Key key;
@@ -232,7 +242,7 @@ namespace Sitmo
       const State shiftedState=state+offset;
       
       /// Cipher output whose first word supplies the low 32 bits
-      const Counter encrypted=encrypt(key,static_cast<Counter>(shiftedState));
+      const Counter encrypted=encrypt(key,shiftedState);
       
       return static_cast<ResultType>(encrypted[0]);
     }
