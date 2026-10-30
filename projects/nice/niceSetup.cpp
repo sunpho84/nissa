@@ -1,5 +1,6 @@
 #include "niceSetup.hpp"
 
+#include "base/debug.hpp"
 #include "correlations.hpp"
 #include "graphCompiler.hpp"
 #include "legacyInputWriter.hpp"
@@ -7,9 +8,41 @@
 #include "schedulingStrategies.hpp"
 
 #include <string>
+#include <string_view>
 
 namespace nissa::nice
 {
+  LaunchArgs parseLaunchArgs(const int narg,
+			     const char* const* arg)
+  {
+    LaunchArgs parts;
+    bool parseOptions=true;
+    
+    for(int i=1;i<narg;i++)
+      {
+        const std::string_view argument=arg[i];
+        
+        if(parseOptions and argument=="--")
+          parseOptions=false;
+        else if(parseOptions and argument=="-f")
+          {
+            const int flagIndex=i;
+            i++;
+            
+            if(i==narg)
+              CRASH("NICE arg[%d]: -f requires a file path",flagIndex);
+            
+            parts.push_back({ProgramPart::Kind::File,arg[i],static_cast<std::size_t>(i)});
+          }
+        else if(parseOptions and not argument.empty() and argument.front()=='-')
+          CRASH("NICE arg[%d]: unknown option '%s'; use -- before program text beginning with '-'",i,arg[i]);
+        else
+          parts.push_back({ProgramPart::Kind::Immediate,std::string(argument),static_cast<std::size_t>(i)});
+      }
+    
+    return parts;
+  }
+  
   namespace internal
   {
     /// Attach a type's native description to its script metadata

@@ -8,6 +8,7 @@
 #include "nice.hpp"
 #include "nASTy.hpp"
 #include "new_types/dirac.hpp"
+#include "routines/mpi_routines.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -1449,17 +1450,85 @@ void validateHostObjects(const std::string& script)
     errorEmitter("nested host reference test failed");
 }
 
-/// Run positive checks normally; a named argument selects an expected fatal diagnostic
-int main(int argc,char** argv)
+/// Check launch ordering, literal arguments, diagnostics, and ownership before file reading
+void validateLaunchArgs(const int narg,
+                        const char* const* arg)
 {
+  // Invalid command lines are checked in separate processes for message and status
+  if(narg>1)
+    {
+      const std::string_view mode=arg[1];
+      
+      if(mode=="launch-missing-file")
+        {
+          const char* invalid[]{"nice","setup();","-f"};
+          (void)parseLaunchArgs(3,invalid);
+        }
+      else if(mode=="launch-unknown-option")
+        {
+          const char* invalid[]{"nice","-e","setup();"};
+          (void)parseLaunchArgs(3,invalid);
+        }
+      else if(mode=="launch-attached-path")
+        {
+          const char* invalid[]{"nice","-fcommon.nice"};
+          (void)parseLaunchArgs(2,invalid);
+        }
+    }
+  
+  const char* mixed[]{"nice","setup();","-f","common.nice","finish();","-f","last.nice"};
+  const auto parts=parseLaunchArgs(7,mixed);
+  assert(parts.size()==4);
+  assert(parts[0].kind==ProgramPart::Kind::Immediate and parts[0].value=="setup();" and parts[0].argIndex==1);
+  assert(parts[1].kind==ProgramPart::Kind::File and parts[1].value=="common.nice" and parts[1].argIndex==3);
+  assert(parts[2].kind==ProgramPart::Kind::Immediate and parts[2].value=="finish();" and parts[2].argIndex==4);
+  assert(parts[3].kind==ProgramPart::Kind::File and parts[3].value=="last.nice" and parts[3].argIndex==6);
+  
+  // After --, every argument is program text, including option-looking text
+  const char* literal[]{"nice","--","-f","--","-1;",""};
+  const auto literalParts=parseLaunchArgs(6,literal);
+  assert(literalParts.size()==4);
+  
+  for(std::size_t i=0;i<literalParts.size();i++)
+    {
+      assert(literalParts[i].kind==ProgramPart::Kind::Immediate);
+      assert(literalParts[i].value==literal[i+2] and literalParts[i].argIndex==i+2);
+    }
+  
+  // A file operand is taken literally, while empty launches remain valid
+  const char* path[]{"nice","-f","--","record();"};
+  const auto pathParts=parseLaunchArgs(4,path);
+  assert(pathParts.size()==2 and pathParts[0].kind==ProgramPart::Kind::File);
+  assert(pathParts[0].value=="--" and pathParts[0].argIndex==2);
+  const char* empty[]{"nice"};
+  assert(parseLaunchArgs(1,empty).empty());
+  
+  // Parsed descriptors own their values independently of arg storage
+  char text[]{"value=1;"};
+  const char* owned[]{"nice",text};
+  const auto ownedParts=parseLaunchArgs(2,owned);
+  text[0]='X';
+  assert(ownedParts[0].value=="value=1;");
+  
+}
+
+/// Run positive checks normally; a named argument selects an expected fatal diagnostic
+int main(int narg,
+         char** arg)
+{
+  nissa::init_MPI_thread(narg,arg);
+  nissa::get_MPI_nranks();
+  nissa::get_MPI_rank();
+  
+  validateLaunchArgs(narg,arg);
   validateCorrParts();
   validateGammaAdjoints();
-  validateTaskGraph(argc,argv);
-  validateGraphCompiler(argc,argv);
-  validateScheduling(argc,argv);
-  validateLegacyWriter(argc,argv);
-  validateScriptBindings(argc,argv);
-  validateProgramGrammar(argc,argv);
+  validateTaskGraph(narg,arg);
+  validateGraphCompiler(narg,arg);
+  validateScheduling(narg,arg);
+  validateLegacyWriter(narg,arg);
+  validateScriptBindings(narg,arg);
+  validateProgramGrammar(narg,arg);
   validateHostObjects(R"(
     {
       defaults = ExamplePars();
@@ -1488,4 +1557,8 @@ int main(int argc,char** argv)
       nestedTemporary = ExampleEnvelope().group.pars.t;
     }
     )");
+  
+#ifdef USE_MPI
+  MPI_Finalize();
+#endif
 }
