@@ -65,15 +65,15 @@ namespace Sitmo
     Counter operator+(const Counter& increment) const
     {
       Counter out{};
-      bool carry=false;
+      uint64_t carry=0;
       
       for(int i=0;i<4;i++)
         {
-          // A wrapped limb is valid here and must carry into the next word
-          const uint64_t sum=(*this)[i]+increment[i];
-          const bool sumCarry=sum<(*this)[i];
-          out[i]=sum+uint64_t{carry};
-          carry=sumCarry or out[i]<sum;
+          // Retain both the limb sum's carry and the carry from adding the prior limb
+          const auto [sum,sumCarry]=nissa::addWithCarry((*this)[i],increment[i]);
+          const auto [result,incomingCarry]=nissa::addWithCarry(sum,carry);
+          out[i]=result;
+          carry=sumCarry|incomingCarry;
         }
       
       // The complete counter cannot wrap into an already used position
@@ -88,6 +88,37 @@ namespace Sitmo
     Counter operator+(const uint64_t increment) const
     {
       return (*this)+Counter{{{increment,0,0,0}}};
+    }
+    
+    /// Multiply by a single-word factor, retaining high words and checking full overflow
+    CUDA_HOST_AND_DEVICE
+    Counter operator*(const uint64_t factor) const
+    {
+      Counter out{};
+      uint64_t carry=0;
+      
+      for(int i=0;i<4;i++)
+        {
+          const auto [low,high]=nissa::multiplyWithCarry((*this)[i],factor);
+          
+          // The product's high word is at most UINT64_MAX-1, leaving room for this carry
+          const auto [result,sumCarry]=nissa::addWithCarry(low,carry);
+          out[i]=result;
+          carry=high+sumCarry;
+        }
+      
+      // Reject a product beyond the complete four-word counter
+      if(carry!=0)
+        CRASH("RNG counter overflow");
+      
+      return out;
+    }
+    
+    /// Scale in place without narrowing the product to one word
+    CUDA_HOST_AND_DEVICE
+    Counter& operator*=(const uint64_t factor)
+    {
+      return (*this)=(*this)*factor;
     }
     
     /// Advance in place by a full-width increment
@@ -298,6 +329,16 @@ namespace nissa
     {
     }
     
+    /// Position a view at a full-width offset without changing its parent
+    CUDA_HOST_AND_DEVICE
+    RngView(const Sitmo::Rng& ref,
+            const Sitmo::Counter& offset) :
+      ref(ref),
+      irng(0)
+    {
+      this->ref.state+=offset;
+    }
+    
     /// Returns an uint32
     CUDA_HOST_AND_DEVICE
     uint32_t operator()()
@@ -328,7 +369,7 @@ namespace nissa
     Sitmo::Rng rng;
     
     //Number of reals to be shifted, in units of global volume
-    const uint64_t offsetReal;
+    const Sitmo::Counter offsetReal;
     
     //Number of reals for each site
     static constexpr int nRealsPerSite=
@@ -337,11 +378,17 @@ namespace nissa
     //Constructor
     FieldRngOf(const Sitmo::Rng& rng,
 	       const uint64_t& offsetReal) :
+      FieldRngOf(rng,Sitmo::Counter{{{offsetReal,0,0,0}}})
+    {
+    }
+    
+    /// Retain the full-width per-site double offset for this drawer
+    FieldRngOf(const Sitmo::Rng& rng,
+               const Sitmo::Counter& offsetReal) :
       used(false),
       rng(rng),
       offsetReal(offsetReal)
     {
-      //MASTER_PRINTF("All entries of FieldRng initialized\n");
     }
     
     /// Returns a view on a specific site and real number
@@ -349,26 +396,20 @@ namespace nissa
     RngView getRngViewOnGlbSiteIRndReal(const uint64_t glblx,
                                         const unsigned int iRndRealPerSite)
     {
-      // Reject invalid sites and prevent division by zero in the overflow check
+      // Require a valid site in a nonempty geometry before constructing its offset
       if(nissa::glbVol<=0 or glblx>=static_cast<uint64_t>(nissa::glbVol))
         CRASH("RNG global site index out of range");
       
       const uint64_t volume=static_cast<uint64_t>(nissa::glbVol);
       
-      // Form the component slot without overflowing the per-site double count
-      const uint64_t slot=
-        checkedAdd(offsetReal,uint64_t{iRndRealPerSite},"RNG field offset overflow");
-      
-      // Flatten the component and site indices with the site varying fastest
-      const uint64_t irnd_double=
-        checkedAdd(checkedMultiply(slot,volume,"RNG field offset overflow"),
-                   glblx,"RNG field offset overflow");
+      // Preserve every word when flattening the site-fastest field position
+      const Sitmo::Counter slot=offsetReal+uint64_t{iRndRealPerSite};
+      const Sitmo::Counter irndDouble=slot*volume+glblx;
       
       // Each uniform double consumes two consecutive 32-bit generator outputs
-      const uint64_t irnd_uint32_t=
-        checkedMultiply(irnd_double,uint64_t{2},"RNG integer draw offset overflow");
+      const Sitmo::Counter irndUint32=irndDouble*uint64_t{2};
       
-      return RngView(rng,irnd_uint32_t);
+      return RngView(rng,irndUint32);
     }
     
     
@@ -463,7 +504,7 @@ namespace nissa
     Sitmo::Rng rng{};
     
     //Number of double precision numbers generated per site
-    uint64_t nGeneratedDouble{};
+    Sitmo::Counter nGeneratedDouble{};
     
     /// Skip n drawers
     template <typename T>
@@ -473,11 +514,8 @@ namespace nissa
       
       if constexpr(nReals>0)
         {
-          // Check both the skip product and its addition to the current count
-          nGeneratedDouble=
-            checkedAdd(nGeneratedDouble,
-                       checkedMultiply(nReals,nDrawers,"RNG drawer count overflow"),
-                       "RNG drawer count overflow");
+          // Promote before multiplying so large skips retain their high words
+          nGeneratedDouble+=Sitmo::Counter{{{nReals,0,0,0}}}*nDrawers;
         }
     }
     
