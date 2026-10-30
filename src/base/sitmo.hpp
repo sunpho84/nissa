@@ -225,13 +225,14 @@ namespace Sitmo
     //   key=buildKey(partKey);
     // }
     
-    /// Seed from a seed
+    /// Set the seed and reset the counter to its initial position
     void seed(const uint32_t& s)
     {
       /// Partial word to be used
       const Counter& partKey={s};
       
       key=buildKey(partKey);
+      state={};
     }
     
     /// Generate a number with a given offset w.r.t current state
