@@ -1521,6 +1521,7 @@ int main(int narg,
   nissa::get_MPI_rank();
   
   validateLaunchArgs(narg,arg);
+  validateProgramPieces(narg,arg);
   validateCorrParts();
   validateGammaAdjoints();
   validateTaskGraph(narg,arg);

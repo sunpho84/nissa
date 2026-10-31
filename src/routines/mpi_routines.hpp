@@ -3,6 +3,7 @@
 
 #include <mpi.h>
 #include <algorithm>
+#include <cstdint>
 #include <string>
 
 #include "geometry/geometry_lx.hpp"
@@ -55,6 +56,7 @@ namespace nissa
   DEFINE_MPI_DATATYPE_OF(int,MPI_INT)
   DEFINE_MPI_DATATYPE_OF(int64_t,MPI_LONG)
   DEFINE_MPI_DATATYPE_OF(uint32_t,MPI_UNSIGNED)
+  DEFINE_MPI_DATATYPE_OF(uint64_t,MPI_UINT64_T)
   DEFINE_MPI_DATATYPE_OF(float,MPI_FLOAT)
   DEFINE_MPI_DATATYPE_OF(double,MPI_DOUBLE)
   DEFINE_MPI_DATATYPE_OF(complex,MPI_DOUBLE_COMPLEX)
@@ -113,9 +115,28 @@ namespace nissa
   __attribute__((noreturn))
   void ranks_abort(int err);
   void ranks_barrier();
-  int broadcast(int in,int rank_from=0);
-  void broadcast(rat_approx_t *rat,int rank_from=0);
-  double broadcast(double in,int rank_from=0);
+  /// Broadcast one value with a registered MPI datatype, defaulting to the master rank
+  template <typename T>
+    requires requires(T* value){_MPI_Datatype_of(value);}
+  T broadcast(T value,
+              const int rankFrom=master_rank)
+  {
+#ifdef USE_MPI
+    DECRYPT_MPI_ERROR(MPI_Bcast(&value,1,MPI_Datatype_of<T>(),rankFrom,MPI_COMM_WORLD),
+                      "broadcasting a scalar");
+#endif
+    
+    return value;
+  }
+  
+  /// Broadcast a rational approximation from the specified rank
+  void broadcast(rat_approx_t* rat,
+                 const int rankFrom=master_rank);
+  
+  /// Broadcast an owned string, including embedded nulls, from the specified rank
+  /// Resize receivers and split payloads into chunks representable by an MPI count
+  void broadcast(std::string& text,
+                 const int rankFrom=master_rank);
 #ifdef USE_MPI
   MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos);
   MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos);

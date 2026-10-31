@@ -6,6 +6,8 @@
 # include <mpi.h>
 #endif
 
+#include <limits>
+
 #define EXTERN_MPI
 # include <routines/mpi_routines.hpp>
 
@@ -190,45 +192,52 @@ namespace nissa
   MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos)
   {return pos+diff_with_next_eight_multiple(pos);}
   
-  //internal version
-  template <class T>
-  T broadcast_internal(T in,int rank_from,MPI_Datatype type)
+  void broadcast(std::string& text,
+                 const int rankFrom)
   {
-    T out=in;
-    MPI_Bcast(&out,1,type,rank_from,MPI_COMM_WORLD);
+    const uint64_t size=broadcast(static_cast<uint64_t>(text.size()),rankFrom);
     
-    return out;
+    if(size>text.max_size())
+      CRASH("Broadcast string is too large for this rank");
+    
+    text.resize(static_cast<std::size_t>(size));
+    
+#ifdef USE_MPI
+    std::size_t offset=0;
+    
+    while(offset<text.size())
+      {
+        const int count=static_cast<int>(std::min(text.size()-offset,
+                                                static_cast<std::size_t>(std::numeric_limits<int>::max())));
+        DECRYPT_MPI_ERROR(MPI_Bcast(text.data()+offset,count,MPI_CHAR,rankFrom,MPI_COMM_WORLD),
+                          "broadcasting string text");
+        offset+=count;
+      }
+#endif
   }
   
-  //broadcast an int
-  int broadcast(int in,int rank_from)
-  {return broadcast_internal(in,rank_from,MPI_INT);}
-  
-  //broadcast an int
-  double broadcast(double in,int rank_from)
-  {return broadcast_internal(in,rank_from,MPI_DOUBLE);}
-  
   //broadcast a whole rational approximation
-  void broadcast(rat_approx_t *rat,int rank_from)
+  void broadcast(rat_approx_t* rat,
+                 const int rankFrom)
   {
     int degree=0;
     
-    if(rank_from==rank) degree=rat->degree();
-    MPI_Bcast(&degree,1,MPI_INT,rank_from,MPI_COMM_WORLD);
+    if(rankFrom==rank) degree=rat->degree();
+    MPI_Bcast(&degree,1,MPI_INT,rankFrom,MPI_COMM_WORLD);
     
     //allocate if not generated here
-    if(rank_from!=rank)	rat->resize(degree);
+    if(rankFrom!=rank)	rat->resize(degree);
     
     //and now broadcast the remaining part
-    MPI_Bcast(rat->name,20,MPI_CHAR,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(&rat->minimum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(&rat->maximum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(&rat->maxerr,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(&rat->num,1,MPI_INT,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(&rat->den,1,MPI_INT,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(&rat->cons,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(rat->poles.data(),rat->degree(),MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    MPI_Bcast(rat->weights.data(),rat->degree(),MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(rat->name,20,MPI_CHAR,rankFrom,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->minimum,1,MPI_DOUBLE,rankFrom,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->maximum,1,MPI_DOUBLE,rankFrom,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->maxerr,1,MPI_DOUBLE,rankFrom,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->num,1,MPI_INT,rankFrom,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->den,1,MPI_INT,rankFrom,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->cons,1,MPI_DOUBLE,rankFrom,MPI_COMM_WORLD);
+    MPI_Bcast(rat->poles.data(),rat->degree(),MPI_DOUBLE,rankFrom,MPI_COMM_WORLD);
+    MPI_Bcast(rat->weights.data(),rat->degree(),MPI_DOUBLE,rankFrom,MPI_COMM_WORLD);
   }
   
   //Return the name of the processor
