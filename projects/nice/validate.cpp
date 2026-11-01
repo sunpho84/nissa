@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <cassert>
 #include <complex>
+#include <cstdio>
+#include <unistd.h>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -1510,6 +1512,116 @@ void validateLaunchArgs(const int narg,
   text[0]='X';
   assert(ownedParts[0].value=="value=1;");
   
+}
+
+/// Check master-only file reading, owned text, shared scope, and compilation equivalence
+void validateProgramPieces(const int narg,
+                           const char* const* arg)
+{
+  if(narg>1)
+    {
+      const std::string_view mode=arg[1];
+      
+      if(mode=="program-missing-file")
+        (void)readAndBroadcastProgramPieces({{ProgramPart::Kind::File,"/dev/null/missing.nice",3}});
+      else if(mode=="program-unreadable-file")
+        (void)readAndBroadcastProgramPieces({{ProgramPart::Kind::File,"/",3}});
+    }
+  
+  // Library broadcasts preserve full-width counts and binary strings from any root
+  const int root=nissa::nranks-1;
+  const uint64_t expected=std::numeric_limits<uint64_t>::max()-3;
+  const uint64_t local=nissa::rank==root?expected:0;
+  assert(nissa::broadcast(local,root)==expected);
+  assert(nissa::broadcast(nissa::rank==root?17:0,root)==17);
+  std::string binary=nissa::rank==root?std::string("a\0bc",4):"stale receiver text";
+  nissa::broadcast(binary,root);
+  assert(binary==std::string("a\0bc",4));
+  std::string empty=nissa::rank==root?"":"stale receiver text";
+  nissa::broadcast(empty,root);
+  assert(empty.empty());
+  
+  // The default source follows master_rank, including when it is not rank zero
+  const int savedMaster=nissa::master_rank;
+  nissa::master_rank=root;
+  assert(nissa::broadcast(local)==expected);
+  assert(nissa::broadcast(nissa::rank==root?2.5:0.0)==2.5);
+  assert(nissa::broadcast(nissa::rank==root?1.25f:0.0f)==1.25f);
+  std::string defaultRoot=nissa::rank==root?"master":"other";
+  nissa::broadcast(defaultRoot);
+  assert(defaultRoot=="master");
+  nissa::master_rank=savedMaster;
+  
+  const std::string prefix="corrBlock(\"pion\"); value=1;";
+  const std::string fileText=std::string(70000,' ')+
+    "value+=2; { hidden=99; value+=3; } fun increment(){return value+1;} line=Gamma(5)*Source(0);";
+  const std::string suffix=
+    "record(increment()); corrGammas(\"pion\",5,5); corrTrace(\"pion\",line,line);";
+  LaunchArgs parts;
+  char path[]{"/tmp/nice-program-XXXXXX"};
+  
+  if(nissa::rank==nissa::master_rank)
+    {
+      const int descriptor=mkstemp(path);
+      assert(descriptor>=0);
+      FILE* file=fdopen(descriptor,"wb");
+      assert(file!=nullptr);
+      const auto written=std::fwrite(fileText.data(),1,fileText.size(),file);
+      assert(written==fileText.size());
+      const int status=std::fclose(file);
+      assert(status==0);
+      parts={{ProgramPart::Kind::Immediate,prefix,1},
+             {ProgramPart::Kind::File,path,3},
+             {ProgramPart::Kind::File,"/dev/null",5},
+             {ProgramPart::Kind::Immediate,"",6},
+             {ProgramPart::Kind::Immediate,suffix,7}};
+    }
+  else
+    // Non-master descriptors are deliberately unusable: only master supplies sources
+    parts={{ProgramPart::Kind::File,"/dev/null/non-master-must-not-open",99}};
+  
+  const auto pieces=readAndBroadcastProgramPieces(parts);
+  
+  if(nissa::rank==nissa::master_rank)
+    {
+      const int status=std::remove(path);
+      assert(status==0);
+    }
+  
+  assert(pieces.size()==5);
+  assert(pieces[0].text==prefix and pieces[0].origin=="arg[1]");
+  assert(pieces[1].text==fileText and pieces[1].origin.starts_with("arg[3] file '/tmp/nice-program-"));
+  assert(pieces[2].text.empty() and pieces[2].origin=="arg[5] file '/dev/null'");
+  assert(pieces[3].text.empty() and pieces[3].origin=="arg[6]");
+  assert(pieces[4].text==suffix and pieces[4].origin=="arg[7]");
+  assert(readAndBroadcastProgramPieces({}).empty());
+  
+  const auto evaluate=[](const std::vector<ProgramPiece>& sources)
+  {
+    // Parsing returns before evaluation, so the merged AST must retain function bodies
+    const ASTNode ast=parseProgramPieces(sources);
+    const auto& body=std::get<ASTNodesNode>(ast);
+    assert(std::holds_alternative<ASTNodesNode>(*body.list[3]));
+    Nice nice;
+    Evaluator evaluator;
+    setupNice(evaluator,nice.correlations);
+    int observed{};
+    registerHostFunction(evaluator,"record",{"value"},[&observed](const int value)
+    {
+      observed=value;
+    });
+    std::visit(evaluator,ast);
+    assert(observed==7);
+    
+    return writeLegacyInput(nice.compile());
+  };
+  
+  // The same requests supplied as files or immediate text produce identical instructions
+  const std::string mixedOutput=evaluate(pieces);
+  const auto immediate=readAndBroadcastProgramPieces({
+    {ProgramPart::Kind::Immediate,prefix+fileText+suffix,1}});
+  assert(evaluate(immediate)==mixedOutput);
+  assert(parseProgramPieces({}).list.empty());
 }
 
 /// Run positive checks normally; a named argument selects an expected fatal diagnostic

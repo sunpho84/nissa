@@ -6,7 +6,13 @@
 #include "legacyInputWriter.hpp"
 #include "nASTy.hpp"
 #include "schedulingStrategies.hpp"
+#include "routines/mpi_routines.hpp"
 
+#include <cstdint>
+#include <format>
+#include <fstream>
+#include <limits>
+#include <utility>
 #include <string>
 #include <string_view>
 
@@ -114,6 +120,84 @@ namespace nissa::nice
       registerBinaryOperators<ProductOperator,Types...>(evaluator);
       registerBinaryOperators<DivisionOperator,Types...>(evaluator);
     }
+  }
+  
+  std::vector<ProgramPiece> readAndBroadcastProgramPieces(const LaunchArgs& parts)
+  {
+    std::vector<ProgramPiece> pieces;
+    
+    if(rank==master_rank)
+      for(const auto& part : parts)
+        {
+          ProgramPiece piece{.text={},.origin=std::format("arg[{}]",part.argIndex)};
+          
+          if(part.kind==ProgramPart::Kind::Immediate)
+            piece.text=part.value;
+          else
+            {
+              piece.origin+=std::format(" file '{}'",part.value);
+              std::ifstream file(part.value,std::ios::binary);
+              
+              if(not file)
+                CRASH("NICE %s: cannot open program file",piece.origin.c_str());
+              
+              // Measure the opened file and read directly into its owned string
+              file.seekg(0,std::ios::end);
+              const std::streamoff size=file.tellg();
+              
+              if(size<0)
+                CRASH("NICE %s: cannot read program file size",piece.origin.c_str());
+              
+              if(std::cmp_greater(size,piece.text.max_size()) or
+                 std::cmp_greater(size,std::numeric_limits<std::streamsize>::max()))
+                CRASH("NICE %s: program file is too large",piece.origin.c_str());
+              
+              piece.text.resize(static_cast<std::size_t>(size));
+              file.seekg(0,std::ios::beg);
+              file.read(piece.text.data(),static_cast<std::streamsize>(size));
+              
+              if(not file)
+                CRASH("NICE %s: cannot read program file",piece.origin.c_str());
+            }
+          
+          pieces.push_back(std::move(piece));
+        }
+    
+    const uint64_t count=broadcast(static_cast<uint64_t>(pieces.size()));
+    
+    if(count>pieces.max_size())
+      CRASH("Too many NICE program pieces for this rank");
+    
+    pieces.resize(static_cast<std::size_t>(count));
+    
+    for(auto& piece : pieces)
+      {
+        broadcast(piece.origin);
+        broadcast(piece.text);
+      }
+    
+    return pieces;
+  }
+  
+  ASTNodesNode parseProgramPieces(const std::vector<ProgramPiece>& pieces)
+  {
+    const auto parser=getParser();
+    const auto executor=getParseTreeExecuctor(parser.actionStrings);
+    ASTNodesNode body;
+    
+    for(const auto& piece : pieces)
+      {
+        const auto tree=createParseTree(parser,piece.text);
+        const auto ast=executor.execParseTree(tree);
+        const auto* statements=std::get_if<ASTNodesNode>(ast.get());
+        
+        if(statements==nullptr)
+          CRASH("NICE %s: program root is not a statement list",piece.origin.c_str());
+        
+        body.list.insert(body.list.end(),statements->list.begin(),statements->list.end());
+      }
+    
+    return body;
   }
   
   void registerCorrParts(Evaluator& evaluator)

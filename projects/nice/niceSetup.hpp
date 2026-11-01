@@ -6,6 +6,7 @@
 #include <vector>
 
 struct Evaluator;
+struct ASTNodesNode;
 
 namespace nissa::nice
 {
@@ -33,6 +34,24 @@ namespace nissa::nice
   /// Invalid launch options are reported through CRASH
   LaunchArgs parseLaunchArgs(const int narg,
                              const char* const* arg);
+  
+  /// Owned source text and its label for command-line or file diagnostics
+  struct ProgramPiece
+  {
+    /// Source text retained while parsing and evaluating the program
+    std::string text;
+    
+    /// Original argument index and, for file pieces, the supplied path
+    std::string origin;
+  };
+  
+  /// Read files only on the master rank and broadcast ordered text and source labels
+  /// All ranks must call this after MPI and rank initialization
+  std::vector<ProgramPiece> readAndBroadcastProgramPieces(const LaunchArgs& parts);
+  
+  /// Parse each piece and merge top-level statements, retaining explicit block scopes
+  /// Keep pieces unchanged and alive, and retain the returned AST throughout evaluation
+  ASTNodesNode parseProgramPieces(const std::vector<ProgramPiece>& pieces);
   
   struct Correlations;
   
