@@ -5,7 +5,9 @@
 #include "graphCompiler.hpp"
 #include "legacyInputWriter.hpp"
 #include "nASTy.hpp"
+#include "nice.hpp"
 #include "schedulingStrategies.hpp"
+#include "runOptions.hpp"
 #include "routines/mpi_routines.hpp"
 
 #include <cstdint>
@@ -200,6 +202,21 @@ namespace nissa::nice
     return body;
   }
   
+  PreparedProgram prepareProgram(const LaunchArgs& parts)
+  {
+    const auto pieces=readAndBroadcastProgramPieces(parts);
+    const ASTNode ast=parseProgramPieces(pieces);
+    Nice nice;
+    RunOptions options;
+    Evaluator evaluator;
+    setupNice(evaluator,nice.correlations);
+    registerRunOptions(evaluator,options);
+    std::visit(evaluator,ast);
+    options.validate();
+    
+    return {options,nice.compile()};
+  }
+  
   void registerCorrParts(Evaluator& evaluator)
   {
     using namespace internal;
@@ -264,6 +281,47 @@ namespace nissa::nice
     
     registerArithmeticOperators<int,double,SpatMomentum,Smear,Phase,
                                  Gamma,DeltaT,Prop,Oper,Source,Line>(evaluator);
+  }
+  
+  void registerRunOptions(Evaluator& evaluator,
+                          RunOptions& options)
+  {
+    registerHostFunction(evaluator,"setGeometry",{"L","T"},
+                         [&options](const int L,
+                                    const int T)
+    {
+      options.L=L;
+      options.T=T;
+    });
+    registerHostFunction(evaluator,"setRun",{"seed","nHits","nCopies"},
+                         [&options](const int seed,
+                                    const int nHits,
+                                    const int nCopies)
+    {
+      options.seed=seed;
+      options.nHits=nHits;
+      options.nCopies=nCopies;
+    });
+    registerHostFunction(evaluator,"setDilution",{"diluteSpin","diluteColor"},
+                         [&options](const int diluteSpin,
+                                    const int diluteColor)
+    {
+      if((diluteSpin!=0 and diluteSpin!=1) or (diluteColor!=0 and diluteColor!=1))
+        CRASH("NICE setDilution requires diluteSpin and diluteColor to be 0 or 1");
+      
+      options.diluteSpin=diluteSpin!=0;
+      options.diluteColor=diluteColor!=0;
+    });
+    registerHostFunction(evaluator,"setTemporalBoundary",{"boundary"},
+                         [&options](const std::string& boundary)
+    {
+      if(boundary=="antiperiodic")
+        options.temporalBoundary=RunOptions::TemporalBoundary::Antiperiodic;
+      else if(boundary=="periodic")
+        options.temporalBoundary=RunOptions::TemporalBoundary::Periodic;
+      else
+        CRASH("NICE temporal boundary must be 'periodic' or 'antiperiodic'");
+    });
   }
   
   void setupNice(Evaluator& evaluator,

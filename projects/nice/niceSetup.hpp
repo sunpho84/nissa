@@ -53,6 +53,19 @@ namespace nissa::nice
   /// Keep pieces unchanged and alive, and retain the returned AST throughout evaluation
   ASTNodesNode parseProgramPieces(const std::vector<ProgramPiece>& pieces);
   
+  struct PreparedProgram;
+  
+  /// Collectively load, evaluate, validate settings, and compile a NICE program
+  /// MPI and rank information must be initialized; the result owns all returned data
+  PreparedProgram prepareProgram(const LaunchArgs& parts);
+  
+  struct RunOptions;
+  
+  /// Register run-wide setters without performing geometry or numerical setup
+  /// Options must outlive the registered functions; validate after program evaluation
+  void registerRunOptions(Evaluator& evaluator,
+                          RunOptions& options);
+  
   struct Correlations;
   
   /// Set up correlation builders and the legacy-input diagnostic function

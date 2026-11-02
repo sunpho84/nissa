@@ -6,6 +6,7 @@
 #include "legacyInputWriter.hpp"
 #include "niceSetup.hpp"
 #include "nice.hpp"
+#include "runOptions.hpp"
 #include "nASTy.hpp"
 #include "new_types/dirac.hpp"
 #include "routines/mpi_routines.hpp"
@@ -1524,6 +1525,8 @@ void validateProgramPieces(const int narg,
       
       if(mode=="program-missing-file")
         (void)readAndBroadcastProgramPieces({{ProgramPart::Kind::File,"/dev/null/missing.nice",3}});
+      else if(mode=="program-missing-run-settings")
+        (void)prepareProgram({{ProgramPart::Kind::Immediate,"",1}});
       else if(mode=="program-unreadable-file")
         (void)readAndBroadcastProgramPieces({{ProgramPart::Kind::File,"/",3}});
     }
@@ -1582,6 +1585,12 @@ void validateProgramPieces(const int narg,
   
   const auto pieces=readAndBroadcastProgramPieces(parts);
   
+  // Prepare settings and correlations together while the file still exists
+  LaunchArgs runParts=parts;
+  runParts.insert(runParts.begin(),{ProgramPart::Kind::Immediate,
+    "fun record(value){return value;} setGeometry(24,48); setRun(7,8,2); setDilution(1,0);",8});
+  const PreparedProgram prepared=prepareProgram(runParts);
+  
   if(nissa::rank==nissa::master_rank)
     {
       const int status=std::remove(path);
@@ -1618,10 +1627,124 @@ void validateProgramPieces(const int narg,
   
   // The same requests supplied as files or immediate text produce identical instructions
   const std::string mixedOutput=evaluate(pieces);
+  
+  // Returned instructions remain usable after preparation's AST and evaluator are destroyed
+  prepared.options.validate();
+  prepared.correlations.validate();
+  assert(prepared.options.L==24 and prepared.options.T==48);
+  assert(prepared.options.seed==7 and prepared.options.nHits==8 and prepared.options.nCopies==2);
+  assert(prepared.options.diluteSpin==true and prepared.options.diluteColor==false);
+  assert(writeLegacyInput(prepared.correlations)==mixedOutput);
   const auto immediate=readAndBroadcastProgramPieces({
     {ProgramPart::Kind::Immediate,prefix+fileText+suffix,1}});
   assert(evaluate(immediate)==mixedOutput);
   assert(parseProgramPieces({}).list.empty());
+}
+
+/// Check deferred run settings, complete-group overrides, and script argument validation
+void validateRunSettings(const int narg,
+                         const char* const* arg)
+{
+  RunOptions options;
+  Evaluator evaluator;
+  registerRunOptions(evaluator,options);
+  const auto execute=[&](const std::vector<ProgramPiece>& pieces)
+  {
+    const ASTNode ast=parseProgramPieces(pieces);
+    std::visit(evaluator,ast);
+  };
+  
+  // Direct C++ callers use the same data and validation without constructing a script
+  const RunOptions defaults{.L=16,.T=32};
+  defaults.validate();
+  assert(defaults.seed==Sitmo::Rng::DEFAULT_SEED());
+  assert(defaults.diluteSpin==false and defaults.diluteColor==false);
+  RunOptions largeGeometry=defaults;
+  largeGeometry.L=200;
+  largeGeometry.T=200;
+  largeGeometry.validate();
+  assert(defaults.nHits==1 and defaults.nCopies==1);
+  assert(defaults.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic);
+  
+  if(narg>1)
+    {
+      const std::string_view mode=arg[1];
+      const auto reject=[&](const std::string_view selected,
+                           const auto& change)
+      {
+        if(mode==selected)
+          {
+            RunOptions invalid=defaults;
+            change(invalid);
+            invalid.validate();
+            CRASH("Invalid run settings were unexpectedly accepted");
+          }
+      };
+      reject("run-invalid-geometry",[](RunOptions& value)
+      {
+        value.L=0;
+      });
+      reject("run-overflow-volume",[](RunOptions& value)
+      {
+        value.L=std::numeric_limits<int>::max();
+        value.T=std::numeric_limits<int>::max();
+      });
+      reject("run-signed-volume",[](RunOptions& value)
+      {
+        value.L=2097152;
+        value.T=1;
+      });
+      reject("run-invalid-seed",[](RunOptions& value)
+      {
+        value.seed=-1;
+      });
+      reject("run-oversized-seed",[](RunOptions& value)
+      {
+        value.seed=uint64_t{std::numeric_limits<uint32_t>::max()}+1;
+      });
+      reject("run-invalid-hits",[](RunOptions& value)
+      {
+        value.nHits=0;
+      });
+      reject("run-invalid-copies",[](RunOptions& value)
+      {
+        value.nCopies=0;
+      });
+      reject("run-invalid-boundary-value",[](RunOptions& value)
+      {
+        value.temporalBoundary=static_cast<RunOptions::TemporalBoundary>(17);
+      });
+      
+      if(mode=="run-invalid-dilution")
+        execute({{"setDilution(2,0);","invalid dilution"}});
+      else if(mode=="run-invalid-boundary")
+        execute({{"setTemporalBoundary(\"other\");","invalid boundary"}});
+    }
+  
+  // Geometry alone inherits Sitmo's seed and no source dilution
+  execute({{"setGeometry(16,32);","default settings"}});
+  options.validate();
+  assert(options.seed==Sitmo::Rng::DEFAULT_SEED());
+  assert(options.diluteSpin==false and options.diluteColor==false);
+  
+  // Earlier incomplete settings can be replaced before validation, with no setup side effects
+  execute({{"setGeometry(-1,-2); setRun(-1,0,0); setDilution(0,0);","file defaults"},
+           {"setGeometry(.T=48,.L=24); setRun(.nCopies=2,.seed=1234,.nHits=8); "
+            "setDilution(.diluteColor=0,.diluteSpin=1); setTemporalBoundary(\"periodic\");","argument override"}});
+  options.validate();
+  assert(options.L==24 and options.T==48 and options.seed==1234);
+  assert(options.nHits==8 and options.nCopies==2);
+  assert(options.diluteSpin==true and options.diluteColor==false);
+  assert(options.temporalBoundary==RunOptions::TemporalBoundary::Periodic);
+  
+  // Each repeated setter replaces the full group and keeps unrelated settings
+  execute({{"setRun(7,1,3); setGeometry(12,24); setDilution(0,1); "
+            "setTemporalBoundary(\"antiperiodic\");","later override"}});
+  options.validate();
+  assert(options.L==12 and options.T==24 and options.seed==7);
+  assert(options.nHits==1 and options.nCopies==3);
+  assert(options.diluteSpin==false and options.diluteColor==true);
+  assert(options.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic);
 }
 
 /// Run positive checks normally; a named argument selects an expected fatal diagnostic
@@ -1634,6 +1757,7 @@ int main(int narg,
   
   validateLaunchArgs(narg,arg);
   validateProgramPieces(narg,arg);
+  validateRunSettings(narg,arg);
   validateCorrParts();
   validateGammaAdjoints();
   validateTaskGraph(narg,arg);

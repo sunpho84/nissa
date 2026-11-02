@@ -4,8 +4,8 @@ NICE provides C++ types and nASTy bindings for describing correlations,
 turning them into validated tasks, ordering those tasks, and writing a legacy
 prepareInput representation. The correlation types live in
 [`projects/nice/`](../projects/nice/). They do not depend on the old
-prepareInput adapter. A program frontend and numerical execution are the
-next development steps.
+prepareInput adapter. Program loading and run-setting bindings are available as library calls;
+a standalone frontend and numerical execution remain to be implemented.
 
 NICE implementation work follows the
 [`implementation conventions`](nissa-conventions.md).
@@ -31,6 +31,60 @@ writeLegacyInput -> prepareInput-compatible text
 The types through `CompiledCorrelations` are independent of the legacy text
 format. `writeLegacyInput` is a diagnostic and migration output. It does not
 execute correlations.
+
+## Program input and run settings
+
+[`niceSetup.hpp`](../projects/nice/niceSetup.hpp) provides command-line parsing,
+master-rank program-file reading and broadcast, and top-level AST assembly.
+`parseLaunchArgs(narg,arg)` preserves positional statements and `-f PATH`
+pieces in order; `--` ends option parsing. Call it after MPI and rank setup.
+`readAndBroadcastProgramPieces()` returns owned source strings and labels.
+`parseProgramPieces()` parses them separately and merges only their top-level
+statement lists. Explicit braces retain an inner scope. Keep the source
+pieces unchanged and alive alongside the AST throughout evaluation.
+`prepareProgram(parts)` connects loading, evaluation, run-setting validation,
+and correlation compilation. Its `PreparedProgram` result owns `options` and
+`correlations`; it does not borrow the local AST, evaluator, or source text.
+After MPI and rank setup, callers including `nice.hpp` and `niceSetup.hpp` can
+use:
+
+```cpp
+const auto prepared=prepareProgram(parseLaunchArgs(narg,arg));
+const auto legacyText=writeLegacyInput(prepared.correlations);
+```
+
+This prepares instructions without initializing the grid or running numerical
+operations. Source-aware syntax diagnostics and a standalone executable remain pending.
+
+[`RunOptions`](../projects/nice/runOptions.hpp) records caller-owned run-wide
+settings. Call `registerRunOptions(evaluator,options)` alongside
+`setupNice(evaluator,correlations)` to expose:
+
+```text
+setGeometry(.L=24,.T=48);
+setRun(.seed=1234,.nHits=8,.nCopies=2);
+setDilution(.diluteSpin=1,.diluteColor=1);
+setTemporalBoundary("antiperiodic");
+```
+
+Each setter takes the complete argument group shown above. Later calls
+replace that group's previous settings, including calls in later command-line
+pieces. They only record settings: they do not initialize geometry, seed the
+RNG, allocate fields, or perform numerical work. The `RunOptions` object must
+outlive its registered functions. Call `options.validate()` after evaluation
+and before setup. C++ callers can populate the same aggregate directly.
+
+Both geometry extents, hit count, and copy count must be positive. The total
+volume must fit the signed 64-bit representation used by NISSA geometry setup;
+this catches accidental oversized extents before `initGrid`. The seed defaults
+to Sitmo's `3472291050` and must fit its `uint32_t` range. Hits and copies
+default to one. Spin and color dilution default to disabled; `setDilution`
+accepts only `0` or `1`. The temporal boundary defaults to antiperiodic and
+also accepts `"periodic"`. `setRun` currently requires all three arguments;
+nASTy integer literals and its seed argument are `int`, so script overrides
+above `INT_MAX` need future support. Copies remain separate
+from hits and must not be averaged as extra hits. Configuration sources and
+numerical interpretation of these settings remain part of driver development.
 
 ## Correlation parts and requests
 
@@ -171,7 +225,7 @@ conversion; [`host-objects.md`](../projects/nice/host-objects.md) documents
 those mechanisms.
 
 The parser accepts multiple top-level statements without enclosing braces.
-Braces create a nested block. A future program frontend can combine the
+Braces create a nested block. `parseProgramPieces()` combines the
 top-level statements from files and command-line text into one outer scope;
 names declared inside an explicit block remain local to that block.
 
