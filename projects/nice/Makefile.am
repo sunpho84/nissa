@@ -8,6 +8,8 @@ __top_builddir__bin_nice_validate_SOURCES= \
 	%D%/validate.cpp \
 	%D%/nice.hpp \
 	%D%/runOptions.hpp \
+	%D%/configurationSources.cpp \
+	%D%/configurationSources.hpp \
 	%D%/corrParts.hpp \
 	%D%/correlations.hpp \
 	%D%/graphCompiler.hpp \

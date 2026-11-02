@@ -1,4 +1,5 @@
 #include "corrParts.hpp"
+#include "configurationSources.hpp"
 #include "correlations.hpp"
 #include "correlationTaskGraph.hpp"
 #include "graphCompiler.hpp"
@@ -1641,6 +1642,77 @@ void validateProgramPieces(const int narg,
   assert(parseProgramPieces({}).list.empty());
 }
 
+/// Check list rows, path resolution, ordered source registration, and owned preparation results
+void validateConfigurationSources(const int narg,
+                                  const char* const* arg)
+{
+  if(narg>1)
+    {
+      const std::string_view mode=arg[1];
+      
+      if(mode=="list-malformed-row")
+        (void)parseConfigurationList("conf output\n","/tmp/configurations.list");
+      else if(mode=="list-extra-column")
+        (void)parseConfigurationList("conf\toutput\textra\n","/tmp/configurations.list");
+      else if(mode=="list-missing-file")
+        (void)materializeAndBroadcastConfigurations({{"/dev/null/missing.list"}});
+      else if(mode=="list-duplicate-output")
+        {
+          char path[]{"/tmp/nice-duplicate-XXXXXX"};
+          const int descriptor=mkstemp(path);
+          assert(descriptor>=0);
+          FILE* file=fdopen(descriptor,"wb");
+          assert(file!=nullptr);
+          assert(std::fputs("a\tout/../same\nb\tsame\n",file)>=0);
+          assert(std::fclose(file)==0);
+          (void)materializeAndBroadcastConfigurations({{path}});
+        }
+    }
+  
+  char path[]{"/tmp/nice-list-XXXXXX"};
+  char secondPath[]{"/tmp/nice-list-next-XXXXXX"};
+  
+  if(nissa::rank==nissa::master_rank)
+    {
+      const int descriptor=mkstemp(path);
+      assert(descriptor>=0);
+      FILE* file=fdopen(descriptor,"wb");
+      assert(file!=nullptr);
+      assert(std::fputs("  # comment\r\n\r\ninput one\toutput one\r\nsub/input\tresults/two\n",file)>=0);
+      assert(std::fclose(file)==0);
+      const int secondDescriptor=mkstemp(secondPath);
+      assert(secondDescriptor>=0);
+      FILE* secondFile=fdopen(secondDescriptor,"wb");
+      assert(secondFile!=nullptr);
+      assert(std::fputs("third\toutput three\n",secondFile)>=0);
+      assert(std::fclose(secondFile)==0);
+    }
+  
+  // Only the master owns the list path; the program itself distributes that path
+  const std::string script=nissa::rank==nissa::master_rank?
+    "setGeometry(16,32); configurationsFromFile(\""+std::string(path)+"\"); "
+    "configurationsFromFile(\""+std::string(secondPath)+"\");":"invalid local script";
+  const PreparedProgram prepared=prepareProgram({{ProgramPart::Kind::Immediate,script,1}});
+  const ConfigurationSources masterOnly=nissa::rank==nissa::master_rank?
+    ConfigurationSources{{path}}:ConfigurationSources{{"/dev/null/non-master-must-not-open"}};
+  const auto masterEntries=materializeAndBroadcastConfigurations(masterOnly);
+  assert(masterEntries.size()==2);
+  
+  if(nissa::rank==nissa::master_rank)
+    {
+      assert(std::remove(path)==0);
+      assert(std::remove(secondPath)==0);
+    }
+  
+  assert(prepared.configurationEntries.size()==3);
+  assert(prepared.configurationEntries[0].path=="/tmp/input one");
+  assert(prepared.configurationEntries[0].outputDirectory=="/tmp/output one");
+  assert(prepared.configurationEntries[1].path=="/tmp/sub/input");
+  assert(prepared.configurationEntries[1].outputDirectory=="/tmp/results/two");
+  assert(prepared.configurationEntries[2].path=="/tmp/third");
+  assert(prepared.configurationEntries[2].outputDirectory=="/tmp/output three");
+}
+
 /// Check deferred run settings, complete-group overrides, and script argument validation
 void validateRunSettings(const int narg,
                          const char* const* arg)
@@ -1757,6 +1829,7 @@ int main(int narg,
   
   validateLaunchArgs(narg,arg);
   validateProgramPieces(narg,arg);
+  validateConfigurationSources(narg,arg);
   validateRunSettings(narg,arg);
   validateCorrParts();
   validateGammaAdjoints();

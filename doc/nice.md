@@ -4,7 +4,8 @@ NICE provides C++ types and nASTy bindings for describing correlations,
 turning them into validated tasks, ordering those tasks, and writing a legacy
 prepareInput representation. The correlation types live in
 [`projects/nice/`](../projects/nice/). They do not depend on the old
-prepareInput adapter. Program loading and run-setting bindings are available as library calls;
+prepareInput adapter. Program loading, run-setting bindings, and configuration
+list loading are available as library calls;
 a standalone frontend and numerical execution remain to be implemented.
 
 NICE implementation work follows the
@@ -43,8 +44,9 @@ pieces in order; `--` ends option parsing. Call it after MPI and rank setup.
 statement lists. Explicit braces retain an inner scope. Keep the source
 pieces unchanged and alive alongside the AST throughout evaluation.
 `prepareProgram(parts)` connects loading, evaluation, run-setting validation,
-and correlation compilation. Its `PreparedProgram` result owns `options` and
-`correlations`; it does not borrow the local AST, evaluator, or source text.
+correlation compilation, and configuration list loading. Its
+`PreparedProgram` result owns `options`, `correlations`, and
+`configurationEntries`; it does not borrow the local AST, evaluator, or source text.
 After MPI and rank setup, callers including `nice.hpp` and `niceSetup.hpp` can
 use:
 
@@ -83,8 +85,25 @@ accepts only `0` or `1`. The temporal boundary defaults to antiperiodic and
 also accepts `"periodic"`. `setRun` currently requires all three arguments;
 nASTy integer literals and its seed argument are `int`, so script overrides
 above `INT_MAX` need future support. Copies remain separate
-from hits and must not be averaged as extra hits. Configuration sources and
-numerical interpretation of these settings remain part of driver development.
+from hits and must not be averaged as extra hits. Numerical interpretation of
+these settings remains part of driver development.
+
+## Configuration lists
+
+`configurationsFromFile("confs.list")` registers a list during script
+evaluation. Each nonblank, noncomment line contains a configuration path, one
+tab, and an output directory. A line whose first nonwhitespace character is
+`#` is a comment. Spaces within paths are retained. There is no entry count.
+Multiple calls append entries in script order.
+
+The master rank reads each list after evaluation and broadcasts its path
+and contents. Every rank parses the same ordered rows. Relative paths in a row
+are resolved against the list directory; the list path itself is
+resolved from the working directory. Duplicate output directories and malformed
+rows are rejected before numerical work. Input configuration files are checked
+only when the driver loads them. The resulting entries are owned by
+`PreparedProgram::configurationEntries`. Gauge preparation and other
+configuration-source forms remain future work.
 
 ## Correlation parts and requests
 

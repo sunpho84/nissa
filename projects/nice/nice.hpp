@@ -2,6 +2,7 @@
 #define _NICE_HPP
 
 #include "correlations.hpp"
+#include "configurationSources.hpp"
 #include "runOptions.hpp"
 #include "graphCompiler.hpp"
 #include "schedulingStrategies.hpp"
@@ -16,6 +17,9 @@ namespace nissa::nice
     
     /// Validated correlation instructions in execution order
     CompiledCorrelations correlations;
+    
+    /// Ordered configuration and output pairs, resolved before numerical setup
+    std::vector<ConfigurationEntry> configurationEntries;
   };
   
   /// Correlation request and its current compilation entry point

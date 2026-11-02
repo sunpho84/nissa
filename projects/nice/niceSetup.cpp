@@ -208,13 +208,15 @@ namespace nissa::nice
     const ASTNode ast=parseProgramPieces(pieces);
     Nice nice;
     RunOptions options;
+    ConfigurationSources configurationSources;
     Evaluator evaluator;
     setupNice(evaluator,nice.correlations);
     registerRunOptions(evaluator,options);
+    registerConfigurationSources(evaluator,configurationSources);
     std::visit(evaluator,ast);
     options.validate();
     
-    return {options,nice.compile()};
+    return {options,nice.compile(),materializeAndBroadcastConfigurations(configurationSources)};
   }
   
   void registerCorrParts(Evaluator& evaluator)
