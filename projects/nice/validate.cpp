@@ -1651,9 +1651,11 @@ void validateConfigurationSources(const int narg,
       const std::string_view mode=arg[1];
       
       if(mode=="list-malformed-row")
-        (void)parseConfigurationList("conf output\n","/tmp/configurations.list");
+        (void)parseConfigurationList("conf output extra\n","/tmp/configurations.list");
       else if(mode=="list-extra-column")
         (void)parseConfigurationList("conf\toutput\textra\n","/tmp/configurations.list");
+      else if(mode=="list-empty-tab-field")
+        (void)parseConfigurationList("conf\t   \n","/tmp/configurations.list");
       else if(mode=="list-missing-file")
         (void)materializeAndBroadcastConfigurations({{"/dev/null/missing.list"}});
       else if(mode=="list-duplicate-output")
@@ -1678,13 +1680,13 @@ void validateConfigurationSources(const int narg,
       assert(descriptor>=0);
       FILE* file=fdopen(descriptor,"wb");
       assert(file!=nullptr);
-      assert(std::fputs("  # comment\r\n\r\ninput one\toutput one\r\nsub/input\tresults/two\n",file)>=0);
+      assert(std::fputs("  # comment\r\n\r\ninput one\toutput one\r\nsub/input   results/two\n",file)>=0);
       assert(std::fclose(file)==0);
       const int secondDescriptor=mkstemp(secondPath);
       assert(secondDescriptor>=0);
       FILE* secondFile=fdopen(secondDescriptor,"wb");
       assert(secondFile!=nullptr);
-      assert(std::fputs("third\toutput three\n",secondFile)>=0);
+      assert(std::fputs("third\toutput three\nfourth output_four\n",secondFile)>=0);
       assert(std::fclose(secondFile)==0);
     }
   
@@ -1704,13 +1706,15 @@ void validateConfigurationSources(const int narg,
       assert(std::remove(secondPath)==0);
     }
   
-  assert(prepared.configurationEntries.size()==3);
+  assert(prepared.configurationEntries.size()==4);
   assert(prepared.configurationEntries[0].path=="/tmp/input one");
   assert(prepared.configurationEntries[0].outputDirectory=="/tmp/output one");
   assert(prepared.configurationEntries[1].path=="/tmp/sub/input");
   assert(prepared.configurationEntries[1].outputDirectory=="/tmp/results/two");
   assert(prepared.configurationEntries[2].path=="/tmp/third");
   assert(prepared.configurationEntries[2].outputDirectory=="/tmp/output three");
+  assert(prepared.configurationEntries[3].path=="/tmp/fourth");
+  assert(prepared.configurationEntries[3].outputDirectory=="/tmp/output_four");
 }
 
 /// Check deferred run settings, complete-group overrides, and script argument validation

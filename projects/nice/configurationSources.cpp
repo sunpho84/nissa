@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <sstream>
 #include <system_error>
 #include <unordered_set>
 
@@ -54,15 +55,34 @@ namespace nissa::nice
         if(first!=std::string_view::npos and line[first]!='#')
           {
             const std::size_t separator=line.find('\t');
+            std::string input;
+            std::string output;
+            bool malformed=line.find('\r')!=std::string_view::npos or
+              line.find('\0')!=std::string_view::npos;
             
-            if(separator==std::string_view::npos or separator==0 or
-               separator+1==line.size() or line.find('\t',separator+1)!=std::string_view::npos or
-               line.find('\r')!=std::string_view::npos or line.find('\0')!=std::string_view::npos)
-              CRASH("NICE list '%s' line %zu: expected one tab-separated configuration path and output directory",
+            if(separator!=std::string_view::npos)
+              {
+                // A single tab separates fields that may themselves contain spaces
+                malformed=malformed or line.find('\t',separator+1)!=std::string_view::npos;
+                input=line.substr(0,separator);
+                output=line.substr(separator+1);
+                malformed=malformed or input.find_first_not_of(" \v\f")==std::string::npos or
+                  output.find_first_not_of(" \v\f")==std::string::npos;
+              }
+            else
+              {
+                // Without a tab, exactly two whitespace-delimited paths are allowed
+                std::istringstream columns{std::string(line)};
+                std::string extra;
+                malformed=malformed or not (columns>>input>>output) or (columns>>extra);
+              }
+            
+            if(malformed)
+              CRASH("NICE list '%s' line %zu: expected two columns; use one tab when a path contains spaces",
                     listPath.c_str(),lineNumber);
             
-            entries.push_back({(base/fs::path(line.substr(0,separator))).lexically_normal().string(),
-                               (base/fs::path(line.substr(separator+1))).lexically_normal().string()});
+            entries.push_back({(base/fs::path(input)).lexically_normal().string(),
+                               (base/fs::path(output)).lexically_normal().string()});
           }
         
         start=end==std::string_view::npos?text.size():end+1;

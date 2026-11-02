@@ -92,8 +92,10 @@ these settings remains part of driver development.
 
 `configurationsFromFile("confs.list")` registers a list during script
 evaluation. Each nonblank, noncomment line contains a configuration path, one
-tab, and an output directory. A line whose first nonwhitespace character is
-`#` is a comment. Spaces within paths are retained. There is no entry count.
+or more spaces or one tab, and an output directory. When either path contains
+spaces, use exactly one tab to separate the two complete paths. Without a tab,
+the line must contain exactly two whitespace-separated paths. A line whose
+first nonwhitespace character is `#` is a comment. There is no entry count.
 Multiple calls append entries in script order.
 
 The master rank reads each list after evaluation and broadcasts its path

@@ -32,7 +32,7 @@ namespace nissa::nice
   void registerConfigurationSources(Evaluator& evaluator,
                                     ConfigurationSources& sources);
   
-  /// Parse one tab-separated list, reporting its path and line on malformed rows
+  /// Parse two-column rows, using a tab to distinguish paths containing spaces
   std::vector<ConfigurationEntry> parseConfigurationList(std::string_view text,
                                                         const std::string& listPath);
   
