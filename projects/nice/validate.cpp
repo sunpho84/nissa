@@ -1660,14 +1660,18 @@ void validateConfigurationSources(const int narg,
         (void)materializeAndBroadcastConfigurations({{"/dev/null/missing.list"}});
       else if(mode=="list-duplicate-output")
         {
-          char path[]{"/tmp/nice-duplicate-XXXXXX"};
-          const int descriptor=mkstemp(path);
-          assert(descriptor>=0);
-          FILE* file=fdopen(descriptor,"wb");
-          assert(file!=nullptr);
-          assert(std::fputs("a\tout/../same\nb\tsame\n",file)>=0);
-          assert(std::fclose(file)==0);
-          (void)materializeAndBroadcastConfigurations({{path}});
+          char firstPath[]{"/tmp/nice-duplicate-first-XXXXXX"};
+          char secondPath[]{"/tmp/nice-duplicate-second-XXXXXX"};
+          const int firstDescriptor=mkstemp(firstPath);
+          const int secondDescriptor=mkstemp(secondPath);
+          assert(firstDescriptor>=0 and secondDescriptor>=0);
+          FILE* firstFile=fdopen(firstDescriptor,"wb");
+          FILE* secondFile=fdopen(secondDescriptor,"wb");
+          assert(firstFile!=nullptr and secondFile!=nullptr);
+          assert(std::fputs("a\tout/../same\n",firstFile)>=0);
+          assert(std::fputs("b\tsame\n",secondFile)>=0);
+          assert(std::fclose(firstFile)==0 and std::fclose(secondFile)==0);
+          (void)materializeAndBroadcastConfigurations({{firstPath,secondPath}});
         }
     }
   
@@ -1699,6 +1703,10 @@ void validateConfigurationSources(const int narg,
     ConfigurationSources{{path}}:ConfigurationSources{{"/dev/null/non-master-must-not-open"}};
   const auto masterEntries=materializeAndBroadcastConfigurations(masterOnly);
   assert(masterEntries.size()==2);
+  std::string firstSource=nissa::rank==nissa::master_rank?path:"";
+  std::string secondSource=nissa::rank==nissa::master_rank?secondPath:"";
+  nissa::broadcast(firstSource);
+  nissa::broadcast(secondSource);
   
   if(nissa::rank==nissa::master_rank)
     {
@@ -1709,12 +1717,20 @@ void validateConfigurationSources(const int narg,
   assert(prepared.configurationEntries.size()==4);
   assert(prepared.configurationEntries[0].path=="/tmp/input one");
   assert(prepared.configurationEntries[0].outputDirectory=="/tmp/output one");
+  assert(prepared.configurationEntries[0].sourceList==firstSource);
+  assert(prepared.configurationEntries[0].sourceRow==3);
   assert(prepared.configurationEntries[1].path=="/tmp/sub/input");
   assert(prepared.configurationEntries[1].outputDirectory=="/tmp/results/two");
+  assert(prepared.configurationEntries[1].sourceList==firstSource);
+  assert(prepared.configurationEntries[1].sourceRow==4);
   assert(prepared.configurationEntries[2].path=="/tmp/third");
   assert(prepared.configurationEntries[2].outputDirectory=="/tmp/output three");
+  assert(prepared.configurationEntries[2].sourceList==secondSource);
+  assert(prepared.configurationEntries[2].sourceRow==1);
   assert(prepared.configurationEntries[3].path=="/tmp/fourth");
   assert(prepared.configurationEntries[3].outputDirectory=="/tmp/output_four");
+  assert(prepared.configurationEntries[3].sourceList==secondSource);
+  assert(prepared.configurationEntries[3].sourceRow==2);
 }
 
 /// Check deferred run settings, complete-group overrides, and script argument validation

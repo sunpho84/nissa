@@ -9,7 +9,7 @@
 #include <iterator>
 #include <sstream>
 #include <system_error>
-#include <unordered_set>
+#include <unordered_map>
 
 namespace nissa::nice
 {
@@ -27,7 +27,7 @@ namespace nissa::nice
   }
   
   std::vector<ConfigurationEntry> parseConfigurationList(const std::string_view text,
-                                                        const std::string& listPath)
+							 const std::string& listPath)
   {
     namespace fs=std::filesystem;
     std::error_code error;
@@ -38,55 +38,56 @@ namespace nissa::nice
     
     const fs::path base=absolutePath.lexically_normal().parent_path();
     std::vector<ConfigurationEntry> entries;
-    std::size_t start=0;
-    std::size_t lineNumber=1;
+    size_t start=0;
+    size_t rowNumber=1;
     
     while(start<text.size())
       {
-        const std::size_t end=text.find('\n',start);
-        const std::size_t length=(end==std::string_view::npos?text.size():end)-start;
-        std::string_view line=text.substr(start,length);
+        const size_t end=text.find('\n',start);
+        const size_t length=(end==std::string_view::npos?text.size():end)-start;
+        std::string_view row=text.substr(start,length);
         
-        if(not line.empty() and line.back()=='\r')
-          line.remove_suffix(1);
+        if(not row.empty() and row.back()=='\r')
+          row.remove_suffix(1);
         
-        const auto first=line.find_first_not_of(" \t\v\f\r");
+        const auto first=row.find_first_not_of(" \t\v\f\r");
         
-        if(first!=std::string_view::npos and line[first]!='#')
+        if(first!=std::string_view::npos and row[first]!='#')
           {
-            const std::size_t separator=line.find('\t');
+            const size_t separator=row.find('\t');
             std::string input;
             std::string output;
-            bool malformed=line.find('\r')!=std::string_view::npos or
-              line.find('\0')!=std::string_view::npos;
+            bool malformed=row.find('\r')!=std::string_view::npos or
+              row.find('\0')!=std::string_view::npos;
             
             if(separator!=std::string_view::npos)
               {
                 // A single tab separates fields that may themselves contain spaces
-                malformed=malformed or line.find('\t',separator+1)!=std::string_view::npos;
-                input=line.substr(0,separator);
-                output=line.substr(separator+1);
+                malformed=malformed or row.find('\t',separator+1)!=std::string_view::npos;
+                input=row.substr(0,separator);
+                output=row.substr(separator+1);
                 malformed=malformed or input.find_first_not_of(" \v\f")==std::string::npos or
                   output.find_first_not_of(" \v\f")==std::string::npos;
               }
             else
               {
                 // Without a tab, exactly two whitespace-delimited paths are allowed
-                std::istringstream columns{std::string(line)};
+                std::istringstream columns{std::string(row)};
                 std::string extra;
                 malformed=malformed or not (columns>>input>>output) or (columns>>extra);
               }
             
             if(malformed)
-              CRASH("NICE list '%s' line %zu: expected two columns; use one tab when a path contains spaces",
-                    listPath.c_str(),lineNumber);
+              CRASH("NICE list '%s' row %zu: expected two columns; use one tab when a path contains spaces",
+                    listPath.c_str(),rowNumber);
             
             entries.push_back({(base/fs::path(input)).lexically_normal().string(),
-                               (base/fs::path(output)).lexically_normal().string()});
+                               (base/fs::path(output)).lexically_normal().string(),
+                               absolutePath.lexically_normal().string(),rowNumber});
           }
         
         start=end==std::string_view::npos?text.size():end+1;
-        lineNumber++;
+        rowNumber++;
       }
     
     return entries;
@@ -95,7 +96,7 @@ namespace nissa::nice
   std::vector<ConfigurationEntry> materializeAndBroadcastConfigurations(const ConfigurationSources& sources)
   {
     std::vector<ConfigurationEntry> entries;
-    std::unordered_set<std::string> outputs;
+    std::unordered_map<std::string,size_t> outputs;
     
     for(const std::string& path : sources.lists)
       {
@@ -128,9 +129,16 @@ namespace nissa::nice
         
         for(const auto& entry : parsed)
           {
-            if(not outputs.insert(entry.outputDirectory).second)
-              CRASH("NICE list '%s': duplicate output directory '%s'",
-                    path.c_str(),entry.outputDirectory.c_str());
+            const auto [previous,inserted]=
+	      outputs.emplace(entry.outputDirectory,entries.size());
+            
+            if(not inserted)
+              {
+                const auto& earlier=entries[previous->second];
+                CRASH("NICE duplicate output directory '%s': '%s' row %zu and '%s' row %zu",
+                      entry.outputDirectory.c_str(),earlier.sourceList.c_str(),earlier.sourceRow,
+                      entry.sourceList.c_str(),entry.sourceRow);
+              }
             
             entries.push_back(entry);
           }

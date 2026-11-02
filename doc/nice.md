@@ -104,7 +104,8 @@ are resolved against the list directory; the list path itself is
 resolved from the working directory. Duplicate output directories and malformed
 rows are rejected before numerical work. Input configuration files are checked
 only when the driver loads them. The resulting entries are owned by
-`PreparedProgram::configurationEntries`. Gauge preparation and other
+`PreparedProgram::configurationEntries` and retain their source list path and
+row number for diagnostics. Gauge preparation and other
 configuration-source forms remain future work.
 
 ## Correlation parts and requests

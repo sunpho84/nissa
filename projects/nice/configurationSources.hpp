@@ -25,6 +25,12 @@ namespace nissa::nice
     /// Output directory, resolved against the list directory
     std::string outputDirectory;
     
+    /// Absolute path of the list that supplied this entry
+    std::string sourceList;
+    
+    /// Physical row within the source list, starting at one
+    size_t sourceRow{};
+    
     bool operator==(const ConfigurationEntry&) const=default;
   };
   
