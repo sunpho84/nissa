@@ -204,19 +204,68 @@ namespace nissa::nice
   
   PreparedProgram prepareProgram(const LaunchArgs& parts)
   {
+    // Keep the source text alive while the AST and evaluator may refer to it
     const auto pieces=readAndBroadcastProgramPieces(parts);
     const ASTNode ast=parseProgramPieces(pieces);
-    Nice nice;
-    RunOptions options;
-    ConfigurationSources configurationSources;
     Evaluator evaluator;
+    
+    // Correlation builders collect symbolic lines and contraction requests
+    Nice nice;
     setupNice(evaluator,nice.correlations);
+    
+    // Run setters record settings for numerical setup after program preparation
+    RunOptions options;
     registerRunOptions(evaluator,options);
+    
+    // Source calls record list paths for collective reading after evaluation
+    ConfigurationSources configurationSources;
     registerConfigurationSources(evaluator,configurationSources);
+    
+    // Gauge builders record producers to execute for each selected configuration
+    GaugeRecipes gaugeRecipes;
+    registerGaugeRecipes(evaluator,gaugeRecipes);
+    
+    // Populate all destinations, then validate the effective settings after overrides
     std::visit(evaluator,ast);
     options.validate();
+    validateGaugeRecipes(gaugeRecipes);
     
-    return {options,nice.compile(),materializeAndBroadcastConfigurations(configurationSources)};
+    // Return owned instructions, entries, and recipes that survive the local AST and evaluator
+    return {options,
+            nice.compile(),
+            materializeAndBroadcastConfigurations(configurationSources),
+            std::move(gaugeRecipes)};
+  }
+  
+  void registerGaugeRecipes(Evaluator& evaluator,
+                            GaugeRecipes& recipes)
+  {
+    const auto info=registerHObjectType<GaugeHandle>(evaluator,"GaugeHandle");
+    info->streamOp=[](std::ostream& out,
+                     const std::any& data)
+    {
+      const auto& handle=std::any_cast<const GaugeHandle&>(data);
+      
+      out<<"gauge["<<handle<<"]";
+    };
+    
+    // loadedConf(): return a handle for deferred loading of the selected entry's input gauge file
+    // Each configuration fills this slot from its own path during gauge preparation
+    registerHostFunction(evaluator,"loadedConf",{},[&recipes,info]()
+    {
+      return HObject{info,loadedConf(recipes)};
+    });
+    
+    // apeSmearConf(conf,alpha,n): return a handle for spatial APE smearing of conf
+    // conf selects an earlier slot, alpha sets the strength, and n counts iterations
+    // n==0 copies the input; execution is deferred to preparation of each configuration
+    registerHostFunction(evaluator,"apeSmearConf",{"conf","alpha","n"},
+                         [&recipes,info](const GaugeHandle conf,
+                                         const double alpha,
+                                         const int n)
+    {
+      return HObject{info,apeSmearConf(recipes,conf,alpha,n)};
+    });
   }
   
   void registerCorrParts(Evaluator& evaluator)

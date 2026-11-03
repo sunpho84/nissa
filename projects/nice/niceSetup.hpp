@@ -55,7 +55,7 @@ namespace nissa::nice
   
   struct PreparedProgram;
   
-  /// Collectively load, evaluate, validate settings, and compile a NICE program
+  /// Collectively load and evaluate a program, compile correlations, and retain deferred gauge recipes
   /// MPI and rank information must be initialized; the result owns all returned data
   PreparedProgram prepareProgram(const LaunchArgs& parts);
   

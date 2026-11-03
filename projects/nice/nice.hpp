@@ -3,6 +3,7 @@
 
 #include "correlations.hpp"
 #include "configurationSources.hpp"
+#include "gaugeRecipes.hpp"
 #include "runOptions.hpp"
 #include "graphCompiler.hpp"
 #include "schedulingStrategies.hpp"
@@ -20,6 +21,9 @@ namespace nissa::nice
     
     /// Ordered configuration and output pairs, resolved before numerical setup
     std::vector<ConfigurationEntry> configurationEntries;
+    
+    /// Gauge storage and producers, filled for each selected configuration entry
+    GaugeRecipes gaugeRecipes;
   };
   
   /// Correlation request and its current compilation entry point

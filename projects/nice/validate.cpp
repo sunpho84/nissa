@@ -3,6 +3,7 @@
 #include "correlations.hpp"
 #include "correlationTaskGraph.hpp"
 #include "graphCompiler.hpp"
+#include "gaugeRecipes.hpp"
 #include "schedulingStrategies.hpp"
 #include "legacyInputWriter.hpp"
 #include "niceSetup.hpp"
@@ -11,6 +12,11 @@
 #include "nASTy.hpp"
 #include "new_types/dirac.hpp"
 #include "routines/mpi_routines.hpp"
+#include "base/init.hpp"
+#include "base/close.hpp"
+#include "io/writer.hpp"
+#include "operations/gaugeconf.hpp"
+#include "operations/su3_paths/plaquette.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -1839,10 +1845,122 @@ void validateRunSettings(const int narg,
   assert(options.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic);
 }
 
-/// Run positive checks normally; a named argument selects an expected fatal diagnostic
+/// Check deferred recipe construction, empty storage, and invalid recipe diagnostics
+void validateGaugeRecipeBindings(const int narg,
+                                 const char* const* arg)
+{
+  PreparedProgram prepared=prepareProgram({{ProgramPart::Kind::Immediate,
+    "setGeometry(4,4); raw=loadedConf(); copy=raw; "
+    "zero=apeSmearConf(copy,.alpha=0.4,.n=0); smooth=apeSmearConf(raw,0.4,2); "
+    "chained=apeSmearConf(smooth,0.2,1);",1}});
+  auto& recipes=prepared.gaugeRecipes;
+  assert(not nissa::lxGeomInited);
+  assert(recipes.size()==4);
+  
+  // Script evaluation records producers and reserves storage without allocating gauge fields
+  for(const auto& recipe : recipes)
+    assert(not recipe.field);
+  
+  if(narg>1)
+    {
+      const std::string_view mode=arg[1];
+      
+      if(mode=="gauge-invalid-handle")
+        apeSmearConf(recipes,recipes.size(),0.4,1);
+      else if(mode=="gauge-negative-steps")
+        apeSmearConf(recipes,0,0.4,-1);
+      else if(mode=="gauge-nonfinite-alpha")
+        apeSmearConf(recipes,0,std::numeric_limits<double>::infinity(),1);
+      else if(mode=="gauge-empty-producer")
+        {
+          recipes[1].produce={};
+          validateGaugeRecipes(recipes);
+        }
+      else if(mode=="gauge-unavailable-field")
+        (void)gaugeField(recipes,0);
+      else if(mode=="gauge-before-geometry")
+        prepareGaugeFields(recipes,{});
+    }
+}
+
+/// Exercise loading, chained spatial APE, and field release between configuration entries
+void validateGaugeExecution()
+{
+  PreparedProgram prepared=prepareProgram({{ProgramPart::Kind::Immediate,
+    "setGeometry(4,4); raw=loadedConf(); zero=apeSmearConf(raw,0.4,0); "
+    "smooth=apeSmearConf(raw,0.4,2); chained=apeSmearConf(smooth,0.2,1);",1}});
+  nissa::initGrid(prepared.options.T,prepared.options.L);
+  char temporary[]{"/tmp/nice-gauge-XXXXXX"};
+  std::string path;
+  
+  if(nissa::rank==nissa::master_rank)
+    {
+      const int descriptor=mkstemp(temporary);
+      assert(descriptor>=0);
+      assert(close(descriptor)==0);
+      path=temporary;
+    }
+  
+  nissa::broadcast(path);
+  
+  // A cold gauge field has unit plaquette and is a fixed point of spatial APE
+  {
+    GaugeField cold("nice validation cold conf",nissa::WITH_HALO_EDGES);
+    nissa::generate_cold_lx_conf(cold);
+    nissa::write_ildg_gauge_conf(path,cold);
+  }
+  
+  auto& recipes=prepared.gaugeRecipes;
+  int loads=0;
+  std::string selectedOutput;
+  
+  // The first producer must see every slot cleared, including later slots from the previous entry
+  auto load=std::move(recipes[0].produce);
+  recipes[0].produce=[load=std::move(load),&loads,&selectedOutput](const ConfigurationEntry& entry,
+                                                               const GaugeRecipes& current)
+  {
+    for(const auto& recipe : current)
+      assert(not recipe.field);
+    
+    loads++;
+    selectedOutput=entry.outputDirectory;
+    
+    return load(entry,current);
+  };
+  
+  // The same producers fill their storage again for each configuration entry
+  for(const std::string output : {"output first","output second"})
+    {
+      prepareGaugeFields(recipes,{path,output});
+      assert(selectedOutput==output);
+      
+      for(size_t slot=0;slot<recipes.size();slot++)
+        assert(std::abs(nissa::global_plaquette_lx_conf(gaugeField(recipes,slot))-1.0)<1e-12);
+    }
+  
+  assert(loads==2);
+  clearGaugeFields(recipes);
+  
+  for(const auto& recipe : recipes)
+    assert(not recipe.field and recipe.produce);
+  
+  if(nissa::rank==nissa::master_rank)
+    assert(std::remove(path.c_str())==0);
+}
+
+/// Run frontend checks normally, or a separate initialized-grid gauge execution mode
 int main(int narg,
          char** arg)
 {
+  if(narg>1 and std::string_view(arg[1])=="gauge-execution")
+    {
+      nissa::initNissa(narg,arg);
+      validateGaugeExecution();
+      nissa::closeNissa();
+      
+      return 0;
+    }
+  
   nissa::init_MPI_thread(narg,arg);
   nissa::get_MPI_nranks();
   nissa::get_MPI_rank();
@@ -1851,6 +1969,7 @@ int main(int narg,
   validateProgramPieces(narg,arg);
   validateConfigurationSources(narg,arg);
   validateRunSettings(narg,arg);
+  validateGaugeRecipeBindings(narg,arg);
   validateCorrParts();
   validateGammaAdjoints();
   validateTaskGraph(narg,arg);
