@@ -437,23 +437,45 @@ namespace nissa
   
 #endif
   
-  /// Passes the memory manager for the given memory space
+  /// Select the memory manager for a compile-time memory space
   template <MemorySpace MS>
   inline MemoryManager* memoryManager()
   {
+    MemoryManager* manager=nullptr;
+    
     switch(MS)
       {
-      case nissa::MemorySpace::CPU:
-	return cpuMemoryManager;
-	break;
+      case MemorySpace::CPU:
+        manager=cpuMemoryManager;
+        break;
 #ifdef USE_CUDA
       case MemorySpace::GPU:
-	return gpuMemoryManager;
-	break;
+        manager=gpuMemoryManager;
+        break;
 #endif
       default:
-	CRASH("unresolved memory manager");
-	return nullptr;
+        CRASH("unsupported memory space for memory manager");
+      }
+    
+    if(manager==nullptr)
+      CRASH("memory manager is not initialized");
+    
+    return manager;
+  }
+  
+  /// Select the initialized memory manager for a runtime memory space
+  inline MemoryManager* memoryManager(const MemorySpace space)
+  {
+    switch(space)
+      {
+      case MemorySpace::CPU:
+        return memoryManager<MemorySpace::CPU>();
+#ifdef USE_CUDA
+      case MemorySpace::GPU:
+        return memoryManager<MemorySpace::GPU>();
+#endif
+      default:
+        CRASH("unsupported memory space for memory manager");
       }
   }
 }
