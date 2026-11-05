@@ -11,6 +11,7 @@ __top_builddir__bin_nice_validate_SOURCES= \
 	%D%/configurationSources.cpp \
 	%D%/configurationSources.hpp \
 	%D%/gaugeRecipes.hpp \
+	%D%/tensorComps.hpp \
 	%D%/corrParts.hpp \
 	%D%/correlations.hpp \
 	%D%/graphCompiler.hpp \
