@@ -670,6 +670,9 @@ namespace nissa
     
     mutable int nRef;
     
+    /// Whether this field releases its data through the memory manager
+    bool ownsData;
+    
     /// Name of the field
     const char* _name;
     
@@ -1020,6 +1023,7 @@ namespace nissa
     Field(const char *_name,
 	  const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
       nRef(0),
+      ownsData(true),
       _name(_name),
       haloEdgesPresence(haloEdgesPresence),
       _haloIsValid(false),
@@ -1028,6 +1032,24 @@ namespace nissa
       this->externalSize=FieldSizes<fieldCoverage>::nSitesToAllocate(haloEdgesPresence);
       VERBOSITY_LV3_MASTER_PRINTF("Allocating field %s\n",name());
       this->_data=memoryManager<MS>()->template provide<Fund>(this->nTotalElements());
+    }
+    
+    /// Borrow storage owned elsewhere, retaining field metadata and halo operations
+    Field(const char *_name,
+          Fund* borrowedData,
+          const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
+      nRef(0),
+      ownsData(false),
+      _name(_name),
+      haloEdgesPresence(haloEdgesPresence),
+      _haloIsValid(false),
+      _edgesAreValid(false)
+    {
+      if(borrowedData==nullptr)
+        CRASH("Unable to construct a field over null storage");
+      
+      this->externalSize=FieldSizes<fieldCoverage>::nSitesToAllocate(haloEdgesPresence);
+      this->_data=borrowedData;
     }
     
     /// Construct from other layout
@@ -1042,6 +1064,7 @@ namespace nissa
     /// Move constructor
     Field(Field&& oth) :
       nRef(oth.nRef),
+      ownsData(oth.ownsData),
       _name(oth.name()),
       haloEdgesPresence(oth.haloEdgesPresence),
       _haloIsValid(oth.haloIsValid()),
@@ -1069,7 +1092,10 @@ namespace nissa
       if(this->_data)
 	{
 	  if(nRef==0)
-	    memoryManager<MS>()->release(this->_data);
+	    {
+	      if(ownsData)
+		memoryManager<MS>()->release(this->_data);
+	    }
 	  else
 	    CRASH("Trying to destroying field %s with dangling references",name());
 	}
