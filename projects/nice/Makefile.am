@@ -15,6 +15,7 @@ __top_builddir__bin_nice_validate_SOURCES= \
 	%D%/corrParts.hpp \
 	%D%/correlations.hpp \
 	%D%/graphCompiler.hpp \
+	%D%/nASTy.cpp \
 	%D%/nASTy.hpp \
 	%D%/niceSetup.cpp \
 	%D%/niceSetup.hpp \
