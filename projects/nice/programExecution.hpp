@@ -41,15 +41,15 @@ namespace nissa::nice
     for(const Task& task : program.correlations.instructions)
       if(const auto* extension=std::get_if<ExtendSelectingTPars>(&task.operation))
         {
-          const size_t* handle=nullptr;
+          const size_t* recipeId=nullptr;
           
           if(const auto* prop=std::get_if<Prop>(&extension->pars))
-            handle=&prop->conf;
+            recipeId=&prop->gaugeRecipe;
           else if(const auto* smear=std::get_if<Smear>(&extension->pars))
-            handle=&smear->conf;
+            recipeId=&smear->gaugeRecipe;
           
-          if(handle and *handle>=program.gaugeRecipes.size())
-            CRASH("NICE task %zu selects unavailable gauge recipe %zu",task.id,*handle);
+          if(recipeId and *recipeId>=program.gaugeRecipes.size())
+            CRASH("NICE task %zu selects unavailable gauge recipe %zu",task.id,*recipeId);
         }
     
     if(not lxGeomInited or glbSize[0]!=program.options.T or

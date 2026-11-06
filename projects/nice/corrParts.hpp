@@ -102,6 +102,9 @@ namespace nissa::nice
     /// Spatial momentum inserted by the smearing
     SpatMomentum mom{defaults.mom};
     
+    /// Recipe producing the gauge field for smearing; zero selects the first recipe
+    std::size_t gaugeRecipe{defaults.gaugeRecipe};
+    
     /// Require a nonnegative iteration count representable by the backend
     void validate() const
     {
@@ -121,7 +124,8 @@ namespace nissa::nice
     std::string describe() const
     {
       std::ostringstream out;
-      out<<"Smear(kappa="<<kappa<<",n="<<n<<",mom="<<mom<<")";
+      out<<"Smear(kappa="<<kappa<<",n="<<n<<",mom="<<mom
+         <<",gaugeRecipe="<<gaugeRecipe<<")";
       
       return out.str();
     }
@@ -131,7 +135,7 @@ namespace nissa::nice
   };
   
   /// Explicit initial values avoid reading defaults while initializing itself
-  inline constinit Smear Smear::defaults{.kappa=0.0,.n=0.0,.mom={}};
+  inline constinit Smear Smear::defaults{.kappa=0.0,.n=0.0,.mom={},.gaugeRecipe=0};
   
   /// Spatial momentum phase; conjugation reverses its momentum
   struct Phase
@@ -238,6 +242,9 @@ namespace nissa::nice
     /// Residue used by the propagator
     double residue{defaults.residue};
     
+    /// Recipe producing the gauge field for inversion; zero selects the first recipe
+    std::size_t gaugeRecipe{defaults.gaugeRecipe};
+    
     /// Require an explicitly selected Wilson sign
     void validate() const
     {
@@ -265,7 +272,8 @@ namespace nissa::nice
     {
       std::ostringstream out;
       out<<"Prop(kappa="<<kappa<<",mass="<<mass<<",r="<<r
-         <<",charge="<<charge<<",mom="<<mom<<",residue="<<residue<<")";
+         <<",charge="<<charge<<",mom="<<mom<<",residue="<<residue
+         <<",gaugeRecipe="<<gaugeRecipe<<")";
       
       return out.str();
     }
@@ -281,7 +289,8 @@ namespace nissa::nice
     .r=0,
     .charge=0.0,
     .mom={},
-    .residue=0.0};
+    .residue=0.0,
+    .gaugeRecipe=0};
   
   /// Parameter alternatives accepted by an operator or line extender
   using Pars=

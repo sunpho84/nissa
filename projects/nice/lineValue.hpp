@@ -58,7 +58,7 @@ namespace nissa::nice
   using TensorValue=
     std::variant<Tensor,SField,LineValue>;
   
-  /// Per-hit owned results indexed by stable task identity
+  /// Per-hit results indexed by stable task identity; consumed intermediates are empty
   using TaskValues=
     std::vector<std::optional<TensorValue>>;
 }

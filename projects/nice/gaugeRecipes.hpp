@@ -22,9 +22,9 @@ namespace nissa::nice
   using GaugeField=
     LxField<quad_su3>;
   
-  /// Index of a slot containing both field storage and its producer
-  /// All handles refer to the single ordered recipe collection of the current program
-  using GaugeHandle=
+  /// Index of a deferred producer and its per-configuration field slot
+  /// The index refers to a recipe, never directly to a prepared gauge field
+  using GaugeRecipeId=
     size_t;
   
   struct GaugeRecipe;
@@ -45,22 +45,22 @@ namespace nissa::nice
   
   /// Resolve an already produced field, checking bounds and availability
   inline const GaugeField& gaugeField(const GaugeRecipes& recipes,
-                                     const GaugeHandle handle)
+                                     const GaugeRecipeId recipeId)
   {
-    if(handle>=recipes.size() or not recipes[handle].field)
-      CRASH("NICE gauge field %zu is not available for this configuration",handle);
+    if(recipeId>=recipes.size() or not recipes[recipeId].field)
+      CRASH("NICE gauge recipe %zu has no field for this configuration",recipeId);
     
-    return *recipes[handle].field;
+    return *recipes[recipeId].field;
   }
   
   /// Append a deferred producer and return its target index
-  inline GaugeHandle addGaugeRecipe(GaugeRecipes& recipes,
+  inline GaugeRecipeId addGaugeRecipe(GaugeRecipes& recipes,
                                     std::function<std::unique_ptr<GaugeField>(const ConfigurationEntry&,const GaugeRecipes&)> produce)
   {
     if(not produce)
       CRASH("NICE gauge recipe requires a producer");
     
-    const GaugeHandle target=recipes.size();
+    const GaugeRecipeId target=recipes.size();
     recipes.push_back({nullptr,std::move(produce)});
     
     return target;
@@ -75,7 +75,7 @@ namespace nissa::nice
   }
   
   /// Record loading the selected entry's gauge file without performing I/O
-  inline GaugeHandle loadedConf(GaugeRecipes& recipes)
+  inline GaugeRecipeId loadedConf(GaugeRecipes& recipes)
   {
     return addGaugeRecipe(recipes,[](const ConfigurationEntry& entry,
                                     const GaugeRecipes&)
@@ -91,21 +91,21 @@ namespace nissa::nice
   }
   
   /// Record spatial APE smearing of a previously registered target
-  inline GaugeHandle apeSmearConf(GaugeRecipes& recipes,
-                                  const GaugeHandle input,
+  inline GaugeRecipeId apeSmearConf(GaugeRecipes& recipes,
+                                  const GaugeRecipeId inputRecipe,
                                   const double alpha,
                                   const int n)
   {
-    if(input>=recipes.size())
-      CRASH("NICE gauge handle is outside the registered recipes");
+    if(inputRecipe>=recipes.size())
+      CRASH("NICE input gauge recipe is outside the registered recipes");
     
     if(not std::isfinite(alpha) or n<0)
       CRASH("NICE apeSmearConf requires finite alpha and nonnegative n");
     
-    return addGaugeRecipe(recipes,[input,alpha,n](const ConfigurationEntry&,
-                                                const GaugeRecipes& current)
+    return addGaugeRecipe(recipes,[inputRecipe,alpha,n](const ConfigurationEntry&,
+                                                       const GaugeRecipes& current)
     {
-      const auto& original=gaugeField(current,input);
+      const auto& original=gaugeField(current,inputRecipe);
       auto field=std::make_unique<GaugeField>("nice APE conf",WITH_HALO_EDGES);
       ape_spatial_smear_conf(*field,original,alpha,n);
       
@@ -142,7 +142,7 @@ namespace nissa::nice
       }
   }
   
-  /// Expose gauge handles and deferred recipe builders to the script evaluator
+  /// Expose gauge recipe IDs and deferred builders to the script evaluator
   /// The recipe collection must outlive the registered functions
   void registerGaugeRecipes(Evaluator& evaluator,
                             GaugeRecipes& recipes);

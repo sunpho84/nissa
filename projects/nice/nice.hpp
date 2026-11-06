@@ -6,6 +6,7 @@
 #include "gaugeRecipes.hpp"
 #include "runOptions.hpp"
 #include "lineValue.hpp"
+#include "taskExecution.hpp"
 #include "graphCompiler.hpp"
 #include "schedulingStrategies.hpp"
 

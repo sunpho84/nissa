@@ -240,31 +240,31 @@ namespace nissa::nice
   void registerGaugeRecipes(Evaluator& evaluator,
                             GaugeRecipes& recipes)
   {
-    const auto info=registerHObjectType<GaugeHandle>(evaluator,"GaugeHandle");
+    const auto info=registerHObjectType<GaugeRecipeId>(evaluator,"GaugeRecipeId");
     info->streamOp=[](std::ostream& out,
                      const std::any& data)
     {
-      const auto& handle=std::any_cast<const GaugeHandle&>(data);
+      const auto& recipeId=std::any_cast<const GaugeRecipeId&>(data);
       
-      out<<"gauge["<<handle<<"]";
+      out<<"gaugeRecipe["<<recipeId<<"]";
     };
     
-    // loadedConf(): return a handle for deferred loading of the selected entry's input gauge file
+    // loadedConf(): return the recipe ID for loading the selected entry's input gauge file
     // Each configuration fills this slot from its own path during gauge preparation
     registerHostFunction(evaluator,"loadedConf",{},[&recipes,info]()
     {
       return HObject{info,loadedConf(recipes)};
     });
     
-    // apeSmearConf(conf,alpha,n): return a handle for spatial APE smearing of conf
-    // conf selects an earlier slot, alpha sets the strength, and n counts iterations
+    // apeSmearConf(inputRecipe,alpha,n): return a recipe ID for spatial APE smearing
+    // inputRecipe selects an earlier recipe, alpha sets strength, and n counts iterations
     // n==0 copies the input; execution is deferred to preparation of each configuration
-    registerHostFunction(evaluator,"apeSmearConf",{"conf","alpha","n"},
-                         [&recipes,info](const GaugeHandle conf,
+    registerHostFunction(evaluator,"apeSmearConf",{"inputRecipe","alpha","n"},
+                         [&recipes,info](const GaugeRecipeId inputRecipe,
                                          const double alpha,
                                          const int n)
     {
-      return HObject{info,apeSmearConf(recipes,conf,alpha,n)};
+      return HObject{info,apeSmearConf(recipes,inputRecipe,alpha,n)};
     });
   }
   
@@ -303,12 +303,12 @@ namespace nissa::nice
       using Self=Prop;
       parameter.template operator()<Self>("Prop",
         std::make_tuple(MEMB(kappa),MEMB(mass),MEMB(r),MEMB(charge),
-                        HMEMB(mom,momentumInfo),MEMB(residue)));
+                        HMEMB(mom,momentumInfo),MEMB(residue),MEMB(gaugeRecipe)));
     }
     {
       using Self=Smear;
       parameter.template operator()<Self>("Smear",
-        std::make_tuple(MEMB(kappa),MEMB(n),HMEMB(mom,momentumInfo)));
+        std::make_tuple(MEMB(kappa),MEMB(n),HMEMB(mom,momentumInfo),MEMB(gaugeRecipe)));
     }
     {
       using Self=Phase;
