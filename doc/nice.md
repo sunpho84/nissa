@@ -4,9 +4,9 @@ NICE provides C++ types and nASTy bindings for describing correlations,
 turning them into validated tasks, ordering those tasks, and writing a legacy
 prepareInput representation. The correlation types live in
 [`projects/nice/`](../projects/nice/). They do not depend on the old
-prepareInput adapter. Program loading, run-setting bindings, and configuration
-list loading are available as library calls;
-a standalone frontend and numerical correlation execution remain to be implemented.
+prepareInput adapter. Program loading, run-setting bindings, configuration
+list loading, and the first standalone driver are available. Numerical
+correlation execution remains to be implemented.
 
 NICE implementation work follows the
 [`implementation conventions`](nissa-conventions.md).
@@ -56,7 +56,26 @@ const auto legacyText=writeLegacyInput(prepared.correlations);
 ```
 
 This prepares instructions without initializing the grid or running numerical
-operations. Source-aware syntax diagnostics and a standalone executable remain pending.
+operations. Source-aware syntax diagnostics remain pending.
+
+The `nice` executable calls `initNissa`, parses ordered `-f PATH` files and
+positional script fragments, prepares the program, reports the compiled task
+counts and ordered task dependencies, and initializes the grid. For a program
+with no correlation tasks, it prepares and releases the gauge recipes for each
+configuration entry. A program with correlation tasks stops with a nonzero
+exit status before configuration work, reporting the absent numerical handlers
+and output path. The program does not report preparation as a completed
+correlation run. For example:
+
+```sh
+make -C <build-directory>/projects ../bin/nice
+<build-directory>/bin/nice -f run.nice 'setRun(.nHits=4);'
+```
+
+The driver currently needs source, extension, and trace implementations,
+RNG positioning, result aggregation, and output writing before it can run a
+correlation script end to end. The local driver development note tracks the
+remaining execution design.
 
 [`RunOptions`](../projects/nice/runOptions.hpp) records caller-owned run-wide
 settings. Call `registerRunOptions(evaluator,options)` alongside

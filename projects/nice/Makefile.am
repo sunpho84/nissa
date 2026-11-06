@@ -1,11 +1,13 @@
 if USE_PARSE_PACT
+bin_PROGRAMS+= \
+	$(top_builddir)/bin/nice
+
 check_PROGRAMS= \
 	$(top_builddir)/bin/nice_validate
 
 TESTS=$(check_PROGRAMS)
 
-__top_builddir__bin_nice_validate_SOURCES= \
-	%D%/validate.cpp \
+nice_common_sources= \
 	%D%/nice.hpp \
 	%D%/runOptions.hpp \
 	%D%/configurationSources.cpp \
@@ -30,4 +32,12 @@ __top_builddir__bin_nice_validate_SOURCES= \
 	%D%/legacyInputWriter.cpp \
 	%D%/legacyInputWriter.hpp \
 	%D%/corrParts.cpp
+
+__top_builddir__bin_nice_SOURCES= \
+	%D%/nice.cpp \
+	$(nice_common_sources)
+
+__top_builddir__bin_nice_validate_SOURCES= \
+	%D%/validate.cpp \
+	$(nice_common_sources)
 endif
