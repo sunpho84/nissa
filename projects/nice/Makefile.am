@@ -15,6 +15,8 @@ __top_builddir__bin_nice_validate_SOURCES= \
 	%D%/tensorValues.hpp \
 	%D%/sField.hpp \
 	%D%/lineValue.hpp \
+	%D%/taskExecution.hpp \
+	%D%/programExecution.hpp \
 	%D%/corrParts.hpp \
 	%D%/correlations.hpp \
 	%D%/graphCompiler.hpp \
