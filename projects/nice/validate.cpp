@@ -4,6 +4,9 @@
 #include "correlationTaskGraph.hpp"
 #include "graphCompiler.hpp"
 #include "gaugeRecipes.hpp"
+#include "lineValue.hpp"
+#include "taskExecution.hpp"
+#include "programExecution.hpp"
 #include "schedulingStrategies.hpp"
 #include "legacyInputWriter.hpp"
 #include "niceSetup.hpp"
@@ -1544,6 +1547,7 @@ void validateProgramPieces(const int narg,
   const uint64_t local=nissa::rank==root?expected:0;
   assert(nissa::broadcast(local,root)==expected);
   assert(nissa::broadcast(nissa::rank==root?17:0,root)==17);
+  assert(nissa::broadcast(nissa::rank==root,root));
   std::string binary=nissa::rank==root?std::string("a\0bc",4):"stale receiver text";
   nissa::broadcast(binary,root);
   assert(binary==std::string("a\0bc",4));
@@ -1850,8 +1854,9 @@ void validateGaugeRecipeBindings(const int narg,
                                  const char* const* arg)
 {
   PreparedProgram prepared=prepareProgram({{ProgramPart::Kind::Immediate,
-    "setGeometry(4,4); raw=loadedConf(); copy=raw; "
-    "zero=apeSmearConf(copy,.alpha=0.4,.n=0); smooth=apeSmearConf(raw,0.4,2); "
+    "setGeometry(4,4); rawRecipe=loadedConf(); copy=rawRecipe; "
+    "zero=apeSmearConf(.inputRecipe=copy,.alpha=0.4,.n=0); "
+    "smooth=apeSmearConf(rawRecipe,0.4,2); "
     "chained=apeSmearConf(smooth,0.2,1);",1}});
   auto& recipes=prepared.gaugeRecipes;
   assert(not nissa::lxGeomInited);
@@ -1883,6 +1888,142 @@ void validateGaugeRecipeBindings(const int narg,
     }
 }
 
+/// Check runtime dispatch when an output-first schedule reorders independent tasks
+void validateTaskExecution(const RunOptions& options)
+{
+  const Source first(0);
+  const Source second(0);
+  const std::set<std::pair<int,int>> gammas{{5,5}};
+  const CorrelationTaskGraph graph(
+    {Task{.id=0,.operation=first,.inputs{},.labels{}},
+     Task{.id=1,.operation=second,.inputs{},.labels{}},
+     Task{.id=2,.operation=ExtendSelectingTPars{Pars(Gamma{.iGamma=1})},
+          .inputs{{0,2.0}},.labels{}},
+     Task{.id=3,.operation=TraceContraction{gammas},
+          .inputs{{2,1.0},{1,1.0}},.labels{}}},
+    {OutputBlock{.name="dispatch",.gammaList=gammas,.traces{3}}});
+  const CompiledCorrelations compiled=scheduleCorrelations(graph,scheduleByOutput);
+  std::string callOrder;
+  CompRegistry registry;
+  const CompKind gammaKind=registry.intern("GammaPair");
+  const CompKind timeKind=registry.intern("TimeSeparation");
+  const TaskHandlers handlers{
+    .source=[&](const Source&)
+    {
+      callOrder+='S';
+      LineValue result(options,nissa::MemorySpace::CPU,nissa::SpaceTimeLayout::CPU);
+      result.field.tensor.data[0]=static_cast<double>(callOrder.size());
+      
+      return result;
+    },
+    .extend=[&](const ExtendSelectingTPars&,
+                const std::span<const WeightedLineInput> inputs)
+    {
+      callOrder+='E';
+      assert(inputs.size()==1 and inputs[0].weight==2.0);
+      LineValue result(options,nissa::MemorySpace::CPU,nissa::SpaceTimeLayout::CPU);
+      result.field.tensor.data[0]=inputs[0].weight*inputs[0].value->field.tensor.data[0];
+      
+      return result;
+    },
+    .trace=[&](const TraceContraction& contraction,
+               const LineValue& backward,
+               const LineValue& forward)
+    {
+      callOrder+='T';
+      assert(contraction.gammaList==gammas);
+      Tensor result{{ScalarKind::Complex,
+                     {{gammaKind,CompSide::None,contraction.gammaList.size()},
+                      {StandardComp::Copy,CompSide::None,backward.nCopies},
+                      {timeKind,CompSide::None,static_cast<size_t>(options.T)}}},
+                    nissa::MemorySpace::CPU};
+      result.data[0]=backward.field.tensor.data[0]+forward.field.tensor.data[0];
+      
+      return result;
+    }};
+  const TaskValues values=executeScheduledTasks(compiled,handlers);
+  assert(callOrder=="SEST");
+  assert(values.size()==4);
+  assert(not values[0] and not values[1] and not values[2]);
+  assert(std::get<Tensor>(*values[3]).data[0]==5.0);
+}
+
+/// Check that a parsed script drives the scheduled source, extensions, and trace for each hit
+void validatePreparedExecution()
+{
+  PreparedProgram program=prepareProgram({{ProgramPart::Kind::Immediate,
+    "setGeometry(4,4); setRun(7,2,1); rawRecipe=loadedConf(); corrBlock(\"pion\"); "
+    "corrGammas(\"pion\",5,5); source=Source(0); "
+    "backward=Prop(.gaugeRecipe=rawRecipe,.kappa=0.12,.r=1)*source; "
+    "forward=Gamma(1)*backward; corrTrace(\"pion\",backward,forward);",1}});
+  program.configurationEntries.push_back({"","unused","script",1});
+  assert(program.gaugeRecipes.size()==1);
+  program.gaugeRecipes[0].produce=[](const ConfigurationEntry&,
+                                     const GaugeRecipes&)
+  {
+    auto field=std::make_unique<GaugeField>("script test conf",nissa::WITH_HALO_EDGES);
+    nissa::generate_cold_lx_conf(*field);
+    
+    return field;
+  };
+  size_t sources=0;
+  size_t extensions=0;
+  size_t traces=0;
+  const TaskHandlerFactory makeHandlers=[&](const RunOptions& options,
+                                             const GaugeRecipes& recipes,
+                                             const size_t iHit)
+  {
+    assert(recipes.size()==1 and options.nHits==2 and iHit<2);
+    assert(&gaugeField(recipes,0)==recipes[0].field.get());
+    
+    return TaskHandlers{
+      .source=[&,iHit](const Source&)
+      {
+        sources++;
+        LineValue result(options,nissa::MemorySpace::CPU,nissa::SpaceTimeLayout::CPU);
+        result.field.tensor.data[0]=static_cast<double>(iHit+1);
+        
+        return result;
+      },
+      .extend=[&](const ExtendSelectingTPars& operation,
+                  const std::span<const WeightedLineInput> inputs)
+      {
+        extensions++;
+        assert(inputs.size()==1);
+        if(const auto* prop=std::get_if<Prop>(&operation.pars))
+          assert(prop->gaugeRecipe==0);
+        LineValue result(options,nissa::MemorySpace::CPU,nissa::SpaceTimeLayout::CPU);
+        result.field.tensor.data[0]=inputs[0].weight*inputs[0].value->field.tensor.data[0]+
+          (std::holds_alternative<Prop>(operation.pars)?3.0:5.0);
+        
+        return result;
+      },
+      .trace=[&](const TraceContraction& operation,
+                 const LineValue& backward,
+                 const LineValue& forward)
+      {
+        traces++;
+        const std::set<std::pair<int,int>> expected{{5,5}};
+        assert(operation.gammaList==expected);
+        Tensor result{{ScalarKind::Complex,{}},nissa::MemorySpace::CPU};
+        result.data[0]=backward.field.tensor.data[0]+forward.field.tensor.data[0];
+        
+        return result;
+      }};
+  };
+  const ConfigurationResults results=executePreparedConfiguration(program,0,makeHandlers);
+  assert(results.hits.size()==2 and results.entry.sourceList=="script");
+  assert(sources==2 and extensions==4 and traces==2);
+  assert(program.correlations.outputs.size()==1);
+  const auto& output=program.correlations.outputs.front();
+  assert(output.name=="pion" and output.traces.size()==1);
+  for(const TaskValues& hit : results.hits)
+    for(size_t id=0;id<hit.size();id++)
+      assert(hit[id].has_value()==(id==output.traces[0]));
+  assert(std::get<Tensor>(*results.hits[0][output.traces[0]]).data[0]==13.0);
+  assert(std::get<Tensor>(*results.hits[1][output.traces[0]]).data[0]==15.0);
+}
+
 /// Exercise loading, chained spatial APE, and field release between configuration entries
 void validateGaugeExecution()
 {
@@ -1890,6 +2031,117 @@ void validateGaugeExecution()
     "setGeometry(4,4); raw=loadedConf(); zero=apeSmearConf(raw,0.4,0); "
     "smooth=apeSmearConf(raw,0.4,2); chained=apeSmearConf(smooth,0.2,1);",1}});
   nissa::initGrid(prepared.options.T,prepared.options.L);
+  assert(nissa::memoryManager(nissa::MemorySpace::CPU)==
+         nissa::memoryManager<nissa::MemorySpace::CPU>());
+  validateTaskExecution(prepared.options);
+  validatePreparedExecution();
+  
+  // A line owns one tensor; selecting outer indices borrows a contiguous field block
+  TaskValues values(6);
+  RunOptions lineOptions=prepared.options;
+  lineOptions.nCopies=2;
+  lineOptions.diluteSpin=true;
+  lineOptions.diluteColor=true;
+  values[0]=LineValue{lineOptions,nissa::MemorySpace::CPU,nissa::SpaceTimeLayout::CPU};
+  auto& lineValue=std::get<LineValue>(*values[0]);
+  auto& line=lineValue.field;
+  assert(lineValue.nCopies==2 and lineValue.diluteSpin and lineValue.diluteColor);
+  assert(line.outer.size()==3 and line.inner.size()==2);
+  assert(line.tensor.descriptor.comps.size()==6);
+  const auto selected=line.view(std::array<size_t,3>{1,1,2});
+  assert(selected.data==line.tensor.data+11*line.nSites*line.nInner*2);
+  const auto typedSelected=line.view({{StandardComp::Color,CompSide::Column,2},
+                                      {StandardComp::Spin,CompSide::Column,1},
+                                      {StandardComp::Copy,CompSide::None,1}});
+  assert(typedSelected.data==selected.data);
+  assert(selected.getPtrTo(1,0)==selected.data+line.nInner*2);
+  assert(selected.getPtrTo(1,1)==selected.data+(line.nInner+1)*2);
+  {
+    auto shadow=line.shadow<nissa::spincolor,nissa::SpaceTimeLayout::CPU,
+                            nissa::MemorySpace::CPU>("line shadow",std::array<size_t,3>{1,1,2});
+    assert(not shadow.ownsData and shadow._data==selected.data);
+    auto reference=shadow.getWritable();
+    auto shallowCopy=reference;
+    assert(shadow.nRef==2);
+    assert(shallowCopy.template getPtr<nissa::MemorySpace::CPU>()==selected.data);
+  }
+  
+  // A Lorentz-vector field uses the same owner and exposes one copy at a time
+  values[1]=nissa::nice::SField{ScalarKind::Complex,
+                                {{StandardComp::Lorentz,CompSide::None,NDIM}},
+                                {{StandardComp::Copy,CompSide::None,2}},
+                                nissa::MemorySpace::CPU,nissa::SpaceTimeLayout::CPU};
+  auto& vectorField=std::get<nissa::nice::SField>(*values[1]);
+  const auto vectorView=vectorField.view(std::array<size_t,1>{1});
+  assert(vectorView.data==vectorField.tensor.data+vectorField.nSites*NDIM*2);
+  vectorView.getPtrTo(0,0)[0]=2.5;
+  assert(vectorView.getPtrTo(0,0)[0]==2.5);
+
+  // Labels distinguish repeated outer components of the same kind
+  nissa::nice::SField labelled{ScalarKind::Real,{},
+                              {{StandardComp::Copy,CompSide::None,2,0},
+                               {StandardComp::Copy,CompSide::None,3,1}},
+                              nissa::MemorySpace::CPU,nissa::SpaceTimeLayout::CPU};
+  const auto labelledView=labelled.view({{StandardComp::Copy,CompSide::None,2,1},
+                                        {StandardComp::Copy,CompSide::None,1,0}});
+  assert(labelledView.data==labelled.tensor.data+5*labelled.nSites);
+  
+  // Intern names once; tensor descriptors then compare only numeric kinds
+  CompRegistry registry;
+  const CompKind customKind=registry.intern("Flavor");
+  static_assert(StandardComp::compSize<StandardComp::Spin> ==NDIRAC);
+  static_assert(StandardComp::compSize<StandardComp::Color> ==NCOL);
+  static_assert(StandardComp::compSize<StandardComp::Lorentz> ==NDIM);
+  static_assert(StandardComp::compSize<StandardComp::Site> ==StandardComp::ContextDependentSize);
+  static_assert(StandardComp::compRequiresOrientation<StandardComp::Spin>);
+  static_assert(StandardComp::compRequiresOrientation<StandardComp::Color>);
+  static_assert(not StandardComp::compRequiresOrientation<StandardComp::Site>);
+  static_assert(not StandardComp::compRequiresOrientation<StandardComp::Lorentz>);
+  static_assert(not StandardComp::compRequiresOrientation<StandardComp::Copy>);
+  assert(customKind>StandardComp::Copy);
+  assert(registry.intern("Flavor")==customKind);
+  assert(registry.intern("Spin")==StandardComp::Spin);
+  assert(registry.name(customKind)=="Flavor");
+  Comp{customKind,CompSide::Row,2}.validate(&registry);
+  values[2]=Tensor{{ScalarKind::Real,
+                    {{customKind,CompSide::Row,2},
+                     {customKind,CompSide::Row,2,1},
+                     {customKind,CompSide::Column,2}}},nissa::MemorySpace::CPU};
+  assert(std::get<Tensor>(*values[2]).nDoubles==8);
+  
+  // An undiluted line has no source spin or color column component
+  RunOptions undilutedOptions=prepared.options;
+  values[3]=LineValue{undilutedOptions,nissa::MemorySpace::CPU,nissa::SpaceTimeLayout::CPU};
+  const auto& undilutedValue=std::get<LineValue>(*values[3]);
+  const auto& undiluted=undilutedValue.field;
+  assert(undiluted.outer.size()==1 and undiluted.tensor.descriptor.comps.size()==4);
+  assert(not lineValue.sameShapeAs(undilutedValue));
+  
+  // The GPU site layout also works with CPU allocation, so its strides can be checked
+  values[4]=LineValue{undilutedOptions,nissa::MemorySpace::CPU,nissa::SpaceTimeLayout::GPU};
+  auto& gpuValue=std::get<LineValue>(*values[4]);
+  auto& gpuLayout=gpuValue.field;
+  assert(gpuValue.sameShapeAs(undilutedValue));
+  const auto gpuView=gpuLayout.view(std::array<size_t,1>{0});
+  assert(gpuView.getPtrTo(1,0)==gpuView.data+2);
+  assert(gpuView.getPtrTo(1,1)==gpuView.data+(gpuLayout.nSites+1)*2);
+  
+  // An empty gamma selection has a valid shape and no allocated data
+  const CompKind gammaKind=registry.intern("GammaPair");
+  const CompKind timeKind=registry.intern("TimeSeparation");
+  values[5]=Tensor{{ScalarKind::Complex,
+                    {{gammaKind,CompSide::None,0},
+                     {StandardComp::Copy,CompSide::None,2},
+                     {timeKind,CompSide::None,static_cast<size_t>(prepared.options.T)}}},
+                   nissa::MemorySpace::CPU};
+  const auto& emptyResult=std::get<Tensor>(*values[5]);
+  assert(emptyResult.nDoubles==0 and emptyResult.data==nullptr);
+  values[0].reset();
+  values[1].reset();
+  values[2].reset();
+  values[3].reset();
+  values[4].reset();
+  values[5].reset();
   char temporary[]{"/tmp/nice-gauge-XXXXXX"};
   std::string path;
   
@@ -1952,6 +2204,16 @@ void validateGaugeExecution()
 int main(int narg,
          char** arg)
 {
+  if(narg>1 and std::string_view(arg[1])=="script-execution")
+    {
+      nissa::initNissa(narg,arg);
+      nissa::initGrid(4,4);
+      validatePreparedExecution();
+      nissa::closeNissa();
+      
+      return 0;
+    }
+  
   if(narg>1 and std::string_view(arg[1])=="gauge-execution")
     {
       nissa::initNissa(narg,arg);
@@ -1964,6 +2226,30 @@ int main(int narg,
   nissa::init_MPI_thread(narg,arg);
   nissa::get_MPI_nranks();
   nissa::get_MPI_rank();
+  
+  if(narg>1 and std::string_view(arg[1])=="tensor-invalid-spin-extent")
+    TensorDescriptor{ScalarKind::Real,
+                     {{StandardComp::Spin,CompSide::Row,NDIRAC+1}}}.validate();
+  
+  if(narg>1 and std::string_view(arg[1])=="tensor-repeated-label")
+    TensorDescriptor{ScalarKind::Real,
+                     {{StandardComp::Spin,CompSide::Row,NDIRAC},
+                      {StandardComp::Spin,CompSide::Row,NDIRAC}}}.validate();
+  
+  if(narg>1 and std::string_view(arg[1])=="tensor-missing-orientation")
+    TensorDescriptor{ScalarKind::Real,
+                     {{StandardComp::Spin,CompSide::None,NDIRAC}}}.validate();
+  
+  if(narg>1 and std::string_view(arg[1])=="tensor-unexpected-orientation")
+    TensorDescriptor{ScalarKind::Real,
+                     {{StandardComp::Lorentz,CompSide::Row,NDIM}}}.validate();
+  
+  if(narg>1 and std::string_view(arg[1])=="tensor-named-component")
+    {
+      CompRegistry registry;
+      const CompKind kind=registry.intern("Flavor");
+      Comp{kind,static_cast<CompSide>(-1),2}.validate(&registry);
+    }
   
   validateLaunchArgs(narg,arg);
   validateProgramPieces(narg,arg);

@@ -2039,38 +2039,39 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
 						      }
 						    else
 						      result=Value{HObject{field.memberType,value}};
-
+						    
 						    return result;
 						};
-
+						
 						// Apply plain or compound assignment to the concrete C++ member
 						auto setter=[&data,field](const AssignMode& mode,
-						                         const Value& value)
+									  const Value& value)
 						{
-						    M& target=
-						      std::any_cast<T&>(data).*(field.pointer);
-						    
-						    // Preserve the RHS type so assignment uses C++ conversion rules
-						    if constexpr(scalar)
+						  M& target=
+						    std::any_cast<T&>(data).*(field.pointer);
+						  
+						  // Host objects assign their payload when its type matches the member
+						  if(const HObject* object=std::get_if<HObject>(&value.data))
+						    {
+						      if(const M* payload=std::any_cast<M>(&object->data))
+							trySet(target,mode,*payload);
+						      else
+							errorEmitter("invalid value for host member ",field.name,
+								     " (expected ",typeid(M).name(),")");
+						    }
+						  else if constexpr(scalar)
+						    {
+						      // Preserve ordinary script scalar conversion rules
 						      std::visit([&](const auto& rhs)
 						      {
 							trySet(target,mode,rhs);
 						      },value.data);
-						    else
-						      {
-							// Extract the concrete value before assigning a host member
-							if(const HObject* object=std::get_if<HObject>(&value.data))
-							  if(const M* payload=std::any_cast<M>(&object->data))
-							    {
-							      trySet(target,mode,*payload);
-							      return;
-							    }
-							
-							errorEmitter("invalid value for host member ",field.name,
-								     " (expected ",typeid(M).name(),")");
-						      }
+						    }
+						  else
+						    errorEmitter("invalid value for host member ",field.name,
+								 " (expected ",typeid(M).name(),")");
 						};
-
+						
 						return HObjectMemberRef::Accessors{getter,setter};
 					      });
       };

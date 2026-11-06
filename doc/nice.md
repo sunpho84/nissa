@@ -6,7 +6,7 @@ prepareInput representation. The correlation types live in
 [`projects/nice/`](../projects/nice/). They do not depend on the old
 prepareInput adapter. Program loading, run-setting bindings, and configuration
 list loading are available as library calls;
-a standalone frontend and numerical execution remain to be implemented.
+a standalone frontend and numerical correlation execution remain to be implemented.
 
 NICE implementation work follows the
 [`implementation conventions`](nissa-conventions.md).
@@ -105,8 +105,59 @@ resolved from the working directory. Duplicate output directories and malformed
 rows are rejected before numerical work. Input configuration files are checked
 only when the driver loads them. The resulting entries are owned by
 `PreparedProgram::configurationEntries` and retain their source list path and
-row number for diagnostics. Gauge preparation and other
-configuration-source forms remain future work.
+row number for diagnostics. Additional configuration-source forms remain
+future work.
+
+## Gauge preparation
+
+[`GaugeRecipes`](../projects/nice/gaugeRecipes.hpp) is a vector of slots pairing
+gauge field storage with its producer. These script calls append slots with
+empty storage, without allocating fields or reading gauge files:
+
+```text
+configurationsFromFile("confs.list");
+rawRecipe=loadedConf();
+spatialRecipe=apeSmearConf(rawRecipe,.alpha=0.4,.n=20);
+furtherRecipe=apeSmearConf(spatialRecipe,.alpha=0.2,.n=5);
+```
+
+`loadedConf()` records a recipe that loads the selected configuration entry's
+input path. All registered configuration lists form one ordered work list;
+the same recipes run for each entry. Both `loadedConf()` and `apeSmearConf()`
+return a `GaugeRecipeId`: an alias for `size_t` indexing the recipe collection.
+The ID names a producer and its per-entry storage slot, not an already loaded
+gauge field. `apeSmearConf` accepts an earlier recipe ID, a finite strength,
+and a nonnegative iteration count. It uses the same spatial APE routine as IB;
+zero iterations produce a copy.
+
+`Prop` and `Smear` each carry a `gaugeRecipe` member. A script can select a
+recipe explicitly, for example `Prop(.gaugeRecipe=rawRecipe,.r=1)` or
+`Smear(.gaugeRecipe=spatialRecipe,.n=20)`. The current construction default is
+recipe zero; an explicit ID is needed for another prepared field.
+Numerical application of these operators is still in development.
+
+For example, `rawRecipe` can be slot zero and `spatialRecipe` slot one. Each
+slot owns both its producer and the field it produced for the selected entry.
+
+`prepareProgram()` owns the recipes in `PreparedProgram::gaugeRecipes`.
+After NISSA and geometry initialization, call `prepareGaugeFields(gaugeRecipes,entry)`
+collectively to fill the slots in registration order. This first clears every
+field from the preceding configuration, then invokes each producer with the
+selected entry and the recipe collection. `gaugeField(gaugeRecipes,recipeId)`
+resolves an already produced field. One configuration is active at a time;
+its fields are reused across all its hits. Call `clearGaugeFields(gaugeRecipes)`
+after the entry finishes and before NISSA closes; this retains the producers
+for the next entry.
+Custom C++ recipes can be appended with `addGaugeRecipe`, supplying a callable that
+returns a field from the entry and earlier filled slots.
+
+[`executePreparedConfiguration`](../projects/nice/programExecution.hpp)
+performs the prepare, hit, and clear sequence for one selected entry. Its
+handler factory receives the run options, prepared gauge recipes, and hit
+index. The task executor retains requested trace tensors and releases line
+values after their last consumer. Physical source, inversion, and contraction
+handlers, specialized gauge defaults, and cold-configuration sources remain
+to be integrated.
 
 ## Correlation parts and requests
 
@@ -301,6 +352,16 @@ make -C <build-directory>/projects check
 
 The single validation executable checks correlation parts, graph validation,
 lowering, scheduling, legacy output, the script binding chain, the `Nice`
-facade, and generic host-object registration. The old
+facade, deferred gauge recipes, and generic host-object registration. Run its
+`gauge-execution` mode explicitly to check loading and chained APE preparation
+on a small initialized lattice:
+
+```sh
+<build-directory>/bin/nice_validate gauge-execution
+```
+
+This mode writes and reads a temporary cold gauge configuration, checks the
+unit plaquette after zero-step and repeated APE smearing, and checks that old
+storage is cleared before the next configuration is prepared. The old
 `prepareInput.cpp` adapter and its `--test-prepare-*` modes have been removed.
 
