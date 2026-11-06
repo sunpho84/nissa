@@ -5,6 +5,7 @@
 #include "configurationSources.hpp"
 #include "gaugeRecipes.hpp"
 #include "runOptions.hpp"
+#include "lineValue.hpp"
 #include "graphCompiler.hpp"
 #include "schedulingStrategies.hpp"
 
