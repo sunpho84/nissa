@@ -2019,12 +2019,12 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
 	info->memberAccessorsProvider.emplace(field.name,
 					      [field](std::any& data)
 					      {
-						return HObjectMemberRef::Accessors{
-						  // Read a scalar value or wrap a copy of the nested host member
-						  [&data,field]()->Value
-						  {
+						// Read a scalar value or wrap a copy of the nested host member
+						auto getter=[&data,field]()->Value
+						{
 						    const M& value=
 						      std::any_cast<const T&>(data).*(field.pointer);
+						    Value result;
 						    
 						    if constexpr(scalar)
 						      {
@@ -2035,15 +2035,18 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
 							using ScriptType=
 							  std::conditional_t<std::is_same_v<M,bool> or std::is_same_v<M,size_t>,int,M>;
 							
-							return {ScriptType(value)};
+							result=Value{ScriptType(value)};
 						      }
 						    else
-						      return {HObject{field.memberType,value}};
-						  },
-						  // Apply plain or compound assignment to the concrete C++ member
-						  [&data,field](const AssignMode& mode,
-								const Value& value)
-						  {
+						      result=Value{HObject{field.memberType,value}};
+
+						    return result;
+						};
+
+						// Apply plain or compound assignment to the concrete C++ member
+						auto setter=[&data,field](const AssignMode& mode,
+						                         const Value& value)
+						{
 						    M& target=
 						      std::any_cast<T&>(data).*(field.pointer);
 						    
@@ -2066,7 +2069,9 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
 							errorEmitter("invalid value for host member ",field.name,
 								     " (expected ",typeid(M).name(),")");
 						      }
-						  }};
+						};
+
+						return HObjectMemberRef::Accessors{getter,setter};
 					      });
       };
     
