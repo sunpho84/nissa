@@ -113,8 +113,8 @@ namespace nissa::nice
   /// Orientation used when determining products and contractions
   enum class CompSide{None,Row,Column};
   
-  /// One interned tensor component with its local extent
-  struct Comp
+  /// Identity shared by a component and a coordinate selecting it
+  struct CompIdentity
   {
     /// Numeric identity of its index space in the program's component registry
     CompKind kind;
@@ -122,11 +122,14 @@ namespace nissa::nice
     /// Row, column, or an unoriented index
     CompSide side;
     
-    /// Number of locally stored values along this component
-    size_t extent;
-    
     /// Distinguish repetitions of the same kind and orientation
     size_t label{0};
+    
+    /// Compare the identities without comparing extent or coordinate
+    bool sameAs(const CompIdentity& other) const
+    {
+      return kind==other.kind and side==other.side and label==other.label;
+    }
     
     /// Resolve the component name through its registry when available
     std::string kindName(const CompRegistry* registry=nullptr) const
@@ -140,6 +143,24 @@ namespace nissa::nice
         return standardRegistry.name(kind);
       
       return "kind "+std::to_string(kind);
+    }
+  };
+  
+  /// One interned tensor component with its local extent
+  struct Comp :
+    CompIdentity
+  {
+    /// Number of locally stored values along this component
+    size_t extent;
+    
+    /// Keep the existing kind, side, extent, label construction order
+    Comp(const CompKind kind,
+         const CompSide side,
+         const size_t extent,
+         const size_t label=0) :
+      CompIdentity{kind,side,label},
+      extent(extent)
+    {
     }
     
     /// Validate this component independently of other tensor components
@@ -165,6 +186,24 @@ namespace nissa::nice
     }
   };
   
+  /// Coordinate of one component identified by kind, orientation, and label
+  struct CompIndex :
+    CompIdentity
+  {
+    /// Coordinate within the selected component
+    size_t coordinate;
+    
+    /// Keep the kind, side, coordinate, label selection order
+    CompIndex(const CompKind kind,
+              const CompSide side,
+              const size_t coordinate,
+              const size_t label=0) :
+      CompIdentity{kind,side,label},
+      coordinate(coordinate)
+    {
+    }
+  };
+  
   /// Shape and storage order of one tensor
   struct TensorDescriptor
   {
@@ -184,9 +223,7 @@ namespace nissa::nice
           comp.validate(registry);
           
           for(size_t earlier=0;earlier<i;earlier++)
-            if(comps[earlier].kind==comp.kind and
-               comps[earlier].side==comp.side and
-               comps[earlier].label==comp.label)
+            if(comps[earlier].sameAs(comp))
               CRASH("NICE tensor repeats component %s with the same orientation and label",
                     comp.kindName(registry).c_str());
         }
