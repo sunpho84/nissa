@@ -1,16 +1,83 @@
 #include "nice.hpp"
 #include "niceSetup.hpp"
+#include "programExecution.hpp"
 
 #include "base/close.hpp"
 #include "base/init.hpp"
 
 #include <cstddef>
+#include <filesystem>
+#include <fstream>
 #include <format>
 #include <string>
+#include <system_error>
 #include <variant>
 
 namespace nissa::nice
 {
+  /// Write unaveraged hit and copy results for one configuration entry
+  void writeConfigurationResults(const RunOptions& options,
+                                 const CompiledCorrelations& correlations,
+                                 const ConfigurationResults& results)
+  {
+    if(rank==master_rank)
+      {
+        std::error_code error;
+        std::filesystem::create_directories(results.entry.outputDirectory,error);
+
+        if(error)
+          CRASH("NICE cannot create output directory '%s': %s",
+                results.entry.outputDirectory.c_str(),error.message().c_str());
+
+        const std::filesystem::path path=
+          std::filesystem::path(results.entry.outputDirectory)/"correlations.nice";
+        std::ofstream file(path);
+
+        if(not file)
+          CRASH("NICE cannot open output file '%s'",path.string().c_str());
+
+        file<<"# configuration "<<results.entry.path<<'\n';
+        file<<"# hit block trace sinkGamma sourceGamma copy deltaT real imaginary\n";
+
+        for(size_t iHit=0;iHit<results.hits.size();iHit++)
+          for(const OutputBlock& output : correlations.outputs)
+            for(const TaskId traceId : output.traces)
+              {
+                if(not results.hits[iHit][traceId].has_value())
+                  CRASH("NICE output trace task %zu has no value",traceId);
+
+                const auto* tensor=
+                  std::get_if<Tensor>(&*results.hits[iHit][traceId]);
+
+                if(tensor==nullptr)
+                  CRASH("NICE output trace task %zu is not a tensor",traceId);
+
+                size_t iGammaPair=0;
+                for(const auto& [sinkGamma,sourceGamma] : output.gammaList)
+                  {
+                    for(size_t iCopy=0;iCopy<static_cast<size_t>(options.nCopies);iCopy++)
+                      for(int deltaTime=0;deltaTime<glbSize[0];deltaTime++)
+                        {
+                          const size_t index=
+                            (iGammaPair*static_cast<size_t>(glbSize[0])+deltaTime)*
+                            static_cast<size_t>(options.nCopies)+iCopy;
+                          file<<iHit<<' '<<output.name<<' '<<traceId<<' '
+                              <<sinkGamma<<' '<<sourceGamma<<' '<<iCopy<<' '
+                              <<deltaTime<<' '<<tensor->data[index*2]<<' '
+                              <<tensor->data[index*2+1]<<'\n';
+                        }
+
+                    iGammaPair++;
+                  }
+              }
+
+        if(not file)
+          CRASH("NICE failed while writing output file '%s'",path.string().c_str());
+
+        MASTER_PRINTF("NICE: wrote results to '%s'\n",path.string().c_str());
+      }
+  }
+
   /// Show what the script has compiled before starting configuration work
   void reportPreparedProgram(const PreparedProgram& program)
   {
@@ -66,8 +133,8 @@ namespace nissa::nice
       }
   }
 
-  /// Run the stages for which NICE currently has concrete implementations
-  /// Return false when compiled correlations need numerical handlers
+  /// Run prepared gauge recipes, source generation, scheduled operations, and result writing
+  /// Return true when all requested stages complete
   bool runPreparedProgram(PreparedProgram& program)
   {
     program.options.validate();
@@ -77,12 +144,23 @@ namespace nissa::nice
 
     initGrid(program.options.T,program.options.L);
 
-    if(not program.correlations.instructions.empty())
+    if(program.configurationEntries.empty())
+      MASTER_PRINTF("NICE: no configuration entries were supplied; nothing to run\n");
+    else if(not program.correlations.instructions.empty())
       {
-        MASTER_PRINTF("NICE: execution stops before configuration work: source, extension, and trace numerical handlers are still required\n");
-        MASTER_PRINTF("NICE: RNG positioning, result aggregation, and output writing are also pending\n");
-
-        return false;
+        const Sitmo::Rng rng(static_cast<uint32_t>(program.options.seed));
+	
+        for(size_t iEntry=0;iEntry<program.configurationEntries.size();iEntry++)
+          {
+            MASTER_PRINTF("NICE: running configuration %zu/%zu from '%s'\n",
+                          iEntry+1,program.configurationEntries.size(),
+                          program.configurationEntries[iEntry].path.c_str());
+            const ConfigurationResults results=
+              executePreparedConfiguration(program,iEntry,rng,iEntry);
+            writeConfigurationResults(program.options,program.correlations,results);
+          }
+	
+        MASTER_PRINTF("NICE: completed all requested configurations and hits\n");
       }
     else
       {
@@ -94,11 +172,11 @@ namespace nissa::nice
             prepareGaugeFields(program.gaugeRecipes,entry);
             clearGaugeFields(program.gaugeRecipes);
           }
-
+	
         MASTER_PRINTF("NICE: completed available configuration work; no correlation tasks were requested\n");
-
-        return true;
       }
+    
+    return true;
   }
 }
 

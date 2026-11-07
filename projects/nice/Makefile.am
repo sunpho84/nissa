@@ -1,6 +1,6 @@
 if USE_PARSE_PACT
 bin_PROGRAMS+= \
-	$(top_builddir)/bin/nice
+	$(top_builddir)/bin/NICE
 
 check_PROGRAMS= \
 	$(top_builddir)/bin/nice_validate
@@ -18,6 +18,7 @@ nice_common_sources= \
 	%D%/sField.hpp \
 	%D%/lineValue.hpp \
 	%D%/taskExecution.hpp \
+	%D%/taskExecution.cpp \
 	%D%/programExecution.hpp \
 	%D%/corrParts.hpp \
 	%D%/correlations.hpp \
@@ -33,8 +34,8 @@ nice_common_sources= \
 	%D%/legacyInputWriter.hpp \
 	%D%/corrParts.cpp
 
-__top_builddir__bin_nice_SOURCES= \
-	%D%/nice.cpp \
+__top_builddir__bin_NICE_SOURCES= \
+	%D%/NICE.cpp \
 	$(nice_common_sources)
 
 __top_builddir__bin_nice_validate_SOURCES= \
