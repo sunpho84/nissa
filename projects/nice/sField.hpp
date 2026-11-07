@@ -151,7 +151,7 @@ namespace nissa::nice
     }
     
     /// Borrow one field after selecting each outer-component coordinate
-    SFieldView view(const std::span<const size_t> coordinates)
+    SFieldView view(const std::span<const size_t> coordinates) const
     {
       if(coordinates.size()!=outer.size())
         CRASH("NICE field view needs one coordinate per outer component");
@@ -173,7 +173,7 @@ namespace nissa::nice
     }
     
     /// Select outer components by kind, orientation, and label in any order
-    SFieldView view(const std::span<const CompIndex> indices)
+    SFieldView view(const std::span<const CompIndex> indices) const
     {
       if(indices.size()!=outer.size())
         CRASH("NICE field view needs one index per outer component");
@@ -202,7 +202,7 @@ namespace nissa::nice
     }
     
     /// Convenience overload for a list of typed outer-component indices
-    SFieldView view(const std::initializer_list<CompIndex> indices)
+    SFieldView view(const std::initializer_list<CompIndex> indices) const
     {
       return view(std::span<const CompIndex>{indices.begin(),indices.size()});
     }
@@ -212,7 +212,7 @@ namespace nissa::nice
              SpaceTimeLayout STL,
              MemorySpace MS>
     nissa::LxField<T,STL,MS> shadow(const char* name,
-				    const std::span<const size_t> coordinates)
+                                    const std::span<const size_t> coordinates) const
     {
       using Fund=std::remove_all_extents_t<T>;
       static_assert(std::is_same_v<Fund,double>);
