@@ -3,6 +3,8 @@
 
 #include "nice.hpp"
 
+#include "operations/gaugeconf.hpp"
+
 #include <functional>
 #include <vector>
 
@@ -21,7 +23,7 @@ namespace nissa::nice
   /// Create numerical handlers bound to the prepared fields and current hit
   using TaskHandlerFactory=
     std::function<TaskHandlers(const RunOptions&,const GaugeRecipes&,size_t)>;
-  
+
   /// Execute every hit of one configuration with the same compiled instructions
   /// Geometry and NISSA must already be initialized on every rank
   inline ConfigurationResults executePreparedConfiguration(PreparedProgram& program,
@@ -59,6 +61,16 @@ namespace nissa::nice
     
     const ConfigurationEntry& entry=program.configurationEntries[iEntry];
     prepareGaugeFields(program.gaugeRecipes,entry);
+
+    if(program.options.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic)
+      {
+        Momentum theta{};
+        theta[0]=1.0;
+
+        for(GaugeRecipe& recipe : program.gaugeRecipes)
+          put_boundaries_conditions(*recipe.field,theta);
+      }
+
     ConfigurationResults result{entry,{}};
     result.hits.reserve(static_cast<size_t>(program.options.nHits));
     
@@ -71,6 +83,22 @@ namespace nissa::nice
     clearGaugeFields(program.gaugeRecipes);
     
     return result;
+  }
+
+  /// Execute a configuration with NICE's current NISSA-backed operation handlers
+  /// Configuration order selects its RNG counter coordinate in this initial layout
+  inline ConfigurationResults executePreparedConfiguration(PreparedProgram& program,
+                                                            const size_t iEntry,
+                                                            const Sitmo::Rng& rng,
+                                                            const size_t iConfiguration)
+  {
+    return executePreparedConfiguration(program,iEntry,
+      [&rng,iConfiguration](const RunOptions& options,
+                            const GaugeRecipes& gaugeRecipes,
+                            const size_t iHit)
+      {
+        return makeNissaTaskHandlers(options,gaugeRecipes,rng,iConfiguration,iHit);
+      });
   }
 }
 

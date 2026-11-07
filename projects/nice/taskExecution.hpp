@@ -2,6 +2,7 @@
 #define _NICE_TASK_EXECUTION_HPP
 
 #include "compiledCorrelations.hpp"
+#include "gaugeRecipes.hpp"
 #include "lineValue.hpp"
 
 #include <functional>
@@ -36,6 +37,14 @@ namespace nissa::nice
                          const LineValue&,
                          const LineValue&)> trace;
   };
+
+  /// Build NISSA source, extension, and contraction callbacks for one hit
+  /// Configuration index and hit index provide the first deterministic RNG layout
+  TaskHandlers makeNissaTaskHandlers(const RunOptions& options,
+                                    const GaugeRecipes& gaugeRecipes,
+                                    const Sitmo::Rng& rng,
+                                    size_t iConfiguration,
+                                    size_t iHit);
   
   /// Execute scheduled instructions, retaining requested results under stable task IDs
   inline TaskValues executeScheduledTasks(const CompiledCorrelations& compiled,

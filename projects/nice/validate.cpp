@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <cassert>
 #include <complex>
+#include <filesystem>
 #include <cstdio>
 #include <unistd.h>
 #include <iostream>
@@ -1725,20 +1726,21 @@ void validateConfigurationSources(const int narg,
     }
   
   assert(prepared.configurationEntries.size()==4);
-  assert(prepared.configurationEntries[0].path=="/tmp/input one");
-  assert(prepared.configurationEntries[0].outputDirectory=="/tmp/output one");
+  const std::string workingDirectory=std::filesystem::current_path().string();
+  assert(prepared.configurationEntries[0].path==workingDirectory+"/input one");
+  assert(prepared.configurationEntries[0].outputDirectory==workingDirectory+"/output one");
   assert(prepared.configurationEntries[0].sourceList==firstSource);
   assert(prepared.configurationEntries[0].sourceRow==3);
-  assert(prepared.configurationEntries[1].path=="/tmp/sub/input");
-  assert(prepared.configurationEntries[1].outputDirectory=="/tmp/results/two");
+  assert(prepared.configurationEntries[1].path==workingDirectory+"/sub/input");
+  assert(prepared.configurationEntries[1].outputDirectory==workingDirectory+"/results/two");
   assert(prepared.configurationEntries[1].sourceList==firstSource);
   assert(prepared.configurationEntries[1].sourceRow==4);
-  assert(prepared.configurationEntries[2].path=="/tmp/third");
-  assert(prepared.configurationEntries[2].outputDirectory=="/tmp/output three");
+  assert(prepared.configurationEntries[2].path==workingDirectory+"/third");
+  assert(prepared.configurationEntries[2].outputDirectory==workingDirectory+"/output three");
   assert(prepared.configurationEntries[2].sourceList==secondSource);
   assert(prepared.configurationEntries[2].sourceRow==1);
-  assert(prepared.configurationEntries[3].path=="/tmp/fourth");
-  assert(prepared.configurationEntries[3].outputDirectory=="/tmp/output_four");
+  assert(prepared.configurationEntries[3].path==workingDirectory+"/fourth");
+  assert(prepared.configurationEntries[3].outputDirectory==workingDirectory+"/output_four");
   assert(prepared.configurationEntries[3].sourceList==secondSource);
   assert(prepared.configurationEntries[3].sourceRow==2);
 }

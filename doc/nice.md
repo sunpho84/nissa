@@ -1,12 +1,12 @@
 # NICE correlation preparation
 
 NICE provides C++ types and nASTy bindings for describing correlations,
-turning them into validated tasks, ordering those tasks, and writing a legacy
-prepareInput representation. The correlation types live in
+turning them into validated tasks, ordering those tasks, and beginning their
+numerical execution. The correlation types live in
 [`projects/nice/`](../projects/nice/). They do not depend on the old
 prepareInput adapter. Program loading, run-setting bindings, configuration
-list loading, and the first standalone driver are available. Numerical
-correlation execution remains to be implemented.
+list loading, a first NISSA-backed executor, and the standalone driver are
+available. This executor is deliberately a limited first implementation.
 
 NICE implementation work follows the
 [`implementation conventions`](nissa-conventions.md).
@@ -25,8 +25,13 @@ buildTaskGraph -> CorrelationTaskGraph
               v
 scheduleCorrelations -> CompiledCorrelations
               |
-              v
-writeLegacyInput -> prepareInput-compatible text
+       +------+------+
+       |             |
+       v             v
+execute tasks   writeLegacyInput
+       |         prepareInput text
+       v
+write raw trace results
 ```
 
 The types through `CompiledCorrelations` are independent of the legacy text
@@ -58,24 +63,39 @@ const auto legacyText=writeLegacyInput(prepared.correlations);
 This prepares instructions without initializing the grid or running numerical
 operations. Source-aware syntax diagnostics remain pending.
 
-The `nice` executable calls `initNissa`, parses ordered `-f PATH` files and
+The `NICE` executable calls `initNissa`, parses ordered `-f PATH` files and
 positional script fragments, prepares the program, reports the compiled task
-counts and ordered task dependencies, and initializes the grid. For a program
-with no correlation tasks, it prepares and releases the gauge recipes for each
-configuration entry. A program with correlation tasks stops with a nonzero
-exit status before configuration work, reporting the absent numerical handlers
-and output path. The program does not report preparation as a completed
-correlation run. For example:
+counts and ordered task dependencies, and initializes the grid. It prepares
+gauge recipes for each configuration entry, executes source, extension, and
+trace tasks for each hit, writes results, then releases that entry's gauge
+fields. The first executor makes a deterministic point source at one random
+origin per hit, solves `Prop` with `r=+1`, applies gamma, phase, time-selection,
+and Gaussian-smearing extensions, then computes the gamma-pair meson
+contraction. Unsupported operation parameters fail through `CRASH` rather than
+being silently ignored. It writes each hit and copy to `correlations.nice` in
+that configuration's output directory. The file contains raw per-hit values;
+averaging and continuation are still pending. For example:
 
 ```sh
-make -C <build-directory>/projects ../bin/nice
-<build-directory>/bin/nice -f run.nice 'setRun(.nHits=4);'
+make -C <build-directory>/projects ../bin/NICE
+<build-directory>/bin/NICE -f run.nice 'setRun(.nHits=4);'
 ```
 
-The driver currently needs source, extension, and trace implementations,
-RNG positioning, result aggregation, and output writing before it can run a
-correlation script end to end. The local driver development note tracks the
-remaining execution design.
+RNG origin placement uses the run seed and the conceptual counter coordinate
+`{NDIM,iHit+nHits*iConfiguration,0,0}`: the first word reserves four doubles
+for the origin and the next words identify its hit event. This is an initial
+deterministic layout: it does not yet reserve separate counter ranges by action
+kind, and reordering configurations or changing `nHits` changes later RNG
+addresses. `Source()`
+creates a point source at the random origin; `Source(t)` selects the absolute
+time slice `t` while retaining the hit's random spatial origin. Source-column
+spin and color dilution are represented, but stochastic source noise is not
+implemented. The current
+propagator path supports only `r=+1`, zero charge and momentum, and the current
+smearing path supports zero momentum. Applying the selected temporal boundary
+condition to the prepared gauge recipes is supported. Stable configuration
+identities, reserved action ranges, continuation, and output aggregation remain
+pending. The local driver development note tracks these next steps.
 
 [`RunOptions`](../projects/nice/runOptions.hpp) records caller-owned run-wide
 settings. Call `registerRunOptions(evaluator,options)` alongside
@@ -118,9 +138,10 @@ first nonwhitespace character is `#` is a comment. There is no entry count.
 Multiple calls append entries in script order.
 
 The master rank reads each list after evaluation and broadcasts its path
-and contents. Every rank parses the same ordered rows. Relative paths in a row
-are resolved against the list directory; the list path itself is
-resolved from the working directory. Duplicate output directories and malformed
+and contents. Every rank parses the same ordered rows. Relative configuration
+paths and output directories in a row are resolved against the process working
+directory; the list path itself is also resolved from the working directory.
+Duplicate output directories and malformed
 rows are rejected before numerical work. Input configuration files are checked
 only when the driver loads them. The resulting entries are owned by
 `PreparedProgram::configurationEntries` and retain their source list path and
@@ -152,8 +173,8 @@ zero iterations produce a copy.
 `Prop` and `Smear` each carry a `gaugeRecipe` member. A script can select a
 recipe explicitly, for example `Prop(.gaugeRecipe=rawRecipe,.r=1)` or
 `Smear(.gaugeRecipe=spatialRecipe,.n=20)`. The current construction default is
-recipe zero; an explicit ID is needed for another prepared field.
-Numerical application of these operators is still in development.
+recipe zero; an explicit ID is needed for another prepared field. The first
+executor uses these recipe IDs for propagator inversions and smearing.
 
 For example, `rawRecipe` can be slot zero and `spatialRecipe` slot one. Each
 slot owns both its producer and the field it produced for the selected entry.
@@ -174,9 +195,7 @@ returns a field from the entry and earlier filled slots.
 performs the prepare, hit, and clear sequence for one selected entry. Its
 handler factory receives the run options, prepared gauge recipes, and hit
 index. The task executor retains requested trace tensors and releases line
-values after their last consumer. Physical source, inversion, and contraction
-handlers, specialized gauge defaults, and cold-configuration sources remain
-to be integrated.
+values after their last consumer.
 
 ## Correlation parts and requests
 
