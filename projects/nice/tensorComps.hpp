@@ -58,31 +58,40 @@ namespace nissa::nice
     /// Independent copy index
     PROVIDE_COMP_KIND(Copy,ContextDependentSize,4,false);
     
+    /// Time separation of a two-point result
+    PROVIDE_COMP_KIND(Time,ContextDependentSize,5,false);
+    
+    /// Index into the ordered gamma-pair list of a contraction
+    PROVIDE_COMP_KIND(GammaPair,ContextDependentSize,6,false);
+    
 #undef PROVIDE_COMP_KIND
+    
+    /// Number of registered standard comps
+    inline constexpr CompKind NStandardComps=GammaPair+1;
     
     /// Sentinel that cannot identify a registered component
     inline constexpr CompKind Invalid=std::numeric_limits<CompKind>::max();
     
     /// Fixed extents indexed by the numeric identity of each standard kind
-    inline constexpr std::array<size_t,Copy+1> compSizes=
+    inline constexpr std::array<size_t,NStandardComps> compSizes=
       []<size_t... I>(std::index_sequence<I...>)
       {
         return std::array<size_t,sizeof...(I)>{compSize<I>...};
-      }(std::make_index_sequence<Copy+1>{});
+      }(std::make_index_sequence<NStandardComps>{});
     
     /// Orientation requirements indexed by standard component kind
-    inline constexpr std::array<bool,Copy+1> compOrientationRequired=
+    inline constexpr std::array<bool,NStandardComps> compOrientationRequired=
       []<size_t... I>(std::index_sequence<I...>)
       {
         return std::array<bool,sizeof...(I)>{compRequiresOrientation<I>...};
-      }(std::make_index_sequence<Copy+1>{});
+      }(std::make_index_sequence<NStandardComps>{});
   }
   
   /// Assign numeric component kinds while retaining their names for diagnostics
   struct CompRegistry
   {
     /// Names in component-kind order, including the fixed standard kinds
-    std::vector<std::string> names{"Site","Spin","Color","Lorentz","Copy"};
+    std::vector<std::string> names{"Site","Spin","Color","Lorentz","Copy","Time","GammaPair"};
     
     /// Reuse an existing kind or assign a new one at script compilation time
     CompKind intern(const std::string& name)
