@@ -36,7 +36,6 @@ namespace nissa::nice
     if(error)
       CRASH("NICE list '%s': cannot resolve path: %s",listPath.c_str(),error.message().c_str());
     
-    const fs::path base=absolutePath.lexically_normal().parent_path();
     std::vector<ConfigurationEntry> entries;
     size_t start=0;
     size_t rowNumber=1;
@@ -81,8 +80,20 @@ namespace nissa::nice
               CRASH("NICE list '%s' row %zu: expected two columns; use one tab when a path contains spaces",
                     listPath.c_str(),rowNumber);
             
-            entries.push_back({(base/fs::path(input)).lexically_normal().string(),
-                               (base/fs::path(output)).lexically_normal().string(),
+            const fs::path inputPath=fs::absolute(fs::path(input),error);
+
+            if(error)
+              CRASH("NICE list '%s' row %zu: cannot resolve configuration path: %s",
+                    listPath.c_str(),rowNumber,error.message().c_str());
+
+            const fs::path outputPath=fs::absolute(fs::path(output),error);
+
+            if(error)
+              CRASH("NICE list '%s' row %zu: cannot resolve output directory: %s",
+                    listPath.c_str(),rowNumber,error.message().c_str());
+
+            entries.push_back({inputPath.lexically_normal().string(),
+                               outputPath.lexically_normal().string(),
                                absolutePath.lexically_normal().string(),rowNumber});
           }
         

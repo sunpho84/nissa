@@ -19,10 +19,10 @@ namespace nissa::nice
   /// One configuration and its independent output directory
   struct ConfigurationEntry
   {
-    /// Input gauge path, resolved against the list directory
+    /// Input gauge path, resolved against the process working directory
     std::string path;
     
-    /// Output directory, resolved against the list directory
+    /// Output directory, resolved against the process working directory
     std::string outputDirectory;
     
     /// Absolute path of the list that supplied this entry
