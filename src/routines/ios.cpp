@@ -10,8 +10,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <filesystem>
 #include <string>
 #include <string.h>
+#include <system_error>
 #include <sys/stat.h>
 
 #include "base/debug.hpp"
@@ -109,6 +111,35 @@ namespace nissa
     MPI_Bcast(&res,1,MPI_INT,master_rank,MPI_COMM_WORLD);
     if(res!=0)
       MASTER_PRINTF("Warning, failed to create dir %s, returned %d with errno %s. Check that you have permissions and that parent dir exists.\n",path.c_str(),res,strerror(locErrNo));
+    
+    return res;
+  }
+  
+  /// Creates a directory and any missing parent directories on the master rank
+  /// Returns 0 if not creeated for any reason
+  int create_directories(const std::string& path)
+  {
+    int res=0;
+    std::string errorMessage;
+    
+    if(is_master_rank())
+      {
+        std::error_code error;
+        std::filesystem::create_directories(path,error);
+	
+        if(error)
+          {
+            res=error.value();
+            errorMessage=error.message();
+          }
+      }
+    
+    res=broadcast(res);
+    broadcast(errorMessage);
+    
+    if(res!=0)
+      MASTER_PRINTF("Warning, failed to create directory tree %s: %s\n",
+                    path.c_str(),errorMessage.c_str());
     
     return res;
   }

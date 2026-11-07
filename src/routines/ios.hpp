@@ -76,6 +76,8 @@ namespace nissa
   int cd(const std::string& path);
   int cp(const std::string& path_out,const std::string& path_in);
   int create_dir(const std::string& path);
+  /// Creates a directory and any missing parent directories on the master rank
+  int create_directories(const std::string& path);
   __attribute__((format (printf,2,3)))
   int master_fprintf(FILE *stream,const char *format,...);
   //int rm(const char *path);
