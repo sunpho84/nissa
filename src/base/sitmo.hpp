@@ -359,6 +359,22 @@ namespace nissa
     }
   };
   
+  /// Consume two 32-bit draws, low significance first, and clamp rounded unity
+  template <typename G>
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  double uniformDouble(G&& generator)
+  {
+    constexpr double F=4294967296.0;
+    
+    const uint32_t low=generator();
+    const uint32_t high=generator();
+    
+    if(const double result=(low/F+high)/F;result>=1)
+      return 0.999999999999999889;
+    else
+      return result;
+  }
+  
   template <typename T>
   struct FieldRngOf
   {
@@ -420,15 +436,7 @@ namespace nissa
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     double getUniformDistributed(G&& g)
     {
-      constexpr double F=4294967296.0;
-      
-      const uint32_t low=g();
-      const uint32_t high=g();
-      
-      if(const double res=(low/F+high)/F;res>=1)
-	return 0.999999999999999889;
-      else
-	return res;
+      return uniformDouble(g);
     }
     
     /// Fill a specific site
