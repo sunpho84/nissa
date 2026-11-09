@@ -483,7 +483,7 @@ namespace nissa::nice
   TaskHandlers makeNissaTaskHandlers(const RunOptions& options,
                                     const GaugeRecipes& gaugeRecipes,
                                     const Sitmo::Rng& rng,
-                                    const size_t iConfiguration,
+                                    const size_t iGaugeConf,
                                     const size_t iHit)
   {
     if(iHit>=static_cast<size_t>(options.nHits))

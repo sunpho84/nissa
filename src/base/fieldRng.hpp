@@ -214,13 +214,13 @@ namespace nissa
 	    this->nGeneratedDouble=n;
 	  });
 	
-	VERBOSITY_LV3_MASTER_PRINTF("Added backup action for FieldRngStream\n");
+	VERBOSITY_LV3_MASTER_PRINTF("Added backup callback for FieldRngStream\n");
 	
 	return true;
       }
     else
       {
-	VERBOSITY_LV3_MASTER_PRINTF("Skipping backup actions for FieldRngStream as we are not inside a parallel for\n");
+	VERBOSITY_LV3_MASTER_PRINTF("Skipping backup callbacks for FieldRngStream as we are not inside a parallel for\n");
 	
 	return false;
       }

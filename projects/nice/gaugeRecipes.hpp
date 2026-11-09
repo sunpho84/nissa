@@ -24,30 +24,30 @@ namespace nissa::nice
   using GaugeField=
     LxField<quad_su3>;
   
-  /// Index of a deferred producer and its per-configuration field slot
+  /// Index of a deferred producer and its per-gauge configuration field slot
   /// The index refers to a recipe, never directly to a prepared gauge field
   using GaugeRecipeId=
     size_t;
   
   struct GaugeRecipe;
   
-  /// Slots in dependency order, retained across configuration entries
+  /// Slots in dependency order, retained across gauge configuration entries
   using GaugeRecipes=
     std::vector<GaugeRecipe>;
   
-  /// Field storage paired with the recipe that fills it for the current configuration
+  /// Field storage paired with the recipe that fills it for the current gauge configuration
   struct GaugeRecipe
   {
     /// Owned field, empty before preparation and after release
     std::unique_ptr<GaugeField> field;
     
-    /// Report this producer's double count for one configuration with the effective run settings
+    /// Report this producer's double count for one gauge configuration with the effective run settings
     std::function<uint64_t(const RunOptions&)> rngDoubles;
     
     /// Produce a field using the selected entry and already filled earlier slots
     std::function<std::unique_ptr<GaugeField>(const ConfigurationEntry&,
                                               const GaugeRecipes&,
-                                              const ActionRngRange&)> produce;
+                                              const OperationRngRange&)> produce;
   };
   
   /// Resolve an already produced field, checking bounds and availability
@@ -55,7 +55,7 @@ namespace nissa::nice
                                      const GaugeRecipeId recipeId)
   {
     if(recipeId>=recipes.size() or not recipes[recipeId].field)
-      CRASH("NICE gauge recipe %zu has no field for this configuration",recipeId);
+      CRASH("NICE gauge recipe %zu has no field for this gauge configuration",recipeId);
     
     return *recipes[recipeId].field;
   }
@@ -64,7 +64,7 @@ namespace nissa::nice
   inline GaugeRecipeId addGaugeRecipe(GaugeRecipes& recipes,
                                     std::function<std::unique_ptr<GaugeField>(const ConfigurationEntry&,
                                                                               const GaugeRecipes&,
-                                                                              const ActionRngRange&)> produce,
+                                                                              const OperationRngRange&)> produce,
                                     std::function<uint64_t(const RunOptions&)> rngDoubles={})
   {
     if(not produce)
@@ -89,10 +89,10 @@ namespace nissa::nice
   {
     return addGaugeRecipe(recipes,[](const ConfigurationEntry& entry,
                                     const GaugeRecipes&,
-                                    const ActionRngRange&)
+                                    const OperationRngRange&)
     {
       if(entry.path.empty())
-        CRASH("NICE loadedConf requires an input configuration path");
+        CRASH("NICE loadedConf requires an input gauge configuration path");
       
       auto field=std::make_unique<GaugeField>("nice loaded conf",WITH_HALO_EDGES);
       read_ildg_gauge_conf(*field,entry.path);
@@ -115,7 +115,7 @@ namespace nissa::nice
     
     return addGaugeRecipe(recipes,[inputRecipe,alpha,n](const ConfigurationEntry&,
                                                        const GaugeRecipes& current,
-                                                       const ActionRngRange&)
+                                                       const OperationRngRange&)
     {
       const auto& original=gaugeField(current,inputRecipe);
       auto field=std::make_unique<GaugeField>("nice APE conf",WITH_HALO_EDGES);
@@ -125,7 +125,7 @@ namespace nissa::nice
     });
   }
   
-  /// Release the current configuration's fields while retaining all producers
+  /// Release the current gauge configuration's fields while retaining all producers
   inline void clearGaugeFields(GaugeRecipes& recipes)
   {
     for(auto& recipe : recipes)
@@ -137,7 +137,7 @@ namespace nissa::nice
                                  const ConfigurationEntry& entry,
                                  const Sitmo::Rng& rng,
                                  const RngLayout& rngLayout,
-                                 const uint64_t iConfiguration)
+                                 const uint64_t iGaugeConf)
   {
     validateGaugeRecipes(recipes);
     rngLayout.validate();
@@ -145,7 +145,7 @@ namespace nissa::nice
     if(not lxGeomInited)
       CRASH("NICE gauge preparation requires initialized geometry");
     
-    if(rngLayout.gaugeActions.size()!=recipes.size())
+    if(rngLayout.gaugeOperations.size()!=recipes.size())
       CRASH("NICE RNG layout does not match the registered gauge recipes");
     
     // Clear every slot before the first producer, preventing stale inputs from a previous entry
@@ -154,8 +154,8 @@ namespace nissa::nice
     for(size_t slot=0;slot<recipes.size();slot++)
       {
         auto& recipe=recipes[slot];
-        const ActionRngRange range=
-          rngLayout.actionRange(rng,rngLayout.gaugeActions[slot],iConfiguration);
+        const OperationRngRange range=
+          rngLayout.operationRange(rng,rngLayout.gaugeOperations[slot],iGaugeConf);
         recipe.field=
           recipe.produce(entry,recipes,range);
         

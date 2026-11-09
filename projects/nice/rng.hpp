@@ -1,6 +1,7 @@
 #ifndef _NICE_RNG_HPP
 #define _NICE_RNG_HPP
 
+#include "base/randomDistributions.hpp"
 #include "base/sitmo.hpp"
 #include "geometry/geometry_lx.hpp"
 
@@ -8,8 +9,8 @@
 
 namespace nissa::nice
 {
-  /// Execution scope selecting configuration-wide or per-hit draws
-  enum class RngScope{Configuration,Hit};
+  /// Execution scope selecting gauge configuration-wide or per-hit draws
+  enum class RngScope{GaugeConf,Hit};
   
   /// Return a checked index for the two execution scopes
   inline size_t rngScopeIndex(const RngScope scope)
@@ -17,7 +18,7 @@ namespace nissa::nice
     const size_t index=static_cast<size_t>(scope);
     
     if(index>=2)
-      CRASH("NICE RNG action has an invalid scope");
+      CRASH("NICE RNG operation has an invalid scope");
     
     return index;
   }
@@ -26,20 +27,20 @@ namespace nissa::nice
   using RngPosition=
     Sitmo::Counter;
   
-  /// Bounded random access to the doubles assigned to one action execution
-  struct ActionRngRange
+  /// Bounded random access to the doubles assigned to one operation execution
+  struct OperationRngRange
   {
-    /// Generator snapshot positioned at this action's first integer draw
+    /// Generator snapshot positioned at this operation's first integer draw
     Sitmo::Rng rng;
     
-    /// Beginning of this action's allocation in double units
+    /// Beginning of this operation's allocation in double units
     RngPosition position;
     
-    /// Number of accessible doubles reported by the action
+    /// Number of accessible doubles reported by the operation
     uint64_t nDoubles{};
     
     /// Position the copied generator once, preserving the parent's state
-    ActionRngRange(const Sitmo::Rng& runRng,
+    OperationRngRange(const Sitmo::Rng& runRng,
 		   const RngPosition& position,
 		   const uint64_t nDoubles) :
       rng(runRng),
@@ -54,7 +55,7 @@ namespace nissa::nice
     RngPosition integerOffset(const uint64_t iDouble) const
     {
       if(iDouble>=nDoubles)
-        CRASH("NICE RNG draw exceeds the action's reported double count");
+        CRASH("NICE RNG draw exceeds the operation's reported double count");
       
       return RngPosition{{{iDouble<<1,iDouble>>63,0,0}}};
     }
@@ -69,8 +70,8 @@ namespace nissa::nice
     }
   };
   
-  /// Implicit per-hit action selecting the shared source origin
-  struct GlobalOriginAction
+  /// Implicit per-hit operation selecting the shared source origin
+  struct GlobalOriginOperation
   {
     /// Generate a random origin when enabled, otherwise use the lattice origin
     bool enabled{true};
@@ -82,10 +83,10 @@ namespace nissa::nice
     }
     
     /// Generate the origin from the assigned doubles without scaling its allocation by the volume
-    Coords execute(const ActionRngRange& range) const
+    Coords execute(const OperationRngRange& range) const
     {
       if(range.nDoubles!=rngDoubles())
-        CRASH("NICE origin action does not match its RNG allocation");
+        CRASH("NICE origin operation does not match its RNG allocation");
       
       Coords origin{};
       
