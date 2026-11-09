@@ -4,6 +4,7 @@
 #include "compiledCorrelations.hpp"
 #include "gaugeRecipes.hpp"
 #include "lineValue.hpp"
+#include "rngLayout.hpp"
 
 #include <functional>
 #include <span>
@@ -39,11 +40,12 @@ namespace nissa::nice
   };
 
   /// Build NISSA source, extension, and contraction callbacks for one hit
-  /// Configuration index and hit index provide the first deterministic RNG layout
+  /// Gauge configuration and hit identities select independent reserved random ranges
   TaskHandlers makeNissaTaskHandlers(const RunOptions& options,
                                     const GaugeRecipes& gaugeRecipes,
                                     const Sitmo::Rng& rng,
-                                    size_t iConfiguration,
+                                    const RngLayout& rngLayout,
+                                    size_t iGaugeConf,
                                     size_t iHit);
   
   /// Execute scheduled instructions, retaining requested results under stable task IDs

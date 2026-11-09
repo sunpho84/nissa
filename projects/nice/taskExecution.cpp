@@ -481,31 +481,20 @@ namespace nissa::nice
   }
   
   TaskHandlers makeNissaTaskHandlers(const RunOptions& options,
-                                    const GaugeRecipes& gaugeRecipes,
-                                    const Sitmo::Rng& rng,
-                                    const size_t iGaugeConf,
-                                    const size_t iHit)
+				     const GaugeRecipes& gaugeRecipes,
+				     const Sitmo::Rng& rng,
+				     const RngLayout& rngLayout,
+				     const size_t iGaugeConf,
+				     const size_t iHit)
   {
     if(iHit>=static_cast<size_t>(options.nHits))
       CRASH("NICE RNG hit index %zu exceeds configured hit count %d",
             iHit,options.nHits);
     
-    // Reserve four doubles for the hit-local origin, then address this hit event
-    Sitmo::Counter eventNumber{{{static_cast<uint64_t>(iConfiguration),0,0,0}}};
-    eventNumber*=static_cast<uint64_t>(options.nHits);
-    eventNumber+=static_cast<uint64_t>(iHit);
-    
-    if(eventNumber[3]!=0)
-      CRASH("NICE RNG configuration and hit address exceeds counter range");
-    
-    const Sitmo::Counter originOffset{{{NDIM,eventNumber[0],eventNumber[1],eventNumber[2]}}};
-    FieldRngOf<double[NDIM]> originDrawer(rng,originOffset);
-    double randomCoordinates[NDIM];
-    originDrawer.fillWithOrigin(randomCoordinates);
-    Coords origin;
-    
-    for(int mu=0;mu<NDIM;mu++)
-      origin[mu]=static_cast<int>(randomCoordinates[mu]*glbSize[mu]);
+    const OperationRngRange originRange=
+      rngLayout.operationRange(rng,rngLayout.origin,iGaugeConf,iHit);
+    const Coords origin=
+      options.globalOrigin.execute(originRange);
     
     MASTER_PRINTF("NICE: hit %zu source origin (%d,%d,%d,%d)\n",
                   iHit,origin[0],origin[1],origin[2],origin[3]);
