@@ -36,16 +36,16 @@ namespace nissa::nice
     /// Beginning of this operation's allocation in double units
     RngPosition position;
     
-    /// Number of accessible doubles reported by the operation
-    uint64_t nDoubles{};
+    /// Uniform-double consumption bound reported by the operation
+    uint64_t doubleDrawCost{};
     
     /// Position the copied generator once, preserving the parent's state
     OperationRngRange(const Sitmo::Rng& runRng,
 		   const RngPosition& position,
-		   const uint64_t nDoubles) :
+		   const uint64_t doubleDrawCost) :
       rng(runRng),
       position(position),
-      nDoubles(nDoubles)
+      doubleDrawCost(doubleDrawCost)
     {
       rng.state+=position*uint64_t{2};
     }
@@ -54,7 +54,7 @@ namespace nissa::nice
     CUDA_HOST_AND_DEVICE
     RngPosition integerOffset(const uint64_t iDouble) const
     {
-      if(iDouble>=nDoubles)
+      if(iDouble>=doubleDrawCost)
         CRASH("NICE RNG draw exceeds the operation's reported double count");
       
       return RngPosition{{{iDouble<<1,iDouble>>63,0,0}}};
@@ -76,8 +76,8 @@ namespace nissa::nice
     /// Generate a random origin when enabled, otherwise use the lattice origin
     bool enabled{true};
     
-    /// Report the double count for one hit
-    uint64_t rngDoubles() const
+    /// Report the uniform-double consumption cost for one hit
+    uint64_t doubleDrawCost() const
     {
       return enabled?uint64_t{NDIM}:uint64_t{0};
     }
@@ -85,7 +85,7 @@ namespace nissa::nice
     /// Generate the origin from the assigned doubles without scaling its allocation by the volume
     Coords execute(const OperationRngRange& range) const
     {
-      if(range.nDoubles!=rngDoubles())
+      if(range.doubleDrawCost!=doubleDrawCost())
         CRASH("NICE origin operation does not match its RNG allocation");
       
       Coords origin{};

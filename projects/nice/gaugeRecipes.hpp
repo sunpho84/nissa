@@ -41,8 +41,8 @@ namespace nissa::nice
     /// Owned field, empty before preparation and after release
     std::unique_ptr<GaugeField> field;
     
-    /// Report this producer's double count for one gauge configuration with the effective run settings
-    std::function<uint64_t(const RunOptions&)> rngDoubles;
+    /// Report this producer's uniform-double consumption cost for one gauge configuration
+    std::function<uint64_t(const RunOptions&)> doubleDrawCost;
     
     /// Produce a field using the selected entry and already filled earlier slots
     std::function<std::unique_ptr<GaugeField>(const ConfigurationEntry&,
@@ -65,13 +65,13 @@ namespace nissa::nice
                                     std::function<std::unique_ptr<GaugeField>(const ConfigurationEntry&,
                                                                               const GaugeRecipes&,
                                                                               const OperationRngRange&)> produce,
-                                    std::function<uint64_t(const RunOptions&)> rngDoubles={})
+                                    std::function<uint64_t(const RunOptions&)> doubleDrawCost={})
   {
     if(not produce)
       CRASH("NICE gauge recipe requires a producer");
     
     const GaugeRecipeId target=recipes.size();
-    recipes.push_back({nullptr,std::move(rngDoubles),std::move(produce)});
+    recipes.push_back({nullptr,std::move(doubleDrawCost),std::move(produce)});
     
     return target;
   }
