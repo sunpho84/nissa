@@ -10,6 +10,7 @@ TESTS=$(check_PROGRAMS)
 nice_common_sources= \
 	%D%/nice.hpp \
 	%D%/runOptions.hpp \
+	%D%/rngLayout.hpp \
 	%D%/configurationSources.cpp \
 	%D%/configurationSources.hpp \
 	%D%/gaugeRecipes.hpp \
