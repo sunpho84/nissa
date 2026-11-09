@@ -29,11 +29,13 @@ include_HEADERS+= \
 	%D%/cuda_test.hpp \
 	%D%/debug.hpp \
 	%D%/field.hpp \
+	%D%/fieldRng.hpp \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
 	%D%/memory_manager.hpp \
 	%D%/multiGridParams.hpp \
 	%D%/random.hpp \
+	%D%/randomDistributions.hpp \
 	%D%/sitmo.hpp \
 	%D%/vectors.hpp
 

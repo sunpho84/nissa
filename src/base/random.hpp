@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 #include <base/field.hpp>
-#include <base/sitmo.hpp>
+#include <base/fieldRng.hpp>
 #include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <new_types/su3_op.hpp>
