@@ -10,10 +10,10 @@
 
 namespace nissa::nice
 {
-  /// Results of the compiled correlations for each hit of one configuration
+  /// Results of the compiled correlations for each hit of one gauge configuration
   struct ConfigurationResults
   {
-    /// Configuration entry whose gauge recipes were prepared
+    /// Gauge configuration entry whose gauge recipes were prepared
     ConfigurationEntry entry;
     
     /// Task results in hit order, indexed within each hit by stable task ID
@@ -24,17 +24,20 @@ namespace nissa::nice
   using TaskHandlerFactory=
     std::function<TaskHandlers(const RunOptions&,const GaugeRecipes&,size_t)>;
 
-  /// Execute every hit of one configuration with the same compiled instructions
+  /// Execute every hit of one gauge configuration with the same compiled instructions
   /// Geometry and NISSA must already be initialized on every rank
   inline ConfigurationResults executePreparedConfiguration(PreparedProgram& program,
                                                             const size_t iEntry,
-                                                            const TaskHandlerFactory& makeHandlers)
+                                                            const TaskHandlerFactory& makeHandlers,
+                                                            const Sitmo::Rng& rng,
+                                                            const RngLayout& rngLayout,
+                                                            const uint64_t iGaugeConf)
   {
     if(iEntry>=program.configurationEntries.size())
-      CRASH("NICE configuration entry %zu is out of range",iEntry);
+      CRASH("NICE gauge configuration entry %zu is out of range",iEntry);
     
     if(not makeHandlers)
-      CRASH("NICE configuration execution requires a task handler factory");
+      CRASH("NICE gauge configuration execution requires a task handler factory");
     
     program.options.validate();
     program.correlations.validate();
@@ -57,27 +60,32 @@ namespace nissa::nice
     if(not lxGeomInited or glbSize[0]!=program.options.T or
        glbSize[1]!=program.options.L or glbSize[2]!=program.options.L or
        glbSize[3]!=program.options.L)
-      CRASH("NICE configuration execution requires the configured geometry");
+      CRASH("NICE gauge configuration execution requires the configured geometry");
     
     const ConfigurationEntry& entry=program.configurationEntries[iEntry];
-    prepareGaugeFields(program.gaugeRecipes,entry);
-
+    prepareGaugeFields(program.gaugeRecipes,entry,rng,rngLayout,
+                       iGaugeConf);
+    
     if(program.options.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic)
       {
         Momentum theta{};
         theta[0]=1.0;
-
+	
         for(GaugeRecipe& recipe : program.gaugeRecipes)
           put_boundaries_conditions(*recipe.field,theta);
       }
-
-    ConfigurationResults result{entry,{}};
-    result.hits.reserve(static_cast<size_t>(program.options.nHits));
     
-    for(size_t iHit=0;iHit<static_cast<size_t>(program.options.nHits);iHit++)
+    ConfigurationResults result{entry,{}};
+    
+    if(not program.correlations.instructions.empty())
       {
-        const TaskHandlers handlers=makeHandlers(program.options,program.gaugeRecipes,iHit);
-        result.hits.push_back(executeScheduledTasks(program.correlations,handlers));
+        result.hits.reserve(static_cast<size_t>(program.options.nHits));
+        
+        for(size_t iHit=0;iHit<static_cast<size_t>(program.options.nHits);iHit++)
+          {
+            const TaskHandlers handlers=makeHandlers(program.options,program.gaugeRecipes,iHit);
+            result.hits.push_back(executeScheduledTasks(program.correlations,handlers));
+          }
       }
     
     clearGaugeFields(program.gaugeRecipes);

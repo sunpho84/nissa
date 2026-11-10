@@ -1823,6 +1823,10 @@ void validateRunSettings(const int narg,
         execute({{"setDilution(2,0);","invalid dilution"}});
       else if(mode=="run-invalid-boundary")
         execute({{"setTemporalBoundary(\"other\");","invalid boundary"}});
+      else if(mode=="rng-negative-script-limit")
+        execute({{"reserveRngDoublesPerSite(-1);","invalid RNG limit"}});
+      else if(mode=="run-invalid-origin")
+        execute({{"setRandomOriginEnabled(2);","invalid random origin setting"}});
     }
   
   // Geometry alone inherits Sitmo's seed and no source dilution
@@ -1834,21 +1838,31 @@ void validateRunSettings(const int narg,
   // Earlier incomplete settings can be replaced before validation, with no setup side effects
   execute({{"setGeometry(-1,-2); setRun(-1,0,0); setDilution(0,0);","file defaults"},
            {"setGeometry(.T=48,.L=24); setRun(.nCopies=2,.seed=1234,.nHits=8); "
-            "setDilution(.diluteColor=0,.diluteSpin=1); setTemporalBoundary(\"periodic\");","argument override"}});
+            "setDilution(.diluteColor=0,.diluteSpin=1); setTemporalBoundary(\"periodic\"); "
+            "setRandomOriginEnabled(0);","argument override"}});
   options.validate();
   assert(options.L==24 and options.T==48 and options.seed==1234);
   assert(options.nHits==8 and options.nCopies==2);
+  assert(not options.globalOrigin.enabled);
+  assert(options.reservedRngDoublesPerSite==1'000'000);
   assert(options.diluteSpin==true and options.diluteColor==false);
   assert(options.temporalBoundary==RunOptions::TemporalBoundary::Periodic);
   
   // Each repeated setter replaces the full group and keeps unrelated settings
   execute({{"setRun(7,1,3); setGeometry(12,24); setDilution(0,1); "
+            "setRandomOriginEnabled(1); "
             "setTemporalBoundary(\"antiperiodic\");","later override"}});
   options.validate();
   assert(options.L==12 and options.T==24 and options.seed==7);
   assert(options.nHits==1 and options.nCopies==3);
+  assert(options.globalOrigin.enabled);
+  assert(options.reservedRngDoublesPerSite==1'000'000);
   assert(options.diluteSpin==false and options.diluteColor==true);
   assert(options.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic);
+  
+  execute({{"setRun(7,8,2); reserveRngDoublesPerSite(.reservedDoublesPerSite=12);", "RNG reservation"}});
+  options.validate();
+  assert(options.reservedRngDoublesPerSite==12);
 }
 
 /// Check deferred recipe construction, empty storage, and invalid recipe diagnostics
@@ -1886,7 +1900,8 @@ void validateGaugeRecipeBindings(const int narg,
       else if(mode=="gauge-unavailable-field")
         (void)gaugeField(recipes,0);
       else if(mode=="gauge-before-geometry")
-        prepareGaugeFields(recipes,{});
+        prepareGaugeFields(recipes,{},Sitmo::Rng(1),
+                           RngLayout{prepared.options},0);
     }
 }
 
@@ -1950,6 +1965,226 @@ void validateTaskExecution(const RunOptions& options)
   assert(std::get<Tensor>(*values[3]).data[0]==5.0);
 }
 
+/// Check volume-scaled budgets, independent scopes, direct skipping, and actual integer draws
+void validateRngLayout(const int narg,
+                       const char* const* arg)
+{
+  const auto equalPositions=
+    [](const RngPosition& left,
+       const RngPosition& right)
+  {
+    return std::equal(left.data,left.data+4,right.data);
+  };
+  
+  // Each configuration and hit receives the same budget, scaled to a 200^4 lattice
+  const RunOptions options{.L=200,.T=200};
+  RngLayout layout(options);
+  layout.origin=
+    layout.addOperation(RngScope::Hit,GlobalOriginOperation{}.doubleDrawCost());
+  const auto gauge=
+    layout.addOperation(RngScope::GaugeConf,1'600'000'000'000);
+  const auto deterministic=
+    layout.addOperation(RngScope::GaugeConf,0);
+  const auto secondGauge=
+    layout.addOperation(RngScope::GaugeConf,17);
+  const auto source=
+    layout.addOperation(RngScope::Hit,32);
+  const Sitmo::Rng rng(3472291050U);
+  const auto origin=
+    layout.operationRange(rng,layout.origin,3,5);
+  const auto gaugeRange=
+    layout.operationRange(rng,gauge,3);
+  const auto secondRange=
+    layout.operationRange(rng,secondGauge,3);
+  const auto sourceRange=
+    layout.operationRange(rng,source,3,5);
+  
+  // Gauge configuration preparation occupies slot zero; hit five occupies slot six
+  assert(equalPositions(origin.position,RngPosition{{{9'600'000'000'000'000,4'800'000'000'000'000,0,0}}}));
+  assert(equalPositions(gaugeRange.position,RngPosition{{{0,4'800'000'000'000'000,0,0}}}));
+  assert(equalPositions(secondRange.position,RngPosition{{{1'600'000'000'000,4'800'000'000'000'000,0,0}}}));
+  assert(equalPositions(sourceRange.position,origin.position+uint64_t{NDIM}));
+  assert(layout.operationRange(rng,deterministic,3).doubleDrawCost==0);
+  
+  // An omitted or explicitly absent hit selects gauge preparation; hit zero remains a real hit
+  assert(equalPositions(layout.operationRange(rng,gauge,3,std::nullopt).position,gaugeRange.position));
+  
+  // Compare doubles with independently addressed raw outputs, including both adjacent operations
+  for(uint64_t i=0;i<17;i++)
+    {
+      const RngPosition raw{{{3'200'000'000'000+2*i,9'600'000'000'000'000,0,0}}};
+      const uint32_t low=rng.generateNth(raw);
+      const uint32_t high=rng.generateNth(raw+uint64_t{1});
+      constexpr double F=4294967296.0;
+      const double expected=std::min((low/F+high)/F,0.999999999999999889);
+      assert(secondRange.uniformAt(i)==expected);
+    }
+  
+  // Every hit receives its own origin, independently of execution order and requested hit count
+  const auto nextHit=
+    layout.operationRange(rng,layout.origin,3,6);
+  assert(equalPositions(nextHit.position,origin.position+layout.reservedDoubles()));
+  assert(equalPositions(layout.operationRange(rng,layout.origin,4,0).position,
+                        RngPosition{{{1'600'000'000'000'000,6'400'000'000'000'000,0,0}}}));
+  const auto skipped=
+    layout.operationRange(rng,layout.origin,10000,7);
+  const double retained=origin.uniformAt(0);
+  assert(skipped.uniformAt(0)==layout.operationRange(rng,layout.origin,10000,7).uniformAt(0));
+  assert(origin.uniformAt(0)==retained);
+  assert(equalPositions(rng.state,RngPosition{}));
+  
+  // Deterministic operations consume no space, and configuration costs do not move hit operations
+  RngLayout reordered(options);
+  reordered.addOperation(RngScope::Hit,0);
+  reordered.origin=
+    reordered.addOperation(RngScope::Hit,NDIM);
+  reordered.addOperation(RngScope::GaugeConf,1);
+  assert(equalPositions(reordered.operationRange(rng,reordered.origin,3,5).position,origin.position));
+  
+  // A larger lattice scales all reserved ranges automatically
+  RunOptions largerOptions=options;
+  largerOptions.T*=2;
+  RngLayout larger(largerOptions);
+  larger.origin=
+    larger.addOperation(RngScope::Hit,NDIM);
+  assert(equalPositions(larger.operationRange(rng,larger.origin,3,5).position,origin.position*uint64_t{2}));
+  
+  // Both scopes may use their complete budget without sharing any double
+  const RunOptions exactOptions{.L=1,.T=2,.reservedRngDoublesPerSite=2};
+  RngLayout exact(exactOptions);
+  const auto exactGauge=
+    exact.addOperation(RngScope::GaugeConf,4);
+  const auto exactHit=
+    exact.addOperation(RngScope::Hit,4);
+  assert(equalPositions(exact.operationRange(rng,exactHit,0,0).position,
+                        exact.operationRange(rng,exactGauge,0).position+uint64_t{4}));
+  assert(equalPositions(exact.operationRange(rng,exactHit,0,1).position,
+                        exact.operationRange(rng,exactHit,0,0).position+uint64_t{4}));
+  
+  // Individual costs fit uint64_t while totals, budgets, and positions may exceed it
+  const uint64_t maximum=std::numeric_limits<uint64_t>::max();
+  const RunOptions wideOptions{.L=1<<20,.T=7,.reservedRngDoublesPerSite=maximum};
+  RngLayout wide(wideOptions);
+  wide.addOperation(RngScope::Hit,maximum);
+  const auto wideOperation=
+    wide.addOperation(RngScope::Hit,maximum);
+  const auto wideRange=
+    wide.operationRange(rng,wideOperation,maximum,maximum-1);
+  assert(equalPositions(wide.doubleDrawCosts[1],RngPosition{{{maximum-1,1,0,0}}}));
+  assert(equalPositions(wideRange.position,RngPosition{{{8070450532247928831ULL,10376293541461622785ULL,10376293541461622783ULL,8070450532247928831ULL}}}));
+  assert(equalPositions(wideRange.rng.state+wideRange.integerOffset(0),
+                        RngPosition{{{16140901064495857662ULL,2305843009213693954ULL,2305843009213693951ULL,16140901064495857663ULL}}}));
+  assert(equalPositions(wideRange.rng.state+wideRange.integerOffset(maximum-1),
+                        RngPosition{{{16140901064495857658ULL,2305843009213693956ULL,2305843009213693951ULL,16140901064495857663ULL}}}));
+  assert(wideRange.uniformAt(maximum-1)>=0.0 and wideRange.uniformAt(maximum-1)<1.0);
+  
+  if(narg>1)
+    {
+      const std::string_view mode=arg[1];
+      
+      if(mode=="rng-insufficient-reservation")
+        exact.addOperation(RngScope::Hit,1);
+      else if(mode=="rng-insufficient-conf-reservation")
+        exact.addOperation(RngScope::GaugeConf,1);
+      else if(mode=="rng-draw-outside-range")
+        origin.uniformAt(NDIM);
+      else if(mode=="rng-hit-index-overflow")
+        layout.operationRange(rng,layout.origin,3,maximum);
+      else if(mode=="rng-empty-operation-draw")
+        layout.operationRange(rng,deterministic,3).uniformAt(0);
+      else if(mode=="rng-missing-hit-index")
+        layout.operationRange(rng,layout.origin,3);
+      else if(mode=="rng-unexpected-hit-index")
+        layout.operationRange(rng,gauge,3,0);
+      else if(mode=="rng-invalid-scope")
+        layout.addOperation(static_cast<RngScope>(2),1);
+      else if(mode=="rng-allocation-outside-budget")
+        exact.operationRange(rng,{RngScope::Hit,RngPosition{{{4,0,0,0}}},1},0,0);
+    }
+}
+
+/// Verify origin placement and site-fastest operation draws on the configured backend
+void validateRngExecution()
+{
+  using namespace nissa;
+  
+  RunOptions options{.L=4,.T=4,.nHits=8};
+  RngLayout layout(options);
+  layout.origin=
+    layout.addOperation(RngScope::Hit,options.globalOrigin.doubleDrawCost());
+  const uint64_t volume=static_cast<uint64_t>(nissa::glbVol);
+  const auto sourceOperation=
+    layout.addOperation(RngScope::Hit,checkedMultiply(volume,uint64_t{2}));
+  const Sitmo::Rng rng(3472291050U);
+  const auto originRange=
+    layout.operationRange(rng,layout.origin,3,5);
+  const auto origin=
+    options.globalOrigin.execute(originRange);
+  
+  // The origin's four draws are consecutive, independent of the lattice volume
+  for(int mu=0;mu<NDIM;mu++)
+    {
+      const RngPosition raw{{{3'072'000'000+uint64_t{2}*static_cast<uint64_t>(mu),1'536'000'000,0,0}}};
+      const uint32_t low=rng.generateNth(raw);
+      const uint32_t high=rng.generateNth(raw+uint64_t{1});
+      constexpr double F=4294967296.0;
+      const double expected=std::min((low/F+high)/F,0.999999999999999889);
+      assert(origin[mu]==static_cast<int>(expected*nissa::glbSize[mu]));
+    }
+  
+  // The actual source callback must place its point at that same global coordinate
+  const GaugeRecipes noGaugeRecipes;
+  const auto handlers=
+    makeNissaTaskHandlers(options,noGaugeRecipes,rng,layout,3,5);
+  LineValue point=handlers.source(Source{});
+  auto shadow=point.field.shadow<nissa::spincolor,nissa::defaultSpaceTimeLayout,
+                                  nissa::defaultMemorySpace>("rng point source",
+                                    std::vector<size_t>(point.field.outer.size(),0));
+  const auto hostPoint=
+    shadow.getSurelyReadableOn<nissa::MemorySpace::CPU>();
+  
+  for(int64_t site=0;site<nissa::locVol;site++)
+    {
+      bool atOrigin=true;
+      
+      for(int mu=0;mu<NDIM;mu++)
+        atOrigin=atOrigin and nissa::glbCoordOfLoclx[site][mu]==origin[mu];
+      
+      for(int degree=0;degree<NDIRAC*NCOL*2;degree++)
+        assert(hostPoint(site,degree)==(atOrigin and degree==0?1.0:0.0));
+    }
+  
+  // CPU and GPU kernels use the global site, irrespective of component evaluation order
+  const auto range=
+    layout.operationRange(rng,sourceOperation,3,5);
+  nissa::LxField<double[2]> field("rng operation validation",nissa::WITHOUT_HALO);
+  PAR(0,nissa::locVol,
+      CAPTURE(range,volume,TO_WRITE(field)),
+      site,
+      {
+        const uint64_t globalSite=nissa::glblxOfLoclx[site];
+        field(site,1)=range.uniformAt(volume+globalSite);
+        field(site,0)=range.uniformAt(globalSite);
+      });
+  const auto host=
+    field.getSurelyReadableOn<nissa::MemorySpace::CPU>();
+  
+  for(int64_t site=0;site<nissa::locVol;site++)
+    for(uint64_t component=0;component<2;component++)
+      assert(host(site,component)==range.uniformAt(component*volume+nissa::glblxOfLoclx[site]));
+  
+  // A disabled implicit operation uses the zero origin and owns no random draws
+  options.globalOrigin.enabled=false;
+  RngLayout disabled(options);
+  disabled.origin=
+    disabled.addOperation(RngScope::Hit,options.globalOrigin.doubleDrawCost());
+  const auto zero=
+    options.globalOrigin.execute(disabled.operationRange(rng,disabled.origin,3,5));
+  
+  for(int mu=0;mu<NDIM;mu++)
+    assert(zero[mu]==0);
+}
+
 /// Check that a parsed script drives the scheduled source, extensions, and trace for each hit
 void validatePreparedExecution()
 {
@@ -1961,13 +2196,47 @@ void validatePreparedExecution()
   program.configurationEntries.push_back({"","unused","script",1});
   assert(program.gaugeRecipes.size()==1);
   program.gaugeRecipes[0].produce=[](const ConfigurationEntry&,
-                                     const GaugeRecipes&)
+                                     const GaugeRecipes&,
+                                     const OperationRngRange& range)
   {
+    assert(range.doubleDrawCost==17);
     auto field=std::make_unique<GaugeField>("script test conf",nissa::WITH_HALO_EDGES);
     nissa::generate_cold_lx_conf(*field);
     
     return field;
   };
+  size_t requirementCalls=0;
+  program.gaugeRecipes[0].doubleDrawCost=[&requirementCalls](const RunOptions&)
+  {
+    requirementCalls++;
+    
+    return uint64_t{17};
+  };
+  const RngLayout rngLayout=
+    prepareRngLayout(program.options,program.correlations,program.gaugeRecipes);
+  assert(rngLayout.origin.scope==RngScope::Hit and rngLayout.origin.doubleDrawCost==NDIM);
+  assert(rngLayout.gaugeOperations[0].scope==RngScope::GaugeConf);
+  assert(rngLayout.gaugeOperations[0].doubleDrawCost==17);
+  
+  // Disabling origins removes their draws without shifting gauge operations
+  RunOptions fixedOrigin=program.options;
+  fixedOrigin.globalOrigin.enabled=false;
+  const RngLayout fixedOriginLayout=
+    prepareRngLayout(fixedOrigin,program.correlations,program.gaugeRecipes);
+  assert(fixedOriginLayout.origin.doubleDrawCost==0);
+  
+  // More requested hits preserve earlier positions without an explicit hit-count reservation
+  RunOptions moreHits=program.options;
+  moreHits.nHits=4;
+  const RngLayout moreHitLayout=
+    prepareRngLayout(moreHits,program.correlations,program.gaugeRecipes);
+  const Sitmo::Rng testRng(7);
+  const auto firstOrigin=rngLayout.operationRange(testRng,rngLayout.origin,1,0);
+  const auto firstOriginWithMoreHits=moreHitLayout.operationRange(testRng,moreHitLayout.origin,1,0);
+  
+  for(size_t word=0;word<4;word++)
+    assert(firstOrigin.position[word]==firstOriginWithMoreHits.position[word]);
+  
   size_t sources=0;
   size_t extensions=0;
   size_t traces=0;
@@ -2013,7 +2282,9 @@ void validatePreparedExecution()
         return result;
       }};
   };
-  const ConfigurationResults results=executePreparedConfiguration(program,0,makeHandlers);
+  const Sitmo::Rng rng(static_cast<uint32_t>(program.options.seed));
+  const ConfigurationResults results=executePreparedConfiguration(program,0,makeHandlers,rng,rngLayout,0);
+  assert(requirementCalls==3);
   assert(results.hits.size()==2 and results.entry.sourceList=="script");
   assert(sources==2 and extensions==4 and traces==2);
   assert(program.correlations.outputs.size()==1);
@@ -2024,6 +2295,12 @@ void validatePreparedExecution()
       assert(hit[id].has_value()==(id==output.traces[0]));
   assert(std::get<Tensor>(*results.hits[0][output.traces[0]]).data[0]==13.0);
   assert(std::get<Tensor>(*results.hits[1][output.traces[0]]).data[0]==15.0);
+  
+  // Gauge-only execution must not invoke the unused per-hit origin operation
+  program.correlations=CompiledCorrelations{{},{}};
+  const auto gaugeOnlyLayout=prepareRngLayout(program.options,program.correlations,program.gaugeRecipes);
+  const auto gaugeOnly=executePreparedConfiguration(program,0,rng,gaugeOnlyLayout,0);
+  assert(gaugeOnly.hits.empty());
 }
 
 /// Exercise loading, chained spatial APE, and field release between configuration entries
@@ -2035,6 +2312,7 @@ void validateGaugeExecution()
   nissa::initGrid(prepared.options.T,prepared.options.L);
   assert(nissa::memoryManager(nissa::MemorySpace::CPU)==
          nissa::memoryManager<nissa::MemorySpace::CPU>());
+  validateRngExecution();
   validateTaskExecution(prepared.options);
   validatePreparedExecution();
   
@@ -2171,7 +2449,8 @@ void validateGaugeExecution()
   // The first producer must see every slot cleared, including later slots from the previous entry
   auto load=std::move(recipes[0].produce);
   recipes[0].produce=[load=std::move(load),&loads,&selectedOutput](const ConfigurationEntry& entry,
-                                                               const GaugeRecipes& current)
+                                                               const GaugeRecipes& current,
+                                                               const OperationRngRange& range)
   {
     for(const auto& recipe : current)
       assert(not recipe.field);
@@ -2179,13 +2458,16 @@ void validateGaugeExecution()
     loads++;
     selectedOutput=entry.outputDirectory;
     
-    return load(entry,current);
+    return load(entry,current,range);
   };
   
   // The same producers fill their storage again for each configuration entry
   for(const std::string output : {"output first","output second"})
     {
-      prepareGaugeFields(recipes,{path,output});
+      const RngLayout rngLayout=
+        prepareRngLayout(prepared.options,prepared.correlations,recipes);
+      prepareGaugeFields(recipes,{path,output},Sitmo::Rng(1),
+                         rngLayout,0);
       assert(selectedOutput==output);
       
       for(size_t slot=0;slot<recipes.size();slot++)
@@ -2210,6 +2492,7 @@ int main(int narg,
     {
       nissa::initNissa(narg,arg);
       nissa::initGrid(4,4);
+      validateRngExecution();
       validatePreparedExecution();
       nissa::closeNissa();
       
@@ -2253,6 +2536,7 @@ int main(int narg,
       Comp{kind,static_cast<CompSide>(-1),2}.validate(&registry);
     }
   
+  validateRngLayout(narg,arg);
   validateLaunchArgs(narg,arg);
   validateProgramPieces(narg,arg);
   validateConfigurationSources(narg,arg);

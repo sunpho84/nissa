@@ -10,6 +10,7 @@
 #include "runOptions.hpp"
 #include "routines/mpi_routines.hpp"
 
+#include <algorithm>
 #include <cstdint>
 #include <format>
 #include <fstream>
@@ -231,10 +232,32 @@ namespace nissa::nice
     validateGaugeRecipes(gaugeRecipes);
     
     // Return owned instructions, entries, and recipes that survive the local AST and evaluator
-    return {options,
-            nice.compile(),
-            materializeAndBroadcastConfigurations(configurationSources),
-            std::move(gaugeRecipes)};
+    PreparedProgram program{options,
+                            nice.compile(),
+                            materializeAndBroadcastConfigurations(configurationSources),
+                            std::move(gaugeRecipes)};
+    program.validate();
+    
+    return program;
+  }
+  
+  RngLayout prepareRngLayout(const RunOptions& options,
+                             const CompiledCorrelations& correlations,
+                             const GaugeRecipes& gaugeRecipes)
+  {
+    options.validate();
+    correlations.validate();
+    validateGaugeRecipes(gaugeRecipes);
+    
+    RngLayout layout(options);
+    layout.origin=
+      layout.addOperation(RngScope::Hit,correlations.instructions.empty()?0:options.drawGlobalOriginTask.doubleDrawCost());
+    
+    for(const GaugeRecipe& recipe : gaugeRecipes)
+      layout.gaugeOperations.push_back(layout.addOperation(RngScope::GaugeConf,
+                                                      recipe.doubleDrawCost?recipe.doubleDrawCost(options):0));
+    
+    return layout;
   }
   
   void registerGaugeRecipes(Evaluator& evaluator,
@@ -352,6 +375,22 @@ namespace nissa::nice
       options.seed=seed;
       options.nHits=nHits;
       options.nCopies=nCopies;
+    });
+    registerHostFunction(evaluator,"setRandomOriginEnabled",{"enabled"},
+                         [&options](const int enabled)
+    {
+      if(enabled!=0 and enabled!=1)
+        CRASH("NICE setRandomOriginEnabled requires enabled to be 0 or 1");
+      
+      options.drawGlobalOriginTask.enabled=enabled!=0;
+    });
+    registerHostFunction(evaluator,"reserveRngDoublesPerSite",{"reservedDoublesPerSite"},
+                         [&options](const int reservedDoublesPerSite)
+    {
+      if(reservedDoublesPerSite<=0)
+        CRASH("NICE reserveRngDoublesPerSite requires a positive double count");
+      
+      options.reservedRngDoublesPerSite=static_cast<uint64_t>(reservedDoublesPerSite);
     });
     registerHostFunction(evaluator,"setDilution",{"diluteSpin","diluteColor"},
                          [&options](const int diluteSpin,

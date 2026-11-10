@@ -1,6 +1,7 @@
 #include "nice.hpp"
 #include "niceSetup.hpp"
 #include "programExecution.hpp"
+#include "rngLayout.hpp"
 
 #include "base/close.hpp"
 #include "base/init.hpp"
