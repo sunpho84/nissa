@@ -494,7 +494,7 @@ namespace nissa::nice
     const OperationRngRange originRange=
       rngLayout.operationRange(rng,rngLayout.origin,iGaugeConf,iHit);
     const Coords origin=
-      options.globalOrigin.execute(originRange);
+      options.drawGlobalOriginTask.execute(originRange);
     
     MASTER_PRINTF("NICE: hit %zu source origin (%d,%d,%d,%d)\n",
                   iHit,origin[0],origin[1],origin[2],origin[3]);

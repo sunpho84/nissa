@@ -61,6 +61,16 @@ namespace nissa::nice
   
   struct RunOptions;
   
+  struct RngLayout;
+  struct CompiledCorrelations;
+  struct GaugeRecipe;
+  
+  /// Collect each operation's double cost and validate volume-scaled scope budgets before execution
+  /// Keep options alive and unchanged while using the returned layout
+  RngLayout prepareRngLayout(const RunOptions& options,
+                             const CompiledCorrelations& correlations,
+                             const std::vector<GaugeRecipe>& gaugeRecipes);
+  
   /// Register run-wide setters without performing geometry or numerical setup
   /// Options must outlive the registered functions; validate after program evaluation
   void registerRunOptions(Evaluator& evaluator,

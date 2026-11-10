@@ -48,12 +48,11 @@ namespace nissa::nice
                                     size_t iGaugeConf,
                                     size_t iHit);
   
-  /// Execute scheduled instructions, retaining requested results under stable task IDs
-  inline TaskValues executeScheduledTasks(const CompiledCorrelations& compiled,
+  /// Execute previously validated instructions, retaining results under stable task IDs
+  /// The caller must validate the compiled schedule after its last edit
+  inline TaskValues executeValidatedTasks(const CompiledCorrelations& compiled,
                                           const TaskHandlers& handlers)
   {
-    compiled.validate();
-    
     if(not handlers.source or not handlers.extend or not handlers.trace)
       CRASH("NICE task execution requires source, extension, and trace handlers");
     
@@ -132,6 +131,15 @@ namespace nissa::nice
       }
     
     return values;
+  }
+
+  /// Validate and execute scheduled instructions for standalone callers
+  inline TaskValues executeScheduledTasks(const CompiledCorrelations& compiled,
+                                          const TaskHandlers& handlers)
+  {
+    compiled.validate();
+    
+    return executeValidatedTasks(compiled,handlers);
   }
 }
 

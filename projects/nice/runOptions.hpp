@@ -30,7 +30,7 @@ namespace nissa::nice
     int nHits{1};
     
     /// Implicit origin-selection operation performed once per hit
-    GlobalOriginOperation globalOrigin;
+    GlobalOriginOperation drawGlobalOriginTask;
     
     /// Independent copies per hit, kept separate when averaging hits
     int nCopies{1};

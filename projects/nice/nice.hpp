@@ -26,6 +26,28 @@ namespace nissa::nice
     
     /// Gauge storage and producers, filled for each selected configuration entry
     GaugeRecipes gaugeRecipes;
+
+    /// Validate settings, scheduled tasks, and gauge recipe references after edits
+    void validate() const
+    {
+      options.validate();
+      correlations.validate();
+      validateGaugeRecipes(gaugeRecipes);
+      
+      for(const Task& task : correlations.instructions)
+        if(const auto* extension=std::get_if<ExtendSelectingTPars>(&task.operation))
+          {
+            const GaugeRecipeId* recipeId=nullptr;
+            
+            if(const auto* prop=std::get_if<Prop>(&extension->pars))
+              recipeId=&prop->gaugeRecipe;
+            else if(const auto* smear=std::get_if<Smear>(&extension->pars))
+              recipeId=&smear->gaugeRecipe;
+            
+            if(recipeId and *recipeId>=gaugeRecipes.size())
+              CRASH("NICE task %zu selects unavailable gauge recipe %zu",task.id,*recipeId);
+          }
+    }
   };
   
   /// Correlation request and its current compilation entry point

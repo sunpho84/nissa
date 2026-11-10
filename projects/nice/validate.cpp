@@ -1843,7 +1843,7 @@ void validateRunSettings(const int narg,
   options.validate();
   assert(options.L==24 and options.T==48 and options.seed==1234);
   assert(options.nHits==8 and options.nCopies==2);
-  assert(not options.globalOrigin.enabled);
+  assert(not options.drawGlobalOriginTask.enabled);
   assert(options.reservedRngDoublesPerSite==1'000'000);
   assert(options.diluteSpin==true and options.diluteColor==false);
   assert(options.temporalBoundary==RunOptions::TemporalBoundary::Periodic);
@@ -1855,7 +1855,7 @@ void validateRunSettings(const int narg,
   options.validate();
   assert(options.L==12 and options.T==24 and options.seed==7);
   assert(options.nHits==1 and options.nCopies==3);
-  assert(options.globalOrigin.enabled);
+  assert(options.drawGlobalOriginTask.enabled);
   assert(options.reservedRngDoublesPerSite==1'000'000);
   assert(options.diluteSpin==false and options.diluteColor==true);
   assert(options.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic);
@@ -1869,6 +1869,15 @@ void validateRunSettings(const int narg,
 void validateGaugeRecipeBindings(const int narg,
                                  const char* const* arg)
 {
+  if(narg>1 and std::string_view(arg[1])=="gauge-unavailable-scheduled-recipe")
+    {
+      (void)prepareProgram({{ProgramPart::Kind::Immediate,
+        "setGeometry(4,4); raw=loadedConf(); corrBlock(\"invalid\"); "
+        "corrGammas(\"invalid\",5,5); source=Source(); "
+        "line=Prop(.gaugeRecipe=1,.r=1)*source; corrTrace(\"invalid\",line,line);",1}});
+      errorEmitter("unavailable scheduled gauge recipe was unexpectedly accepted");
+    }
+  
   PreparedProgram prepared=prepareProgram({{ProgramPart::Kind::Immediate,
     "setGeometry(4,4); rawRecipe=loadedConf(); copy=rawRecipe; "
     "zero=apeSmearConf(.inputRecipe=copy,.alpha=0.4,.n=0); "
@@ -2111,7 +2120,7 @@ void validateRngExecution()
   RunOptions options{.L=4,.T=4,.nHits=8};
   RngLayout layout(options);
   layout.origin=
-    layout.addOperation(RngScope::Hit,options.globalOrigin.doubleDrawCost());
+    layout.addOperation(RngScope::Hit,options.drawGlobalOriginTask.doubleDrawCost());
   const uint64_t volume=static_cast<uint64_t>(nissa::glbVol);
   const auto sourceOperation=
     layout.addOperation(RngScope::Hit,checkedMultiply(volume,uint64_t{2}));
@@ -2119,7 +2128,7 @@ void validateRngExecution()
   const auto originRange=
     layout.operationRange(rng,layout.origin,3,5);
   const auto origin=
-    options.globalOrigin.execute(originRange);
+    options.drawGlobalOriginTask.execute(originRange);
   
   // The origin's four draws are consecutive, independent of the lattice volume
   for(int mu=0;mu<NDIM;mu++)
@@ -2174,12 +2183,12 @@ void validateRngExecution()
       assert(host(site,component)==range.uniformAt(component*volume+nissa::glblxOfLoclx[site]));
   
   // A disabled implicit operation uses the zero origin and owns no random draws
-  options.globalOrigin.enabled=false;
+  options.drawGlobalOriginTask.enabled=false;
   RngLayout disabled(options);
   disabled.origin=
-    disabled.addOperation(RngScope::Hit,options.globalOrigin.doubleDrawCost());
+    disabled.addOperation(RngScope::Hit,options.drawGlobalOriginTask.doubleDrawCost());
   const auto zero=
-    options.globalOrigin.execute(disabled.operationRange(rng,disabled.origin,3,5));
+    options.drawGlobalOriginTask.execute(disabled.operationRange(rng,disabled.origin,3,5));
   
   for(int mu=0;mu<NDIM;mu++)
     assert(zero[mu]==0);
@@ -2220,7 +2229,7 @@ void validatePreparedExecution()
   
   // Disabling origins removes their draws without shifting gauge operations
   RunOptions fixedOrigin=program.options;
-  fixedOrigin.globalOrigin.enabled=false;
+  fixedOrigin.drawGlobalOriginTask.enabled=false;
   const RngLayout fixedOriginLayout=
     prepareRngLayout(fixedOrigin,program.correlations,program.gaugeRecipes);
   assert(fixedOriginLayout.origin.doubleDrawCost==0);
@@ -2298,6 +2307,7 @@ void validatePreparedExecution()
   
   // Gauge-only execution must not invoke the unused per-hit origin operation
   program.correlations=CompiledCorrelations{{},{}};
+  program.validate();
   const auto gaugeOnlyLayout=prepareRngLayout(program.options,program.correlations,program.gaugeRecipes);
   const auto gaugeOnly=executePreparedConfiguration(program,0,rng,gaugeOnlyLayout,0);
   assert(gaugeOnly.hits.empty());
