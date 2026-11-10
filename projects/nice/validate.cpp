@@ -1814,6 +1814,21 @@ void validateRunSettings(const int narg,
       {
         value.nCopies=0;
       });
+      reject("run-negative-origin",[](RunOptions& value)
+      {
+        value.drawGlobalOriginTask.enabled=false;
+        value.drawGlobalOriginTask.fixedOrigin[1]=-1;
+      });
+      reject("run-origin-time-outside",[](RunOptions& value)
+      {
+        value.drawGlobalOriginTask.enabled=false;
+        value.drawGlobalOriginTask.fixedOrigin[0]=value.T;
+      });
+      reject("run-origin-space-outside",[](RunOptions& value)
+      {
+        value.drawGlobalOriginTask.enabled=false;
+        value.drawGlobalOriginTask.fixedOrigin[3]=value.L;
+      });
       reject("run-invalid-boundary-value",[](RunOptions& value)
       {
         value.temporalBoundary=static_cast<RunOptions::TemporalBoundary>(17);
@@ -1863,6 +1878,22 @@ void validateRunSettings(const int narg,
   execute({{"setRun(7,8,2); reserveRngDoublesPerSite(.reservedDoublesPerSite=12);", "RNG reservation"}});
   options.validate();
   assert(options.reservedRngDoublesPerSite==12);
+  
+  // Fixed coordinates are checked against the final geometry and consume no draws
+  execute({{"setOrigin(.z=1,.t=7,.y=2,.x=3); setGeometry(4,8);","fixed origin"}});
+  options.validate();
+  const nissa::Coords fixedOrigin{7,3,2,1};
+  assert(not options.drawGlobalOriginTask.enabled);
+  assert(options.drawGlobalOriginTask.fixedOrigin==fixedOrigin);
+  assert(options.drawGlobalOriginTask.doubleDrawCost()==0);
+  
+  // Random selection can be reenabled without discarding the explicitly selected coordinates
+  execute({{"setRandomOriginEnabled(1);","random origin"}});
+  assert(options.drawGlobalOriginTask.enabled);
+  assert(options.drawGlobalOriginTask.doubleDrawCost()==NDIM);
+  execute({{"setRandomOriginEnabled(0);","restore fixed origin"}});
+  options.validate();
+  assert(options.drawGlobalOriginTask.fixedOrigin==fixedOrigin);
 }
 
 /// Check deferred recipe construction, empty storage, and invalid recipe diagnostics
@@ -2145,23 +2176,28 @@ void validateRngExecution()
   const GaugeRecipes noGaugeRecipes;
   const auto handlers=
     makeNissaTaskHandlers(options,noGaugeRecipes,rng,layout,3,5);
-  LineValue point=handlers.source(Source{});
-  auto shadow=point.field.shadow<nissa::spincolor,nissa::defaultSpaceTimeLayout,
-                                  nissa::defaultMemorySpace>("rng point source",
-                                    std::vector<size_t>(point.field.outer.size(),0));
-  const auto hostPoint=
-    shadow.getSurelyReadableOn<nissa::MemorySpace::CPU>();
-  
-  for(int64_t site=0;site<nissa::locVol;site++)
-    {
-      bool atOrigin=true;
-      
-      for(int mu=0;mu<NDIM;mu++)
-        atOrigin=atOrigin and nissa::glbCoordOfLoclx[site][mu]==origin[mu];
-      
-      for(int degree=0;degree<NDIRAC*NCOL*2;degree++)
-        assert(hostPoint(site,degree)==(atOrigin and degree==0?1.0:0.0));
-    }
+  const auto checkPoint=[](const TaskHandlers& selectedHandlers,
+                           const Coords& selectedOrigin)
+  {
+    LineValue point=selectedHandlers.source(Source{});
+    auto shadow=point.field.shadow<nissa::spincolor,nissa::defaultSpaceTimeLayout,
+                                    nissa::defaultMemorySpace>("rng point source",
+                                      std::vector<size_t>(point.field.outer.size(),0));
+    const auto hostPoint=
+      shadow.getSurelyReadableOn<nissa::MemorySpace::CPU>();
+    
+    for(int64_t site=0;site<nissa::locVol;site++)
+      {
+        bool atOrigin=true;
+        
+        for(int mu=0;mu<NDIM;mu++)
+          atOrigin=atOrigin and nissa::glbCoordOfLoclx[site][mu]==selectedOrigin[mu];
+        
+        for(int degree=0;degree<NDIRAC*NCOL*2;degree++)
+          assert(hostPoint(site,degree)==(atOrigin and degree==0?1.0:0.0));
+      }
+  };
+  checkPoint(handlers,origin);
   
   // CPU and GPU kernels use the global site, irrespective of component evaluation order
   const auto range=
@@ -2192,6 +2228,20 @@ void validateRngExecution()
   
   for(int mu=0;mu<NDIM;mu++)
     assert(zero[mu]==0);
+  
+  // A nonzero fixed origin is shared by different hits and gauge configurations
+  options.drawGlobalOriginTask.fixedOrigin={3,2,1,0};
+  options.validate();
+  assert(disabled.origin.doubleDrawCost==0);
+  
+  for(const size_t iHit : {size_t{0},size_t{7}})
+    {
+      const auto fixedRange=disabled.operationRange(rng,disabled.origin,iHit,iHit);
+      assert(options.drawGlobalOriginTask.execute(fixedRange)==options.drawGlobalOriginTask.fixedOrigin);
+      const auto fixedHandlers=
+        makeNissaTaskHandlers(options,noGaugeRecipes,rng,disabled,iHit,iHit);
+      checkPoint(fixedHandlers,options.drawGlobalOriginTask.fixedOrigin);
+    }
 }
 
 /// Check that a parsed script drives the scheduled source, extensions, and trace for each hit

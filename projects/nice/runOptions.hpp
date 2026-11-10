@@ -79,6 +79,17 @@ namespace nissa::nice
       if(nHits<=0 or nCopies<=0)
         CRASH("NICE run requires positive nHits and nCopies");
       
+      if(not drawGlobalOriginTask.enabled)
+        for(int mu=0;mu<NDIM;mu++)
+          {
+            const int extent=mu==0?T:L;
+            const int coordinate=drawGlobalOriginTask.fixedOrigin[mu];
+            
+            if(coordinate<0 or coordinate>=extent)
+              CRASH("NICE fixed origin coordinate %d is %d: expected 0 through %d",
+                    mu,coordinate,extent-1);
+          }
+      
       if(temporalBoundary!=TemporalBoundary::Periodic and
          temporalBoundary!=TemporalBoundary::Antiperiodic)
         CRASH("NICE run has an invalid temporal boundary");

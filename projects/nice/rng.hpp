@@ -73,8 +73,11 @@ namespace nissa::nice
   /// Implicit per-hit operation selecting the shared source origin
   struct GlobalOriginOperation
   {
-    /// Generate a random origin when enabled, otherwise use the lattice origin
+    /// Generate a random origin when enabled, otherwise use fixedOrigin
     bool enabled{true};
+    
+    /// Coordinates shared by every hit when random origin selection is disabled
+    Coords fixedOrigin{};
     
     /// Report the uniform-double consumption cost for one hit
     uint64_t doubleDrawCost() const
@@ -82,13 +85,13 @@ namespace nissa::nice
       return enabled?uint64_t{NDIM}:uint64_t{0};
     }
     
-    /// Generate the origin from the assigned doubles without scaling its allocation by the volume
+    /// Return the fixed origin or generate it from the assigned doubles
     Coords execute(const OperationRngRange& range) const
     {
       if(range.doubleDrawCost!=doubleDrawCost())
         CRASH("NICE origin operation does not match its RNG allocation");
       
-      Coords origin{};
+      Coords origin=fixedOrigin;
       
       if(enabled)
         for(int mu=0;mu<NDIM;mu++)

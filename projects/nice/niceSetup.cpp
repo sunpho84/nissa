@@ -376,6 +376,18 @@ namespace nissa::nice
       options.nHits=nHits;
       options.nCopies=nCopies;
     });
+    
+    // Record one origin for every hit before compiling tasks and assigning RNG ranges
+    registerHostFunction(evaluator,"setOrigin",{"t","x","y","z"},
+                         [&options](const int t,
+                                    const int x,
+                                    const int y,
+                                    const int z)
+    {
+      options.drawGlobalOriginTask.fixedOrigin={t,x,y,z};
+      options.drawGlobalOriginTask.enabled=false;
+    });
+    
     registerHostFunction(evaluator,"setRandomOriginEnabled",{"enabled"},
                          [&options](const int enabled)
     {
