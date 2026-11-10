@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <memory>
 #include <limits>
+#include <optional>
 #include <ostream>
 #include <sstream>
 #include <string>
@@ -424,14 +425,30 @@ namespace nissa::nice
     /// Selected time, or -1 when unrestricted
     int tSelect;
     
+    /// IB file stem for a loaded source, absent for a generated source
+    std::optional<std::string> ildgPath;
+    
     /// Allocate a new source identity with an optional time selection
     explicit Source(const int tSelect=-1);
+    
+    /// Describe a deferred IB line import with its own source identity
+    explicit Source(const std::string& path) :
+      Source()
+    {
+      if(path.empty())
+        CRASH("NICE readILDGLine requires a nonempty file stem");
+      
+      ildgPath=path;
+    }
     
     /// Describe this source's identity and time selection
     std::string describe() const
     {
-      return "Source(count="+std::to_string(count)+",tSelect="+
-        std::to_string(tSelect)+")";
+      if(ildgPath)
+        return "readILDGLine(path="+*ildgPath+")";
+      else
+        return "Source(count="+std::to_string(count)+",tSelect="+
+          std::to_string(tSelect)+")";
     }
     
     /// Compare source identities and time selections

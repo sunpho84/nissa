@@ -3,6 +3,7 @@
 #include "base/debug.hpp"
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
 #include "inverters/twisted_mass/cg_invert_tmD_eoprec.hpp"
+#include "io/reader.hpp"
 #include "linalgs/reduce.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/su3_op.hpp"
@@ -12,6 +13,8 @@
 
 #include <cmath>
 #include <cstdint>
+#include <filesystem>
+#include <format>
 #include <span>
 #include <vector>
 
@@ -44,6 +47,37 @@ namespace nissa::nice
         }
       
       return coordinates;
+    }
+    
+    /// Load every outer block using IB's hit, copy, and dilution naming convention
+    void readILDGSource(LineValue& line,
+                        const std::string& path,
+                        const size_t iHit)
+    {
+      const std::filesystem::path stem(path);
+      
+      if(stem.filename().empty())
+        CRASH("NICE readILDGLine requires a file stem after the directory");
+      
+      for(size_t iCopy=0;iCopy<line.nCopies;iCopy++)
+        for(size_t iSpin=0;iSpin<(line.diluteSpin?NDIRAC:1);iSpin++)
+          for(size_t iColor=0;iColor<(line.diluteColor?NCOL:1);iColor++)
+            {
+              std::string name=std::format("hit{}_{}",iHit,stem.filename().string());
+              
+              if(line.nCopies>1)
+                name+=std::format("_copy{}",iCopy);
+              
+              name+=std::format("_idso{}_icso{}",iSpin,iColor);
+              const std::string slotPath=(stem.parent_path()/name).string();
+              const auto coordinates=outerCoordinates(line,iCopy,iSpin,iColor);
+              auto field=line.field.template shadow<spincolor,
+                defaultSpaceTimeLayout,defaultMemorySpace>(
+                  "NICE ILDG source",std::span<const size_t>{coordinates});
+              MASTER_PRINTF("NICE: reading line slot '%s'\n",slotPath.c_str());
+              read_real_vector(field,slotPath,"scidac-binary-data");
+              set_borders_invalid(field);
+            }
     }
     
     /// Fill a source column with a point source at this hit's shared origin
@@ -500,10 +534,14 @@ namespace nissa::nice
                   iHit,origin[0],origin[1],origin[2],origin[3]);
     
     return TaskHandlers{
-      .source=[&options,origin](const Source& source)
+      .source=[&options,origin,iHit](const Source& source)
       {
         LineValue line(options);
-        fillPointSource(line,source,origin);
+        
+        if(source.ildgPath)
+          readILDGSource(line,*source.ildgPath,iHit);
+        else
+          fillPointSource(line,source,origin);
 	
         return line;
       },

@@ -18,6 +18,7 @@
 #include "base/init.hpp"
 #include "base/close.hpp"
 #include "io/writer.hpp"
+#include "linalgs/reduce.hpp"
 #include "operations/gaugeconf.hpp"
 #include "operations/su3_paths/plaquette.hpp"
 
@@ -25,6 +26,7 @@
 #include <cassert>
 #include <complex>
 #include <filesystem>
+#include <format>
 #include <cstdio>
 #include <unistd.h>
 #include <iostream>
@@ -2244,6 +2246,143 @@ void validateRngExecution()
     }
 }
 
+/// Check IB imports across dilution, copy, and hit slots, or the supplied sample fields
+void validateILDGLineExecution(const bool sample=false)
+{
+  using namespace nissa;
+  
+  std::string directory;
+  
+  if(sample)
+    directory="projects/nice/examples/out";
+  else
+    {
+      if(is_master_rank())
+        {
+          char temporary[]{"/tmp/nice-ildg-line-XXXXXX"};
+          assert(mkdtemp(temporary)!=nullptr);
+          directory=temporary;
+        }
+      
+      broadcast(directory);
+    }
+  
+  // Distinct values in each coordinate expose hit, copy, dilution, and layout mistakes
+  const auto expected=[](const size_t hit,
+                          const size_t copy,
+                          const size_t spin,
+                          const size_t color,
+                          const int64_t site,
+                          const int degree)
+  {
+    return static_cast<double>(1000000*hit+100000*copy+10000*spin+1000*color+
+                               24*glblxOfLoclx[site]+degree);
+  };
+  
+  for(int shape=0;shape<(sample?1:4);shape++)
+    {
+      const bool spin=sample or (shape&1);
+      const bool color=sample or (shape&2);
+      const int copies=sample?1:(shape%2+1);
+      const int hits=sample?1:2;
+      const std::string stem=sample?"sourceSOURCE":"sourceTEST";
+      const auto program=prepareProgram({{ProgramPart::Kind::Immediate,
+        std::format("setGeometry({},{}); setRun(7,{},{}); setDilution({},{}); "
+                    "setOrigin(0,0,0,0); src=readILDGLine(\"{}/{}\"); "
+                    "corrBlock(\"import\"); corrGammas(\"import\",5,5); "
+                    "corrTrace(\"import\",src,src);",
+                    glbSize[1],glbSize[0],hits,copies,int(spin),int(color),directory,stem),1}});
+      const auto& source=std::get<Source>(program.correlations.instructions.front().operation);
+      assert(source.ildgPath and source.tSelect==-1);
+      const auto layout=prepareRngLayout(program.options,program.correlations,program.gaugeRecipes);
+      assert(layout.origin.doubleDrawCost==0);
+      const Sitmo::Rng rng(7);
+      
+      for(size_t hit=0;hit<static_cast<size_t>(hits);hit++)
+        {
+          // Write portable SciDAC fixtures through the same library interface used by IB
+          if(not sample)
+            for(size_t copy=0;copy<static_cast<size_t>(copies);copy++)
+              for(size_t s=0;s<(spin?NDIRAC:1);s++)
+                for(size_t c=0;c<(color?NCOL:1);c++)
+                  {
+                    LxField<spincolor> field("ILDG test input",WITHOUT_HALO);
+                    PAR(0,locVol,
+                        CAPTURE(hit,copy,s,c,TO_WRITE(field)),
+                        site,
+                        {
+                          for(int degree=0;degree<24;degree++)
+                            field(site,degree)=1000000*hit+100000*copy+10000*s+1000*c+
+                              24*glblxOfLoclx[site]+degree;
+                        });
+                    const std::string suffix=copies>1?"_copy"+std::to_string(copy):"";
+                    const std::string path=directory+"/hit"+std::to_string(hit)+"_"+stem+suffix+
+                      "_idso"+std::to_string(s)+"_icso"+std::to_string(c);
+                    write_real_vector(path,field,"scidac-binary-data");
+                  }
+          
+          const auto handlers=makeNissaTaskHandlers(program.options,program.gaugeRecipes,rng,layout,0,hit);
+          const LineValue line=handlers.source(source);
+          assert(line.nCopies==static_cast<size_t>(copies));
+          assert(line.diluteSpin==spin and line.diluteColor==color);
+          
+          for(size_t copy=0;copy<line.nCopies;copy++)
+            for(size_t s=0;s<(spin?NDIRAC:1);s++)
+              for(size_t c=0;c<(color?NCOL:1);c++)
+                {
+                  std::vector<size_t> coordinates;
+                  
+                  if(spin)
+                    coordinates.push_back(s);
+                  
+                  coordinates.push_back(copy);
+                  
+                  if(color)
+                    coordinates.push_back(c);
+                  
+                  auto shadow=line.field.shadow<spincolor,defaultSpaceTimeLayout,defaultMemorySpace>(
+                    "ILDG test output",coordinates);
+                  const auto host=shadow.getSurelyReadableOn<MemorySpace::CPU>();
+                  double sum=0;
+                  double norm=0;
+                  
+                  for(int64_t site=0;site<locVol;site++)
+                    for(int degree=0;degree<24;degree++)
+                      {
+                        const double value=host(site,degree);
+                        
+                        if(sample)
+                          {
+                            if(glbCoordOfLoclx[site][0]==7 and degree==int(2*(s*NCOL+c)))
+                              assert(value==1.0 or value==-1.0);
+                            else
+                              assert(value==0.0);
+                            
+                            sum+=value;
+                            norm+=value*value;
+                          }
+                        else
+                          assert(value==expected(hit,copy,s,c,site,degree));
+                      }
+                  
+                  if(sample)
+                    {
+                      non_loc_reduce(&sum);
+                      non_loc_reduce(&norm);
+                      assert(sum==2.0 and norm==64.0);
+                    }
+                }
+        }
+    }
+  
+  if(not sample and is_master_rank())
+    {
+      std::error_code error;
+      std::filesystem::remove_all(directory,error);
+      assert(not error);
+    }
+}
+
 /// Check that a parsed script drives the scheduled source, extensions, and trace for each hit
 void validatePreparedExecution()
 {
@@ -2553,7 +2692,18 @@ int main(int narg,
       nissa::initNissa(narg,arg);
       nissa::initGrid(4,4);
       validateRngExecution();
+      validateILDGLineExecution();
       validatePreparedExecution();
+      nissa::closeNissa();
+      
+      return 0;
+    }
+  
+  if(narg>1 and std::string_view(arg[1])=="ildg-line-sample")
+    {
+      nissa::initNissa(narg,arg);
+      nissa::initGrid(8,4);
+      validateILDGLineExecution(true);
       nissa::closeNissa();
       
       return 0;

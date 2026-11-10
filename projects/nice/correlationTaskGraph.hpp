@@ -130,6 +130,9 @@ namespace nissa::nice
 	      
 	      if(source->tSelect< -1)
 		CRASH("source task %zu has an invalid time selection",i);
+	      
+	      if(source->ildgPath and (source->ildgPath->empty() or source->tSelect!=-1))
+		CRASH("ILDG source task %zu requires a nonempty file stem and no source time selection",i);
 	    }
 	  else if(const auto* extension=
 		  std::get_if<ExtendSelectingTPars>(&task.operation))

@@ -353,6 +353,12 @@ namespace nissa::nice
       registerHObjectType<Line>(evaluator,"Line");
     useDescription<Line>(lineInfo);
     
+    registerHostFunction(evaluator,"readILDGLine",{"path"},
+                         [lineInfo](const std::string& path)
+    {
+      return HObject{lineInfo,Line{Source{path}}};
+    });
+    
     registerArithmeticOperators<int,double,SpatMomentum,Smear,Phase,
                                  Gamma,DeltaT,Prop,Oper,Source,Line>(evaluator);
   }

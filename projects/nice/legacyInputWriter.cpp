@@ -237,6 +237,9 @@ namespace nissa::nice
       {
         if(const auto* source=std::get_if<Source>(&task.operation))
           {
+            if(source->ildgPath)
+              CRASH("legacy writer cannot represent a readILDGLine source");
+            
             sources.add({names[task.id],"Z4",std::to_string(source->tSelect),"0"});
             ++sourceCount;
           }
