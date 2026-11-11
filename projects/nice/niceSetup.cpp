@@ -326,7 +326,7 @@ namespace nissa::nice
       using Self=Prop;
       parameter.template operator()<Self>("Prop",
         std::make_tuple(MEMB(kappa),MEMB(mass),MEMB(r),MEMB(charge),
-                        HMEMB(mom,momentumInfo),MEMB(residue),MEMB(gaugeRecipe)));
+                        HMEMB(mom,momentumInfo),MEMB(residue),MEMB(gaugeRecipe),MEMB(csw)));
     }
     {
       using Self=Smear;
@@ -446,6 +446,8 @@ namespace nissa::nice
     
     REGISTER_DEFAULT_SETTER(Prop,Kappa,kappa,double);
     REGISTER_DEFAULT_SETTER(Prop,Mass,mass,double);
+    REGISTER_DEFAULT_SETTER(Prop,Csw,csw,double,
+      Prop{.r=1,.csw=csw}.validate(););
     REGISTER_DEFAULT_SETTER(Smear,Kappa,kappa,double);
     REGISTER_DEFAULT_SETTER(Smear,N,n,int,
       Smear{.n=static_cast<double>(n)}.validate(););

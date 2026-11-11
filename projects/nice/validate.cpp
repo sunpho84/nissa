@@ -14,6 +14,9 @@
 #include "runOptions.hpp"
 #include "nASTy.hpp"
 #include "new_types/dirac.hpp"
+#include "base/multiGridParams.hpp"
+#include "dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp"
+#include "operations/su3_paths/clover_term.hpp"
 #include "routines/mpi_routines.hpp"
 #include "base/init.hpp"
 #include "base/close.hpp"
@@ -593,6 +596,7 @@ void validateLegacyWriter(int argc,char** argv)
   
   // Captured from prepareInput's Run printers for the same request
   const std::string expected=
+    "CloverRun 0\n\n"
     "NSources 1\n"
     "Name     NoiseType  Tins  Store  \n"
     "SOURCE0  Z4         0     0      \n"
@@ -614,6 +618,27 @@ void validateLegacyWriter(int argc,char** argv)
     "\n";
   assert(result==expected);
   assert(result==writeLegacyInput(compiled));
+  
+  Correlations cloverRequests;
+  cloverRequests.addBlock("clover").addTrace(
+    Prop{.r=1,.csw=1.25}*source,Prop{.mass=0.2,.r=-1,.csw=1.25}*source);
+  auto cloverCompiled=scheduleCorrelations(buildTaskGraph(cloverRequests));
+  assert(writeLegacyInput(cloverCompiled).starts_with("CloverRun 1\ncSW 1.25\n\n"));
+  
+  if(argc>1 and std::string_view(argv[1])=="legacy-mixed-csw")
+    {
+      std::get<Prop>(std::get<ExtendSelectingTPars>(cloverCompiled.instructions[2].operation).pars).csw=0.5;
+      writeLegacyInput(cloverCompiled);
+      errorEmitter("mixed clover coefficients were unexpectedly serialized");
+    }
+  
+  if(argc>1 and std::string_view(argv[1])=="legacy-nonfinite-csw")
+    {
+      std::get<Prop>(std::get<ExtendSelectingTPars>(cloverCompiled.instructions[1].operation).pars).csw=
+        std::numeric_limits<double>::infinity();
+      writeLegacyInput(cloverCompiled);
+      errorEmitter("nonfinite clover coefficient was unexpectedly serialized");
+    }
   
   const Line weighted(Pars(Gamma{.iGamma=1}),
                       {{2.0,backward},{-0.5,forward}});
@@ -854,6 +879,21 @@ void validateScriptBindings(int argc,
   assert(observedSmears[4].kappa==0.5 and observedSmears[4].n==30);
   assert(observedSmears[5]==observedSmears[0]);
   assert(Prop{}.r==0);
+  
+  const auto cloverTree=createParseTree(parser,R"(
+    setDefaultPropCsw(1.75);
+    firstClover=Prop(.r=1);
+    recordProp(firstClover);
+    recordProp(Prop(.r=1,.csw=0.5));
+    setDefaultPropCsw(0.0);
+    recordProp(firstClover);
+  )");
+  const auto cloverAst=defaultsExecutor.execParseTree(cloverTree);
+  std::visit(evaluator,*cloverAst);
+  assert(observedProps.size()==12);
+  assert(observedProps[9].csw==1.75 and observedProps[10].csw==0.5);
+  assert(observedProps[11].csw==1.75 and Prop{}.csw==0.0);
+  assert(observedProps[9].dag().csw==1.75);
   
   const auto tree=
     createParseTree(parser,R"(
@@ -2246,6 +2286,124 @@ void validateRngExecution()
     }
 }
 
+/// Recover a known physical-basis solution with both Wilson signs and a nonzero clover term
+void validatePhysicalPropagator()
+{
+  using namespace nissa;
+  
+  const int savedMultigrid=multiGrid::use_multiGrid;
+  multiGrid::use_multiGrid=0;
+  RunOptions options{.L=4,.T=4};
+  options.drawGlobalOriginTask.enabled=false;
+  RngLayout layout(options);
+  layout.origin=layout.addOperation(RngScope::Hit,0);
+  GaugeRecipes recipes;
+  recipes.push_back({std::make_unique<GaugeField>("propagator test gauge",WITH_HALO_EDGES),{}, {}});
+  auto& gauge=*recipes[0].field;
+  
+  // Coordinate-dependent diagonal SU(3) links produce a genuinely nonzero clover field
+  PAR(0,locVol,
+      CAPTURE(TO_WRITE(gauge)),
+      site,
+      {
+        quad_su3 value{};
+        
+        for(int mu=0;mu<NDIM;mu++)
+          {
+            const double angle=0.13*(mu+1)*(1+glbCoordOfLoclx[site][(mu+1)%NDIM]);
+            value[mu][0][0][RE]=cos(angle);
+            value[mu][0][0][IM]=sin(angle);
+            value[mu][1][1][RE]=cos(angle);
+            value[mu][1][1][IM]=-sin(angle);
+            value[mu][2][2][RE]=1;
+          }
+        
+        quad_su3_copy(gauge[site],value);
+      });
+  set_borders_invalid(gauge);
+  LxField<spincolor> known("known physical solution",WITH_HALO);
+  PAR(0,locVol,
+      CAPTURE(TO_WRITE(known)),
+      site,
+      {
+        for(int degree=0;degree<NDIRAC*NCOL*2;degree++)
+          known(site,degree)=sin(0.01*(glblxOfLoclx[site]+1)*(degree+1));
+      });
+  set_borders_invalid(known);
+  const double knownNorm=known.norm2();
+  const AnisDopPars anis{false,1.0,false};
+  const auto handlers=makeNissaTaskHandlers(options,recipes,Sitmo::Rng(7),layout,0,0);
+  
+  for(const int r : {-1,1})
+    for(const double csw : {0.0,1.2})
+      {
+        const Prop prop{.kappa=0.11,.mass=0.17,.r=r,.residue=1e-20,.csw=csw};
+        LxField<spincolor> twisted("known twisted solution",WITH_HALO);
+        
+        // Construct R^dagger=(1-i*r*gamma5)/sqrt(2) directly, independently of Pplus/Pminus
+        PAR(0,locVol,
+            CAPTURE(r,TO_READ(known),TO_WRITE(twisted)),
+            site,
+            {
+              for(int s=0;s<NDIRAC;s++)
+                for(int c=0;c<NCOL;c++)
+                  {
+                    const double sign=r*base_gamma[5].entr[s][RE];
+                    twisted[site][s][c][RE]=(known[site][s][c][RE]+sign*known[site][s][c][IM])/sqrt(2.0);
+                    twisted[site][s][c][IM]=(known[site][s][c][IM]-sign*known[site][s][c][RE])/sqrt(2.0);
+                  }
+            });
+        set_borders_invalid(twisted);
+        LxField<spincolor> qSource("Q on known solution",WITH_HALO);
+        
+        if(csw==0.0)
+          apply_tmQ(qSource,gauge,prop.kappa,anis,r*prop.mass,twisted);
+        else
+          {
+            LxField<clover_term_t> clover("nonzero test clover");
+            clover_term(clover,csw,gauge);
+            assert(clover.norm2()>1e-12);
+            apply_tmclovQ(qSource,gauge,prop.kappa,anis,clover,r*prop.mass,twisted);
+          }
+        
+        LxField<spincolor> physicalSource("known physical source",WITH_HALO);
+        
+        // The physical operator is R^dagger*gamma5*Q*R^dagger
+        PAR(0,locVol,
+            CAPTURE(r,TO_READ(qSource),TO_WRITE(physicalSource)),
+            site,
+            {
+              for(int s=0;s<NDIRAC;s++)
+                for(int c=0;c<NCOL;c++)
+                  {
+                    const double g5=base_gamma[5].entr[s][RE];
+                    const double re=g5*qSource[site][s][c][RE];
+                    const double im=g5*qSource[site][s][c][IM];
+                    physicalSource[site][s][c][RE]=(re+r*g5*im)/sqrt(2.0);
+                    physicalSource[site][s][c][IM]=(im-r*g5*re)/sqrt(2.0);
+                  }
+            });
+        set_borders_invalid(physicalSource);
+        LineValue input(options);
+        auto source=input.field.shadow<spincolor,defaultSpaceTimeLayout,defaultMemorySpace>(
+          "physical input block",std::vector<size_t>{0});
+        source=physicalSource;
+        const std::array<WeightedLineInput,1> inputs{{{1.0,&input}}};
+        const LineValue result=handlers.extend(ExtendSelectingTPars{Pars(prop)},inputs);
+        auto solution=result.field.shadow<spincolor,defaultSpaceTimeLayout,defaultMemorySpace>(
+          "physical output block",std::vector<size_t>{0});
+        LxField<spincolor> difference("physical solution error",WITHOUT_HALO);
+        difference=solution;
+        difference-=known;
+        assert(difference.norm2()/knownNorm<1e-12);
+        difference=source;
+        difference-=physicalSource;
+        assert(difference.norm2()==0.0);
+      }
+  
+  multiGrid::use_multiGrid=savedMultigrid;
+}
+
 /// Check IB imports across dilution, copy, and hit slots, or the supplied sample fields
 void validateILDGLineExecution(const bool sample=false)
 {
@@ -2692,6 +2850,7 @@ int main(int narg,
       nissa::initNissa(narg,arg);
       nissa::initGrid(4,4);
       validateRngExecution();
+      validatePhysicalPropagator();
       validateILDGLineExecution();
       validatePreparedExecution();
       nissa::closeNissa();
@@ -2721,6 +2880,9 @@ int main(int narg,
   nissa::init_MPI_thread(narg,arg);
   nissa::get_MPI_nranks();
   nissa::get_MPI_rank();
+  
+  // Completing an empty exchange is valid, including when a single rank has no halo traffic
+  nissa::waitAsyncCommsFinish({});
   
   if(narg>1 and std::string_view(arg[1])=="tensor-invalid-spin-extent")
     TensorDescriptor{ScalarKind::Real,

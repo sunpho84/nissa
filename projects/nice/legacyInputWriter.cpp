@@ -4,6 +4,7 @@
 #include <array>
 #include <cctype>
 #include <format>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <string>
@@ -186,6 +187,19 @@ namespace nissa::nice
   {
     compiled.validate();
     
+    // IB has one run-wide clover coefficient, so every inversion must agree
+    std::optional<double> csw;
+    
+    for(const Task& task : compiled.instructions)
+      if(const auto* extension=std::get_if<ExtendSelectingTPars>(&task.operation))
+        if(const auto* prop=std::get_if<Prop>(&extension->pars))
+          {
+            if(csw and *csw!=prop->csw)
+              CRASH("legacy writer requires the same csw for every propagator");
+            
+            csw=prop->csw;
+          }
+    
     std::set<std::string> reserved;
     for(const Task& task : compiled.instructions)
       for(const std::string& label : task.labels)
@@ -252,6 +266,12 @@ namespace nissa::nice
       }
     
     std::ostringstream out;
+    out<<"CloverRun "<<(csw.value_or(0.0)!=0.0?1:0)<<'\n';
+    
+    if(csw.value_or(0.0)!=0.0)
+      out<<"cSW "<<std::format("{}",*csw)<<'\n';
+    
+    out<<'\n';
     out<<"NSources "<<sourceCount<<'\n'<<sources.print()<<'\n';
     out<<"NProps "<<lineCount<<"\n\n"<<lines.print()<<'\n';
     out<<"NMes2PtsContrBlocks  "<<compiled.outputs.size()<<"\n\n";

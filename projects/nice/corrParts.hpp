@@ -246,11 +246,17 @@ namespace nissa::nice
     /// Recipe producing the gauge field for inversion; zero selects the first recipe
     std::size_t gaugeRecipe{defaults.gaugeRecipe};
     
-    /// Require an explicitly selected Wilson sign
+    /// Clover coefficient for this inversion; zero disables the clover term
+    double csw{defaults.csw};
+    
+    /// Require an explicitly selected Wilson sign and finite clover coefficient
     void validate() const
     {
       if(r!=-1 and r!=1)
         CRASH("invalid Wilson sign %d: expected -1 or +1",r);
+      
+      if(not std::isfinite(csw))
+        CRASH("invalid clover coefficient %g: expected a finite value",csw);
     }
     
     /// Conjugation reverses r and momentum; r must be +1 or -1
@@ -274,7 +280,7 @@ namespace nissa::nice
       std::ostringstream out;
       out<<"Prop(kappa="<<kappa<<",mass="<<mass<<",r="<<r
          <<",charge="<<charge<<",mom="<<mom<<",residue="<<residue
-         <<",gaugeRecipe="<<gaugeRecipe<<")";
+         <<",gaugeRecipe="<<gaugeRecipe<<",csw="<<csw<<")";
       
       return out.str();
     }
@@ -291,7 +297,8 @@ namespace nissa::nice
     .charge=0.0,
     .mom={},
     .residue=0.0,
-    .gaugeRecipe=0};
+    .gaugeRecipe=0,
+    .csw=0.0};
   
   /// Parameter alternatives accepted by an operator or line extender
   using Pars=
