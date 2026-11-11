@@ -3,6 +3,7 @@
 #include "base/debug.hpp"
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
 #include "inverters/twisted_mass/cg_invert_tmD_eoprec.hpp"
+#include "inverters/twisted_clover/cg_invert_tmclovD_eoprec.hpp"
 #include "io/reader.hpp"
 #include "linalgs/reduce.hpp"
 #include "new_types/dirac.hpp"
@@ -240,19 +241,51 @@ namespace nissa::nice
             }
     }
     
-    /// Apply a propagator to every outer component of an input line
+    /// Solve in the library's twisted basis while exposing physical-basis fields to NICE
+    void solvePhysicalPropagator(LxField<spincolor>& solution,
+                                 const LxField<spincolor>& source,
+                                 const GaugeField& gauge,
+                                 const Prop& prop)
+    {
+      const dirac_matr rotation=prop.r==1?Pplus:Pminus;
+      LxField<spincolor> rotatedSource("NICE twisted-basis source",WITH_HALO);
+      
+      PAR(0,locVol,
+          CAPTURE(rotation,TO_READ(source),TO_WRITE(rotatedSource)),
+          site,
+          {
+            safe_dirac_prod_spincolor(rotatedSource[site],rotation,source[site]);
+          });
+      set_borders_invalid(rotatedSource);
+      
+      const AnisDopPars anis{false,1.0,false};
+      // Use IB's solver tolerance when the NICE residue default is unset
+      const double residue=prop.residue==0.0?1e-16:prop.residue;
+      const double twistedMass=prop.r*prop.mass;
+      
+      if(prop.csw==0.0)
+        inv_tmD_cg_eoprec(solution,std::nullopt,gauge,prop.kappa,
+                          anis,twistedMass,1000000,residue,rotatedSource);
+      else
+        inv_tmclovD_cg_eoprec(solution,std::nullopt,gauge,prop.kappa,
+                              anis,prop.csw,twistedMass,1000000,residue,rotatedSource);
+      
+      PAR(0,locVol,
+          CAPTURE(rotation,TO_WRITE(solution)),
+          site,
+          {
+            safe_dirac_prod_spincolor(solution[site],rotation,solution[site]);
+          });
+      set_borders_invalid(solution);
+    }
+    
+    /// Apply a physical-basis propagator to every outer component of an input line
     void applyPropagator(LineValue& output,
                          const LineValue& input,
                          const GaugeRecipes& gaugeRecipes,
                          const Prop& prop)
     {
       prop.validate();
-      
-      if(prop.r!=-1 and prop.r!=1)
-        CRASH("NICE propagator requires r=-1 or r=+1");
-      
-      if(prop.r==-1)
-        CRASH("NICE propagator execution currently supports r=+1 only");
       
       if(prop.charge!=0.0 or prop.mom!=SpatMomentum{})
         CRASH("NICE propagator execution does not yet support charge or momentum");
@@ -261,9 +294,6 @@ namespace nissa::nice
         CRASH("NICE propagator residue must be finite and nonnegative");
       
       const GaugeField& gauge=gaugeField(gaugeRecipes,prop.gaugeRecipe);
-      const AnisDopPars anis{false,1.0,false};
-      // Use IB's solver tolerance when the NICE residue default is unset
-      const double residue=prop.residue==0.0?1e-16:prop.residue;
       
       for(size_t iCopy=0;iCopy<input.nCopies;iCopy++)
         for(size_t iSpin=0;iSpin<(input.diluteSpin?NDIRAC:1);iSpin++)
@@ -278,8 +308,7 @@ namespace nissa::nice
                 defaultSpaceTimeLayout,defaultMemorySpace>(
                   "NICE inversion result",std::span<const size_t>{coordinates});
 	      
-              inv_tmD_cg_eoprec(solution,std::nullopt,gauge,prop.kappa,
-                                anis,prop.mass,1000000,residue,source);
+              solvePhysicalPropagator(solution,source,gauge,prop);
             }
     }
     
