@@ -37,7 +37,8 @@ namespace nissa
   
   /// Keep track of the exported conf
   template <typename T>
-  bool export_gauge_conf_to_external_solver(const T& conf)
+  bool export_gauge_conf_to_external_solver(const T& conf,
+                                           const bool force=false)
   {
     using namespace export_conf;
     
@@ -46,10 +47,16 @@ namespace nissa
     
     //verify if export needed
     bool export_needed=false;
-    if(export_rule==FORCE_EXPORT)
+    if(force or export_rule==FORCE_EXPORT)
       {
 	MASTER_PRINTF("Forcing export of the conf to external library\n");
 	export_needed=true;
+	
+	// Retain the identity actually exported, including after solver reinitialization
+	if(relyOnTag)
+	  confTagOld=confTag;
+	else
+	  check_old=ildgChecksum(conf);
       }
     else
       if(relyOnTag)
@@ -70,11 +77,8 @@ namespace nissa
 	{
 	  MASTER_PRINTF("Relying on checksum to check\n");
 	  
-	  Checksum check_cur{};
-	  
-	  //compute checksum
-	  CRASH("reimplement");
-	  // checksum_compute_nissa_data(check_cur,conf,sizeof(double)*8,sizeof(quad_su3));
+	  const Checksum check_cur=
+	    ildgChecksum(conf);
 	  
 	  for(int i=0;i<2;i++)
 	    {

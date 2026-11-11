@@ -16,6 +16,10 @@
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
 
+#ifdef HAVE_OPENMP
+# include <omp.h>
+#endif
+
 namespace DD
 {
   using nissa::multiGrid::internal::mu_factor;
@@ -23,6 +27,9 @@ namespace DD
   DDalphaAMG_init init_params;
   DDalphaAMG_parameters params;
   bool inited=false;
+  
+  /// Cartesian communicator in NISSA direction order, with unchanged MPI ranks
+  MPI_Comm cartComm=MPI_COMM_NULL;
   
   //remap swapping x and z
   void remap_coord(int* out,const int* in)
@@ -90,9 +97,10 @@ namespace DD
       {
 	MASTER_PRINTF("DD: Not initialized, initializing\n");
 	
-	//communicator and transposers
-	CRASH("reimplement");
-	// init_params.comm_cart=nissa::cart_comm;
+	// Keep NISSA rank ordering while the callbacks transpose directions for DDalphaAMG
+	const nissa::Coords periods{1,1,1,1};
+	MPI_Cart_create(MPI_COMM_WORLD,NDIM,&nissa::nRanksDir[0],&periods[0],0,&cartComm);
+	init_params.comm_cart=cartComm;
 	init_params.Cart_coords=cart_coords;
 	init_params.Cart_rank=cart_rank;
 	init_params.number_of_levels=nissa::multiGrid::nlevels;
@@ -104,20 +112,33 @@ namespace DD
 	//block size and theta
 	for(int dir=0;dir<NDIM;dir++)
 	  {
-	    int jdir=nissa::scidacMapping[dir];
-	    init_params.block_lattice[dir]=
-	      (((nissa::glbSize[jdir]/nissa::nRanksDir[jdir])%2==0)?
-	       (((nissa::glbSize[jdir]/nissa::nRanksDir[jdir])%4==0)?4:2):
-	       (((nissa::glbSize[jdir]/nissa::nRanksDir[jdir])%3==0)?3:1));
+	    const int jdir=nissa::scidacMapping[dir];
+	    const int globalExtent=nissa::glbSize[jdir];
+	    const int localExtent=nissa::locSize[jdir];
+	    
+	    // Aggregation must leave even global extents for the coarse odd/even operator
+	    if(localExtent%4==0 and globalExtent%8==0)
+	      init_params.block_lattice[dir]=4;
+	    else if(localExtent%2==0 and globalExtent%4==0)
+	      init_params.block_lattice[dir]=2;
+	    else if(localExtent%3==0 and globalExtent%6==0)
+	      init_params.block_lattice[dir]=3;
+	    else
+	      init_params.block_lattice[dir]=1;
+	    
 	    if(nissa::multiGrid::block_size_set)
-	      init_params.block_lattice[dir]=nissa::multiGrid::block_size[0][dir];
+	      init_params.block_lattice[dir]=nissa::multiGrid::block_size[0][jdir];
+	    
 	    MASTER_PRINTF("Dir %d block size: %d\n",dir,init_params.block_lattice[dir]);
 	    init_params.theta[dir]=0;
 	  }
 	init_params.bc=0;
 	
 	//set threads
-	//init_params.number_openmp_threads=nissa::nthreads;
+	init_params.number_openmp_threads=1;
+#ifdef HAVE_OPENMP
+	init_params.number_openmp_threads=omp_get_max_threads();
+#endif
 	//values for kappa, mu and csw
 	init_params.kappa=kappa;
 	init_params.mu=mu;
@@ -141,7 +162,7 @@ namespace DD
     if(block_size_set)
       for(int ilev=0;ilev<nlevels;ilev++)
 	for(int idir=0;idir<4;idir++)
-	  params.block_lattice[ilev][idir]=block_size[ilev][idir];
+	  params.block_lattice[ilev][idir]=block_size[ilev][nissa::scidacMapping[idir]];
     
     //overwrite pars in any case
     params.print=1;
@@ -214,14 +235,24 @@ namespace DD
     MASTER_PRINTF("DD: finalizing\n");
     
     DDalphaAMG_finalize();
+    MPI_Comm_free(&cartComm);
     inited=false;
   }
   
   //solve: if squared is asked, solve the odd square (Dkern_squared)
-  int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared)
+  int solve(nissa::spincolor *out,
+            const nissa::LxField<nissa::quad_su3>& conf,
+            double kappa,
+            double cSW,
+            double mu,
+            double precision2,
+            nissa::spincolor *in,
+            const bool squared)
   {
+    const bool needsGaugeExport=
+      not inited or check_kappa_changed(kappa) or check_cSW_changed(cSW);
     initialize(kappa,cSW,mu);
-    nissa::export_gauge_conf_to_external_solver(conf);
+    nissa::export_gauge_conf_to_external_solver(conf,needsGaugeExport);
     update_setup();
     
     //else DDalphaAMG_update_setup(int iterations, DDalphaAMG_status *mg_status)

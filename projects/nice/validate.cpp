@@ -15,6 +15,7 @@
 #include "nASTy.hpp"
 #include "new_types/dirac.hpp"
 #include "base/multiGridParams.hpp"
+#include "base/DDalphaAMG_bridge.hpp"
 #include "dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp"
 #include "operations/su3_paths/clover_term.hpp"
 #include "routines/mpi_routines.hpp"
@@ -2287,12 +2288,12 @@ void validateRngExecution()
 }
 
 /// Recover a known physical-basis solution with both Wilson signs and a nonzero clover term
-void validatePhysicalPropagator()
+void validatePhysicalPropagator(const bool useExternalSolver=false)
 {
   using namespace nissa;
   
   const int savedMultigrid=multiGrid::use_multiGrid;
-  multiGrid::use_multiGrid=0;
+  multiGrid::use_multiGrid=useExternalSolver?1:0;
   RunOptions options{.L=4,.T=4};
   options.drawGlobalOriginTask.enabled=false;
   RngLayout layout(options);
@@ -2335,7 +2336,7 @@ void validatePhysicalPropagator()
   const auto handlers=makeNissaTaskHandlers(options,recipes,Sitmo::Rng(7),layout,0,0);
   
   for(const int r : {-1,1})
-    for(const double csw : {0.0,1.2})
+    for(const double csw : (useExternalSolver?std::array{1.2,0.7}:std::array{0.0,1.2}))
       {
         const Prop prop{.kappa=0.11,.mass=0.17,.r=r,.residue=1e-20,.csw=csw};
         LxField<spincolor> twisted("known twisted solution",WITH_HALO);
@@ -2845,6 +2846,21 @@ void validateGaugeExecution()
 int main(int narg,
          char** arg)
 {
+#ifdef USE_DDALPHAAMG
+  if(narg>1 and std::string_view(arg[1])=="dd-propagator-execution")
+    {
+      nissa::initNissa(narg,arg);
+      nissa::initGrid(4,4);
+      
+      // Exercise DDalphaAMG export and reinitialization against a known physical solution
+      validatePhysicalPropagator(true);
+      DD::finalize();
+      nissa::closeNissa();
+      
+      return 0;
+    }
+#endif
+  
   if(narg>1 and std::string_view(arg[1])=="script-execution")
     {
       nissa::initNissa(narg,arg);
