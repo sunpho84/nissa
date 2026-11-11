@@ -62,7 +62,8 @@ namespace nissa
   {
     VERBOSITY_LV3_MASTER_PRINTF("Entering MPI comm wait\n");
     
-    MPI_Waitall(requests.size(),&requests[0],MPI_STATUS_IGNORE);
+    // A single rank can have no pending exchanges; data() also permits this empty range
+    MPI_Waitall(requests.size(),requests.data(),MPI_STATUSES_IGNORE);
   }
   
   /// Communicates the buffers as halo
