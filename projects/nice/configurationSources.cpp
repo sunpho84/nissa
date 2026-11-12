@@ -2,11 +2,10 @@
 
 #include "base/debug.hpp"
 #include "nASTy.hpp"
+#include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 
 #include <filesystem>
-#include <fstream>
-#include <iterator>
 #include <sstream>
 #include <system_error>
 #include <unordered_map>
@@ -111,7 +110,6 @@ namespace nissa::nice
     
     for(const std::string& path : sources.lists)
       {
-        std::string text;
         std::string absolutePath;
         
         if(rank==master_rank)
@@ -123,19 +121,10 @@ namespace nissa::nice
               CRASH("NICE list '%s': cannot resolve path: %s",path.c_str(),error.message().c_str());
             
             absolutePath=resolved.lexically_normal().string();
-            std::ifstream file(absolutePath,std::ios::binary);
-            
-            if(not file)
-              CRASH("NICE list '%s': cannot open file",path.c_str());
-            
-            text.assign(std::istreambuf_iterator<char>(file),std::istreambuf_iterator<char>());
-            
-            if(file.bad())
-              CRASH("NICE list '%s': cannot read file",path.c_str());
           }
         
         broadcast(absolutePath);
-        broadcast(text);
+        const std::string text=readFileBytes(absolutePath,FileReadMode::Collective);
         const auto parsed=parseConfigurationList(text,absolutePath);
         
         for(const auto& entry : parsed)
