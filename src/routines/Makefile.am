@@ -7,5 +7,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 
 include_HEADERS+= \
 	%D%/ios.hpp \
+	%D%/fnv1a64.hpp \
 	%D%/math_routines.hpp \
 	%D%/mpi_routines.hpp
