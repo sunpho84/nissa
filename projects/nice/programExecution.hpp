@@ -24,37 +24,30 @@ namespace nissa::nice
   using TaskHandlerFactory=
     std::function<TaskHandlers(const RunOptions&,const GaugeRecipes&,size_t)>;
   
-  /// Execute every hit of one gauge configuration with the same compiled instructions
-  /// The prepared program must have been validated after its last edit
-  /// Geometry and NISSA must already be initialized on every rank
-  inline ConfigurationResults executePreparedConfiguration(PreparedProgram& program,
-							   const size_t iEntry,
-							   const TaskHandlerFactory& makeHandlers,
-							   const Sitmo::Rng& rng,
-							   const RngLayout& rngLayout,
-							   const uint64_t iGaugeConf)
+  /// Prepare the gauge fields once for all hits of the selected entry
+  inline void prepareConfiguration(PreparedProgram& program,
+                                   const size_t iEntry,
+                                   const Sitmo::Rng& rng,
+                                   const RngLayout& rngLayout,
+                                   const uint64_t iGaugeConf)
   {
     if(iEntry>=program.configurationEntries.size())
       CRASH("NICE gauge configuration entry %zu is out of range",iEntry);
-    
-    if(not makeHandlers)
-      CRASH("NICE gauge configuration execution requires a task handler factory");
     
     if(not lxGeomInited or glbSize[0]!=program.options.T or
        glbSize[1]!=program.options.L or glbSize[2]!=program.options.L or
        glbSize[3]!=program.options.L)
       CRASH("NICE gauge configuration execution requires the configured geometry");
     
-    const ConfigurationEntry& entry=program.configurationEntries[iEntry];
-    prepareGaugeFields(program.gaugeRecipes,entry,rng,rngLayout,
-                       iGaugeConf);
+    prepareGaugeFields(program.gaugeRecipes,program.configurationEntries[iEntry],
+                       rng,rngLayout,iGaugeConf);
     
     if(not program.correlations.instructions.empty() and
        program.options.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic)
       {
         Momentum theta{};
         theta[0]=1.0;
-	
+        
         for(GaugeRecipe& recipe : program.gaugeRecipes)
           put_boundaries_conditions(*recipe.field,theta);
       }
