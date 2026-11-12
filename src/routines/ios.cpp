@@ -199,6 +199,43 @@ namespace nissa
   FILE* open_text_file_for_output(const std::string& outfile)
   {return open_file(outfile,"w");}
   
+  std::string readFileBytes(const std::string& path,
+                            const FileReadMode mode)
+  {
+    if(mode!=FileReadMode::Collective and
+       mode!=FileReadMode::MasterOnly and
+       mode!=FileReadMode::Independent)
+      CRASH("Unknown file read mode for '%s'",path.c_str());
+    
+    std::string bytes;
+    
+    if(mode==FileReadMode::Independent or is_master_rank())
+      {
+        std::ifstream file(path,std::ios::binary);
+	
+        if(not file)
+          CRASH("Cannot open binary file '%s'",path.c_str());
+        
+        char buffer[65536];
+        while(file.read(buffer,sizeof(buffer)) or file.gcount()!=0)
+          {
+            const size_t count=static_cast<size_t>(file.gcount());
+            if(count>bytes.max_size()-bytes.size())
+              CRASH("Binary file '%s' is too large",path.c_str());
+	    
+            bytes.append(buffer,count);
+          }
+	
+        if(not file.eof() or file.bad())
+          CRASH("Cannot read binary file '%s'",path.c_str());
+      }
+    
+    if(mode==FileReadMode::Collective)
+      broadcast(bytes);
+    
+    return bytes;
+  }
+  
   //Open a text file for input
   FILE* open_text_file_for_input(const std::string& infile)
   {return open_file(infile,"r");}

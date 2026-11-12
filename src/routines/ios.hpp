@@ -73,6 +73,25 @@ namespace nissa
   int count_substrings(const char *str,const char *sub);
   FILE* open_file(const std::string& path,const char *mode,int ext_rank=master_rank);
   FILE* open_text_file_for_output(const std::string& path);
+  
+  /// Select which ranks read a binary file and whether the master broadcasts it
+  enum struct FileReadMode
+  {
+    /// Master reads and broadcasts the bytes to every rank
+    Collective,
+    
+    /// Master reads while other ranks return an empty string
+    MasterOnly,
+    
+    /// Each rank reads its own path independently
+    Independent
+  };
+  
+  /// Read exact file bytes or crash on I/O failure; collective mode must be called on all ranks
+  /// MasterOnly returns an empty string on other ranks; Independent uses each rank's path
+  std::string readFileBytes(const std::string& path,
+                            const FileReadMode mode);
+  
   int cd(const std::string& path);
   int cp(const std::string& path_out,const std::string& path_in);
   int create_dir(const std::string& path);
