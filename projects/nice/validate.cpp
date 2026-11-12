@@ -1885,6 +1885,19 @@ void validateRunSettings(const int narg,
         execute({{"reserveRngDoublesPerSite(-1);","invalid RNG limit"}});
       else if(mode=="run-invalid-origin")
         execute({{"setRandomOriginEnabled(2);","invalid random origin setting"}});
+      else if(mode=="run-negative-script-seed" or mode=="run-oversized-script-seed")
+        {
+          execute({{mode=="run-negative-script-seed"?
+                     "setGeometry(4,8); setRun(-1,1,1);":
+                     "setGeometry(4,8); setRun(4294967296,1,1);","invalid script seed"}});
+          options.validate();
+        }
+      else if(mode=="script-integer-literal-overflow")
+        execute({{"value=9223372036854775808;","oversized integer literal"}});
+      else if(mode=="script-integer-literal-huge")
+        execute({{"value=999999999999999999999999999999999999;","oversized integer literal"}});
+      else if(mode=="run-wide-hit-count")
+        execute({{"setRun(7,2147483648,1);","oversized host int argument"}});
     }
   
   // Geometry alone inherits Sitmo's seed and no source dilution
@@ -1892,6 +1905,33 @@ void validateRunSettings(const int narg,
   options.validate();
   assert(options.seed==Sitmo::Rng::DEFAULT_SEED());
   assert(options.diluteSpin==false and options.diluteColor==false);
+  
+  // Both integer representations reach the full unsigned Sitmo seed range without truncation
+  for(const int64_t seed : {int64_t{0},int64_t{2147483647},int64_t{2147483648},
+                            int64_t{3472291050},int64_t{4294967295}})
+    {
+      execute({{std::format("setRun(.seed={},.nHits=1,.nCopies=1);",seed),"full-range seed"}});
+      options.validate();
+      assert(options.seed==seed);
+    }
+  
+  // Large literals retain their exact value through ordinary script storage and formatting
+  std::vector<int64_t> wideIntegers;
+  std::string wideText;
+  registerHostFunction(evaluator,"recordWideInteger",{"value"},[&wideIntegers](const int64_t value)
+  {
+    wideIntegers.push_back(value);
+  });
+  registerHostFunction(evaluator,"recordWideText",{"value"},[&wideText](const std::string& value)
+  {
+    wideText=value;
+  });
+  execute({{"largeInteger=9223372036854775807; recordWideInteger(largeInteger); "
+            "recordWideText(to_string(largeInteger)); recordWideInteger(4294967295+1); "
+            "recordWideInteger(seq(2)[2147483648-2147483647]);",
+            "wide script integers"}});
+  assert((wideIntegers==std::vector<int64_t>{std::numeric_limits<int64_t>::max(),4294967296,1}));
+  assert(wideText=="9223372036854775807");
   
   // Earlier incomplete settings can be replaced before validation, with no setup side effects
   execute({{"setGeometry(-1,-2); setRun(-1,0,0); setDilution(0,0);","file defaults"},

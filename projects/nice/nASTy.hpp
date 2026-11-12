@@ -18,6 +18,7 @@
 #include <any>
 #include <array>
 #include <cmath>
+#include <cstdint>
 #include <functional>
 #include <optional>
 #include <tuple>
@@ -200,9 +201,9 @@ inline std::ostream& operator<<(std::ostream& os,
 struct HObjectInfo;
 
 /// Runtime alternatives; monostate represents an uninitialized or absent value
-/// Script numeric values use int and double, with boolean results represented as int
+/// Integers use int or int64_t when larger; boolean results remain int
 using ValueT=
-  std::variant<std::monostate,std::string,int,double,Function,FuncArg,HostFunction,ValueRef,ValuesList,StructDef,Struct,HObject>;
+  std::variant<std::monostate,std::string,int,int64_t,double,Function,FuncArg,HostFunction,ValueRef,ValuesList,StructDef,Struct,HObject>;
 
 /// Concrete C++ value stored in std::any, together with its shared type metadata
 /// Copying copies the value according to its C++ copy semantics; metadata is shared
@@ -286,37 +287,49 @@ struct Value
 /// Recover the actual C++ type T from the given positional host-function argument
 /// Named script arguments have already been placed in their signature positions
 /// T is either a ValueT alternative or the concrete payload of an HObject
-/// Require an exact type match, without copying or performing numeric conversions
-/// The returned reference borrows the argument cell and must not outlive it
+/// Require an exact type match, except int64_t also accepts int by value
+/// Other returned references borrow the argument cells and must not outlive them
 template <typename T>
-const T& hostArgumentTypeConcretizer(const std::vector<std::shared_ptr<Value>>& arguments,
+decltype(auto) hostArgumentTypeConcretizer(const std::vector<std::shared_ptr<Value>>& arguments,
                                     const std::size_t index,
                                     const char* functionName)
 {
   if(index>=arguments.size() or not arguments[index])
     errorEmitter("missing argument ",index," to ",functionName);
   
-  const ValueT& data=
-    arguments[index]->data;
-  const T* value=nullptr;
-  
-  if constexpr(VariantAlternative<T,ValueT>)
-    value=std::get_if<T>(&data);
-  else if(const auto* object=std::get_if<HObject>(&data))
-    value=std::any_cast<T>(&object->data);
-  
-  if(not value)
-    errorEmitter("invalid argument ",index," to ",functionName,
-                 " (expected ",typeid(T).name(),")");
-  
-  return *value;
+  if constexpr(std::is_same_v<T,int64_t>)
+    {
+      const auto value=arguments[index]->tryAs<int64_t,int>();
+      
+      if(not value)
+        errorEmitter("invalid argument ",index," to ",functionName," (expected integer)");
+      
+      return int64_t(*value);
+    }
+  else
+    {
+      const ValueT& data=
+        arguments[index]->data;
+      const T* value=nullptr;
+      
+      if constexpr(VariantAlternative<T,ValueT>)
+        value=std::get_if<T>(&data);
+      else if(const auto* object=std::get_if<HObject>(&data))
+        value=std::any_cast<T>(&object->data);
+      
+      if(not value)
+        errorEmitter("invalid argument ",index," to ",functionName,
+                     " (expected ",typeid(T).name(),")");
+      
+      return *value;
+    }
 }
 
 /// Recover positional arguments as a tuple of their actual C++ types for std::apply
 /// Types follow signature order; every argument is required and extras are rejected
-/// Tuple elements are const references borrowing the argument cells
+/// Tuple elements borrow argument cells, except widened integers which are owned
 template <typename...T>
-std::tuple<const T&...> hostArgumentsTypeConcretizer(const std::vector<std::shared_ptr<Value>>& arguments,
+auto hostArgumentsTypeConcretizer(const std::vector<std::shared_ptr<Value>>& arguments,
                                                    const char* functionName)
 {
   if(arguments.size()>sizeof...(T))
@@ -324,7 +337,8 @@ std::tuple<const T&...> hostArgumentsTypeConcretizer(const std::vector<std::shar
   
   return [&]<std::size_t...I>(std::index_sequence<I...>)
   {
-    return std::tuple<const T&...>{hostArgumentTypeConcretizer<T>(arguments,I,functionName)...};
+    return std::tuple<decltype(hostArgumentTypeConcretizer<T>(arguments,I,functionName))...>{
+      hostArgumentTypeConcretizer<T>(arguments,I,functionName)...};
   }(std::index_sequence_for<T...>{});
 }
 
@@ -1437,9 +1451,9 @@ struct Evaluator
     Value& b=_b.hasRef()?_b.asLhs():*_b.value;
     
     if(ValuesList* vl=std::get_if<ValuesList>(&b.data))
-      if(const int* mi=std::get_if<int>(&s.data))
+      if(const auto mi=s.tryAs<int64_t,int>())
 	{
-	  int i=*mi;
+	  const int64_t i=*mi;
 	  
 	  if(i<0)
 	    errorEmitter("trying to subscribe with negative index ",i);
@@ -1972,7 +1986,7 @@ std::shared_ptr<HObjectInfo> registerHObjectType(Evaluator& ev,
 /// Metadata is shared, but each HObject contains its own copy of T
 /// Returns the metadata needed to register T as a member of another host type
 /// T must support T{} construction and copying into std::any
-/// int, double, bool, size_t, and std::string members use scalar accessors; other members
+/// int, int64_t, double, bool, size_t, and std::string members use scalar accessors; other members
 /// require their own metadata. bool and size_t reads become script integers;
 /// size_t values outside the int range report an error on read
 /// The caller may attach additional functions, such as streamOp, to the result
@@ -2002,7 +2016,7 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
 	
 	/// Types which supports scalar
 	using ScalarMemberTypes=
-	  std::tuple<int,double,bool,size_t,std::string>;
+	  std::tuple<int,int64_t,double,bool,size_t,std::string>;
 	
 	/// Check whether the type is in the list
 	constexpr bool scalar=
