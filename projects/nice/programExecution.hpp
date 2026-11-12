@@ -51,6 +51,54 @@ namespace nissa::nice
         for(GaugeRecipe& recipe : program.gaugeRecipes)
           put_boundaries_conditions(*recipe.field,theta);
       }
+  }
+  
+  /// Execute one hit against the fields prepared for this gauge configuration
+  inline TaskValues executePreparedHit(PreparedProgram& program,
+                                       const TaskHandlerFactory& makeHandlers,
+                                       const size_t iHit)
+  {
+    if(not makeHandlers)
+      CRASH("NICE gauge configuration execution requires a task handler factory");
+    
+    if(iHit>=static_cast<size_t>(program.options.nHits))
+      CRASH("NICE hit %zu exceeds the configured hit count",iHit);
+    
+    const TaskHandlers handlers=
+      makeHandlers(program.options,program.gaugeRecipes,iHit);
+    
+    return executeValidatedTasks(program.correlations,handlers);
+  }
+  
+  /// Execute one hit with NICE's NISSA-backed operation handlers
+  inline TaskValues executePreparedHit(PreparedProgram& program,
+                                       const Sitmo::Rng& rng,
+                                       const RngLayout& rngLayout,
+                                       const size_t iGaugeConf,
+                                       const size_t iHit)
+  {
+    const TaskHandlers handlers=
+      makeNissaTaskHandlers(program.options,program.gaugeRecipes,
+                            rng,rngLayout,iGaugeConf,iHit);
+    
+    return executeValidatedTasks(program.correlations,handlers);
+  }
+  
+  /// Execute every hit of one gauge configuration with the same compiled instructions
+  /// The prepared program must have been validated after its last edit
+  /// Geometry and NISSA must already be initialized on every rank
+  inline ConfigurationResults executePreparedConfiguration(PreparedProgram& program,
+							   const size_t iEntry,
+							   const TaskHandlerFactory& makeHandlers,
+							   const Sitmo::Rng& rng,
+							   const RngLayout& rngLayout,
+							   const uint64_t iGaugeConf)
+  {
+    if(not makeHandlers)
+      CRASH("NICE gauge configuration execution requires a task handler factory");
+    
+    prepareConfiguration(program,iEntry,rng,rngLayout,iGaugeConf);
+    const ConfigurationEntry& entry=program.configurationEntries[iEntry];
     
     ConfigurationResults result{entry,{}};
     
@@ -59,10 +107,7 @@ namespace nissa::nice
         result.hits.reserve(static_cast<size_t>(program.options.nHits));
         
         for(size_t iHit=0;iHit<static_cast<size_t>(program.options.nHits);iHit++)
-          {
-            const TaskHandlers handlers=makeHandlers(program.options,program.gaugeRecipes,iHit);
-            result.hits.push_back(executeValidatedTasks(program.correlations,handlers));
-          }
+	  result.hits.push_back(executePreparedHit(program,makeHandlers,iHit));
       }
     
     clearGaugeFields(program.gaugeRecipes);
