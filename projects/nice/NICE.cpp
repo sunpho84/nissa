@@ -137,8 +137,7 @@ namespace nissa::nice
   }
   
   /// Run prepared gauge recipes, source generation, scheduled operations, and result writing
-  /// Return true when all requested stages complete
-  bool runPreparedProgram(PreparedProgram& program)
+  void runPreparedProgram(PreparedProgram& program)
   {
     program.validate();
     reportPreparedProgram(program);
@@ -152,43 +151,28 @@ namespace nissa::nice
     initGrid(program.options.T,program.options.L);
     
     if(program.configurationEntries.empty())
-      {
-        MASTER_PRINTF("NICE: no gauge configuration entries were supplied; nothing to run\n");
-	
-        return true;
-      }
-    
-    if(not program.correlations.instructions.empty())
-      {
-        for(size_t iEntry=0;iEntry<program.configurationEntries.size();iEntry++)
-          {
-            MASTER_PRINTF("NICE: running gauge configuration %zu/%zu from '%s'\n",
-                          iEntry+1,program.configurationEntries.size(),
-                          program.configurationEntries[iEntry].path.c_str());
-            const ConfigurationResults results=
-              executePreparedConfiguration(program,iEntry,rng,rngLayout,iEntry);
-            writeConfigurationResults(program.options,program.correlations,results);
-          }
-	
-        MASTER_PRINTF("NICE: completed all requested gauge configurations and hits\n");
-	
-        return true;
-      }
+      MASTER_PRINTF("NICE: no gauge configuration entries were supplied; nothing to run\n");
     else
       {
+        const bool hasCorrelations=not program.correlations.instructions.empty();
+        
         for(size_t iEntry=0;iEntry<program.configurationEntries.size();iEntry++)
           {
             const ConfigurationEntry& entry=program.configurationEntries[iEntry];
-            MASTER_PRINTF("NICE: preparing gauge configuration %zu/%zu from '%s'\n",
+            MASTER_PRINTF("NICE: %s gauge configuration %zu/%zu from '%s'\n",
+                          hasCorrelations?"running":"preparing",
                           iEntry+1,program.configurationEntries.size(),entry.path.c_str());
-            prepareGaugeFields(program.gaugeRecipes,entry,rng,rngLayout,
-                               static_cast<uint64_t>(iEntry));
-            clearGaugeFields(program.gaugeRecipes);
+            const ConfigurationResults results=
+              executePreparedConfiguration(program,iEntry,rng,rngLayout,iEntry);
+            
+            if(hasCorrelations)
+              writeConfigurationResults(program.options,program.correlations,results);
           }
-	
-        MASTER_PRINTF("NICE: completed available gauge configuration work; no correlation tasks were requested\n");
-	
-        return true;
+        
+        if(hasCorrelations)
+          MASTER_PRINTF("NICE: completed all requested gauge configurations and hits\n");
+        else
+          MASTER_PRINTF("NICE: completed available gauge configuration work; no correlation tasks were requested\n");
       }
   }
 }
@@ -202,9 +186,9 @@ int main(int narg,
   const nissa::nice::LaunchArgs parts=
     nissa::nice::parseLaunchArgs(narg,arg);
   nissa::nice::PreparedProgram program=nissa::nice::prepareProgram(parts);
-  const bool completed=nissa::nice::runPreparedProgram(program);
+  nissa::nice::runPreparedProgram(program);
   
   nissa::closeNissa();
   
-  return completed?0:1;
+  return 0;
 }

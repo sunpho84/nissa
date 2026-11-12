@@ -49,7 +49,8 @@ namespace nissa::nice
     prepareGaugeFields(program.gaugeRecipes,entry,rng,rngLayout,
                        iGaugeConf);
     
-    if(program.options.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic)
+    if(not program.correlations.instructions.empty() and
+       program.options.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic)
       {
         Momentum theta{};
         theta[0]=1.0;
