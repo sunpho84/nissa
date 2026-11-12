@@ -374,7 +374,7 @@ namespace nissa::nice
       options.T=T;
     });
     registerHostFunction(evaluator,"setRun",{"seed","nHits","nCopies"},
-                         [&options](const int seed,
+                         [&options](const int64_t seed,
                                     const int nHits,
                                     const int nCopies)
     {

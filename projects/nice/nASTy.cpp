@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <charconv>
 
 /// Build the ParsePact parser for the script grammar and its semantic actions
 /// The grammar text has static lifetime because parser data retains string views
@@ -201,7 +202,22 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
 				else
 				  l->list.emplace_back(subNodes[1]);
 				return subNodes[0]);
-  PROVIDE_ACTION_WITH_N_SYMBOLS("convToInt",1,return std::make_shared<ASTNode>(ValueNode{.value{atoi(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data).c_str())}}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("convToInt",1,
+    const std::string& text=unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data);
+    int64_t value{};
+    const auto result=std::from_chars(text.data(),text.data()+text.size(),value);
+    
+    if(result.ec!=std::errc{} or result.ptr!=text.data()+text.size())
+      errorEmitter("integer literal outside int64_t range: ",text);
+    
+    Value literal;
+    
+    if(value<=std::numeric_limits<int>::max())
+      literal=Value{static_cast<int>(value)};
+    else
+      literal=Value{value};
+    
+    return std::make_shared<ASTNode>(ValueNode{.value=literal}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("convToStr",1,return std::make_shared<ASTNode>(ValueNode{.value{unescapeString(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data))}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("convToId",1,return std::make_shared<ASTNode>(IdNode{.name=unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data)}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("convToFloat",1,return std::make_shared<ASTNode>(ValueNode{.value{strtod(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data).c_str(),nullptr)}}));
@@ -488,6 +504,8 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
   {
     if(const int* integer=std::get_if<int>(&value.data))
       return *integer;
+    else if(const int64_t* integer=std::get_if<int64_t>(&value.data))
+      return *integer;
     else if(const double* real=std::get_if<double>(&value.data))
       return *real;
     else
@@ -548,6 +566,8 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
       requireArgCount(args,1,"to_string");
       
       if(const int* integer=std::get_if<int>(&args[0]->data))
+        return {std::to_string(*integer)};
+      else if(const int64_t* integer=std::get_if<int64_t>(&args[0]->data))
         return {std::to_string(*integer)};
       else if(const double* real=std::get_if<double>(&args[0]->data))
         return {std::to_string(*real)};
