@@ -99,6 +99,9 @@ namespace nissa
   void mv(const std::string& path_out,
           const std::string& path_in);
 
+  /// Remove a file on master and synchronize all ranks; a missing file is accepted
+  void removeFile(const std::string& path);
+
   int create_dir(const std::string& path);
   /// Creates a directory and any missing parent directories on the master rank
   int create_directories(const std::string& path);
