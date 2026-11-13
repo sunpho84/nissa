@@ -132,12 +132,14 @@ namespace nissa::nice
       recipe.field.reset();
   }
   
-  /// Clear previous fields and fill each slot for one entry after geometry setup
-  inline void prepareGaugeFields(GaugeRecipes& recipes,
+  /// Fill gauge fields in dependency order, checking a claim after the initial producer
+  /// Return false after releasing the initial field when the claim was lost
+  inline bool prepareGaugeFields(GaugeRecipes& recipes,
                                  const ConfigurationEntry& entry,
                                  const Sitmo::Rng& rng,
                                  const RngLayout& rngLayout,
-                                 const uint64_t iGaugeConf)
+                                 const uint64_t iGaugeConf,
+                                 const std::function<bool()>& checkClaim={})
   {
     validateGaugeRecipes(recipes);
     rngLayout.validate();
@@ -151,7 +153,8 @@ namespace nissa::nice
     // Clear every slot before the first producer, preventing stale inputs from a previous entry
     clearGaugeFields(recipes);
     
-    for(size_t slot=0;slot<recipes.size();slot++)
+    bool claimed=true;
+    for(size_t slot=0;slot<recipes.size() and claimed;slot++)
       {
         auto& recipe=recipes[slot];
         const OperationRngRange range=
@@ -161,7 +164,23 @@ namespace nissa::nice
         
         if(not recipe.field)
           CRASH("NICE gauge recipe %zu returned no field",slot);
+	
+        if(slot==0 and checkClaim)
+          claimed=checkClaim();
       }
+    
+    if(recipes.empty() and checkClaim)
+      claimed=checkClaim();
+    
+    if(not claimed)
+      {
+        MASTER_PRINTF("NICE: ownership claim changed for gauge configuration '%s' in output '%s' %s; skipping remaining gauge preparation\n",
+                      entry.path.c_str(),entry.outputDirectory.c_str(),
+                      recipes.empty()?"before any recipe":"after the initial recipe");
+        clearGaugeFields(recipes);
+      }
+    
+    return claimed;
   }
   
   /// Expose gauge recipe IDs and deferred builders to the script evaluator
