@@ -159,6 +159,29 @@ namespace nissa
     
     return broadcast(rc);
   }
+
+  void mv(const std::string& path_out,
+          const std::string& path_in)
+  {
+    bool failed=false;
+    std::string message;
+
+    if(is_master_rank())
+      {
+        std::error_code error;
+        std::filesystem::rename(path_in,path_out,error);
+        failed=bool(error);
+        if(failed)
+          message=error.message();
+      }
+
+    if(broadcast(failed))
+      {
+        broadcast(message);
+        CRASH("Cannot move '%s' to '%s': %s",
+              path_in.c_str(),path_out.c_str(),message.c_str());
+      }
+  }
   
   //pass to the folder
   int cd(const std::string& path)

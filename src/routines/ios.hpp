@@ -94,6 +94,11 @@ namespace nissa
   
   int cd(const std::string& path);
   int cp(const std::string& path_out,const std::string& path_in);
+
+  /// Rename on master and synchronize all ranks; source and destination must share a filesystem
+  void mv(const std::string& path_out,
+          const std::string& path_in);
+
   int create_dir(const std::string& path);
   /// Creates a directory and any missing parent directories on the master rank
   int create_directories(const std::string& path);
@@ -171,7 +176,7 @@ namespace nissa
     return master_fscan<double>(par,"%lg");
   }
   
-  //create and check lock files
+  // Create and check a persistent ownership tag; callers provide filesystem synchronization
   template <class T=uint64_t>
   class lock_file_t
   {
