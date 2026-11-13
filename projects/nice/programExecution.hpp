@@ -24,12 +24,14 @@ namespace nissa::nice
   using TaskHandlerFactory=
     std::function<TaskHandlers(const RunOptions&,const GaugeRecipes&,size_t)>;
   
-  /// Prepare the gauge fields once for all hits of the selected entry
-  inline void prepareConfiguration(PreparedProgram& program,
+  /// Prepare gauge fields once, allowing a claim check after the initial producer
+  /// Return false without applying boundaries if the claim was lost
+  inline bool prepareConfiguration(PreparedProgram& program,
                                    const size_t iEntry,
                                    const Sitmo::Rng& rng,
                                    const RngLayout& rngLayout,
-                                   const uint64_t iGaugeConf)
+                                   const uint64_t iGaugeConf,
+                                   const std::function<bool()>& checkClaim={})
   {
     if(iEntry>=program.configurationEntries.size())
       CRASH("NICE gauge configuration entry %zu is out of range",iEntry);
@@ -39,10 +41,11 @@ namespace nissa::nice
        glbSize[3]!=program.options.L)
       CRASH("NICE gauge configuration execution requires the configured geometry");
     
-    prepareGaugeFields(program.gaugeRecipes,program.configurationEntries[iEntry],
-                       rng,rngLayout,iGaugeConf);
+    const bool claimed=
+      prepareGaugeFields(program.gaugeRecipes,program.configurationEntries[iEntry],
+                         rng,rngLayout,iGaugeConf,checkClaim);
     
-    if(not program.correlations.instructions.empty() and
+    if(claimed and not program.correlations.instructions.empty() and
        program.options.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic)
       {
         Momentum theta{};
@@ -51,6 +54,8 @@ namespace nissa::nice
         for(GaugeRecipe& recipe : program.gaugeRecipes)
           put_boundaries_conditions(*recipe.field,theta);
       }
+
+    return claimed;
   }
   
   /// Execute one hit against the fields prepared for this gauge configuration

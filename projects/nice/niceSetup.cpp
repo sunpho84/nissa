@@ -8,13 +8,13 @@
 #include "nice.hpp"
 #include "schedulingStrategies.hpp"
 #include "runOptions.hpp"
+#include "routines/fnv1a64.hpp"
+#include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 
 #include <algorithm>
 #include <cstdint>
 #include <format>
-#include <fstream>
-#include <limits>
 #include <utility>
 #include <string>
 #include <string_view>
@@ -139,28 +139,7 @@ namespace nissa::nice
           else
             {
               piece.origin+=std::format(" file '{}'",part.value);
-              std::ifstream file(part.value,std::ios::binary);
-              
-              if(not file)
-                CRASH("NICE %s: cannot open program file",piece.origin.c_str());
-              
-              // Measure the opened file and read directly into its owned string
-              file.seekg(0,std::ios::end);
-              const std::streamoff size=file.tellg();
-              
-              if(size<0)
-                CRASH("NICE %s: cannot read program file size",piece.origin.c_str());
-              
-              if(std::cmp_greater(size,piece.text.max_size()) or
-                 std::cmp_greater(size,std::numeric_limits<std::streamsize>::max()))
-                CRASH("NICE %s: program file is too large",piece.origin.c_str());
-              
-              piece.text.resize(static_cast<std::size_t>(size));
-              file.seekg(0,std::ios::beg);
-              file.read(piece.text.data(),static_cast<std::streamsize>(size));
-              
-              if(not file)
-                CRASH("NICE %s: cannot read program file",piece.origin.c_str());
+              piece.text=readFileBytes(part.value,FileReadMode::MasterOnly);
             }
           
           pieces.push_back(std::move(piece));
@@ -236,6 +215,28 @@ namespace nissa::nice
                             nice.compile(),
                             materializeAndBroadcastConfigurations(configurationSources),
                             std::move(gaugeRecipes)};
+    
+    // Include source text and the entire ordered list: entry indices determine RNG streams
+    uint64_t identity=fnv1a64Offset;
+    const auto addBytes=[&identity](const std::string_view bytes)
+    {
+      identity=fnv1a64Update(identity,bytes);
+      identity=fnv1a64Update(identity,std::string_view{"\xff",1});
+    };
+    
+    for(const ProgramPiece& piece : pieces)
+      {
+        addBytes(piece.origin);
+        addBytes(piece.text);
+      }
+    
+    for(const ConfigurationEntry& entry : program.configurationEntries)
+      {
+        addBytes(entry.path);
+        addBytes(entry.outputDirectory);
+      }
+    
+    program.checkpointIdentity=identity;
     program.validate();
     
     return program;
