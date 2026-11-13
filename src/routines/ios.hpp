@@ -248,6 +248,12 @@ namespace nissa
       //return the comparison
       return (test_tag==tag);
     }
+
+    // Identify the ownership file in diagnostics after try_lock
+    const std::string& lockPath() const
+    {
+      return path;
+    }
   };
   
   //avoid c++ warning
