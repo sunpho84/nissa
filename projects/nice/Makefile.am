@@ -38,6 +38,7 @@ nice_common_sources= \
 
 __top_builddir__bin_NICE_SOURCES= \
 	%D%/NICE.cpp \
+	%D%/checkpoint.hpp \
 	$(nice_common_sources)
 
 __top_builddir__bin_nice_validate_SOURCES= \

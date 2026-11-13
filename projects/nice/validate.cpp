@@ -18,6 +18,7 @@
 #include "base/DDalphaAMG_bridge.hpp"
 #include "dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp"
 #include "operations/su3_paths/clover_term.hpp"
+#include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #include "base/init.hpp"
 #include "base/close.hpp"
@@ -1637,6 +1638,25 @@ void validateProgramPieces(const int narg,
   else
     // Non-master descriptors are deliberately unusable: only master supplies sources
     parts={{ProgramPart::Kind::File,"/dev/null/non-master-must-not-open",99}};
+
+  // Read a file larger than one chunk, with an unusable worker path in collective modes
+  const std::string readPath=nissa::is_master_rank()?path:"/dev/null/non-master-must-not-open";
+  const std::string masterBytes=nissa::readFileBytes(readPath,nissa::FileReadMode::MasterOnly);
+  if(nissa::is_master_rank())
+    assert(masterBytes==fileText);
+  else
+    assert(masterBytes.empty());
+  
+  const std::string sharedBytes=nissa::readFileBytes(readPath,nissa::FileReadMode::Collective);
+  assert(sharedBytes==fileText);
+  
+  const std::string independentPath=nissa::is_master_rank()?path:"/dev/null";
+  const std::string independentBytes=
+    nissa::readFileBytes(independentPath,nissa::FileReadMode::Independent);
+  if(nissa::is_master_rank())
+    assert(independentBytes==fileText);
+  else
+    assert(independentBytes.empty());
   
   const auto pieces=readAndBroadcastProgramPieces(parts);
   
@@ -2874,6 +2894,24 @@ void validateGaugeExecution()
   
   assert(loads==2);
   clearGaugeFields(recipes);
+
+  // A lost claim after loading the first field must skip every dependent recipe
+  const RngLayout rngLayout=
+    prepareRngLayout(prepared.options,prepared.correlations,recipes);
+  bool checkedClaim=false;
+  const bool claimed=
+    prepareGaugeFields(recipes,{path,"lost claim"},Sitmo::Rng(1),
+                       rngLayout,0,
+                       [&]()
+                       {
+                         checkedClaim=true;
+                         assert(recipes[0].field);
+                         for(size_t slot=1;slot<recipes.size();slot++)
+                           assert(not recipes[slot].field);
+
+                         return false;
+                       });
+  assert(not claimed and checkedClaim and loads==3);
   
   for(const auto& recipe : recipes)
     assert(not recipe.field and recipe.produce);
@@ -2939,6 +2977,17 @@ int main(int narg,
   
   // Completing an empty exchange is valid, including when a single rank has no halo traffic
   nissa::waitAsyncCommsFinish({});
+  
+  if(narg>1 and std::string_view(arg[1])=="program-pieces")
+    {
+      validateProgramPieces(narg,arg);
+      
+#ifdef USE_MPI
+      MPI_Finalize();
+#endif
+      
+      return 0;
+    }
   
   if(narg>1 and std::string_view(arg[1])=="tensor-invalid-spin-extent")
     TensorDescriptor{ScalarKind::Real,

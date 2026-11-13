@@ -10,6 +10,8 @@
 #include "graphCompiler.hpp"
 #include "schedulingStrategies.hpp"
 
+#include <cstdint>
+
 namespace nissa::nice
 {
   /// Owned result of program preparation, independent of parser and evaluator lifetimes
@@ -26,7 +28,10 @@ namespace nissa::nice
     
     /// Gauge storage and producers, filled for each selected configuration entry
     GaugeRecipes gaugeRecipes;
-
+    
+    /// Stable fingerprint of the program pieces and ordered configuration list for resume checks
+    uint64_t checkpointIdentity{};
+    
     /// Validate settings, scheduled tasks, and gauge recipe references after edits
     void validate() const
     {
