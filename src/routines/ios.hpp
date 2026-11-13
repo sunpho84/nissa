@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
+#include <system_error>
 #include <vector>
 
 #include "base/debug.hpp"
@@ -94,6 +95,10 @@ namespace nissa
   
   int cd(const std::string& path);
   int cp(const std::string& path_out,const std::string& path_in);
+
+  /// Broadcast a master-only filesystem error and crash on every rank if it occurred
+  void checkCollectiveFileError(const std::error_code& error,
+                                const std::string& context);
 
   /// Rename on master and synchronize all ranks; source and destination must share a filesystem
   void mv(const std::string& path_out,

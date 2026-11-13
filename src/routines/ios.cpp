@@ -159,49 +159,43 @@ namespace nissa
     
     return broadcast(rc);
   }
-
+  
+  void checkCollectiveFileError(const std::error_code& error,
+                                const std::string& context)
+  {
+    const bool failed=broadcast(bool(error));
+    
+    if(failed)
+      {
+        std::string message;
+        if(is_master_rank())
+          message=error.message();
+	
+        broadcast(message);
+        CRASH("%s: %s",context.c_str(),message.c_str());
+      }
+  }
+  
   void mv(const std::string& path_out,
           const std::string& path_in)
   {
-    bool failed=false;
-    std::string message;
-
+    std::error_code error;
+    
     if(is_master_rank())
-      {
-        std::error_code error;
-        std::filesystem::rename(path_in,path_out,error);
-        failed=bool(error);
-        if(failed)
-          message=error.message();
-      }
-
-    if(broadcast(failed))
-      {
-        broadcast(message);
-        CRASH("Cannot move '%s' to '%s': %s",
-              path_in.c_str(),path_out.c_str(),message.c_str());
-      }
+      std::filesystem::rename(path_in,path_out,error);
+    
+    checkCollectiveFileError(error,
+                             "Cannot move '"+path_in+"' to '"+path_out+"'");
   }
-
+  
   void removeFile(const std::string& path)
   {
-    bool failed=false;
-    std::string message;
-
+    std::error_code error;
+    
     if(is_master_rank())
-      {
-        std::error_code error;
-        std::filesystem::remove(path,error);
-        failed=bool(error);
-        if(failed)
-          message=error.message();
-      }
-
-    if(broadcast(failed))
-      {
-        broadcast(message);
-        CRASH("Cannot remove '%s': %s",path.c_str(),message.c_str());
-      }
+      std::filesystem::remove(path,error);
+    
+    checkCollectiveFileError(error,"Cannot remove '"+path+"'");
   }
   
   //pass to the folder

@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <filesystem>
+#include <system_error>
 
 #define EXTERN_INPUT
 # include "input.hpp"
@@ -103,24 +104,19 @@ namespace nissa
   {
     VERBOSITY_LV3_MASTER_PRINTF("Checking if file \"%s\" exists\n",path.c_str());
     
-    int status=1;
+    int status=0;
+    std::error_code error;
     
     if(is_master_rank())
-      {
-	if(FILE *f=fopen(path.c_str(),"r"))
-	  {
-	    VERBOSITY_LV3_MASTER_PRINTF("File '%s' exists!\n",path.c_str());
-	    status=1;
-	    fclose(f);
-	  }
-	else
-	  {
-	    VERBOSITY_LV3_MASTER_PRINTF("File '%s' do not exist!\n",path.c_str());
-	    status=0;
-	  }
-      }
+      status=std::filesystem::exists(path,error);
     
-    return broadcast(status);
+    checkCollectiveFileError(error,"Cannot inspect file '"+path+"'");
+    status=broadcast(status);
+    
+    VERBOSITY_LV3_MASTER_PRINTF("File '%s' %s\n",path.c_str(),
+                                status?"exists":"does not exist");
+    
+    return status;
   }
   
   //return 0 if the dir do not exists, 1 if exists, -1 if exist but is not a directory
