@@ -158,11 +158,21 @@ namespace nissa::nice
     mv(path.string(),temporary.string());
   }
   
+  /// Construct a run-specific filename while preserving the file extension
+  inline std::filesystem::path outputFilePath(const std::filesystem::path& directory,
+                                               const RunOptions& options,
+                                               const std::string_view stem,
+                                               const std::string_view extension)
+  {
+    return directory/std::format("{}{}{}",stem,options.outputSuffix,extension);
+  }
+  
   /// One immutable binary hit file, named by its stable zero-based hit index
   inline std::filesystem::path hitCheckpointPath(const std::filesystem::path& directory,
-                                          const size_t iHit)
+                                                 const RunOptions& options,
+                                                 const size_t iHit)
   {
-    return directory/std::format("hit-{:08}.bin",iHit);
+    return outputFilePath(directory,options,std::format("hit-{:08}",iHit),".bin");
   }
   
   /// Number of scientific rows required from one complete hit
@@ -265,7 +275,7 @@ namespace nissa::nice
     
     const ConfigurationEntry& entry=program.configurationEntries[iEntry];
     const std::filesystem::path directory(entry.outputDirectory);
-    const std::filesystem::path output=directory/"correlations.nice";
+    const std::filesystem::path output=outputFilePath(directory,program.options,"correlations",".nice");
     const std::filesystem::path temporary=output.string()+".tmp";
     FILE* file=open_file(temporary.string(),"wb");
     
@@ -277,7 +287,7 @@ namespace nissa::nice
     for(size_t iHit=0;iHit<static_cast<size_t>(program.options.nHits);iHit++)
       writeCheckpointBytes(file,temporary,
                            formatHitResults(program.options,program.correlations,
-                                            checkedHitValues(hitCheckpointPath(directory,iHit),
+                                            checkedHitValues(hitCheckpointPath(directory,program.options,iHit),
                                                              checkpointEntryIdentity(program,iEntry),iHit,
                                                              expectedHitRows(program)),iHit));
     
@@ -293,7 +303,7 @@ namespace nissa::nice
     const uint64_t outputHash=checkpointFileHash(output);
     // The marker commits both the result and full run metadata before cleanup
     requireCheckpointOwnership(lock);
-    commitCheckpointFile(directory/"finished.nice",
+    commitCheckpointFile(outputFilePath(directory,program.options,"finished",".nice"),
                          std::format("NICE-finished-v3 {} {} {} {}\n",
                                      checkpointEntryIdentity(program,iEntry),
                                      program.options.nHits,
@@ -305,11 +315,17 @@ namespace nissa::nice
         for(size_t iHit=0;iHit<static_cast<size_t>(program.options.nHits);iHit++)
           {
             requireCheckpointOwnership(lock);
-            removeFile(hitCheckpointPath(directory,iHit).string());
+            removeFile(hitCheckpointPath(directory,program.options,iHit).string());
           }
         
         requireCheckpointOwnership(lock);
-        removeFile((directory/"checkpoint.bin").string());
+        removeFile(outputFilePath(directory,program.options,"checkpoint",".nice").string());
+        
+        if(program.options.outputSuffix.empty() and fileExists((directory/"checkpoint.bin").string()))
+          {
+            requireCheckpointOwnership(lock);
+            removeFile((directory/"checkpoint.bin").string());
+          }
       }
     
     requireCheckpointOwnership(lock);
@@ -324,7 +340,7 @@ namespace nissa::nice
   {
     const std::filesystem::path directory=
       program.configurationEntries[iEntry].outputDirectory;
-    const std::filesystem::path marker=directory/"finished.nice";
+    const std::filesystem::path marker=outputFilePath(directory,program.options,"finished",".nice");
     bool finished=false;
     
     if(fileExists(marker.string()))
@@ -343,12 +359,13 @@ namespace nissa::nice
            metadataHash!=checkpointMetadataHash(program,rngLayout,iEntry))
           CRASH("NICE finished marker '%s' does not match this run",marker.string().c_str());
         
-        const std::filesystem::path output=directory/"correlations.nice";
+        const std::filesystem::path output=outputFilePath(directory,program.options,"correlations",".nice");
         if(checkpointFileHash(output)!=outputHash)
           CRASH("NICE finished result '%s' is damaged",output.string().c_str());
         
         if(nHits<program.options.nHits and
-           not fileExists((directory/"checkpoint.bin").string()))
+           not fileExists(outputFilePath(directory,program.options,"checkpoint",".nice").string()) and
+           not (program.options.outputSuffix.empty() and fileExists((directory/"checkpoint.bin").string())))
           CRASH("NICE cannot increase hits in '%s': completed hit checkpoints were removed",
                 directory.string().c_str());
         
@@ -389,7 +406,7 @@ namespace nissa::nice
     return metadata;
   }
   
-  /// Encode a versioned binary checkpoint with fixed little-endian 64-bit fields
+  /// Encode legacy version 3 binary metadata for reading existing checkpoints
   inline std::string checkpointMetadataBytes(const PreparedProgram& program,
                                              const RngLayout& rngLayout,
                                              const size_t iEntry)
@@ -409,19 +426,23 @@ namespace nissa::nice
   {
     const std::filesystem::path directory=
       program.configurationEntries[iEntry].outputDirectory;
-    const std::filesystem::path path=directory/"checkpoint.bin";
-    const std::string expected=checkpointMetadataBytes(program,rngLayout,iEntry);
+    const std::filesystem::path path=outputFilePath(directory,program.options,"checkpoint",".nice");
+    const std::string expected=checkpointMetadata(program,rngLayout,iEntry);
     if(fileExists(path.string()))
       {
         if(readCheckpointFile(path)!=expected)
           CRASH("NICE checkpoint metadata '%s' does not match this run",path.string().c_str());
       }
+    else if(program.options.outputSuffix.empty() and fileExists((directory/"checkpoint.bin").string()))
+      {
+        if(readCheckpointFile(directory/"checkpoint.bin")!=checkpointMetadataBytes(program,rngLayout,iEntry))
+          CRASH("NICE legacy checkpoint metadata does not match this run");
+      }
     else
       {
-        if(fileExists(hitCheckpointPath(directory,0).string()) or
-           fileExists((directory/"checkpoint.nice").string()) or
-           fileExists((directory/"finished.nice").string()) or
-           fileExists((directory/"correlations.nice").string()))
+        if(fileExists(hitCheckpointPath(directory,program.options,0).string()) or
+           fileExists(outputFilePath(directory,program.options,"finished",".nice").string()) or
+           fileExists(outputFilePath(directory,program.options,"correlations",".nice").string()))
           CRASH("NICE output directory '%s' has results without checkpoint metadata",
                 directory.string().c_str());
         
@@ -442,7 +463,7 @@ namespace nissa::nice
     
     for(size_t iHit=0;iHit<static_cast<size_t>(program.options.nHits);iHit++)
       {
-        const std::filesystem::path path=hitCheckpointPath(directory,iHit);
+        const std::filesystem::path path=hitCheckpointPath(directory,program.options,iHit);
         if(fileExists(path.string()))
           {
             if(first!=static_cast<size_t>(program.options.nHits))
@@ -475,7 +496,7 @@ namespace nissa::nice
       {
         lock_file_t<> lock;
         lock.init();
-        if(not lock.try_lock((directory/".nice.lock").string()))
+        if(not lock.try_lock(outputFilePath(directory,program.options,".nice",".lock").string()))
           CRASH("NICE cannot create ownership tag in '%s'",directory.string().c_str());
 	
         // The initial recipe provides the filesystem synchronization before checking ownership
@@ -490,16 +511,16 @@ namespace nissa::nice
                         iEntry,lock.lockPath().c_str());
         else if(configurationFinished(program,rngLayout,iEntry))
           {
-            MASTER_PRINTF("NICE: skipping completed gauge configuration %zu\n",iEntry);
+            MASTER_PRINTF("NICE: skipping completed gauge configuration %zu\n",iEntry+1);
           }
         else
           {
             validateCheckpointMetadata(program,rngLayout,iEntry,&lock);
             const size_t firstHit=firstUnfinishedHit(program,iEntry);
 	    
-            if(firstHit==0 and fileExists((directory/"correlations.nice").string()))
+            if(firstHit==0 and fileExists(outputFilePath(directory,program.options,"correlations",".nice").string()))
               CRASH("NICE output '%s' exists without checkpoints; refusing to overwrite it",
-                    (directory/"correlations.nice").string().c_str());
+                    outputFilePath(directory,program.options,"correlations",".nice").string().c_str());
 	    
             if(firstHit<static_cast<size_t>(program.options.nHits))
               {
@@ -512,7 +533,7 @@ namespace nissa::nice
                       encodeHitValues(program.options,program.correlations,values);
 		    
                     requireCheckpointOwnership(lock);
-                    commitCheckpointFile(hitCheckpointPath(directory,iHit),
+                    commitCheckpointFile(hitCheckpointPath(directory,program.options,iHit),
                       hitCheckpointBytes(checkpointEntryIdentity(program,iEntry),iHit,hitValues),lock);
 		    
                     MASTER_PRINTF("NICE: committed hit %zu for gauge configuration %zu\n",

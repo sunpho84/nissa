@@ -32,6 +32,9 @@ namespace nissa::nice
     /// Retain completed hit files and compatibility metadata for later hit-count increases
     bool keepCheckpoints{true};
     
+    /// Filename suffix used to keep independent runs in one output directory
+    std::string outputSuffix;
+    
     /// Implicit origin-selection operation performed once per hit
     GlobalOriginOperation drawGlobalOriginTask;
     
@@ -72,6 +75,13 @@ namespace nissa::nice
     void validate() const
     {
       volume();
+      
+      for(const unsigned char character : outputSuffix)
+        if(not ((character>='a' and character<='z') or
+                (character>='A' and character<='Z') or
+                (character>='0' and character<='9') or
+                character=='_' or character=='-'))
+          CRASH("NICE output suffix may contain only letters, digits, '_' and '-'");
       
       if(reservedRngDoublesPerSite==0)
         CRASH("NICE RNG requires a positive number of reserved doubles per site");

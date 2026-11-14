@@ -349,6 +349,13 @@ namespace nissa::nice
       options.keepCheckpoints=enabled!=0;
     });
     
+    // Select distinct output files when reusing configuration output directories
+    registerHostFunction(evaluator,"setSuffix",{"suffix"},
+                         [&options](const std::string& suffix)
+    {
+      options.outputSuffix=suffix;
+    });
+    
     // Record one origin for every hit before compiling tasks and assigning RNG ranges
     registerHostFunction(evaluator,"setOrigin",{"t","x","y","z"},
                          [&options](const int t,

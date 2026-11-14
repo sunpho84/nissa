@@ -1,6 +1,7 @@
 #include "corrParts.hpp"
 #include "configurationSources.hpp"
 #include "checkpointIdentity.hpp"
+#include "checkpoint.hpp"
 #include "correlations.hpp"
 #include "correlationTaskGraph.hpp"
 #include "graphCompiler.hpp"
@@ -1986,6 +1987,14 @@ void validateRunSettings(const int narg,
   execute({{"setKeepCheckpoints(1);","retain completed checkpoints"}});
   assert(options.keepCheckpoints);
   
+  // A suffix selects independent result, marker, lock, and hit files
+  execute({{"setSuffix(\"_additional\");","separate output files"}});
+  options.validate();
+  assert(options.outputSuffix=="_additional");
+  assert(outputFilePath("output",options,"correlations",".nice")=="output/correlations_additional.nice");
+  assert(hitCheckpointPath("output",options,3)=="output/hit-00000003_additional.bin");
+  execute({{"setSuffix(\"\");","restore ordinary output names"}});
+  
   execute({{"setRun(7,8,2); reserveRngDoublesPerSite(.reservedDoublesPerSite=12);", "RNG reservation"}});
   options.validate();
   assert(options.reservedRngDoublesPerSite==12);
@@ -2622,11 +2631,13 @@ void validatePreparedExecution()
   const uint64_t originalIdentity=checkpointEntryIdentity(program,0);
   program.options.nHits=4;
   program.options.keepCheckpoints=false;
+  program.options.outputSuffix="_second";
   program.configurationEntries.push_back({"other","other-output","script",2});
   assert(checkpointEntryIdentity(program,0)==originalIdentity);
   program.configurationEntries.pop_back();
   program.options.nHits=2;
   program.options.keepCheckpoints=true;
+  program.options.outputSuffix.clear();
   program.configurationEntries[0].path="different";
   assert(checkpointEntryIdentity(program,0)!=originalIdentity);
   program.configurationEntries[0].path="";
