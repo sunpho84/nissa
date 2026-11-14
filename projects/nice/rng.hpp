@@ -6,6 +6,7 @@
 #include "geometry/geometry_lx.hpp"
 
 #include <cstdint>
+#include <tuple>
 
 namespace nissa::nice
 {
@@ -78,6 +79,12 @@ namespace nissa::nice
     
     /// Coordinates shared by every hit when random origin selection is disabled
     Coords fixedOrigin{};
+    
+    /// Values that determine the selected origin and its random stream use
+    auto members() const
+    {
+      return std::tie(enabled,fixedOrigin);
+    }
     
     /// Report the uniform-double consumption cost for one hit
     uint64_t doubleDrawCost() const

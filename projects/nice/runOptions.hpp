@@ -8,6 +8,8 @@
 
 #include <cstdint>
 #include <limits>
+#include <string>
+#include <tuple>
 
 namespace nissa::nice
 {
@@ -52,6 +54,13 @@ namespace nissa::nice
     
     /// Uniform doubles reserved per site for gauge configuration preparation and separately for each hit
     uint64_t reservedRngDoublesPerSite{1'000'000};
+    
+    /// Settings that affect checkpoint compatibility, excluding hit count and output policy
+    auto members() const
+    {
+      return std::tie(L,T,seed,nCopies,diluteSpin,diluteColor,temporalBoundary,
+                      drawGlobalOriginTask,reservedRngDoublesPerSite);
+    }
     
     /// Compute the global volume, rejecting invalid geometry before arithmetic
     uint64_t volume() const

@@ -8,6 +8,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -26,6 +27,12 @@ namespace nissa::nice
     /// Scalar coefficient; contraction inputs always have unit weight
     double weight;
     
+    /// Values defining this dependency for checkpoint compatibility
+    auto members() const
+    {
+      return std::tie(task,weight);
+    }
+    
     /// Compare an input by task identity and coefficient
     bool operator==(const TaskInput&) const=default;
   };
@@ -35,6 +42,12 @@ namespace nissa::nice
   {
     /// Requested sink/source gamma pairs
     std::set<std::pair<int,int>> gammaList;
+    
+    /// Requested gamma pairs in their stable set order
+    auto members() const
+    {
+      return std::tie(gammaList);
+    }
     
     /// Compare contraction settings, independently of output block names
     bool operator==(const TraceContraction&) const=default;
@@ -59,6 +72,12 @@ namespace nissa::nice
     /// User labels of equivalent lines; excluded from structural identity
     std::vector<std::string> labels;
     
+    /// Checkpoint fields in execution order; display labels do not affect the result
+    auto members() const
+    {
+      return std::tie(id,operation,inputs);
+    }
+    
     /// Compare complete task content, including display labels
     bool operator==(const Task&) const=default;
   };
@@ -74,6 +93,12 @@ namespace nissa::nice
     
     /// Task IDs for traces in request order
     std::vector<TaskId> traces;
+    
+    /// Values defining this requested output in checkpoint order
+    auto members() const
+    {
+      return std::tie(name,gammaList,traces);
+    }
     
     /// Compare one requested output block
     bool operator==(const OutputBlock&) const=default;

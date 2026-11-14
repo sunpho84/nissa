@@ -4,6 +4,7 @@
 #include "correlationTaskGraph.hpp"
 
 #include <utility>
+#include <tuple>
 #include <vector>
 
 namespace nissa::nice
@@ -16,6 +17,12 @@ namespace nissa::nice
     
     /// Requested blocks and the IDs of their trace results
     std::vector<OutputBlock> outputs;
+    
+    /// Scheduled work and requested results defining the checkpoint identity
+    auto members() const
+    {
+      return std::tie(instructions,outputs);
+    }
     
     /// Take ownership of an instruction stream and validate it
     CompiledCorrelations(std::vector<Task> instructions,

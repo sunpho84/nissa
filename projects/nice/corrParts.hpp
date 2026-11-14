@@ -16,6 +16,7 @@
 #include <ostream>
 #include <sstream>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -492,6 +493,12 @@ namespace nissa::nice
     
     /// Selected time, or -1 when unrestricted
     int tSelect{-1};
+    
+    /// Values defining the extension for checkpoint compatibility
+    auto members() const
+    {
+      return std::tie(pars,tSelect);
+    }
     
     /// Describe the parameter and optional time selection
     std::string describe() const
