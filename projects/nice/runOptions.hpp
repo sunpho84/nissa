@@ -36,9 +36,12 @@ namespace nissa::nice
     
     /// Filename suffix used to keep independent runs in one output directory
     std::string outputSuffix;
-
+    
     /// Optional stop-request file, interpreted relative to the process working directory
     std::string stopFile;
+    
+    /// Seconds between running-file updates; a file older than twice this can be reclaimed
+    int runningFileUpdateSeconds{60};
     
     /// Implicit origin-selection operation performed once per hit
     GlobalOriginOperation drawGlobalOriginTask;
@@ -103,6 +106,9 @@ namespace nissa::nice
       
       if(nHits<=0 or nCopies<=0)
         CRASH("NICE run requires positive nHits and nCopies");
+      
+      if(runningFileUpdateSeconds<=0)
+        CRASH("NICE running-file update interval must be positive");
       
       if(not drawGlobalOriginTask.enabled)
         for(int mu=0;mu<NDIM;mu++)

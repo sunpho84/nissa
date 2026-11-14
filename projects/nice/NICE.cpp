@@ -89,6 +89,7 @@ namespace nissa::nice
       {
         const bool hasCorrelations=not program.correlations.instructions.empty();
         bool stopped=false;
+        size_t nClaimedElsewhere=0;
         
         for(size_t iEntry=0;
             iEntry<program.configurationEntries.size() and not stopped;iEntry++)
@@ -102,7 +103,14 @@ namespace nissa::nice
                               hasCorrelations?"running":"preparing",
                               iEntry+1,program.configurationEntries.size(),entry.path.c_str());
                 if(hasCorrelations)
-                  stopped=runCheckpointedConfiguration(program,rngLayout,rng,iEntry);
+                  {
+                    const ConfigurationRunOutcome outcome=
+                      runCheckpointedConfiguration(program,rngLayout,rng,iEntry);
+                    stopped=outcome==ConfigurationRunOutcome::Stopped;
+                    if(outcome==ConfigurationRunOutcome::ClaimedElsewhere or
+                       outcome==ConfigurationRunOutcome::LostOwnership)
+                      nClaimedElsewhere++;
+                  }
                 else
                   {
                     prepareConfiguration(program,iEntry,rng,rngLayout,iEntry);
@@ -113,8 +121,11 @@ namespace nissa::nice
         
         if(stopped)
           MASTER_PRINTF("NICE: stopped at a gauge configuration or hit boundary; committed hits can be resumed\n");
-        else if(hasCorrelations)
+        else if(hasCorrelations and nClaimedElsewhere==0)
           MASTER_PRINTF("NICE: completed all requested gauge configurations and hits\n");
+        else if(hasCorrelations)
+          MASTER_PRINTF("NICE: completed available work; %zu gauge configuration(s) were claimed elsewhere\n",
+                        nClaimedElsewhere);
         else
           MASTER_PRINTF("NICE: completed available gauge configuration work; no correlation tasks were requested\n");
       }

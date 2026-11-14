@@ -1907,6 +1907,8 @@ void validateRunSettings(const int narg,
         execute({{"reserveRngDoublesPerSite(-1);","invalid RNG limit"}});
       else if(mode=="run-invalid-origin")
         execute({{"setRandomOriginEnabled(2);","invalid random origin setting"}});
+      else if(mode=="run-invalid-running-file-interval")
+        execute({{"setRunningFileUpdateInterval(0);","invalid running-file interval"}});
       else if(mode=="run-negative-script-seed" or mode=="run-oversized-script-seed")
         {
           execute({{mode=="run-negative-script-seed"?
@@ -1979,6 +1981,14 @@ void validateRunSettings(const int narg,
   assert(options.reservedRngDoublesPerSite==1'000'000);
   assert(options.diluteSpin==false and options.diluteColor==true);
   assert(options.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic);
+  assert(options.runningFileUpdateSeconds==60);
+  
+  // A later script setting changes the refresh period without changing numerical work
+  execute({{"setRunningFileUpdateInterval(15);","running-file update period"}});
+  assert(options.runningFileUpdateSeconds==15);
+  execute({{"setRunningFileUpdateInterval(30);","replacement update period"}});
+  options.validate();
+  assert(options.runningFileUpdateSeconds==30);
   
   // Retention defaults on and accepts explicit numeric script switches
   assert(options.keepCheckpoints);
@@ -2021,6 +2031,95 @@ void validateRunSettings(const int narg,
   execute({{"setRandomOriginEnabled(0);","restore fixed origin"}});
   options.validate();
   assert(options.drawGlobalOriginTask.fixedOrigin==fixedOrigin);
+}
+
+/// Check recent and stale running files, ownership transfer, and release
+void validateRunningFile()
+{
+  std::string root;
+  
+  if(nissa::is_master_rank())
+    {
+      char temporary[]{"/tmp/nice-running-file-validation-XXXXXX"};
+      const char* created=mkdtemp(temporary);
+      assert(created!=nullptr);
+      root=temporary;
+    }
+  
+  nissa::broadcast(root);
+  const std::filesystem::path path=std::filesystem::path(root)/".nice.lock";
+  const std::chrono::seconds interval(RunOptions{}.runningFileUpdateSeconds);
+  
+  const bool initiallyRecent=runningFileIsRecent(path,interval);
+  assert(not initiallyRecent);
+  nissa::lock_file_t<> lock;
+  lock.init();
+  const bool firstClaim=tryClaimRunningFile(lock,path,interval);
+  assert(firstClaim);
+  const bool firstOwner=lock.check_lock();
+  assert(firstOwner);
+  const bool activeFileRecent=runningFileIsRecent(path,interval);
+  assert(activeFileRecent);
+  
+  // A shorter script interval also shortens the permitted age for takeover
+  std::error_code error;
+  if(nissa::is_master_rank())
+    std::filesystem::last_write_time(
+      path,std::filesystem::file_time_type::clock::now()-std::chrono::seconds(3),
+      error);
+  nissa::checkCollectiveFileError(error,"NICE validation cannot age its running file");
+  assert(runningFileIsRecent(path,interval));
+  assert(not runningFileIsRecent(path,std::chrono::seconds(1)));
+  
+  nissa::lock_file_t<> overlappingLock;
+  overlappingLock.init();
+  const bool overlappingClaim=tryClaimRunningFile(overlappingLock,path,interval);
+  assert(not overlappingClaim);
+  
+  if(nissa::is_master_rank())
+    std::filesystem::last_write_time(
+      path,std::filesystem::file_time_type::clock::now()-3*interval,
+      error);
+  nissa::checkCollectiveFileError(error,"NICE validation cannot age its running file");
+  
+  bool refreshed=false;
+  {
+    RunningFileUpdater updater(lock,std::chrono::milliseconds(20));
+    
+    for(int attempt=0;attempt<50 and not refreshed;attempt++)
+      {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        refreshed=runningFileIsRecent(path,interval);
+      }
+    
+    updater.stop();
+  }
+  
+  assert(refreshed);
+  
+  // Simulate a crashed owner whose updater stopped before removing its file
+  if(nissa::is_master_rank())
+    std::filesystem::last_write_time(
+      path,std::filesystem::file_time_type::clock::now()-3*interval,
+      error);
+  nissa::checkCollectiveFileError(error,"NICE validation cannot age its running file");
+  const bool staleFileRecent=runningFileIsRecent(path,interval);
+  assert(not staleFileRecent);
+  
+  nissa::lock_file_t<> resumedLock;
+  resumedLock.init();
+  const bool resumedClaim=tryClaimRunningFile(resumedLock,path,interval);
+  assert(resumedClaim);
+  const bool oldOwner=lock.check_lock();
+  const bool newOwner=resumedLock.check_lock();
+  assert(not oldOwner and newOwner);
+  releaseRunningFile(resumedLock);
+  const bool runningFileLeft=nissa::fileExists(path.string());
+  assert(not runningFileLeft);
+  
+  if(nissa::is_master_rank())
+    std::filesystem::remove(root,error);
+  nissa::checkCollectiveFileError(error,"NICE validation cannot remove its temporary directory");
 }
 
 /// Check deferred recipe construction, empty storage, and invalid recipe diagnostics
@@ -2640,6 +2739,7 @@ void validatePreparedExecution()
   program.options.keepCheckpoints=false;
   program.options.outputSuffix="_second";
   program.options.stopFile="stop.nice";
+  program.options.runningFileUpdateSeconds=5;
   program.configurationEntries.push_back({"other","other-output","script",2});
   assert(checkpointEntryIdentity(program,0)==originalIdentity);
   program.configurationEntries.pop_back();
@@ -2647,6 +2747,7 @@ void validatePreparedExecution()
   program.options.keepCheckpoints=true;
   program.options.outputSuffix.clear();
   program.options.stopFile.clear();
+  program.options.runningFileUpdateSeconds=60;
   program.configurationEntries[0].path="different";
   assert(checkpointEntryIdentity(program,0)!=originalIdentity);
   program.configurationEntries[0].path="";
@@ -3080,6 +3181,7 @@ int main(int narg,
   validateProgramPieces(narg,arg);
   validateConfigurationSources(narg,arg);
   validateRunSettings(narg,arg);
+  validateRunningFile();
   validateGaugeRecipeBindings(narg,arg);
   validateCorrParts();
   validateGammaAdjoints();

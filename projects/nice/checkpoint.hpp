@@ -11,7 +11,10 @@
 #include "routines/mpi_routines.hpp"
 #include "routines/fnv1a64.hpp"
 
+#include <atomic>
 #include <bit>
+#include <chrono>
+#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -20,8 +23,10 @@
 #include <fstream>
 #include <iterator>
 #include <limits>
+#include <mutex>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <variant>
 
 namespace nissa::nice
@@ -136,6 +141,175 @@ namespace nissa::nice
     if(not lock.check_lock())
       CRASH("NICE ownership tag '%s' changed or could not be read; stopping before checkpoint write",
             lock.lockPath().c_str());
+  }
+  
+  /// Test whether another run has recently updated its running file
+  inline bool runningFileIsRecent(const std::filesystem::path& path,
+                                  const std::chrono::seconds interval)
+  {
+    bool recent=false;
+    std::error_code error;
+    
+    if(is_master_rank())
+      {
+        const std::filesystem::file_status status=
+          std::filesystem::symlink_status(path,error);
+        
+        if(error==std::errc::no_such_file_or_directory)
+          error.clear();
+        else if(not error and std::filesystem::exists(status))
+          {
+            if(not std::filesystem::is_regular_file(status))
+              error=std::make_error_code(std::errc::invalid_argument);
+            else
+              {
+                const auto updated=std::filesystem::last_write_time(path,error);
+                
+                if(error==std::errc::no_such_file_or_directory)
+                  error.clear();
+                else if(not error)
+                  recent=std::filesystem::file_time_type::clock::now()-updated<
+                    2*interval;
+              }
+          }
+      }
+    
+    checkCollectiveFileError(error,
+                             "NICE cannot inspect running file '"+path.string()+"'");
+    
+    return broadcast(recent);
+  }
+  
+  /// Write an ownership tag when the previous running file is absent or stale
+  inline bool tryClaimRunningFile(lock_file_t<>& lock,
+                                  const std::filesystem::path& path,
+                                  const std::chrono::seconds interval)
+  {
+    bool claimed=false;
+    
+    if(not runningFileIsRecent(path,interval))
+      {
+        if(not lock.try_lock(path.string()))
+          CRASH("NICE cannot write running file '%s'",path.string().c_str());
+        
+        claimed=true;
+      }
+    
+    return claimed;
+  }
+  
+  /// Refresh the running file while numerical work is in progress
+  struct RunningFileUpdater
+  {
+    /// Ownership tag whose file is refreshed
+    lock_file_t<>& lock;
+    
+    /// Configured refresh period
+    std::chrono::milliseconds interval;
+    
+    /// Background updater on the master rank
+    std::thread worker{};
+    
+    /// Protect the stop request and wake the updater promptly
+    std::mutex mutex{};
+    
+    /// Wake the updater when the configuration finishes
+    std::condition_variable wake{};
+    
+    /// True once the updater is asked to finish
+    bool stopping{false};
+    
+    /// True when the running file could not be refreshed
+    std::atomic<bool> updateFailed{false};
+    
+    /// Start the updater immediately after writing the ownership tag
+    explicit RunningFileUpdater(lock_file_t<>& lock,
+                                const std::chrono::milliseconds interval) :
+      lock(lock),
+      interval(interval)
+    {
+      if(is_master_rank())
+        worker=std::thread([this]()
+          {
+            std::unique_lock guard(mutex);
+            
+            while(not stopping)
+              {
+                const bool requestedStop=
+                  wake.wait_for(guard,this->interval,
+                                [this]()
+                                {
+                                  return stopping;
+                                });
+                
+                if(not requestedStop)
+                  {
+                    guard.unlock();
+                    
+                    const bool owned=this->lock.check_lock_on_master();
+                    
+                    if(owned)
+                      {
+                        std::error_code error;
+                        std::filesystem::last_write_time(
+                          this->lock.lockPath(),
+                          std::filesystem::file_time_type::clock::now(),error);
+                        
+                        if(error)
+                          {
+                            updateFailed=true;
+                            std::fprintf(stderr,
+                                         "NICE: cannot refresh running file '%s': %s\n",
+                                         this->lock.lockPath().c_str(),error.message().c_str());
+                          }
+                      }
+                    else
+                      std::fprintf(stderr,
+                                   "NICE: running file '%s' changed ownership; stopping updates\n",
+                                   this->lock.lockPath().c_str());
+                    
+                    guard.lock();
+                    
+                    if(not owned or updateFailed.load())
+                      stopping=true;
+                  }
+              }
+          });
+    }
+    
+    /// Stop and join before the running file is removed
+    void stop()
+    {
+      {
+        std::lock_guard guard(mutex);
+        stopping=true;
+      }
+      
+      wake.notify_one();
+      
+      if(worker.joinable())
+        worker.join();
+    }
+    
+    /// Report an updater failure collectively before writing checkpoints
+    void requireHealthy() const
+    {
+      if(broadcast(updateFailed.load()))
+        CRASH("NICE running file '%s' could not be refreshed",lock.lockPath().c_str());
+    }
+    
+    /// Stop the updater on every exit path
+    ~RunningFileUpdater()
+    {
+      stop();
+    }
+  };
+  
+  /// Remove the running file only while its ownership tag still belongs to this run
+  inline void releaseRunningFile(lock_file_t<>& lock)
+  {
+    requireCheckpointOwnership(lock);
+    removeFile(lock.lockPath());
   }
   
   /// Write and rename on the same filesystem so interrupted writes stay invisible
@@ -328,8 +502,6 @@ namespace nissa::nice
           }
       }
     
-    requireCheckpointOwnership(lock);
-    removeFile(lock.lockPath());
     MASTER_PRINTF("NICE: wrote results to '%s'\n",output.string().c_str());
   }
   
@@ -485,88 +657,129 @@ namespace nissa::nice
     return first;
   }
   
-  /// Resume one configuration collectively, reporting a clean stop between hits
-  inline bool runCheckpointedConfiguration(PreparedProgram& program,
-                                    const RngLayout& rngLayout,
-                                    const Sitmo::Rng& rng,
-                                    const size_t iEntry)
+  /// Result of attempting one configuration's checkpointed work
+  enum class ConfigurationRunOutcome
+  {
+    Completed,
+    AlreadyFinished,
+    ClaimedElsewhere,
+    LostOwnership,
+    Stopped
+  };
+  
+  /// Resume one configuration collectively, reporting skips and clean stops
+  inline ConfigurationRunOutcome runCheckpointedConfiguration(PreparedProgram& program,
+                                                                const RngLayout& rngLayout,
+                                                                const Sitmo::Rng& rng,
+                                                                const size_t iEntry)
   {
     bool stopped=false;
+    ConfigurationRunOutcome outcome=ConfigurationRunOutcome::Completed;
     const std::filesystem::path directory=
       program.configurationEntries[iEntry].outputDirectory;
     if(create_directories(directory.string())!=0)
       CRASH("NICE cannot create output directory '%s'",directory.string().c_str());
     
     if(configurationFinished(program,rngLayout,iEntry))
-      MASTER_PRINTF("NICE: skipping completed gauge configuration %zu\n",iEntry);
+      {
+        MASTER_PRINTF("NICE: skipping completed gauge configuration %zu\n",iEntry);
+        outcome=ConfigurationRunOutcome::AlreadyFinished;
+      }
     else
       {
+        const std::filesystem::path runningPath=
+          outputFilePath(directory,program.options,".nice",".lock");
+        const std::chrono::seconds updateInterval(program.options.runningFileUpdateSeconds);
+        
         lock_file_t<> lock;
         lock.init();
-        if(not lock.try_lock(outputFilePath(directory,program.options,".nice",".lock").string()))
-          CRASH("NICE cannot create ownership tag in '%s'",directory.string().c_str());
-	
-        // The initial recipe provides the filesystem synchronization before checking ownership
-        const bool claimed=
-          prepareConfiguration(program,iEntry,rng,rngLayout,iEntry,
-                               [&lock]()
-                               {
-                                 return lock.check_lock();
-                               });
-        if(not claimed)
-          MASTER_PRINTF("NICE: skipping gauge configuration %zu after lost ownership of '%s'\n",
-                        iEntry,lock.lockPath().c_str());
-        else if(configurationFinished(program,rngLayout,iEntry))
+        if(not tryClaimRunningFile(lock,runningPath,updateInterval))
           {
-            MASTER_PRINTF("NICE: skipping completed gauge configuration %zu\n",iEntry+1);
+            MASTER_PRINTF("NICE: skipping gauge configuration %zu with recent running file '%s'\n",
+                          iEntry,runningPath.string().c_str());
+            outcome=ConfigurationRunOutcome::ClaimedElsewhere;
           }
         else
           {
-            validateCheckpointMetadata(program,rngLayout,iEntry,&lock);
-            const size_t firstHit=firstUnfinishedHit(program,iEntry);
-	    
-            if(firstHit==0 and fileExists(outputFilePath(directory,program.options,"correlations",".nice").string()))
-              CRASH("NICE output '%s' exists without checkpoints; refusing to overwrite it",
-                    outputFilePath(directory,program.options,"correlations",".nice").string().c_str());
-	    
-            if(firstHit<static_cast<size_t>(program.options.nHits))
+            RunningFileUpdater updater(lock,updateInterval);
+            
+            // Initial gauge work makes competing running-file writes visible
+            const bool claimed=
+              prepareConfiguration(program,iEntry,rng,rngLayout,iEntry,
+                                   [&lock]()
+                                   {
+                                     return lock.check_lock();
+                                   });
+            updater.requireHealthy();
+            
+            if(not claimed)
               {
-                for(size_t iHit=firstHit;
-                    iHit<static_cast<size_t>(program.options.nHits) and not stopped;iHit++)
-                  {
-                    stopped=stopRequested(program.options);
-		    
-                    if(not stopped)
-                      {
-                        const TaskValues values=
-                          executePreparedHit(program,rng,rngLayout,iEntry,iHit);
-                        const std::string hitValues=
-                          encodeHitValues(program.options,program.correlations,values);
-			
-                        requireCheckpointOwnership(lock);
-                        commitCheckpointFile(hitCheckpointPath(directory,program.options,iHit),
-                          hitCheckpointBytes(checkpointEntryIdentity(program,iEntry),iHit,hitValues),lock);
-			
-                        MASTER_PRINTF("NICE: committed hit %zu for gauge configuration %zu\n",
-                                      iHit,iEntry);
-                      }
-                  }
+                MASTER_PRINTF("NICE: skipping gauge configuration %zu after lost ownership of '%s'\n",
+                              iEntry,lock.lockPath().c_str());
+                outcome=ConfigurationRunOutcome::LostOwnership;
               }
-	    
-            if(stopped)
+            else if(configurationFinished(program,rngLayout,iEntry))
               {
-                requireCheckpointOwnership(lock);
-                removeFile(lock.lockPath());
-                MASTER_PRINTF("NICE: stopping before the next hit of gauge configuration %zu\n",iEntry);
+                MASTER_PRINTF("NICE: skipping completed gauge configuration %zu\n",iEntry+1);
+                outcome=ConfigurationRunOutcome::AlreadyFinished;
+                updater.stop();
+                releaseRunningFile(lock);
               }
             else
-              finalizeConfiguration(program,iEntry,rngLayout,lock);
+              {
+                validateCheckpointMetadata(program,rngLayout,iEntry,&lock);
+                const size_t firstHit=firstUnfinishedHit(program,iEntry);
+                
+                if(firstHit==0 and fileExists(outputFilePath(directory,program.options,"correlations",".nice").string()))
+                  CRASH("NICE output '%s' exists without checkpoints; refusing to overwrite it",
+                        outputFilePath(directory,program.options,"correlations",".nice").string().c_str());
+                
+                if(firstHit<static_cast<size_t>(program.options.nHits))
+                  {
+                    for(size_t iHit=firstHit;
+                        iHit<static_cast<size_t>(program.options.nHits) and not stopped;iHit++)
+                      {
+                        stopped=stopRequested(program.options);
+                        
+                        if(not stopped)
+                          {
+                            const TaskValues values=
+                              executePreparedHit(program,rng,rngLayout,iEntry,iHit);
+                            updater.requireHealthy();
+                            const std::string hitValues=
+                              encodeHitValues(program.options,program.correlations,values);
+                            
+                            requireCheckpointOwnership(lock);
+                            commitCheckpointFile(hitCheckpointPath(directory,program.options,iHit),
+                              hitCheckpointBytes(checkpointEntryIdentity(program,iEntry),iHit,hitValues),lock);
+                            
+                            MASTER_PRINTF("NICE: committed hit %zu for gauge configuration %zu\n",
+                                          iHit,iEntry);
+                          }
+                      }
+                  }
+                
+                if(stopped)
+                  {
+                    updater.stop();
+                    releaseRunningFile(lock);
+                    MASTER_PRINTF("NICE: stopping before the next hit of gauge configuration %zu\n",iEntry);
+                    outcome=ConfigurationRunOutcome::Stopped;
+                  }
+                else
+                  {
+                    updater.requireHealthy();
+                    finalizeConfiguration(program,iEntry,rngLayout,lock);
+                    updater.stop();
+                    releaseRunningFile(lock);
+                  }
+              }
           }
 	
         clearGaugeFields(program.gaugeRecipes);
       }
     
-    return stopped;
+    return outcome;
   }
 }
 

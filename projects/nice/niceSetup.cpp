@@ -362,6 +362,16 @@ namespace nissa::nice
     {
       options.stopFile=path;
     });
+
+    // Set the running-file refresh period; stale detection uses twice this interval
+    registerHostFunction(evaluator,"setRunningFileUpdateInterval",{"seconds"},
+                         [&options](const int seconds)
+    {
+      if(seconds<=0)
+        CRASH("NICE setRunningFileUpdateInterval requires positive seconds");
+
+      options.runningFileUpdateSeconds=seconds;
+    });
     
     // Record one origin for every hit before compiling tasks and assigning RNG ranges
     registerHostFunction(evaluator,"setOrigin",{"t","x","y","z"},

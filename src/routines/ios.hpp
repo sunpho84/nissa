@@ -257,6 +257,16 @@ namespace nissa
       return (test_tag==tag);
     }
 
+    /// Check the ownership tag locally without calling MPI, for background updates
+    bool check_lock_on_master() const
+    {
+      if(not is_master_rank())
+	CRASH("Only the master rank can check a lock locally");
+      
+      T testTag{};
+      return bool(std::ifstream(path)>>testTag) and testTag==tag;
+    }
+
     // Identify the ownership file in diagnostics after try_lock
     const std::string& lockPath() const
     {
