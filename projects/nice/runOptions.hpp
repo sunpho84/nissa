@@ -29,6 +29,9 @@ namespace nissa::nice
     /// Number of stochastic hits per gauge configuration
     int nHits{1};
     
+    /// Retain completed hit files and compatibility metadata for later hit-count increases
+    bool keepCheckpoints{true};
+    
     /// Implicit origin-selection operation performed once per hit
     GlobalOriginOperation drawGlobalOriginTask;
     

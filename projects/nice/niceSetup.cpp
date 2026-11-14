@@ -2,13 +2,13 @@
 
 #include "base/debug.hpp"
 #include "correlations.hpp"
+#include "checkpointIdentity.hpp"
 #include "graphCompiler.hpp"
 #include "legacyInputWriter.hpp"
 #include "nASTy.hpp"
 #include "nice.hpp"
 #include "schedulingStrategies.hpp"
 #include "runOptions.hpp"
-#include "routines/fnv1a64.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 
@@ -216,27 +216,6 @@ namespace nissa::nice
                             materializeAndBroadcastConfigurations(configurationSources),
                             std::move(gaugeRecipes)};
     
-    // Include source text and the entire ordered list: entry indices determine RNG streams
-    uint64_t identity=fnv1a64Offset;
-    const auto addBytes=[&identity](const std::string_view bytes)
-    {
-      identity=fnv1a64Update(identity,bytes);
-      identity=fnv1a64Update(identity,std::string_view{"\xff",1});
-    };
-    
-    for(const ProgramPiece& piece : pieces)
-      {
-        addBytes(piece.origin);
-        addBytes(piece.text);
-      }
-    
-    for(const ConfigurationEntry& entry : program.configurationEntries)
-      {
-        addBytes(entry.path);
-        addBytes(entry.outputDirectory);
-      }
-    
-    program.checkpointIdentity=identity;
     program.validate();
     
     return program;
@@ -297,10 +276,7 @@ namespace nissa::nice
     using namespace internal;
     
     auto momentumInfo=
-      registerHObject<SpatMomentum>(evaluator,"SpatMomentum",
-                                   std::make_tuple(HostMemberInfo{"x",&SpatMomentum::x},
-                                                   HostMemberInfo{"y",&SpatMomentum::y},
-                                                   HostMemberInfo{"z",&SpatMomentum::z}));
+      registerHObject<SpatMomentum>(evaluator,"SpatMomentum",SpatMomentum::members());
     momentumInfo->streamOp=[](std::ostream& out,
                               const std::any& data)
     {
@@ -313,40 +289,20 @@ namespace nissa::nice
                               std::make_tuple(HostMemberInfo{"tSelect",&Source::tSelect}));
     useDescription<Source>(sourceInfo);
     
-    auto parameter=[&]<typename T>(const char* name,
-                                   const auto& members)
+    auto parameter=[&]<typename T>(const char* name)
     {
       auto info=
-        registerHObject<T>(evaluator,name,members);
+        registerHObject<T>(evaluator,name,T::members());
       useDescription<T>(info);
       
       return info;
     };
     
-    {
-      using Self=Prop;
-      parameter.template operator()<Self>("Prop",
-        std::make_tuple(MEMB(kappa),MEMB(mass),MEMB(r),MEMB(charge),
-                        HMEMB(mom,momentumInfo),MEMB(residue),MEMB(gaugeRecipe),MEMB(csw)));
-    }
-    {
-      using Self=Smear;
-      parameter.template operator()<Self>("Smear",
-        std::make_tuple(MEMB(kappa),MEMB(n),HMEMB(mom,momentumInfo),MEMB(gaugeRecipe)));
-    }
-    {
-      using Self=Phase;
-      parameter.template operator()<Self>("Phase",
-        std::make_tuple(HMEMB(mom,momentumInfo)));
-    }
-    {
-      using Self=Gamma;
-      parameter.template operator()<Self>("Gamma",std::make_tuple(MEMB(iGamma)));
-    }
-    {
-      using Self=DeltaT;
-      parameter.template operator()<Self>("DeltaT",std::make_tuple(MEMB(t)));
-    }
+    parameter.template operator()<Prop>("Prop");
+    parameter.template operator()<Smear>("Smear");
+    parameter.template operator()<Phase>("Phase");
+    parameter.template operator()<Gamma>("Gamma");
+    parameter.template operator()<DeltaT>("DeltaT");
     
     // Binary operations construct these results; neither type has a default constructor
     useDescription<Oper>(registerHObjectType<Oper>(evaluator,"Oper"));
@@ -382,6 +338,15 @@ namespace nissa::nice
       options.seed=seed;
       options.nHits=nHits;
       options.nCopies=nCopies;
+    });
+    
+    registerHostFunction(evaluator,"setKeepCheckpoints",{"enabled"},
+                         [&options](const int enabled)
+    {
+      if(enabled!=0 and enabled!=1)
+        CRASH("NICE setKeepCheckpoints requires enabled to be 0 or 1");
+      
+      options.keepCheckpoints=enabled!=0;
     });
     
     // Record one origin for every hit before compiling tasks and assigning RNG ranges

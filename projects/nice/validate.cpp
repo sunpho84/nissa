@@ -1,5 +1,6 @@
 #include "corrParts.hpp"
 #include "configurationSources.hpp"
+#include "checkpointIdentity.hpp"
 #include "correlations.hpp"
 #include "correlationTaskGraph.hpp"
 #include "graphCompiler.hpp"
@@ -1978,6 +1979,13 @@ void validateRunSettings(const int narg,
   assert(options.diluteSpin==false and options.diluteColor==true);
   assert(options.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic);
   
+  // Retention defaults on and accepts explicit numeric script switches
+  assert(options.keepCheckpoints);
+  execute({{"setKeepCheckpoints(0);","discard completed checkpoints"}});
+  assert(not options.keepCheckpoints);
+  execute({{"setKeepCheckpoints(1);","retain completed checkpoints"}});
+  assert(options.keepCheckpoints);
+  
   execute({{"setRun(7,8,2); reserveRngDoublesPerSite(.reservedDoublesPerSite=12);", "RNG reservation"}});
   options.validate();
   assert(options.reservedRngDoublesPerSite==12);
@@ -2611,6 +2619,40 @@ void validatePreparedExecution()
     "backward=Prop(.gaugeRecipe=rawRecipe,.kappa=0.12,.r=1)*source; "
     "forward=Gamma(1)*backward; corrTrace(\"pion\",backward,forward);",1}});
   program.configurationEntries.push_back({"","unused","script",1});
+  const uint64_t originalIdentity=checkpointEntryIdentity(program,0);
+  program.options.nHits=4;
+  program.options.keepCheckpoints=false;
+  program.configurationEntries.push_back({"other","other-output","script",2});
+  assert(checkpointEntryIdentity(program,0)==originalIdentity);
+  program.configurationEntries.pop_back();
+  program.options.nHits=2;
+  program.options.keepCheckpoints=true;
+  program.configurationEntries[0].path="different";
+  assert(checkpointEntryIdentity(program,0)!=originalIdentity);
+  program.configurationEntries[0].path="";
+  program.options.seed=8;
+  assert(checkpointEntryIdentity(program,0)!=originalIdentity);
+  program.options.seed=7;
+  assert(checkpointEntryIdentity(program,0)==originalIdentity);
+  bool checkedParameter=false;
+  for(Task& task : program.correlations.instructions)
+    if(auto* extension=std::get_if<ExtendSelectingTPars>(&task.operation);
+       extension!=nullptr and not checkedParameter)
+      if(auto* prop=std::get_if<Prop>(&extension->pars);prop!=nullptr)
+        {
+          const double originalMass=prop->mass;
+          prop->mass=originalMass+0.25;
+          assert(checkpointEntryIdentity(program,0)!=originalIdentity);
+          prop->mass=originalMass;
+          
+          const double originalMomentum=prop->mom.x;
+          prop->mom.x=originalMomentum+1;
+          assert(checkpointEntryIdentity(program,0)!=originalIdentity);
+          prop->mom.x=originalMomentum;
+          checkedParameter=true;
+        }
+  assert(checkedParameter);
+  assert(checkpointEntryIdentity(program,0)==originalIdentity);
   assert(program.gaugeRecipes.size()==1);
   program.gaugeRecipes[0].produce=[](const ConfigurationEntry&,
                                      const GaugeRecipes&,
