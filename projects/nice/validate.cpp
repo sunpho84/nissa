@@ -1994,6 +1994,13 @@ void validateRunSettings(const int narg,
   assert(outputFilePath("output",options,"correlations",".nice")=="output/correlations_additional.nice");
   assert(hitCheckpointPath("output",options,3)=="output/hit-00000003_additional.bin");
   execute({{"setSuffix(\"\");","restore ordinary output names"}});
+
+  // Stop paths are runtime policy and can be replaced or disabled by later pieces
+  assert(not stopRequested(options));
+  execute({{"setStopFile(\"/dev/null\");","request a stop at the next work boundary"}});
+  assert(options.stopFile=="/dev/null" and stopRequested(options));
+  execute({{"setStopFile(\"\");","disable stop requests"}});
+  assert(options.stopFile.empty() and not stopRequested(options));
   
   execute({{"setRun(7,8,2); reserveRngDoublesPerSite(.reservedDoublesPerSite=12);", "RNG reservation"}});
   options.validate();
@@ -2632,12 +2639,14 @@ void validatePreparedExecution()
   program.options.nHits=4;
   program.options.keepCheckpoints=false;
   program.options.outputSuffix="_second";
+  program.options.stopFile="stop.nice";
   program.configurationEntries.push_back({"other","other-output","script",2});
   assert(checkpointEntryIdentity(program,0)==originalIdentity);
   program.configurationEntries.pop_back();
   program.options.nHits=2;
   program.options.keepCheckpoints=true;
   program.options.outputSuffix.clear();
+  program.options.stopFile.clear();
   program.configurationEntries[0].path="different";
   assert(checkpointEntryIdentity(program,0)!=originalIdentity);
   program.configurationEntries[0].path="";

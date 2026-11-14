@@ -88,23 +88,32 @@ namespace nissa::nice
     else
       {
         const bool hasCorrelations=not program.correlations.instructions.empty();
+        bool stopped=false;
         
-        for(size_t iEntry=0;iEntry<program.configurationEntries.size();iEntry++)
+        for(size_t iEntry=0;
+            iEntry<program.configurationEntries.size() and not stopped;iEntry++)
           {
-            const ConfigurationEntry& entry=program.configurationEntries[iEntry];
-            MASTER_PRINTF("NICE: %s gauge configuration %zu/%zu from '%s'\n",
-                          hasCorrelations?"running":"preparing",
-                          iEntry+1,program.configurationEntries.size(),entry.path.c_str());
-            if(hasCorrelations)
-              runCheckpointedConfiguration(program,rngLayout,rng,iEntry);
-            else
+            stopped=stopRequested(program.options);
+            
+            if(not stopped)
               {
-                prepareConfiguration(program,iEntry,rng,rngLayout,iEntry);
-                clearGaugeFields(program.gaugeRecipes);
+                const ConfigurationEntry& entry=program.configurationEntries[iEntry];
+                MASTER_PRINTF("NICE: %s gauge configuration %zu/%zu from '%s'\n",
+                              hasCorrelations?"running":"preparing",
+                              iEntry+1,program.configurationEntries.size(),entry.path.c_str());
+                if(hasCorrelations)
+                  stopped=runCheckpointedConfiguration(program,rngLayout,rng,iEntry);
+                else
+                  {
+                    prepareConfiguration(program,iEntry,rng,rngLayout,iEntry);
+                    clearGaugeFields(program.gaugeRecipes);
+                  }
               }
           }
         
-        if(hasCorrelations)
+        if(stopped)
+          MASTER_PRINTF("NICE: stopped at a gauge configuration or hit boundary; committed hits can be resumed\n");
+        else if(hasCorrelations)
           MASTER_PRINTF("NICE: completed all requested gauge configurations and hits\n");
         else
           MASTER_PRINTF("NICE: completed available gauge configuration work; no correlation tasks were requested\n");

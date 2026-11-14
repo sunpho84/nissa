@@ -374,6 +374,12 @@ namespace nissa::nice
     
     return finished;
   }
+
+  /// Check a script-selected stop request collectively at a work boundary
+  inline bool stopRequested(const RunOptions& options)
+  {
+    return not options.stopFile.empty() and fileExists(options.stopFile);
+  }
   
   /// Record the settings that determine checkpoint compatibility and RNG positions
   inline std::string checkpointMetadata(const PreparedProgram& program,
@@ -479,12 +485,13 @@ namespace nissa::nice
     return first;
   }
   
-  /// Resume one configuration collectively from its first missing hit
-  inline void runCheckpointedConfiguration(PreparedProgram& program,
+  /// Resume one configuration collectively, reporting a clean stop between hits
+  inline bool runCheckpointedConfiguration(PreparedProgram& program,
                                     const RngLayout& rngLayout,
                                     const Sitmo::Rng& rng,
                                     const size_t iEntry)
   {
+    bool stopped=false;
     const std::filesystem::path directory=
       program.configurationEntries[iEntry].outputDirectory;
     if(create_directories(directory.string())!=0)
@@ -525,27 +532,41 @@ namespace nissa::nice
             if(firstHit<static_cast<size_t>(program.options.nHits))
               {
                 for(size_t iHit=firstHit;
-                    iHit<static_cast<size_t>(program.options.nHits);iHit++)
+                    iHit<static_cast<size_t>(program.options.nHits) and not stopped;iHit++)
                   {
-                    const TaskValues values=
-                      executePreparedHit(program,rng,rngLayout,iEntry,iHit);
-                    const std::string hitValues=
-                      encodeHitValues(program.options,program.correlations,values);
+                    stopped=stopRequested(program.options);
 		    
-                    requireCheckpointOwnership(lock);
-                    commitCheckpointFile(hitCheckpointPath(directory,program.options,iHit),
-                      hitCheckpointBytes(checkpointEntryIdentity(program,iEntry),iHit,hitValues),lock);
-		    
-                    MASTER_PRINTF("NICE: committed hit %zu for gauge configuration %zu\n",
-                                  iHit,iEntry);
+                    if(not stopped)
+                      {
+                        const TaskValues values=
+                          executePreparedHit(program,rng,rngLayout,iEntry,iHit);
+                        const std::string hitValues=
+                          encodeHitValues(program.options,program.correlations,values);
+			
+                        requireCheckpointOwnership(lock);
+                        commitCheckpointFile(hitCheckpointPath(directory,program.options,iHit),
+                          hitCheckpointBytes(checkpointEntryIdentity(program,iEntry),iHit,hitValues),lock);
+			
+                        MASTER_PRINTF("NICE: committed hit %zu for gauge configuration %zu\n",
+                                      iHit,iEntry);
+                      }
                   }
               }
 	    
-            finalizeConfiguration(program,iEntry,rngLayout,lock);
+            if(stopped)
+              {
+                requireCheckpointOwnership(lock);
+                removeFile(lock.lockPath());
+                MASTER_PRINTF("NICE: stopping before the next hit of gauge configuration %zu\n",iEntry);
+              }
+            else
+              finalizeConfiguration(program,iEntry,rngLayout,lock);
           }
 	
         clearGaugeFields(program.gaugeRecipes);
       }
+    
+    return stopped;
   }
 }
 

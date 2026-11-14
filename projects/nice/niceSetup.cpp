@@ -355,6 +355,13 @@ namespace nissa::nice
     {
       options.outputSuffix=suffix;
     });
+
+    // An empty path disables stop requests; the file is checked at work boundaries
+    registerHostFunction(evaluator,"setStopFile",{"path"},
+                         [&options](const std::string& path)
+    {
+      options.stopFile=path;
+    });
     
     // Record one origin for every hit before compiling tasks and assigning RNG ranges
     registerHostFunction(evaluator,"setOrigin",{"t","x","y","z"},

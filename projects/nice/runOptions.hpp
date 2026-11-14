@@ -36,6 +36,9 @@ namespace nissa::nice
     
     /// Filename suffix used to keep independent runs in one output directory
     std::string outputSuffix;
+
+    /// Optional stop-request file, interpreted relative to the process working directory
+    std::string stopFile;
     
     /// Implicit origin-selection operation performed once per hit
     GlobalOriginOperation drawGlobalOriginTask;
