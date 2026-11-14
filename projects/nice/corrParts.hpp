@@ -2,6 +2,7 @@
 #define _CORR_PARTS_HPP
 
 #include "base/debug.hpp"
+#include "hostMembers.hpp"
 
 #include <array>
 #include <compare>
@@ -32,6 +33,9 @@ namespace nissa::nice
     
     /// Spatial momentum component along z
     double z{};
+    
+    /// Script members also define the stable checkpoint field order
+    PROVIDE_NICE_MEMBERS(SpatMomentum,MEMB(x),MEMB(y),MEMB(z))
     
     /// Access x, y or z by axis number; reject any other axis
     double& operator[](const std::size_t axis)
@@ -106,6 +110,9 @@ namespace nissa::nice
     /// Recipe producing the gauge field for smearing; zero selects the first recipe
     std::size_t gaugeRecipe{defaults.gaugeRecipe};
     
+    /// Script members also define the stable checkpoint field order
+    PROVIDE_NICE_MEMBERS(Smear,MEMB(kappa),MEMB(n),MEMB(mom),MEMB(gaugeRecipe))
+    
     /// Require a nonnegative iteration count representable by the backend
     void validate() const
     {
@@ -144,6 +151,9 @@ namespace nissa::nice
     /// Spatial momentum inserted by the phase
     SpatMomentum mom{};
     
+    /// Script members also define the stable checkpoint field order
+    PROVIDE_NICE_MEMBERS(Phase,MEMB(mom))
+    
     /// Reverse the momentum under conjugation
     Phase dag() const
     {
@@ -177,6 +187,9 @@ namespace nissa::nice
     /// Gamma matrix index; zero is the identity/scalar operator
     std::size_t iGamma{};
     
+    /// Script members also define the stable checkpoint field order
+    PROVIDE_NICE_MEMBERS(Gamma,MEMB(iGamma))
+    
     /// Accept only the 16 standard gamma matrices
     void validate() const
     {
@@ -202,6 +215,9 @@ namespace nissa::nice
   {
     /// Selected nonnegative time separation
     std::size_t t{};
+    
+    /// Script members also define the stable checkpoint field order
+    PROVIDE_NICE_MEMBERS(DeltaT,MEMB(t))
     
     /// Time selection is unchanged by conjugation
     DeltaT dag() const
@@ -248,6 +264,10 @@ namespace nissa::nice
     
     /// Clover coefficient for this inversion; zero disables the clover term
     double csw{defaults.csw};
+    
+    /// Script members also define the stable checkpoint field order
+    PROVIDE_NICE_MEMBERS(Prop,MEMB(kappa),MEMB(mass),MEMB(r),MEMB(charge),
+                         MEMB(mom),MEMB(residue),MEMB(gaugeRecipe),MEMB(csw))
     
     /// Require an explicitly selected Wilson sign and finite clover coefficient
     void validate() const
