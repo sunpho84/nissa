@@ -113,6 +113,7 @@ namespace nissa
   void init_MPI_thread(int narg,char **arg);
   void define_MPI_types();
   void create_MPI_cartesian_grid();
+  // Abort all ranks with the supplied process failure status
   __attribute__((noreturn))
   void ranks_abort(int err);
   void ranks_barrier();

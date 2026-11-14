@@ -130,7 +130,7 @@ namespace nissa
 	print_backtrace_list();
     }
     
-    ranks_abort(0);
+    ranks_abort(EXIT_FAILURE);
 #else
     __trap();
 #endif

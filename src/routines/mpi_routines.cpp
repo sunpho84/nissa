@@ -121,9 +121,9 @@ namespace nissa
   {
 #ifdef USE_MPI
     printf("on rank %d aborting\n",rank);
-    MPI_Abort(MPI_COMM_WORLD,0);
+    MPI_Abort(MPI_COMM_WORLD,err);
 #endif
-    exit(0);
+    exit(err);
   }
   
   //define all types
