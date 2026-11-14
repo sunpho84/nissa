@@ -2,6 +2,7 @@
 #define _NICE_CHECKPOINT_HPP
 
 #include "nice.hpp"
+#include "checkpointIdentity.hpp"
 #include "programExecution.hpp"
 #include "rngLayout.hpp"
 
@@ -197,7 +198,7 @@ namespace nissa::nice
     if(values.size()%16!=0)
       CRASH("NICE hit values have incomplete complex data");
     
-    std::string bytes("NICEHT2\0",8);
+    std::string bytes("NICEHT3\0",8);
     appendCheckpointUint64(bytes,identity);
     appendCheckpointUint64(bytes,iHit);
     appendCheckpointUint64(bytes,values.size()/16);
@@ -214,7 +215,7 @@ namespace nissa::nice
                                       const size_t requiredRows)
   {
     const std::string bytes=readCheckpointFile(path);
-    if(bytes.size()<40 or bytes.compare(0,8,std::string("NICEHT2\0",8))!=0)
+    if(bytes.size()<40 or bytes.compare(0,8,std::string("NICEHT3\0",8))!=0)
       CRASH("NICE checkpoint '%s' has an invalid binary header",path.string().c_str());
     
     size_t offset=8;
@@ -277,7 +278,7 @@ namespace nissa::nice
       writeCheckpointBytes(file,temporary,
                            formatHitResults(program.options,program.correlations,
                                             checkedHitValues(hitCheckpointPath(directory,iHit),
-                                                             program.checkpointIdentity,iHit,
+                                                             checkpointEntryIdentity(program,iEntry),iHit,
                                                              expectedHitRows(program)),iHit));
     
     if(file!=nullptr)
@@ -293,20 +294,24 @@ namespace nissa::nice
     // The marker commits both the result and full run metadata before cleanup
     requireCheckpointOwnership(lock);
     commitCheckpointFile(directory/"finished.nice",
-                         std::format("NICE-finished-v2 {} {} {} {}\n",
-                                     program.checkpointIdentity,
+                         std::format("NICE-finished-v3 {} {} {} {}\n",
+                                     checkpointEntryIdentity(program,iEntry),
                                      program.options.nHits,
                                      checkpointMetadataHash(program,rngLayout,iEntry),
                                      outputHash),lock);
     
-    for(size_t iHit=0;iHit<static_cast<size_t>(program.options.nHits);iHit++)
+    if(not program.options.keepCheckpoints)
       {
+        for(size_t iHit=0;iHit<static_cast<size_t>(program.options.nHits);iHit++)
+          {
+            requireCheckpointOwnership(lock);
+            removeFile(hitCheckpointPath(directory,iHit).string());
+          }
+        
         requireCheckpointOwnership(lock);
-        removeFile(hitCheckpointPath(directory,iHit).string());
+        removeFile((directory/"checkpoint.bin").string());
       }
     
-    requireCheckpointOwnership(lock);
-    removeFile((directory/"checkpoint.bin").string());
     requireCheckpointOwnership(lock);
     removeFile(lock.lockPath());
     MASTER_PRINTF("NICE: wrote results to '%s'\n",output.string().c_str());
@@ -332,8 +337,9 @@ namespace nissa::nice
         uint64_t metadataHash{};
         uint64_t outputHash{};
         if(not (contents>>version>>identity>>nHits>>metadataHash>>outputHash) or
-           contents>>extra or version!="NICE-finished-v2" or
-           identity!=program.checkpointIdentity or nHits!=program.options.nHits or
+           contents>>extra or version!="NICE-finished-v3" or
+           identity!=checkpointEntryIdentity(program,iEntry) or
+           nHits<=0 or nHits>program.options.nHits or
            metadataHash!=checkpointMetadataHash(program,rngLayout,iEntry))
           CRASH("NICE finished marker '%s' does not match this run",marker.string().c_str());
         
@@ -341,7 +347,12 @@ namespace nissa::nice
         if(checkpointFileHash(output)!=outputHash)
           CRASH("NICE finished result '%s' is damaged",output.string().c_str());
         
-        finished=true;
+        if(nHits<program.options.nHits and
+           not fileExists((directory/"checkpoint.bin").string()))
+          CRASH("NICE cannot increase hits in '%s': completed hit checkpoints were removed",
+                directory.string().c_str());
+        
+        finished=nHits==program.options.nHits;
       }
     
     return finished;
@@ -355,13 +366,13 @@ namespace nissa::nice
     const ConfigurationEntry& entry=program.configurationEntries[iEntry];
     const RunOptions& options=program.options;
     std::string metadata=
-      std::format("NICE-checkpoint-v1\nidentity {}\nentry {}\ninput {}\noutput {}\n"
-                  "list {}:{}\ngeometry {} {}\nseed {}\nhits {}\ncopies {}\n"
+      std::format("NICE-checkpoint-v3\nidentity {}\nentry {}\ninput {}\noutput {}\n"
+                  "geometry {} {}\nseed {}\ncopies {}\n"
                   "dilution {} {}\nboundary {}\norigin {} {} {} {} {}\n"
                   "reservation {}\ntasks {}\nrows-per-hit {}\norigin-cost {}\n",
-                  program.checkpointIdentity,iEntry,entry.path,entry.outputDirectory,
-                  entry.sourceList,entry.sourceRow,options.L,options.T,options.seed,
-                  options.nHits,options.nCopies,options.diluteSpin,options.diluteColor,
+                  checkpointEntryIdentity(program,iEntry),iEntry,entry.path,entry.outputDirectory,
+                  options.L,options.T,options.seed,
+                  options.nCopies,options.diluteSpin,options.diluteColor,
                   static_cast<int>(options.temporalBoundary),
                   options.drawGlobalOriginTask.enabled,
                   options.drawGlobalOriginTask.fixedOrigin[0],
@@ -383,8 +394,8 @@ namespace nissa::nice
                                              const RngLayout& rngLayout,
                                              const size_t iEntry)
   {
-    std::string bytes("NICECP2\0",8);
-    appendCheckpointUint64(bytes,program.checkpointIdentity);
+    std::string bytes("NICECP3\0",8);
+    appendCheckpointUint64(bytes,checkpointEntryIdentity(program,iEntry));
     appendCheckpointUint64(bytes,checkpointMetadataHash(program,rngLayout,iEntry));
     
     return bytes;
@@ -437,7 +448,8 @@ namespace nissa::nice
             if(first!=static_cast<size_t>(program.options.nHits))
               CRASH("NICE checkpoint '%s' follows an unfinished hit",path.string().c_str());
             
-            checkedHitValues(path,program.checkpointIdentity,iHit,expectedHitRows(program));
+            checkedHitValues(path,checkpointEntryIdentity(program,iEntry),iHit,
+                             expectedHitRows(program));
           }
         else if(first==static_cast<size_t>(program.options.nHits))
           first=iHit;
@@ -457,14 +469,8 @@ namespace nissa::nice
     if(create_directories(directory.string())!=0)
       CRASH("NICE cannot create output directory '%s'",directory.string().c_str());
     
-    const std::filesystem::path marker=directory/"finished.nice";
-    if(fileExists(marker.string()))
-      {
-        if(not configurationFinished(program,rngLayout,iEntry))
-          CRASH("NICE finished marker '%s' disappeared",marker.string().c_str());
-	
-        MASTER_PRINTF("NICE: skipping completed gauge configuration %zu\n",iEntry);
-      }
+    if(configurationFinished(program,rngLayout,iEntry))
+      MASTER_PRINTF("NICE: skipping completed gauge configuration %zu\n",iEntry);
     else
       {
         lock_file_t<> lock;
@@ -507,7 +513,7 @@ namespace nissa::nice
 		    
                     requireCheckpointOwnership(lock);
                     commitCheckpointFile(hitCheckpointPath(directory,iHit),
-                      hitCheckpointBytes(program.checkpointIdentity,iHit,hitValues),lock);
+                      hitCheckpointBytes(checkpointEntryIdentity(program,iEntry),iHit,hitValues),lock);
 		    
                     MASTER_PRINTF("NICE: committed hit %zu for gauge configuration %zu\n",
                                   iHit,iEntry);
