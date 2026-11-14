@@ -30,6 +30,8 @@
 #include <parsePact.hpp>
 #include <tuples/tupleHasType.hpp>
 
+#include "hostMembers.hpp"
+
 using namespace pp::internal;
 
 /// Build the ParsePact parser for the script grammar and its semantic actions
@@ -1951,21 +1953,6 @@ struct Evaluator
   }
 };
 
-/// Struct which describes a field without binding it to a particular object instance
-template <typename T,
-          typename M>
-struct HostMemberInfo
-{
-  /// Script-visible member name; must be nonempty and unique within a registration
-  std::string name;
-  
-  /// Member pointer used to read and assign the concrete T value
-  M T::* pointer;
-  
-  /// Metadata for a nested host member
-  std::shared_ptr<const HObjectInfo> memberType;
-};
-
 /// Register metadata without creating a script constructor, for example for results
 /// The evaluator keeps this metadata available while scripts are evaluated
 template <typename T>
@@ -2006,7 +1993,7 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
   std::apply([&](const auto&...field)
   {
     auto add=
-      [&](const auto& field)
+      [&](auto field)
       {
 	using M=
 	  std::remove_cvref_t<decltype(std::declval<T>().*(field.pointer))>;
@@ -2022,10 +2009,15 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
 	constexpr bool scalar=
 	  nissa::tupleHasType<ScalarMemberTypes,M>;
 	
-	// Nested host members require their own previously registered metadata
+	// Reuse previously registered metadata for nested host members
 	if constexpr(not scalar)
 	  if(not field.memberType)
-	    errorEmitter("missing host metadata for member ",field.name," in ",name);
+	    {
+	      const auto nested=ev.hostObjectTypes.find(typeid(M));
+	      if(nested==ev.hostObjectTypes.end())
+		errorEmitter("missing host metadata for member ",field.name," in ",name);
+	      field.memberType=nested->second;
+	    }
 	
 	names.push_back(field.name);
 	
@@ -2199,24 +2191,5 @@ void registerHostFunction(Evaluator& evaluator,
 /// Returns the shared metadata, just like registerHObject
 #define REGISTER_HOBJECT(EV,TYPE) \
   ::registerHObject<TYPE>((EV),#TYPE,TYPE::members())
-
-/// Describes a member with the same name in C++ and the script
-/// Use inside PROVIDE_NICE_MEMBERS, which supplies the local Self alias
-#define MEMB(NAME) \
-  HostMemberInfo{#NAME,&Self::NAME}
-
-/// Describes a nested host member using its registered type metadata
-/// Requires the same Self alias as MEMB; INFO must describe the member's C++ type
-#define HMEMB(NAME,INFO) \
-  HostMemberInfo{#NAME,&Self::NAME,(INFO)}
-
-/// Defines static members() from descriptors such as MEMB(field)
-/// HMEMB and explicit HostMemberInfo descriptors may also be included in the list
-#define PROVIDE_NICE_MEMBERS(TYPE,...)	 \
-  static auto members()			 \
-  {					 \
-    using Self=TYPE;			 \
-    return std::make_tuple(__VA_ARGS__); \
-  }
 
 #endif
