@@ -8,10 +8,15 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <optional>
+#include <set>
+#include <string>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 #include <variant>
+#include <vector>
 
 namespace nissa::nice
 {
@@ -20,6 +25,9 @@ namespace nissa::nice
   {
     /// Current FNV-1a state
     uint64_t value{fnv1a64Offset};
+    
+    /// Relative source IDs, independent of process-wide source construction history
+    std::map<uint64_t,uint64_t> sourceIds;
     
     /// Append one fixed-width integer in little-endian byte order
     void addNumber(const uint64_t number)
@@ -44,116 +52,157 @@ namespace nissa::nice
       value=fnv1a64Update(value,text);
     }
     
-    /// Append a parameter value, recursively visiting its referenced members
+    /// Append a parameter value, recursively visiting its members
     template <typename T>
-    void addParameter(const T& parameter)
+    void addParameter(const T& parameter);
+    
+    /// Append one string with its length
+    void addParameter(const std::string_view parameter)
     {
-      if constexpr(std::is_integral_v<T> or std::is_enum_v<T>)
-        addNumber(static_cast<uint64_t>(parameter));
-      else if constexpr(std::is_same_v<T,double>)
-        addDouble(parameter);
-      else
-        std::apply([this,&parameter](const auto&... members)
-        {
-          (this->addParameter(parameter.*(members.pointer)),...);
-        },T::members());
+      addString(parameter);
     }
     
-    /// Append the alternative and all values supplied by its parameter tuple
-    void addPars(const Pars& pars)
+    /// Append a string literal without its terminating null byte
+    template <size_t N>
+    void addParameter(const char (&parameter)[N])
     {
-      addNumber(pars.index());
-      std::visit([this](const auto& parameter)
+      addString({parameter,N-1});
+    }
+    
+    /// Append one owned string with its length
+    void addParameter(const std::string& parameter)
+    {
+      addString(parameter);
+    }
+    
+    /// Append a fixed-size coordinate vector in component order
+    template <typename T,
+              size_t N>
+    void addParameter(const MyArray<T,N>& parameter)
+    {
+      for(size_t i=0;i<N;i++)
+        addParameter(parameter[i]);
+    }
+    
+    /// Append an ordered sequence with its element count
+    template <typename T,
+              typename Allocator>
+    void addParameter(const std::vector<T,Allocator>& parameter)
+    {
+      addNumber(parameter.size());
+      for(const auto& element : parameter)
+        addParameter(element);
+    }
+    
+    /// Append an ordered set with its element count
+    template <typename T,
+              typename Compare,
+              typename Allocator>
+    void addParameter(const std::set<T,Compare,Allocator>& parameter)
+    {
+      addNumber(parameter.size());
+      for(const auto& element : parameter)
+        addParameter(element);
+    }
+    
+    /// Append both members of a pair in their declared order
+    template <typename First,
+              typename Second>
+    void addParameter(const std::pair<First,Second>& parameter)
+    {
+      addParameter(parameter.first);
+      addParameter(parameter.second);
+    }
+    
+    /// Distinguish an absent value from a present value
+    template <typename T>
+    void addParameter(const std::optional<T>& parameter)
+    {
+      addNumber(parameter.has_value());
+      if(parameter)
+        addParameter(*parameter);
+    }
+    
+    /// Normalize the process-wide source counter before hashing its other fields
+    void addParameter(const Source& parameter)
+    {
+      const auto [source,isNew]=
+        sourceIds.try_emplace(parameter.count,sourceIds.size());
+      (void)isNew;
+      addNumber(source->second);
+      addParameter(parameter.tSelect);
+      addParameter(parameter.ildgPath);
+    }
+    
+    /// Append the selected alternative before its contents
+    template <typename... Types>
+    void addParameter(const std::variant<Types...>& parameter)
+    {
+      addNumber(parameter.index());
+      std::visit([this](const auto& value)
       {
-        addParameter(parameter);
-      },pars);
+        this->addParameter(value);
+      },parameter);
+    }
+    
+    /// Append a member descriptor or a directly referenced member
+    template <typename Owner,
+              typename Member>
+    void addMember(const Owner& owner,
+                   const Member& member)
+    {
+      if constexpr(requires { member.pointer; })
+        addParameter(owner.*(member.pointer));
+      else
+        addParameter(member);
+    }
+    
+    /// Mutate this fingerprint with one typed value
+    template <typename T>
+    CheckpointIdentityBuilder& operator+=(const T& parameter)
+    {
+      addParameter(parameter);
+      
+      return *this;
+    }
+    
+    /// Return an extended fingerprint for addition chains
+    template <typename T>
+    CheckpointIdentityBuilder operator+(const T& parameter) const
+    {
+      CheckpointIdentityBuilder result=*this;
+      result+=parameter;
+      
+      return result;
     }
   };
+  
+  template <typename T>
+  void CheckpointIdentityBuilder::addParameter(const T& parameter)
+  {
+    if constexpr(std::is_integral_v<T> or std::is_enum_v<T>)
+      addNumber(static_cast<uint64_t>(parameter));
+    else if constexpr(std::is_same_v<T,double>)
+      addDouble(parameter);
+    else
+      std::apply([this,&parameter](const auto&... members)
+      {
+        (this->addMember(parameter,members),...);
+      },parameter.members());
+  }
   
   /// Fingerprint numerical settings, gauge recipes, instructions, and requested outputs
   /// Hit count, retention policy, source spelling, and list contents are deliberately excluded
   inline uint64_t preparedProgramIdentity(const PreparedProgram& program)
   {
-    CheckpointIdentityBuilder identity;
-    identity.addString("NICE-prepared-program-v3");
-    const RunOptions& options=program.options;
-    identity.addNumber(options.L);
-    identity.addNumber(options.T);
-    identity.addNumber(options.seed);
-    identity.addNumber(options.nCopies);
-    identity.addNumber(options.diluteSpin);
-    identity.addNumber(options.diluteColor);
-    identity.addNumber(static_cast<uint64_t>(options.temporalBoundary));
-    identity.addNumber(options.drawGlobalOriginTask.enabled);
-    for(int mu=0;mu<NDIM;mu++)
-      identity.addNumber(static_cast<uint64_t>(options.drawGlobalOriginTask.fixedOrigin[mu]));
-    identity.addNumber(options.reservedRngDoublesPerSite);
+    CheckpointIdentityBuilder identity=
+      CheckpointIdentityBuilder{}+"NICE-prepared-program-v3"+program.options;
     
-    identity.addNumber(program.gaugeRecipes.size());
+    identity+=program.gaugeRecipes.size();
     for(const GaugeRecipe& recipe : program.gaugeRecipes)
-      identity.addString(recipe.checkpointSignature);
+      identity+=recipe.checkpointSignature;
     
-    std::map<uint64_t,uint64_t> sourceIds;
-    identity.addNumber(program.correlations.instructions.size());
-    for(const Task& task : program.correlations.instructions)
-      {
-        identity.addNumber(task.id);
-        identity.addNumber(task.operation.index());
-        std::visit([&identity,&sourceIds](const auto& operation)
-        {
-          using Operation=std::decay_t<decltype(operation)>;
-          
-          if constexpr(std::is_same_v<Operation,Source>)
-            {
-              // Source counters are process-global; retain only their relative identities
-              const auto [source,isNew]=
-                sourceIds.try_emplace(operation.count,sourceIds.size());
-              (void)isNew;
-              identity.addNumber(source->second);
-              identity.addNumber(static_cast<uint64_t>(operation.tSelect));
-              identity.addNumber(operation.ildgPath.has_value());
-              if(operation.ildgPath)
-                identity.addString(*operation.ildgPath);
-            }
-          else if constexpr(std::is_same_v<Operation,ExtendSelectingTPars>)
-            {
-              identity.addPars(operation.pars);
-              identity.addNumber(static_cast<uint64_t>(operation.tSelect));
-            }
-          else if constexpr(std::is_same_v<Operation,TraceContraction>)
-            {
-              identity.addNumber(operation.gammaList.size());
-              for(const auto& [sink,source] : operation.gammaList)
-                {
-                  identity.addNumber(static_cast<uint64_t>(sink));
-                  identity.addNumber(static_cast<uint64_t>(source));
-                }
-            }
-        },task.operation);
-        
-        identity.addNumber(task.inputs.size());
-        for(const TaskInput& input : task.inputs)
-          {
-            identity.addNumber(input.task);
-            identity.addDouble(input.weight);
-          }
-      }
-    
-    identity.addNumber(program.correlations.outputs.size());
-    for(const OutputBlock& output : program.correlations.outputs)
-      {
-        identity.addString(output.name);
-        identity.addNumber(output.gammaList.size());
-        for(const auto& [sink,source] : output.gammaList)
-          {
-            identity.addNumber(static_cast<uint64_t>(sink));
-            identity.addNumber(static_cast<uint64_t>(source));
-          }
-        
-        identity.addNumber(output.traces.size());
-        for(const TaskId trace : output.traces)
-          identity.addNumber(trace);
-      }
+    identity+=program.correlations;
     
     return identity.value;
   }
@@ -163,12 +212,9 @@ namespace nissa::nice
                                           const size_t iEntry)
   {
     const ConfigurationEntry& entry=program.configurationEntries.at(iEntry);
-    CheckpointIdentityBuilder identity;
-    identity.addString("NICE-checkpoint-entry-v3");
-    identity.addNumber(preparedProgramIdentity(program));
-    identity.addNumber(iEntry);
-    identity.addString(entry.path);
-    identity.addString(entry.outputDirectory);
+    const CheckpointIdentityBuilder identity=
+      CheckpointIdentityBuilder{}+"NICE-checkpoint-entry-v3"+
+      preparedProgramIdentity(program)+iEntry+entry.path+entry.outputDirectory;
     
     return identity.value;
   }
