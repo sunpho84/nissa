@@ -10,9 +10,12 @@
 #include "rngLayout.hpp"
 #include "runOptions.hpp"
 
+#include <bit>
 #include <cmath>
+#include <format>
 #include <functional>
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -41,6 +44,9 @@ namespace nissa::nice
     /// Owned field, empty before preparation and after release
     std::unique_ptr<GaugeField> field;
     
+    /// Stable description of the producer and its parameters for checkpoint compatibility
+    std::string checkpointSignature;
+    
     /// Report this producer's uniform-double consumption cost for one gauge configuration
     std::function<uint64_t(const RunOptions&)> doubleDrawCost;
     
@@ -62,16 +68,18 @@ namespace nissa::nice
   
   /// Append a deferred producer and return its target index
   inline GaugeRecipeId addGaugeRecipe(GaugeRecipes& recipes,
+                                    std::string checkpointSignature,
                                     std::function<std::unique_ptr<GaugeField>(const ConfigurationEntry&,
                                                                               const GaugeRecipes&,
                                                                               const OperationRngRange&)> produce,
                                     std::function<uint64_t(const RunOptions&)> doubleDrawCost={})
   {
-    if(not produce)
-      CRASH("NICE gauge recipe requires a producer");
+    if(not produce or checkpointSignature.empty())
+      CRASH("NICE gauge recipe requires a producer and checkpoint signature");
     
     const GaugeRecipeId target=recipes.size();
-    recipes.push_back({nullptr,std::move(doubleDrawCost),std::move(produce)});
+    recipes.push_back({nullptr,std::move(checkpointSignature),
+                       std::move(doubleDrawCost),std::move(produce)});
     
     return target;
   }
@@ -80,14 +88,14 @@ namespace nissa::nice
   inline void validateGaugeRecipes(const GaugeRecipes& recipes)
   {
     for(size_t slot=0;slot<recipes.size();slot++)
-      if(not recipes[slot].produce)
-        CRASH("NICE gauge recipe %zu has no producer",slot);
+      if(not recipes[slot].produce or recipes[slot].checkpointSignature.empty())
+        CRASH("NICE gauge recipe %zu has no producer or checkpoint signature",slot);
   }
   
   /// Record loading the selected entry's gauge file without performing I/O
   inline GaugeRecipeId loadedConf(GaugeRecipes& recipes)
   {
-    return addGaugeRecipe(recipes,[](const ConfigurationEntry& entry,
+    return addGaugeRecipe(recipes,"loadedConf",[](const ConfigurationEntry& entry,
                                     const GaugeRecipes&,
                                     const OperationRngRange&)
     {
@@ -113,7 +121,9 @@ namespace nissa::nice
     if(not std::isfinite(alpha) or n<0)
       CRASH("NICE apeSmearConf requires finite alpha and nonnegative n");
     
-    return addGaugeRecipe(recipes,[inputRecipe,alpha,n](const ConfigurationEntry&,
+    return addGaugeRecipe(recipes,
+      std::format("apeSmearConf:{}:{}:{}",inputRecipe,std::bit_cast<uint64_t>(alpha),n),
+      [inputRecipe,alpha,n](const ConfigurationEntry&,
                                                        const GaugeRecipes& current,
                                                        const OperationRngRange&)
     {
