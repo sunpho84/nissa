@@ -7,7 +7,9 @@
 #include "routines/math_routines.hpp"
 
 #include <cstdint>
+#include <cmath>
 #include <limits>
+#include <optional>
 #include <string>
 #include <tuple>
 
@@ -42,6 +44,12 @@ namespace nissa::nice
     
     /// Seconds between running-file updates; a file older than twice this can be reclaimed
     int runningFileUpdateSeconds{60};
+    
+    /// Explicit seconds from program startup, otherwise use Slurm or a one-minute fallback
+    std::optional<double> wallTimeSeconds;
+    
+    /// Extra seconds reserved beyond the pessimistic completed-hit estimate
+    double wallTimeSafetySeconds{0.0};
     
     /// Implicit origin-selection operation performed once per hit
     GlobalOriginOperation drawGlobalOriginTask;
@@ -109,6 +117,12 @@ namespace nissa::nice
       
       if(runningFileUpdateSeconds<=0)
         CRASH("NICE running-file update interval must be positive");
+      
+      if(wallTimeSeconds and (not std::isfinite(*wallTimeSeconds) or *wallTimeSeconds<=0))
+        CRASH("NICE wall time must be finite and positive");
+      
+      if(not std::isfinite(wallTimeSafetySeconds) or wallTimeSafetySeconds<0)
+        CRASH("NICE wall-time safety allowance must be finite and nonnegative");
       
       if(not drawGlobalOriginTask.enabled)
         for(int mu=0;mu<NDIM;mu++)
