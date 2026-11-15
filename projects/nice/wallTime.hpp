@@ -7,6 +7,7 @@
 
 #include <charconv>
 #include <chrono>
+#include <cstdlib>
 #include <string>
 #include <string_view>
 
@@ -17,6 +18,9 @@ namespace nissa::nice
   {
     /// Monotonic clock used to measure elapsed execution time
     using Clock=std::chrono::steady_clock;
+    
+    /// Slurm variable containing the projected allocation end as a Unix timestamp
+    static constexpr char slurmEndTimeVariable[]{"SLURM_JOB_END_TIME"};
     
     /// Start of this invocation, including library initialization and script preparation
     Clock::time_point start;
@@ -34,7 +38,7 @@ namespace nissa::nice
     /// Supplied clock readings allow deterministic validation without sleeping
     WallTimeBudget(const RunOptions& options,
                    const Clock::time_point start,
-                   const char* slurmEnd,
+                   const char* slurmEnd=std::getenv(slurmEndTimeVariable),
                    const Clock::time_point now=Clock::now(),
                    const double unixNow=std::chrono::duration<double>(
                      std::chrono::system_clock::now().time_since_epoch()).count()) :
@@ -57,10 +61,10 @@ namespace nissa::nice
               const auto parsed=std::from_chars(text.data(),text.data()+text.size(),timestamp);
               
               if(parsed.ec!=std::errc{} or parsed.ptr!=text.data()+text.size() or timestamp==0)
-                CRASH("NICE invalid SLURM_JOB_END_TIME '%s'",slurmEnd);
+                CRASH("NICE invalid %s '%s'",slurmEndTimeVariable,slurmEnd);
               
               limitSeconds=elapsed(now)+static_cast<double>(timestamp)-unixNow;
-              source="SLURM_JOB_END_TIME";
+              source=slurmEndTimeVariable;
             }
           else
             {

@@ -5,6 +5,7 @@
 #include "checkpointIdentity.hpp"
 #include "programExecution.hpp"
 #include "rngLayout.hpp"
+#include "wallTime.hpp"
 
 #include "io/input.hpp"
 #include "routines/ios.hpp"
@@ -671,7 +672,8 @@ namespace nissa::nice
   inline ConfigurationRunOutcome runCheckpointedConfiguration(PreparedProgram& program,
                                                                 const RngLayout& rngLayout,
                                                                 const Sitmo::Rng& rng,
-                                                                const size_t iEntry)
+                                                                const size_t iEntry,
+                                                                WallTimeBudget& wallTime)
   {
     bool stopped=false;
     ConfigurationRunOutcome outcome=ConfigurationRunOutcome::Completed;
@@ -739,7 +741,7 @@ namespace nissa::nice
                     for(size_t iHit=firstHit;
                         iHit<static_cast<size_t>(program.options.nHits) and not stopped;iHit++)
                       {
-                        stopped=stopRequested(program.options);
+                        stopped=stopRequested(program.options) or not wallTime.allowsWork();
                         
                         if(not stopped)
                           {
@@ -752,6 +754,7 @@ namespace nissa::nice
                             requireCheckpointOwnership(lock);
                             commitCheckpointFile(hitCheckpointPath(directory,program.options,iHit),
                               hitCheckpointBytes(checkpointEntryIdentity(program,iEntry),iHit,hitValues),lock);
+                            wallTime.recordCompletedHit();
                             
                             MASTER_PRINTF("NICE: committed hit %zu for gauge configuration %zu\n",
                                           iHit,iEntry);

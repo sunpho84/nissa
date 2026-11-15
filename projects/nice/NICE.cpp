@@ -70,9 +70,11 @@ namespace nissa::nice
   }
   
   /// Run prepared gauge recipes, source generation, scheduled operations, and result writing
-  void runPreparedProgram(PreparedProgram& program)
+  void runPreparedProgram(PreparedProgram& program,
+                          const WallTimeBudget::Clock::time_point start)
   {
     program.validate();
+    WallTimeBudget wallTime(program.options,start);
     reportPreparedProgram(program);
     const RngLayout rngLayout=
       prepareRngLayout(program.options,program.correlations,program.gaugeRecipes);
@@ -94,7 +96,7 @@ namespace nissa::nice
         for(size_t iEntry=0;
             iEntry<program.configurationEntries.size() and not stopped;iEntry++)
           {
-            stopped=stopRequested(program.options);
+            stopped=stopRequested(program.options) or not wallTime.allowsWork();
             
             if(not stopped)
               {
@@ -105,7 +107,7 @@ namespace nissa::nice
                 if(hasCorrelations)
                   {
                     const ConfigurationRunOutcome outcome=
-                      runCheckpointedConfiguration(program,rngLayout,rng,iEntry);
+                      runCheckpointedConfiguration(program,rngLayout,rng,iEntry,wallTime);
                     stopped=outcome==ConfigurationRunOutcome::Stopped;
                     if(outcome==ConfigurationRunOutcome::ClaimedElsewhere or
                        outcome==ConfigurationRunOutcome::LostOwnership)
@@ -136,12 +138,13 @@ namespace nissa::nice
 int main(int narg,
          char** arg)
 {
+  const auto start=nissa::nice::WallTimeBudget::Clock::now();
   nissa::initNissa(narg,arg);
   
   const nissa::nice::LaunchArgs parts=
     nissa::nice::parseLaunchArgs(narg,arg);
   nissa::nice::PreparedProgram program=nissa::nice::prepareProgram(parts);
-  nissa::nice::runPreparedProgram(program);
+  nissa::nice::runPreparedProgram(program,start);
   
   nissa::closeNissa();
   

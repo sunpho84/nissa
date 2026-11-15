@@ -1879,6 +1879,18 @@ void validateRunSettings(const int narg,
       {
         value.nCopies=0;
       });
+      reject("run-invalid-wall-time",[](RunOptions& value)
+      {
+        value.wallTimeSeconds=0.0;
+      });
+      reject("run-invalid-wall-safety",[](RunOptions& value)
+      {
+        value.wallTimeSafetySeconds=-1.0;
+      });
+      reject("run-infinite-wall-time",[](RunOptions& value)
+      {
+        value.wallTimeSeconds=std::numeric_limits<double>::infinity();
+      });
       reject("run-negative-origin",[](RunOptions& value)
       {
         value.drawGlobalOriginTask.enabled=false;
@@ -1909,6 +1921,13 @@ void validateRunSettings(const int narg,
         execute({{"setRandomOriginEnabled(2);","invalid random origin setting"}});
       else if(mode=="run-invalid-running-file-interval")
         execute({{"setRunningFileUpdateInterval(0);","invalid running-file interval"}});
+      else if(mode=="run-invalid-script-wall-time" or mode=="run-invalid-script-wall-safety")
+        {
+          execute({{mode=="run-invalid-script-wall-time"?
+            "setGeometry(4,8); setWallTime(0);":
+            "setGeometry(4,8); setWallTimeSafety(-1);","invalid wall-time setting"}});
+          options.validate();
+        }
       else if(mode=="run-negative-script-seed" or mode=="run-oversized-script-seed")
         {
           execute({{mode=="run-negative-script-seed"?
@@ -1990,6 +2009,15 @@ void validateRunSettings(const int narg,
   options.validate();
   assert(options.runningFileUpdateSeconds==30);
   
+  // Explicit time limits and safety allowances remain replaceable runtime policy
+  assert(not options.wallTimeSeconds and options.wallTimeSafetySeconds==0.0);
+  execute({{"setWallTime(.seconds=120); setWallTimeSafety(3);","wall-time policy"}});
+  options.validate();
+  assert(options.wallTimeSeconds==120.0 and options.wallTimeSafetySeconds==3.0);
+  execute({{"setWallTime(300); setWallTimeSafety(.seconds=5);","replacement time policy"}});
+  options.validate();
+  assert(options.wallTimeSeconds==300.0 and options.wallTimeSafetySeconds==5.0);
+  
   // Retention defaults on and accepts explicit numeric script switches
   assert(options.keepCheckpoints);
   execute({{"setKeepCheckpoints(0);","discard completed checkpoints"}});
@@ -2031,6 +2059,59 @@ void validateRunSettings(const int narg,
   execute({{"setRandomOriginEnabled(0);","restore fixed origin"}});
   options.validate();
   assert(options.drawGlobalOriginTask.fixedOrigin==fixedOrigin);
+}
+
+/// Check deadline precedence and hit admission without waiting for a real deadline
+void validateWallTime(const int narg,
+                      const char* const* arg)
+{
+  using Clock=WallTimeBudget::Clock;
+  const Clock::time_point start{};
+  const auto at=[start](const int seconds)
+  {
+    return start+std::chrono::seconds(seconds);
+  };
+  RunOptions options{.L=4,.T=8};
+  
+  if(narg>1 and std::string_view(arg[1])=="run-invalid-slurm-end")
+    {
+      WallTimeBudget invalid(options,start,"123garbage",start,100.0);
+      CRASH("NICE accepted an invalid Slurm deadline");
+    }
+  
+  // The fallback includes startup and admits an unmeasured first hit only before expiry
+  WallTimeBudget fallback(options,start,nullptr,start,100.0);
+  assert(fallback.limitSeconds==60.0 and fallback.completedHits==0);
+  assert(fallback.allowsWork(at(59)));
+  assert(not fallback.allowsWork(at(60)));
+  
+  // Slurm gives an allocation deadline, so time spent before NICE started is unavailable
+  WallTimeBudget slurm(options,start,"150",at(10),120.0);
+  assert(slurm.limitSeconds==40.0);
+  assert(slurm.allowsWork(at(39)));
+  assert(not slurm.allowsWork(at(40)));
+  WallTimeBudget expired(options,start,"90",start,100.0);
+  assert(not expired.allowsWork(start));
+  
+  // Explicit time ignores Slurm, even when the inherited variable is malformed
+  options.wallTimeSeconds=100.0;
+  options.wallTimeSafetySeconds=5.0;
+  options.validate();
+  WallTimeBudget explicitTime(options,start,"invalid",at(10),120.0);
+  assert(explicitTime.limitSeconds==100.0);
+  explicitTime.recordCompletedHit();
+  assert(explicitTime.allowsWork(at(45)));
+  assert(not explicitTime.allowsWork(at(46)));
+  
+  // More completed hits change the estimate; checkpoint-restored hits were never recorded
+  explicitTime.recordCompletedHit();
+  assert(explicitTime.allowsWork(at(60)));
+  assert(not explicitTime.allowsWork(at(62)));
+  
+  // Even an unmeasured first hit must leave the requested fixed allowance
+  WallTimeBudget first(options,start,nullptr,start,100.0);
+  assert(first.allowsWork(at(94)));
+  assert(not first.allowsWork(at(95)));
 }
 
 /// Check recent and stale running files, ownership transfer, and release
@@ -2740,6 +2821,8 @@ void validatePreparedExecution()
   program.options.outputSuffix="_second";
   program.options.stopFile="stop.nice";
   program.options.runningFileUpdateSeconds=5;
+  program.options.wallTimeSeconds=120.0;
+  program.options.wallTimeSafetySeconds=10.0;
   program.configurationEntries.push_back({"other","other-output","script",2});
   assert(checkpointEntryIdentity(program,0)==originalIdentity);
   program.configurationEntries.pop_back();
@@ -2748,6 +2831,8 @@ void validatePreparedExecution()
   program.options.outputSuffix.clear();
   program.options.stopFile.clear();
   program.options.runningFileUpdateSeconds=60;
+  program.options.wallTimeSeconds.reset();
+  program.options.wallTimeSafetySeconds=0.0;
   program.configurationEntries[0].path="different";
   assert(checkpointEntryIdentity(program,0)!=originalIdentity);
   program.configurationEntries[0].path="";
@@ -3083,6 +3168,52 @@ void validateGaugeExecution()
     assert(std::remove(path.c_str())==0);
 }
 
+/// Exercise deadline cleanup after claiming and resume with a fresh invocation budget
+void validateWallTimeCheckpoint()
+{
+  std::string root;
+  if(nissa::is_master_rank())
+    {
+      char temporary[]{"/tmp/nice-wall-time-validation-XXXXXX"};
+      const char* created=mkdtemp(temporary);
+      assert(created!=nullptr);
+      root=created;
+    }
+  
+  nissa::broadcast(root);
+  PreparedProgram program=prepareProgram({{ProgramPart::Kind::Immediate,
+    "setGeometry(4,4); setRun(7,2,1); setOrigin(0,0,0,0); "
+    "setWallTime(1); source=Gamma(0)*Source(); corrBlock(\"point\"); "
+    "corrGammas(\"point\",5,5); corrTrace(\"point\",source,source);",1}});
+  program.configurationEntries.push_back({"unused",root,"validation",1});
+  const RngLayout rngLayout=
+    prepareRngLayout(program.options,program.correlations,program.gaugeRecipes);
+  const Sitmo::Rng rng(7);
+  const auto expiredStart=WallTimeBudget::Clock::now()-std::chrono::seconds(2);
+  WallTimeBudget expired(program.options,expiredStart,nullptr);
+  const auto stopped=runCheckpointedConfiguration(program,rngLayout,rng,0,expired);
+  assert(stopped==ConfigurationRunOutcome::Stopped and expired.completedHits==0);
+  assert(nissa::fileExists(root+"/checkpoint.nice"));
+  assert(not nissa::fileExists(root+"/.nice.lock"));
+  assert(not nissa::fileExists(root+"/finished.nice"));
+  assert(not nissa::fileExists(hitCheckpointPath(root,program.options,0).string()));
+  
+  program.options.wallTimeSeconds=3600.0;
+  program.options.validate();
+  WallTimeBudget fresh(program.options,WallTimeBudget::Clock::now(),nullptr);
+  const auto completed=runCheckpointedConfiguration(program,rngLayout,rng,0,fresh);
+  assert(completed==ConfigurationRunOutcome::Completed and fresh.completedHits==2);
+  assert(nissa::fileExists(root+"/finished.nice"));
+  assert(nissa::fileExists(root+"/correlations.nice"));
+  assert(not nissa::fileExists(root+"/.nice.lock"));
+  
+  std::error_code error;
+  if(nissa::is_master_rank())
+    std::filesystem::remove_all(root,error);
+  
+  nissa::checkCollectiveFileError(error,"NICE validation cannot remove its wall-time directory");
+}
+
 /// Run frontend checks normally, or a separate initialized-grid gauge execution mode
 int main(int narg,
          char** arg)
@@ -3110,6 +3241,16 @@ int main(int narg,
       validatePhysicalPropagator();
       validateILDGLineExecution();
       validatePreparedExecution();
+      nissa::closeNissa();
+      
+      return 0;
+    }
+  
+  if(narg>1 and std::string_view(arg[1])=="wall-time-checkpoint")
+    {
+      nissa::initNissa(narg,arg);
+      nissa::initGrid(4,4);
+      validateWallTimeCheckpoint();
       nissa::closeNissa();
       
       return 0;
@@ -3181,6 +3322,7 @@ int main(int narg,
   validateProgramPieces(narg,arg);
   validateConfigurationSources(narg,arg);
   validateRunSettings(narg,arg);
+  validateWallTime(narg,arg);
   validateRunningFile();
   validateGaugeRecipeBindings(narg,arg);
   validateCorrParts();

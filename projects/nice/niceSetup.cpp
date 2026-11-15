@@ -373,6 +373,20 @@ namespace nissa::nice
       options.runningFileUpdateSeconds=seconds;
     });
     
+    // An explicit duration overrides the scheduler deadline
+    registerHostFunction(evaluator,"setWallTime",{"seconds"},
+                         [&options](const int64_t seconds)
+    {
+      options.wallTimeSeconds=seconds;
+    });
+    
+    // Keep extra time for checkpoint finalization and a clean exit
+    registerHostFunction(evaluator,"setWallTimeSafety",{"seconds"},
+                         [&options](const int64_t seconds)
+    {
+      options.wallTimeSafetySeconds=seconds;
+    });
+    
     // Record one origin for every hit before compiling tasks and assigning RNG ranges
     registerHostFunction(evaluator,"setOrigin",{"t","x","y","z"},
                          [&options](const int t,
