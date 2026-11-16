@@ -2,21 +2,19 @@
 #define _NICE_RUN_OPTIONS_HPP
 
 #include "base/debug.hpp"
+#include "runPolicy.hpp"
 #include "rng.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "routines/math_routines.hpp"
 
 #include <cstdint>
-#include <cmath>
 #include <limits>
-#include <optional>
-#include <string>
 #include <tuple>
 
 namespace nissa::nice
 {
-  /// Run-wide settings recorded before any geometry or numerical setup
-  struct RunOptions
+  /// Physics and RNG settings defining the identity of each computed hit
+  struct PhysicsOptions
   {
     /// Temporal fermion boundary, independent of spatial momentum
     enum class TemporalBoundary{Periodic,Antiperiodic};
@@ -29,27 +27,6 @@ namespace nissa::nice
     
     /// Seed inherited from Sitmo unless changed by setRun or a C++ caller
     int64_t seed{Sitmo::Rng::DEFAULT_SEED()};
-    
-    /// Number of stochastic hits per gauge configuration
-    int nHits{1};
-    
-    /// Retain completed hit files and compatibility metadata for later hit-count increases
-    bool keepCheckpoints{true};
-    
-    /// Filename suffix used to keep independent runs in one output directory
-    std::string outputSuffix;
-    
-    /// Optional stop-request file, interpreted relative to the process working directory
-    std::string stopFile;
-    
-    /// Seconds between running-file updates; a file older than twice this can be reclaimed
-    int runningFileUpdateSeconds{60};
-    
-    /// Explicit seconds from program startup, otherwise use Slurm or a one-minute fallback
-    std::optional<double> wallTimeSeconds;
-    
-    /// Extra seconds reserved beyond the pessimistic completed-hit estimate
-    double wallTimeSafetySeconds{0.0};
     
     /// Implicit origin-selection operation performed once per hit
     GlobalOriginOperation drawGlobalOriginTask;
@@ -69,7 +46,7 @@ namespace nissa::nice
     /// Uniform doubles reserved per site for gauge configuration preparation and separately for each hit
     uint64_t reservedRngDoublesPerSite{1'000'000};
     
-    /// Settings that affect checkpoint compatibility, excluding hit count and output policy
+    /// All physics and RNG fields, in checkpoint compatibility order
     auto members() const
     {
       return std::tie(L,T,seed,nCopies,diluteSpin,diluteColor,temporalBoundary,
@@ -99,30 +76,14 @@ namespace nissa::nice
     {
       volume();
       
-      for(const unsigned char character : outputSuffix)
-        if(not ((character>='a' and character<='z') or
-                (character>='A' and character<='Z') or
-                (character>='0' and character<='9') or
-                character=='_' or character=='-'))
-          CRASH("NICE output suffix may contain only letters, digits, '_' and '-'");
-      
       if(reservedRngDoublesPerSite==0)
         CRASH("NICE RNG requires a positive number of reserved doubles per site");
       
       if(seed<0 or seed>std::numeric_limits<uint32_t>::max())
         CRASH("NICE seed must fit Sitmo uint32_t range");
       
-      if(nHits<=0 or nCopies<=0)
-        CRASH("NICE run requires positive nHits and nCopies");
-      
-      if(runningFileUpdateSeconds<=0)
-        CRASH("NICE running-file update interval must be positive");
-      
-      if(wallTimeSeconds and (not std::isfinite(*wallTimeSeconds) or *wallTimeSeconds<=0))
-        CRASH("NICE wall time must be finite and positive");
-      
-      if(not std::isfinite(wallTimeSafetySeconds) or wallTimeSafetySeconds<0)
-        CRASH("NICE wall-time safety allowance must be finite and nonnegative");
+      if(nCopies<=0)
+        CRASH("NICE run requires positive nCopies");
       
       if(not drawGlobalOriginTask.enabled)
         for(int mu=0;mu<NDIM;mu++)
@@ -138,6 +99,23 @@ namespace nissa::nice
       if(temporalBoundary!=TemporalBoundary::Periodic and
          temporalBoundary!=TemporalBoundary::Antiperiodic)
         CRASH("NICE run has an invalid temporal boundary");
+    }
+  };
+  
+  /// Physics settings and execution policy recorded during script evaluation
+  struct RunOptions
+  {
+    /// Settings whose complete member tuple defines checkpoint identity
+    PhysicsOptions physics;
+    
+    /// Work selection and output controls, excluded from numerical identity
+    RunPolicy policy;
+    
+    /// Validate both groups after program evaluation or direct edits
+    void validate() const
+    {
+      physics.validate();
+      policy.validate();
     }
   };
 }

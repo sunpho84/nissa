@@ -32,7 +32,7 @@ namespace nissa::nice
       }
     
     MASTER_PRINTF("NICE: geometry %d x %d^3, %d hit(s), %zu gauge configuration(s)\n",
-                  program.options.T,program.options.L,program.options.nHits,
+                  program.options.physics.T,program.options.physics.L,program.options.policy.nHits,
                   program.configurationEntries.size());
     MASTER_PRINTF("NICE: %zu gauge recipe(s), %zu source task(s), %zu extension task(s), %zu trace task(s)\n",
                   program.gaugeRecipes.size(),sources,extensions,traces);
@@ -74,16 +74,16 @@ namespace nissa::nice
                           const WallTimeBudget::Clock::time_point start)
   {
     program.validate();
-    WallTimeBudget wallTime(program.options,start);
+    WallTimeBudget wallTime(program.options.policy,start);
     reportPreparedProgram(program);
     const RngLayout rngLayout=
       prepareRngLayout(program.options,program.correlations,program.gaugeRecipes);
-    const Sitmo::Rng rng(static_cast<uint32_t>(program.options.seed));
+    const Sitmo::Rng rng(static_cast<uint32_t>(program.options.physics.seed));
     
     MASTER_PRINTF("NICE RNG: reserves %llu doubles per site for gauge configuration preparation and for each hit\n",
-                  static_cast<unsigned long long>(program.options.reservedRngDoublesPerSite));
+                  static_cast<unsigned long long>(program.options.physics.reservedRngDoublesPerSite));
     
-    initGrid(program.options.T,program.options.L);
+    initGrid(program.options.physics.T,program.options.physics.L);
     
     if(program.configurationEntries.empty())
       MASTER_PRINTF("NICE: no gauge configuration entries were supplied; nothing to run\n");
@@ -92,6 +92,7 @@ namespace nissa::nice
         const bool hasCorrelations=not program.correlations.instructions.empty();
         bool stopped=false;
         size_t nClaimedElsewhere=0;
+        size_t nTrialLimitReached=0;
         
         for(size_t iEntry=0;
             iEntry<program.configurationEntries.size() and not stopped;iEntry++)
@@ -112,6 +113,8 @@ namespace nissa::nice
                     if(outcome==ConfigurationRunOutcome::ClaimedElsewhere or
                        outcome==ConfigurationRunOutcome::LostOwnership)
                       nClaimedElsewhere++;
+                    else if(outcome==ConfigurationRunOutcome::TrialLimitReached)
+                      nTrialLimitReached++;
                   }
                 else
                   {
@@ -123,11 +126,11 @@ namespace nissa::nice
         
         if(stopped)
           MASTER_PRINTF("NICE: stopped at a gauge configuration or hit boundary; committed hits can be resumed\n");
-        else if(hasCorrelations and nClaimedElsewhere==0)
+        else if(hasCorrelations and nClaimedElsewhere==0 and nTrialLimitReached==0)
           MASTER_PRINTF("NICE: completed all requested gauge configurations and hits\n");
         else if(hasCorrelations)
-          MASTER_PRINTF("NICE: completed available work; %zu gauge configuration(s) were claimed elsewhere\n",
-                        nClaimedElsewhere);
+          MASTER_PRINTF("NICE: completed available work; %zu gauge configuration(s) were claimed elsewhere, %zu reached the trial limit\n",
+                        nClaimedElsewhere,nTrialLimitReached);
         else
           MASTER_PRINTF("NICE: completed available gauge configuration work; no correlation tasks were requested\n");
       }

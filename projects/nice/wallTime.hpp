@@ -36,22 +36,22 @@ namespace nissa::nice
     
     /// Resolve explicit duration, Slurm end timestamp, or the one-minute fallback
     /// Supplied clock readings allow deterministic validation without sleeping
-    WallTimeBudget(const RunOptions& options,
+    WallTimeBudget(const RunPolicy& policy,
                    const Clock::time_point start,
                    const char* slurmEnd=std::getenv(slurmEndTimeVariable),
                    const Clock::time_point now=Clock::now(),
                    const double unixNow=std::chrono::duration<double>(
                      std::chrono::system_clock::now().time_since_epoch()).count()) :
       start(start),
-      safetySeconds(options.wallTimeSafetySeconds)
+      safetySeconds(policy.wallTimeSafetySeconds)
     {
       std::string source;
       
       if(is_master_rank())
         {
-          if(options.wallTimeSeconds)
+          if(policy.wallTimeSeconds)
             {
-              limitSeconds=*options.wallTimeSeconds;
+              limitSeconds=*policy.wallTimeSeconds;
               source="script";
             }
           else if(slurmEnd!=nullptr and *slurmEnd!='\0')

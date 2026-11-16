@@ -196,7 +196,7 @@ namespace nissa::nice
   inline uint64_t preparedProgramIdentity(const PreparedProgram& program)
   {
     CheckpointIdentityBuilder identity=
-      CheckpointIdentityBuilder{}+"NICE-prepared-program-v3"+program.options;
+      CheckpointIdentityBuilder{}+"NICE-prepared-program-v3"+program.options.physics;
     
     identity+=program.gaugeRecipes.size();
     for(const GaugeRecipe& recipe : program.gaugeRecipes)

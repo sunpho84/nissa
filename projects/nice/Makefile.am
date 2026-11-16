@@ -11,6 +11,7 @@ nice_common_sources= \
 	%D%/nice.hpp \
 	%D%/checkpointIdentity.hpp \
 	%D%/runOptions.hpp \
+	%D%/runPolicy.hpp \
 	%D%/rng.hpp \
 	%D%/rngLayout.hpp \
 	%D%/configurationSources.cpp \

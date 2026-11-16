@@ -49,7 +49,7 @@ namespace nissa::nice
     /// Number of doubles available to gauge configuration preparation or to any single hit
     RngPosition reservedDoubles() const
     {
-      return RngPosition{{{options.volume(),0,0,0}}}*options.reservedRngDoublesPerSite;
+      return RngPosition{{{options.physics.volume(),0,0,0}}}*options.physics.reservedRngDoublesPerSite;
     }
     
     /// Check a full-width total against the shared budget
@@ -106,7 +106,7 @@ namespace nissa::nice
       const uint64_t slot=
         iHit?checkedAdd(*iHit,uint64_t{1},"NICE RNG hit index overflow"):0;
       const RngPosition position=
-        RngPosition{{{slot,iGaugeConf,0,0}}}*options.volume()*options.reservedRngDoublesPerSite+operation.offset;
+        RngPosition{{{slot,iGaugeConf,0,0}}}*options.physics.volume()*options.physics.reservedRngDoublesPerSite+operation.offset;
       
       return {rng,position,operation.doubleDrawCost};
     }

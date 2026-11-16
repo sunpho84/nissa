@@ -36,9 +36,9 @@ namespace nissa::nice
     if(iEntry>=program.configurationEntries.size())
       CRASH("NICE gauge configuration entry %zu is out of range",iEntry);
     
-    if(not lxGeomInited or glbSize[0]!=program.options.T or
-       glbSize[1]!=program.options.L or glbSize[2]!=program.options.L or
-       glbSize[3]!=program.options.L)
+    if(not lxGeomInited or glbSize[0]!=program.options.physics.T or
+       glbSize[1]!=program.options.physics.L or glbSize[2]!=program.options.physics.L or
+       glbSize[3]!=program.options.physics.L)
       CRASH("NICE gauge configuration execution requires the configured geometry");
     
     const bool claimed=
@@ -46,7 +46,7 @@ namespace nissa::nice
                          rng,rngLayout,iGaugeConf,checkClaim);
     
     if(claimed and not program.correlations.instructions.empty() and
-       program.options.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic)
+       program.options.physics.temporalBoundary==PhysicsOptions::TemporalBoundary::Antiperiodic)
       {
         Momentum theta{};
         theta[0]=1.0;
@@ -66,7 +66,7 @@ namespace nissa::nice
     if(not makeHandlers)
       CRASH("NICE gauge configuration execution requires a task handler factory");
     
-    if(iHit>=static_cast<size_t>(program.options.nHits))
+    if(iHit>=static_cast<size_t>(program.options.policy.nHits))
       CRASH("NICE hit %zu exceeds the configured hit count",iHit);
     
     const TaskHandlers handlers=
@@ -109,9 +109,9 @@ namespace nissa::nice
     
     if(not program.correlations.instructions.empty())
       {
-        result.hits.reserve(static_cast<size_t>(program.options.nHits));
+        result.hits.reserve(static_cast<size_t>(program.options.policy.nHits));
         
-        for(size_t iHit=0;iHit<static_cast<size_t>(program.options.nHits);iHit++)
+        for(size_t iHit=0;iHit<static_cast<size_t>(program.options.policy.nHits);iHit++)
 	  result.hits.push_back(executePreparedHit(program,makeHandlers,iHit));
       }
     

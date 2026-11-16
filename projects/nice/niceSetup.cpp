@@ -231,7 +231,7 @@ namespace nissa::nice
     
     RngLayout layout(options);
     layout.origin=
-      layout.addOperation(RngScope::Hit,correlations.instructions.empty()?0:options.drawGlobalOriginTask.doubleDrawCost());
+      layout.addOperation(RngScope::Hit,correlations.instructions.empty()?0:options.physics.drawGlobalOriginTask.doubleDrawCost());
     
     for(const GaugeRecipe& recipe : gaugeRecipes)
       layout.gaugeOperations.push_back(layout.addOperation(RngScope::GaugeConf,
@@ -327,17 +327,23 @@ namespace nissa::nice
                          [&options](const int L,
                                     const int T)
     {
-      options.L=L;
-      options.T=T;
+      options.physics.L=L;
+      options.physics.T=T;
     });
     registerHostFunction(evaluator,"setRun",{"seed","nHits","nCopies"},
                          [&options](const int64_t seed,
                                     const int nHits,
                                     const int nCopies)
     {
-      options.seed=seed;
-      options.nHits=nHits;
-      options.nCopies=nCopies;
+      options.physics.seed=seed;
+      options.policy.nHits=nHits;
+      options.physics.nCopies=nCopies;
+    });
+    
+    registerHostFunction(evaluator,"setMaxTrials",{"maxTrials"},
+                         [&options](const int maxTrials)
+    {
+      options.policy.maxTrials=maxTrials;
     });
     
     registerHostFunction(evaluator,"setKeepCheckpoints",{"enabled"},
@@ -346,21 +352,21 @@ namespace nissa::nice
       if(enabled!=0 and enabled!=1)
         CRASH("NICE setKeepCheckpoints requires enabled to be 0 or 1");
       
-      options.keepCheckpoints=enabled!=0;
+      options.policy.keepCheckpoints=enabled!=0;
     });
     
     // Select distinct output files when reusing configuration output directories
     registerHostFunction(evaluator,"setSuffix",{"suffix"},
                          [&options](const std::string& suffix)
     {
-      options.outputSuffix=suffix;
+      options.policy.outputSuffix=suffix;
     });
 
     // An empty path disables stop requests; the file is checked at work boundaries
     registerHostFunction(evaluator,"setStopFile",{"path"},
                          [&options](const std::string& path)
     {
-      options.stopFile=path;
+      options.policy.stopFile=path;
     });
 
     // Set the running-file refresh period; stale detection uses twice this interval
@@ -370,21 +376,21 @@ namespace nissa::nice
       if(seconds<=0)
         CRASH("NICE setRunningFileUpdateInterval requires positive seconds");
 
-      options.runningFileUpdateSeconds=seconds;
+      options.policy.runningFileUpdateSeconds=seconds;
     });
     
     // An explicit duration overrides the scheduler deadline
     registerHostFunction(evaluator,"setWallTime",{"seconds"},
                          [&options](const int64_t seconds)
     {
-      options.wallTimeSeconds=seconds;
+      options.policy.wallTimeSeconds=seconds;
     });
     
     // Keep extra time for checkpoint finalization and a clean exit
     registerHostFunction(evaluator,"setWallTimeSafety",{"seconds"},
                          [&options](const int64_t seconds)
     {
-      options.wallTimeSafetySeconds=seconds;
+      options.policy.wallTimeSafetySeconds=seconds;
     });
     
     // Record one origin for every hit before compiling tasks and assigning RNG ranges
@@ -394,8 +400,8 @@ namespace nissa::nice
                                     const int y,
                                     const int z)
     {
-      options.drawGlobalOriginTask.fixedOrigin={t,x,y,z};
-      options.drawGlobalOriginTask.enabled=false;
+      options.physics.drawGlobalOriginTask.fixedOrigin={t,x,y,z};
+      options.physics.drawGlobalOriginTask.enabled=false;
     });
     
     registerHostFunction(evaluator,"setRandomOriginEnabled",{"enabled"},
@@ -404,7 +410,7 @@ namespace nissa::nice
       if(enabled!=0 and enabled!=1)
         CRASH("NICE setRandomOriginEnabled requires enabled to be 0 or 1");
       
-      options.drawGlobalOriginTask.enabled=enabled!=0;
+      options.physics.drawGlobalOriginTask.enabled=enabled!=0;
     });
     registerHostFunction(evaluator,"reserveRngDoublesPerSite",{"reservedDoublesPerSite"},
                          [&options](const int reservedDoublesPerSite)
@@ -412,7 +418,7 @@ namespace nissa::nice
       if(reservedDoublesPerSite<=0)
         CRASH("NICE reserveRngDoublesPerSite requires a positive double count");
       
-      options.reservedRngDoublesPerSite=static_cast<uint64_t>(reservedDoublesPerSite);
+      options.physics.reservedRngDoublesPerSite=static_cast<uint64_t>(reservedDoublesPerSite);
     });
     registerHostFunction(evaluator,"setDilution",{"diluteSpin","diluteColor"},
                          [&options](const int diluteSpin,
@@ -421,16 +427,16 @@ namespace nissa::nice
       if((diluteSpin!=0 and diluteSpin!=1) or (diluteColor!=0 and diluteColor!=1))
         CRASH("NICE setDilution requires diluteSpin and diluteColor to be 0 or 1");
       
-      options.diluteSpin=diluteSpin!=0;
-      options.diluteColor=diluteColor!=0;
+      options.physics.diluteSpin=diluteSpin!=0;
+      options.physics.diluteColor=diluteColor!=0;
     });
     registerHostFunction(evaluator,"setTemporalBoundary",{"boundary"},
                          [&options](const std::string& boundary)
     {
       if(boundary=="antiperiodic")
-        options.temporalBoundary=RunOptions::TemporalBoundary::Antiperiodic;
+        options.physics.temporalBoundary=PhysicsOptions::TemporalBoundary::Antiperiodic;
       else if(boundary=="periodic")
-        options.temporalBoundary=RunOptions::TemporalBoundary::Periodic;
+        options.physics.temporalBoundary=PhysicsOptions::TemporalBoundary::Periodic;
       else
         CRASH("NICE temporal boundary must be 'periodic' or 'antiperiodic'");
     });

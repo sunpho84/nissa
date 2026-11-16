@@ -14,6 +14,7 @@
 
 #include <atomic>
 #include <bit>
+#include <charconv>
 #include <chrono>
 #include <condition_variable>
 #include <cstddef>
@@ -73,12 +74,12 @@ namespace nissa::nice
           if(const Tensor* tensor=std::get_if<Tensor>(&*values[traceId]);tensor!=nullptr)
             for(size_t iGammaPair=0;iGammaPair<output.gammaList.size();iGammaPair++)
               {
-                for(size_t iCopy=0;iCopy<static_cast<size_t>(options.nCopies);iCopy++)
+                for(size_t iCopy=0;iCopy<static_cast<size_t>(options.physics.nCopies);iCopy++)
                   for(int deltaTime=0;deltaTime<glbSize[0];deltaTime++)
                     {
                       const size_t index=
                         (iGammaPair*static_cast<size_t>(glbSize[0])+deltaTime)*
-                        static_cast<size_t>(options.nCopies)+iCopy;
+                        static_cast<size_t>(options.physics.nCopies)+iCopy;
                       appendCheckpointUint64(bytes,std::bit_cast<uint64_t>(tensor->data[index*2]));
                       appendCheckpointUint64(bytes,std::bit_cast<uint64_t>(tensor->data[index*2+1]));
                     }
@@ -103,7 +104,7 @@ namespace nissa::nice
     for(const OutputBlock& output : correlations.outputs)
       for(const TaskId traceId : output.traces)
         for(const auto& [sinkGamma,sourceGamma] : output.gammaList)
-          for(size_t iCopy=0;iCopy<static_cast<size_t>(options.nCopies);iCopy++)
+          for(size_t iCopy=0;iCopy<static_cast<size_t>(options.physics.nCopies);iCopy++)
             for(int deltaTime=0;deltaTime<glbSize[0];deltaTime++)
               {
                 const double real=std::bit_cast<double>(readCheckpointUint64(bytes,offset));
@@ -339,7 +340,7 @@ namespace nissa::nice
                                                const std::string_view stem,
                                                const std::string_view extension)
   {
-    return directory/std::format("{}{}{}",stem,options.outputSuffix,extension);
+    return directory/std::format("{}{}{}",stem,options.policy.outputSuffix,extension);
   }
   
   /// One immutable binary hit file, named by its stable zero-based hit index
@@ -357,7 +358,7 @@ namespace nissa::nice
     
     for(const OutputBlock& output : program.correlations.outputs)
       rows+=output.traces.size()*output.gammaList.size()*
-        static_cast<size_t>(program.options.nCopies)*static_cast<size_t>(program.options.T);
+        static_cast<size_t>(program.options.physics.nCopies)*static_cast<size_t>(program.options.physics.T);
     
     return rows;
   }
@@ -459,7 +460,7 @@ namespace nissa::nice
     writeCheckpointBytes(file,temporary,
                          "# hit block trace sinkGamma sourceGamma copy deltaT real imaginary\n");
     
-    for(size_t iHit=0;iHit<static_cast<size_t>(program.options.nHits);iHit++)
+    for(size_t iHit=0;iHit<static_cast<size_t>(program.options.policy.nHits);iHit++)
       writeCheckpointBytes(file,temporary,
                            formatHitResults(program.options,program.correlations,
                                             checkedHitValues(hitCheckpointPath(directory,program.options,iHit),
@@ -481,13 +482,13 @@ namespace nissa::nice
     commitCheckpointFile(outputFilePath(directory,program.options,"finished",".nice"),
                          std::format("NICE-finished-v3 {} {} {} {}\n",
                                      checkpointEntryIdentity(program,iEntry),
-                                     program.options.nHits,
+                                     program.options.policy.nHits,
                                      checkpointMetadataHash(program,rngLayout,iEntry),
                                      outputHash),lock);
     
-    if(not program.options.keepCheckpoints)
+    if(not program.options.policy.keepCheckpoints)
       {
-        for(size_t iHit=0;iHit<static_cast<size_t>(program.options.nHits);iHit++)
+        for(size_t iHit=0;iHit<static_cast<size_t>(program.options.policy.nHits);iHit++)
           {
             requireCheckpointOwnership(lock);
             removeFile(hitCheckpointPath(directory,program.options,iHit).string());
@@ -496,7 +497,7 @@ namespace nissa::nice
         requireCheckpointOwnership(lock);
         removeFile(outputFilePath(directory,program.options,"checkpoint",".nice").string());
         
-        if(program.options.outputSuffix.empty() and fileExists((directory/"checkpoint.bin").string()))
+        if(program.options.policy.outputSuffix.empty() and fileExists((directory/"checkpoint.bin").string()))
           {
             requireCheckpointOwnership(lock);
             removeFile((directory/"checkpoint.bin").string());
@@ -528,7 +529,7 @@ namespace nissa::nice
         if(not (contents>>version>>identity>>nHits>>metadataHash>>outputHash) or
            contents>>extra or version!="NICE-finished-v3" or
            identity!=checkpointEntryIdentity(program,iEntry) or
-           nHits<=0 or nHits>program.options.nHits or
+           nHits<=0 or nHits>program.options.policy.nHits or
            metadataHash!=checkpointMetadataHash(program,rngLayout,iEntry))
           CRASH("NICE finished marker '%s' does not match this run",marker.string().c_str());
         
@@ -536,13 +537,13 @@ namespace nissa::nice
         if(checkpointFileHash(output)!=outputHash)
           CRASH("NICE finished result '%s' is damaged",output.string().c_str());
         
-        if(nHits<program.options.nHits and
+        if(nHits<program.options.policy.nHits and
            not fileExists(outputFilePath(directory,program.options,"checkpoint",".nice").string()) and
-           not (program.options.outputSuffix.empty() and fileExists((directory/"checkpoint.bin").string())))
+           not (program.options.policy.outputSuffix.empty() and fileExists((directory/"checkpoint.bin").string())))
           CRASH("NICE cannot increase hits in '%s': completed hit checkpoints were removed",
                 directory.string().c_str());
         
-        finished=nHits==program.options.nHits;
+        finished=nHits==program.options.policy.nHits;
       }
     
     return finished;
@@ -551,7 +552,7 @@ namespace nissa::nice
   /// Check a script-selected stop request collectively at a work boundary
   inline bool stopRequested(const RunOptions& options)
   {
-    return not options.stopFile.empty() and fileExists(options.stopFile);
+    return not options.policy.stopFile.empty() and fileExists(options.policy.stopFile);
   }
   
   /// Record the settings that determine checkpoint compatibility and RNG positions
@@ -567,15 +568,15 @@ namespace nissa::nice
                   "dilution {} {}\nboundary {}\norigin {} {} {} {} {}\n"
                   "reservation {}\ntasks {}\nrows-per-hit {}\norigin-cost {}\n",
                   checkpointEntryIdentity(program,iEntry),iEntry,entry.path,entry.outputDirectory,
-                  options.L,options.T,options.seed,
-                  options.nCopies,options.diluteSpin,options.diluteColor,
-                  static_cast<int>(options.temporalBoundary),
-                  options.drawGlobalOriginTask.enabled,
-                  options.drawGlobalOriginTask.fixedOrigin[0],
-                  options.drawGlobalOriginTask.fixedOrigin[1],
-                  options.drawGlobalOriginTask.fixedOrigin[2],
-                  options.drawGlobalOriginTask.fixedOrigin[3],
-                  options.reservedRngDoublesPerSite,
+                  options.physics.L,options.physics.T,options.physics.seed,
+                  options.physics.nCopies,options.physics.diluteSpin,options.physics.diluteColor,
+                  static_cast<int>(options.physics.temporalBoundary),
+                  options.physics.drawGlobalOriginTask.enabled,
+                  options.physics.drawGlobalOriginTask.fixedOrigin[0],
+                  options.physics.drawGlobalOriginTask.fixedOrigin[1],
+                  options.physics.drawGlobalOriginTask.fixedOrigin[2],
+                  options.physics.drawGlobalOriginTask.fixedOrigin[3],
+                  options.physics.reservedRngDoublesPerSite,
                   program.correlations.instructions.size(),expectedHitRows(program),
                   rngLayout.origin.doubleDrawCost);
     
@@ -597,6 +598,84 @@ namespace nissa::nice
     return bytes;
   }
   
+  /// Consecutive attempts at one unfinished hit, independent of compatibility metadata
+  struct CheckpointRetryState
+  {
+    /// Hit whose computation was attempted; older committed progress resets the count
+    uint64_t hit{0};
+    
+    /// Attempts started without successfully committing this hit
+    uint64_t nTrials{0};
+  };
+  
+  /// Accept old metadata without retry state and strictly validate new mutable records
+  inline CheckpointRetryState parseCheckpointRetryState(const std::string& contents,
+                                                        const std::string& expected)
+  {
+    if(not contents.starts_with(expected))
+      CRASH("NICE checkpoint metadata does not match this run");
+    
+    CheckpointRetryState state;
+    if(contents.size()!=expected.size())
+      {
+        std::istringstream input(contents.substr(expected.size()));
+        std::string version;
+        std::string hit;
+        std::string trials;
+        std::string extra;
+        
+        if(not (input>>version>>hit>>trials) or input>>extra or version!="retry-state-v1")
+          CRASH("NICE checkpoint retry state is damaged");
+        
+        const auto parse=[](const std::string& text,
+                            uint64_t& result)
+        {
+          const auto parsed=std::from_chars(text.data(),text.data()+text.size(),result);
+          
+          if(parsed.ec!=std::errc{} or parsed.ptr!=text.data()+text.size())
+            CRASH("NICE invalid checkpoint retry counter '%s'",text.c_str());
+        };
+        parse(hit,state.hit);
+        parse(trials,state.nTrials);
+      }
+    
+    return state;
+  }
+  
+  /// Persist mutable retry state atomically while retaining unchanged compatibility bytes
+  inline void writeCheckpointRetryState(const PreparedProgram& program,
+                                        const RngLayout& rngLayout,
+                                        const size_t iEntry,
+                                        const CheckpointRetryState& state,
+                                        lock_file_t<>& lock)
+  {
+    const auto path=outputFilePath(program.configurationEntries[iEntry].outputDirectory,
+                                   program.options,"checkpoint",".nice");
+    commitCheckpointFile(path,checkpointMetadata(program,rngLayout,iEntry)+
+      std::format("retry-state-v1 {} {}\n",state.hit,state.nTrials),lock);
+  }
+  
+  /// Restore attempts, resetting stale counts when a hit was committed before a crash
+  inline CheckpointRetryState readCheckpointRetryState(const PreparedProgram& program,
+                                                       const RngLayout& rngLayout,
+                                                       const size_t iEntry,
+                                                       const size_t firstHit)
+  {
+    CheckpointRetryState state;
+    const auto path=outputFilePath(program.configurationEntries[iEntry].outputDirectory,
+                                   program.options,"checkpoint",".nice");
+    if(fileExists(path.string()))
+      state=parseCheckpointRetryState(readCheckpointFile(path),
+                                      checkpointMetadata(program,rngLayout,iEntry));
+    
+    if(state.hit>firstHit)
+      CRASH("NICE checkpoint retry state refers to missing completed hits");
+    else if(state.hit<firstHit)
+      state={firstHit,0};
+    
+    return state;
+  }
+  
   /// Refuse incompatible resume state, creating metadata only with an ownership claim
   inline void validateCheckpointMetadata(const PreparedProgram& program,
 					 const RngLayout& rngLayout,
@@ -609,10 +688,9 @@ namespace nissa::nice
     const std::string expected=checkpointMetadata(program,rngLayout,iEntry);
     if(fileExists(path.string()))
       {
-        if(readCheckpointFile(path)!=expected)
-          CRASH("NICE checkpoint metadata '%s' does not match this run",path.string().c_str());
+        (void)parseCheckpointRetryState(readCheckpointFile(path),expected);
       }
-    else if(program.options.outputSuffix.empty() and fileExists((directory/"checkpoint.bin").string()))
+    else if(program.options.policy.outputSuffix.empty() and fileExists((directory/"checkpoint.bin").string()))
       {
         if(readCheckpointFile(directory/"checkpoint.bin")!=checkpointMetadataBytes(program,rngLayout,iEntry))
           CRASH("NICE legacy checkpoint metadata does not match this run");
@@ -638,20 +716,20 @@ namespace nissa::nice
   {
     const std::filesystem::path directory=
       program.configurationEntries[iEntry].outputDirectory;
-    size_t first=static_cast<size_t>(program.options.nHits);
+    size_t first=static_cast<size_t>(program.options.policy.nHits);
     
-    for(size_t iHit=0;iHit<static_cast<size_t>(program.options.nHits);iHit++)
+    for(size_t iHit=0;iHit<static_cast<size_t>(program.options.policy.nHits);iHit++)
       {
         const std::filesystem::path path=hitCheckpointPath(directory,program.options,iHit);
         if(fileExists(path.string()))
           {
-            if(first!=static_cast<size_t>(program.options.nHits))
+            if(first!=static_cast<size_t>(program.options.policy.nHits))
               CRASH("NICE checkpoint '%s' follows an unfinished hit",path.string().c_str());
             
             checkedHitValues(path,checkpointEntryIdentity(program,iEntry),iHit,
                              expectedHitRows(program));
           }
-        else if(first==static_cast<size_t>(program.options.nHits))
+        else if(first==static_cast<size_t>(program.options.policy.nHits))
           first=iHit;
       }
     
@@ -665,6 +743,7 @@ namespace nissa::nice
     AlreadyFinished,
     ClaimedElsewhere,
     LostOwnership,
+    TrialLimitReached,
     Stopped
   };
   
@@ -691,7 +770,7 @@ namespace nissa::nice
       {
         const std::filesystem::path runningPath=
           outputFilePath(directory,program.options,".nice",".lock");
-        const std::chrono::seconds updateInterval(program.options.runningFileUpdateSeconds);
+        const std::chrono::seconds updateInterval(program.options.policy.runningFileUpdateSeconds);
         
         lock_file_t<> lock;
         lock.init();
@@ -731,20 +810,35 @@ namespace nissa::nice
               {
                 validateCheckpointMetadata(program,rngLayout,iEntry,&lock);
                 const size_t firstHit=firstUnfinishedHit(program,iEntry);
+                CheckpointRetryState retry=
+                  readCheckpointRetryState(program,rngLayout,iEntry,firstHit);
+                const bool trialLimitReached=
+                  firstHit<static_cast<size_t>(program.options.policy.nHits) and
+                  program.options.policy.maxTrials!=0 and
+                  retry.nTrials>=static_cast<uint64_t>(program.options.policy.maxTrials);
                 
                 if(firstHit==0 and fileExists(outputFilePath(directory,program.options,"correlations",".nice").string()))
                   CRASH("NICE output '%s' exists without checkpoints; refusing to overwrite it",
                         outputFilePath(directory,program.options,"correlations",".nice").string().c_str());
                 
-                if(firstHit<static_cast<size_t>(program.options.nHits))
+                if(firstHit<static_cast<size_t>(program.options.policy.nHits) and not trialLimitReached)
                   {
                     for(size_t iHit=firstHit;
-                        iHit<static_cast<size_t>(program.options.nHits) and not stopped;iHit++)
+                        iHit<static_cast<size_t>(program.options.policy.nHits) and not stopped;iHit++)
                       {
                         stopped=stopRequested(program.options) or not wallTime.allowsWork();
                         
                         if(not stopped)
                           {
+                            // Persist before work so an abort or killed solver consumes this trial
+                            retry.hit=iHit;
+                            retry.nTrials=checkedAdd(retry.nTrials,uint64_t{1},
+                                                     "NICE retry counter overflow");
+                            writeCheckpointRetryState(program,rngLayout,iEntry,retry,lock);
+                            MASTER_PRINTF("NICE: trial %llu for hit %zu of gauge configuration %zu (limit %d, zero means unlimited)\n",
+                                          static_cast<unsigned long long>(retry.nTrials),iHit,iEntry,
+                                          program.options.policy.maxTrials);
+                            
                             const TaskValues values=
                               executePreparedHit(program,rng,rngLayout,iEntry,iHit);
                             updater.requireHealthy();
@@ -756,13 +850,26 @@ namespace nissa::nice
                               hitCheckpointBytes(checkpointEntryIdentity(program,iEntry),iHit,hitValues),lock);
                             wallTime.recordCompletedHit();
                             
+                            // The hit file is authoritative if a crash precedes this reset
+                            retry={iHit+1,0};
+                            writeCheckpointRetryState(program,rngLayout,iEntry,retry,lock);
+                            
                             MASTER_PRINTF("NICE: committed hit %zu for gauge configuration %zu\n",
                                           iHit,iEntry);
                           }
                       }
                   }
                 
-                if(stopped)
+                if(trialLimitReached)
+                  {
+                    updater.stop();
+                    releaseRunningFile(lock);
+                    MASTER_PRINTF("NICE: skipping gauge configuration %zu after %llu trials without completing hit %zu (limit %d)\n",
+                                  iEntry,static_cast<unsigned long long>(retry.nTrials),firstHit,
+                                  program.options.policy.maxTrials);
+                    outcome=ConfigurationRunOutcome::TrialLimitReached;
+                  }
+                else if(stopped)
                   {
                     updater.stop();
                     releaseRunningFile(lock);

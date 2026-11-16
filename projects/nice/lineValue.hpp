@@ -31,8 +31,8 @@ namespace nissa::nice
               const MemorySpace space=defaultMemorySpace,
               const SpaceTimeLayout layout=defaultSpaceTimeLayout) :
       nCopies(checkedCopies(options)),
-      diluteSpin(options.diluteSpin),
-      diluteColor(options.diluteColor),
+      diluteSpin(options.physics.diluteSpin),
+      diluteColor(options.physics.diluteColor),
       field(makeLineField(nCopies,diluteSpin,diluteColor,space,layout))
     {
     }
@@ -40,10 +40,10 @@ namespace nissa::nice
     /// Convert the run count only after checking that it is positive
     static size_t checkedCopies(const RunOptions& options)
     {
-      if(options.nCopies<=0)
+      if(options.physics.nCopies<=0)
         CRASH("NICE line requires a positive number of copies");
       
-      return static_cast<size_t>(options.nCopies);
+      return static_cast<size_t>(options.physics.nCopies);
     }
     
     /// Check the policy needed to combine or extend two line values

@@ -550,14 +550,14 @@ namespace nissa::nice
 				     const size_t iGaugeConf,
 				     const size_t iHit)
   {
-    if(iHit>=static_cast<size_t>(options.nHits))
+    if(iHit>=static_cast<size_t>(options.policy.nHits))
       CRASH("NICE RNG hit index %zu exceeds configured hit count %d",
-            iHit,options.nHits);
+            iHit,options.policy.nHits);
     
     const OperationRngRange originRange=
       rngLayout.operationRange(rng,rngLayout.origin,iGaugeConf,iHit);
     const Coords origin=
-      options.drawGlobalOriginTask.execute(originRange);
+      options.physics.drawGlobalOriginTask.execute(originRange);
     
     MASTER_PRINTF("NICE: hit %zu source origin (%d,%d,%d,%d)\n",
                   iHit,origin[0],origin[1],origin[2],origin[3]);

@@ -1708,9 +1708,9 @@ void validateProgramPieces(const int narg,
   // Returned instructions remain usable after preparation's AST and evaluator are destroyed
   prepared.options.validate();
   prepared.correlations.validate();
-  assert(prepared.options.L==24 and prepared.options.T==48);
-  assert(prepared.options.seed==7 and prepared.options.nHits==8 and prepared.options.nCopies==2);
-  assert(prepared.options.diluteSpin==true and prepared.options.diluteColor==false);
+  assert(prepared.options.physics.L==24 and prepared.options.physics.T==48);
+  assert(prepared.options.physics.seed==7 and prepared.options.policy.nHits==8 and prepared.options.physics.nCopies==2);
+  assert(prepared.options.physics.diluteSpin==true and prepared.options.physics.diluteColor==false);
   assert(writeLegacyInput(prepared.correlations)==mixedOutput);
   const auto immediate=readAndBroadcastProgramPieces({
     {ProgramPart::Kind::Immediate,prefix+fileText+suffix,1}});
@@ -1824,16 +1824,16 @@ void validateRunSettings(const int narg,
   };
   
   // Direct C++ callers use the same data and validation without constructing a script
-  const RunOptions defaults{.L=16,.T=32};
+  const RunOptions defaults{.physics={.L=16,.T=32}};
   defaults.validate();
-  assert(defaults.seed==Sitmo::Rng::DEFAULT_SEED());
-  assert(defaults.diluteSpin==false and defaults.diluteColor==false);
+  assert(defaults.physics.seed==Sitmo::Rng::DEFAULT_SEED());
+  assert(defaults.physics.diluteSpin==false and defaults.physics.diluteColor==false);
   RunOptions largeGeometry=defaults;
-  largeGeometry.L=200;
-  largeGeometry.T=200;
+  largeGeometry.physics.L=200;
+  largeGeometry.physics.T=200;
   largeGeometry.validate();
-  assert(defaults.nHits==1 and defaults.nCopies==1);
-  assert(defaults.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic);
+  assert(defaults.policy.nHits==1 and defaults.physics.nCopies==1);
+  assert(defaults.physics.temporalBoundary==PhysicsOptions::TemporalBoundary::Antiperiodic);
   
   if(narg>1)
     {
@@ -1851,64 +1851,68 @@ void validateRunSettings(const int narg,
       };
       reject("run-invalid-geometry",[](RunOptions& value)
       {
-        value.L=0;
+        value.physics.L=0;
       });
       reject("run-overflow-volume",[](RunOptions& value)
       {
-        value.L=std::numeric_limits<int>::max();
-        value.T=std::numeric_limits<int>::max();
+        value.physics.L=std::numeric_limits<int>::max();
+        value.physics.T=std::numeric_limits<int>::max();
       });
       reject("run-signed-volume",[](RunOptions& value)
       {
-        value.L=2097152;
-        value.T=1;
+        value.physics.L=2097152;
+        value.physics.T=1;
       });
       reject("run-invalid-seed",[](RunOptions& value)
       {
-        value.seed=-1;
+        value.physics.seed=-1;
       });
       reject("run-oversized-seed",[](RunOptions& value)
       {
-        value.seed=uint64_t{std::numeric_limits<uint32_t>::max()}+1;
+        value.physics.seed=uint64_t{std::numeric_limits<uint32_t>::max()}+1;
       });
       reject("run-invalid-hits",[](RunOptions& value)
       {
-        value.nHits=0;
+        value.policy.nHits=0;
+      });
+      reject("run-invalid-trials",[](RunOptions& value)
+      {
+        value.policy.maxTrials=-1;
       });
       reject("run-invalid-copies",[](RunOptions& value)
       {
-        value.nCopies=0;
+        value.physics.nCopies=0;
       });
       reject("run-invalid-wall-time",[](RunOptions& value)
       {
-        value.wallTimeSeconds=0.0;
+        value.policy.wallTimeSeconds=0.0;
       });
       reject("run-invalid-wall-safety",[](RunOptions& value)
       {
-        value.wallTimeSafetySeconds=-1.0;
+        value.policy.wallTimeSafetySeconds=-1.0;
       });
       reject("run-infinite-wall-time",[](RunOptions& value)
       {
-        value.wallTimeSeconds=std::numeric_limits<double>::infinity();
+        value.policy.wallTimeSeconds=std::numeric_limits<double>::infinity();
       });
       reject("run-negative-origin",[](RunOptions& value)
       {
-        value.drawGlobalOriginTask.enabled=false;
-        value.drawGlobalOriginTask.fixedOrigin[1]=-1;
+        value.physics.drawGlobalOriginTask.enabled=false;
+        value.physics.drawGlobalOriginTask.fixedOrigin[1]=-1;
       });
       reject("run-origin-time-outside",[](RunOptions& value)
       {
-        value.drawGlobalOriginTask.enabled=false;
-        value.drawGlobalOriginTask.fixedOrigin[0]=value.T;
+        value.physics.drawGlobalOriginTask.enabled=false;
+        value.physics.drawGlobalOriginTask.fixedOrigin[0]=value.physics.T;
       });
       reject("run-origin-space-outside",[](RunOptions& value)
       {
-        value.drawGlobalOriginTask.enabled=false;
-        value.drawGlobalOriginTask.fixedOrigin[3]=value.L;
+        value.physics.drawGlobalOriginTask.enabled=false;
+        value.physics.drawGlobalOriginTask.fixedOrigin[3]=value.physics.L;
       });
       reject("run-invalid-boundary-value",[](RunOptions& value)
       {
-        value.temporalBoundary=static_cast<RunOptions::TemporalBoundary>(17);
+        value.physics.temporalBoundary=static_cast<PhysicsOptions::TemporalBoundary>(17);
       });
       
       if(mode=="run-invalid-dilution")
@@ -1946,8 +1950,8 @@ void validateRunSettings(const int narg,
   // Geometry alone inherits Sitmo's seed and no source dilution
   execute({{"setGeometry(16,32);","default settings"}});
   options.validate();
-  assert(options.seed==Sitmo::Rng::DEFAULT_SEED());
-  assert(options.diluteSpin==false and options.diluteColor==false);
+  assert(options.physics.seed==Sitmo::Rng::DEFAULT_SEED());
+  assert(options.physics.diluteSpin==false and options.physics.diluteColor==false);
   
   // Both integer representations reach the full unsigned Sitmo seed range without truncation
   for(const int64_t seed : {int64_t{0},int64_t{2147483647},int64_t{2147483648},
@@ -1955,7 +1959,7 @@ void validateRunSettings(const int narg,
     {
       execute({{std::format("setRun(.seed={},.nHits=1,.nCopies=1);",seed),"full-range seed"}});
       options.validate();
-      assert(options.seed==seed);
+      assert(options.physics.seed==seed);
     }
   
   // Large literals retain their exact value through ordinary script storage and formatting
@@ -1982,53 +1986,62 @@ void validateRunSettings(const int narg,
             "setDilution(.diluteColor=0,.diluteSpin=1); setTemporalBoundary(\"periodic\"); "
             "setRandomOriginEnabled(0);","argument override"}});
   options.validate();
-  assert(options.L==24 and options.T==48 and options.seed==1234);
-  assert(options.nHits==8 and options.nCopies==2);
-  assert(not options.drawGlobalOriginTask.enabled);
-  assert(options.reservedRngDoublesPerSite==1'000'000);
-  assert(options.diluteSpin==true and options.diluteColor==false);
-  assert(options.temporalBoundary==RunOptions::TemporalBoundary::Periodic);
+  assert(options.physics.L==24 and options.physics.T==48 and options.physics.seed==1234);
+  assert(options.policy.nHits==8 and options.physics.nCopies==2);
+  assert(not options.physics.drawGlobalOriginTask.enabled);
+  assert(options.physics.reservedRngDoublesPerSite==1'000'000);
+  assert(options.physics.diluteSpin==true and options.physics.diluteColor==false);
+  assert(options.physics.temporalBoundary==PhysicsOptions::TemporalBoundary::Periodic);
   
   // Each repeated setter replaces the full group and keeps unrelated settings
   execute({{"setRun(7,1,3); setGeometry(12,24); setDilution(0,1); "
             "setRandomOriginEnabled(1); "
             "setTemporalBoundary(\"antiperiodic\");","later override"}});
   options.validate();
-  assert(options.L==12 and options.T==24 and options.seed==7);
-  assert(options.nHits==1 and options.nCopies==3);
-  assert(options.drawGlobalOriginTask.enabled);
-  assert(options.reservedRngDoublesPerSite==1'000'000);
-  assert(options.diluteSpin==false and options.diluteColor==true);
-  assert(options.temporalBoundary==RunOptions::TemporalBoundary::Antiperiodic);
-  assert(options.runningFileUpdateSeconds==60);
+  assert(options.physics.L==12 and options.physics.T==24 and options.physics.seed==7);
+  assert(options.policy.nHits==1 and options.physics.nCopies==3);
+  assert(options.physics.drawGlobalOriginTask.enabled);
+  assert(options.physics.reservedRngDoublesPerSite==1'000'000);
+  assert(options.physics.diluteSpin==false and options.physics.diluteColor==true);
+  assert(options.physics.temporalBoundary==PhysicsOptions::TemporalBoundary::Antiperiodic);
+  assert(options.policy.runningFileUpdateSeconds==60);
   
   // A later script setting changes the refresh period without changing numerical work
   execute({{"setRunningFileUpdateInterval(15);","running-file update period"}});
-  assert(options.runningFileUpdateSeconds==15);
+  assert(options.policy.runningFileUpdateSeconds==15);
   execute({{"setRunningFileUpdateInterval(30);","replacement update period"}});
   options.validate();
-  assert(options.runningFileUpdateSeconds==30);
+  assert(options.policy.runningFileUpdateSeconds==30);
+  
+  // Retry limits are policy: three attempts by default, zero disables the limit
+  assert(options.policy.maxTrials==3);
+  execute({{"setMaxTrials(.maxTrials=5);","retry allowance"}});
+  options.validate();
+  assert(options.policy.maxTrials==5);
+  execute({{"setMaxTrials(0);","unlimited retry allowance"}});
+  options.validate();
+  assert(options.policy.maxTrials==0);
   
   // Explicit time limits and safety allowances remain replaceable runtime policy
-  assert(not options.wallTimeSeconds and options.wallTimeSafetySeconds==0.0);
+  assert(not options.policy.wallTimeSeconds and options.policy.wallTimeSafetySeconds==0.0);
   execute({{"setWallTime(.seconds=120); setWallTimeSafety(3);","wall-time policy"}});
   options.validate();
-  assert(options.wallTimeSeconds==120.0 and options.wallTimeSafetySeconds==3.0);
+  assert(options.policy.wallTimeSeconds==120.0 and options.policy.wallTimeSafetySeconds==3.0);
   execute({{"setWallTime(300); setWallTimeSafety(.seconds=5);","replacement time policy"}});
   options.validate();
-  assert(options.wallTimeSeconds==300.0 and options.wallTimeSafetySeconds==5.0);
+  assert(options.policy.wallTimeSeconds==300.0 and options.policy.wallTimeSafetySeconds==5.0);
   
   // Retention defaults on and accepts explicit numeric script switches
-  assert(options.keepCheckpoints);
+  assert(options.policy.keepCheckpoints);
   execute({{"setKeepCheckpoints(0);","discard completed checkpoints"}});
-  assert(not options.keepCheckpoints);
+  assert(not options.policy.keepCheckpoints);
   execute({{"setKeepCheckpoints(1);","retain completed checkpoints"}});
-  assert(options.keepCheckpoints);
+  assert(options.policy.keepCheckpoints);
   
   // A suffix selects independent result, marker, lock, and hit files
   execute({{"setSuffix(\"_additional\");","separate output files"}});
   options.validate();
-  assert(options.outputSuffix=="_additional");
+  assert(options.policy.outputSuffix=="_additional");
   assert(outputFilePath("output",options,"correlations",".nice")=="output/correlations_additional.nice");
   assert(hitCheckpointPath("output",options,3)=="output/hit-00000003_additional.bin");
   execute({{"setSuffix(\"\");","restore ordinary output names"}});
@@ -2036,29 +2049,44 @@ void validateRunSettings(const int narg,
   // Stop paths are runtime policy and can be replaced or disabled by later pieces
   assert(not stopRequested(options));
   execute({{"setStopFile(\"/dev/null\");","request a stop at the next work boundary"}});
-  assert(options.stopFile=="/dev/null" and stopRequested(options));
+  assert(options.policy.stopFile=="/dev/null" and stopRequested(options));
   execute({{"setStopFile(\"\");","disable stop requests"}});
-  assert(options.stopFile.empty() and not stopRequested(options));
+  assert(options.policy.stopFile.empty() and not stopRequested(options));
   
   execute({{"setRun(7,8,2); reserveRngDoublesPerSite(.reservedDoublesPerSite=12);", "RNG reservation"}});
   options.validate();
-  assert(options.reservedRngDoublesPerSite==12);
+  assert(options.physics.reservedRngDoublesPerSite==12);
   
   // Fixed coordinates are checked against the final geometry and consume no draws
   execute({{"setOrigin(.z=1,.t=7,.y=2,.x=3); setGeometry(4,8);","fixed origin"}});
   options.validate();
   const nissa::Coords fixedOrigin{7,3,2,1};
-  assert(not options.drawGlobalOriginTask.enabled);
-  assert(options.drawGlobalOriginTask.fixedOrigin==fixedOrigin);
-  assert(options.drawGlobalOriginTask.doubleDrawCost()==0);
+  assert(not options.physics.drawGlobalOriginTask.enabled);
+  assert(options.physics.drawGlobalOriginTask.fixedOrigin==fixedOrigin);
+  assert(options.physics.drawGlobalOriginTask.doubleDrawCost()==0);
   
   // Random selection can be reenabled without discarding the explicitly selected coordinates
   execute({{"setRandomOriginEnabled(1);","random origin"}});
-  assert(options.drawGlobalOriginTask.enabled);
-  assert(options.drawGlobalOriginTask.doubleDrawCost()==NDIM);
+  assert(options.physics.drawGlobalOriginTask.enabled);
+  assert(options.physics.drawGlobalOriginTask.doubleDrawCost()==NDIM);
   execute({{"setRandomOriginEnabled(0);","restore fixed origin"}});
   options.validate();
-  assert(options.drawGlobalOriginTask.fixedOrigin==fixedOrigin);
+  assert(options.physics.drawGlobalOriginTask.fixedOrigin==fixedOrigin);
+}
+
+/// Check old metadata and mutable retry parsing independently of the numerical identity
+void validateCheckpointRetryParsing(const int narg,
+                                    const char* const* arg)
+{
+  const std::string metadata="NICE validation metadata\n";
+  const CheckpointRetryState old=parseCheckpointRetryState(metadata,metadata);
+  assert(old.hit==0 and old.nTrials==0);
+  const CheckpointRetryState current=
+    parseCheckpointRetryState(metadata+"retry-state-v1 2 3\n",metadata);
+  assert(current.hit==2 and current.nTrials==3);
+  
+  if(narg>1 and std::string_view(arg[1])=="checkpoint-negative-trials")
+    (void)parseCheckpointRetryState(metadata+"retry-state-v1 0 -1\n",metadata);
 }
 
 /// Check deadline precedence and hit admission without waiting for a real deadline
@@ -2071,33 +2099,33 @@ void validateWallTime(const int narg,
   {
     return start+std::chrono::seconds(seconds);
   };
-  RunOptions options{.L=4,.T=8};
+  RunOptions options{.physics={.L=4,.T=8}};
   
   if(narg>1 and std::string_view(arg[1])=="run-invalid-slurm-end")
     {
-      WallTimeBudget invalid(options,start,"123garbage",start,100.0);
+      WallTimeBudget invalid(options.policy,start,"123garbage",start,100.0);
       CRASH("NICE accepted an invalid Slurm deadline");
     }
   
   // The fallback includes startup and admits an unmeasured first hit only before expiry
-  WallTimeBudget fallback(options,start,nullptr,start,100.0);
+  WallTimeBudget fallback(options.policy,start,nullptr,start,100.0);
   assert(fallback.limitSeconds==60.0 and fallback.completedHits==0);
   assert(fallback.allowsWork(at(59)));
   assert(not fallback.allowsWork(at(60)));
   
   // Slurm gives an allocation deadline, so time spent before NICE started is unavailable
-  WallTimeBudget slurm(options,start,"150",at(10),120.0);
+  WallTimeBudget slurm(options.policy,start,"150",at(10),120.0);
   assert(slurm.limitSeconds==40.0);
   assert(slurm.allowsWork(at(39)));
   assert(not slurm.allowsWork(at(40)));
-  WallTimeBudget expired(options,start,"90",start,100.0);
+  WallTimeBudget expired(options.policy,start,"90",start,100.0);
   assert(not expired.allowsWork(start));
   
   // Explicit time ignores Slurm, even when the inherited variable is malformed
-  options.wallTimeSeconds=100.0;
-  options.wallTimeSafetySeconds=5.0;
+  options.policy.wallTimeSeconds=100.0;
+  options.policy.wallTimeSafetySeconds=5.0;
   options.validate();
-  WallTimeBudget explicitTime(options,start,"invalid",at(10),120.0);
+  WallTimeBudget explicitTime(options.policy,start,"invalid",at(10),120.0);
   assert(explicitTime.limitSeconds==100.0);
   explicitTime.recordCompletedHit();
   assert(explicitTime.allowsWork(at(45)));
@@ -2109,7 +2137,7 @@ void validateWallTime(const int narg,
   assert(not explicitTime.allowsWork(at(62)));
   
   // Even an unmeasured first hit must leave the requested fixed allowance
-  WallTimeBudget first(options,start,nullptr,start,100.0);
+  WallTimeBudget first(options.policy,start,nullptr,start,100.0);
   assert(first.allowsWork(at(94)));
   assert(not first.allowsWork(at(95)));
 }
@@ -2129,7 +2157,7 @@ void validateRunningFile()
   
   nissa::broadcast(root);
   const std::filesystem::path path=std::filesystem::path(root)/".nice.lock";
-  const std::chrono::seconds interval(RunOptions{}.runningFileUpdateSeconds);
+  const std::chrono::seconds interval(RunPolicy{}.runningFileUpdateSeconds);
   
   const bool initiallyRecent=runningFileIsRecent(path,interval);
   assert(not initiallyRecent);
@@ -2299,7 +2327,7 @@ void validateTaskExecution(const RunOptions& options)
       Tensor result{{ScalarKind::Complex,
                      {{gammaKind,CompSide::None,contraction.gammaList.size()},
                       {StandardComp::Copy,CompSide::None,backward.nCopies},
-                      {timeKind,CompSide::None,static_cast<size_t>(options.T)}}},
+                      {timeKind,CompSide::None,static_cast<size_t>(options.physics.T)}}},
                     nissa::MemorySpace::CPU};
       result.data[0]=backward.field.tensor.data[0]+forward.field.tensor.data[0];
       
@@ -2324,7 +2352,7 @@ void validateRngLayout(const int narg,
   };
   
   // Each configuration and hit receives the same budget, scaled to a 200^4 lattice
-  const RunOptions options{.L=200,.T=200};
+  const RunOptions options{.physics={.L=200,.T=200}};
   RngLayout layout(options);
   layout.origin=
     layout.addOperation(RngScope::Hit,GlobalOriginOperation{}.doubleDrawCost());
@@ -2390,14 +2418,14 @@ void validateRngLayout(const int narg,
   
   // A larger lattice scales all reserved ranges automatically
   RunOptions largerOptions=options;
-  largerOptions.T*=2;
+  largerOptions.physics.T*=2;
   RngLayout larger(largerOptions);
   larger.origin=
     larger.addOperation(RngScope::Hit,NDIM);
   assert(equalPositions(larger.operationRange(rng,larger.origin,3,5).position,origin.position*uint64_t{2}));
   
   // Both scopes may use their complete budget without sharing any double
-  const RunOptions exactOptions{.L=1,.T=2,.reservedRngDoublesPerSite=2};
+  const RunOptions exactOptions{.physics={.L=1,.T=2,.reservedRngDoublesPerSite=2}};
   RngLayout exact(exactOptions);
   const auto exactGauge=
     exact.addOperation(RngScope::GaugeConf,4);
@@ -2410,7 +2438,7 @@ void validateRngLayout(const int narg,
   
   // Individual costs fit uint64_t while totals, budgets, and positions may exceed it
   const uint64_t maximum=std::numeric_limits<uint64_t>::max();
-  const RunOptions wideOptions{.L=1<<20,.T=7,.reservedRngDoublesPerSite=maximum};
+  const RunOptions wideOptions{.physics={.L=1<<20,.T=7,.reservedRngDoublesPerSite=maximum}};
   RngLayout wide(wideOptions);
   wide.addOperation(RngScope::Hit,maximum);
   const auto wideOperation=
@@ -2455,10 +2483,10 @@ void validateRngExecution()
 {
   using namespace nissa;
   
-  RunOptions options{.L=4,.T=4,.nHits=8};
+  RunOptions options{.physics={.L=4,.T=4},.policy={.nHits=8}};
   RngLayout layout(options);
   layout.origin=
-    layout.addOperation(RngScope::Hit,options.drawGlobalOriginTask.doubleDrawCost());
+    layout.addOperation(RngScope::Hit,options.physics.drawGlobalOriginTask.doubleDrawCost());
   const uint64_t volume=static_cast<uint64_t>(nissa::glbVol);
   const auto sourceOperation=
     layout.addOperation(RngScope::Hit,checkedMultiply(volume,uint64_t{2}));
@@ -2466,7 +2494,7 @@ void validateRngExecution()
   const auto originRange=
     layout.operationRange(rng,layout.origin,3,5);
   const auto origin=
-    options.drawGlobalOriginTask.execute(originRange);
+    options.physics.drawGlobalOriginTask.execute(originRange);
   
   // The origin's four draws are consecutive, independent of the lattice volume
   for(int mu=0;mu<NDIM;mu++)
@@ -2526,28 +2554,28 @@ void validateRngExecution()
       assert(host(site,component)==range.uniformAt(component*volume+nissa::glblxOfLoclx[site]));
   
   // A disabled implicit operation uses the zero origin and owns no random draws
-  options.drawGlobalOriginTask.enabled=false;
+  options.physics.drawGlobalOriginTask.enabled=false;
   RngLayout disabled(options);
   disabled.origin=
-    disabled.addOperation(RngScope::Hit,options.drawGlobalOriginTask.doubleDrawCost());
+    disabled.addOperation(RngScope::Hit,options.physics.drawGlobalOriginTask.doubleDrawCost());
   const auto zero=
-    options.drawGlobalOriginTask.execute(disabled.operationRange(rng,disabled.origin,3,5));
+    options.physics.drawGlobalOriginTask.execute(disabled.operationRange(rng,disabled.origin,3,5));
   
   for(int mu=0;mu<NDIM;mu++)
     assert(zero[mu]==0);
   
   // A nonzero fixed origin is shared by different hits and gauge configurations
-  options.drawGlobalOriginTask.fixedOrigin={3,2,1,0};
+  options.physics.drawGlobalOriginTask.fixedOrigin={3,2,1,0};
   options.validate();
   assert(disabled.origin.doubleDrawCost==0);
   
   for(const size_t iHit : {size_t{0},size_t{7}})
     {
       const auto fixedRange=disabled.operationRange(rng,disabled.origin,iHit,iHit);
-      assert(options.drawGlobalOriginTask.execute(fixedRange)==options.drawGlobalOriginTask.fixedOrigin);
+      assert(options.physics.drawGlobalOriginTask.execute(fixedRange)==options.physics.drawGlobalOriginTask.fixedOrigin);
       const auto fixedHandlers=
         makeNissaTaskHandlers(options,noGaugeRecipes,rng,disabled,iHit,iHit);
-      checkPoint(fixedHandlers,options.drawGlobalOriginTask.fixedOrigin);
+      checkPoint(fixedHandlers,options.physics.drawGlobalOriginTask.fixedOrigin);
     }
 }
 
@@ -2558,8 +2586,8 @@ void validatePhysicalPropagator(const bool useExternalSolver=false)
   
   const int savedMultigrid=multiGrid::use_multiGrid;
   multiGrid::use_multiGrid=useExternalSolver?1:0;
-  RunOptions options{.L=4,.T=4};
-  options.drawGlobalOriginTask.enabled=false;
+  RunOptions options{.physics={.L=4,.T=4}};
+  options.physics.drawGlobalOriginTask.enabled=false;
   RngLayout layout(options);
   layout.origin=layout.addOperation(RngScope::Hit,0);
   GaugeRecipes recipes;
@@ -2816,29 +2844,31 @@ void validatePreparedExecution()
     "forward=Gamma(1)*backward; corrTrace(\"pion\",backward,forward);",1}});
   program.configurationEntries.push_back({"","unused","script",1});
   const uint64_t originalIdentity=checkpointEntryIdentity(program,0);
-  program.options.nHits=4;
-  program.options.keepCheckpoints=false;
-  program.options.outputSuffix="_second";
-  program.options.stopFile="stop.nice";
-  program.options.runningFileUpdateSeconds=5;
-  program.options.wallTimeSeconds=120.0;
-  program.options.wallTimeSafetySeconds=10.0;
+  program.options.policy.nHits=4;
+  program.options.policy.keepCheckpoints=false;
+  program.options.policy.outputSuffix="_second";
+  program.options.policy.stopFile="stop.nice";
+  program.options.policy.runningFileUpdateSeconds=5;
+  program.options.policy.wallTimeSeconds=120.0;
+  program.options.policy.wallTimeSafetySeconds=10.0;
+  program.options.policy.maxTrials=12;
   program.configurationEntries.push_back({"other","other-output","script",2});
   assert(checkpointEntryIdentity(program,0)==originalIdentity);
   program.configurationEntries.pop_back();
-  program.options.nHits=2;
-  program.options.keepCheckpoints=true;
-  program.options.outputSuffix.clear();
-  program.options.stopFile.clear();
-  program.options.runningFileUpdateSeconds=60;
-  program.options.wallTimeSeconds.reset();
-  program.options.wallTimeSafetySeconds=0.0;
+  program.options.policy.nHits=2;
+  program.options.policy.keepCheckpoints=true;
+  program.options.policy.outputSuffix.clear();
+  program.options.policy.stopFile.clear();
+  program.options.policy.runningFileUpdateSeconds=60;
+  program.options.policy.wallTimeSeconds.reset();
+  program.options.policy.wallTimeSafetySeconds=0.0;
+  program.options.policy.maxTrials=3;
   program.configurationEntries[0].path="different";
   assert(checkpointEntryIdentity(program,0)!=originalIdentity);
   program.configurationEntries[0].path="";
-  program.options.seed=8;
+  program.options.physics.seed=8;
   assert(checkpointEntryIdentity(program,0)!=originalIdentity);
-  program.options.seed=7;
+  program.options.physics.seed=7;
   assert(checkpointEntryIdentity(program,0)==originalIdentity);
   bool checkedParameter=false;
   for(Task& task : program.correlations.instructions)
@@ -2885,14 +2915,14 @@ void validatePreparedExecution()
   
   // Disabling origins removes their draws without shifting gauge operations
   RunOptions fixedOrigin=program.options;
-  fixedOrigin.drawGlobalOriginTask.enabled=false;
+  fixedOrigin.physics.drawGlobalOriginTask.enabled=false;
   const RngLayout fixedOriginLayout=
     prepareRngLayout(fixedOrigin,program.correlations,program.gaugeRecipes);
   assert(fixedOriginLayout.origin.doubleDrawCost==0);
   
   // More requested hits preserve earlier positions without an explicit hit-count reservation
   RunOptions moreHits=program.options;
-  moreHits.nHits=4;
+  moreHits.policy.nHits=4;
   const RngLayout moreHitLayout=
     prepareRngLayout(moreHits,program.correlations,program.gaugeRecipes);
   const Sitmo::Rng testRng(7);
@@ -2909,7 +2939,7 @@ void validatePreparedExecution()
                                              const GaugeRecipes& recipes,
                                              const size_t iHit)
   {
-    assert(recipes.size()==1 and options.nHits==2 and iHit<2);
+    assert(recipes.size()==1 and options.policy.nHits==2 and iHit<2);
     assert(&gaugeField(recipes,0)==recipes[0].field.get());
     
     return TaskHandlers{
@@ -2947,7 +2977,7 @@ void validatePreparedExecution()
         return result;
       }};
   };
-  const Sitmo::Rng rng(static_cast<uint32_t>(program.options.seed));
+  const Sitmo::Rng rng(static_cast<uint32_t>(program.options.physics.seed));
   const ConfigurationResults results=executePreparedConfiguration(program,0,makeHandlers,rng,rngLayout,0);
   assert(requirementCalls==3);
   assert(results.hits.size()==2 and results.entry.sourceList=="script");
@@ -2975,7 +3005,7 @@ void validateGaugeExecution()
   PreparedProgram prepared=prepareProgram({{ProgramPart::Kind::Immediate,
     "setGeometry(4,4); raw=loadedConf(); zero=apeSmearConf(raw,0.4,0); "
     "smooth=apeSmearConf(raw,0.4,2); chained=apeSmearConf(smooth,0.2,1);",1}});
-  nissa::initGrid(prepared.options.T,prepared.options.L);
+  nissa::initGrid(prepared.options.physics.T,prepared.options.physics.L);
   assert(nissa::memoryManager(nissa::MemorySpace::CPU)==
          nissa::memoryManager<nissa::MemorySpace::CPU>());
   validateRngExecution();
@@ -2985,9 +3015,9 @@ void validateGaugeExecution()
   // A line owns one tensor; selecting outer indices borrows a contiguous field block
   TaskValues values(6);
   RunOptions lineOptions=prepared.options;
-  lineOptions.nCopies=2;
-  lineOptions.diluteSpin=true;
-  lineOptions.diluteColor=true;
+  lineOptions.physics.nCopies=2;
+  lineOptions.physics.diluteSpin=true;
+  lineOptions.physics.diluteColor=true;
   values[0]=LineValue{lineOptions,nissa::MemorySpace::CPU,nissa::SpaceTimeLayout::CPU};
   auto& lineValue=std::get<LineValue>(*values[0]);
   auto& line=lineValue.field;
@@ -3078,7 +3108,7 @@ void validateGaugeExecution()
   values[5]=Tensor{{ScalarKind::Complex,
                     {{gammaKind,CompSide::None,0},
                      {StandardComp::Copy,CompSide::None,2},
-                     {timeKind,CompSide::None,static_cast<size_t>(prepared.options.T)}}},
+                     {timeKind,CompSide::None,static_cast<size_t>(prepared.options.physics.T)}}},
                    nissa::MemorySpace::CPU};
   const auto& emptyResult=std::get<Tensor>(*values[5]);
   assert(emptyResult.nDoubles==0 and emptyResult.data==nullptr);
@@ -3190,22 +3220,56 @@ void validateWallTimeCheckpoint()
     prepareRngLayout(program.options,program.correlations,program.gaugeRecipes);
   const Sitmo::Rng rng(7);
   const auto expiredStart=WallTimeBudget::Clock::now()-std::chrono::seconds(2);
-  WallTimeBudget expired(program.options,expiredStart,nullptr);
+  WallTimeBudget expired(program.options.policy,expiredStart,nullptr);
   const auto stopped=runCheckpointedConfiguration(program,rngLayout,rng,0,expired);
   assert(stopped==ConfigurationRunOutcome::Stopped and expired.completedHits==0);
   assert(nissa::fileExists(root+"/checkpoint.nice"));
   assert(not nissa::fileExists(root+"/.nice.lock"));
   assert(not nissa::fileExists(root+"/finished.nice"));
   assert(not nissa::fileExists(hitCheckpointPath(root,program.options,0).string()));
+  const CheckpointRetryState stoppedRetry=
+    readCheckpointRetryState(program,rngLayout,0,0);
+  assert(stoppedRetry.nTrials==0);
   
-  program.options.wallTimeSeconds=3600.0;
+  // Mimic three aborted invocations; no separate trial file is created
+  nissa::lock_file_t<> lock;
+  lock.init();
+  const bool retryClaim=tryClaimRunningFile(lock,std::filesystem::path(root)/".nice.lock",
+                                           std::chrono::seconds(60));
+  assert(retryClaim);
+  writeCheckpointRetryState(program,rngLayout,0,{0,3},lock);
+  releaseRunningFile(lock);
+  
+  program.options.policy.wallTimeSeconds=3600.0;
   program.options.validate();
-  WallTimeBudget fresh(program.options,WallTimeBudget::Clock::now(),nullptr);
+  WallTimeBudget fresh(program.options.policy,WallTimeBudget::Clock::now(),nullptr);
+  const auto exhausted=runCheckpointedConfiguration(program,rngLayout,rng,0,fresh);
+  assert(exhausted==ConfigurationRunOutcome::TrialLimitReached and fresh.completedHits==0);
+  assert(not nissa::fileExists(root+"/.nice.lock"));
+  assert(not nissa::fileExists(hitCheckpointPath(root,program.options,0).string()));
+  
+  // Raising only the policy limit permits progress with unchanged compatibility metadata
+  program.options.policy.maxTrials=4;
+  program.options.validate();
   const auto completed=runCheckpointedConfiguration(program,rngLayout,rng,0,fresh);
   assert(completed==ConfigurationRunOutcome::Completed and fresh.completedHits==2);
   assert(nissa::fileExists(root+"/finished.nice"));
   assert(nissa::fileExists(root+"/correlations.nice"));
   assert(not nissa::fileExists(root+"/.nice.lock"));
+  const CheckpointRetryState completedRetry=
+    readCheckpointRetryState(program,rngLayout,0,2);
+  assert(completedRetry.hit==2 and completedRetry.nTrials==0);
+  
+  // A committed hit overrides a stale retry record after an interrupted counter reset
+  lock.init();
+  const bool recoveryClaim=tryClaimRunningFile(lock,std::filesystem::path(root)/".nice.lock",
+                                              std::chrono::seconds(60));
+  assert(recoveryClaim);
+  writeCheckpointRetryState(program,rngLayout,0,{1,4},lock);
+  releaseRunningFile(lock);
+  const CheckpointRetryState recoveredRetry=
+    readCheckpointRetryState(program,rngLayout,0,2);
+  assert(recoveredRetry.hit==2 and recoveredRetry.nTrials==0);
   
   std::error_code error;
   if(nissa::is_master_rank())
@@ -3322,6 +3386,7 @@ int main(int narg,
   validateProgramPieces(narg,arg);
   validateConfigurationSources(narg,arg);
   validateRunSettings(narg,arg);
+  validateCheckpointRetryParsing(narg,arg);
   validateWallTime(narg,arg);
   validateRunningFile();
   validateGaugeRecipeBindings(narg,arg);
