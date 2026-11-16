@@ -105,7 +105,8 @@ namespace nissa
     MASTER_PRINTF("Opening file: %s\n",path_str);
     
     ILDG_File file=fopen(path_str,mode);
-    if(file==nullptr) CRASH("while opening file %s",path_str);
+    if(file==nullptr)
+      CRASH("while opening file %s, error: %s",path_str,strerror(errno));
     
     return file;
   }
