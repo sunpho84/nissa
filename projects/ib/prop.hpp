@@ -246,6 +246,9 @@ namespace nissa
   /// Cached loops
   EXTERN_PROP std::map<LepLoopTag,LxField<spin1field>> cachedLepLoops;
   
+  /// Cached Neutrino prop
+  EXTERN_PROP std::optional<LxField<spinspin>> cachedNeutrinoProp;
+  
   const int ALL_TIMES=-1;
   
   EXTERN_PROP int ninv_tot INIT_TO(0);

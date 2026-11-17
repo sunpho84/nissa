@@ -415,6 +415,85 @@ namespace nissa
     return lepton_loop;
   }
   
+  
+  /// Insert the lepton loop
+  LxField<complex> getNPP(const double& kappa)
+  {
+    TmQuarkInfo lep(kappa_of_m0(0),0.0,0,{});
+    
+    /// Stored origin of the cached NPhoton
+    static Coords cahcedOriCoords;
+    
+    /// Detect if it is a new origin
+    bool isNewOri{false};
+    for(int mu=0;mu<NDIM;mu++)
+      isNewOri|=cahcedOriCoords[mu]!=oriCoords[mu];
+    
+    cahcedOriCoords=oriCoords;
+    
+    // Clear the NP if new origin
+    if(isNewOri)
+      {
+	MASTER_PRINTF("New origin detected, either new hit or new conf, clearing the NPP\n");
+	cachedNeutrinoProp.reset();
+      }
+    
+    /// Finds the NP field or instantiates a new one
+    if(not cachedNeutrinoProp)
+      {
+	LxField<spinspin>& neutrinoProp=cachedNeutrinoProp.emplace("NeutrinoProp");
+	
+	MASTER_PRINTF("Neutrino prop not found, creating\n");
+	
+	LxField<spinspin> tmp("tmp");
+	tmp.reset();
+	const auto [irank,loclx]=getLoclxAndRankOfCoords(oriCoords);
+	if(rank==irank)
+	  spinspin_put_to_id(tmp[loclx]);
+	
+	multiply_from_left_by_x_space_twisted_propagator_by_fft(neutrinoProp,tmp,lep,tm_basis_t::WILSON_BASE,false);
+      }
+    
+    const int i=
+      round(kappa);
+    
+    LxField<complex> NPP("NPP");
+    const int alpha=((i<2)?2:3);
+    const int beta=((i%2)?1:0);
+    PAR(0,
+	locVol,
+	CAPTURE(alpha,
+		beta,
+		TO_WRITE(NPP),
+		NP=cachedNeutrinoProp->getReadable()),
+	site,
+	{
+	  complex_copy(NPP[site],NP[site][alpha][beta]);
+	});
+    
+    return NPP;
+  }
+  
+  //phase the propagator
+  void multByScalar(LxField<spincolor>& out,
+		    const LxField<complex>& sc,
+		    const LxField<spincolor>& ori,
+		    const int& t)
+  {
+    out.reset();
+    PAR(0,locVol,
+	CAPTURE(t,
+		TO_WRITE(out),
+		TO_READ(sc),
+		TO_READ(ori)),
+	ivol,
+	{
+	  //put the phase
+	  if(t==-1 or glbCoordOfLoclx[ivol][0]==t)
+	    unsafe_spincolor_prod_complex(out[ivol],ori[ivol],sc[ivol]);
+	});
+  }
+  
   //insert the conserved current
   void insert_conserved_current(LxField<spincolor>& out,
 				const LxField<quad_su3>& conf,
@@ -876,6 +955,8 @@ namespace nissa
       case DEL_SPIN:select_spin(loop_source,ori,r);break;
       case DEL_COL:select_color(loop_source,ori,r);break;
       case LEP_LOOP:insert_external_source(loop_source,*conf,getLeptonLoop(mass,kappa,theta,residue),ori,rel_t,r,allDirs,loc_hadr_curr);break;
+      case NET:insert_external_source(loop_source,*conf,getLeptonLoop(mass,kappa,theta,residue),ori,rel_t,r,allDirs,loc_hadr_curr);break;
+      case NPP:multByScalar(loop_source,getNPP(kappa),ori,rel_t);break;
       case COV_DER:apply_nabla_i(loop_source,ori,*conf,r,rel_t);break;
       }
     
