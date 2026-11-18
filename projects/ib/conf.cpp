@@ -324,7 +324,8 @@ namespace nissa
 	      nTrials=getNTrials();
 	      if(nMaxTrials and nTrials>=nMaxTrials)
 		{
-		  MASTER_PRINTF("Conf tested already %d times, larger or equal to the maximum number of trials, skipping\n",nTrials);
+		  MASTER_PRINTF("Skipping gauge configuration '%s': maximum number of trials reached (%d attempts, limit %d), output '%s'\n",
+				conf_path,nTrials,nMaxTrials,outfolder);
 		  ok_conf=false;
 		}
 	      else
@@ -399,7 +400,8 @@ namespace nissa
 	  else
 	    {
 	      //skipping conf
-	      MASTER_PRINTF("\"%s\" finished or running, skipping configuration \"%s\"\n",outfolder,conf_path);
+	      MASTER_PRINTF("Skipping gauge configuration '%s' with output '%s'; see reason above\n",
+			    conf_path,outfolder);
 	      skip_conf();
 	    }
 	  iconf++;

@@ -864,9 +864,10 @@ namespace nissa::nice
                   {
                     updater.stop();
                     releaseRunningFile(lock);
-                    MASTER_PRINTF("NICE: skipping gauge configuration %zu after %llu trials without completing hit %zu (limit %d)\n",
-                                  iEntry,static_cast<unsigned long long>(retry.nTrials),firstHit,
-                                  program.options.policy.maxTrials);
+                    MASTER_PRINTF("NICE: skipping gauge configuration %zu '%s': maximum number of trials reached (%llu attempts at hit %zu, limit %d), output '%s'\n",
+                                  iEntry,program.configurationEntries[iEntry].path.c_str(),
+                                  static_cast<unsigned long long>(retry.nTrials),firstHit,
+                                  program.options.policy.maxTrials,directory.string().c_str());
                     outcome=ConfigurationRunOutcome::TrialLimitReached;
                   }
                 else if(stopped)
