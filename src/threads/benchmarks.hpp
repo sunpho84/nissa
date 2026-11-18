@@ -203,6 +203,7 @@ namespace nissa
   /// Reference to the flag specifying whether we are inside a parallel for
   extern int insideParallelFor;
   
+  /// Read the tuning trace switch once, sharing its cached value across kernel types
   inline bool getTraceLaunch()
   {
     static const bool traceLaunches=

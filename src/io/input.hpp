@@ -44,7 +44,7 @@ namespace nissa
   T getExternalPar(const char* STR,
 		      const char* descr)
   {
-    T val;
+    T val{};
     getExternalPar(val,STR,descr);
     return val;
   }
