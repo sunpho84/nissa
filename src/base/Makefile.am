@@ -15,6 +15,7 @@ BUILT_SOURCES+= \
 
 __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/bench.cpp \
+	%D%/backtrace.cpp \
 	%D%/debug.cpp \
 	%D%/field.cpp \
 	%D%/init.cpp \
@@ -24,6 +25,7 @@ __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/vectors.cpp
 
 include_HEADERS+= \
+	%D%/backtrace.hpp \
 	%D%/bench.hpp \
 	%D%/close.hpp \
 	%D%/cuda_test.hpp \

@@ -1,3 +1,4 @@
+#include "base/backtrace.hpp"
 #ifdef HAVE_CONFIG_H
 # include "config.hpp"
 #endif
@@ -138,6 +139,9 @@ namespace nissa
     else
       MASTER_PRINTF("To allow all jobs to print, export the env variable %s with the name to be used for the log[name].[rank] file\n",EVERY_RANK_PRINT_STRING);
     
+    // Prepare diagnostic addresses even when automatic signal trapping is disabled
+    initializeBacktrace();
+    
     //associate signals
     const char DO_NOT_TRAP_SIGNALS_STRING[]=
       "NISSA_DO_NOT_TRAP_SIGNALS";
@@ -145,13 +149,8 @@ namespace nissa
     VERBOSITY_LV1_MASTER_PRINTF("To avoid trapping signals, export: %s\n",DO_NOT_TRAP_SIGNALS_STRING);
     if(getenv(DO_NOT_TRAP_SIGNALS_STRING)==nullptr)
       {
-	signal(SIGBUS,signal_handler);
-	signal(SIGSEGV,signal_handler);
-	signal(SIGFPE,signal_handler);
-	signal(SIGXCPU,signal_handler);
-	signal(SIGABRT,signal_handler);
-	signal(SIGINT,signal_handler);
-	signal(SIGTERM,signal_handler);
+        if(not installSignalHandlers())
+          CRASH("Unable to install diagnostic signal handlers");
 	//feenableexcept(FE_DIVBYZERO|FE_INVALID|FE_OVERFLOW);
       }
     else

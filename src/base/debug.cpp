@@ -6,7 +6,6 @@
 # include "base/debug.hpp"
 
 #include <chrono>
-#include <execinfo.h>
 
 #ifdef USE_MPI
 # include <mpi.h>
@@ -22,6 +21,7 @@
 # include <cuda_runtime.h>
 #endif
 
+#include "base/backtrace.hpp"
 #include "base/field.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/float_128.hpp"
@@ -75,22 +75,6 @@ namespace nissa
   double time_diff_with_now(const Time& start)
   {
     return std::chrono::duration_cast<std::chrono::milliseconds>(take_time2()-start).count()/1000.0;
-  }
-  
-  //write the list of called routines
-  void print_backtrace_list(int which_rank)
-  {
-    void *callstack[128];
-    int frames=backtrace(callstack,128);
-    char **strs=backtrace_symbols(callstack,frames);
-    
-    if(which_rank==-1 or which_rank==rank)
-      {
-	printf("Backtracing...\n");
-	for(int i=0;i<frames;i++) printf("%s\n",strs[i]);
-      }
-    
-    free(strs);
   }
   
   /// Crash reporting the expanded error message
@@ -201,28 +185,6 @@ namespace nissa
 	
 	internal_crash(line,file,"%s %s",str1,str2);
       }
-  }
-  
-  //called when signal received
-  void signal_handler(int sig)
-  {
-    MASTER_PRINTF("maximal memory used: %ld\n",max_required_memory);
-    verbosity_lv=3;
-    char name[100];
-    switch(sig)
-      {
-      case SIGSEGV: sprintf(name,"segmentation violation");break;
-      case SIGFPE: sprintf(name,"floating-point exception");break;
-      case SIGXCPU: sprintf(name,"cpu time limit exceeded");break;
-      case SIGBUS: sprintf(name,"bus error");break;
-      case SIGINT: sprintf(name," program interrupted");break;
-      case SIGABRT: sprintf(name,"abort signal");break;
-      case SIGTERM: sprintf(name,"term signal");break;
-      default: sprintf(name,"unassociated");break;
-      }
-    print_backtrace_list();
-    print_all_vect_content();
-    CRASH("signal %d (%s) detected, exiting",sig,name);
   }
   
 #ifdef USE_MPI

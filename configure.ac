@@ -166,6 +166,25 @@ then
 fi
 AX_SUBPACKAGE(cufft,cufft.h,cufft,cufftDestroy,CUFFT)
 
+AC_ARG_ENABLE(backtrace-debug,
+	AS_HELP_STRING([--enable-backtrace-debug],[Keep host debug information and reliable stack frames, plus CUDA device line information]),
+	[],[enable_backtrace_debug=no])
+if test "$enable_backtrace_debug" = "yes"
+then
+	if test "$have_cuda" = "yes"
+	then
+		CXXFLAGS="$CXXFLAGS -g -lineinfo -Xcompiler=-fno-omit-frame-pointer,-fno-optimize-sibling-calls"
+		LDFLAGS="$LDFLAGS -Xlinker=--export-dynamic"
+	else
+		CXXFLAGS="$CXXFLAGS -g -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+		LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
+	fi
+fi
+AC_MSG_RESULT([keeping debug information for backtraces... $enable_backtrace_debug])
+
+#symbolic source locations, automatically enabled when the library is available
+AX_SUBPACKAGE(backtrace,backtrace.h,backtrace,backtrace_pcinfo,BACKTRACE)
+
 #check if we enable SIMD autosearch
 AX_SIMD_TYPE(mmx,-mmmx,_mm_load_pd,_mm_store_pd,MMX)
 AX_SIMD_TYPE(avx,-mavx,_mm256_load_pd,_mm256_store_pd,AVX)

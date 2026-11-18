@@ -84,8 +84,7 @@ namespace nissa
   __attribute__((format (printf,4,5)))
   void internal_decrypt_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...);
 #endif
-  void print_backtrace_list(int which_rank=0);
-  void signal_handler(int);
+  
   double take_time();
   
   timer_t setRecurringCalledFunction(void hook(int sigNum,
