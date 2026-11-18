@@ -3278,10 +3278,60 @@ void validateWallTimeCheckpoint()
   nissa::checkCollectiveFileError(error,"NICE validation cannot remove its wall-time directory");
 }
 
-/// Run frontend checks normally, or a separate initialized-grid gauge execution mode
+/// Exercise unequal send/receive counts and different positions of the local peer
+void validateAsymmetricRemapping()
+{
+  using namespace nissa;
+  
+  const int next=(rank+1)%nranks;
+  const int previous=(rank+nranks-1)%nranks;
+  const int sent=rank+3;
+  const int received=previous+3;
+  int* input=nissa_malloc("remap input",sent+2,int);
+  int* output=nissa_malloc("remap output",received+2,int);
+  
+  // Keep two elements local, and send a rank-dependent number to the next rank
+  all_to_all_scattering_list_t destinations;
+  for(int i=0;i<sent+2;i++)
+    {
+      input[i]=100*rank+i;
+      const int target=i<2?rank:next;
+      destinations.emplace_back(i,i*nranks+target);
+    }
+  
+  for(int i=0;i<received+2;i++)
+    output[i]=-1;
+  
+  {
+    const all_to_all_comm_t exchange(destinations);
+    assert(exchange.nel_out==sent+2 and exchange.nel_in==received+2);
+    exchange.communicate(output,input,sizeof(int));
+    
+    // Self copies and received copies must both cover precisely their intended range
+    for(int i=0;i<received+2;i++)
+      {
+        const int sourceRank=i<2?rank:previous;
+        assert(output[i]==100*sourceRank+i);
+      }
+  }
+  
+  nissa_free(input);
+  nissa_free(output);
+}
+
+/// Run frontend checks normally, or a separate initialized execution mode
 int main(int narg,
          char** arg)
 {
+  if(narg>1 and std::string_view(arg[1])=="remap-execution")
+    {
+      nissa::initNissa(narg,arg);
+      validateAsymmetricRemapping();
+      nissa::closeNissa();
+      
+      return 0;
+    }
+  
 #ifdef USE_DDALPHAAMG
   if(narg>1 and std::string_view(arg[1])=="dd-propagator-execution")
     {

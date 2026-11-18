@@ -22,24 +22,6 @@ namespace nissa
       base=MAX_TWIST_BASE;
   }
   
-  template <typename T>
-  void getExternalPar(T& val,
-		      const char* STR,
-		      const char* descr)
-  {
-    if(const char* data=getenv(STR))
-      {
-	std::istringstream is(data);
-	is>>val;
-	MASTER_PRINTF("Setting \"%s\" to: %s, via external variable \"%s\"\n",descr,(std::ostringstream()<<val).str().c_str(),STR);
-      }
-    else
-      {
-	MASTER_PRINTF("-> Setting \"%s\" to default value: %s\n",descr,(std::ostringstream()<<val).str().c_str());
-	MASTER_PRINTF(" Hint: optionally set \"%s\" by passing external variable \"%s\"\n",descr,STR);
-      }
-  }
-  
   //Clover run
   inline int clover_run;
   
