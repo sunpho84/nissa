@@ -4,11 +4,13 @@
 
 #include "base/backtrace.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "routines/ios.hpp"
 
 #include <cerrno>
 #include <atomic>
 #include <cstdint>
 #include <csignal>
+#include <cstdlib>
 #include <link.h>
 #include <optional>
 #include <string>
@@ -55,6 +57,9 @@ namespace nissa
     
     /// Suppress recursive or simultaneous stack unwinding in one process
     std::atomic_flag handlingSignal=ATOMIC_FLAG_INIT;
+
+    /// Enable individual unwinder step diagnostics when requested before initialization
+    bool verboseBacktrace{false};
     
 #ifdef USE_BACKTRACE
     /// Process-lifetime symbol cache, initialized before signals and shared across threads
@@ -339,7 +344,8 @@ namespace nissa
         frames[count++]=pc;
         if(report)
           {
-            emitTraceStage("unwind","progress",count);
+            if(verboseBacktrace)
+              emitTraceStage("unwind","progress",count);
             emitTraceFrame(pc,false,frame);
           }
         
@@ -370,17 +376,28 @@ namespace nissa
                             void* signalContext)
     {
       unw_cursor_t cursor;
-      emitTraceStage("unwind","context-init",trace.count);
+
+      if(verboseBacktrace)
+        emitTraceStage("unwind","context-init",trace.count);
+
       int result=unw_init_local2(&cursor,static_cast<unw_context_t*>(signalContext),
                                  UNW_INIT_SIGNAL_FRAME);
-      emitTraceStage("unwind","context-ready",trace.count,result);
+
+      if(verboseBacktrace or result!=0)
+        emitTraceStage("unwind","context-ready",trace.count,result);
+
       bool walking=result==0;
       while(walking)
         {
           // The initial interrupted PC was printed separately, so advance to its caller
-          emitTraceStage("unwind","step-begin",trace.count);
+          if(verboseBacktrace)
+            emitTraceStage("unwind","step-begin",trace.count);
+
           result=unw_step(&cursor);
-          emitTraceStage("unwind","step-complete",trace.count,result);
+
+          if(verboseBacktrace or result<0)
+            emitTraceStage("unwind","step-complete",trace.count,result);
+
           if(result>0)
             {
               unw_word_t pc=0;
@@ -430,14 +447,17 @@ namespace nissa
 #ifdef USE_BACKTRACE
       if(traceState!=nullptr)
         {
-          emitTraceStage("symbols","begin");
+          if(verboseBacktrace)
+            emitTraceStage("symbols","begin");
+          
           if(interruptedPc!=0)
             emitTraceLocation(interruptedPc,true,0);
           
           for(int i=0;i<trace.count;i++)
             emitTraceLocation(trace.frames[i],false,i);
           
-          emitTraceStage("symbols","complete");
+          if(verboseBacktrace)
+            emitTraceStage("symbols","complete");
         }
 #endif
     }
@@ -456,7 +476,7 @@ namespace nissa
 #endif
     }
     
-    /// Dump each signalled rank without MPI, field access, crash hooks, or buffered stdio
+    /// Report external requests on rank zero, but retain faults on whichever rank failed
     /// The interrupted PC is emitted first; subsequent unwinding remains best effort
     void diagnosticSignalHandler(const int signal,
                                   siginfo_t*,
@@ -465,25 +485,32 @@ namespace nissa
       const int savedErrno=errno;
       const bool alreadyUnwinding=handlingSignal.test_and_set(std::memory_order_relaxed);
       
-      TraceRecord record;
-      record.prefix("signal");
-      record.text(" number=");
-      record.number(signal);
-      if(alreadyUnwinding)
-        {
-          record.text(" state=already-unwinding terminating exit=");
-          record.number(128+signal);
-        }
-      else
-        record.text(signal==SIGUSR1?" snapshot":" terminating");
+      const bool externalRequest=signal==SIGTERM or signal==SIGINT or signal==SIGUSR1;
+      const bool report=not externalRequest or rank==0 or everyRankPrint;
       
-      record.emit();
+      if(report)
+        {
+          TraceRecord record;
+          record.prefix("signal");
+          record.text(" number=");
+          record.number(signal);
+          if(alreadyUnwinding)
+            {
+              record.text(" state=already-unwinding terminating exit=");
+              record.number(128+signal);
+            }
+          else
+            record.text(signal==SIGUSR1?" snapshot":" terminating");
+          
+          record.emit();
+        }
       
       // Expose a second handler before it terminates a stack walk active on this process
       if(alreadyUnwinding)
         _exit(128+signal);
       
-      emitStackTrace(interruptedProgramCounter(context),context);
+      if(report)
+        emitStackTrace(interruptedProgramCounter(context),context);
       
       if(signal==SIGUSR1)
         {
@@ -497,6 +524,8 @@ namespace nissa
   
   void initializeBacktrace()
   {
+    verboseBacktrace=getenv("NISSA_BACKTRACE_VERBOSE")!=nullptr;
+    
     // Load the unwinder before a signal can interrupt a memory allocation or loader lock
     UnwindTrace warmup;
     warmup.report=false;

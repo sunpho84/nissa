@@ -9,7 +9,8 @@ namespace nissa
   /// Cache ELF mappings and initialize unwinding and symbolization before trapping signals
   void initializeBacktrace();
   
-  /// Install terminating signal diagnostics and nonterminating SIGUSR1 stack snapshots
+  /// Install signal diagnostics: external requests report on rank zero unless EVERY_RANK_PRINT is set
+  /// Fault signals report on the failing rank; SIGUSR1 snapshots resume execution
   bool installSignalHandlers();
 }
 
