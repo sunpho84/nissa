@@ -185,6 +185,22 @@ AC_MSG_RESULT([keeping debug information for backtraces... $enable_backtrace_deb
 #symbolic source locations, automatically enabled when the library is available
 AX_SUBPACKAGE(backtrace,backtrace.h,backtrace,backtrace_pcinfo,BACKTRACE)
 
+#signal-context unwinding, bypassing the handler and its signal trampoline
+AX_SUBPACKAGE(libunwind,libunwind.h,unwind,unw_backtrace,LIBUNWIND)
+if test "$enable_libunwind" = "yes"
+then
+	AC_MSG_CHECKING([for libunwind signal-context support])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#define UNW_LOCAL_ONLY
+#include <libunwind.h>
+]],[[
+unw_context_t context;
+unw_cursor_t cursor;
+unw_getcontext(&context);
+return unw_init_local2(&cursor,&context,UNW_INIT_SIGNAL_FRAME);
+]])],[AC_MSG_RESULT([yes])],[AC_MSG_ERROR([libunwind requires unw_init_local2 and UNW_INIT_SIGNAL_FRAME])])
+fi
+
 #check if we enable SIMD autosearch
 AX_SIMD_TYPE(mmx,-mmmx,_mm_load_pd,_mm_store_pd,MMX)
 AX_SIMD_TYPE(avx,-mavx,_mm256_load_pd,_mm256_store_pd,AVX)

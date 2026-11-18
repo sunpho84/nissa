@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <csignal>
 #include <link.h>
+#include <optional>
 #include <string>
 #include <ucontext.h>
 #include <unistd.h>
@@ -18,6 +19,11 @@
 
 #ifdef USE_BACKTRACE
 # include <backtrace.h>
+#endif
+
+#ifdef USE_LIBUNWIND
+# define UNW_LOCAL_ONLY
+# include <libunwind.h>
 #endif
 
 namespace nissa
@@ -271,7 +277,8 @@ namespace nissa
     void emitTraceStage(const char* phase,
                         const char* state,
                         const int count=-1,
-                        const int result=-1)
+                        const std::optional<int> result={},
+                        const char* backend=nullptr)
     {
       TraceRecord record;
       record.prefix(phase);
@@ -283,10 +290,20 @@ namespace nissa
           record.number(count);
         }
       
-      if(result>=0)
+      if(result)
         {
           record.text(" result=");
-          record.number(result);
+          const int64_t value=*result;
+          if(value<0)
+            record.character('-');
+          
+          record.number(value<0?-value:value);
+        }
+      
+      if(backend!=nullptr)
+        {
+          record.text(" backend=");
+          record.text(backend);
         }
       
       record.emit();
@@ -306,6 +323,24 @@ namespace nissa
       
       /// Disable diagnostic output during initialization
       bool report{true};
+      
+      /// Append one nonzero address while storage remains, reporting it immediately
+      bool append(const uintptr_t pc)
+      {
+        const int frame=count;
+        frames[count++]=pc;
+        if(report)
+          {
+            emitTraceStage("unwind","progress",count);
+            emitTraceFrame(pc,false,frame);
+          }
+        
+        const bool hasRoom=count<capacity;
+        if(not hasRoom and report)
+          emitTraceStage("unwind","limit",count);
+        
+        return hasRoom;
+      }
     };
     
     /// Record and print each frame before the unwinder attempts the next step
@@ -315,37 +350,73 @@ namespace nissa
       auto& trace=*static_cast<UnwindTrace*>(data);
       const uintptr_t pc=_Unwind_GetIP(context);
       _Unwind_Reason_Code result=_URC_NO_REASON;
-      if(pc!=0)
-        {
-          const int frame=trace.count;
-          trace.frames[trace.count++]=pc;
-          if(trace.report)
-            {
-              emitTraceStage("unwind","progress",trace.count);
-              emitTraceFrame(pc,false,frame);
-            }
-          
-          if(trace.count==UnwindTrace::capacity)
-            {
-              if(trace.report)
-                emitTraceStage("unwind","limit",trace.count);
-              
-              result=_URC_END_OF_STACK;
-            }
-        }
+      if(pc!=0 and not trace.append(pc))
+        result=_URC_END_OF_STACK;
       
       return result;
     }
     
+#ifdef USE_LIBUNWIND
+    /// Start from the saved interrupted state, avoiding a walk through the signal trampoline
+    int collectSignalFrames(UnwindTrace& trace,
+                            void* signalContext)
+    {
+      unw_cursor_t cursor;
+      emitTraceStage("unwind","context-init",trace.count);
+      int result=unw_init_local2(&cursor,static_cast<unw_context_t*>(signalContext),
+                                 UNW_INIT_SIGNAL_FRAME);
+      emitTraceStage("unwind","context-ready",trace.count,result);
+      bool walking=result==0;
+      while(walking)
+        {
+          // The initial interrupted PC was printed separately, so advance to its caller
+          emitTraceStage("unwind","step-begin",trace.count);
+          result=unw_step(&cursor);
+          emitTraceStage("unwind","step-complete",trace.count,result);
+          if(result>0)
+            {
+              unw_word_t pc=0;
+              result=unw_get_reg(&cursor,UNW_REG_IP,&pc);
+              if(result==0 and pc!=0)
+                walking=trace.append(pc);
+              else
+                {
+                  emitTraceStage("unwind","register-stop",trace.count,result);
+                  walking=false;
+                }
+            }
+          else
+            walking=false;
+        }
+      
+      return result;
+    }
+#endif
+    
     /// Emit frames during unwinding so a later blocked step cannot hide earlier addresses
-    void emitStackTrace(const uintptr_t interruptedPc=0)
+    void emitStackTrace(const uintptr_t interruptedPc=0,
+                        void* signalContext=nullptr)
     {
       if(interruptedPc!=0)
         emitTraceFrame(interruptedPc,true,0);
       
       UnwindTrace trace;
-      emitTraceStage("unwind","begin",0);
-      const auto result=_Unwind_Backtrace(collectUnwindFrame,&trace);
+      int result;
+#ifdef USE_LIBUNWIND
+      if(signalContext!=nullptr)
+        {
+          emitTraceStage("unwind","begin",0,{},"libunwind");
+          result=collectSignalFrames(trace,signalContext);
+        }
+      else
+#else
+      (void)signalContext;
+#endif
+        {
+          emitTraceStage("unwind","begin",0,{},"abi");
+          result=_Unwind_Backtrace(collectUnwindFrame,&trace);
+        }
+      
       emitTraceStage("unwind","complete",trace.count,result);
       
 #ifdef USE_BACKTRACE
@@ -394,7 +465,7 @@ namespace nissa
       record.text(signal==SIGUSR1?" snapshot":" terminating");
       record.emit();
       
-      emitStackTrace(interruptedProgramCounter(context));
+      emitStackTrace(interruptedProgramCounter(context),context);
       
       if(signal==SIGUSR1)
         {
@@ -412,6 +483,18 @@ namespace nissa
     UnwindTrace warmup;
     warmup.report=false;
     (void)_Unwind_Backtrace(collectUnwindFrame,&warmup);
+    
+#ifdef USE_LIBUNWIND
+    unw_context_t context;
+    unw_cursor_t cursor;
+    if(unw_getcontext(&context)==0 and unw_init_local(&cursor,&context)==0)
+      {
+        int result=1;
+        for(int i=0;i<UnwindTrace::capacity and result>0;i++)
+          result=unw_step(&cursor);
+      }
+#endif
+    
     traceObjects.clear();
     dl_iterate_phdr(collectTraceObject,nullptr);
     
