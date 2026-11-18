@@ -376,7 +376,8 @@ namespace nissa
 	if(nper_rank_to[irank_to_this]!=nper_rank_fr[irank_fr_this])
 	  CRASH("unmatched what to copy locally");
 	else
-	  PAR(0,nper_rank_to[irank_fr_this],
+	  // The local sender and receiver can occupy different positions in their lists
+	  PAR(0,nper_rank_to[irank_to_this],
 	      CAPTURE(bps,
 		      lhs=in_buf+in_buf_off_per_rank[irank_fr_this]*bps,
 		      rhs=out_buf+out_buf_off_per_rank[irank_to_this]*bps),
@@ -391,7 +392,8 @@ namespace nissa
     
     const int* dest=in_buf_dest;
     
-    PAR(0,nel_out,
+    // Scatter every received element, including when receive and send counts differ
+    PAR(0,nel_in,
 	CAPTURE(bps,
 		in_buf,
 		dest,
