@@ -17,6 +17,10 @@
 #include <unwind.h>
 #include <vector>
 
+#ifdef __linux__
+# include <sys/syscall.h>
+#endif
+
 #ifdef USE_BACKTRACE
 # include <backtrace.h>
 #endif
@@ -100,7 +104,7 @@ namespace nissa
           }
       }
       
-      /// Label every line so output from different ranks remains identifiable
+      /// Label every line by rank, process, and Linux thread without allocating
       void prefix(const char* kind)
       {
         text("NISSA ");
@@ -109,6 +113,10 @@ namespace nissa
         number(rank);
         text(" pid=");
         number(getpid());
+#ifdef __linux__
+        text(" tid=");
+        number(syscall(SYS_gettid));
+#endif
       }
       
       /// Emit directly to stderr, retrying only an interrupted or partial write
@@ -455,15 +463,25 @@ namespace nissa
                                   void* context)
     {
       const int savedErrno=errno;
-      if(handlingSignal.test_and_set(std::memory_order_relaxed))
-        _exit(128+signal);
+      const bool alreadyUnwinding=handlingSignal.test_and_set(std::memory_order_relaxed);
       
       TraceRecord record;
       record.prefix("signal");
       record.text(" number=");
       record.number(signal);
-      record.text(signal==SIGUSR1?" snapshot":" terminating");
+      if(alreadyUnwinding)
+        {
+          record.text(" state=already-unwinding terminating exit=");
+          record.number(128+signal);
+        }
+      else
+        record.text(signal==SIGUSR1?" snapshot":" terminating");
+      
       record.emit();
+      
+      // Expose a second handler before it terminates a stack walk active on this process
+      if(alreadyUnwinding)
+        _exit(128+signal);
       
       emitStackTrace(interruptedProgramCounter(context),context);
       

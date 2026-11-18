@@ -186,8 +186,8 @@ AC_MSG_RESULT([keeping debug information for backtraces... $enable_backtrace_deb
 AX_SUBPACKAGE(backtrace,backtrace.h,backtrace,backtrace_pcinfo,BACKTRACE)
 
 #signal-context unwinding, bypassing the handler and its signal trampoline
-AX_SUBPACKAGE(libunwind,libunwind.h,unwind,unw_backtrace,LIBUNWIND)
-if test "$enable_libunwind" = "yes"
+AX_SUBPACKAGE(unwind,libunwind.h,unwind,unw_backtrace,LIBUNWIND)
+if test "$enable_unwind" = "yes"
 then
 	AC_MSG_CHECKING([for libunwind signal-context support])
 	AC_LINK_IFELSE([AC_LANG_PROGRAM([[
