@@ -9,11 +9,11 @@
 #include <atomic>
 #include <cstdint>
 #include <csignal>
-#include <execinfo.h>
 #include <link.h>
 #include <string>
 #include <ucontext.h>
 #include <unistd.h>
+#include <unwind.h>
 #include <vector>
 
 #ifdef USE_BACKTRACE
@@ -270,7 +270,8 @@ namespace nissa
     /// Identify the diagnostic phase so a blocked or failed library call is visible
     void emitTraceStage(const char* phase,
                         const char* state,
-                        const int count=-1)
+                        const int count=-1,
+                        const int result=-1)
     {
       TraceRecord record;
       record.prefix(phase);
@@ -282,21 +283,70 @@ namespace nissa
           record.number(count);
         }
       
+      if(result>=0)
+        {
+          record.text(" result=");
+          record.number(result);
+        }
+      
       record.emit();
     }
     
-    /// Print the interrupted PC first, then every unwound address, and finally source locations
+    /// Bounded address storage shared by unwinder callbacks without dynamic allocation
+    struct UnwindTrace
+    {
+      /// Maximum number of collected caller frames
+      static constexpr int capacity{128};
+      
+      /// Collected program counters, filled in order by the callback
+      uintptr_t frames[capacity];
+      
+      /// Number of valid addresses collected so far
+      int count{0};
+      
+      /// Disable diagnostic output during initialization
+      bool report{true};
+    };
+    
+    /// Record and print each frame before the unwinder attempts the next step
+    _Unwind_Reason_Code collectUnwindFrame(_Unwind_Context* context,
+                                          void* data)
+    {
+      auto& trace=*static_cast<UnwindTrace*>(data);
+      const uintptr_t pc=_Unwind_GetIP(context);
+      _Unwind_Reason_Code result=_URC_NO_REASON;
+      if(pc!=0)
+        {
+          const int frame=trace.count;
+          trace.frames[trace.count++]=pc;
+          if(trace.report)
+            {
+              emitTraceStage("unwind","progress",trace.count);
+              emitTraceFrame(pc,false,frame);
+            }
+          
+          if(trace.count==UnwindTrace::capacity)
+            {
+              if(trace.report)
+                emitTraceStage("unwind","limit",trace.count);
+              
+              result=_URC_END_OF_STACK;
+            }
+        }
+      
+      return result;
+    }
+    
+    /// Emit frames during unwinding so a later blocked step cannot hide earlier addresses
     void emitStackTrace(const uintptr_t interruptedPc=0)
     {
       if(interruptedPc!=0)
         emitTraceFrame(interruptedPc,true,0);
       
-      void* frames[128];
-      emitTraceStage("unwind","begin");
-      const int count=backtrace(frames,128);
-      emitTraceStage("unwind","complete",count);
-      for(int i=0;i<count;i++)
-        emitTraceFrame(reinterpret_cast<uintptr_t>(frames[i]),false,i);
+      UnwindTrace trace;
+      emitTraceStage("unwind","begin",0);
+      const auto result=_Unwind_Backtrace(collectUnwindFrame,&trace);
+      emitTraceStage("unwind","complete",trace.count,result);
       
 #ifdef USE_BACKTRACE
       if(traceState!=nullptr)
@@ -305,8 +355,8 @@ namespace nissa
           if(interruptedPc!=0)
             emitTraceLocation(interruptedPc,true,0);
           
-          for(int i=0;i<count;i++)
-            emitTraceLocation(reinterpret_cast<uintptr_t>(frames[i]),false,i);
+          for(int i=0;i<trace.count;i++)
+            emitTraceLocation(trace.frames[i],false,i);
           
           emitTraceStage("symbols","complete");
         }
@@ -359,8 +409,9 @@ namespace nissa
   void initializeBacktrace()
   {
     // Load the unwinder before a signal can interrupt a memory allocation or loader lock
-    void* warmup[128];
-    (void)backtrace(warmup,128);
+    UnwindTrace warmup;
+    warmup.report=false;
+    (void)_Unwind_Backtrace(collectUnwindFrame,&warmup);
     traceObjects.clear();
     dl_iterate_phdr(collectTraceObject,nullptr);
     
