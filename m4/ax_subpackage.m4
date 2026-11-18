@@ -19,7 +19,9 @@ then
 fi
 ])
 
-# usage: AX_SUBPACKAGE(package_name,header,library,function,conditional_name,include_dir=include,lib_dir=lib)
+# usage: AX_SUBPACKAGE(package_name,header,library,function,conditional_name,include_dir=include,lib_dir=lib,link_test=)
+# An optional AC_LANG_PROGRAM link_test checks the actual API instead of function names
+# Without an explicit lib_dir, search both lib and lib64 under the given prefix
 AC_DEFUN([AX_SUBPACKAGE], [
 
 if test x$6 == x
@@ -29,7 +31,7 @@ else
 	include_dir=$6
 fi
 
-if test x$7=x
+if test x$7 = x
 then
 	lib_dir=lib
 else
@@ -41,7 +43,9 @@ AC_ARG_WITH($1,
 	AS_HELP_STRING([--with-$1[=dir]], [Specify where to find $1]),
 	with_$1="${withval}"
 	CPPFLAGS="-I${with_$1}/${include_dir}/ $CPPFLAGS"
-	LDFLAGS="-L${with_$1}/${lib_dir}/ $LDFLAGS",
+	m4_ifblank([$7],
+		[LDFLAGS="-L${with_$1}/lib/ -L${with_$1}/lib64/ $LDFLAGS"],
+		[LDFLAGS="-L${with_$1}/${lib_dir}/ $LDFLAGS"]),
 	with_$1=no)
 AC_MSG_RESULT(with $1 ... ${with_$1})
 
@@ -59,6 +63,16 @@ done
 AX_SUBPACKAGE_OLD_LIBS=$LIBS
 libs_to_link=""
 $1_found_library=yes
+m4_ifval([$8],[
+for library in $3
+do
+	libs_to_link="$libs_to_link -l$library"
+done
+LIBS="$libs_to_link $LIBS"
+AC_MSG_CHECKING([whether $1 supports the requested API])
+AC_LINK_IFELSE([$8],[$1_found_library=yes],[$1_found_library=no])
+AC_MSG_RESULT([$$1_found_library])
+],[
 for function in $4
 do
 	if test "$1_found_library" != "no" -a "$3" != "" -a  "$function" != ""
@@ -67,6 +81,7 @@ do
 		libs_to_link="$(eval echo \$ac_cv_search_$function) $libs_to_link"
 	fi
 done
+])
 NEW_LIBS=$LIBS
 LIBS=$AX_SUBPACKAGE_OLD_LIBS
 
