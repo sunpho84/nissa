@@ -111,7 +111,9 @@ namespace nissa
 	
 	fprintf(stderr,RED_HIGHLIGHT "on rank %d ERROR on line %d of file \"%s\", message error: \"%s\"." DO_NOT_HIGHLIGHT,rank,line,file,mess);
 	fprintf(stderr,"Memory used: %ld bytes per rank (%ld bytes total)\n",required_memory,required_memory*nranks);
-	print_backtrace_list();
+	
+	// Print the failing rank's stack even when it is not rank zero
+	printBacktraceList(-1);
     }
     
     ranks_abort(EXIT_FAILURE);

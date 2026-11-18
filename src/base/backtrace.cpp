@@ -209,12 +209,19 @@ namespace nissa
       return 0;
     }
     
-    /// Emit an exact interrupted PC or a return address adjusted to its calling instruction
+    /// Keep interrupted instructions exact and move return addresses back into their caller
+    uintptr_t lookupProgramCounter(const uintptr_t pc,
+                                   const bool interrupted)
+    {
+      return not interrupted and pc!=0?pc-1:pc;
+    }
+    
+    /// Emit an address without entering either the unwinder or the symbolizer
     void emitTraceFrame(const uintptr_t pc,
                         const bool interrupted,
                         const size_t frame)
     {
-      const uintptr_t lookup=not interrupted and pc!=0?pc-1:pc;
+      const uintptr_t lookup=lookupProgramCounter(pc,interrupted);
       const TraceObject* object=nullptr;
       for(size_t i=0;i<traceObjects.size() and object==nullptr;i++)
         if(lookup>=traceObjects[i].start and lookup<traceObjects[i].end)
@@ -239,8 +246,14 @@ namespace nissa
         record.text(" object=unknown");
       
       record.emit();
-      
+    }
+    
 #ifdef USE_BACKTRACE
+    /// Resolve an already printed address after all collected raw frames have been emitted
+    void emitTraceLocation(const uintptr_t pc,
+                           const bool interrupted,
+                           const size_t frame)
+    {
       if(traceState!=nullptr)
         {
           TraceRecord location;
@@ -248,7 +261,54 @@ namespace nissa
           location.text(interrupted?" kind=interrupted":" kind=return");
           location.text(" index=");
           location.number(frame);
-          backtrace_pcinfo(traceState,lookup,emitSourceLocation,ignoreSymbolError,&location);
+          backtrace_pcinfo(traceState,lookupProgramCounter(pc,interrupted),
+                           emitSourceLocation,ignoreSymbolError,&location);
+        }
+    }
+#endif
+    
+    /// Identify the diagnostic phase so a blocked or failed library call is visible
+    void emitTraceStage(const char* phase,
+                        const char* state,
+                        const int count=-1)
+    {
+      TraceRecord record;
+      record.prefix(phase);
+      record.text(" state=");
+      record.text(state);
+      if(count>=0)
+        {
+          record.text(" frames=");
+          record.number(count);
+        }
+      
+      record.emit();
+    }
+    
+    /// Print the interrupted PC first, then every unwound address, and finally source locations
+    void emitStackTrace(const uintptr_t interruptedPc=0)
+    {
+      if(interruptedPc!=0)
+        emitTraceFrame(interruptedPc,true,0);
+      
+      void* frames[128];
+      emitTraceStage("unwind","begin");
+      const int count=backtrace(frames,128);
+      emitTraceStage("unwind","complete",count);
+      for(int i=0;i<count;i++)
+        emitTraceFrame(reinterpret_cast<uintptr_t>(frames[i]),false,i);
+      
+#ifdef USE_BACKTRACE
+      if(traceState!=nullptr)
+        {
+          emitTraceStage("symbols","begin");
+          if(interruptedPc!=0)
+            emitTraceLocation(interruptedPc,true,0);
+          
+          for(int i=0;i<count;i++)
+            emitTraceLocation(reinterpret_cast<uintptr_t>(frames[i]),false,i);
+          
+          emitTraceStage("symbols","complete");
         }
 #endif
     }
@@ -284,11 +344,7 @@ namespace nissa
       record.text(signal==SIGUSR1?" snapshot":" terminating");
       record.emit();
       
-      const uintptr_t pc=interruptedProgramCounter(context);
-      if(pc!=0)
-        emitTraceFrame(pc,true,0);
-      
-      print_backtrace_list(-1);
+      emitStackTrace(interruptedProgramCounter(context));
       
       if(signal==SIGUSR1)
         {
@@ -303,8 +359,8 @@ namespace nissa
   void initializeBacktrace()
   {
     // Load the unwinder before a signal can interrupt a memory allocation or loader lock
-    void* warmup[1];
-    (void)backtrace(warmup,1);
+    void* warmup[128];
+    (void)backtrace(warmup,128);
     traceObjects.clear();
     dl_iterate_phdr(collectTraceObject,nullptr);
     
@@ -335,14 +391,9 @@ namespace nissa
     return installed;
   }
   
-  void print_backtrace_list(const int which_rank)
+  void printBacktraceList(const int which_rank)
   {
     if(which_rank==-1 or which_rank==rank)
-      {
-        void* frames[128];
-        const int count=backtrace(frames,128);
-        for(int i=0;i<count;i++)
-          emitTraceFrame(reinterpret_cast<uintptr_t>(frames[i]),false,i);
-      }
+      emitStackTrace();
   }
 }
