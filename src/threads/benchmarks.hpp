@@ -203,6 +203,14 @@ namespace nissa
   /// Reference to the flag specifying whether we are inside a parallel for
   extern int insideParallelFor;
   
+  inline bool getTraceLaunch()
+  {
+    static const bool traceLaunches=
+      getExternalPar<bool>("NISSA_TUNING_TRACE","enable tracing of the kernel benchmark");
+    
+    return traceLaunches;
+  }
+  
   /// Fetches the optimal block size in the archive, or tunes the kernel
   template <typename F>
   int getOptimalBlockSize(const int& kernelId,
@@ -248,7 +256,7 @@ namespace nissa
     if(toBeTuned)
       {
 	/// Detailed launch diagnostics are opt-in because flushing perturbs tuning execution
-	static const bool traceLaunches=getExternalPar<bool>("NISSA_TUNING_TRACE","enable tracing of the kernel benchmark");
+	const bool traceLaunches=getTraceLaunch();
 	
 	/// Bracket each synchronous launch and measure its time without diagnostic output
 	const auto measuredLaunch=
