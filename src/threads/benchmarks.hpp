@@ -6,9 +6,11 @@
 #endif
 
 #include <cmath>
+#include <cstdlib>
 #include <functional>
 #include <map>
 #include <string>
+#include <string_view>
 
 #include "base/debug.hpp"
 #include "io/input.hpp"
@@ -202,6 +204,20 @@ namespace nissa
   /// Reference to the flag specifying whether we are inside a parallel for
   extern int insideParallelFor;
   
+  /// Read the tuning trace switch once, sharing its cached value across kernel types
+  inline bool getTraceLaunch()
+  {
+    static const bool traceLaunches=
+      []()
+      {
+        const char* value=std::getenv("NISSA_TUNING_TRACE");
+        
+        return value!=nullptr and std::string_view(value)=="1";
+      }();
+    
+    return traceLaunches;
+  }
+  
   /// Fetches the optimal block size in the archive, or tunes the kernel
   template <typename F>
   int getOptimalBlockSize(const int& kernelId,
@@ -246,6 +262,38 @@ namespace nissa
     
     if(toBeTuned)
       {
+	/// Detailed launch diagnostics are opt-in because flushing perturbs tuning execution
+	const bool traceLaunches=getTraceLaunch();
+	
+	/// Bracket each synchronous launch and measure its time without diagnostic output
+	const auto measuredLaunch=
+	  [&](const int blockSize,
+	      const char* phase,
+	      const int iteration)
+	  {
+	    if(traceLaunches)
+	      {
+		MASTER_PRINTF("NISSA tuning rank=%d kernel=\"%s\" loop=%ld block=%d grid=%ld phase=%s iteration=%d state=begin\n",
+			      rank,info.name.c_str(),loopLength,blockSize,
+			      loopLength>0?1+(loopLength-1)/blockSize:0,phase,iteration);
+		fflush(stdout);
+	      }
+	    
+	    const double start=traceLaunches?take_time():0.0;
+	    launch(blockSize);
+	    const double elapsed=traceLaunches?take_time()-start:0.0;
+	    
+	    if(traceLaunches)
+	      {
+		MASTER_PRINTF("NISSA tuning rank=%d kernel=\"%s\" loop=%ld block=%d grid=%ld phase=%s iteration=%d state=complete seconds=%.17g\n",
+			      rank,info.name.c_str(),loopLength,blockSize,
+			      loopLength>0?1+(loopLength-1)/blockSize:0,phase,iteration,elapsed);
+		fflush(stdout);
+	      }
+	    
+	    return elapsed;
+	  };
+	
 	if(print)
 	  printf("Benchmarking kernel %s for loop size %ld, doNotBackupDuringBenchmark: %d, insideParallelFor: %d\n",
 		 info.name.c_str(),loopLength,doNotBackupDuringBenchmark,insideParallelFor);
@@ -280,18 +328,19 @@ namespace nissa
 	for(int testBlockSize=minBlockSize;testBlockSize<=maxBlockSize;testBlockSize*=2)
 	  {
 	    // warmup
-	    launch(testBlockSize);
+	    measuredLaunch(testBlockSize,"warmup",0);
 	    
 	    /// Initial time
 	    const double initTime=
 	      take_time();
 	    
+	    double measuredTime=0.0;
 	    for(int i=0;i<nBench;i++)
-	      launch(testBlockSize);
+	      measuredTime+=measuredLaunch(testBlockSize,"timed",i);
 	    
 	    /// Execution time
 	    const double runTime=
-	      (take_time()-initTime)/nBench;
+	      (traceLaunches?measuredTime:take_time()-initTime)/nBench;
 	    
 	    if(optimalBlockSize==0 or minRunTime>runTime)
 	      {
