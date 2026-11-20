@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <functional>
 #include <concepts>
+#include <cmath>
+#include <cstddef>
 #include <limits>
 #include <cstdint>
 #include <array>
@@ -22,6 +24,54 @@
 
 namespace nissa
 {
+  /// Accumulate estimates and their squares for a sample mean and spread
+  struct RunningStatistics
+  {
+    /// Number of estimates added
+    size_t nEstimates{0};
+
+    /// Sum of estimates
+    double sum{0.0};
+
+    /// Sum of squared estimates
+    double sumSquares{0.0};
+
+    /// Add one estimate
+    void push(const double estimate)
+    {
+      nEstimates++;
+      sum+=estimate;
+      sumSquares+=estimate*estimate;
+    }
+
+    /// Return the sample mean
+    double average() const
+    {
+      if(nEstimates==0)
+        CRASH("Cannot average an empty sample");
+
+      return sum/nEstimates;
+    }
+
+    /// Return the sample standard deviation
+    double stddev() const
+    {
+      if(nEstimates<2)
+        CRASH("Sample standard deviation requires at least two estimates");
+
+      const double mean=average();
+      const double variance=sumSquares/nEstimates-mean*mean;
+
+      return std::sqrt((variance>0.0?variance:0.0)*nEstimates/(nEstimates-1));
+    }
+
+    /// Return the standard error of the sample mean
+    double standardError() const
+    {
+      return stddev()/std::sqrt(nEstimates);
+    }
+  };
+
   /// Low [0] and high [1] 32-bit halves, each held in a uint64_t for arithmetic
   struct Uint64Halves :
     std::array<uint64_t,2>
