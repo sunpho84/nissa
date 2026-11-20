@@ -312,14 +312,14 @@ namespace nissa
     MASTER_PRINTF("Leptonic tensor: %.16lg\n",lepTens);
     
     /// Stored origin of the cached lep loops
-    static Coords cahcedOriCoords;
+    static Coords cachedOriCoords;
     
     /// Detect if it is a new origin
     bool isNewOri{false};
     for(int mu=0;mu<NDIM;mu++)
-      isNewOri|=cahcedOriCoords[mu]!=oriCoords[mu];
+      isNewOri|=cachedOriCoords[mu]!=oriCoords[mu];
     
-    cahcedOriCoords=oriCoords;
+    cachedOriCoords=oriCoords;
     
     // Clear the loops if new origin
     if(isNewOri)
@@ -422,14 +422,14 @@ namespace nissa
     TmQuarkInfo lep(kappa_of_m0(0),0.0,0,{});
     
     /// Stored origin of the cached NPhoton
-    static Coords cahcedOriCoords;
+    static Coords cachedOriCoords;
     
     /// Detect if it is a new origin
     bool isNewOri{false};
     for(int mu=0;mu<NDIM;mu++)
-      isNewOri|=cahcedOriCoords[mu]!=oriCoords[mu];
+      isNewOri|=cachedOriCoords[mu]!=oriCoords[mu];
     
-    cahcedOriCoords=oriCoords;
+    cachedOriCoords=oriCoords;
     
     // Clear the NP if new origin
     if(isNewOri)
