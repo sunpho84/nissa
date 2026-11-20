@@ -3,6 +3,9 @@
 #include <cmath>
 #include <cstdlib>
 #include <charconv>
+#include <sstream>
+
+#include "routines/ios.hpp"
 
 /// Build the ParsePact parser for the script grammar and its semantic actions
 /// The grammar text has static lifetime because parser data retains string views
@@ -394,14 +397,19 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
     [](std::vector<std::shared_ptr<Value>>& args,
 	 Evaluator&)->Value
     {
+	std::ostringstream output;
 	for(std::shared_ptr<Value>& arg : args)
-	  std::visit([](const auto& v)
+	  std::visit([&output](const auto& v)
 	  {
-	    if constexpr(requires {std::cout<<v;})
-	      std::cout<<v;
+	    if constexpr(requires {output<<v;})
+	      output<<v;
 	    else
-	      std::cout<<"unprintable type: "<<typeid(v).name()<<"\n";
+	      output<<"unprintable type: "<<typeid(v).name()<<"\n";
 	  },arg->data);
+
+	const std::string text=output.str();
+	if(not text.empty())
+	  MASTER_PRINTF("%s",text.c_str());
 	
 	return {};
     }};
