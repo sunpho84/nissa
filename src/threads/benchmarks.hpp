@@ -14,6 +14,7 @@
 #include "base/debug.hpp"
 #include "io/input.hpp"
 #include "routines/ios.hpp"
+#include "routines/math_routines.hpp"
 
 namespace nissa
 {
@@ -249,7 +250,7 @@ namespace nissa
     const int defaultBlockSize=128;
     
     /// RunTime for default block size
-    double defaultBlockRunTime;
+    double defaultBlockRunTime=0.0;
     
     if(print)
       printf("ToBeTuned: %d\n",toBeTuned);
@@ -273,9 +274,9 @@ namespace nissa
 		fflush(stdout);
 	      }
 	    
-	    const double start=traceLaunches?take_time():0.0;
+	    const double start=take_time();
 	    launch(blockSize);
-	    const double elapsed=traceLaunches?take_time()-start:0.0;
+	    const double elapsed=take_time()-start;
 	    
 	    if(traceLaunches)
 	      {
@@ -308,8 +309,12 @@ namespace nissa
 	
 	optimalBlockSize=0;
 	
-	/// Number of iterations to use for benchmarking
-	const int nBench=100;
+	/// Repeat cheap candidates for precision and limit time spent on expensive ones
+	const int minBench=3;
+	const int maxBench=100;
+	const double minMeasuredSeconds=0.2;
+	const double maxMeasuredSeconds=2.0;
+	const double maxRelativeStandardError=0.02;
 	
 	/// Minimal runtime for the kernel
 	double minRunTime=0.0;
@@ -324,17 +329,20 @@ namespace nissa
 	    // warmup
 	    measuredLaunch(testBlockSize,"warmup",0);
 	    
-	    /// Initial time
-	    const double initTime=
-	      take_time();
+	    /// Accumulate the launch times without storing them individually
+	    RunningStatistics timing;
+	    bool stable=false;
+	    while(timing.nEstimates<maxBench and
+		  (timing.nEstimates<minBench or (not stable and timing.sum<maxMeasuredSeconds)))
+	      {
+		const double elapsed=measuredLaunch(testBlockSize,"timed",timing.nEstimates);
+		timing.push(elapsed);
+		
+		if(timing.nEstimates>=minBench and timing.sum>=minMeasuredSeconds and timing.average()>0.0)
+		  stable=timing.standardError()<=maxRelativeStandardError*timing.average();
+	      }
 	    
-	    double measuredTime=0.0;
-	    for(int i=0;i<nBench;i++)
-	      measuredTime+=measuredLaunch(testBlockSize,"timed",i);
-	    
-	    /// Execution time
-	    const double runTime=
-	      (traceLaunches?measuredTime:take_time()-initTime)/nBench;
+	    const double runTime=timing.average();
 	    
 	    if(optimalBlockSize==0 or minRunTime>runTime)
 	      {
@@ -346,7 +354,7 @@ namespace nissa
 	      defaultBlockRunTime=runTime;
 	    
 	    if(print)
-	      printf("Benchmarked with blockSize %d, runtime %lg s minimal %lg s current optimal size %d\n",testBlockSize,runTime,minRunTime,optimalBlockSize);
+	      printf("Benchmarked with blockSize %d, runtime %lg s from %zu launches (%.3g s total), minimal %lg s current optimal size %d\n",testBlockSize,runTime,timing.nEstimates,timing.sum,minRunTime,optimalBlockSize);
 	  }
 	
 	if(not doNotBackupDuringBenchmark)
@@ -357,8 +365,12 @@ namespace nissa
 	    doNotBackupDuringBenchmark=false;
 	  }
 	
-	VERBOSITY_LV1_MASTER_PRINTF("Tuned kernel %s for loop length %ld, optimal block size: %d, minimal time: %lg s, time with default block size (%d) would have been %lg s, saved time: %lg %c\n",
-				    info.name.c_str(),loopLength,optimalBlockSize,minRunTime,defaultBlockSize,defaultBlockRunTime,(1-minRunTime/defaultBlockRunTime)*100,'%');
+	if(defaultBlockRunTime>0.0)
+	  VERBOSITY_LV1_MASTER_PRINTF("Tuned kernel %s for loop length %ld, optimal block size: %d, minimal time: %lg s, time with default block size (%d) would have been %lg s, saved time: %lg %c\n",
+				      info.name.c_str(),loopLength,optimalBlockSize,minRunTime,defaultBlockSize,defaultBlockRunTime,(1-minRunTime/defaultBlockRunTime)*100,'%');
+	else
+	  VERBOSITY_LV1_MASTER_PRINTF("Tuned kernel %s for loop length %ld, optimal block size: %d, minimal time: %lg s\n",
+				      info.name.c_str(),loopLength,optimalBlockSize,minRunTime);
 	
 	storeTunedKernelsInfo();
       }
