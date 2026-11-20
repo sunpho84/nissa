@@ -93,11 +93,20 @@ namespace nissa::nice
         bool stopped=false;
         size_t nClaimedElsewhere=0;
         size_t nTrialLimitReached=0;
+        size_t nCompleted=0;
+        const int maxConfigurations=program.options.policy.maxConfigurations;
         
         for(size_t iEntry=0;
             iEntry<program.configurationEntries.size() and not stopped;iEntry++)
           {
-            stopped=stopRequested(program.options) or not wallTime.allowsWork();
+            if(maxConfigurations!=0 and nCompleted>=static_cast<size_t>(maxConfigurations))
+              {
+                MASTER_PRINTF("NICE: stopping after %zu completed gauge configuration(s): per-run limit %d reached\n",
+                              nCompleted,maxConfigurations);
+                stopped=true;
+              }
+            else
+              stopped=stopRequested(program.options) or not wallTime.allowsWork();
             
             if(not stopped)
               {
@@ -110,7 +119,9 @@ namespace nissa::nice
                     const ConfigurationRunOutcome outcome=
                       runCheckpointedConfiguration(program,rngLayout,rng,iEntry,wallTime);
                     stopped=outcome==ConfigurationRunOutcome::Stopped;
-                    if(outcome==ConfigurationRunOutcome::ClaimedElsewhere or
+                    if(outcome==ConfigurationRunOutcome::Completed)
+                      nCompleted++;
+                    else if(outcome==ConfigurationRunOutcome::ClaimedElsewhere or
                        outcome==ConfigurationRunOutcome::LostOwnership)
                       nClaimedElsewhere++;
                     else if(outcome==ConfigurationRunOutcome::TrialLimitReached)
@@ -120,6 +131,7 @@ namespace nissa::nice
                   {
                     prepareConfiguration(program,iEntry,rng,rngLayout,iEntry);
                     clearGaugeFields(program.gaugeRecipes);
+                    nCompleted++;
                   }
               }
           }

@@ -1879,6 +1879,10 @@ void validateRunSettings(const int narg,
       {
         value.policy.maxTrials=-1;
       });
+      reject("run-invalid-max-configurations",[](RunOptions& value)
+      {
+        value.policy.maxConfigurations=-1;
+      });
       reject("run-invalid-copies",[](RunOptions& value)
       {
         value.physics.nCopies=0;
@@ -2021,6 +2025,15 @@ void validateRunSettings(const int narg,
   execute({{"setMaxTrials(0);","unlimited retry allowance"}});
   options.validate();
   assert(options.policy.maxTrials==0);
+
+  // The per-invocation gauge configuration cap is optional and replaceable
+  assert(options.policy.maxConfigurations==0);
+  execute({{"setMaxConfigurations(.maxConfigurations=2);","gauge configuration cap"}});
+  options.validate();
+  assert(options.policy.maxConfigurations==2);
+  execute({{"setMaxConfigurations(0);","unlimited gauge configurations"}});
+  options.validate();
+  assert(options.policy.maxConfigurations==0);
   
   // Explicit time limits and safety allowances remain replaceable runtime policy
   assert(not options.policy.wallTimeSeconds and options.policy.wallTimeSafetySeconds==0.0);

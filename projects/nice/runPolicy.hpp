@@ -36,6 +36,9 @@ namespace nissa::nice
     
     /// Maximum consecutive attempts without a committed hit; zero permits unlimited retries
     int maxTrials{3};
+
+    /// Maximum gauge configurations completed in this invocation; zero means unlimited
+    int maxConfigurations{0};
     
     /// Require meaningful work limits, timing values, and output names
     void validate() const
@@ -45,6 +48,9 @@ namespace nissa::nice
       
       if(maxTrials<0)
         CRASH("NICE maximum trials must be nonnegative");
+
+      if(maxConfigurations<0)
+        CRASH("NICE maximum gauge configurations must be nonnegative");
       
       if(runningFileUpdateSeconds<=0)
         CRASH("NICE running-file update interval must be positive");

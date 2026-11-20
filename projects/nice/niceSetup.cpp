@@ -345,6 +345,12 @@ namespace nissa::nice
     {
       options.policy.maxTrials=maxTrials;
     });
+
+    registerHostFunction(evaluator,"setMaxConfigurations",{"maxConfigurations"},
+                         [&options](const int maxConfigurations)
+    {
+      options.policy.maxConfigurations=maxConfigurations;
+    });
     
     registerHostFunction(evaluator,"setKeepCheckpoints",{"enabled"},
                          [&options](const int enabled)

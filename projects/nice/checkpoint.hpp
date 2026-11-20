@@ -552,7 +552,12 @@ namespace nissa::nice
   /// Check a script-selected stop request collectively at a work boundary
   inline bool stopRequested(const RunOptions& options)
   {
-    return not options.policy.stopFile.empty() and fileExists(options.policy.stopFile);
+    const bool requested=not options.policy.stopFile.empty() and fileExists(options.policy.stopFile);
+
+    if(requested)
+      MASTER_PRINTF("NICE: stop requested by file '%s'\n",options.policy.stopFile.c_str());
+
+    return requested;
   }
   
   /// Record the settings that determine checkpoint compatibility and RNG positions
