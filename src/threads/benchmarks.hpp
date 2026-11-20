@@ -298,7 +298,7 @@ namespace nissa
 	
 	/// Takes note of the action to carry out after benchmarking
 	std::vector<BenchmarkAction> benchmarkEndActions(std::move(nissa::benchmarkEndActions));
-    
+	
 	if(not doNotBackupDuringBenchmark)
 	  {
 	    doNotBackupDuringBenchmark=true;
@@ -310,11 +310,11 @@ namespace nissa
 	optimalBlockSize=0;
 	
 	/// Repeat cheap candidates for precision and limit time spent on expensive ones
-	const int minBench=3;
+	const int minBench=5;
 	const int maxBench=100;
 	const double minMeasuredSeconds=0.2;
 	const double maxMeasuredSeconds=2.0;
-	const double maxRelativeStandardError=0.02;
+	const double maxRelativeStandardError=0.05;
 	
 	/// Minimal runtime for the kernel
 	double minRunTime=0.0;
