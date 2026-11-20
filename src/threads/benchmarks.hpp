@@ -65,6 +65,37 @@ namespace nissa
     /// Optimal block size for execution
     int optimalBlockSize{0};
   };
+
+  /// Reason for stopping the timing of one block size
+  enum struct TuningStopReason
+  {
+    /// The measured mean reached the requested precision
+    Stable,
+
+    /// The time budget was exhausted
+    TimeLimit,
+
+    /// The maximum number of launches was reached
+    IterationLimit
+  };
+
+  /// Return a concise description of a tuning stop reason
+  inline const char* tuningStopReasonName(const TuningStopReason reason)
+  {
+    switch(reason)
+      {
+      case TuningStopReason::Stable:
+        return "stable";
+
+      case TuningStopReason::TimeLimit:
+        return "time-limit";
+
+      case TuningStopReason::IterationLimit:
+        return "iteration-limit";
+      }
+
+    CRASH("Unknown tuning stop reason");
+  }
   
   /// Info, statistics and parameters to launch a kernel
   struct KernelInfoLaunchParsStat
@@ -319,6 +350,9 @@ namespace nissa
 	/// Minimal runtime for the kernel
 	double minRunTime=0.0;
 	
+	/// Stop reason for the selected block size
+	TuningStopReason optimalStopReason=TuningStopReason::IterationLimit;
+	
 	if(maxBlockSize<=minBlockSize)
 	  CRASH("minbockSize %d cannot be equal or larger than maxBlockSize %d",minBlockSize,maxBlockSize);
 	
@@ -344,17 +378,27 @@ namespace nissa
 	    
 	    const double runTime=timing.average();
 	    
+	    /// The stable result takes precedence if limits were reached on the same launch
+	    TuningStopReason stopReason;
+	    if(stable)
+	      stopReason=TuningStopReason::Stable;
+	    else if(timing.sum>=maxMeasuredSeconds)
+	      stopReason=TuningStopReason::TimeLimit;
+	    else
+	      stopReason=TuningStopReason::IterationLimit;
+	    
 	    if(optimalBlockSize==0 or minRunTime>runTime)
 	      {
 		optimalBlockSize=testBlockSize;
 		minRunTime=runTime;
+		optimalStopReason=stopReason;
 	      }
 	    
 	    if(testBlockSize==defaultBlockSize)
 	      defaultBlockRunTime=runTime;
 	    
-	    if(print)
-	      printf("Benchmarked with blockSize %d, runtime %lg s from %zu launches (%.3g s total), minimal %lg s current optimal size %d\n",testBlockSize,runTime,timing.nEstimates,timing.sum,minRunTime,optimalBlockSize);
+	    VERBOSITY_LV1_MASTER_PRINTF("Benchmarked kernel %s, loop %ld, block size %d: mean %lg s from %zu launches (%.3g s total), status=%s\n",
+				  info.name.c_str(),loopLength,testBlockSize,runTime,timing.nEstimates,timing.sum,tuningStopReasonName(stopReason));
 	  }
 	
 	if(not doNotBackupDuringBenchmark)
@@ -366,11 +410,11 @@ namespace nissa
 	  }
 	
 	if(defaultBlockRunTime>0.0)
-	  VERBOSITY_LV1_MASTER_PRINTF("Tuned kernel %s for loop length %ld, optimal block size: %d, minimal time: %lg s, time with default block size (%d) would have been %lg s, saved time: %lg %c\n",
-				      info.name.c_str(),loopLength,optimalBlockSize,minRunTime,defaultBlockSize,defaultBlockRunTime,(1-minRunTime/defaultBlockRunTime)*100,'%');
+	  VERBOSITY_LV1_MASTER_PRINTF("Tuned kernel %s for loop length %ld, optimal block size: %d, minimal time: %lg s, status=%s, time with default block size (%d) would have been %lg s, saved time: %lg %c\n",
+				      info.name.c_str(),loopLength,optimalBlockSize,minRunTime,tuningStopReasonName(optimalStopReason),defaultBlockSize,defaultBlockRunTime,(1-minRunTime/defaultBlockRunTime)*100,'%');
 	else
-	  VERBOSITY_LV1_MASTER_PRINTF("Tuned kernel %s for loop length %ld, optimal block size: %d, minimal time: %lg s\n",
-				      info.name.c_str(),loopLength,optimalBlockSize,minRunTime);
+	  VERBOSITY_LV1_MASTER_PRINTF("Tuned kernel %s for loop length %ld, optimal block size: %d, minimal time: %lg s, status=%s\n",
+				      info.name.c_str(),loopLength,optimalBlockSize,minRunTime,tuningStopReasonName(optimalStopReason));
 	
 	storeTunedKernelsInfo();
       }
