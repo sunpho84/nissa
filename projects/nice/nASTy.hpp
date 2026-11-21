@@ -170,6 +170,9 @@ struct Function
   const FuncNode* funcNode;
   
   std::shared_ptr<Environment> env;
+  
+  /// Original declaration name, or empty for a lambda
+  std::string name{};
 };
 
 /// C++ callable exposed to scripts, receiving prepared arguments and the evaluator
@@ -179,6 +182,12 @@ struct HostFunction :
 {
   /// Optional signature for host constructors; omitted arguments remain null
   std::vector<std::string> argumentNames;
+  
+  /// Whether this callable constructs a registered host type
+  bool isConstructor{false};
+  
+  /// Optional explanation for verbose discovery
+  std::string description{};
 };
 
 /// Callable script struct definition borrowing its declaration from the AST
@@ -888,6 +897,78 @@ struct ReturnNode
   std::shared_ptr<ASTNode> arg;
 };
 
+/// Discovery metadata shared by classification and verbose listings
+struct EntityInfo
+{
+  /// Human-readable entity kind
+  std::string kind;
+  
+  /// Documentation supplied by its native registration
+  std::string description{};
+  
+  /// Whether this value can be called from the script
+  bool callable{false};
+};
+
+/// Inspect every runtime value alternative; new alternatives require an overload
+struct EntityInfoVisitor
+{
+  /// Reject unhandled types, including types convertible to an existing alternative
+  template <typename T>
+  EntityInfo operator()(const T&) const=delete;
+  
+  // Define one exact visitor overload; the deleted fallback still rejects new types
+#define PROVIDE_ENTITY_INFO(TYPE,NAME,...) \
+  EntityInfo operator()(const TYPE& NAME) const \
+  { \
+    return {__VA_ARGS__}; \
+  }
+  
+  /// Uninitialized values
+  PROVIDE_ENTITY_INFO(std::monostate,,"uninitialized variable")
+  
+  /// Strings
+  PROVIDE_ENTITY_INFO(std::string,,"variable (string)")
+  
+  /// Integers
+  PROVIDE_ENTITY_INFO(int,,"variable (int)")
+  
+  /// Wide integers
+  PROVIDE_ENTITY_INFO(int64_t,,"variable (int64)")
+  
+  /// Real numbers
+  PROVIDE_ENTITY_INFO(double,,"variable (double)")
+  
+  /// Script functions and anonymous lambdas
+  PROVIDE_ENTITY_INFO(Function,function,(function.name.empty()?"script lambda":"embedded function '"+function.name+"'")+std::string(" (location unavailable)"),{},true)
+  
+  /// Named argument values
+  PROVIDE_ENTITY_INFO(FuncArg,,"variable (named argument)")
+  
+  /// Native functions and constructors
+  PROVIDE_ENTITY_INFO(HostFunction,function,function.isConstructor?"host struct constructor":"host function",function.description,true)
+  
+  /// References to variable cells
+  PROVIDE_ENTITY_INFO(ValueRef,,"variable (reference)")
+  
+  /// Lists of values
+  PROVIDE_ENTITY_INFO(ValuesList,,"variable (list)")
+  
+  /// Script struct constructors
+  PROVIDE_ENTITY_INFO(StructDef,,"script struct constructor (location unavailable)",{},true)
+  
+  /// Script struct instances
+  PROVIDE_ENTITY_INFO(Struct,object,"script struct instance '"+object.structDefNode->name+"'")
+  
+  /// Native object instances
+  PROVIDE_ENTITY_INFO(HObject,object,"host object '"+object.info->name+"'")
+  
+#undef PROVIDE_ENTITY_INFO
+};
+
+/// Select the visible bindings included in a discovery listing
+enum class EntitySelection{Functions,Variables,All};
+
 /// Contains shared variable cells and possibly the enclosing scope
 /// Creates only if no larger scope has the name
 struct Environment
@@ -896,22 +977,72 @@ struct Environment
   
   std::unordered_map<std::string,std::shared_ptr<Value>> varTable;
 
-  /// List visible callable names in alphabetical order, respecting inner bindings
-  std::vector<std::string> functionNames() const
+  /// Descriptions attached to bindings in this scope
+  std::unordered_map<std::string,std::string> descriptions;
+  
+  /// List selected visible names alphabetically, respecting inner bindings
+  std::vector<std::string> entityNames(const EntitySelection selection=EntitySelection::All) const
   {
     std::set<std::string> seen;
     std::vector<std::string> names;
     for(const Environment* scope=this;scope!=nullptr;scope=scope->parent.get())
       for(const auto& [name,value] : scope->varTable)
-        if(seen.insert(name).second and value and
-           (std::holds_alternative<HostFunction>(value->data) or
-            std::holds_alternative<Function>(value->data) or
-            std::holds_alternative<StructDef>(value->data)))
-          names.push_back(name);
+        if(seen.insert(name).second)
+          {
+            const bool callable=value and std::visit(EntityInfoVisitor{},value->data).callable;
+            
+            if(selection==EntitySelection::All or
+               (selection==EntitySelection::Functions and callable) or
+               (selection==EntitySelection::Variables and not callable))
+              names.push_back(name);
+          }
     
     std::sort(names.begin(),names.end());
     
     return names;
+  }
+  
+  /// List the visible callable names
+  std::vector<std::string> functionNames() const
+  {
+    return entityNames(EntitySelection::Functions);
+  }
+  
+  /// Describe a visible binding without changing its value
+  void describe(const std::string& name,
+                const std::string& description)
+  {
+    Environment* scope=this;
+    while(scope!=nullptr and not scope->varTable.contains(name))
+      scope=scope->parent.get();
+    
+    if(scope==nullptr)
+      errorEmitter("Cannot describe unknown entity ",name);
+    
+    scope->descriptions[name]=description;
+  }
+  
+  /// Explain a binding's kind and optional description in its nearest scope
+  std::string entityDetails(const std::string& name) const
+  {
+    const Environment* scope=this;
+    while(scope!=nullptr and not scope->varTable.contains(name))
+      scope=scope->parent.get();
+    
+    if(scope==nullptr)
+      errorEmitter("Cannot inspect unknown entity ",name);
+    
+    const auto& value=scope->varTable.at(name);
+    auto [details,description,callable]=
+      value?std::visit(EntityInfoVisitor{},value->data):EntityInfo{"uninitialized variable"};
+    
+    if(const auto found=scope->descriptions.find(name);found!=scope->descriptions.end())
+      description=found->second;
+    
+    if(not description.empty())
+      details+=" - "+description;
+    
+    return details;
   }
   
   /// Find the outermost environment in the parent chain
@@ -1883,7 +2014,9 @@ struct Evaluator
     if(curEnv->find(name))
       errorEmitter("Redefining a function which has a name ",name," already defined");
     
-    (*curEnv)[name]=(*this)(*funcDefNode.fun).asRhs();
+    Value function=(*this)(*funcDefNode.fun).asRhs();
+    std::get<Function>(function.data).name=name;
+    (*curEnv)[name]=std::move(function);
     
     return {};
   }
@@ -1996,12 +2129,14 @@ std::shared_ptr<HObjectInfo> registerHObjectType(Evaluator& ev,
 /// int, int64_t, double, bool, size_t, and std::string members use scalar accessors; other members
 /// require their own metadata. bool and size_t reads become script integers;
 /// size_t values outside the int range report an error on read
+/// The optional description documents the constructor; otherwise a generic one is supplied
 /// The caller may attach additional functions, such as streamOp, to the result
 template <typename T,
 	  typename...Members>
 std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
 					     const std::string& name,
-					     const std::tuple<Members...>& members)
+					     const std::tuple<Members...>& members,
+                                             const std::string& description={})
 {
   /// Metadata is retained by the evaluator, including for later product dispatch
   auto info=registerHObjectType<T>(ev,name);
@@ -2123,7 +2258,7 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
 	  object.getMemberRef(names[i]).set(AssignMode::PLAIN,*args[i]);
       
       return {object};
-    },names};
+    },names,true,description.empty()?"Construct "+name+" from its named members":description};
   
   return info;
 }
@@ -2198,12 +2333,14 @@ struct HostCallableSignature<Return (Owner::*)(Arguments...)> :
 /// Install a typed C++ lambda as a script function
 /// The provided names correspond to its parameters and enable named arguments
 /// An optional leading Evaluator& receives the caller context without a script argument
+/// An optional description is displayed by verbose entity discovery
 /// Its captured references must outlive the evaluator's registered function
 template <typename Callable>
 void registerHostFunction(Evaluator& evaluator,
                           const std::string& name,
                           std::vector<std::string> argumentNames,
-                          Callable callable)
+                          Callable callable,
+                          std::string description={})
 {
   using Signature=
     HostCallableSignature<decltype(&Callable::operator())>;
@@ -2229,7 +2366,7 @@ void registerHostFunction(Evaluator& evaluator,
                                       Evaluator& caller) mutable -> Value
     {
       return Signature::invoke(callable,values,name.c_str(),caller);
-    },std::move(argumentNames)};
+    },std::move(argumentNames),false,std::move(description)};
 }
 
 /// Registers Type under its C++ identifier, using its static members() function

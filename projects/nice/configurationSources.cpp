@@ -22,7 +22,7 @@ namespace nissa::nice
         CRASH("NICE configurationsFromFile requires a nonempty path");
       
       sources.lists.push_back(path);
-    });
+    },"Append gauge configuration and output-directory entries from a two-column list file");
   }
   
   std::vector<ConfigurationEntry> parseConfigurationList(const std::string_view text,

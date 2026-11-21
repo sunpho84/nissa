@@ -391,17 +391,51 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
   Environment& env=*evaluator.curEnv;
   
   env["M_PI"]=M_PI;
-
-  registerHostFunction(evaluator,"listFunctions",{},[](Evaluator& caller)
+  env.describe("M_PI","Value of pi matching C definition");
+  
+  const auto registerListing=[&env](const char* name,
+                                   const EntitySelection selection,
+                                   const char* description)
   {
-    std::ostringstream output;
-    for(const std::string& name : caller.curEnv->functionNames())
-      output<<name<<'\n';
-
-    const std::string text=output.str();
-    if(not text.empty())
-      MASTER_PRINTF("%s",text.c_str());
-  });
+    env[name]=HostFunction{
+      [selection,name](std::vector<std::shared_ptr<Value>>& args,
+                       Evaluator& caller)->Value
+      {
+        const int verbose=args.empty() or not args[0]?0:
+          hostArgumentTypeConcretizer<int>(args,0,name);
+	
+        if(args.size()>1 or (verbose!=0 and verbose!=1))
+          errorEmitter(name," accepts only an optional verbose argument, 0 or 1");
+	
+        std::ostringstream output;
+        for(const std::string& entity : caller.curEnv->entityNames(selection))
+          {
+            output<<entity;
+	    
+            if(verbose)
+              output<<": "<<caller.curEnv->entityDetails(entity);
+	    
+            output<<'\n';
+          }
+	
+        const std::string text=output.str();
+        if(not text.empty())
+          MASTER_PRINTF("%s",text.c_str());
+	
+        return {};
+      },{"verbose"},false,description};
+  };
+  registerListing("listFunctions",EntitySelection::Functions,"List visible callables (default: verbose=0)");
+  registerListing("listVariables",EntitySelection::Variables,"List visible non-callable bindings (default: verbose=0)");
+  registerListing("listEntities",EntitySelection::All,"List all visible bindings (default: verbose=0)");
+  
+  registerHostFunction(evaluator,"describe",{"name","description"},
+                       [](Evaluator& caller,
+                          const std::string& name,
+                          const std::string& description)
+  {
+    caller.curEnv->describe(name,description);
+  },"Attach a description to a visible binding");
   
   env["print"]=
     HostFunction{
@@ -417,13 +451,13 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
 	    else
 	      output<<"unprintable type: "<<typeid(v).name()<<"\n";
 	  },arg->data);
-
+	
 	const std::string text=output.str();
 	if(not text.empty())
 	  MASTER_PRINTF("%s",text.c_str());
 	
 	return {};
-    }};
+    },{},false,"Print arguments on the ranks selected by the library printing policy; no newline is added"};
   
   env["makeVec"]=
     HostFunction{
@@ -431,7 +465,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
 	 Evaluator&)->Value
     {
 	return {ValuesList{.data{args}}};
-    }};
+    },{},false,"Create a list from the supplied arguments"};
   
   env["forEachEl"]=
     HostFunction{
@@ -453,7 +487,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
 	  errorEmitter("trying to call \"forEachEl\" on a non-vector type ",variantInnerTypeName(args[0]->data));
 	
 	return {};
-    }};
+    },{},false,"Call a function on each element of a list"};
   
   env["seq"]=
     HostFunction{
@@ -507,7 +541,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
 	  v.data.push_back(std::make_shared<Value>(i));
 	
 	return {v};
-    }};
+    },{},false,"Create integers below max: seq(max), seq(min,max), or seq(min,step,max); omitted min=0 and step=1"};
   
   const auto requireArgCount=[](const std::vector<std::shared_ptr<Value>>& args,
                                 const size_t expected,
@@ -538,7 +572,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
       requireArgCount(args,0,"rand");
       
       return {std::rand()};
-    }};
+    },{},false,"Draw an integer from the C library RNG, independently of the simulation RNG"};
   
   env["srand"]=
     HostFunction{[requireArgCount,numericArg](std::vector<std::shared_ptr<Value>>& args,
@@ -548,10 +582,11 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
       std::srand(static_cast<unsigned int>(numericArg(*args[0],"srand")));
       
       return {std::monostate{}};
-    }};
+    },{},false,"Seed the C library RNG without changing the simulation RNG"};
   
   const auto registerUnaryMath=[&env,requireArgCount,numericArg](const char* name,
-                                                                 double (*function)(double))
+                                                                 double (*function)(double),
+                                                                 const char* description)
   {
     env[name]=
       HostFunction{[name,function,requireArgCount,numericArg](std::vector<std::shared_ptr<Value>>& args,
@@ -560,14 +595,14 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
         requireArgCount(args,1,name);
 	
         return {function(numericArg(*args[0],name))};
-      }};
+      },{},false,description};
   };
   
-  registerUnaryMath("sqrt",static_cast<double (*)(double)>(std::sqrt));
-  registerUnaryMath("exp",static_cast<double (*)(double)>(std::exp));
-  registerUnaryMath("sin",static_cast<double (*)(double)>(std::sin));
-  registerUnaryMath("cos",static_cast<double (*)(double)>(std::cos));
-  registerUnaryMath("tan",static_cast<double (*)(double)>(std::tan));
+  registerUnaryMath("sqrt",static_cast<double (*)(double)>(std::sqrt),"Return the square root");
+  registerUnaryMath("exp",static_cast<double (*)(double)>(std::exp),"Return the exponential");
+  registerUnaryMath("sin",static_cast<double (*)(double)>(std::sin),"Return the sine of an angle in radians");
+  registerUnaryMath("cos",static_cast<double (*)(double)>(std::cos),"Return the cosine of an angle in radians");
+  registerUnaryMath("tan",static_cast<double (*)(double)>(std::tan),"Return the tangent of an angle in radians");
   
   env["pow"]=
     HostFunction{[requireArgCount,numericArg](std::vector<std::shared_ptr<Value>>& args,
@@ -576,7 +611,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
       requireArgCount(args,2,"pow");
       
       return {std::pow(numericArg(*args[0],"pow"),numericArg(*args[1],"pow"))};
-    }};
+    },{},false,"Raise a numeric base to a numeric exponent"};
   
   env["to_string"]=
     HostFunction{[requireArgCount](std::vector<std::shared_ptr<Value>>& args,
@@ -592,5 +627,5 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
         return {std::to_string(*real)};
       else
         errorEmitter("Trying to call to_string with a nonnumeric argument");
-    }};
+    },{},false,"Convert a numeric value to a string"};
 }

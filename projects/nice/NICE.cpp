@@ -6,6 +6,7 @@
 
 #include "base/close.hpp"
 #include "base/init.hpp"
+#include "io/input.hpp"
 
 #include <cstddef>
 #include <format>
@@ -85,6 +86,8 @@ namespace nissa::nice
     
     initGrid(program.options.physics.T,program.options.physics.L);
     
+    bool workCompleted=program.configurationEntries.empty();
+    
     if(program.configurationEntries.empty())
       MASTER_PRINTF("NICE: no gauge configuration entries were supplied; nothing to run\n");
     else
@@ -136,6 +139,8 @@ namespace nissa::nice
               }
           }
         
+        workCompleted=not stopped;
+        
         if(stopped)
           MASTER_PRINTF("NICE: stopped at a gauge configuration or hit boundary; committed hits can be resumed\n");
         else if(hasCorrelations and nClaimedElsewhere==0 and nTrialLimitReached==0)
@@ -146,6 +151,10 @@ namespace nissa::nice
         else
           MASTER_PRINTF("NICE: completed available gauge configuration work; no correlation tasks were requested\n");
       }
+    
+    // Signal queue exhaustion to runners, including when no entries were supplied
+    if(workCompleted and not program.options.policy.stopFile.empty())
+      file_touch(program.options.policy.stopFile);
   }
 }
 

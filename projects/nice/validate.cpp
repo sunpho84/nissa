@@ -738,6 +738,11 @@ void validateScriptBindings(int argc,
   Correlations& correlations=nice.correlations;
   Evaluator evaluator;
   setupNice(evaluator,correlations);
+  
+  // All production constructors and correlation functions have discovery descriptions
+  for(const auto& name : evaluator.curEnv->entityNames())
+    assert(evaluator.curEnv->entityDetails(name).find(" - ")!=std::string::npos);
+  
   registerHostFunction(evaluator,"identity",{"value"},[](const int value)
   {
     return value;
@@ -1087,6 +1092,73 @@ void validateFunctionDiscovery()
       assert(std::count(observed[scope].begin(),observed[scope].end(),"shadowed")==0);
       assert(std::count(observed[scope].begin(),observed[scope].end(),"localFunction")==1);
     }
+}
+
+/// Check verbose entity kinds, descriptions, and the callable/non-callable partition
+void validateEntityDiscovery()
+{
+  Evaluator evaluator;
+  
+  // Every built-in binding supplies documentation before script-level additions
+  for(const auto& name : evaluator.curEnv->entityNames())
+    assert(evaluator.curEnv->entityDetails(name).find(" - ")!=std::string::npos);
+  
+  // New runtime alternatives must not silently convert to an existing visitor overload
+  static_assert(not std::is_invocable_v<EntityInfoVisitor,const float&>);
+  assert(EntityInfoVisitor{}(FuncArg{}).kind=="variable (named argument)");
+  
+  registerHObject<ExampleNumber>(evaluator,"NativeNumber",
+    std::make_tuple(HostMemberInfo{"value",&ExampleNumber::value}));
+  registerHostFunction(evaluator,"native",{},[]()
+  {
+    return 0;
+  },"An example host function");
+  bool inspected=false;
+  registerHostFunction(evaluator,"inspectEntities",{},[&inspected](Evaluator& caller)
+  {
+    const auto& env=*caller.curEnv;
+    const auto all=env.entityNames();
+    const auto functions=env.functionNames();
+    const auto variables=env.entityNames(EntitySelection::Variables);
+    assert(all.size()==functions.size()+variables.size());
+    assert(std::count(variables.begin(),variables.end(),"number")==1);
+    assert(std::count(functions.begin(),functions.end(),"number")==0);
+    assert(env.entityDetails("number").find("A documented variable")!=std::string::npos);
+    assert(env.entityDetails("native")=="host function - An example host function");
+    assert(env.entityDetails("NativeNumber")==
+           "host struct constructor - Construct NativeNumber from its named members");
+    assert(env.entityDetails("ScriptNumber").starts_with("script struct constructor"));
+    assert(env.entityDetails("embedded").starts_with("embedded function 'embedded'"));
+    assert(env.entityDetails("alias").starts_with("embedded function 'embedded'"));
+    assert(env.entityDetails("anonymous").starts_with("script lambda"));
+    assert(env.entityDetails("embedded").ends_with("A documented function"));
+    inspected=true;
+  });
+  
+  const auto parser=getParser();
+  const auto executor=getParseTreeExecuctor(parser.actionStrings);
+  const auto tree=createParseTree(parser,R"(
+    struct ScriptNumber { value; };
+    fun embedded() { return 0; }
+    alias=embedded;
+    anonymous=lambda() { return 0; };
+    number=7;
+    describe("number","A documented variable");
+    describe("embedded","A documented function");
+    inspectEntities();
+    listVariables();
+    listFunctions(.verbose=1);
+    listEntities(.verbose=1);
+  )");
+  const auto ast=executor.execParseTree(tree);
+  std::visit(evaluator,*ast);
+  assert(inspected);
+  
+  // A shadowing variable must not inherit documentation from its parent binding
+  evaluator.curEnv->describe("M_PI","The circle constant");
+  Environment child(evaluator.curEnv);
+  child.varTable["M_PI"]=std::make_shared<Value>(Value{0});
+  assert(child.entityDetails("M_PI").find("circle constant")==std::string::npos);
 }
 
 /// Check program scope, expression evaluation, returns, and reference arguments
@@ -1885,6 +1957,11 @@ void validateRunSettings(const int narg,
   RunOptions options;
   Evaluator evaluator;
   registerRunOptions(evaluator,options);
+  
+  // Policy and physics setters participate in the same documented discovery interface
+  for(const auto& name : evaluator.curEnv->entityNames())
+    assert(evaluator.curEnv->entityDetails(name).find(" - ")!=std::string::npos);
+
   const auto execute=[&](const std::vector<ProgramPiece>& pieces)
   {
     const ASTNode ast=parseProgramPieces(pieces);
@@ -2127,8 +2204,8 @@ void validateRunSettings(const int narg,
   assert(hitCheckpointPath("output",options,3)=="output/hit-00000003_additional.bin");
   execute({{"setSuffix(\"\");","restore ordinary output names"}});
 
-  // Stop paths are runtime policy and can be replaced or disabled by later pieces
-  assert(not stopRequested(options));
+  // Stop paths default to the runner's completion marker and can be replaced or disabled
+  assert(options.policy.stopFile=="stop");
   execute({{"setStopFile(\"/dev/null\");","request a stop at the next work boundary"}});
   assert(options.policy.stopFile=="/dev/null" and stopRequested(options));
   execute({{"setStopFile(\"\");","disable stop requests"}});
@@ -3572,6 +3649,7 @@ int main(int narg,
   if(narg>1 and std::string_view(arg[1])=="function-discovery")
     {
       validateFunctionDiscovery();
+      validateEntityDiscovery();
 #ifdef USE_MPI
       MPI_Finalize();
 #endif
@@ -3635,6 +3713,7 @@ int main(int narg,
   validateLegacyWriter(narg,arg);
   validateScriptBindings(narg,arg);
   validateFunctionDiscovery();
+  validateEntityDiscovery();
   validateProgramGrammar(narg,arg);
   validateHostObjects(R"(
     {

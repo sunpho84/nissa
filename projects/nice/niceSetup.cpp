@@ -257,7 +257,7 @@ namespace nissa::nice
     registerHostFunction(evaluator,"loadedConf",{},[&recipes,info]()
     {
       return HObject{info,loadedConf(recipes)};
-    });
+    },"Create a recipe to load each gauge configuration entry's input file");
     
     // apeSmearConf(inputRecipe,alpha,n): return a recipe ID for spatial APE smearing
     // inputRecipe selects an earlier recipe, alpha sets strength, and n counts iterations
@@ -268,7 +268,7 @@ namespace nissa::nice
                                          const int n)
     {
       return HObject{info,apeSmearConf(recipes,inputRecipe,alpha,n)};
-    });
+    },"Create a spatial APE-smearing recipe from inputRecipe with strength alpha and n iterations");
   }
   
   void registerCorrParts(Evaluator& evaluator)
@@ -276,7 +276,8 @@ namespace nissa::nice
     using namespace internal;
     
     auto momentumInfo=
-      registerHObject<SpatMomentum>(evaluator,"SpatMomentum",SpatMomentum::members());
+      registerHObject<SpatMomentum>(evaluator,"SpatMomentum",SpatMomentum::members(),
+                                    "Construct a three-dimensional spatial momentum (defaults: x=0, y=0, z=0)");
     momentumInfo->streamOp=[](std::ostream& out,
                               const std::any& data)
     {
@@ -286,23 +287,26 @@ namespace nissa::nice
     // A new Source() allocates an identity; copies retain it
     auto sourceInfo=
       registerHObject<Source>(evaluator,"Source",
-                              std::make_tuple(HostMemberInfo{"tSelect",&Source::tSelect}));
+                              std::make_tuple(HostMemberInfo{"tSelect",&Source::tSelect}),
+                              "Create a stochastic source identity, optionally selecting its time slice (default: tSelect=-1, unrestricted)");
     useDescription<Source>(sourceInfo);
     
-    auto parameter=[&]<typename T>(const char* name)
+    auto parameter=[&]<typename T>(const char* name,
+                                   const char* description)
     {
       auto info=
-        registerHObject<T>(evaluator,name,T::members());
+        registerHObject<T>(evaluator,name,T::members(),
+                           std::format("{} (defaults at registration: {})",description,T{}.describe()));
       useDescription<T>(info);
       
       return info;
     };
     
-    parameter.template operator()<Prop>("Prop");
-    parameter.template operator()<Smear>("Smear");
-    parameter.template operator()<Phase>("Phase");
-    parameter.template operator()<Gamma>("Gamma");
-    parameter.template operator()<DeltaT>("DeltaT");
+    parameter.template operator()<Prop>("Prop","Construct a Dirac-inversion operator using the current propagator defaults");
+    parameter.template operator()<Smear>("Smear","Construct a spatial Gaussian-smearing operator using the current smearing defaults");
+    parameter.template operator()<Phase>("Phase","Construct a spatial momentum-phase operator");
+    parameter.template operator()<Gamma>("Gamma","Construct a spin gamma-matrix operator");
+    parameter.template operator()<DeltaT>("DeltaT","Construct a time-slice projector relative to the source origin");
     
     // Binary operations construct these results; neither type has a default constructor
     useDescription<Oper>(registerHObjectType<Oper>(evaluator,"Oper"));
@@ -314,7 +318,7 @@ namespace nissa::nice
                          [lineInfo](const std::string& path)
     {
       return HObject{lineInfo,Line{Source{path}}};
-    });
+    },"Load an IB-compatible ILDG line at execution using the current dilution, copy and hit suffixes");
     
     registerArithmeticOperators<int,double,SpatMomentum,Smear,Phase,
                                  Gamma,DeltaT,Prop,Oper,Source,Line>(evaluator);
@@ -323,13 +327,15 @@ namespace nissa::nice
   void registerRunOptions(Evaluator& evaluator,
                           RunOptions& options)
   {
+    const RunOptions defaults;
+    
     registerHostFunction(evaluator,"setGeometry",{"L","T"},
                          [&options](const int L,
                                     const int T)
     {
       options.physics.L=L;
       options.physics.T=T;
-    });
+    },"Set spatial extent L and temporal extent T; both must be explicitly set to positive values");
     registerHostFunction(evaluator,"setRun",{"seed","nHits","nCopies"},
                          [&options](const int64_t seed,
                                     const int nHits,
@@ -338,19 +344,22 @@ namespace nissa::nice
       options.physics.seed=seed;
       options.policy.nHits=nHits;
       options.physics.nCopies=nCopies;
-    });
+    },std::format("Set the simulation seed, hits per gauge configuration and source copies (defaults: seed={}, nHits={}, nCopies={})",
+                   defaults.physics.seed,defaults.policy.nHits,defaults.physics.nCopies));
     
     registerHostFunction(evaluator,"setMaxTrials",{"maxTrials"},
                          [&options](const int maxTrials)
     {
       options.policy.maxTrials=maxTrials;
-    });
-
+    },std::format("Set the maximum attempts for an uncommitted hit (default: {}); zero disables the limit",
+                   defaults.policy.maxTrials));
+    
     registerHostFunction(evaluator,"setMaxConfigurations",{"maxConfigurations"},
                          [&options](const int maxConfigurations)
     {
       options.policy.maxConfigurations=maxConfigurations;
-    });
+    },std::format("Limit the number of completed gauge configurations in this invocation (default: {}, unlimited); zero disables the limit",
+                   defaults.policy.maxConfigurations));
     
     registerHostFunction(evaluator,"setKeepCheckpoints",{"enabled"},
                          [&options](const int enabled)
@@ -359,45 +368,49 @@ namespace nissa::nice
         CRASH("NICE setKeepCheckpoints requires enabled to be 0 or 1");
       
       options.policy.keepCheckpoints=enabled!=0;
-    });
+    },std::format("Keep checkpoints after completion to allow adding hits (default: enabled={})",
+                   int(defaults.policy.keepCheckpoints)));
     
     // Select distinct output files when reusing configuration output directories
     registerHostFunction(evaluator,"setSuffix",{"suffix"},
                          [&options](const std::string& suffix)
     {
       options.policy.outputSuffix=suffix;
-    });
-
-    // An empty path disables stop requests; the file is checked at work boundaries
+    },"Set the output filename suffix to allow reusing output directories (default: empty)");
+    
+    // An empty path disables the stop/completion marker; requests are checked at work boundaries
     registerHostFunction(evaluator,"setStopFile",{"path"},
                          [&options](const std::string& path)
     {
       options.policy.stopFile=path;
-    });
-
+    },std::format("Set the stop-request and work-completion file (default: {}); an empty path disables it",
+                   defaults.policy.stopFile));
+    
     // Set the running-file refresh period; stale detection uses twice this interval
     registerHostFunction(evaluator,"setRunningFileUpdateInterval",{"seconds"},
                          [&options](const int seconds)
     {
       if(seconds<=0)
         CRASH("NICE setRunningFileUpdateInterval requires positive seconds");
-
+      
       options.policy.runningFileUpdateSeconds=seconds;
-    });
+    },std::format("Set running-file refresh seconds (default: {}); stale detection uses twice this interval",
+                   defaults.policy.runningFileUpdateSeconds));
     
     // An explicit duration overrides the scheduler deadline
     registerHostFunction(evaluator,"setWallTime",{"seconds"},
                          [&options](const int64_t seconds)
     {
       options.policy.wallTimeSeconds=seconds;
-    });
+    },"Override the scheduler deadline with seconds measured from program startup (default: SLURM_JOB_END_TIME when available, otherwise 60 seconds)");
     
     // Keep extra time for checkpoint finalization and a clean exit
     registerHostFunction(evaluator,"setWallTimeSafety",{"seconds"},
                          [&options](const int64_t seconds)
     {
       options.policy.wallTimeSafetySeconds=seconds;
-    });
+    },std::format("Reserve extra seconds beyond the estimated hit duration for a clean stop (default: {})",
+                   defaults.policy.wallTimeSafetySeconds));
     
     // Record one origin for every hit before compiling tasks and assigning RNG ranges
     registerHostFunction(evaluator,"setOrigin",{"t","x","y","z"},
@@ -408,7 +421,7 @@ namespace nissa::nice
     {
       options.physics.drawGlobalOriginTask.fixedOrigin={t,x,y,z};
       options.physics.drawGlobalOriginTask.enabled=false;
-    });
+    },"Set a fixed t,x,y,z origin for every hit and disable random origin drawing (default: random per hit; stored fixed origin is 0,0,0,0)");
     
     registerHostFunction(evaluator,"setRandomOriginEnabled",{"enabled"},
                          [&options](const int enabled)
@@ -417,7 +430,8 @@ namespace nissa::nice
         CRASH("NICE setRandomOriginEnabled requires enabled to be 0 or 1");
       
       options.physics.drawGlobalOriginTask.enabled=enabled!=0;
-    });
+    },std::format("Enable or disable drawing a new global origin for each hit (default: enabled={})",
+                   int(defaults.physics.drawGlobalOriginTask.enabled)));
     registerHostFunction(evaluator,"reserveRngDoublesPerSite",{"reservedDoublesPerSite"},
                          [&options](const int reservedDoublesPerSite)
     {
@@ -425,7 +439,8 @@ namespace nissa::nice
         CRASH("NICE reserveRngDoublesPerSite requires a positive double count");
       
       options.physics.reservedRngDoublesPerSite=static_cast<uint64_t>(reservedDoublesPerSite);
-    });
+    },std::format("Reserve doubles per lattice site separately for gauge preparation and each hit (default: {})",
+                   defaults.physics.reservedRngDoublesPerSite));
     registerHostFunction(evaluator,"setDilution",{"diluteSpin","diluteColor"},
                          [&options](const int diluteSpin,
                                     const int diluteColor)
@@ -435,7 +450,8 @@ namespace nissa::nice
       
       options.physics.diluteSpin=diluteSpin!=0;
       options.physics.diluteColor=diluteColor!=0;
-    });
+    },std::format("Enable or disable source spin and color dilution (defaults: diluteSpin={}, diluteColor={})",
+                   int(defaults.physics.diluteSpin),int(defaults.physics.diluteColor)));
     registerHostFunction(evaluator,"setTemporalBoundary",{"boundary"},
                          [&options](const std::string& boundary)
     {
@@ -445,7 +461,7 @@ namespace nissa::nice
         options.physics.temporalBoundary=PhysicsOptions::TemporalBoundary::Periodic;
       else
         CRASH("NICE temporal boundary must be 'periodic' or 'antiperiodic'");
-    });
+    },"Select periodic or antiperiodic temporal fermion boundary conditions (default: antiperiodic)");
   }
   
   void setupNice(Evaluator& evaluator,
@@ -458,7 +474,7 @@ namespace nissa::nice
     { \
       __VA_ARGS__ \
       TYPE::defaults.MEMBER=MEMBER; \
-    })
+    },std::format("Set the default " #TYPE "." #MEMBER " for subsequently constructed operators (default at registration: {})",TYPE::defaults.MEMBER))
     
     REGISTER_DEFAULT_SETTER(Prop,Kappa,kappa,double);
     REGISTER_DEFAULT_SETTER(Prop,Mass,mass,double);
@@ -477,7 +493,7 @@ namespace nissa::nice
                          [&correlations](const std::string& name)
     {
       correlations.addBlock(name);
-    });
+    },"Create a named correlation output block");
     
     registerHostFunction(evaluator,"corrGammas",{"name","sink","source"},
                          [&correlations](const std::string& name,
@@ -485,7 +501,7 @@ namespace nissa::nice
                                          const int source)
     {
       correlations.block(name).addGammas(sink,source);
-    });
+    },"Add a sink/source gamma pair to a named correlation block");
     
     registerHostFunction(evaluator,"corrTrace",{"name","backward","forward"},
                          [&correlations](const std::string& name,
@@ -493,7 +509,7 @@ namespace nissa::nice
                                          const Line& forward)
     {
       correlations.block(name).addTrace(backward,forward);
-    });
+    },"Add a backward/forward line trace to a named correlation block");
     
     registerHostFunction(evaluator,"writeLegacyInput",{},[&correlations]()
     {
@@ -503,6 +519,6 @@ namespace nissa::nice
         scheduleCorrelations(graph);
       
       return writeLegacyInput(compiled);
-    });
+    },"Return the currently compiled correlation requests as IB legacy input text");
   }
 }
