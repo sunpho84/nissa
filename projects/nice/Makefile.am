@@ -29,6 +29,10 @@ nice_common_sources= \
 	%D%/graphCompiler.hpp \
 	%D%/nASTy.cpp \
 	%D%/nASTy.hpp \
+	%D%/nASTyHelp.inc \
+	%D%/scriptSource.hpp \
+	%D%/scriptCompletion.hpp \
+	%D%/scriptCompletion.cpp \
 	%D%/niceSetup.cpp \
 	%D%/niceSetup.hpp \
 	%D%/correlationTaskGraph.hpp \
