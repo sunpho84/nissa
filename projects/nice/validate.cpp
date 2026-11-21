@@ -1024,6 +1024,71 @@ struct ExampleNumber
   }
 };
 
+/// Check caller injection and function discovery through nested and shadowed scopes
+void validateFunctionDiscovery()
+{
+  Evaluator evaluator;
+  const auto root=evaluator.curEnv;
+  std::vector<std::vector<std::string>> observed;
+  registerHostFunction(evaluator,"shadowed",{},[]()
+  {
+    return 0;
+  });
+  registerHostFunction(evaluator,"captureFunctions",{"scope"},
+                       [&observed,root](Evaluator& caller,
+                                        const int scope) mutable
+  {
+    assert((caller.curEnv->parent==root)==(scope==0));
+    if(scope!=0)
+      assert(std::get<int>(caller.curEnv->at("shadowed").data)==7);
+    
+    observed.push_back(caller.curEnv->functionNames());
+  });
+  registerHostFunction(evaluator,"readCaller",{"offset"},[](Evaluator& caller,
+                                                            const int offset)
+  {
+    return std::get<int>(caller.curEnv->at("shadowed").data)+offset;
+  });
+  registerHostFunction(evaluator,"checkValue",{"value"},[](const int value)
+  {
+    assert(value==12);
+  });
+  
+  const auto parser=getParser();
+  const auto executor=getParseTreeExecuctor(parser.actionStrings);
+  const auto tree=createParseTree(parser,R"(
+    fun outer(shadowed) {
+      fun localFunction() { captureFunctions(.scope=2); }
+      captureFunctions(.scope=1);
+      checkValue(readCaller(.offset=5));
+      localFunction();
+    }
+    alias=outer;
+    captureFunctions(.scope=0);
+    alias(7);
+    captureFunctions(.scope=0);
+    listFunctions();
+  )");
+  const auto ast=executor.execParseTree(tree);
+  std::visit(evaluator,*ast);
+  assert(observed.size()==4 and observed[0]==observed[3]);
+  for(const auto& names : observed)
+    {
+      assert(std::is_sorted(names.begin(),names.end()));
+      assert(std::count(names.begin(),names.end(),"outer")==1);
+      assert(std::count(names.begin(),names.end(),"alias")==1);
+      assert(std::count(names.begin(),names.end(),"listFunctions")==1);
+    }
+  
+  assert(std::count(observed[0].begin(),observed[0].end(),"shadowed")==1);
+  assert(std::count(observed[0].begin(),observed[0].end(),"localFunction")==0);
+  for(const size_t scope : {size_t{1},size_t{2}})
+    {
+      assert(std::count(observed[scope].begin(),observed[scope].end(),"shadowed")==0);
+      assert(std::count(observed[scope].begin(),observed[scope].end(),"localFunction")==1);
+    }
+}
+
 /// Check program scope, expression evaluation, returns, and reference arguments
 void validateProgramGrammar(int argc,
                             char** argv)
@@ -3503,6 +3568,16 @@ int main(int narg,
   nissa::init_MPI_thread(narg,arg);
   nissa::get_MPI_nranks();
   nissa::get_MPI_rank();
+
+  if(narg>1 and std::string_view(arg[1])=="function-discovery")
+    {
+      validateFunctionDiscovery();
+#ifdef USE_MPI
+      MPI_Finalize();
+#endif
+
+      return 0;
+    }
   
   // Completing an empty exchange is valid, including when a single rank has no halo traffic
   nissa::waitAsyncCommsFinish({});
@@ -3559,6 +3634,7 @@ int main(int narg,
   validateScheduling(narg,arg);
   validateLegacyWriter(narg,arg);
   validateScriptBindings(narg,arg);
+  validateFunctionDiscovery();
   validateProgramGrammar(narg,arg);
   validateHostObjects(R"(
     {

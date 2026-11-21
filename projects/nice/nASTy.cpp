@@ -391,6 +391,17 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
   Environment& env=*evaluator.curEnv;
   
   env["M_PI"]=M_PI;
+
+  registerHostFunction(evaluator,"listFunctions",{},[](Evaluator& caller)
+  {
+    std::ostringstream output;
+    for(const std::string& name : caller.curEnv->functionNames())
+      output<<name<<'\n';
+
+    const std::string text=output.str();
+    if(not text.empty())
+      MASTER_PRINTF("%s",text.c_str());
+  });
   
   env["print"]=
     HostFunction{

@@ -16,11 +16,13 @@
 */
 
 #include <any>
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdint>
 #include <functional>
 #include <optional>
+#include <set>
 #include <tuple>
 #include <utility>
 #include <type_traits>
@@ -893,6 +895,24 @@ struct Environment
   std::shared_ptr<Environment> parent;
   
   std::unordered_map<std::string,std::shared_ptr<Value>> varTable;
+
+  /// List visible callable names in alphabetical order, respecting inner bindings
+  std::vector<std::string> functionNames() const
+  {
+    std::set<std::string> seen;
+    std::vector<std::string> names;
+    for(const Environment* scope=this;scope!=nullptr;scope=scope->parent.get())
+      for(const auto& [name,value] : scope->varTable)
+        if(seen.insert(name).second and value and
+           (std::holds_alternative<HostFunction>(value->data) or
+            std::holds_alternative<Function>(value->data) or
+            std::holds_alternative<StructDef>(value->data)))
+          names.push_back(name);
+    
+    std::sort(names.begin(),names.end());
+    
+    return names;
+  }
   
   /// Find the outermost environment in the parent chain
   Environment& uppermost()
@@ -2123,7 +2143,8 @@ struct HostCallableSignature<Return (Owner::*)(Arguments...) const>
   template <typename Callable>
   static Value invoke(Callable& callable,
                       const std::vector<std::shared_ptr<Value>>& values,
-                      const char* functionName)
+                      const char* functionName,
+                      Evaluator&)
   {
     auto arguments=
       hostArgumentsTypeConcretizer<std::remove_cvref_t<Arguments>...>(values,functionName);
@@ -2141,6 +2162,30 @@ struct HostCallableSignature<Return (Owner::*)(Arguments...) const>
   }
 };
 
+/// Inject the calling evaluator without exposing it as a script argument
+template <typename Owner,
+          typename Return,
+          typename...Arguments>
+struct HostCallableSignature<Return (Owner::*)(Evaluator&,Arguments...) const> :
+  HostCallableSignature<Return (Owner::*)(Arguments...) const>
+{
+  /// Bind the evaluator, then reuse ordinary script argument concretization
+  template <typename Callable>
+  static Value invoke(Callable& callable,
+                      const std::vector<std::shared_ptr<Value>>& values,
+                      const char* functionName,
+                      Evaluator& evaluator)
+  {
+    auto bound=[&](Arguments...arguments)->Return
+    {
+      return callable(evaluator,std::forward<Arguments>(arguments)...);
+    };
+    
+    return HostCallableSignature<Return (Owner::*)(Arguments...) const>::invoke(
+      bound,values,functionName,evaluator);
+  }
+};
+
 /// Mutable lambdas have the same script argument contract
 template <typename Owner,
           typename Return,
@@ -2152,6 +2197,7 @@ struct HostCallableSignature<Return (Owner::*)(Arguments...)> :
 
 /// Install a typed C++ lambda as a script function
 /// The provided names correspond to its parameters and enable named arguments
+/// An optional leading Evaluator& receives the caller context without a script argument
 /// Its captured references must outlive the evaluator's registered function
 template <typename Callable>
 void registerHostFunction(Evaluator& evaluator,
@@ -2180,9 +2226,9 @@ void registerHostFunction(Evaluator& evaluator,
   
   (*evaluator.curEnv)[name]=HostFunction{
     [callable=std::move(callable),name](std::vector<std::shared_ptr<Value>>& values,
-                                      Evaluator&) mutable -> Value
+                                      Evaluator& caller) mutable -> Value
     {
-      return Signature::invoke(callable,values,name.c_str());
+      return Signature::invoke(callable,values,name.c_str(),caller);
     },std::move(argumentNames)};
 }
 
