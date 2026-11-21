@@ -87,15 +87,6 @@ namespace nissa
   
   double take_time();
   
-  timer_t setRecurringCalledFunction(void hook(int sigNum,
-					     siginfo_t*,
-					     void*),
-				   const int sigNum,
-				   const int& nSec,
-				   const int& nnSec);
-  
-  void stopRecallingFunction(const timer_t& timer_id);
-  
   void testLxHaloExchange();
   void testEoHaloExchange();
   void testLxEdgesExchange();

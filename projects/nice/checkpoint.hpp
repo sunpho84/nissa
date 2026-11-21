@@ -7,6 +7,7 @@
 #include "rngLayout.hpp"
 #include "wallTime.hpp"
 
+#include "base/recurringWork.hpp"
 #include "io/input.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
@@ -16,7 +17,6 @@
 #include <bit>
 #include <charconv>
 #include <chrono>
-#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -25,10 +25,8 @@
 #include <fstream>
 #include <iterator>
 #include <limits>
-#include <mutex>
 #include <sstream>
 #include <string>
-#include <thread>
 #include <variant>
 
 namespace nissa::nice
@@ -206,20 +204,8 @@ namespace nissa::nice
     /// Ownership tag whose file is refreshed
     lock_file_t<>& lock;
     
-    /// Configured refresh period
-    std::chrono::milliseconds interval;
-    
-    /// Background updater on the master rank
-    std::thread worker{};
-    
-    /// Protect the stop request and wake the updater promptly
-    std::mutex mutex{};
-    
-    /// Wake the updater when the configuration finishes
-    std::condition_variable wake{};
-    
-    /// True once the updater is asked to finish
-    bool stopping{false};
+    /// Background work on the master rank
+    RecurringWork work{};
     
     /// True when the running file could not be refreshed
     std::atomic<bool> updateFailed{false};
@@ -227,70 +213,38 @@ namespace nissa::nice
     /// Start the updater immediately after writing the ownership tag
     explicit RunningFileUpdater(lock_file_t<>& lock,
                                 const std::chrono::milliseconds interval) :
-      lock(lock),
-      interval(interval)
+      lock(lock)
     {
       if(is_master_rank())
-        worker=std::thread([this]()
-          {
-            std::unique_lock guard(mutex);
-            
-            while(not stopping)
-              {
-                const bool requestedStop=
-                  wake.wait_for(guard,this->interval,
-                                [this]()
-                                {
-                                  return stopping;
-                                });
-                
-                if(not requestedStop)
-                  {
-                    guard.unlock();
-                    
-                    const bool owned=this->lock.check_lock_on_master();
-                    
-                    if(owned)
-                      {
-                        std::error_code error;
-                        std::filesystem::last_write_time(
-                          this->lock.lockPath(),
-                          std::filesystem::file_time_type::clock::now(),error);
-                        
-                        if(error)
-                          {
-                            updateFailed=true;
-                            std::fprintf(stderr,
-                                         "NICE: cannot refresh running file '%s': %s\n",
-                                         this->lock.lockPath().c_str(),error.message().c_str());
-                          }
-                      }
-                    else
-                      std::fprintf(stderr,
-                                   "NICE: running file '%s' changed ownership; stopping updates\n",
-                                   this->lock.lockPath().c_str());
-                    
-                    guard.lock();
-                    
-                    if(not owned or updateFailed.load())
-                      stopping=true;
-                  }
-              }
-          });
+        work.start(interval,[this]()
+        {
+          const bool owned=this->lock.check_lock_on_master();
+          
+          if(owned)
+            {
+              std::error_code error;
+              std::filesystem::last_write_time(this->lock.lockPath(),
+                std::filesystem::file_time_type::clock::now(),error);
+              
+              if(error)
+                {
+                  updateFailed=true;
+                  std::fprintf(stderr,"NICE: cannot refresh running file '%s': %s\n",
+                               this->lock.lockPath().c_str(),error.message().c_str());
+                }
+            }
+          else
+            std::fprintf(stderr,"NICE: running file '%s' changed ownership; stopping updates\n",
+                         this->lock.lockPath().c_str());
+          
+          return owned and not updateFailed.load();
+        });
     }
     
     /// Stop and join before the running file is removed
     void stop()
     {
-      {
-        std::lock_guard guard(mutex);
-        stopping=true;
-      }
-      
-      wake.notify_one();
-      
-      if(worker.joinable())
-        worker.join();
+      work.stop();
     }
     
     /// Report an updater failure collectively before writing checkpoints
@@ -548,15 +502,15 @@ namespace nissa::nice
     
     return finished;
   }
-
+  
   /// Check a script-selected stop request collectively at a work boundary
   inline bool stopRequested(const RunOptions& options)
   {
     const bool requested=not options.policy.stopFile.empty() and fileExists(options.policy.stopFile);
-
+    
     if(requested)
       MASTER_PRINTF("NICE: stop requested by file '%s'\n",options.policy.stopFile.c_str());
-
+    
     return requested;
   }
   

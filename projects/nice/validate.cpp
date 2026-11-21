@@ -38,6 +38,9 @@
 #include <unistd.h>
 #include <iostream>
 #include <memory>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 #include <string>
 #include <utility>
 #include <vector>
@@ -2155,6 +2158,101 @@ void validateWallTime(const int narg,
   assert(not first.allowsWork(at(95)));
 }
 
+/// Check recurring callbacks, restart, and prompt interruption of a long wait
+void validateRecurringWork()
+{
+  nissa::RecurringWork work;
+  std::atomic<int> calls{0};
+  std::mutex mutex;
+  std::condition_variable wake;
+  
+  // Returning false stops the callback after one invocation
+  work.start(std::chrono::milliseconds(1),[&]()
+  {
+    std::lock_guard guard(mutex);
+    calls++;
+    wake.notify_one();
+    
+    return false;
+  });
+  {
+    std::unique_lock guard(mutex);
+    assert(wake.wait_for(guard,std::chrono::seconds(2),[&]()
+    {
+      return calls.load()==1;
+    }));
+  }
+  work.stop();
+  assert(calls==1);
+  
+  // A joined worker can be restarted and repeat until explicitly stopped
+  work.start(std::chrono::milliseconds(1),[&]()
+  {
+    std::lock_guard guard(mutex);
+    calls++;
+    wake.notify_one();
+    
+    return true;
+  });
+  {
+    std::unique_lock guard(mutex);
+    assert(wake.wait_for(guard,std::chrono::seconds(2),[&]()
+    {
+      return calls.load()>=3;
+    }));
+  }
+  work.stop();
+  work.stop();
+  
+  // Stopping waits for a callback already executing before returning to its owner
+  bool entered=false;
+  bool release=false;
+  std::atomic<bool> finished{false};
+  work.start(std::chrono::milliseconds(1),[&]()
+  {
+    std::unique_lock guard(mutex);
+    entered=true;
+    wake.notify_all();
+    wake.wait(guard,[&]()
+    {
+      return release;
+    });
+    finished=true;
+    
+    return true;
+  });
+  {
+    std::unique_lock guard(mutex);
+    assert(wake.wait_for(guard,std::chrono::seconds(2),[&]()
+    {
+      return entered;
+    }));
+  }
+  std::thread releaser([&]()
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    std::lock_guard guard(mutex);
+    release=true;
+    wake.notify_all();
+  });
+  work.stop();
+  assert(finished);
+  releaser.join();
+  
+  // Destruction interrupts a pending wait rather than waiting for its full interval
+  const auto start=std::chrono::steady_clock::now();
+  {
+    nissa::RecurringWork sleeping;
+    sleeping.start(std::chrono::hours(1),[]()
+    {
+      assert(false);
+      
+      return true;
+    });
+  }
+  assert(std::chrono::steady_clock::now()-start<std::chrono::seconds(2));
+}
+
 /// Check recent and stale running files, ownership transfer, and release
 void validateRunningFile()
 {
@@ -3451,6 +3549,7 @@ int main(int narg,
   validateRunSettings(narg,arg);
   validateCheckpointRetryParsing(narg,arg);
   validateWallTime(narg,arg);
+  validateRecurringWork();
   validateRunningFile();
   validateGaugeRecipeBindings(narg,arg);
   validateCorrParts();

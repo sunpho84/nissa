@@ -4,6 +4,7 @@
 # include "conf.hpp"
 
 #include <sys/stat.h>
+#include <atomic>
 
 #include "contr.hpp"
 #include "hit.hpp"
@@ -182,31 +183,46 @@ namespace nissa
       hitLooper.start_hit(ihit,true);
   }
   
-  timer_t updateRunningTimer;
+  /// Background running-file refresh, started only on the master rank
+  RecurringWork updateRunning;
   
-  /// Touches the runfile
-  void touchRunning(int,
-		    siginfo_t*,
-		    void*)
+  /// Filesystem failures are reported collectively by the main thread
+  std::atomic<bool> runningUpdateFailed{false};
+  
+  /// Refresh the running file without MPI or throwing filesystem operations
+  bool touchRunning()
   {
-    using namespace std::filesystem;
+    std::error_code error;
+    std::filesystem::last_write_time(runningPath(),
+      std::filesystem::file_time_type::clock::now(),error);
     
-    if(is_master_rank())
+    if(error)
       {
-	const std::chrono::time_point now=
-	  file_time_type::clock::now();
-	
-	last_write_time(runningPath(),now);
-	
-	//In c++20 we will be able to easily cast
-	const time_t snow=
-	  std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	
-	printf("Updating running file %s at time %s\n",
-	       runningPath().c_str(),
-	       ctime(&snow));
-	fflush(stdout);
+        runningUpdateFailed=true;
+        std::fprintf(stderr,"IB: cannot refresh running file '%s': %s\n",
+                     runningPath().c_str(),error.message().c_str());
       }
+    else
+      {
+        std::fprintf(stdout,"Updating running file %s\n",runningPath().c_str());
+        std::fflush(stdout);
+      }
+    
+    return not error;
+  }
+  
+  /// Stop the worker before removing its running file, including crash cleanup
+  void removeRunning()
+  {
+    updateRunning.stop();
+    tryRemove(runningPath(),"running");
+  }
+  
+  /// Report a background update failure on the MPI thread
+  void requireRunningFileHealthy()
+  {
+    if(broadcast(runningUpdateFailed.load()))
+      CRASH("IB running file '%s' could not be refreshed",runningPath().c_str());
   }
   
   int runningUpdateTime=60;
@@ -260,12 +276,13 @@ namespace nissa
   {
     removeRunning();
     crashHook=nullptr;
-    if(runningUpdateTime)
-      stopRecallingFunction(updateRunningTimer);
+    requireRunningFileHealthy();
   }
   
   void finalizeConf(const HitLooper& hitLooper)
   {
+    updateRunning.stop();
+    requireRunningFileHealthy();
     file_touch(finishedPath());
     if(not preservePartialData)
       hitLooper.deletePartialData();
@@ -392,8 +409,11 @@ namespace nissa
 		  else
 		    {
 		      crashHook=removeRunning;
-		      if(runningUpdateTime)
-			updateRunningTimer=setRecurringCalledFunction(touchRunning,SIGRTMIN,runningUpdateTime,0);
+		      if(is_master_rank() and runningUpdateTime!=0)
+                        {
+                          runningUpdateFailed=false;
+                          updateRunning.start(std::chrono::seconds(runningUpdateTime),touchRunning);
+                        }
 		    }
 		}
 	    }

@@ -9,6 +9,7 @@
 #include "base/bench.hpp"
 #include "base/close.hpp"
 #include "base/debug.hpp"
+#include "base/recurringWork.hpp"
 #ifdef USE_EXTERNAL_SOLVER
 # include "base/export_conf_to_external_solver.hpp"
 #endif

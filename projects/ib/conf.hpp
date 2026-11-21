@@ -110,10 +110,7 @@ namespace nissa
   }
   
   /// Removes the runfile
-  inline void removeRunning()
-  {
-    tryRemove(runningPath(),"running");
-  }
+  void removeRunning();
   
   /// Cleanup the conf
   void finalizeConf(const HitLooper& hitLooper);

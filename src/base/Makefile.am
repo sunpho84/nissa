@@ -38,6 +38,7 @@ include_HEADERS+= \
 	%D%/multiGridParams.hpp \
 	%D%/random.hpp \
 	%D%/randomDistributions.hpp \
+	%D%/recurringWork.hpp \
 	%D%/sitmo.hpp \
 	%D%/vectors.hpp
 
