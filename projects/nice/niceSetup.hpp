@@ -2,14 +2,31 @@
 #define _NICE_SETUP_HPP
 
 #include <cstddef>
+#include <iosfwd>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 struct Evaluator;
 struct ASTNodesNode;
+struct ScriptCompletion;
 
 namespace nissa::nice
 {
+  /// Query the registered NICE interface without evaluating input or initializing NISSA
+  ScriptCompletion completeNiceScript(const std::string_view text,
+                                      const size_t byteOffset);
+  
+  /// Handle --complete-at OFFSET [--completion-format emacs|bash] before MPI startup
+  /// Source text comes from input; normal output is machine-readable data only
+  /// Return no status for a normal launch, otherwise the query's exit status
+  std::optional<int> runCompletionQuery(const int narg,
+                                        const char* const* arg,
+                                        std::istream& input,
+                                        std::ostream& output,
+                                        std::ostream& diagnostic);
+  
   /// One program source described on the command line
   struct ProgramPart
   {

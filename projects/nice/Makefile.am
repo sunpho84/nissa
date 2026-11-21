@@ -52,3 +52,7 @@ __top_builddir__bin_nice_validate_SOURCES= \
 	%D%/validate.cpp \
 	$(nice_common_sources)
 endif
+
+EXTRA_DIST+= \
+	%D%/nissa-script-completion.el \
+	%D%/nissa-completion.bash

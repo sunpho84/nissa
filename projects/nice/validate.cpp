@@ -1434,6 +1434,45 @@ void validateScriptLocationsAndCompletion()
   assert(inspected and parameterInspected);
 }
 
+/// Completion transport is usable before MPI initialization and never executes its input
+void validateCompletionTransport()
+{
+  using nissa::nice::runCompletionQuery;
+  const char* emacs[]{"NICE","--complete-at","8","--completion-format","emacs"};
+  std::istringstream input("Prop(.ka");
+  std::ostringstream output;
+  std::ostringstream diagnostic;
+  assert(runCompletionQuery(5,emacs,input,output,diagnostic)==0);
+  assert(output.str().starts_with("(6 8 ((\"kappa\""));
+  assert(diagnostic.str().empty());
+  const char* shell[]{"NICE","--complete-at","8","--completion-format","bash"};
+  std::istringstream shellInput("Prop(.ka");
+  std::ostringstream shellOutput;
+  assert(runCompletionQuery(5,shell,shellInput,shellOutput,diagnostic)==0);
+  assert(shellOutput.str()==std::string("6\0" "8\0" "kappa\0",10));
+  
+  // Deliberately invalid runtime settings and paths must remain unevaluated
+  const std::string text="configurationsFromFile(\"/must-not-read\"); setGeometry(-1,0); Pro";
+  const auto completion=nissa::nice::completeNiceScript(text,text.size());
+  assert(completion.candidates.size()==1 and completion.candidates[0].name=="Prop");
+  
+  const char* normal[]{"NICE","help();"};
+  std::istringstream unused;
+  std::ostringstream untouched;
+  assert(not runCompletionQuery(2,normal,unused,untouched,diagnostic));
+  assert(untouched.str().empty());
+  
+  for(const char* offset : {"-1","1x","9999999999999999999999999","99"})
+    {
+      const char* bad[]{"NICE","--complete-at",offset};
+      std::istringstream source("he");
+      std::ostringstream result;
+      std::ostringstream error;
+      assert(runCompletionQuery(3,bad,source,result,error)==1);
+      assert(result.str().empty() and not error.str().empty());
+    }
+}
+
 /// Check program scope, expression evaluation, returns, and reference arguments
 void validateProgramGrammar(int argc,
                             char** argv)
@@ -3946,6 +3985,7 @@ int main(int narg,
       validateDocumentationComments();
       validateFormattedDiscovery();
       validateScriptLocationsAndCompletion();
+      validateCompletionTransport();
 #ifdef USE_MPI
       MPI_Finalize();
 #endif
@@ -4013,6 +4053,7 @@ int main(int narg,
   validateDocumentationComments();
   validateFormattedDiscovery();
   validateScriptLocationsAndCompletion();
+  validateCompletionTransport();
   validateProgramGrammar(narg,arg);
   validateHostObjects(R"(
     {

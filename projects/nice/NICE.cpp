@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <format>
+#include <iostream>
 #include <string>
 #include <variant>
 
@@ -162,15 +163,21 @@ namespace nissa::nice
 int main(int narg,
          char** arg)
 {
-  const auto start=nissa::nice::WallTimeBudget::Clock::now();
-  nissa::initNissa(narg,arg);
+  int status=0;
+  if(const auto completion=nissa::nice::runCompletionQuery(narg,arg,std::cin,std::cout,std::cerr))
+    status=*completion;
+  else
+    {
+      const auto start=nissa::nice::WallTimeBudget::Clock::now();
+      nissa::initNissa(narg,arg);
+      
+      const nissa::nice::LaunchArgs parts=
+        nissa::nice::parseLaunchArgs(narg,arg);
+      nissa::nice::PreparedProgram program=nissa::nice::prepareProgram(parts);
+      nissa::nice::runPreparedProgram(program,start);
+      
+      nissa::closeNissa();
+    }
   
-  const nissa::nice::LaunchArgs parts=
-    nissa::nice::parseLaunchArgs(narg,arg);
-  nissa::nice::PreparedProgram program=nissa::nice::prepareProgram(parts);
-  nissa::nice::runPreparedProgram(program,start);
-  
-  nissa::closeNissa();
-  
-  return 0;
+  return status;
 }

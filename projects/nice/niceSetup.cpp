@@ -9,18 +9,96 @@
 #include "nice.hpp"
 #include "schedulingStrategies.hpp"
 #include "runOptions.hpp"
+#include "scriptCompletion.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 
 #include <algorithm>
+#include <charconv>
 #include <cstdint>
 #include <format>
+#include <istream>
+#include <iterator>
+#include <ostream>
 #include <utility>
 #include <string>
 #include <string_view>
 
 namespace nissa::nice
 {
+  ScriptCompletion completeNiceScript(const std::string_view text,
+                                      const size_t byteOffset)
+  {
+    Nice nice;
+    RunOptions options;
+    ConfigurationSources sources;
+    GaugeRecipes recipes;
+    Evaluator evaluator;
+    setupNice(evaluator,nice.correlations);
+    registerRunOptions(evaluator,options);
+    registerConfigurationSources(evaluator,sources);
+    registerGaugeRecipes(evaluator,recipes);
+    
+    return completeScriptAt(*evaluator.curEnv,text,byteOffset);
+  }
+  
+  std::optional<int> runCompletionQuery(const int narg,
+                                        const char* const* arg,
+                                        std::istream& input,
+                                        std::ostream& output,
+                                        std::ostream& diagnostic)
+  {
+    std::optional<int> status;
+    
+    if(narg>1 and std::string_view(arg[1])=="--complete-at")
+      {
+        status=1;
+        const std::string_view format=narg==5?arg[4]:"emacs";
+        if((narg!=3 and narg!=5) or
+           (narg==5 and std::string_view(arg[3])!="--completion-format") or
+           (format!="emacs" and format!="bash"))
+          diagnostic<<"NICE completion: use --complete-at OFFSET [--completion-format emacs|bash]\n";
+        else
+          {
+            const std::string_view argument=arg[2];
+            size_t offset{};
+            const auto parsed=std::from_chars(argument.data(),argument.data()+argument.size(),offset);
+            
+            if(parsed.ec!=std::errc{} or parsed.ptr!=argument.data()+argument.size())
+              diagnostic<<"NICE completion: OFFSET must be a nonnegative UTF-8 byte offset\n";
+            else
+              {
+                const std::string text{std::istreambuf_iterator<char>(input),std::istreambuf_iterator<char>()};
+                
+                if(input.bad())
+                  diagnostic<<"NICE completion: cannot read source text from standard input\n";
+                else if(offset>text.size())
+                  diagnostic<<"NICE completion: OFFSET exceeds the source byte count\n";
+                else
+                  {
+                    const auto completion=completeNiceScript(text,offset);
+                    
+                    if(format=="emacs")
+                      output<<formatScriptCompletionForEmacs(completion)<<'\n';
+                    else if(completion.applicable)
+                      {
+                        output<<completion.begin<<'\0'<<completion.end<<'\0';
+                        for(const auto& candidate : completion.candidates)
+                          output<<candidate.name<<'\0';
+                      }
+                    
+                    if(output)
+                      status=0;
+                    else
+                      diagnostic<<"NICE completion: cannot write the completion response\n";
+                  }
+              }
+          }
+      }
+    
+    return status;
+  }
+  
   LaunchArgs parseLaunchArgs(const int narg,
 			     const char* const* arg)
   {

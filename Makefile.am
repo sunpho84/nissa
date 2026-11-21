@@ -21,8 +21,6 @@ EXTRA_DIST+= \
 	tools/clusterize2.cpp \
 	tools/pack.c
 
-EXTRA_DIST+=tools/nissa-script-completion.el
-
 DIST_SUBDIRS=${SUBDIRS} tools
 
 #generate assembly report if asked
