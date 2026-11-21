@@ -43,14 +43,18 @@ namespace nissa::nice
     
     /// Original argument index and, for file pieces, the supplied path
     std::string origin;
+    
+    /// Actual file path for editor navigation, empty for immediate arguments
+    std::string filePath{};
   };
   
   /// Read files only on the master rank and broadcast ordered text and source labels
   /// All ranks must call this after MPI and rank initialization
   std::vector<ProgramPiece> readAndBroadcastProgramPieces(const LaunchArgs& parts);
   
-  /// Parse each piece and merge top-level statements, retaining explicit block scopes
-  /// Keep pieces unchanged and alive, and retain the returned AST throughout evaluation
+  /// Join pieces with a terminating newline where needed, then parse one program
+  /// Explicit blocks retain their scopes; documentation can cross piece boundaries
+  /// The returned AST owns its text; retain it throughout evaluation
   ASTNodesNode parseProgramPieces(const std::vector<ProgramPiece>& pieces);
   
   struct PreparedProgram;

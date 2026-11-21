@@ -139,6 +139,7 @@ namespace nissa::nice
           else
             {
               piece.origin+=std::format(" file '{}'",part.value);
+              piece.filePath=part.value;
               piece.text=readFileBytes(part.value,FileReadMode::MasterOnly);
             }
           
@@ -156,6 +157,7 @@ namespace nissa::nice
       {
         broadcast(piece.origin);
         broadcast(piece.text);
+        broadcast(piece.filePath);
       }
     
     return pieces;
@@ -163,28 +165,30 @@ namespace nissa::nice
   
   ASTNodesNode parseProgramPieces(const std::vector<ProgramPiece>& pieces)
   {
+    // Retain file and argument labels while joining pieces into one program
+    ScriptSource source;
+    for(const auto& piece : pieces)
+      source.append(piece.text,piece.filePath.empty()?piece.origin:piece.filePath);
+    
     const auto parser=getParser();
     const auto executor=getParseTreeExecuctor(parser.actionStrings);
-    ASTNodesNode body;
+    const auto tree=createParseTree(parser,source.text,[&source](const SourceCursor& cursor)
+    {
+      return source.locate(cursor);
+    });
+    const auto ast=executor.execParseTree(tree);
+    const auto* statements=std::get_if<ASTNodesNode>(ast.get());
     
-    for(const auto& piece : pieces)
-      {
-        const auto tree=createParseTree(parser,piece.text);
-        const auto ast=executor.execParseTree(tree);
-        const auto* statements=std::get_if<ASTNodesNode>(ast.get());
-        
-        if(statements==nullptr)
-          CRASH("NICE %s: program root is not a statement list",piece.origin.c_str());
-        
-        body.list.insert(body.list.end(),statements->list.begin(),statements->list.end());
-      }
+    if(statements==nullptr)
+      CRASH("NICE program root is not a statement list");
     
-    return body;
+    // AST tokens and descriptions own their strings; no view into source escapes
+    return *statements;
   }
   
   PreparedProgram prepareProgram(const LaunchArgs& parts)
   {
-    // Keep the source text alive while the AST and evaluator may refer to it
+    // Read the ordered sources, then retain the AST throughout evaluation
     const auto pieces=readAndBroadcastProgramPieces(parts);
     const ASTNode ast=parseProgramPieces(pieces);
     Evaluator evaluator;

@@ -15,6 +15,7 @@
 #include "nice.hpp"
 #include "runOptions.hpp"
 #include "nASTy.hpp"
+#include "scriptCompletion.hpp"
 #include "new_types/dirac.hpp"
 #include "base/multiGridParams.hpp"
 #include "base/DDalphaAMG_bridge.hpp"
@@ -34,6 +35,7 @@
 #include <complex>
 #include <filesystem>
 #include <format>
+#include <sstream>
 #include <cstdio>
 #include <unistd.h>
 #include <iostream>
@@ -1265,6 +1267,173 @@ void validateDocumentationComments()
     }
 }
 
+/// Verbose discovery groups variables, displays optional/reference/variadic arguments, and never evaluates defaults
+void validateFormattedDiscovery()
+{
+  Evaluator evaluator;
+  registerHObject<ExampleNumber>(evaluator,"NativeNumber",
+    std::make_tuple(HostMemberInfo{"value",&ExampleNumber::value}));
+  registerHostFunction(evaluator,"typed",{"required"},[](const int required)
+  {
+    return required;
+  });
+  int defaultsEvaluated=0;
+  registerHostFunction(evaluator,"defaultSideEffect",{},[&defaultsEvaluated]()
+  {
+    defaultsEvaluated++;
+    
+    return 1;
+  });
+  bool inspected=false;
+  registerHostFunction(evaluator,"inspectFormatting",{},[&](Evaluator& caller)
+  {
+    const auto& env=*caller.curEnv;
+    assert(std::get<int>(caller.curEnv->at("emptyCount").data)==3);
+    const FunctionArgumentForms expected{{"required","&reference","[optional = 2]",
+      "[label = \"a\\nb\"]","[namedDefault = M_PI]","[computed = <expression>]","&..."}};
+    assert(env.entityInfo("sample").argumentForms==expected);
+    assert(env.entityInfo("alias").argumentForms==expected);
+    assert((env.entityInfo("ScriptNumber").argumentForms==
+            FunctionArgumentForms{{"required","[optional = 3]","[computed = <expression>]"}}));
+    assert((env.entityInfo("NativeNumber").argumentForms==FunctionArgumentForms{{"[value]"}}));
+    assert((env.entityInfo("typed").argumentForms==FunctionArgumentForms{{"required"}}));
+    assert((env.entityInfo("listFunctions").argumentForms==FunctionArgumentForms{{"[verbose = 1]"}}));
+    assert((env.entityInfo("seq").argumentForms==FunctionArgumentForms{{"max"},{"min","max"},{"min","step","max"}}));
+    assert((env.entityInfo("print").argumentForms==FunctionArgumentForms{{"..."}}));
+    assert((env.entityInfo("help").argumentForms==FunctionArgumentForms{{"[keyword = \"\"]"}}));
+    // Help uses the same metadata without evaluating defaults or inserting unknown names
+    assert(formatHelp(env).find("nASTy script language")!=std::string::npos);
+    assert(formatHelp(env,"sample").find("sample(required, &reference, [optional = 2],")!=std::string::npos);
+    assert(formatHelp(env,"alias").find("      First line\n      Second line\n")!=std::string::npos);
+    assert(formatHelp(env,"variable").find("    A variable\n")!=std::string::npos);
+    assert(formatHelp(env,"NativeNumber").find("NativeNumber([value])")!=std::string::npos);
+    const auto namesBeforeHelp=env.entityNames();
+    assert(formatHelp(env,"missingHelpEntity").find("No visible entity named 'missingHelpEntity'")!=std::string::npos);
+    assert(env.entityNames()==namesBeforeHelp);
+    // Help resolves shadowing even when a variable hides a callable from its parent
+    Environment inner;
+    inner.parent=caller.curEnv;
+    inner.varTable["sample"]=std::make_shared<Value>(17);
+    inner.describe("sample","An inner variable");
+    assert(formatHelp(inner,"sample").find("variable (int)\n    An inner variable\n")!=std::string::npos);
+    const std::string listing=formatEntityListing(env,EntitySelection::All,true);
+    const size_t functions=listing.find("Functions\n---------\n");
+    const size_t variables=listing.find("Variables\n---------\n");
+    assert(functions==0 and variables!=std::string::npos and functions<variables);
+    assert(listing.find("  sample(required, &reference, [optional = 2],")<variables);
+    assert(listing.find("      First line\n      Second line\n\n")!=std::string::npos);
+    assert(listing.find("  variable: variable (int)\n",variables)!=std::string::npos);
+    assert(listing.find("    A variable\n",variables)!=std::string::npos);
+    assert(formatEntityListing(env,EntitySelection::Variables,true).find("Functions")==std::string::npos);
+    const std::string plain=formatEntityListing(env,EntitySelection::Functions,false);
+    assert(plain.find("sample\n")!=std::string::npos and plain.find("Functions\n---------")==std::string::npos);
+    // Prose is wrapped consistently even when a registration supplies one long line
+    std::istringstream lines(listing);
+    std::string line;
+    while(std::getline(lines,line))
+      if(line.starts_with("      "))
+        assert(line.size()<=88);
+    
+    assert(defaultsEvaluated==0);
+    inspected=true;
+  });
+  const auto parser=getParser();
+  const auto executor=getParseTreeExecuctor(parser.actionStrings);
+  const auto tree=createParseTree(parser,R"DOC(
+    /// First line
+    //! Second line
+    fun sample(required,&reference,optional=2,label="a\nb",namedDefault=M_PI,computed=defaultSideEffect(),&...)
+    { return required; }
+    alias=sample;
+    struct ScriptNumber { required; optional=3; computed=defaultSideEffect(); };
+    /// A variable
+    variable=7;
+    ;;; emptyCount=0;
+    for(emptyCount=0;emptyCount<3;emptyCount++);
+    if(1); else emptyCount=9;
+    if(0) emptyCount=9; else;
+    inspectFormatting();
+    listEntities();
+    help();
+    help("sample");
+    help(.keyword="variable");
+    help("missingHelpEntity");
+  )DOC");
+  const auto ast=executor.execParseTree(tree);
+  std::visit(evaluator,*ast);
+  assert(inspected and defaultsEvaluated==0);
+}
+
+/// Preserve original declarations and provide completion without executing editor text
+void validateScriptLocationsAndCompletion()
+{
+  using nissa::nice::parseProgramPieces;
+  // Synthetic separators do not move diagnostics beyond the original source's end
+  ScriptSource source;
+  source.append("value=1;","single.nice");
+  const auto eof=source.locate(SourceCursor{.offset=source.text.size()});
+  assert(eof.cursor.offset==8 and eof.cursor.line==1 and eof.cursor.column==9);
+  
+  const ASTNode ast=parseProgramPieces({
+    {"//! documented","arg[1]"},
+    {"fun placed(value=2){inspectParameter(); return value;}\r\n"
+     "struct Pair { first; second=0; };\r\n"
+     "// ordinary comment\r\n"
+     "variable=7;\r\n"
+     "alias=placed; pair=Pair(1); native=NativeNumber(3); inspectLocations(); placed();",
+     "arg[3] file 'sample.nice'","sample.nice"}});
+  Evaluator evaluator;
+  registerHObject<ExampleNumber>(evaluator,"NativeNumber",
+    std::make_tuple(HostMemberInfo{"value",&ExampleNumber::value}));
+  bool parameterInspected=false;
+  registerHostFunction(evaluator,"inspectParameter",{},[&](Evaluator& caller)
+  {
+    assert(caller.curEnv->entityInfo("value").location->describe()=="sample.nice:1:12");
+    parameterInspected=true;
+  });
+  bool inspected=false;
+  registerHostFunction(evaluator,"inspectLocations",{},[&](Evaluator& caller)
+  {
+    const auto& env=*caller.curEnv;
+    const auto function=env.entityInfo("placed");
+    assert(function.location and function.location->source=="sample.nice");
+    assert(function.location->cursor.line==1 and function.location->cursor.column==1);
+    assert(function.description=="documented");
+    assert(env.entityInfo("alias").location->describe()=="sample.nice:1:1");
+    assert(env.entityInfo("Pair").location->describe()=="sample.nice:2:1");
+    assert(env.entityInfo("variable").location->describe()=="sample.nice:4:1");
+    assert(formatHelp(env,"placed").find("Location: sample.nice:1:1")!=std::string::npos);
+    const auto names=env.entityNames();
+    const std::string text="// π\npl";
+    const auto completion=completeScriptAt(env,text,text.size());
+    assert(completion.applicable and completion.begin==text.size()-2 and completion.end==text.size());
+    assert(completion.candidates.size()==1 and completion.candidates[0].name=="placed");
+    assert(completion.candidates[0].info.location->source=="sample.nice");
+    assert(completion.candidates[0].documentation.find("documented")!=std::string::npos);
+    const auto middle=completeScriptAt(env,"placed",2);
+    assert(middle.begin==0 and middle.end==6 and middle.candidates[0].name=="placed");
+    const auto parameter=completeScriptAt(env,"placed(.va",10);
+    assert(parameter.candidates.size()==1 and parameter.candidates[0].name=="value");
+    const auto member=completeScriptAt(env,"pair.se",7);
+    assert(member.candidates.size()==1 and member.candidates[0].name=="second");
+    assert(member.candidates[0].info.location->source=="sample.nice");
+    const auto hostMember=completeScriptAt(env,"native.va",9);
+    assert(hostMember.candidates.size()==1 and hostMember.candidates[0].name=="value");
+    assert(completeScriptAt(env,"other.placed(.va",16).candidates.empty());
+    assert(completeScriptAt(env,"ret",3).candidates[0].name=="return");
+    for(const std::string input : {"// pl","/* pl","\"pl","123"})
+      assert(not completeScriptAt(env,input,input.size()).applicable);
+    assert(not completeScriptAt(env,"pl",3).applicable);
+    assert(formatScriptCompletionForEmacs({})=="nil");
+    const std::string data=formatScriptCompletionForEmacs(completion);
+    assert(data.find("\"placed\"")!=std::string::npos and data.find("\"sample.nice\"")!=std::string::npos);
+    assert(env.entityNames()==names);
+    inspected=true;
+  });
+  std::visit(evaluator,ast);
+  assert(inspected and parameterInspected);
+}
+
 /// Check program scope, expression evaluation, returns, and reference arguments
 void validateProgramGrammar(int argc,
                             char** argv)
@@ -1922,6 +2091,7 @@ void validateProgramPieces(const int narg,
   assert(pieces[0].text==prefix and pieces[0].origin=="arg[1]");
   assert(pieces[1].text==fileText and pieces[1].origin.starts_with("arg[3] file '/tmp/nice-program-"));
   assert(pieces[2].text.empty() and pieces[2].origin=="arg[5] file '/dev/null'");
+  assert(pieces[2].filePath=="/dev/null");
   assert(pieces[3].text.empty() and pieces[3].origin=="arg[6]");
   assert(pieces[4].text==suffix and pieces[4].origin=="arg[7]");
   assert(readAndBroadcastProgramPieces({}).empty());
@@ -1960,6 +2130,25 @@ void validateProgramPieces(const int narg,
     {ProgramPart::Kind::Immediate,prefix+fileText+suffix,1}});
   assert(evaluate(immediate)==mixedOutput);
   assert(parseProgramPieces({}).list.empty());
+  
+  // Documentation survives argument boundaries, with or without a final newline
+  for(const std::string ending : {"","\n","\r\n"})
+    {
+      const ASTNode ast=parseProgramPieces({
+        {"//! my comments"+ending,"arg[1]"},
+        {"fun f() {}; help(\"f\"); ;;; // trailing comment","arg[2]"},
+        {"afterComment=3; inspectPieces();","arg[3]"}});
+      Evaluator evaluator;
+      bool inspected=false;
+      registerHostFunction(evaluator,"inspectPieces",{},[&](Evaluator& caller)
+      {
+        assert(caller.curEnv->entityInfo("f").description=="my comments");
+        assert(std::get<int>(caller.curEnv->at("afterComment").data)==3);
+        inspected=true;
+      });
+      std::visit(evaluator,ast);
+      assert(inspected);
+    }
 }
 
 /// Check list rows, path resolution, ordered source registration, and owned preparation results
@@ -3755,6 +3944,8 @@ int main(int narg,
       validateFunctionDiscovery();
       validateEntityDiscovery();
       validateDocumentationComments();
+      validateFormattedDiscovery();
+      validateScriptLocationsAndCompletion();
 #ifdef USE_MPI
       MPI_Finalize();
 #endif
@@ -3820,6 +4011,8 @@ int main(int narg,
   validateFunctionDiscovery();
   validateEntityDiscovery();
   validateDocumentationComments();
+  validateFormattedDiscovery();
+  validateScriptLocationsAndCompletion();
   validateProgramGrammar(narg,arg);
   validateHostObjects(R"(
     {

@@ -33,6 +33,7 @@
 #include <tuples/tupleHasType.hpp>
 
 #include "hostMembers.hpp"
+#include "scriptSource.hpp"
 
 using namespace pp::internal;
 
@@ -178,12 +179,16 @@ struct Function
   std::string name{};
 };
 
+/// Alternative argument lists for display; brackets denote optional arguments
+using FunctionArgumentForms=
+  std::vector<std::vector<std::string>>;
+
 /// C++ callable exposed to scripts, receiving prepared arguments and the evaluator
 /// An empty argumentNames signature permits positional arguments only
 struct HostFunction :
   std::function<Value(std::vector<std::shared_ptr<Value>>&,Evaluator&)>
 {
-  /// Optional signature for host constructors; omitted arguments remain null
+  /// Argument names used for binding; constructor arguments may be omitted
   std::vector<std::string> argumentNames;
   
   /// Whether this callable constructs a registered host type
@@ -191,6 +196,9 @@ struct HostFunction :
   
   /// Optional explanation for verbose discovery
   std::string description{};
+  
+  /// Display-only raw signatures; otherwise derive named arguments or report an unknown signature
+  FunctionArgumentForms argumentForms{};
 };
 
 /// Callable script struct definition borrowing its declaration from the AST
@@ -631,6 +639,9 @@ struct IdNode
   
   /// Documentation used when this identifier defines a variable
   std::string description{};
+  
+  /// Position of the identifier token when parsed from source
+  std::optional<ScriptLocation> location{};
 };
 
 /// Call argument expression with an optional name for named argument binding
@@ -671,10 +682,23 @@ struct ValueNode
   /// Documentation before a parser token, consumed only by definitions
   std::string description{};
   
+  /// Original token position, owned independently of the parse tree
+  std::optional<ScriptLocation> location{};
+  
+  /// Explicitly initialize the nested runtime value without aggregate brace elision
+  template <typename V>
+  static ValueNode fromValue(const V& value)
+  {
+    return {.value=Value{value}};
+  }
+  
   /// Convert a shifted token while discarding ordinary skipped comments
   static ValueNode fromShift(const pp::internal::ShiftNode& token)
   {
-    return {.value=Value{std::string(token.txt)},.description=precedingDocumentation(token)};
+    const auto position=token.location.value_or(pp::internal::SourceLocation{{},token.cursor});
+    
+    return {.value=Value{std::string(token.txt)},.description=precedingDocumentation(token),
+            .location=ScriptLocation{position.source.empty()?"<script>":std::string(position.source),position.cursor}};
   }
 };
 
@@ -698,6 +722,9 @@ struct FuncParNode
   bool isRef;
   
   std::shared_ptr<ASTNode> def;
+  
+  /// Position of a named parameter's declaration
+  std::optional<ScriptLocation> location{};
   
   static constexpr const char VARIADIC_PAR_NAME[]="__VA__ARGS__";
   
@@ -777,6 +804,9 @@ struct FuncNode
   
   /// Immediately preceding documentation, retained by callable aliases through this AST
   std::string description{};
+  
+  /// Position of fun or lambda, retained by aliases
+  std::optional<ScriptLocation> location{};
 };
 
 /// Named function declaration, installing a closure in the current environment
@@ -793,6 +823,9 @@ struct FuncCallNode
   std::string fun;
   
   FuncArgListNode args;
+  
+  /// Position of the called name
+  std::optional<ScriptLocation> location{};
 };
 
 /// Declared script struct member with an optional default expression
@@ -801,6 +834,9 @@ struct StructMemberNode
   std::string name;
   
   std::shared_ptr<ASTNode> def;
+  
+  /// Position of the member's declaration
+  std::optional<ScriptLocation> location{};
 };
 
 /// Ordered script struct members with lookup by member name
@@ -819,6 +855,9 @@ struct StructDefNode
   
   /// Immediately preceding documentation shared by constructor aliases
   std::string description{};
+  
+  /// Position of the struct keyword
+  std::optional<ScriptLocation> location{};
 };
 
 inline std::ostream& operator<<(std::ostream& os,
@@ -929,7 +968,22 @@ struct EntityInfo
   
   /// Whether this value can be called from the script
   bool callable{false};
+  
+  /// Argument forms for callable values, in declaration order
+  FunctionArgumentForms argumentForms{};
+  
+  /// Script declaration position, absent for native entities
+  std::optional<ScriptLocation> location{};
 };
+
+/// Describe native signatures without changing positional or named argument binding
+FunctionArgumentForms entityArgumentForms(const HostFunction& function);
+
+/// Describe script parameters, including references, defaults, and variadic arguments
+FunctionArgumentForms entityArgumentForms(const Function& function);
+
+/// Describe required and defaulted members of a script constructor
+FunctionArgumentForms entityArgumentForms(const StructDef& definition);
 
 /// Inspect every runtime value alternative; new alternatives require an overload
 struct EntityInfoVisitor
@@ -961,13 +1015,13 @@ struct EntityInfoVisitor
   PROVIDE_ENTITY_INFO(double,,"variable (double)")
   
   /// Script functions and anonymous lambdas
-  PROVIDE_ENTITY_INFO(Function,function,(function.name.empty()?"script lambda":"embedded function '"+function.name+"'")+std::string(" (location unavailable)"),function.funcNode->description,true)
+  PROVIDE_ENTITY_INFO(Function,function,function.name.empty()?"script lambda":"embedded function '"+function.name+"'",function.funcNode->description,true,entityArgumentForms(function),function.funcNode->location)
   
   /// Named argument values
   PROVIDE_ENTITY_INFO(FuncArg,,"variable (named argument)")
   
   /// Native functions and constructors
-  PROVIDE_ENTITY_INFO(HostFunction,function,function.isConstructor?"host struct constructor":"host function",function.description,true)
+  PROVIDE_ENTITY_INFO(HostFunction,function,function.isConstructor?"host struct constructor":"host function",function.description,true,entityArgumentForms(function))
   
   /// References to variable cells
   PROVIDE_ENTITY_INFO(ValueRef,,"variable (reference)")
@@ -976,7 +1030,7 @@ struct EntityInfoVisitor
   PROVIDE_ENTITY_INFO(ValuesList,,"variable (list)")
   
   /// Script struct constructors
-  PROVIDE_ENTITY_INFO(StructDef,definition,"script struct constructor (location unavailable)",definition.structDefNode->description,true)
+  PROVIDE_ENTITY_INFO(StructDef,definition,"script struct constructor",definition.structDefNode->description,true,entityArgumentForms(definition),definition.structDefNode->location)
   
   /// Script struct instances
   PROVIDE_ENTITY_INFO(Struct,object,"script struct instance '"+object.structDefNode->name+"'")
@@ -990,6 +1044,16 @@ struct EntityInfoVisitor
 /// Select the visible bindings included in a discovery listing
 enum class EntitySelection{Functions,Variables,All};
 
+/// Format visible bindings; verbose mode groups variables and separates documented signatures
+std::string formatEntityListing(const Environment& environment,
+                                const EntitySelection selection,
+                                const bool verbose);
+
+/// Format the language overview or documentation for one visible entity
+/// An empty keyword selects the overview; unknown names produce a diagnostic
+std::string formatHelp(const Environment& environment,
+                       const std::string& keyword="");
+
 /// Contains shared variable cells and possibly the enclosing scope
 /// Creates only if no larger scope has the name
 struct Environment
@@ -1000,6 +1064,9 @@ struct Environment
 
   /// Descriptions attached to bindings in this scope
   std::unordered_map<std::string,std::string> descriptions;
+  
+  /// First script declaration position of each binding in this scope
+  std::unordered_map<std::string,ScriptLocation> locations;
   
   /// List selected visible names alphabetically, respecting inner bindings
   std::vector<std::string> entityNames(const EntitySelection selection=EntitySelection::All) const
@@ -1043,8 +1110,8 @@ struct Environment
     scope->descriptions[name]=description;
   }
   
-  /// Explain a binding's kind and optional description in its nearest scope
-  std::string entityDetails(const std::string& name) const
+  /// Inspect a binding in its nearest scope, applying binding-specific documentation
+  EntityInfo entityInfo(const std::string& name) const
   {
     const Environment* scope=this;
     while(scope!=nullptr and not scope->varTable.contains(name))
@@ -1054,14 +1121,27 @@ struct Environment
       errorEmitter("Cannot inspect unknown entity ",name);
     
     const auto& value=scope->varTable.at(name);
-    auto [details,description,callable]=
+    EntityInfo info=
       value?std::visit(EntityInfoVisitor{},value->data):EntityInfo{"uninitialized variable"};
     
     if(const auto found=scope->descriptions.find(name);found!=scope->descriptions.end())
-      description=found->second;
+      info.description=found->second;
     
-    if(not description.empty())
-      details+=" - "+description;
+    if(not info.location)
+      if(const auto found=scope->locations.find(name);found!=scope->locations.end())
+        info.location=found->second;
+    
+    return info;
+  }
+  
+  /// Explain a binding's kind and optional description in its nearest scope
+  std::string entityDetails(const std::string& name) const
+  {
+    const EntityInfo info=entityInfo(name);
+    std::string details=info.kind;
+    
+    if(not info.description.empty())
+      details+=" - "+info.description;
     
     return details;
   }
@@ -1537,6 +1617,9 @@ struct Evaluator
 	
 	if(not curEnv->varTable.try_emplace(par.name,arg).second)
 	  errorEmitter("argument ",par.name," already specified");
+        
+        if(par.location)
+          curEnv->locations.emplace(par.name,*par.location);
       }
     
     EvalResult result=
@@ -1584,7 +1667,11 @@ struct Evaluator
   /// Resolve or create a variable cell and return its writable reference
   EvalResult operator()(const IdNode& idNode)
   {
-    return {.ref=ValueRef(curEnv->getRefOrInsert(idNode.name).first)};
+    auto [cell,inserted]=curEnv->getRefOrInsert(idNode.name);
+    if(inserted and idNode.location)
+      curEnv->locations.emplace(idNode.name,*idNode.location);
+    
+    return {.ref=ValueRef(cell)};
   }
   
   /// Evaluate an explicit reference expression using a concrete script cell
@@ -1824,6 +1911,9 @@ struct Evaluator
     diagnostic("Going to call function ",fName,"\n");
     
     std::vector<std::shared_ptr<Value>> args;
+    if(not curEnv->find(fName) and funcCallNode.location)
+      funcCallNode.location->error("Trying to call unknown function ",fName);
+    
     const Value& _fun=curEnv->at(fName);
     
     /// Fill a parameter slot once, using the same diagnostic for every callable
@@ -2391,7 +2481,8 @@ void registerHostFunction(Evaluator& evaluator,
                                       Evaluator& caller) mutable -> Value
     {
       return Signature::invoke(callable,values,name.c_str(),caller);
-    },std::move(argumentNames),false,std::move(description)};
+    },std::move(argumentNames),false,std::move(description),
+    Signature::arity==0?FunctionArgumentForms(1):FunctionArgumentForms{}};
 }
 
 /// Registers Type under its C++ identifier, using its static members() function

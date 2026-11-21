@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <charconv>
 #include <sstream>
+#include <format>
 
 #include "routines/ios.hpp"
 
@@ -82,6 +83,247 @@ std::string precedingDocumentation(const pp::internal::ShiftNode& token)
   return description;
 }
 
+namespace
+{
+  /// Embed the standalone help text without a runtime file dependency
+  constexpr char languageHelp[]=
+#include "nASTyHelp.inc"
+    ;
+  
+  /// Describe a default without evaluating script code or accessing the calling scope
+  std::string describeArgumentDefault(const ASTNode& node)
+  {
+    std::ostringstream text;
+    
+    if(const auto* literal=std::get_if<ValueNode>(&node))
+      {
+        if(const auto* string=std::get_if<std::string>(&literal->value.data))
+          {
+            text<<'"';
+            for(const char c : *string)
+              switch(c)
+                {
+                case '\n': text<<"\\n"; break;
+                case '\r': text<<"\\r"; break;
+                case '\t': text<<"\\t"; break;
+                case '\\': text<<"\\\\"; break;
+                case '"': text<<"\\\""; break;
+                default: text<<c;
+                }
+            
+            text<<'"';
+          }
+        else if(const auto* number=std::get_if<double>(&literal->value.data))
+          text<<std::format("{}",*number);
+        else
+          text<<literal->value;
+      }
+    else if(const auto* identifier=std::get_if<IdNode>(&node))
+      text<<identifier->name;
+    else
+      text<<"<expression>";
+    
+    return text.str();
+  }
+  
+  /// Mark an argument as optional and show its unevaluated default when present
+  std::string describeArgument(const std::string& name,
+                               const std::shared_ptr<ASTNode>& defaultValue)
+  {
+    std::string argument=name;
+    
+    if(defaultValue)
+      argument="["+argument+" = "+describeArgumentDefault(*defaultValue)+"]";
+    
+    return argument;
+  }
+  
+  /// Indent documentation lines and wrap prose without splitting words or losing indentation
+  void writeDocumentation(std::ostream& output,
+                          const std::string& description,
+                          const std::string& prefix)
+  {
+    std::istringstream lines(description);
+    std::string line;
+    
+    while(std::getline(lines,line))
+      {
+        const size_t firstText=line.find_first_not_of(" \t");
+        const std::string indentation=line.substr(0,firstText==std::string::npos?line.size():firstText);
+        const size_t width=88>prefix.size()?88-prefix.size():1;
+        bool wrapping=true;
+        
+        while(wrapping and line.size()>width)
+          {
+            const size_t split=line.find_last_of(" \t",width);
+            wrapping=split!=std::string::npos and split>indentation.size();
+            
+            if(wrapping)
+              {
+                output<<prefix<<line.substr(0,split)<<'\n';
+                line=indentation+line.substr(split+1);
+              }
+          }
+        
+        output<<prefix<<line<<'\n';
+      }
+  }
+  
+  /// Write every supported signature and its documentation as one separated entry
+  void writeFunctionEntry(std::ostream& output,
+                          const std::string& name,
+                          const EntityInfo& info)
+  {
+    for(const auto& arguments : info.argumentForms)
+      {
+        output<<"  "<<name<<'(';
+        
+        for(size_t i=0;i<arguments.size();i++)
+          output<<(i==0?"":", ")<<arguments[i];
+        
+        output<<")\n";
+      }
+    
+    output<<"    Kind: "<<info.kind<<'\n';
+    
+    if(info.location)
+      output<<"    Location: "<<info.location->describe()<<'\n';
+    
+    if(not info.description.empty())
+      {
+        output<<"    Description:\n";
+        writeDocumentation(output,info.description,"      ");
+      }
+  }
+  
+  /// Write a variable within the separate variable group
+  void writeVariableEntry(std::ostream& output,
+                          const std::string& name,
+                          const EntityInfo& info)
+  {
+    output<<"  "<<name<<": "<<info.kind<<'\n';
+    
+    if(info.location)
+      output<<"    Location: "<<info.location->describe()<<'\n';
+    
+    if(not info.description.empty())
+      writeDocumentation(output,info.description,"    ");
+  }
+}
+
+FunctionArgumentForms entityArgumentForms(const HostFunction& function)
+{
+  FunctionArgumentForms forms=function.argumentForms;
+  
+  if(forms.empty())
+    {
+      auto& arguments=forms.emplace_back();
+      for(const auto& name : function.argumentNames)
+        arguments.push_back(function.isConstructor?"["+name+"]":name);
+      
+      if(arguments.empty() and not function.isConstructor)
+        arguments.push_back("<positional arguments; signature unavailable>");
+    }
+  
+  return forms;
+}
+
+FunctionArgumentForms entityArgumentForms(const Function& function)
+{
+  FunctionArgumentForms forms(1);
+  
+  for(const auto& parameter : function.funcNode->pars.list)
+    {
+      const std::string prefix=parameter.isRef?"&":"";
+      
+      if(parameter.name==FuncParNode::VARIADIC_PAR_NAME)
+        forms.front().push_back(prefix+"...");
+      else
+        forms.front().push_back(describeArgument(prefix+parameter.name,parameter.def));
+    }
+  
+  return forms;
+}
+
+FunctionArgumentForms entityArgumentForms(const StructDef& definition)
+{
+  FunctionArgumentForms forms(1);
+  
+  for(const auto& member : definition.structDefNode->members.list)
+    forms.front().push_back(describeArgument(member.name,member.def));
+  
+  return forms;
+}
+
+std::string formatEntityListing(const Environment& environment,
+                                const EntitySelection selection,
+                                const bool verbose)
+{
+  std::ostringstream output;
+  
+  if(not verbose)
+    for(const auto& name : environment.entityNames(selection))
+      output<<name<<'\n';
+  else
+    {
+      for(const auto group : {EntitySelection::Functions,EntitySelection::Variables})
+        if(selection==EntitySelection::All or selection==group)
+          {
+            const auto names=environment.entityNames(group);
+            
+            if(not names.empty())
+              {
+                const bool functions=group==EntitySelection::Functions;
+                output<<(functions?"Functions":"Variables")<<"\n---------\n";
+                
+                if(functions)
+                  output<<"  Arguments in [...] are optional; ... accepts zero or more arguments.\n";
+                
+                output<<'\n';
+                for(const auto& name : names)
+                  {
+                    const EntityInfo info=environment.entityInfo(name);
+                    
+                    if(functions)
+                      writeFunctionEntry(output,name,info);
+                    else
+                      writeVariableEntry(output,name,info);
+                    
+                    output<<'\n';
+                  }
+              }
+          }
+    }
+  
+  return output.str();
+}
+
+std::string formatHelp(const Environment& environment,
+                       const std::string& keyword)
+{
+  std::ostringstream output;
+  
+  if(keyword.empty())
+    output<<languageHelp;
+  else
+    {
+      const auto names=environment.entityNames();
+      if(std::binary_search(names.begin(),names.end(),keyword))
+        {
+          const EntityInfo info=environment.entityInfo(keyword);
+          
+          if(info.callable)
+            writeFunctionEntry(output,keyword,info);
+          else
+            writeVariableEntry(output,keyword,info);
+        }
+      else
+        output<<"No visible entity named '"<<keyword<<"'. Use listEntities() to find available names.\n";
+    }
+  
+  return output.str();
+}
+
 /// Build the ParsePact parser for the script grammar and its semantic actions
 /// The grammar text has static lifetime because parser data retains string views
 pp::Grammar getParser()
@@ -128,6 +370,7 @@ pp::Grammar getParser()
     LINE(    "             | ifStatement [return($0)]")
     LINE(    "             | functionDefinition [return($0)]")
     LINE(    "             | structDefinition [return($0)]")
+    LINE(    "             | \";\" [emptyStatement]")
     LINE(    "             | \"return\" expression_statement [funcReturn($1)]")
     LINE(    "             ;")
     LINE(    "   functionDefinition : \"fun\" identifier \"\\(\" variadicFuncParList \"\\)\" compound_statement [funcDef($0,$1,$3,$5)]")
@@ -274,6 +517,7 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
     }
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("createStatements",0,return std::make_shared<ASTNode>(ASTNodesNode{}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("emptyStatement",1,return std::make_shared<ASTNode>(ValueNode{.value{std::monostate{}}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("appendStatement",2,
 				if(ASTNodesNode* l=std::get_if<ASTNodesNode>(&*(subNodes[0]));l==nullptr)
 				  errorEmitter("first argument is not a list of statement: ",
@@ -290,7 +534,12 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
     const auto result=std::from_chars(text.data(),text.data()+text.size(),value);
     
     if(result.ec!=std::errc{} or result.ptr!=text.data()+text.size())
-      errorEmitter("integer literal outside int64_t range: ",text);
+      {
+        if(const auto& location=fetch<ValueNode>(subNodes,0).location)
+          location->error("integer literal outside int64_t range: ",text);
+        else
+          errorEmitter("integer literal outside int64_t range: ",text);
+      }
     
     Value literal;
     
@@ -299,10 +548,19 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
     else
       literal=Value{value};
     
-    return std::make_shared<ASTNode>(ValueNode{.value=literal}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("convToStr",1,return std::make_shared<ASTNode>(ValueNode{.value{unescapeString(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data))}}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("convToId",1,return std::make_shared<ASTNode>(IdNode{.name=unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data),.description=fetch<ValueNode>(subNodes,0).description}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("convToFloat",1,return std::make_shared<ASTNode>(ValueNode{.value{strtod(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data).c_str(),nullptr)}}));
+    return std::make_shared<ASTNode>(ValueNode{.value=literal,.location=fetch<ValueNode>(subNodes,0).location}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("convToStr",1,
+    const auto& token=fetch<ValueNode>(subNodes,0);
+    return std::make_shared<ASTNode>(ValueNode{
+      .value{unescapeString(std::get<std::string>(token.value.data))},.location=token.location}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("convToId",1,
+    const auto& token=fetch<ValueNode>(subNodes,0);
+    return std::make_shared<ASTNode>(IdNode{
+      .name=std::get<std::string>(token.value.data),.description=token.description,.location=token.location}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("convToFloat",1,
+    const auto& token=fetch<ValueNode>(subNodes,0);
+    return std::make_shared<ASTNode>(ValueNode{
+      .value{strtod(std::get<std::string>(token.value.data).c_str(),nullptr)},.location=token.location}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("return",1,return subNodes[0]);
   PROVIDE_ACTION_WITH_N_SYMBOLS("createFuncArg",2,
 				std::string name{};
@@ -409,14 +667,20 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
   
 #undef DEFINE_PREPOSTFIX_OP
   
-  PROVIDE_ACTION_WITH_N_SYMBOLS("structMemberCreate",1,return std::make_shared<ASTNode>(StructMemberNode{.name=fetch<IdNode>(subNodes,0).name}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("structMemberCreateWithDef",2,return std::make_shared<ASTNode>(StructMemberNode{.name=fetch<IdNode>(subNodes,0).name,
-														.def=subNodes[1]}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("structMemberCreate",1,
+    const auto& id=fetch<IdNode>(subNodes,0);
+    return std::make_shared<ASTNode>(StructMemberNode{.name=id.name,.location=id.location}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("structMemberCreateWithDef",2,
+    const auto& id=fetch<IdNode>(subNodes,0);
+    return std::make_shared<ASTNode>(StructMemberNode{.name=id.name,.def=subNodes[1],.location=id.location}));
   
-  PROVIDE_ACTION_WITH_N_SYMBOLS("funcParCreate",2,return std::make_shared<ASTNode>(FuncParNode{.name=fetch<IdNode>(subNodes,1).name,
-											   .isRef=(bool)unvariant<int>(fetch<ValueNode>(subNodes,0).value.data)}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("addFuncParDefault",2,const FuncParNode& in=fetch<FuncParNode>(subNodes,0);
-				return std::make_shared<ASTNode>(FuncParNode{.name=in.name,.isRef=in.isRef,.def=subNodes[1]}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("funcParCreate",2,
+    const auto& id=fetch<IdNode>(subNodes,1);
+    return std::make_shared<ASTNode>(FuncParNode{
+      .name=id.name,.isRef=(bool)unvariant<int>(fetch<ValueNode>(subNodes,0).value.data),.location=id.location}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("addFuncParDefault",2,
+    const FuncParNode& in=fetch<FuncParNode>(subNodes,0);
+    return std::make_shared<ASTNode>(FuncParNode{.name=in.name,.isRef=in.isRef,.def=subNodes[1],.location=in.location}));
 #define PROVIDE_FUNC_LIST_ACTIONS(NAME)					\
   PROVIDE_ACTION_WITH_N_SYMBOLS("empty" #NAME "List",0,return std::make_shared<ASTNode>(NAME ## ListNode{})); \
   PROVIDE_ACTION_WITH_N_SYMBOLS("first" #NAME "OfList",1,return makeFirstOfList<NAME ## Node,NAME ## ListNode>(subNodes[0])); \
@@ -437,18 +701,23 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
     return std::make_shared<ASTNode>(FuncDefNode{
       .name=fetch<IdNode>(subNodes,1).name,
       .fun=std::make_shared<FuncNode>(fetch<FuncParListNode>(subNodes,2),subNodes[3],
-                                     fetch<ValueNode>(subNodes,0).description)}));
+                                     fetch<ValueNode>(subNodes,0).description,
+                                     fetch<ValueNode>(subNodes,0).location)}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("structDef",3,
     return std::make_shared<ASTNode>(StructDefNode{
       .name=fetch<IdNode>(subNodes,1).name,
       .members=fetch<StructMemberListNode>(subNodes,2),
-      .description=fetch<ValueNode>(subNodes,0).description}));
+      .description=fetch<ValueNode>(subNodes,0).description,
+      .location=fetch<ValueNode>(subNodes,0).location}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("lambdaFuncDef",3,
     return std::make_shared<ASTNode>(FuncNode{
-      fetch<FuncParListNode>(subNodes,1),subNodes[2],fetch<ValueNode>(subNodes,0).description}));
+      fetch<FuncParListNode>(subNodes,1),subNodes[2],fetch<ValueNode>(subNodes,0).description,
+      fetch<ValueNode>(subNodes,0).location}));
   
-  PROVIDE_ACTION_WITH_N_SYMBOLS("funcCall",2,return std::make_shared<ASTNode>(FuncCallNode{.fun=fetch<IdNode>(subNodes,0).name,
-											   .args=fetch<FuncArgListNode>(subNodes,1)}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("funcCall",2,
+    const auto& id=fetch<IdNode>(subNodes,0);
+    return std::make_shared<ASTNode>(FuncCallNode{
+      .fun=id.name,.args=fetch<FuncArgListNode>(subNodes,1),.location=id.location}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcReturn",1,return std::make_shared<ASTNode>(ReturnNode{.arg=subNodes[0]}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("subscribe",2,return std::make_shared<ASTNode>(SubscribeNode{.base=subNodes[0],.subscr=subNodes[1]}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("memberAccess",2,return std::make_shared<ASTNode>(MemberAccessNode{.base=subNodes[0],.member=fetch<IdNode>(subNodes,1).name}));
@@ -489,33 +758,39 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
       [selection,name](std::vector<std::shared_ptr<Value>>& args,
                        Evaluator& caller)->Value
       {
-        const int verbose=args.empty() or not args[0]?0:
+        const int verbose=args.empty() or not args[0]?1:
           hostArgumentTypeConcretizer<int>(args,0,name);
 	
         if(args.size()>1 or (verbose!=0 and verbose!=1))
           errorEmitter(name," accepts only an optional verbose argument, 0 or 1");
 	
-        std::ostringstream output;
-        for(const std::string& entity : caller.curEnv->entityNames(selection))
-          {
-            output<<entity;
-	    
-            if(verbose)
-              output<<": "<<caller.curEnv->entityDetails(entity);
-	    
-            output<<'\n';
-          }
-	
-        const std::string text=output.str();
+        const std::string text=formatEntityListing(*caller.curEnv,selection,verbose!=0);
         if(not text.empty())
           MASTER_PRINTF("%s",text.c_str());
 	
         return {};
-      },{"verbose"},false,description};
+      },{"verbose"},false,description,{{"[verbose = 1]"}}};
   };
-  registerListing("listFunctions",EntitySelection::Functions,"List visible callables (default: verbose=0)");
-  registerListing("listVariables",EntitySelection::Variables,"List visible non-callable bindings (default: verbose=0)");
-  registerListing("listEntities",EntitySelection::All,"List all visible bindings (default: verbose=0)");
+  registerListing("listFunctions",EntitySelection::Functions,"List visible callables (default: verbose=1)");
+  registerListing("listVariables",EntitySelection::Variables,"List visible non-callable bindings (default: verbose=1)");
+  registerListing("listEntities",EntitySelection::All,"List all visible bindings (default: verbose=1)");
+  
+  env["help"]=HostFunction{
+    [](std::vector<std::shared_ptr<Value>>& args,
+       Evaluator& caller)->Value
+    {
+      if(args.size()>1)
+        errorEmitter("help accepts only an optional keyword string");
+      
+      const std::string keyword=args.empty() or not args[0]?"":
+        hostArgumentTypeConcretizer<std::string>(args,0,"help");
+      const std::string text=formatHelp(*caller.curEnv,keyword);
+      MASTER_PRINTF("%s",text.c_str());
+      
+      return {};
+    },{"keyword"},false,
+    "Explain the script language, or a named entity visible in the calling scope (default: keyword=\"\")",
+    {{"[keyword = \"\"]"}}};
   
   registerHostFunction(evaluator,"describe",{"name","description"},
                        [](Evaluator& caller,
@@ -545,7 +820,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
 	  MASTER_PRINTF("%s",text.c_str());
 	
 	return {};
-    },{},false,"Print arguments on the ranks selected by the library printing policy; no newline is added"};
+    },{},false,"Print arguments on the ranks selected by the library printing policy; no newline is added",{{"..."}}};
   
   env["makeVec"]=
     HostFunction{
@@ -553,7 +828,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
 	 Evaluator&)->Value
     {
 	return {ValuesList{.data{args}}};
-    },{},false,"Create a list from the supplied arguments"};
+    },{},false,"Create a list from the supplied arguments",{{"..."}}};
   
   env["forEachEl"]=
     HostFunction{
@@ -575,7 +850,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
 	  errorEmitter("trying to call \"forEachEl\" on a non-vector type ",variantInnerTypeName(args[0]->data));
 	
 	return {};
-    },{},false,"Call a function on each element of a list"};
+    },{},false,"Call a function on each element of a list",{{"values","function"}}};
   
   env["seq"]=
     HostFunction{
@@ -629,7 +904,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
 	  v.data.push_back(std::make_shared<Value>(i));
 	
 	return {v};
-    },{},false,"Create integers below max: seq(max), seq(min,max), or seq(min,step,max); omitted min=0 and step=1"};
+    },{},false,"Create integers below max: seq(max), seq(min,max), or seq(min,step,max); omitted min=0 and step=1",{{"max"},{"min","max"},{"min","step","max"}}};
   
   const auto requireArgCount=[](const std::vector<std::shared_ptr<Value>>& args,
                                 const size_t expected,
@@ -660,7 +935,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
       requireArgCount(args,0,"rand");
       
       return {std::rand()};
-    },{},false,"Draw an integer from the C library RNG, independently of the simulation RNG"};
+    },{},false,"Draw an integer from the C library RNG, independently of the simulation RNG",{{}}};
   
   env["srand"]=
     HostFunction{[requireArgCount,numericArg](std::vector<std::shared_ptr<Value>>& args,
@@ -670,7 +945,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
       std::srand(static_cast<unsigned int>(numericArg(*args[0],"srand")));
       
       return {std::monostate{}};
-    },{},false,"Seed the C library RNG without changing the simulation RNG"};
+    },{},false,"Seed the C library RNG without changing the simulation RNG",{{"seed"}}};
   
   const auto registerUnaryMath=[&env,requireArgCount,numericArg](const char* name,
                                                                  double (*function)(double),
@@ -683,7 +958,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
         requireArgCount(args,1,name);
 	
         return {function(numericArg(*args[0],name))};
-      },{},false,description};
+      },{},false,description,{{"value"}}};
   };
   
   registerUnaryMath("sqrt",static_cast<double (*)(double)>(std::sqrt),"Return the square root");
@@ -699,7 +974,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
       requireArgCount(args,2,"pow");
       
       return {std::pow(numericArg(*args[0],"pow"),numericArg(*args[1],"pow"))};
-    },{},false,"Raise a numeric base to a numeric exponent"};
+    },{},false,"Raise a numeric base to a numeric exponent",{{"base","exponent"}}};
   
   env["to_string"]=
     HostFunction{[requireArgCount](std::vector<std::shared_ptr<Value>>& args,
@@ -715,5 +990,5 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
         return {std::to_string(*real)};
       else
         errorEmitter("Trying to call to_string with a nonnumeric argument");
-    },{},false,"Convert a numeric value to a string"};
+    },{},false,"Convert a numeric value to a string",{{"value"}}};
 }
