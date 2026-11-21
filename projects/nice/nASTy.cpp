@@ -19,146 +19,150 @@ pp::Grammar getParser()
   
 #define C_COMMENT				\
   "/\\*([^\\*]|\\*+[^\\*/])*\\*+/"
-    
+  
+#define LINE(ARG) ARG "\n"
+  
   // The returned grammar retains string views into this storage
   static constexpr char cGrammar[]=
-    "c {"
-    "   %whitespace \"" BARE_WHITESPACES "|" CPP_COMMENT "|" C_COMMENT "\";"
-    "   %none lowerThanElse;"
-    "   %none \"else\";"
-    "   %left \"\\(\";"
-    "   %left \"\\)\";"
-    "   %none BRACKETS;"
-    "   %left \",\";"
-    "   %right \"=\" \"\\+=\" \"\\-=\" \"\\*=\" \"/=\";"
-    "   %left \"\\|\\||or\";"
-    "   %left \"&&|and\";"
-    "   %left \"==\" \"!=\";"
-    "   %left \"<\" \"<=\" \">\" \">=\";"
-    "   %left \"\\+\" \"\\-\";"
-    "   %left \"%\" \"\\*\" \"/\";"
-    "   %right UNARY_ARITHMETIC;"
-    "   %right \"!\";"
-    "   %left \"\\-\\-\";"
-    "   %left \"\\+\\+\";"
-    "   %none FUNCTION_CALL;"
-    ""
-    "   program : statements [return($0)]"
-    "           ;"
-    "   statement : expression_statement [return($0)]"
-    "             | compound_statement [return($0)]"
-    "             | forStatement [return($0)]"
-    "             | ifStatement [return($0)]"
-    "             | functionDefinition [return($0)]"
-    "             | structDefinition [return($0)]"
-    "             | \"return\" expression_statement [funcReturn($1)]"
-    "             ;"
-    "   functionDefinition : \"fun\" identifier \"\\(\" variadicFuncParList \"\\)\" compound_statement [funcDef($1,$3,$5)]"
-    "                      ;"
-    "   structDefinition : \"struct\" identifier \"{\" structMemberList \"}\" \";\" [structDef($1,$3)]"
-    "                    ;"
-    "   structMemberList : [emptyStructMemberList]"
-    "                    | nonEmptyStructMemberList [return($0)]"
-    "                    ;"
-    "   nonEmptyStructMemberList : structMember \";\" [firstStructMemberOfList($0)]"
-    "                            | nonEmptyStructMemberList structMember \";\" [appendStructMemberToList($0,$1)]"
-    "                            ;"
-    "   structMember : identifier [structMemberCreate($0)]"
-    "                | identifier \"=\" expression [structMemberCreateWithDef($0,$2)]"
-    "                ;"
-    "   variadicFuncParList: funcParList [return($0)]"
-    "                      | variadicFuncPar [emptyVariadicParList($0)]"
-    "                      | nonEmptyFuncParList \",\" variadicFuncPar [makeVariadicParList($0,$2)]"
-    "                      ;"
-    "   variadicFuncPar: \"\\.\\.\\.\" [return(0)]"
-    "                  | \"&\" \"\\.\\.\\.\" [return(1)]"
-    "                  ;"
-    "   funcParList: [emptyFuncParList]"
-    "              | nonEmptyFuncParList [return($0)]"
-    "              ;"
-    "   nonEmptyFuncParList: funcPar [firstFuncParOfList]"
-    "                      | nonEmptyFuncParList \",\" funcPar [appendFuncParToList($0,$2)]"
-    "                       ;"
-    "   funcPar: neededFuncPar [return($0)]"
-    "          | neededFuncPar \"=\" expression [addFuncParDefault($0,$2)]"
-    "          ;"
-    "   neededFuncPar: identifier [funcParCreate(0,$0)]"
-    "                | \"&\" identifier [funcParCreate(1,$1)]"
-    "                ;"
-    "   forStatement: \"for\" \"\\(\" forInit \";\" forCheck \";\" forIncr \"\\)\" statement [forStatement($2,$4,$6,$8)]"
-    "               ;"
-    "   forInit: expression [return($0)]"
-    "          |"
-    "          ;"
-    "   forCheck: expression [return($0)]"
-    "           |"
-    "           ;"
-    "   forIncr: expression [return($0)]"
-    "          |"
-    "          ;"
-    "   ifStatement: \"if\" \"\\(\" expression \"\\)\" statement %precedence lowerThanElse [ifStatement($2,$4)]"
-    "              | \"if\" \"\\(\" expression \"\\)\" statement \"else\" statement [ifElseStatement($2,$4,$6)]"
-    "              ;"
-    "    compound_statement : \"{\" statements \"}\" [return($1)]"
-    "                       ;"
-    "    statements : [createStatements]"
-    "               | statements statement [appendStatement]"
-    "               ;"
-    "    expression_statement : expression \";\" [return($0)]"
-    "                         ;"
-    "    expression : postfix_expression %precedence \"\\+\\+\" [return($0)]"
-    "               | expression \"\\+\" expression [binarySum($0,$2)]"
-    "               | expression \"\\-\" expression [binaryDiff($0,$2)]"
-    "               | expression \"\\*\" expression [binaryProd($0,$2)]"
-    "               | expression \"/\" expression [binaryDiv($0,$2)]"
-    "               | expression \"%\" expression [binaryMod($0,$2)]"
-    "               | \"\\+\" expression %precedence UNARY_ARITHMETIC [unaryPlus($1)]"
-    "               | \"\\-\" expression %precedence UNARY_ARITHMETIC [unaryMinus($1)]"
-    "               | \"!\" expression [unaryNot($1)]"
-    "               | \"&\" expression %precedence UNARY_ARITHMETIC [unaryReference($1)]"
-    "               | expression \"<\" expression [binarySmaller($0,$2)]"
-    "               | expression \">\" expression [binaryGreater($0,$2)]"
-    "               | expression \"<=\" expression [binarySmallerEqual($0,$2)]"
-    "               | expression \">=\" expression [binaryGreaterEqual($0,$2)]"
-    "               | expression \"==\" expression [binaryCompare($0,$2)]"
-    "               | expression \"!=\" expression [binaryInequal($0,$2)]"
-    "               | expression \"&&|and\" expression [binaryAnd($0,$2)]"
-    "               | expression \"\\|\\||or\" expression [binaryOr($0,$2)]"
-    "               | assign_expression [return($0)]"
-    "               ;"
-    "    postfix_expression : primary_expression [return($0)]"
-    "                       | postfix_expression \"\\+\\+\" [unaryPostfixIncrement($0)]"
-    "                       | postfix_expression \"\\-\\-\" [unaryPostfixDecrement($0)]"
-    "                       | postfix_expression \"\\(\" funcArgsList \"\\)\" %precedence FUNCTION_CALL [funcCall($0,$2)] "
-    "                       | postfix_expression \"\\[\" expression \"\\]\" [subscribe($0,$2)] "
-    "                       | postfix_expression \"\\.\" identifier [memberAccess($0,$2)] "
-    "                       ;"
-    "    funcArgsList : [emptyFuncArgList]"
-    "                 | nonemptyFuncArgsList [return($0)]"
-    "                 ;"
-    "    nonemptyFuncArgsList : arg [firstFuncArgOfList]"
-    "                         | funcArgsList \",\" arg [appendFuncArgToList($0,$2)]"
-    "                         ;"
-    "    arg : \"\\.\" identifier \"=\" expression [createFuncArg($1,$3)]"
-    "        | expression [createFuncArg(\"\",$0)]"
-    "        ;"
-    "    primary_expression : identifier [return($0)]"
-    "                       | \"[0-9]+\" [convToInt($0)]"
-    "                       | \"([0-9]+(\\.[0-9]*)?|(\\.[0-9]+))((e|E)(\\+|\\-)?[0-9]+)?\" [convToFloat($0)]"
-    "                       | \"\\\"([^\\\"\\\\]|\\\\.)*\\\"\" [convToStr($0)]"
-    "                       | \"\\(\" expression \"\\)\" %precedence BRACKETS [return($1)]"
-    "                       | \"lambda\" \"\\(\" variadicFuncParList \"\\)\" compound_statement [lambdaFuncDef($2,$4)]"
-    "                       ;"
-    "    assign_expression : postfix_expression \"=\" expression %precedence \"=\" [assign($0,$2,0)]"
-    "                      | postfix_expression \"\\*=\" expression [assign($0,$2,1)]"
-    "                      | postfix_expression \"/=\" expression [assign($0,$2,2)]"
-    "                      | postfix_expression \"\\+=\" expression [assign($0,$2,3)]"
-    "                      | postfix_expression \"\\-=\" expression [assign($0,$2,4)]"
-    "                      ;"
-    "    identifier : \"[a-zA-Z_][a-zA-Z0-9_]*\" [convToId($0)]"
-    "               ;"
-    "}";
-
+    LINE("c {")
+    LINE(    "   %whitespace \"" BARE_WHITESPACES "|" CPP_COMMENT "|" C_COMMENT "\";")
+    LINE(    "   %none lowerThanElse;")
+    LINE(    "   %none \"else\";")
+    LINE(    "   %left \"\\(\";")
+    LINE(    "   %left \"\\)\";")
+    LINE(    "   %none BRACKETS;")
+    LINE(    "   %left \",\";")
+    LINE(    "   %right \"=\" \"\\+=\" \"\\-=\" \"\\*=\" \"/=\";")
+    LINE(    "   %left \"\\|\\||or\";")
+    LINE(    "   %left \"&&|and\";")
+    LINE(    "   %left \"==\" \"!=\";")
+    LINE(    "   %left \"<\" \"<=\" \">\" \">=\";")
+    LINE(    "   %left \"\\+\" \"\\-\";")
+    LINE(    "   %left \"%\" \"\\*\" \"/\";")
+    LINE(    "   %right UNARY_ARITHMETIC;")
+    LINE(    "   %right \"!\";")
+    LINE(    "   %left \"\\-\\-\";")
+    LINE(    "   %left \"\\+\\+\";")
+    LINE(    "   %none FUNCTION_CALL;")
+    LINE(    "")
+    LINE(    "   program : statements [return($0)]")
+    LINE(    "           ;")
+    LINE(    "   statement : expression_statement [return($0)]")
+    LINE(    "             | compound_statement [return($0)]")
+    LINE(    "             | forStatement [return($0)]")
+    LINE(    "             | ifStatement [return($0)]")
+    LINE(    "             | functionDefinition [return($0)]")
+    LINE(    "             | structDefinition [return($0)]")
+    LINE(    "             | \"return\" expression_statement [funcReturn($1)]")
+    LINE(    "             ;")
+    LINE(    "   functionDefinition : \"fun\" identifier \"\\(\" variadicFuncParList \"\\)\" compound_statement [funcDef($0,$1,$3,$5)]")
+    LINE(    "                      ;")
+    LINE(    "   structDefinition : \"struct\" identifier \"{\" structMemberList \"}\" \";\" [structDef($0,$1,$3)]")
+    LINE(    "                    ;")
+    LINE(    "   structMemberList : [emptyStructMemberList]")
+    LINE(    "                    | nonEmptyStructMemberList [return($0)]")
+    LINE(    "                    ;")
+    LINE(    "   nonEmptyStructMemberList : structMember \";\" [firstStructMemberOfList($0)]")
+    LINE(    "                            | nonEmptyStructMemberList structMember \";\" [appendStructMemberToList($0,$1)]")
+    LINE(    "                            ;")
+    LINE(    "   structMember : identifier [structMemberCreate($0)]")
+    LINE(    "                | identifier \"=\" expression [structMemberCreateWithDef($0,$2)]")
+    LINE(    "                ;")
+    LINE(    "   variadicFuncParList: funcParList [return($0)]")
+    LINE(    "                      | variadicFuncPar [emptyVariadicParList($0)]")
+    LINE(    "                      | nonEmptyFuncParList \",\" variadicFuncPar [makeVariadicParList($0,$2)]")
+    LINE(    "                      ;")
+    LINE(    "   variadicFuncPar: \"\\.\\.\\.\" [return(0)]")
+    LINE(    "                  | \"&\" \"\\.\\.\\.\" [return(1)]")
+    LINE(    "                  ;")
+    LINE(    "   funcParList: [emptyFuncParList]")
+    LINE(    "              | nonEmptyFuncParList [return($0)]")
+    LINE(    "              ;")
+    LINE(    "   nonEmptyFuncParList: funcPar [firstFuncParOfList]")
+    LINE(    "                      | nonEmptyFuncParList \",\" funcPar [appendFuncParToList($0,$2)]")
+    LINE(    "                       ;")
+    LINE(    "   funcPar: neededFuncPar [return($0)]")
+    LINE(    "          | neededFuncPar \"=\" expression [addFuncParDefault($0,$2)]")
+    LINE(    "          ;")
+    LINE(    "   neededFuncPar: identifier [funcParCreate(0,$0)]")
+    LINE(    "                | \"&\" identifier [funcParCreate(1,$1)]")
+    LINE(    "                ;")
+    LINE(    "   forStatement: \"for\" \"\\(\" forInit \";\" forCheck \";\" forIncr \"\\)\" statement [forStatement($2,$4,$6,$8)]")
+    LINE(    "               ;")
+    LINE(    "   forInit: expression [return($0)]")
+    LINE(    "          |")
+    LINE(    "          ;")
+    LINE(    "   forCheck: expression [return($0)]")
+    LINE(    "           |")
+    LINE(    "           ;")
+    LINE(    "   forIncr: expression [return($0)]")
+    LINE(    "          |")
+    LINE(    "          ;")
+    LINE(    "   ifStatement: \"if\" \"\\(\" expression \"\\)\" statement %precedence lowerThanElse [ifStatement($2,$4)]")
+    LINE(    "              | \"if\" \"\\(\" expression \"\\)\" statement \"else\" statement [ifElseStatement($2,$4,$6)]")
+    LINE(    "              ;")
+    LINE(    "    compound_statement : \"{\" statements \"}\" [return($1)]")
+    LINE(    "                       ;")
+    LINE(    "    statements : [createStatements]")
+    LINE(    "               | statements statement [appendStatement]")
+    LINE(    "               ;")
+    LINE(    "    expression_statement : expression \";\" [return($0)]")
+    LINE(    "                         ;")
+    LINE(    "    expression : postfix_expression %precedence \"\\+\\+\" [return($0)]")
+    LINE(    "               | expression \"\\+\" expression [binarySum($0,$2)]")
+    LINE(    "               | expression \"\\-\" expression [binaryDiff($0,$2)]")
+    LINE(    "               | expression \"\\*\" expression [binaryProd($0,$2)]")
+    LINE(    "               | expression \"/\" expression [binaryDiv($0,$2)]")
+    LINE(    "               | expression \"%\" expression [binaryMod($0,$2)]")
+    LINE(    "               | \"\\+\" expression %precedence UNARY_ARITHMETIC [unaryPlus($1)]")
+    LINE(    "               | \"\\-\" expression %precedence UNARY_ARITHMETIC [unaryMinus($1)]")
+    LINE(    "               | \"!\" expression [unaryNot($1)]")
+    LINE(    "               | \"&\" expression %precedence UNARY_ARITHMETIC [unaryReference($1)]")
+    LINE(    "               | expression \"<\" expression [binarySmaller($0,$2)]")
+    LINE(    "               | expression \">\" expression [binaryGreater($0,$2)]")
+    LINE(    "               | expression \"<=\" expression [binarySmallerEqual($0,$2)]")
+    LINE(    "               | expression \">=\" expression [binaryGreaterEqual($0,$2)]")
+    LINE(    "               | expression \"==\" expression [binaryCompare($0,$2)]")
+    LINE(    "               | expression \"!=\" expression [binaryInequal($0,$2)]")
+    LINE(    "               | expression \"&&|and\" expression [binaryAnd($0,$2)]")
+    LINE(    "               | expression \"\\|\\||or\" expression [binaryOr($0,$2)]")
+    LINE(    "               | assign_expression [return($0)]")
+    LINE(    "               ;")
+    LINE(    "    postfix_expression : primary_expression [return($0)]")
+    LINE(    "                       | postfix_expression \"\\+\\+\" [unaryPostfixIncrement($0)]")
+    LINE(    "                       | postfix_expression \"\\-\\-\" [unaryPostfixDecrement($0)]")
+    LINE(    "                       | postfix_expression \"\\(\" funcArgsList \"\\)\" %precedence FUNCTION_CALL [funcCall($0,$2)] ")
+    LINE(    "                       | postfix_expression \"\\[\" expression \"\\]\" [subscribe($0,$2)] ")
+    LINE(    "                       | postfix_expression \"\\.\" identifier [memberAccess($0,$2)] ")
+    LINE(    "                       ;")
+    LINE(    "    funcArgsList : [emptyFuncArgList]")
+    LINE(    "                 | nonemptyFuncArgsList [return($0)]")
+    LINE(    "                 ;")
+    LINE(    "    nonemptyFuncArgsList : arg [firstFuncArgOfList]")
+    LINE(    "                         | funcArgsList \",\" arg [appendFuncArgToList($0,$2)]")
+    LINE(    "                         ;")
+    LINE(    "    arg : \"\\.\" identifier \"=\" expression [createFuncArg($1,$3)]")
+    LINE(    "        | expression [createFuncArg(\"\",$0)]")
+    LINE(    "        ;")
+    LINE(    "    primary_expression : identifier [return($0)]")
+    LINE(    "                       | \"[0-9]+\" [convToInt($0)]")
+    LINE(    "                       | \"([0-9]+(\\.[0-9]*)?|(\\.[0-9]+))((e|E)(\\+|\\-)?[0-9]+)?\" [convToFloat($0)]")
+    LINE(    "                       | \"\\\"([^\\\"\\\\]|\\\\.)*\\\"\" [convToStr($0)]")
+    LINE(    "                       | \"\\(\" expression \"\\)\" %precedence BRACKETS [return($1)]")
+    LINE(    "                       | \"lambda\" \"\\(\" variadicFuncParList \"\\)\" compound_statement [lambdaFuncDef($0,$2,$4)]")
+    LINE(    "                       ;")
+    LINE(    "    assign_expression : postfix_expression \"=\" expression %precedence \"=\" [assign($0,$2,0)]")
+    LINE(    "                      | postfix_expression \"\\*=\" expression [assign($0,$2,1)]")
+    LINE(    "                      | postfix_expression \"/=\" expression [assign($0,$2,2)]")
+    LINE(    "                      | postfix_expression \"\\+=\" expression [assign($0,$2,3)]")
+    LINE(    "                      | postfix_expression \"\\-=\" expression [assign($0,$2,4)]")
+    LINE(    "                      ;")
+    LINE(    "    identifier : \"[a-zA-Z_][a-zA-Z0-9_]*\" [convToId($0)]")
+    LINE(    "               ;")
+    LINE(    "}");
+  
+#undef LINE
+  
 #undef BARE_WHITESPACES
 #undef CPP_COMMENT
 #undef C_COMMENT
@@ -222,7 +226,7 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
     
     return std::make_shared<ASTNode>(ValueNode{.value=literal}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("convToStr",1,return std::make_shared<ASTNode>(ValueNode{.value{unescapeString(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data))}}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("convToId",1,return std::make_shared<ASTNode>(IdNode{.name=unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data)}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("convToId",1,return std::make_shared<ASTNode>(IdNode{.name=unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data),.description=fetch<ValueNode>(subNodes,0).description}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("convToFloat",1,return std::make_shared<ASTNode>(ValueNode{.value{strtod(unvariant<std::string>(fetch<ValueNode>(subNodes,0).value.data).c_str(),nullptr)}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("return",1,return subNodes[0]);
   PROVIDE_ACTION_WITH_N_SYMBOLS("createFuncArg",2,
