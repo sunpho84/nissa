@@ -340,7 +340,7 @@ namespace nissa
 			  const double& kappa,
 			  const double& anis,
 			  const LxField<clover_term_t>& Cl,
-			  const double& mu,
+			  const double& mass,
 			  const LxField<spincolor>& in)
   {
     in.updateHalo();
@@ -349,7 +349,7 @@ namespace nissa
     const double kcf=1/(2*kappa);
     
     PAR(0,locVol,
-	CAPTURE(kcf,mu,
+	CAPTURE(kcf,mass,
 		TO_WRITE(out),
 		TO_READ(conf),
 		anis,
@@ -406,14 +406,14 @@ namespace nissa
 	//ok this is horrible, but fast
 	for(int c=0;c<NCOL;c++)
 	  {
-	    out[X][0][c][0]=+Clin[0][c][0]-0.5*temp[0][c][0]+kcf*in[X][0][c][0]-mu*in[X][0][c][1];
-	    out[X][0][c][1]=+Clin[0][c][1]-0.5*temp[0][c][1]+kcf*in[X][0][c][1]+mu*in[X][0][c][0];
-	    out[X][1][c][0]=+Clin[1][c][0]-0.5*temp[1][c][0]+kcf*in[X][1][c][0]-mu*in[X][1][c][1];
-	    out[X][1][c][1]=+Clin[1][c][1]-0.5*temp[1][c][1]+kcf*in[X][1][c][1]+mu*in[X][1][c][0];
-	    out[X][2][c][0]=-Clin[2][c][0]+0.5*temp[2][c][0]-kcf*in[X][2][c][0]-mu*in[X][2][c][1];
-	    out[X][2][c][1]=-Clin[2][c][1]+0.5*temp[2][c][1]-kcf*in[X][2][c][1]+mu*in[X][2][c][0];
-	    out[X][3][c][0]=-Clin[3][c][0]+0.5*temp[3][c][0]-kcf*in[X][3][c][0]-mu*in[X][3][c][1];
-	    out[X][3][c][1]=-Clin[3][c][1]+0.5*temp[3][c][1]-kcf*in[X][3][c][1]+mu*in[X][3][c][0];
+	    out[X][0][c][0]=+Clin[0][c][0]-0.5*temp[0][c][0]+kcf*in[X][0][c][0]-mass*in[X][0][c][1];
+	    out[X][0][c][1]=+Clin[0][c][1]-0.5*temp[0][c][1]+kcf*in[X][0][c][1]+mass*in[X][0][c][0];
+	    out[X][1][c][0]=+Clin[1][c][0]-0.5*temp[1][c][0]+kcf*in[X][1][c][0]-mass*in[X][1][c][1];
+	    out[X][1][c][1]=+Clin[1][c][1]-0.5*temp[1][c][1]+kcf*in[X][1][c][1]+mass*in[X][1][c][0];
+	    out[X][2][c][0]=-Clin[2][c][0]+0.5*temp[2][c][0]-kcf*in[X][2][c][0]-mass*in[X][2][c][1];
+	    out[X][2][c][1]=-Clin[2][c][1]+0.5*temp[2][c][1]-kcf*in[X][2][c][1]+mass*in[X][2][c][0];
+	    out[X][3][c][0]=-Clin[3][c][0]+0.5*temp[3][c][0]-kcf*in[X][3][c][0]-mass*in[X][3][c][1];
+	    out[X][3][c][1]=-Clin[3][c][1]+0.5*temp[3][c][1]-kcf*in[X][3][c][1]+mass*in[X][3][c][0];
 	  }
 	
 	// if(p)
