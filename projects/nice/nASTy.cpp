@@ -7,6 +7,81 @@
 
 #include "routines/ios.hpp"
 
+std::string precedingDocumentation(const pp::internal::ShiftNode& token)
+{
+  StringMatcher matcher(token.leadingTrivia,token.triviaCursor);
+  std::string description;
+  size_t lastDocLine=0;
+  bool cleanLine=token.triviaCursor.column==1;
+  
+  while(not matcher.ref.empty())
+    {
+      if(matcher.ref.front()=='\r' or matcher.ref.front()=='\n')
+        {
+          const size_t previousLine=matcher.cursor.line;
+          matcher.advance();
+          
+          if(matcher.cursor.line!=previousLine)
+            {
+              cleanLine=true;
+              
+              if(lastDocLine!=0 and matcher.cursor.line>lastDocLine+1)
+                {
+                  description.clear();
+                  lastDocLine=0;
+                }
+            }
+        }
+      else if(matcher.matchAnyCharIn(" \t\f\v"))
+        {
+          // Indentation preserves adjacency to the following definition
+        }
+      else if(matcher.ref.starts_with("//"))
+        {
+          const bool documented=cleanLine and
+            (matcher.ref.starts_with("///") or matcher.ref.starts_with("//!"));
+          const std::string_view before=matcher.ref;
+          const size_t line=matcher.cursor.line;
+          matcher.matchLineComment();
+          
+          if(documented)
+            {
+              if(lastDocLine!=0)
+                description+='\n';
+              
+              std::string_view text=before.substr(3,before.size()-matcher.ref.size()-3);
+              if(text.starts_with(' '))
+                text.remove_prefix(1);
+              
+              description+=text;
+              lastDocLine=line;
+            }
+          else
+            {
+              description.clear();
+              lastDocLine=0;
+            }
+          
+          cleanLine=false;
+        }
+      else
+        {
+          // Ordinary block comments and any intervening text end the documentation block
+          if(not matcher.matchBlockComment())
+            matcher.advance();
+          
+          description.clear();
+          lastDocLine=0;
+          cleanLine=false;
+        }
+    }
+  
+  if(not cleanLine or matcher.cursor.line!=lastDocLine+1)
+    description.clear();
+  
+  return description;
+}
+
 /// Build the ParsePact parser for the script grammar and its semantic actions
 /// The grammar text has static lifetime because parser data retains string views
 pp::Grammar getParser()
@@ -358,17 +433,19 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
 				fetch<FuncParListNode>(subNodes,0).makeVariadic(unvariant<int>(fetch<ValueNode>(subNodes,1).value.data));
 				return subNodes[0]);
   
-  PROVIDE_ACTION_WITH_N_SYMBOLS("funcDef",3,
-				return std::make_shared<ASTNode>(FuncDefNode{.name=fetch<IdNode>(subNodes,0).name,
-									     .fun=std::make_shared<FuncNode>(fetch<FuncParListNode>(subNodes,1),
-													     subNodes[2])}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("structDef",2,
-				return std::make_shared<ASTNode>(StructDefNode{.name=fetch<IdNode>(subNodes,0).name,
-									     .members=fetch<StructMemberListNode>(subNodes,1)}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("lambdaFuncDef",2,
-				return std::make_shared<ASTNode>(FuncNode{fetch<FuncParListNode>(subNodes,0),
-									  subNodes[1]}));
-  
+  PROVIDE_ACTION_WITH_N_SYMBOLS("funcDef",4,
+    return std::make_shared<ASTNode>(FuncDefNode{
+      .name=fetch<IdNode>(subNodes,1).name,
+      .fun=std::make_shared<FuncNode>(fetch<FuncParListNode>(subNodes,2),subNodes[3],
+                                     fetch<ValueNode>(subNodes,0).description)}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("structDef",3,
+    return std::make_shared<ASTNode>(StructDefNode{
+      .name=fetch<IdNode>(subNodes,1).name,
+      .members=fetch<StructMemberListNode>(subNodes,2),
+      .description=fetch<ValueNode>(subNodes,0).description}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("lambdaFuncDef",3,
+    return std::make_shared<ASTNode>(FuncNode{
+      fetch<FuncParListNode>(subNodes,1),subNodes[2],fetch<ValueNode>(subNodes,0).description}));
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcCall",2,return std::make_shared<ASTNode>(FuncCallNode{.fun=fetch<IdNode>(subNodes,0).name,
 											   .args=fetch<FuncArgListNode>(subNodes,1)}));
@@ -379,9 +456,16 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
   PROVIDE_ACTION_WITH_N_SYMBOLS("ifStatement",2,return std::make_shared<ASTNode>(IfNode{.subNodes{subNodes}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("ifElseStatement",3,return std::make_shared<ASTNode>(IfNode{.subNodes{subNodes}}));
   
-  PROVIDE_ACTION_WITH_N_SYMBOLS("assign",3,return std::make_shared<ASTNode>(AssignNode{.lhs=subNodes[0],
-	  .rhs=subNodes[1],
-	  .mode=(AssignMode)unvariant<int>(fetch<ValueNode>(subNodes,2).value.data)}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("assign",3,
+    const AssignMode mode=static_cast<AssignMode>(unvariant<int>(fetch<ValueNode>(subNodes,2).value.data));
+    
+    // Documentation before a named lambda binding belongs to the callable as well
+    if(mode==AssignMode::PLAIN)
+      if(const auto* id=std::get_if<IdNode>(subNodes[0].get());id and not id->description.empty())
+        if(auto* function=std::get_if<FuncNode>(subNodes[1].get());function and function->description.empty())
+          function->description=id->description;
+    
+    return std::make_shared<ASTNode>(AssignNode{.lhs=subNodes[0],.rhs=subNodes[1],.mode=mode}));
   
 #undef PROVIDE_ACTION_WITH_N_SYMBOLS
 #undef ENSURE_N_SYMBOLS

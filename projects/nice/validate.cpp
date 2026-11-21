@@ -1161,6 +1161,110 @@ void validateEntityDiscovery()
   assert(child.entityDetails("M_PI").find("circle constant")==std::string::npos);
 }
 
+/// Documentation belongs only to the immediately following definition, including across aliases
+void validateDocumentationComments()
+{
+  const auto parser=getParser();
+  const auto executor=getParseTreeExecuctor(parser.actionStrings);
+  Evaluator evaluator;
+  const std::map<std::string,std::string> expected{
+    {"documented","A function\nwith two documentation lines"},
+    {"functionAlias","A function\nwith two documentation lines"},
+    {"DocumentedStruct","A script struct"},
+    {"structAlias","A script struct"},
+    {"variable","A variable"},
+    {"closure","A named closure"},
+    {"closureAlias","A named closure"},
+    {"directClosure","A directly documented lambda"},
+    {"blankGap",""},
+    {"ordinaryGap",""},
+    {"blockGap",""},
+    {"fakeBlockDoc",""},
+    {"intervening",""},
+    {"trailing",""},
+    {"afterString",""},
+    {"lastBlock","Keep only the last block"},
+    {"overridden","Explicit description"}};
+  bool inspected=false;
+  registerHostFunction(evaluator,"inspectDocs",{},[&](Evaluator& caller)
+  {
+    for(const auto& [name,description] : expected)
+      {
+        const std::string details=caller.curEnv->entityDetails(name);
+        
+        if(description.empty())
+          assert(details.find(" - ")==std::string::npos);
+        else
+          assert(details.ends_with(" - "+description));
+      }
+    
+    inspected=true;
+  });
+  
+  const auto tree=createParseTree(parser,R"DOC(
+    /// A function
+    //! with two documentation lines
+    fun documented()
+    {
+      /// An unused comment inside the function must not replace its documentation
+      return 0;
+    }
+    functionAlias=documented;
+    //! A script struct
+    struct DocumentedStruct { value; };
+    structAlias=DocumentedStruct;
+    /// A variable
+    variable=7;
+    /// A named closure
+    closure=lambda() { return 0; };
+    closureAlias=closure;
+    directClosure=
+      //! A directly documented lambda
+      lambda() { return 0; };
+    /// Discarded by a blank line
+
+    fun blankGap() { return 0; }
+    /// Discarded by an ordinary comment
+    // Ordinary comment
+    fun ordinaryGap() { return 0; }
+    /// Discarded by a block comment
+    /* Ordinary comment */
+    fun blockGap() { return 0; }
+    /*
+    /// Not documentation: inside an ordinary block comment
+    */
+    fun fakeBlockDoc() { return 0; }
+    /// Discarded by an intervening statement
+    0;
+    fun intervening() { return 0; }
+    0; /// Trailing comments do not describe the following definition
+    fun trailing() { return 0; }
+    text="//! A string is not documentation";
+    fun afterString() { return 0; }
+    /// Earlier documentation
+    // Ends the earlier block
+    //! Keep only the last block
+    fun lastBlock() { return 0; }
+    /// Original description
+    fun overridden() { return 0; }
+    describe("overridden","Explicit description");
+    inspectDocs();
+    /// Discarded at end of the program
+  )DOC");
+  const auto ast=executor.execParseTree(tree);
+  std::visit(evaluator,*ast);
+  assert(inspected);
+  
+  // CRLF and lone CR end documentation lines exactly once; indentation after the marker survives
+  for(const std::string_view whitespace : {"\n","\r\n","\r"})
+    {
+      const std::string text="/// First"+std::string(whitespace)+
+        "//!   indented"+std::string(whitespace)+"fun";
+      const ShiftNode token{.txt="fun",.leadingTrivia=std::string_view(text).substr(0,text.size()-3)};
+      assert(precedingDocumentation(token)=="First\n  indented");
+    }
+}
+
 /// Check program scope, expression evaluation, returns, and reference arguments
 void validateProgramGrammar(int argc,
                             char** argv)
@@ -3650,6 +3754,7 @@ int main(int narg,
     {
       validateFunctionDiscovery();
       validateEntityDiscovery();
+      validateDocumentationComments();
 #ifdef USE_MPI
       MPI_Finalize();
 #endif
@@ -3714,6 +3819,7 @@ int main(int narg,
   validateScriptBindings(narg,arg);
   validateFunctionDiscovery();
   validateEntityDiscovery();
+  validateDocumentationComments();
   validateProgramGrammar(narg,arg);
   validateHostObjects(R"(
     {

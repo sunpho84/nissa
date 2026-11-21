@@ -39,6 +39,9 @@ using namespace pp::internal;
 /// Build the ParsePact parser for the script grammar and its semantic actions
 pp::Grammar getParser();
 
+/// Extract immediately preceding /// and //! lines from a token's skipped text
+std::string precedingDocumentation(const pp::internal::ShiftNode& token);
+
 /// Assignment operations shared by script values and host member setters
 /// The enumerator order matches the integer tags emitted by the grammar
 enum class AssignMode{PLAIN,PROD,DIV,SUM,SUB};
@@ -625,6 +628,9 @@ inline HObjectMemberRef HObject::getMemberRef(const std::string& memberName)
 struct IdNode
 {
   std::string name;
+  
+  /// Documentation used when this identifier defines a variable
+  std::string description{};
 };
 
 /// Call argument expression with an optional name for named argument binding
@@ -661,6 +667,15 @@ struct MemberAccessNode
 struct ValueNode
 {
   Value value;
+  
+  /// Documentation before a parser token, consumed only by definitions
+  std::string description{};
+  
+  /// Convert a shifted token while discarding ordinary skipped comments
+  static ValueNode fromShift(const pp::internal::ShiftNode& token)
+  {
+    return {.value=Value{std::string(token.txt)},.description=precedingDocumentation(token)};
+  }
 };
 
 /// Statement block, evaluated in a child environment in source order
@@ -759,6 +774,9 @@ struct FuncNode
   FuncParListNode pars;
   
   std::shared_ptr<ASTNode> body;
+  
+  /// Immediately preceding documentation, retained by callable aliases through this AST
+  std::string description{};
 };
 
 /// Named function declaration, installing a closure in the current environment
@@ -798,6 +816,9 @@ struct StructDefNode
   std::string name;
   
   StructMemberListNode members;
+  
+  /// Immediately preceding documentation shared by constructor aliases
+  std::string description{};
 };
 
 inline std::ostream& operator<<(std::ostream& os,
@@ -940,7 +961,7 @@ struct EntityInfoVisitor
   PROVIDE_ENTITY_INFO(double,,"variable (double)")
   
   /// Script functions and anonymous lambdas
-  PROVIDE_ENTITY_INFO(Function,function,(function.name.empty()?"script lambda":"embedded function '"+function.name+"'")+std::string(" (location unavailable)"),{},true)
+  PROVIDE_ENTITY_INFO(Function,function,(function.name.empty()?"script lambda":"embedded function '"+function.name+"'")+std::string(" (location unavailable)"),function.funcNode->description,true)
   
   /// Named argument values
   PROVIDE_ENTITY_INFO(FuncArg,,"variable (named argument)")
@@ -955,7 +976,7 @@ struct EntityInfoVisitor
   PROVIDE_ENTITY_INFO(ValuesList,,"variable (list)")
   
   /// Script struct constructors
-  PROVIDE_ENTITY_INFO(StructDef,,"script struct constructor (location unavailable)",{},true)
+  PROVIDE_ENTITY_INFO(StructDef,definition,"script struct constructor (location unavailable)",definition.structDefNode->description,true)
   
   /// Script struct instances
   PROVIDE_ENTITY_INFO(Struct,object,"script struct instance '"+object.structDefNode->name+"'")
@@ -2071,6 +2092,10 @@ struct Evaluator
     EvalResult _lhs=std::visit(*this,*assignNode.lhs);
     
     _lhs.set(assignNode.mode,std::visit(*this,*assignNode.rhs).asRhs());
+    
+    if(assignNode.mode==AssignMode::PLAIN)
+      if(const auto* id=std::get_if<IdNode>(assignNode.lhs.get());id and not id->description.empty())
+        curEnv->describe(id->name,id->description);
     
     return _lhs;
   }
