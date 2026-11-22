@@ -130,6 +130,8 @@ struct Function;
 
 struct HostFunction;
 
+struct HObjectInfo;
+
 struct ValuesList;
 
 struct StructDef;
@@ -183,6 +185,16 @@ struct Function
 using FunctionArgumentForms=
   std::vector<std::vector<std::string>>;
 
+/// Static result description; an absent C++ type means a dynamically determined value
+struct ValueTypeInfo
+{
+  /// Concrete scalar or host payload type, when known
+  std::optional<std::type_index> cppType{};
+  
+  /// Registered host description, weak to avoid cycles through binary overloads
+  std::weak_ptr<const HObjectInfo> hostType{};
+};
+
 /// C++ callable exposed to scripts, receiving prepared arguments and the evaluator
 /// An empty argumentNames signature permits positional arguments only
 struct HostFunction :
@@ -199,6 +211,9 @@ struct HostFunction :
   
   /// Display-only raw signatures; otherwise derive named arguments or report an unknown signature
   FunctionArgumentForms argumentForms{};
+  
+  /// Declared result type, available to tooling without invoking this callable
+  ValueTypeInfo resultType{};
 };
 
 /// Callable script struct definition borrowing its declaration from the AST
@@ -486,12 +501,34 @@ struct HObjectInfo
   /// Script-visible type name, also used in diagnostics
   std::string name;
   
-  /// Factories binding named member accessors to the supplied concrete value
-  std::unordered_map<std::string,std::function<HObjectMemberRef::Accessors(std::any&)>> memberAccessorsProvider;
+  /// Concrete payload identity used when selecting registered binary overloads
+  std::type_index cppType{typeid(void)};
   
-  /// Callable for one concrete pair of binary operands
-  using BinaryFunction=
-    std::function<Value(const std::any&,const std::any&)>;
+  /// Member accessors and their static value type, sharing one registration entry
+  struct MemberProvider :
+    std::function<HObjectMemberRef::Accessors(std::any&)>
+  {
+    /// Callable interface retained when replacing or instrumenting a provider
+    using Function=
+      std::function<HObjectMemberRef::Accessors(std::any&)>;
+    
+    /// Replacing the callable preserves its registered value type
+    using Function::operator=;
+    
+    /// Script-visible member type; scalar conversions match the getter
+    ValueTypeInfo valueType{};
+  };
+  
+  /// Factories binding named member accessors to the supplied concrete value
+  std::unordered_map<std::string,MemberProvider> memberAccessorsProvider;
+  
+  /// Callable and static result description for one concrete pair of binary operands
+  struct BinaryFunction :
+    std::function<Value(const std::any&,const std::any&)>
+  {
+    /// Result metadata retained beside the callable, without invoking it
+    ValueTypeInfo resultType{};
+  };
   
   /// Concrete overloads for one binary operator
   struct BinaryOverloads
@@ -583,7 +620,7 @@ void registerHObjectBinaryOperator(const std::shared_ptr<HObjectInfo>& lhsInfo,
   if(not resultInfo or (not lhsInfo and not rhsInfo))
     errorEmitter("a host binary operation requires operand and result metadata");
   
-  HObjectInfo::BinaryFunction function=
+  HObjectInfo::BinaryFunction function={
     [result=std::weak_ptr<HObjectInfo>(resultInfo)](const std::any& lhs,
                                                     const std::any& rhs)->Value
   {
@@ -593,7 +630,7 @@ void registerHObjectBinaryOperator(const std::shared_ptr<HObjectInfo>& lhsInfo,
     
     return {HObject{info,Operator{}(std::any_cast<const L&>(lhs),
                                     std::any_cast<const R&>(rhs))}};
-  };
+  },{resultInfo->cppType,resultInfo}};
   
   if(lhsInfo)
     lhsInfo->binaryOperations[typeid(Operator)].rightOperands[typeid(R)]=
@@ -2231,6 +2268,7 @@ std::shared_ptr<HObjectInfo> registerHObjectType(Evaluator& ev,
     std::make_shared<HObjectInfo>();
   
   info->name=name;
+  info->cppType=typeid(T);
   ev.hostObjectTypes.insert_or_assign(typeid(T),info);
   
   return info;
@@ -2291,9 +2329,14 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
 	
 	names.push_back(field.name);
 	
+	// Retain exactly the type returned by the getter, including integer normalization
+	using ScriptType=
+	  std::conditional_t<std::is_same_v<M,bool> or std::is_same_v<M,size_t>,int,M>;
+	const ValueTypeInfo memberType{typeid(ScriptType),scalar?nullptr:field.memberType};
+	
 	// Bind accessors to the value of the particular object being accessed
 	info->memberAccessorsProvider.emplace(field.name,
-					      [field](std::any& data)
+					      HObjectInfo::MemberProvider{[field](std::any& data)
 					      {
 						// Read a scalar value or wrap a copy of the nested host member
 						auto getter=[&data,field]()->Value
@@ -2308,9 +2351,6 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
 							if constexpr(std::is_same_v<M,size_t>)
 							  if(value>static_cast<size_t>(std::numeric_limits<int>::max()))
 							    errorEmitter("host member ",field.name," exceeds the script integer range");
-							using ScriptType=
-							  std::conditional_t<std::is_same_v<M,bool> or std::is_same_v<M,size_t>,int,M>;
-							
 							result=Value{ScriptType(value)};
 						      }
 						    else
@@ -2349,7 +2389,7 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
 						};
 						
 						return HObjectMemberRef::Accessors{getter,setter};
-					      });
+					      },memberType});
       };
     
     (add(field),...);
@@ -2373,7 +2413,7 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
 	  object.getMemberRef(names[i]).set(AssignMode::PLAIN,*args[i]);
       
       return {object};
-    },names,true,description.empty()?"Construct "+name+" from its named members":description};
+    },names,true,description.empty()?"Construct "+name+" from its named members":description,{},{typeid(T),info}};
   
   return info;
 }
@@ -2389,12 +2429,16 @@ struct HostCallableSignature<Return (Owner::*)(Arguments...) const>
 {
   static constexpr std::size_t arity=sizeof...(Arguments);
   
+  /// Native return type before conversion to a script value
+  using Result=
+    std::remove_cvref_t<Return>;
+  
   /// Concretize required arguments in signature order, then call the lambda
   template <typename Callable>
   static Value invoke(Callable& callable,
                       const std::vector<std::shared_ptr<Value>>& values,
                       const char* functionName,
-                      Evaluator&)
+                      Evaluator& evaluator)
   {
     auto arguments=
       hostArgumentsTypeConcretizer<std::remove_cvref_t<Arguments>...>(values,functionName);
@@ -2405,10 +2449,18 @@ struct HostCallableSignature<Return (Owner::*)(Arguments...) const>
         
         return {};
       }
-    else if constexpr(std::is_same_v<Return,Value>)
+    else if constexpr(std::is_same_v<Result,Value>)
       return std::apply(callable,arguments);
-    else
+    else if constexpr(std::is_constructible_v<ValueT,Return>)
       return {std::apply(callable,arguments)};
+    else
+      {
+        const auto found=evaluator.hostObjectTypes.find(typeid(Result));
+        if(found==evaluator.hostObjectTypes.end())
+          errorEmitter("unregistered host result type in ",functionName);
+        
+        return {HObject{found->second,std::apply(callable,arguments)}};
+      }
   }
 };
 
@@ -2445,17 +2497,44 @@ struct HostCallableSignature<Return (Owner::*)(Arguments...)> :
 {
 };
 
+/// Describe a native result without constructing it or evaluating a callback
+/// Erased runtime wrappers deliberately leave the result unknown
+/// Non-scalar host payloads must already be registered with the evaluator
+template <typename T>
+ValueTypeInfo hostResultType(const Evaluator& evaluator)
+{
+  using Result=
+    std::remove_cvref_t<T>;
+  ValueTypeInfo result;
+  if constexpr(std::is_void_v<Result>)
+    result.cppType=typeid(std::monostate);
+  else if constexpr(std::is_same_v<Result,bool>)
+    result.cppType=typeid(int);
+  else if constexpr(std::is_same_v<Result,int> or std::is_same_v<Result,int64_t> or
+                    std::is_same_v<Result,double> or std::is_same_v<Result,std::string>)
+    result.cppType=typeid(Result);
+  else if constexpr(not std::is_constructible_v<ValueT,Result> and not std::is_same_v<Result,Value>)
+    {
+      if(const auto found=evaluator.hostObjectTypes.find(typeid(Result));found!=evaluator.hostObjectTypes.end())
+        result={typeid(Result),found->second};
+    }
+  
+  return result;
+}
+
 /// Install a typed C++ lambda as a script function
 /// The provided names correspond to its parameters and enable named arguments
 /// An optional leading Evaluator& receives the caller context without a script argument
 /// An optional description is displayed by verbose entity discovery
+/// Native return types are retained automatically; erased Value/HObject returns may supply resultType
 /// Its captured references must outlive the evaluator's registered function
 template <typename Callable>
 void registerHostFunction(Evaluator& evaluator,
                           const std::string& name,
                           std::vector<std::string> argumentNames,
                           Callable callable,
-                          std::string description={})
+                          std::string description={},
+                          ValueTypeInfo resultType={})
 {
   using Signature=
     HostCallableSignature<decltype(&Callable::operator())>;
@@ -2466,15 +2545,18 @@ void registerHostFunction(Evaluator& evaluator,
   if(argumentNames.size()!=Signature::arity)
     errorEmitter("argument name count does not match signature of ",name);
   
-  for(std::size_t i=0;i<argumentNames.size();++i)
+  for(size_t i=0;i<argumentNames.size();i++)
     {
       if(argumentNames[i].empty())
         errorEmitter("empty argument name in ",name);
       
-      for(std::size_t j=0;j<i;++j)
+      for(size_t j=0;j<i;j++)
         if(argumentNames[i]==argumentNames[j])
           errorEmitter("duplicate argument name ",argumentNames[i]," in ",name);
     }
+  
+  if(not resultType.cppType)
+    resultType=hostResultType<typename Signature::Result>(evaluator);
   
   (*evaluator.curEnv)[name]=HostFunction{
     [callable=std::move(callable),name](std::vector<std::shared_ptr<Value>>& values,
@@ -2482,7 +2564,7 @@ void registerHostFunction(Evaluator& evaluator,
     {
       return Signature::invoke(callable,values,name.c_str(),caller);
     },std::move(argumentNames),false,std::move(description),
-    Signature::arity==0?FunctionArgumentForms(1):FunctionArgumentForms{}};
+    Signature::arity==0?FunctionArgumentForms(1):FunctionArgumentForms{},std::move(resultType)};
 }
 
 /// Registers Type under its C++ identifier, using its static members() function

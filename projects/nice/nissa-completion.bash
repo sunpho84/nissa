@@ -84,9 +84,9 @@ _nissa_complete()
     # Bash reports character positions in its active locale; split before byte arithmetic
     local prefix=${COMP_LINE:0:COMP_POINT} after=${COMP_LINE:COMP_POINT}
     local LC_ALL=C
-    local -a _nissa_words response
+    local -a _nissa_words response contextArgs=()
     local _nissa_text _nissa_quote _nissa_drop _nissa_candidate
-    local argument context= options=1 file=0 i
+    local argument options=1 file=0 i
     local program=${NISSA_COMPLETION_PROGRAM:-$1} request offset begin tail=
     COMPREPLY=()
     if ! _nissa_shell_prefix "$prefix"; then return; fi
@@ -95,13 +95,14 @@ _nissa_complete()
     for ((i=1; i<${#_nissa_words[@]}; i++)); do
         argument=${_nissa_words[i]}
         if ((file)); then
+            contextArgs+=(--context-file "$argument")
             file=0
         elif ((options)) && [[ $argument == -f ]]; then
             file=1
         elif ((options)) && [[ $argument == -- ]]; then
             options=0
         else
-            context+="$argument"$'\n'
+            contextArgs+=(--context-script "$argument")
         fi
     done
 
@@ -130,14 +131,14 @@ _nissa_complete()
             tail+=${after:0:1}
             after=${after:1}
         done
-        request=$context$_nissa_text$tail
-        offset=$((${#context}+${#_nissa_text}))
+        request=$_nissa_text$tail
+        offset=${#_nissa_text}
         mapfile -d '' -t response < <(
             printf '%s' "$request" |
-                "$program" --complete-at "$offset" --completion-format bash 2>/dev/null
+                "$program" --complete-at "$offset" --completion-format bash "${contextArgs[@]}" 2>/dev/null
         )
         if ((${#response[@]} >= 2)) && [[ ${response[0]} =~ ^[0-9]+$ && ${response[1]} =~ ^[0-9]+$ ]]; then
-            begin=$((${response[0]}-${#context}))
+            begin=${response[0]}
             if ((begin >= _nissa_drop && begin <= ${#_nissa_text})); then
                 for argument in "${response[@]:2}"; do
                     if [[ -z $tail || $argument == *"$tail" ]]; then

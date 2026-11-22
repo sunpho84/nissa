@@ -34,6 +34,7 @@
 #include <cassert>
 #include <complex>
 #include <filesystem>
+#include <fstream>
 #include <format>
 #include <sstream>
 #include <cstdio>
@@ -1434,21 +1435,366 @@ void validateScriptLocationsAndCompletion()
   assert(inspected and parameterInspected);
 }
 
+/// Reconstruct lexical bindings and host member types without executing any editor text
+void validateStaticCompletionBindings()
+{
+  Evaluator evaluator;
+  const auto type=registerHObject<ExampleNumber>(evaluator,"NativeNumber",
+    std::make_tuple(HostMemberInfo{"value",&ExampleNumber::value}));
+  bool accessed=false;
+  const auto provider=type->memberAccessorsProvider.at("value");
+  type->memberAccessorsProvider.at("value")=[&](std::any& data)
+  {
+    accessed=true;
+    return provider(data);
+  };
+  bool called=false;
+  registerHostFunction(evaluator,"factory",{},[&]()
+  {
+    called=true;
+    return 1;
+  });
+  const auto originalNames=evaluator.curEnv->entityNames();
+  const auto query=[&](const std::string& text)
+  {
+    return completeScriptAt(*evaluator.curEnv,text,text.size());
+  };
+  const auto has=[&](const std::string& text,
+                    const std::string& name)
+  {
+    const auto completion=query(text);
+    return std::any_of(completion.candidates.begin(),completion.candidates.end(),
+      [&](const auto& candidate)
+      {
+        return candidate.name==name;
+      });
+  };
+  
+  assert(has("local=NativeNumber(); loc","local"));
+  assert(has("local=NativeNumber(); local.va","value"));
+  assert(has("make=NativeNumber; local=make(); local.va","value"));
+  assert(has("local=NativeNumber(); alias=local; alias.va","value"));
+  assert(has("make=NativeNumber; make(.va","value"));
+  assert(has("local=NativeNumber(); { alias=local; alias.va","value"));
+  assert(not has("{ local=NativeNumber(); } loc","local"));
+  assert(has("local=1; { local=NativeNumber(); } local.va","value"));
+  assert(query("local=NativeNumber(); { local=1; } local.va").candidates.empty());
+  assert(query("local=NativeNumber(); local=factory(); local.va").candidates.empty());
+  assert(query("local=NativeNumber(); local+=1; local.va").candidates.empty());
+  assert(query("local=NativeNumber()+factory(); local.va").candidates.empty());
+  assert(query("local=NativeNumber(); if(1) { local=1; } local.va").candidates.empty());
+  assert(query("local=NativeNumber(); if(1) local=1; local.va").candidates.empty());
+  assert(has("local=NativeNumber(); fun f(){ local=1; } local.va","value"));
+  assert(query("local=NativeNumber(); fun f(local){ local.va").candidates.empty());
+  assert(query("fun f(NativeNumber){ local=NativeNumber(); local.va").candidates.empty());
+  assert(query("fun NativeNumber(){} local=NativeNumber(); local.va").candidates.empty());
+  assert(not has("fun f(local=1){} loc","local"));
+  assert(not has("if(1) local=NativeNumber(); loc","local"));
+  assert(not has("for(local=0;local<1;local++){} loc","local"));
+  assert(has("for(local=0;local<1;local++){ loc","local"));
+  assert(query("local=NativeNumber(); factory(local=1); local.va").candidates.empty());
+  assert(not has("local==1; loc","local"));
+  assert(not has("factory(.local=1); loc","local"));
+  assert(not has("// local=NativeNumber();\nloc","local"));
+  assert(not has("/* local=NativeNumber(); */ loc","local"));
+  assert(not has("text=\"local=NativeNumber();\"; loc","local"));
+  assert(has("text=\"}; ignored=1; {\"; local=NativeNumber(); local.va","value"));
+  const auto located=query("// π\r\nlocal=NativeNumber(); loc");
+  assert(located.candidates.size()==1);
+  assert(located.candidates[0].info.location->describe()=="<script>:2:1");
+  assert(located.candidates[0].info.location->cursor.offset==7);
+  assert(not called and not accessed and evaluator.curEnv->entityNames()==originalNames);
+  
+  const std::string niceText="propagator=Prop(.r=1); propagator.ka";
+  const auto niceCompletion=nissa::nice::completeNiceScript(niceText,niceText.size());
+  assert(niceCompletion.candidates.size()==1 and niceCompletion.candidates[0].name=="kappa");
+}
+
+/// Retain host return and binary-result types without invoking native code during completion
+void validateCompletionResultTypes()
+{
+  Evaluator evaluator;
+  const auto info=registerHObject<ExampleNumber>(evaluator,"NativeNumber",
+    std::make_tuple(HostMemberInfo{"value",&ExampleNumber::value}));
+  registerHObjectBinaryOperator<DifferenceOperator,ExampleNumber,int>(info,nullptr,info);
+  registerHObjectBinaryOperator<DivisionOperator,ExampleNumber,int>(info,nullptr,info);
+  bool called=false;
+  registerHostFunction(evaluator,"native",{},[&]()
+  {
+    called=true;
+    return ExampleNumber{12};
+  });
+  registerHostFunction(evaluator,"scalar",{},[&]()
+  {
+    called=true;
+    return 2;
+  });
+  registerHostFunction(evaluator,"opaque",{},[&]()
+  {
+    called=true;
+    return HObject{info,ExampleNumber{12}};
+  });
+  registerHostFunction(evaluator,"annotated",{},[&]()
+  {
+    called=true;
+    return HObject{info,ExampleNumber{12}};
+  },"Known result behind an erased wrapper",{typeid(ExampleNumber),info});
+  registerHostFunction(evaluator,"withCaller",{},[&](Evaluator&) mutable
+  {
+    called=true;
+    return ExampleNumber{12};
+  });
+  const auto query=[&](const std::string& text)
+  {
+    return completeScriptAt(*evaluator.curEnv,text,text.size());
+  };
+  for(const std::string text : {
+      "x=native(); x.va", "f=native; x=f(); x.va", "x=annotated(); x.va",
+      "x=withCaller(); x.va", "x=NativeNumber()-1; x.va",
+      "x=native()/scalar(); x.va", "x=native()/(2*3); x.va",
+      "x=NativeNumber()-4/2; x.va", "n=2; x=native()/n; x.va",
+      "native().va", "(native()/2).va", "scalar(native().va"})
+    {
+      const auto completion=query(text);
+      assert(completion.candidates.size()==1 and completion.candidates[0].name=="value");
+    }
+  for(const std::string text : {
+      "x=opaque(); x.va", "x=1-NativeNumber(); x.va", "x=native()*2; x.va",
+      "x=native()/2*3; x.va", "n=2.0; x=native()/n; x.va",
+      "n=2*3.0; x=native()/n; x.va", "x=native()/(2*); x.va"})
+    assert(query(text).candidates.empty());
+  assert(not called);
+  
+  // Automatic result wrapping preserves actual invocation for typed native payloads
+  std::vector<std::shared_ptr<Value>> arguments;
+  auto result=std::get<HostFunction>(evaluator.curEnv->at("native").data)(arguments,evaluator);
+  assert(called and std::any_cast<ExampleNumber>(std::get<HObject>(result.data).data).value==12);
+  
+  for(const std::string text : {"p=SpatMomentum()*2; p.x", "p=2*SpatMomentum(); p.x",
+                                "p=(SpatMomentum()*2)/2; p.x"})
+    {
+      const auto completion=nissa::nice::completeNiceScript(text,text.size());
+      assert(completion.candidates.size()==1 and completion.candidates[0].name=="x");
+    }
+  const std::string line="line=Prop()*Source(); lin";
+  const auto completion=nissa::nice::completeNiceScript(line,line.size());
+  assert(completion.candidates.size()==1 and completion.candidates[0].info.kind=="host object 'Line'");
+  const std::string imported="line=readILDGLine(\"/must-not-read\"); lin";
+  const auto loaded=nissa::nice::completeNiceScript(imported,imported.size());
+  assert(loaded.candidates.size()==1 and loaded.candidates[0].info.kind=="host object 'Line'");
+}
+
+/// Follow nested member metadata without binding accessors or reading any payload
+void validateNestedMemberCompletion()
+{
+  struct Holder
+  {
+    /// Nested host value
+    ExampleNumber number;
+    
+    /// Scalars exposed as script integers
+    bool enabled{};
+    
+    /// Unsigned count exposed as a checked script integer
+    size_t count{};
+  };
+  struct Envelope
+  {
+    /// Second nested layer
+    Holder holder;
+  };
+  Evaluator evaluator;
+  const auto numberInfo=registerHObject<ExampleNumber>(evaluator,"NativeNumber",
+    std::make_tuple(HostMemberInfo{"value",&ExampleNumber::value}));
+  const auto holderInfo=registerHObject<Holder>(evaluator,"Holder",
+    std::make_tuple(HostMemberInfo{"number",&Holder::number},
+                    HostMemberInfo{"enabled",&Holder::enabled},
+                    HostMemberInfo{"count",&Holder::count}));
+  const auto envelopeInfo=registerHObject<Envelope>(evaluator,"Envelope",
+    std::make_tuple(HostMemberInfo{"holder",&Envelope::holder}));
+  registerHObjectBinaryOperator<DivisionOperator,ExampleNumber,int>(numberInfo,nullptr,numberInfo);
+  assert(holderInfo->memberAccessorsProvider.at("count").valueType.cppType==typeid(int));
+  assert(holderInfo->memberAccessorsProvider.at("enabled").valueType.cppType==typeid(int));
+  
+  // Retaining static metadata does not change ordinary nested member reads
+  HObject object{envelopeInfo,Envelope{Holder{ExampleNumber{7},true,2}}};
+  auto holder=std::get<HObject>(object.getMemberRef("holder").get().data);
+  auto number=std::get<HObject>(holder.getMemberRef("number").get().data);
+  assert(std::get<int>(number.getMemberRef("value").get().data)==7);
+  
+  bool called=false;
+  registerHostFunction(evaluator,"native",{},[&]()
+  {
+    called=true;
+    return Envelope{};
+  });
+  bool accessed=false;
+  for(const auto& type : {numberInfo,holderInfo,envelopeInfo})
+    for(auto& [name,provider] : type->memberAccessorsProvider)
+      provider=[&](std::any&)->HObjectMemberRef::Accessors
+      {
+        accessed=true;
+        return {};
+      };
+  const auto query=[&](const std::string& text)
+  {
+    return completeScriptAt(*evaluator.curEnv,text,text.size());
+  };
+  for(const std::string text : {
+      "box=Envelope(); box.holder.number.va", "native().holder.number.va",
+      "box=Envelope(); n=box.holder.number; n.va", "(native().holder.number).va",
+      "x=NativeNumber()/native().holder.count; x.va",
+      "x=NativeNumber()/native().holder.enabled; x.va"})
+    {
+      const auto completion=query(text);
+      assert(completion.candidates.size()==1 and completion.candidates[0].name=="value");
+    }
+  for(const std::string text : {"native().missing.number.va", "native().holder.missing.va",
+                                "native().holder.number.value.va"})
+    assert(query(text).candidates.empty());
+  assert(not called and not accessed);
+  
+  for(const std::string text : {"p=Prop(); p.mom.x", "Prop().mom.x",
+                                "m=Smear().mom*2; m.x"})
+    {
+      const auto completion=nissa::nice::completeNiceScript(text,text.size());
+      assert(completion.candidates.size()==1 and completion.candidates[0].name=="x");
+    }
+}
+
+/// Recover script declaration shapes and signatures without evaluating bodies or defaults
+void validateScriptDefinitionCompletion()
+{
+  Evaluator evaluator;
+  bool called=false;
+  registerHObject<ExampleNumber>(evaluator,"NativeNumber",
+    std::make_tuple(HostMemberInfo{"value",&ExampleNumber::value}));
+  registerHostFunction(evaluator,"native",{},[&]()
+  {
+    called=true;
+    return ExampleNumber{2};
+  });
+  registerHostFunction(evaluator,"factory",{},[&]()
+  {
+    called=true;
+    return 2;
+  });
+  const auto originalNames=evaluator.curEnv->entityNames();
+  const auto query=[&](const std::string& text)
+  {
+    return completeScriptAt(*evaluator.curEnv,text,text.size());
+  };
+  for(const std::string text : {
+      "struct Pair { first; second=factory(); }; pair=Pair(1); pair.se",
+      "struct Pair { first; second=factory(); }; make=Pair; pair=make(1); pair.se",
+      "struct Pair { first; second=2; }; Pair(1).se"})
+    {
+      const auto completion=query(text);
+      assert(completion.candidates.size()==1 and completion.candidates[0].name=="second");
+      assert(completion.candidates[0].info.location->cursor.offset==text.find("second"));
+    }
+  const auto memberArgument=query("struct Pair { first; second=factory(); }; Pair(.se");
+  assert(memberArgument.candidates.size()==1 and memberArgument.candidates[0].name=="second");
+  assert(memberArgument.candidates[0].documentation.find("[second = factory()]")!=std::string::npos);
+  const auto constructor=query("struct Pair { first; second=2; }; Pai");
+  assert(constructor.candidates[0].info.argumentForms==FunctionArgumentForms({{"first","[second = 2]"}}));
+  assert(query("{struct Pair { first; };} Pai").candidates.empty());
+  assert(query("struct Empty {}; Empty().fi").candidates.empty());
+  // Defaults are optional values rather than promises of a fixed member type
+  assert(query("struct Pair { first=Prop(); }; Pair(1).first.ka").candidates.empty());
+  
+  for(const std::string text : {
+      "fun transform(value, factor=factory()) { factory(); return value; } transform(.fa",
+      "fun transform(value, factor=factory()) {} alias=transform; alias(.fa",
+      "handler=lambda(value, factor=factory()){ return value; }; handler(.fa"})
+    {
+      const auto completion=query(text);
+      assert(completion.candidates.size()==1 and completion.candidates[0].name=="factor");
+      assert(completion.candidates[0].documentation.find("[factor = factory()]")!=std::string::npos);
+    }
+  const auto signature=query("fun transform(required, &reference, optional=2, ...) {} trans");
+  assert(signature.candidates.size()==1);
+  assert(signature.candidates[0].info.argumentForms==FunctionArgumentForms({{"required","&reference","[optional = 2]","..."}}));
+  assert(query("fun transform(required, ...) {} transform(.\n").candidates.size()==1);
+  const auto parameter=query("fun transform(parameter=factory()){ par");
+  assert(parameter.candidates.size()==1 and parameter.candidates[0].name=="parameter");
+  assert(parameter.candidates[0].info.location->cursor.offset==14);
+  assert(query("fun transform(parameter){} par").candidates.empty());
+  assert(query("fun transform(transform){ transform(.fa").candidates.empty());
+  assert(query("{fun transform(value){}} trans").candidates.empty());
+  assert(query("fun transform(){return Prop();} transform().ka").candidates.empty());
+  assert(query("handler=lambda(factor){return factor;}(1); handler(.fa").candidates.empty());
+  
+  // Factory returns are inferred from metadata and local bindings without calling the factory
+  for(const std::string text : {
+      "fun make(){return native();} make().va",
+      "fun make(){v=native(); return v;} make().va",
+      "make=lambda(){return native();}; make().va",
+      "fun make(){return native();} alias=make; alias().va",
+      "fun make(){return native();} value=make(); value.va",
+      "fun make(){return native(); return 2;} make().va",
+      "fun make(flag){if(flag){return native();}else{return native();}} make().va",
+      "fun make(flag){if(flag) return native(); else return native();} make().va",
+      "fun make(flag){if(flag) return native(); return native();} make().va",
+      "fun make(a,b){if(a) return native(); else if(b) return native(); else return native();} make().va",
+      "fun make(a,b){if(a) if(b) return native(); else return native(); return native();} make().va",
+      "fun make(flag){v=native(); if(flag){v=native();}else{v=native();} return v;} make().va",
+      "fun make(flag){v=2; if(flag){return native();}else{v=native();} return v;} make().va",
+      "fun make(flag){v=native(); if(flag){v=2; return native();} return v;} make().va",
+      "make=lambda(flag){if(flag)return native();else return native();}; alias=make; alias().va"})
+    {
+      const auto completion=query(text);
+      assert(completion.candidates.size()==1 and completion.candidates[0].name=="value");
+    }
+  
+  // Missing or conflicting returns and unsupported side effects do not acquire guessed types
+  for(const std::string text : {
+      "fun make(v=native()){return v;} make().va",
+      "v=native(); fun make(){return v;} make().va",
+      "fun make(){if(1) return native();} make().va",
+      "fun make(flag){if(flag)return native();else return 2;} make().va",
+      "fun make(flag){if(flag)return native();else return;} make().va",
+      "fun make(flag){if(flag)return unknown;else return native();} make().va",
+      "fun make(flag){if(flag)return native();else return unknown;} make().va",
+      "fun make(flag){v=native(); if(flag){v=2;} return v;} make().va",
+      "fun make(flag){if(flag){v=native();}else{v=native();} return v;} make().va",
+      "fun make(a,b){if(a)if(b)return native();else return native();} make().va",
+      "fun make(flag){if(flag=1)return native();else return native();} make().va",
+      "fun make(){if(factory())return native();else return native();} make().va",
+      "fun make(flag){while(flag){return native();} return native();} make().va",
+      "fun make(){v=native();} make().va",
+      "fun make(){return make();} make().va",
+      "fun make(){return native();} native=2; make().va",
+      "{native=2; fun make(){return native();} make().va",
+      "fun make(native){return native();} make().va",
+      "fun make(){v=native(); v+=2; return v;} make().va"})
+    assert(query(text).candidates.empty());
+  
+  const auto documented=query("/// transform documentation\r\nfun transform(value=\"a,b\") {} alias=transform; ali");
+  assert(documented.candidates.size()==1 and documented.candidates[0].info.callable);
+  assert(documented.candidates[0].info.description=="transform documentation");
+  assert(documented.candidates[0].info.location->describe()=="<script>:2:1");
+  assert(documented.candidates[0].documentation.find("[value = \"a,b\"]")!=std::string::npos);
+  const auto lambda=query("//! lambda documentation\nhandler=lambda(value=2){}; hand");
+  assert(lambda.candidates[0].info.description=="lambda documentation");
+  assert(not called and evaluator.curEnv->entityNames()==originalNames);
+}
+
 /// Completion transport is usable before MPI initialization and never executes its input
 void validateCompletionTransport()
 {
-  using nissa::nice::runCompletionQuery;
+  using nissa::nice::runScriptQuery;
   const char* emacs[]{"NICE","--complete-at","8","--completion-format","emacs"};
   std::istringstream input("Prop(.ka");
   std::ostringstream output;
   std::ostringstream diagnostic;
-  assert(runCompletionQuery(5,emacs,input,output,diagnostic)==0);
+  assert(runScriptQuery(5,emacs,input,output,diagnostic)==0);
   assert(output.str().starts_with("(6 8 ((\"kappa\""));
   assert(diagnostic.str().empty());
   const char* shell[]{"NICE","--complete-at","8","--completion-format","bash"};
   std::istringstream shellInput("Prop(.ka");
   std::ostringstream shellOutput;
-  assert(runCompletionQuery(5,shell,shellInput,shellOutput,diagnostic)==0);
+  assert(runScriptQuery(5,shell,shellInput,shellOutput,diagnostic)==0);
   assert(shellOutput.str()==std::string("6\0" "8\0" "kappa\0",10));
   
   // Deliberately invalid runtime settings and paths must remain unevaluated
@@ -1459,8 +1805,22 @@ void validateCompletionTransport()
   const char* normal[]{"NICE","help();"};
   std::istringstream unused;
   std::ostringstream untouched;
-  assert(not runCompletionQuery(2,normal,unused,untouched,diagnostic));
+  assert(not runScriptQuery(2,normal,unused,untouched,diagnostic));
   assert(untouched.str().empty());
+  
+  // Syntax checks accept unresolved names and invalid runtime settings without executing them
+  for(const std::string& text : {std::string{},
+       std::string{"setGeometry(-1,0); configurationsFromFile(\"/must-not-read\"); unknown();"},
+       std::string{"fun choose(x){if(x)return missing;else return 2;} ;;;"}})
+    {
+      const char* check[]{"NICE","--check-syntax","--check-source","buffer.nice",
+                          "--context-script","//! preceding context"};
+      std::istringstream source(text);
+      std::ostringstream result;
+      std::ostringstream error;
+      assert(runScriptQuery(6,check,source,result,error)==0);
+      assert(result.str().empty() and error.str().empty());
+    }
   
   for(const char* offset : {"-1","1x","9999999999999999999999999","99"})
     {
@@ -1468,9 +1828,83 @@ void validateCompletionTransport()
       std::istringstream source("he");
       std::ostringstream result;
       std::ostringstream error;
-      assert(runCompletionQuery(3,bad,source,result,error)==1);
+      assert(runScriptQuery(3,bad,source,result,error)==1);
       assert(result.str().empty() and not error.str().empty());
     }
+}
+
+/// Assemble ordered file/argument context while returning bounds local to the current input
+void validateCompletionContext()
+{
+  char temporary[]="/tmp/nissa-completion-context-XXXXXX";
+  assert(mkdtemp(temporary)!=nullptr);
+  const auto directory=std::filesystem::path(temporary);
+  const auto path=directory/"library functions.nice";
+  const std::string library="//! external documentation\r\nfun external(value, factor=2) {}\r\n"
+    "configurationsFromFile(\"/must-not-read\"); setGeometry(-1,0); prop=Prop();"
+    "{ privateValue=Prop(); } // trailing comment";
+  {
+    std::ofstream file(path,std::ios::binary);
+    file<<library;
+    assert(file.good());
+  }
+  const auto query=[&](const std::string& text,
+                      const std::vector<std::string>& options)
+  {
+    std::vector<std::string> arguments{"NICE","--complete-at",std::to_string(text.size())};
+    arguments.insert(arguments.end(),options.begin(),options.end());
+    std::vector<const char*> pointers;
+    for(const auto& argument : arguments)
+      pointers.push_back(argument.c_str());
+    std::istringstream input(text);
+    std::ostringstream output;
+    std::ostringstream diagnostic;
+    const auto status=nissa::nice::runScriptQuery(pointers.size(),pointers.data(),input,output,diagnostic);
+    assert(status);
+    
+    return std::tuple{*status,output.str(),diagnostic.str()};
+  };
+  const std::string input="// π\nexternal(.fa";
+  const auto [status,output,error]=query(input,{"--context-file",path.string()});
+  assert(status==0 and error.empty());
+  assert(output.starts_with("("+std::to_string(input.find("fa"))+" "+std::to_string(input.size())+" ((\"factor\""));
+  assert(output.find(path.string())!=std::string::npos and output.find("external documentation")!=std::string::npos);
+  const auto [firstStatus,first,firstError]=query("prop.ka",{
+    "--context-file",path.string(),"--context-script","prop=1;"});
+  assert(firstStatus==0 and firstError.empty() and first=="(5 7 ())\n");
+  const auto [secondStatus,second,secondError]=query("prop.ka",{
+    "--context-script","prop=1;","--context-file",path.string(),"--completion-format","bash"});
+  assert(secondStatus==0 and secondError.empty() and second==std::string("5\0" "7\0" "kappa\0",10));
+  const auto [commentStatus,comment,commentError]=query("other.ka",{
+    "--context-file",path.string(),"--context-script","other=Prop();"});
+  assert(commentStatus==0 and commentError.empty() and comment.find("\"kappa\"")!=std::string::npos);
+  const auto [scopeStatus,scope,scopeError]=query("privateV",{"--context-file",path.string()});
+  assert(scopeStatus==0 and scopeError.empty() and scope=="(0 8 ())\n");
+  const auto [localStatus,local,localError]=query("local=Prop(); loc",{
+    "--context-file",path.string(),"--completion-source","buffer.nice"});
+  assert(localStatus==0 and localError.empty() and local.find("\"buffer.nice\" 1 1 0")!=std::string::npos);
+  
+  ScriptSource source;
+  source.append(library,path.string());
+  const size_t begin=source.text.size();
+  source.append("exter","buffer.nice");
+  const auto completion=nissa::nice::completeNiceScript(source,begin+5);
+  assert(completion.begin==begin and completion.end==begin+5);
+  assert(completion.candidates.size()==1);
+  assert(completion.candidates[0].info.location->source==path.string());
+  assert(completion.candidates[0].info.location->cursor.line==2);
+  
+  for(const std::vector<std::string>& options : {
+      std::vector<std::string>{"--context-file",(directory/"missing.nice").string()},
+      {"--context-file",directory.string()}, {"--context-file"}, {"--context-script"},
+      {"--completion-source"}, {"--completion-format","unknown"}, {"--unknown","value"}})
+    {
+      const auto [badStatus,badOutput,badError]=query("ex",options);
+      assert(badStatus==1 and badOutput.empty() and not badError.empty());
+    }
+  std::error_code removalError;
+  std::filesystem::remove_all(directory,removalError);
+  assert(not removalError);
 }
 
 /// Check program scope, expression evaluation, returns, and reference arguments
@@ -3985,7 +4419,12 @@ int main(int narg,
       validateDocumentationComments();
       validateFormattedDiscovery();
       validateScriptLocationsAndCompletion();
+      validateStaticCompletionBindings();
+      validateCompletionResultTypes();
+      validateNestedMemberCompletion();
+      validateScriptDefinitionCompletion();
       validateCompletionTransport();
+      validateCompletionContext();
 #ifdef USE_MPI
       MPI_Finalize();
 #endif
@@ -4053,7 +4492,12 @@ int main(int narg,
   validateDocumentationComments();
   validateFormattedDiscovery();
   validateScriptLocationsAndCompletion();
+  validateStaticCompletionBindings();
+  validateCompletionResultTypes();
+  validateNestedMemberCompletion();
+  validateScriptDefinitionCompletion();
   validateCompletionTransport();
+  validateCompletionContext();
   validateProgramGrammar(narg,arg);
   validateHostObjects(R"(
     {

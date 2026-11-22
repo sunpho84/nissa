@@ -164,8 +164,8 @@ int main(int narg,
          char** arg)
 {
   int status=0;
-  if(const auto completion=nissa::nice::runCompletionQuery(narg,arg,std::cin,std::cout,std::cerr))
-    status=*completion;
+  if(const auto query=nissa::nice::runScriptQuery(narg,arg,std::cin,std::cout,std::cerr))
+    status=*query;
   else
     {
       const auto start=nissa::nice::WallTimeBudget::Clock::now();

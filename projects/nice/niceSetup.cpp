@@ -18,6 +18,9 @@
 #include <cstdint>
 #include <format>
 #include <istream>
+#include <fstream>
+#include <filesystem>
+#include <limits>
 #include <iterator>
 #include <ostream>
 #include <utility>
@@ -26,7 +29,53 @@
 
 namespace nissa::nice
 {
+  namespace
+  {
+    /// Read an explicitly selected script before MPI exists; errors belong to the query stream
+    std::optional<std::string> readScriptContextFile(const std::string& path,
+						     std::ostream& diagnostic,
+						     const std::string_view prefix)
+    {
+      std::error_code error;
+      std::optional<std::string> result;
+      if(not std::filesystem::is_regular_file(path,error))
+        diagnostic<<prefix<<"cannot read context file '"<<path<<"' as a regular file\n";
+      else
+        {
+          const auto size=std::filesystem::file_size(path,error);
+          std::string text;
+          if(error or size>text.max_size() or size>static_cast<uintmax_t>(std::numeric_limits<std::streamsize>::max()))
+            diagnostic<<prefix<<"cannot determine readable size for context file '"<<path<<"'\n";
+          else
+            {
+              std::ifstream file(path,std::ios::binary);
+              text.resize(static_cast<size_t>(size));
+              if(file.read(text.data(),static_cast<std::streamsize>(size)))
+                result=std::move(text);
+              else
+                diagnostic<<prefix<<"cannot read context file '"<<path<<"'\n";
+            }
+        }
+      
+      return result;
+    }
+  }
+  
   ScriptCompletion completeNiceScript(const std::string_view text,
+                                      const size_t byteOffset)
+  {
+    ScriptCompletion result;
+    if(byteOffset<=text.size())
+      {
+        ScriptSource source;
+        source.append(text,"<script>");
+        result=completeNiceScript(source,byteOffset);
+      }
+    
+    return result;
+  }
+  
+  ScriptCompletion completeNiceScript(const ScriptSource& source,
                                       const size_t byteOffset)
   {
     Nice nice;
@@ -39,44 +88,103 @@ namespace nissa::nice
     registerConfigurationSources(evaluator,sources);
     registerGaugeRecipes(evaluator,recipes);
     
-    return completeScriptAt(*evaluator.curEnv,text,byteOffset);
+    return completeScriptAt(*evaluator.curEnv,source,byteOffset);
   }
   
-  std::optional<int> runCompletionQuery(const int narg,
+  std::optional<int> runScriptQuery(const int narg,
                                         const char* const* arg,
                                         std::istream& input,
                                         std::ostream& output,
                                         std::ostream& diagnostic)
   {
     std::optional<int> status;
-    
-    if(narg>1 and std::string_view(arg[1])=="--complete-at")
+    const bool checkSyntax=narg>1 and std::string_view(arg[1])=="--check-syntax";
+    if(checkSyntax or (narg>1 and std::string_view(arg[1])=="--complete-at"))
       {
+        const std::string_view prefix=checkSyntax?"NICE syntax check: ":"NICE completion: ";
         status=1;
-        const std::string_view format=narg==5?arg[4]:"emacs";
-        if((narg!=3 and narg!=5) or
-           (narg==5 and std::string_view(arg[3])!="--completion-format") or
-           (format!="emacs" and format!="bash"))
-          diagnostic<<"NICE completion: use --complete-at OFFSET [--completion-format emacs|bash]\n";
-        else
+        bool valid=checkSyntax or narg>=3;
+        size_t offset{};
+        if(not valid)
+          diagnostic<<"NICE completion: --complete-at requires a UTF-8 byte offset\n";
+        else if(not checkSyntax)
           {
             const std::string_view argument=arg[2];
-            size_t offset{};
             const auto parsed=std::from_chars(argument.data(),argument.data()+argument.size(),offset);
-            
-            if(parsed.ec!=std::errc{} or parsed.ptr!=argument.data()+argument.size())
+            valid=parsed.ec==std::errc{} and parsed.ptr==argument.data()+argument.size();
+            if(not valid)
               diagnostic<<"NICE completion: OFFSET must be a nonnegative UTF-8 byte offset\n";
+          }
+        
+        ScriptSource source;
+        std::string format="emacs";
+        std::string origin="<script>";
+        for(int i=checkSyntax?2:3;valid and i<narg;i++)
+          {
+            const std::string_view option=arg[i];
+            if(i+1==narg)
+              {
+                diagnostic<<prefix<<option<<" requires a value\n";
+                valid=false;
+              }
             else
               {
-                const std::string text{std::istreambuf_iterator<char>(input),std::istreambuf_iterator<char>()};
-                
-                if(input.bad())
-                  diagnostic<<"NICE completion: cannot read source text from standard input\n";
-                else if(offset>text.size())
-                  diagnostic<<"NICE completion: OFFSET exceeds the source byte count\n";
+                i++;
+                const std::string value=arg[i];
+                if(option=="--completion-format" and not checkSyntax)
+                  {
+                    format=value;
+                    valid=format=="emacs" or format=="bash";
+                    if(not valid)
+                      diagnostic<<"NICE completion: format must be emacs or bash\n";
+                  }
+                else if(option=="--completion-source" or (checkSyntax and option=="--check-source"))
+                  origin=value;
+                else if(option=="--context-script")
+                  source.append(value,std::format("<context[{}]>",source.pieces.size()+1));
+                else if(option=="--context-file")
+                  {
+                    const auto text=readScriptContextFile(value,diagnostic,prefix);
+                    valid=text.has_value();
+                    if(valid)
+                      source.append(*text,value);
+                  }
                 else
                   {
-                    const auto completion=completeNiceScript(text,offset);
+                    diagnostic<<prefix<<"unknown option '"<<option<<"'\n";
+                    valid=false;
+                  }
+              }
+          }
+        
+        if(valid)
+          {
+            const std::string text{std::istreambuf_iterator<char>(input),std::istreambuf_iterator<char>()};
+            if(input.bad())
+              diagnostic<<prefix<<"cannot read source text from standard input\n";
+            else if(not checkSyntax and offset>text.size())
+              diagnostic<<"NICE completion: OFFSET exceeds the source byte count\n";
+            else
+              {
+                const size_t begin=source.text.size();
+                source.append(text,origin);
+                if(checkSyntax)
+                  {
+                    const auto parser=getParser();
+                    createParseTree(parser,source.text,[&source](const SourceCursor& cursor)
+                    {
+                      return source.locate(cursor);
+                    });
+                    status=0;
+                  }
+                else
+                  {
+                    auto completion=completeNiceScript(source,begin+offset);
+                    if(completion.applicable)
+                      {
+                        completion.begin-=begin;
+                        completion.end-=begin;
+                      }
                     
                     if(format=="emacs")
                       output<<formatScriptCompletionForEmacs(completion)<<'\n';
@@ -90,7 +198,7 @@ namespace nissa::nice
                     if(output)
                       status=0;
                     else
-                      diagnostic<<"NICE completion: cannot write the completion response\n";
+                      diagnostic<<prefix<<"cannot write the completion response\n";
                   }
               }
           }
@@ -339,7 +447,7 @@ namespace nissa::nice
     registerHostFunction(evaluator,"loadedConf",{},[&recipes,info]()
     {
       return HObject{info,loadedConf(recipes)};
-    },"Create a recipe to load each gauge configuration entry's input file");
+    },"Create a recipe to load each gauge configuration entry's input file",{typeid(GaugeRecipeId),info});
     
     // apeSmearConf(inputRecipe,alpha,n): return a recipe ID for spatial APE smearing
     // inputRecipe selects an earlier recipe, alpha sets strength, and n counts iterations
@@ -350,7 +458,7 @@ namespace nissa::nice
                                          const int n)
     {
       return HObject{info,apeSmearConf(recipes,inputRecipe,alpha,n)};
-    },"Create a spatial APE-smearing recipe from inputRecipe with strength alpha and n iterations");
+    },"Create a spatial APE-smearing recipe from inputRecipe with strength alpha and n iterations",{typeid(GaugeRecipeId),info});
   }
   
   void registerCorrParts(Evaluator& evaluator)
@@ -397,9 +505,9 @@ namespace nissa::nice
     useDescription<Line>(lineInfo);
     
     registerHostFunction(evaluator,"readILDGLine",{"path"},
-                         [lineInfo](const std::string& path)
+                         [](const std::string& path)
     {
-      return HObject{lineInfo,Line{Source{path}}};
+      return Line{Source{path}};
     },"Load an IB-compatible ILDG line at execution using the current dilution, copy and hit suffixes");
     
     registerArithmeticOperators<int,double,SpatMomentum,Smear,Phase,

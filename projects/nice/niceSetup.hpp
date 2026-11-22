@@ -11,17 +11,26 @@
 struct Evaluator;
 struct ASTNodesNode;
 struct ScriptCompletion;
+struct ScriptSource;
 
 namespace nissa::nice
 {
-  /// Query the registered NICE interface without evaluating input or initializing NISSA
+  /// Query registered NICE metadata and preceding assignments without evaluating input or initializing NISSA
   ScriptCompletion completeNiceScript(const std::string_view text,
                                       const size_t byteOffset);
   
-  /// Handle --complete-at OFFSET [--completion-format emacs|bash] before MPI startup
-  /// Source text comes from input; normal output is machine-readable data only
+  /// Query assembled script pieces with original source locations and joined byte offsets
+  ScriptCompletion completeNiceScript(const ScriptSource& source,
+                                      const size_t byteOffset);
+  
+  /// Handle --complete-at OFFSET [--completion-format emacs|bash] or --check-syntax before MPI startup
+  /// Source text comes from input; offsets are local to it and output contains data only
+  /// Ordered --context-file/--context-script options supply preceding pieces without execution
+  /// --completion-source names the input piece; file errors are reported before MPI startup
+  /// Syntax checks accept --check-source and stop after parsing, without AST actions or evaluation
+  /// Parser errors report their mapped source position on stderr and exit with status one
   /// Return no status for a normal launch, otherwise the query's exit status
-  std::optional<int> runCompletionQuery(const int narg,
+  std::optional<int> runScriptQuery(const int narg,
                                         const char* const* arg,
                                         std::istream& input,
                                         std::ostream& output,

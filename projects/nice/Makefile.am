@@ -54,5 +54,7 @@ __top_builddir__bin_nice_validate_SOURCES= \
 endif
 
 EXTRA_DIST+= \
+	%D%/nissa-script-mode.el \
+	%D%/nissa-script-check.el \
 	%D%/nissa-script-completion.el \
 	%D%/nissa-completion.bash

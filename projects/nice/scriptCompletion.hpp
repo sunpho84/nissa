@@ -32,11 +32,19 @@ struct ScriptCompletion
   std::vector<ScriptCompletionCandidate> candidates;
 };
 
-/// Query a supplied scope without parsing or executing potentially incomplete input
-/// Supports visible names, keywords, simple object members, and named call arguments
-/// Does not infer new bindings or execute source to reconstruct a scope
+/// Query a supplied scope and reconstruct completed assignments without executing input
+/// Supports names, keywords, named arguments, aliases, and statically known expression members
+/// Native calls and registered arithmetic use result metadata without invoking their callables
+/// Brace scopes retain local visibility; unsupported expressions have unknown result types
+/// Function parameters hide enclosing bindings but their types are not inferred
 ScriptCompletion completeScriptAt(const Environment& environment,
                                   const std::string_view text,
+                                  const size_t byteOffset);
+
+/// Query assembled source while retaining original file/argument locations
+/// The query offset and returned replacement bounds refer to joined-source bytes
+ScriptCompletion completeScriptAt(const Environment& environment,
+                                  const ScriptSource& source,
                                   const size_t byteOffset);
 
 /// Serialize to Lisp data for an Emacs completion-at-point adapter; never executable Lisp
