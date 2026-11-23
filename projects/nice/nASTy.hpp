@@ -397,6 +397,12 @@ struct ValueSlot :
   }
 };
 
+/// Describe registered host and scalar types using script-facing names
+std::string scriptTypeName(const ValueTypeInfo& type);
+
+/// Describe a runtime value without exposing compiler RTTI encodings
+std::string scriptValueTypeName(const Value& value);
+
 /// Recover the actual C++ type T from the given positional host-function argument
 /// Named script arguments have already been placed in their signature positions
 /// T is either a ValueT alternative or the concrete payload of an HObject
@@ -479,7 +485,7 @@ struct HObjectMemberRef
     std::function<Value()>;
   
   using Setter=
-    std::function<void(const AssignMode&,const Value&)>;
+    std::function<void(const AssignMode&,const Value&,std::string_view)>;
   
   using Accessors=
     std::pair<Getter,Setter>;
@@ -494,13 +500,15 @@ struct HObjectMemberRef
     return accessors.first();
   }
   
+  /// Assign through the member accessor, optionally identifying a constructor argument
   void set(const AssignMode& mode,
-           const Value& value)
+           const Value& value,
+           const std::string_view target={})
   {
     if(isConst)
       errorEmitter("cannot modify a constant host member");
     
-    accessors.second(mode,value);
+    accessors.second(mode,value,target);
   }
 };
 
@@ -2182,12 +2190,13 @@ struct Evaluator
           
           return unvariant<HObject>(parent.data).getMemberRef(memberName).get();
         },[base=_b,memberName](const AssignMode& mode,
-                               const Value& value) mutable
+                               const Value& value,
+                               const std::string_view target) mutable
         {
           base.requireWritable();
           Value parent=
             base.asRhs();
-          unvariant<HObject>(parent.data).getMemberRef(memberName).set(mode,value);
+          unvariant<HObject>(parent.data).getMemberRef(memberName).set(mode,value,target);
           base.set(AssignMode::PLAIN,parent);
         }}};
         nested.isConst=_b.isConst();
@@ -2763,7 +2772,7 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
         const ValueTypeInfo memberType{typeid(ScriptType),scalar ? nullptr : field.memberType};
         
         // Bind accessors to the value of the particular object being accessed
-        info->memberAccessorsProvider.emplace(field.name,HObjectInfo::MemberProvider{[field](std::any& data)
+        info->memberAccessorsProvider.emplace(field.name,HObjectInfo::MemberProvider{[field,name,memberType](std::any& data)
         {
           // Read a scalar value or wrap a copy of the nested host member
           auto getter=
@@ -2792,11 +2801,22 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
           
           // Apply plain or compound assignment to the concrete C++ member
           auto setter=
-            [&data,field](const AssignMode& mode,
-                          const Value& value)
+            [&data,field,name,memberType](const AssignMode& mode,
+                                        const Value& value,
+                                        const std::string_view context)
             {
               M& target=
                 std::any_cast<T&>(data).*(field.pointer);
+              
+              // Constructors supply the parameter position; assignments identify the member
+              const auto invalidValue=
+                [&]()
+                {
+                  const std::string targetDescription=
+                    context.empty()?"member "+name+"."+field.name:std::string(context);
+                  errorEmitter("invalid value for ",targetDescription," (expected ",scriptTypeName(memberType),
+                               ", received ",scriptValueTypeName(value),")");
+                };
               
               // Host objects assign their payload when its type matches the member
               if(const HObject* object=std::get_if<HObject>(&value.data))
@@ -2804,19 +2824,21 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
                   if(const M* payload=std::any_cast<M>(&object->data))
                     trySet(target,mode,*payload);
                   else
-                    errorEmitter("invalid value for host member ",field.name," (expected ",typeid(M).name(),
-                                 ")");
+                    invalidValue();
                 }
               else if constexpr(scalar)
                 {
                   // Preserve ordinary script scalar conversion rules
                   std::visit([&](const auto& rhs)
                   {
-                    trySet(target,mode,rhs);
+                    if constexpr(requires { target=rhs; })
+                      trySet(target,mode,rhs);
+                    else
+                      invalidValue();
                   },value.data);
                 }
               else
-                errorEmitter("invalid value for host member ",field.name," (expected ",typeid(M).name(),")");
+                invalidValue();
             };
           
           return HObjectMemberRef::Accessors{getter,setter};
@@ -2842,7 +2864,8 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
         // Initialize supplied members through the same setters as assignment
         for(size_t i=0; i<args.size(); i++)
           if(args[i])
-            object.getMemberRef(names[i]).set(AssignMode::PLAIN,*args[i]);
+            object.getMemberRef(names[i]).set(AssignMode::PLAIN,*args[i],
+              "argument "+std::to_string(i+1)+" ('"+names[i]+"') of "+name);
         
         return {object};
       },

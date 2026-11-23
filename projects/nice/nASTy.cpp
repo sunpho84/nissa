@@ -8,6 +8,45 @@
 
 #include "routines/ios.hpp"
 
+std::string scriptTypeName(const ValueTypeInfo& type)
+{
+  std::string result;
+  
+  if(const auto host=type.hostType.lock())
+    result=host->name;
+  else if(not type.cppType)
+    result="value";
+  else if(*type.cppType==typeid(int) or *type.cppType==typeid(int64_t))
+    result="integer";
+  else if(*type.cppType==typeid(double))
+    result="real number";
+  else if(*type.cppType==typeid(std::string))
+    result="string";
+  else if(*type.cppType==typeid(std::monostate))
+    result="uninitialized value";
+  else if(*type.cppType==typeid(ValuesList))
+    result="list";
+  else if(*type.cppType==typeid(Function) or *type.cppType==typeid(HostFunction))
+    result="function";
+  else if(*type.cppType==typeid(Struct))
+    result="struct";
+  else
+    result="native value";
+  
+  return result;
+}
+
+std::string scriptValueTypeName(const Value& value)
+{
+  return std::visit([]<typename T>(const T& data)
+  {
+    if constexpr(std::is_same_v<T,HObject>)
+      return scriptTypeName({data.data.type(),data.info});
+    else
+      return scriptTypeName({typeid(T)});
+  },value.data);
+}
+
 std::string precedingDocumentation(const pp::internal::ShiftNode& token)
 {
   StringMatcher matcher(token.leadingTrivia,token.triviaCursor);
