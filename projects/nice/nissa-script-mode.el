@@ -37,7 +37,7 @@
 
 (defvar nissa-script-mode-map
   (make-sparse-keymap)
-  "Keys for editing NICE scripts; TAB indents and then offers completion.")
+  "Keys for editing NICE scripts; TAB indents outside a completion popup.")
 
 ;; Refresh bindings when this file is reloaded into an existing Emacs session
 (define-key nissa-script-mode-map (kbd "TAB") #'indent-for-tab-command)
@@ -51,7 +51,7 @@
 Indentation follows the C style selected by `c-default-style'; customize
 `c-basic-offset' or `c-offsets-alist' in `nissa-script-mode-hook' as needed.
 Set `nissa-script-completion-program' to the built executable.
-TAB indents first and offers completion when indentation is already correct.
+TAB indents; use M-TAB for completion when no popup is active.
 \\<nissa-script-mode-map>Use \\[completion-at-point] for completion directly.
 The current buffer need not be saved.  Completion never executes its script."
   :syntax-table nissa-script-mode-syntax-table
@@ -63,7 +63,7 @@ The current buffer need not be saved.  Completion never executes its script."
   ;; NICE structs end at their closing brace, with no C declarator or semicolon
   ;; afterward; otherwise CC Mode treats the following definition as a continuation
   (setq-local c-opt-block-decls-with-vars-key nil)
-  (setq-local tab-always-indent 'complete)
+  (setq-local tab-always-indent t)
   (setq-local font-lock-defaults '(nissa-script-mode-font-lock-keywords))
   (setq-local comment-start "// ")
   (setq-local comment-end "")
@@ -76,6 +76,10 @@ The current buffer need not be saved.  Completion never executes its script."
     (setq-local company-backends '(company-capf))
     (setq-local company-minimum-prefix-length 1)
     (setq-local company-idle-delay 0.2)
+    (setq-local company-abort-on-unique-match nil)
+    (setq-local company-frontends
+                '(company-pseudo-tooltip-frontend
+                  company-echo-metadata-frontend))
     (company-mode 1)))
 
 (provide 'nissa-script-mode)

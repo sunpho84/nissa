@@ -254,6 +254,10 @@ Install buffer-locally in `completion-at-point-functions'."
                              entries)))
                 (list beg-pos end-pos table
                       :exclusive 'no
+                      :company-prefix-length
+                      (when (and (= beg-pos (point))
+                                 (eq (char-before beg-pos) ?.))
+                        t)
                       :exit-function
                       (lambda (candidate status)
                         (when (and (memq status '(finished exact))
