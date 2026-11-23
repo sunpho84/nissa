@@ -19,6 +19,8 @@
   :type 'string
   :group 'nissa-script)
 
+(require 'nissa-script-session)
+
 (defcustom nissa-script-completion-context nil
   "Ordered program pieces preceding the current buffer.
 Each entry is (file . PATH) or (script . TEXT).  Paths are relative to the
@@ -39,6 +41,15 @@ only; no script is executed.  Set this buffer-locally for a particular run."
                   nissa-script-completion-context))
 
 (defun nissa-script-completion-query (text byte-offset)
+  "Complete TEXT at BYTE-OFFSET, reusing this buffer's worker by default."
+  (condition-case error-data
+      (if nissa-script-use-persistent-session
+          (nissa-script-session-query text byte-offset)
+        (nissa-script-session-stop)
+        (nissa-script-completion-query-once text byte-offset))
+    (error (message "NICE completion failed: %s" (error-message-string error-data)) nil)))
+
+(defun nissa-script-completion-query-once (text byte-offset)
   "Send TEXT and BYTE-OFFSET to NICE without evaluating the script."
   (let ((program nissa-script-completion-program)
         (context (nissa-script-completion-context-arguments))
@@ -71,8 +82,8 @@ only; no script is executed.  Set this buffer-locally for a particular run."
 Return nil, or (BEGIN END CANDIDATES), where BEGIN and END are zero-based
 UTF-8 byte offsets and each candidate is
 (NAME KIND DOCUMENTATION SOURCE LINE COLUMN OFFSET).
-The default provider starts one NICE completion process per query, before
-normal NISSA/MPI initialization, and never executes TEXT.
+The default provider shares a persistent worker with Flymake, before normal
+NISSA/MPI initialization, and never executes TEXT.
 If using a textual response, read its Lisp data with `read', never `eval'.")
 
 (defun nissa-script-completion-signature (entry)
@@ -174,7 +185,9 @@ Optional and variadic parameters are omitted from inserted calls."
              (key (list (buffer-chars-modified-tick) (cdr bounds) buffer-file-name
                         nissa-script-completion-context nissa-script-completion-program
                         nissa-script-completion-query-function default-directory)))
-        (unless (equal key (car nissa-script-completion-entity-cache))
+        (unless (and (not (and nissa-script-use-persistent-session
+                              (eq nissa-script-completion-query-function #'nissa-script-completion-query)))
+                     (equal key (car nissa-script-completion-entity-cache)))
           (let* ((text (buffer-substring-no-properties (point-min) (point-max)))
                  (offset (length (encode-coding-string
                                   (buffer-substring-no-properties (point-min) (cdr bounds))
@@ -276,7 +289,9 @@ Install buffer-locally in `completion-at-point-functions'."
         (eldoc-mode 1))
     (remove-hook 'completion-at-point-functions
                  #'nissa-script-completion-at-point t)
-    (remove-hook 'eldoc-documentation-functions #'nissa-script-completion-eldoc t)))
+    (remove-hook 'eldoc-documentation-functions #'nissa-script-completion-eldoc t)
+    (unless (bound-and-true-p nissa-script-check-mode)
+      (nissa-script-session-stop))))
 
 (provide 'nissa-script-completion)
 ;;; nissa-script-completion.el ends here

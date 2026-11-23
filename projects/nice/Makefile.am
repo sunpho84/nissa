@@ -57,4 +57,5 @@ EXTRA_DIST+= \
 	%D%/nissa-script-mode.el \
 	%D%/nissa-script-check.el \
 	%D%/nissa-script-completion.el \
+	%D%/nissa-script-session.el \
 	%D%/nissa-completion.bash

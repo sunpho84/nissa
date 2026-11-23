@@ -1,5 +1,15 @@
 # Bash completion for NICE; source this file to enable it
 # Override NISSA_COMPLETION_PROGRAM when the query executable has another path
+# Add to ~/.bashrc, using your own checkout/build paths:
+#   source /path/to/nissa/projects/nice/nissa-completion.bash
+#   NISSA_COMPLETION_PROGRAM=/path/to/nissa/build_clang/bin/NICE
+# The override selects the completion backend; it does not add NICE to PATH
+# Without an override the invoked executable is queried, including bin/NICE
+# Examples (press TAB at the end, without executing the incomplete script):
+#   NICE 'setGeo
+#   NICE 'Prop(.ka
+#   NICE 'p=Prop();' 'p.ka
+# Earlier fragments and -f files are analyzed as context, never executed
 
 # Decode literal shell arguments up to point without expansion or evaluation
 # Results use caller-local variables through Bash's dynamic scoping
@@ -133,6 +143,12 @@ _nissa_complete()
         done
         request=$_nissa_text$tail
         offset=${#_nissa_text}
+        # Include an existing call opener as lookahead so it is not inserted twice
+        local following=$after
+        following=${following#"${following%%[!$' \t\r\n']*}"}
+        if [[ $following == '('* || ( -z $_nissa_quote && $following == '\('* ) ]]; then
+            request+='('
+        fi
         mapfile -d '' -t response < <(
             printf '%s' "$request" |
                 "$program" --complete-at "$offset" --completion-format bash "${contextArgs[@]}" 2>/dev/null
