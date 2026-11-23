@@ -453,6 +453,9 @@ namespace nissa::nice
     /// Selected time, or -1 when unrestricted
     int tSelect;
     
+    /// Noise distribution, with Point retained for deterministic diagnostic sources
+    std::string noise{"Z4"};
+    
     /// IB file stem for a loaded source, absent for a generated source
     std::optional<std::string> ildgPath;
     
@@ -476,7 +479,7 @@ namespace nissa::nice
         return "readILDGLine(path="+*ildgPath+")";
       else
         return "Source(count="+std::to_string(count)+",tSelect="+
-          std::to_string(tSelect)+")";
+          std::to_string(tSelect)+",noise="+noise+")";
     }
     
     /// Compare source identities and time selections

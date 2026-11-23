@@ -1,4 +1,5 @@
 #include "taskExecution.hpp"
+#include "sourceGeneration.hpp"
 
 #include "base/debug.hpp"
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
@@ -78,6 +79,42 @@ namespace nissa::nice
               MASTER_PRINTF("NICE: reading line slot '%s'\n",slotPath.c_str());
               read_real_vector(field,slotPath,"scidac-binary-data");
               set_borders_invalid(field);
+            }
+    }
+    
+    /// Fill every source column from its projection of the same underlying noise
+    void fillNoiseSource(LineValue& line,
+                         const SourceGeneration& generation,
+                         const OperationRngRange& range)
+    {
+      const size_t nSourceSpins=line.diluteSpin?NDIRAC:1;
+      const size_t nSourceColors=line.diluteColor?NCOL:1;
+      
+      for(size_t iCopy=0;iCopy<line.nCopies;iCopy++)
+        for(size_t iSpin=0;iSpin<nSourceSpins;iSpin++)
+          for(size_t iColor=0;iColor<nSourceColors;iColor++)
+            {
+              const auto coordinates=
+                outerCoordinates(line,iCopy,iSpin,iColor);
+              auto field=
+                line.field.template shadow<spincolor,defaultSpaceTimeLayout,defaultMemorySpace>(
+                  "NICE noise source",std::span<const size_t>{coordinates});
+              
+              field.template initOn<defaultMemorySpace>([generation,range,iCopy,iSpin,iColor]
+                                                        (LxField<spincolor>& output)
+              {
+                PAR(0,locVol,
+                    CAPTURE(generation,range,iCopy,iSpin,iColor,TO_WRITE(output)),
+                    site,
+                    {
+                      spincolor value;
+                      generation.fillSite(value,range,glblxOfLoclx[site],glbCoordOfLoclx[site][0],
+                                          iCopy,iSpin,iColor);
+                      spincolor_copy(output[site],value);
+                    });
+                
+                set_borders_invalid(output);
+              });
             }
     }
     
@@ -563,14 +600,35 @@ namespace nissa::nice
                   iHit,origin[0],origin[1],origin[2],origin[3]);
     
     return TaskHandlers{
-      .source=[&options,origin,iHit](const Source& source)
+      .source=[&options,&rngLayout,rng,origin,iGaugeConf,iHit](const Source& source)
       {
         LineValue line(options);
+        const SourceGeneration generation(source,options);
         
         if(source.ildgPath)
           readILDGSource(line,*source.ildgPath,iHit);
-        else
+        else if(generation.noise==SourceGeneration::Noise::Point)
           fillPointSource(line,source,origin);
+        else
+          {
+            OperationRngRange range(rng,RngPosition{},0);
+            
+            if(generation.doubleDrawCost()!=0)
+              {
+                const auto allocation=
+                  rngLayout.sources.find(source);
+                
+                if(allocation==rngLayout.sources.end())
+                  CRASH("NICE stochastic source has no prepared RNG allocation");
+                
+                if(allocation->second.doubleDrawCost!=generation.doubleDrawCost())
+                  CRASH("NICE source draw cost differs from its prepared RNG allocation");
+                
+                range=rngLayout.operationRange(rng,allocation->second,iGaugeConf,iHit);
+              }
+            
+            fillNoiseSource(line,generation,range);
+          }
 	
         return line;
       },

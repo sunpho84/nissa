@@ -14,6 +14,7 @@ nice_common_sources= \
 	%D%/runPolicy.hpp \
 	%D%/rng.hpp \
 	%D%/rngLayout.hpp \
+	%D%/sourceGeneration.hpp \
 	%D%/configurationSources.cpp \
 	%D%/configurationSources.hpp \
 	%D%/gaugeRecipes.hpp \

@@ -8,6 +8,7 @@
 #include "gaugeRecipes.hpp"
 #include "lineValue.hpp"
 #include "taskExecution.hpp"
+#include "sourceGeneration.hpp"
 #include "programExecution.hpp"
 #include "schedulingStrategies.hpp"
 #include "legacyInputWriter.hpp"
@@ -3800,6 +3801,161 @@ void validateRngLayout(const int narg,
     }
 }
 
+/// Check all noise distributions, projections, copies, exact costs, and per-hit positioning
+void validateNoiseSources()
+{
+  using namespace nissa;
+  
+  const Sitmo::Rng rng(3472291050U);
+  const auto initialState=rng.state;
+  const GaugeRecipes recipes;
+  
+  for(const std::string noise : {"Z4","Z2","Gauss","AllPlusOne"})
+    for(const int time : {-1,2})
+      for(const bool diluteSpin : {false,true})
+        for(const bool diluteColor : {false,true})
+          {
+            RunOptions options{.physics={.L=4,.T=4,.nCopies=2}};
+            options.policy.nHits=2;
+            options.physics.diluteSpin=diluteSpin;
+            options.physics.diluteColor=diluteColor;
+            options.physics.drawGlobalOriginTask.enabled=false;
+            Source source(time);
+            source.noise=noise;
+            const SourceGeneration generation(source,options);
+            const uint64_t nSites=time<0?256:64;
+            const uint64_t nUniform=noise=="AllPlusOne"?0:(noise=="Z2"?1:2);
+            const uint64_t expectedCost=2*NDIRAC*NCOL*nSites*nUniform;
+            assert(generation.doubleDrawCost()==expectedCost);
+            
+            RngLayout layout(options);
+            layout.origin=layout.addOperation(RngScope::Hit,0);
+            const auto allocation=layout.addOperation(RngScope::Hit,expectedCost);
+            layout.sources.emplace(source,allocation);
+            const auto range=layout.operationRange(rng,allocation,7,1);
+            const auto handlers=makeNissaTaskHandlers(options,recipes,rng,layout,7,1);
+            LineValue line=handlers.source(source);
+            double sum=0;
+            double sumSquares=0;
+            uint64_t nValues=0;
+            
+            // Each projected component must equal its entry in the undiluted random field
+            for(size_t copy=0;copy<2;copy++)
+              for(size_t columnSpin=0;columnSpin<(diluteSpin?NDIRAC:1);columnSpin++)
+                for(size_t columnColor=0;columnColor<(diluteColor?NCOL:1);columnColor++)
+                  {
+                    std::vector<size_t> coordinates;
+                    for(const Comp& comp : line.field.outer)
+                      if(comp.kind==StandardComp::Copy)
+                        coordinates.push_back(copy);
+                      else if(comp.kind==StandardComp::Spin)
+                        coordinates.push_back(columnSpin);
+                      else
+                        coordinates.push_back(columnColor);
+                    
+                    auto field=line.field.shadow<spincolor,defaultSpaceTimeLayout,defaultMemorySpace>(
+                      "noise validation",coordinates);
+                    const auto host=field.getSurelyReadableOn<MemorySpace::CPU>();
+                    
+                    for(int64_t site=0;site<locVol;site++)
+                      for(size_t spin=0;spin<NDIRAC;spin++)
+                        for(size_t color=0;color<NCOL;color++)
+                          {
+                            const bool active=(time<0 or glbCoordOfLoclx[site][0]==time) and
+                              (not diluteSpin or spin==columnSpin) and
+                              (not diluteColor or color==columnColor);
+                            complex expected{};
+                            
+                            if(active)
+                              {
+                                if(noise=="AllPlusOne")
+                                  expected[RE]=1;
+                                else
+                                  {
+                                    const uint64_t component=(copy*NDIRAC+spin)*NCOL+color;
+                                    const uint64_t slot=time<0?glblxOfLoclx[site]:glblxOfLoclx[site]%64;
+                                    const uint64_t first=component*nUniform*nSites+slot;
+                                    const double u=range.uniformAt(first);
+                                    
+                                    if(noise=="Z2")
+                                      expected[RE]=u<0.5?-1:1;
+                                    else
+                                      {
+                                        const double v=range.uniformAt(first+nSites);
+                                        
+                                        if(noise=="Z4")
+                                          {
+                                            expected[RE]=(u<0.5?-1:1)*M_SQRT1_2;
+                                            expected[IM]=(v<0.5?-1:1)*M_SQRT1_2;
+                                          }
+                                        else
+                                          {
+                                            const double radius=sqrt(-log(1-u));
+                                            expected[RE]=radius*cos(2*M_PI*v);
+                                            expected[IM]=radius*sin(2*M_PI*v);
+                                          }
+                                      }
+                                  }
+                                
+                                sum+=host[site][spin][color][RE]+host[site][spin][color][IM];
+                                sumSquares+=sqr(host[site][spin][color][RE])+sqr(host[site][spin][color][IM]);
+                                nValues++;
+                              }
+                            
+                            for(int ri=0;ri<2;ri++)
+                              assert(std::abs(host[site][spin][color][ri]-expected[ri])<1e-12);
+                          }
+                  }
+            
+            non_loc_reduce(&nValues);
+            assert(nValues==2*NDIRAC*NCOL*nSites);
+            assert(nValues*nUniform==expectedCost);
+            
+            // Gaussian real/imaginary components have variance one half, like normalized Z4
+            if(noise=="Gauss")
+              {
+                non_loc_reduce(&sum);
+                non_loc_reduce(&sumSquares);
+                assert(std::abs(sum/nValues)<0.15);
+                assert(std::abs(sumSquares/nValues-1)<0.15);
+              }
+            
+            // Growing the requested hit count leaves earlier source values unchanged
+            if(expectedCost)
+              {
+                const auto next=layout.operationRange(rng,allocation,7,0);
+                assert(next.uniformAt(0)!=range.uniformAt(0));
+                options.policy.nHits=8;
+                const auto repeated=layout.operationRange(rng,allocation,7,1);
+                assert(repeated.uniformAt(expectedCost-1)==range.uniformAt(expectedCost-1));
+              }
+          }
+  
+  for(size_t word=0;word<4;word++)
+    assert(rng.state[word]==initialState[word]);
+  
+  // Script defaults, independent source ranges, checkpoint identity, and deterministic zero cost
+  PreparedProgram program=prepareProgram({{ProgramPart::Kind::Immediate,
+    "setGeometry(4,4); corrBlock(\"noise\"); corrGammas(\"noise\",5,5); "
+    "a=Gamma(0)*Source(); b=Gamma(0)*Source(.noise=Z2); c=Gamma(0)*Source(.noise=GAUSS); "
+    "d=Gamma(0)*Source(.noise=ALL_PLUS_ONE); corrTrace(\"noise\",a,a); corrTrace(\"noise\",b,b); "
+    "corrTrace(\"noise\",c,c); corrTrace(\"noise\",d,d);",1}});
+  const auto layout=prepareRngLayout(program.options,program.correlations,program.gaugeRecipes);
+  assert(layout.sources.size()==4);
+  uint64_t total=NDIM;
+  for(const Task& task : program.correlations.instructions)
+    if(const auto* source=std::get_if<Source>(&task.operation))
+      {
+        const auto allocation=layout.sources.at(*source);
+        const uint64_t cost=SourceGeneration(*source,program.options).doubleDrawCost();
+        assert(allocation.doubleDrawCost==cost);
+        assert(allocation.offset[0]==total);
+        total+=cost;
+      }
+  assert(layout.doubleDrawCosts[rngScopeIndex(RngScope::Hit)][0]==total);
+  MASTER_PRINTF("NICE noise source validation passed\n");
+}
+
 /// Verify origin placement and site-fastest operation draws on the configured backend
 void validateRngExecution()
 {
@@ -3836,7 +3992,9 @@ void validateRngExecution()
   const auto checkPoint=[](const TaskHandlers& selectedHandlers,
                            const Coords& selectedOrigin)
   {
-    LineValue point=selectedHandlers.source(Source{});
+    Source source;
+    source.noise="Point";
+    LineValue point=selectedHandlers.source(source);
     auto shadow=point.field.shadow<nissa::spincolor,nissa::defaultSpaceTimeLayout,
                                     nissa::defaultMemorySpace>("rng point source",
                                       std::vector<size_t>(point.field.outer.size(),0));
@@ -4701,11 +4859,22 @@ int main(int narg,
     }
 #endif
   
+  if(narg>1 and std::string_view(arg[1])=="noise-sources")
+    {
+      nissa::initNissa(narg,arg);
+      nissa::initGrid(4,4);
+      validateNoiseSources();
+      nissa::closeNissa();
+      
+      return 0;
+    }
+  
   if(narg>1 and std::string_view(arg[1])=="script-execution")
     {
       nissa::initNissa(narg,arg);
       nissa::initGrid(4,4);
       validateRngExecution();
+      validateNoiseSources();
       validatePhysicalPropagator();
       validateILDGLineExecution();
       validatePreparedExecution();

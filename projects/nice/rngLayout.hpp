@@ -2,10 +2,12 @@
 #define _NICE_RNG_LAYOUT_HPP
 
 #include "runOptions.hpp"
+#include "corrParts.hpp"
 
 #include <algorithm>
 #include <array>
 #include <iterator>
+#include <map>
 #include <optional>
 #include <vector>
 
@@ -38,6 +40,9 @@ namespace nissa::nice
     
     /// Allocations in gauge recipe order, including zero-cost recipes
     std::vector<RngAllocation> gaugeOperations;
+    
+    /// Source allocations keyed by complete source identity, independent of cache or execution skips
+    std::map<Source,RngAllocation> sources;
     
     /// Refer to the run settings before collecting any operation costs
     explicit RngLayout(const RunOptions& options) :

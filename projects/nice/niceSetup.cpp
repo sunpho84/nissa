@@ -9,6 +9,7 @@
 #include "nice.hpp"
 #include "schedulingStrategies.hpp"
 #include "runOptions.hpp"
+#include "sourceGeneration.hpp"
 #include "scriptCompletion.hpp"
 #include "scriptAnalysis.hpp"
 #include "scriptSession.hpp"
@@ -474,6 +475,12 @@ namespace nissa::nice
       layout.gaugeOperations.push_back(layout.addOperation(RngScope::GaugeConf,
                                                       recipe.doubleDrawCost?recipe.doubleDrawCost(options):0));
     
+    for(const Task& task : correlations.instructions)
+      if(const auto* source=std::get_if<Source>(&task.operation))
+        if(not layout.sources.contains(*source))
+          layout.sources.emplace(*source,layout.addOperation(RngScope::Hit,
+                                   SourceGeneration(*source,options).doubleDrawCost()));
+    
     return layout;
   }
   
@@ -524,9 +531,23 @@ namespace nissa::nice
     // A new Source() allocates an identity; copies retain it
     auto sourceInfo=
       registerHObject<Source>(evaluator,"Source",
-                              std::make_tuple(HostMemberInfo{"tSelect",&Source::tSelect}),
-                              "Create a stochastic source identity, optionally selecting its time slice (default: tSelect=-1, unrestricted)");
+                              std::make_tuple(HostMemberInfo{"tSelect",&Source::tSelect},
+                                              HostMemberInfo{"noise",&Source::noise}),
+                              "Create a source (defaults: tSelect=-1, all times; noise=\"Z4\"). Noise choices: Z4, Z2, Gauss, AllPlusOne, Point. tSelect is an absolute time; DeltaT selects time relative to the hit origin");
     useDescription<Source>(sourceInfo);
+    
+    // Ordinary documented bindings also participate in discovery and completion
+    for(const auto& [name,value] : {std::pair{"Z2","Z2"},
+                                    std::pair{"Z4","Z4"},
+                                    std::pair{"GAUSS","Gauss"},
+                                    std::pair{"ALL_PLUS_ONE","AllPlusOne"},
+                                    std::pair{"POINT","Point"}})
+      {
+        (*evaluator.curEnv)[name]=
+          std::string(value);
+        evaluator.curEnv->describe(name,
+                                   std::format("Source noise selector: {} (ordinary string binding)",value));
+      }
     
     auto parameter=[&]<typename T>(const char* name,
                                    const char* description)

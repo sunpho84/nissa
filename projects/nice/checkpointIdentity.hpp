@@ -131,6 +131,7 @@ namespace nissa::nice
       (void)isNew;
       addNumber(source->second);
       addParameter(parameter.tSelect);
+      addParameter(parameter.noise);
       addParameter(parameter.ildgPath);
     }
     
