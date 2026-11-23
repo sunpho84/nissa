@@ -6,4 +6,7 @@
 
 include_HEADERS+= \
 	%D%/linalgs.hpp \
-	%D%/reduce.hpp
+	%D%/reduce.hpp \
+	%D%/localReduction.hpp \
+	%D%/localReductionV1.hpp \
+	%D%/localReductionV2.hpp
