@@ -444,6 +444,24 @@ namespace nissa::nice
   Oper operator*(const Oper& oper,
                  const double weight);
   
+  /// Strongly typed source distributions, including deterministic diagnostic fills
+  enum class NoiseType{Z4,Z2,Gauss,AllPlusOne,Point};
+  
+  /// Canonical name shared by diagnostics and legacy serialization
+  inline const char* noiseTypeName(const NoiseType noise)
+  {
+    switch(noise)
+      {
+      case NoiseType::Z4: return "Z4";
+      case NoiseType::Z2: return "Z2";
+      case NoiseType::Gauss: return "Gauss";
+      case NoiseType::AllPlusOne: return "AllPlusOne";
+      case NoiseType::Point: return "Point";
+      }
+    
+    CRASH("Invalid NICE source noise type");
+  }
+  
   /// Unique source node, optionally fixed at a selected time
   struct Source
   {
@@ -454,7 +472,7 @@ namespace nissa::nice
     int tSelect;
     
     /// Noise distribution, with Point retained for deterministic diagnostic sources
-    std::string noise{"Z4"};
+    NoiseType noise{NoiseType::Z4};
     
     /// IB file stem for a loaded source, absent for a generated source
     std::optional<std::string> ildgPath;
@@ -479,7 +497,7 @@ namespace nissa::nice
         return "readILDGLine(path="+*ildgPath+")";
       else
         return "Source(count="+std::to_string(count)+",tSelect="+
-          std::to_string(tSelect)+",noise="+noise+")";
+          std::to_string(tSelect)+",noise="+noiseTypeName(noise)+")";
     }
     
     /// Compare source identities and time selections

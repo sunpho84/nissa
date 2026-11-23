@@ -151,19 +151,24 @@ struct FuncArg;
 
 struct Value;
 
+struct ValueSlot;
+
 struct HObjectMemberRef;
 
 /// Reference to a script storage element
 struct ValueRef
 {
-  std::shared_ptr<Value> ref;
+  std::shared_ptr<ValueSlot> ref;
+  
+  /// Read-only access inherited from a containing constant slot
+  bool isConst{false};
 };
 
 /// Sequence of shared value cells, used for script lists and variadic arguments
 /// Copying the list copies the cell handles, not the contained values
 struct ValuesList
 {
-  std::vector<std::shared_ptr<Value>> data;
+  std::vector<std::shared_ptr<ValueSlot>> data;
   
   Value& operator[](const int& i);
 };
@@ -173,7 +178,7 @@ struct FuncArg
 {
   std::string name;
   
-  std::shared_ptr<Value> value;
+  std::shared_ptr<ValueSlot> value;
 };
 
 /// Script function together with the environment captured at definition time
@@ -205,7 +210,7 @@ struct ValueTypeInfo
 /// C++ callable exposed to scripts, receiving prepared arguments and the evaluator
 /// An empty argumentNames signature permits positional arguments only
 struct HostFunction :
-  std::function<Value(std::vector<std::shared_ptr<Value>>&,Evaluator&)>
+  std::function<Value(std::vector<std::shared_ptr<ValueSlot>>&,Evaluator&)>
 {
   /// Argument names used for binding; constructor arguments may be omitted
   std::vector<std::string> argumentNames;
@@ -235,10 +240,10 @@ struct Struct
 {
   const StructDefNode* structDefNode;
   
-  std::vector<std::shared_ptr<Value>> members;
+  std::vector<std::shared_ptr<ValueSlot>> members;
   
   inline Struct(const StructDef& def,
-                std::vector<std::shared_ptr<Value>>& members);
+                std::vector<std::shared_ptr<ValueSlot>>& members);
 };
 
 inline std::ostream& operator<<(std::ostream& os,
@@ -342,13 +347,63 @@ struct Value
   ValueT data;
 };
 
+/// Storage cell with its own mutability; copying its Value never copies constness
+/// Public Value inheritance preserves the value-reading interface used by native callbacks
+struct ValueSlot :
+  Value
+{
+  /// Whether writes through this storage cell are forbidden
+  bool isConst{false};
+  
+  /// Create mutable storage from a runtime alternative
+  ValueSlot(ValueT initial=std::monostate{}) :
+    Value{std::move(initial)}
+  {
+  }
+  
+  /// Copy a value into a new mutable cell
+  ValueSlot(const Value& initial) :
+    Value{initial}
+  {
+  }
+  
+  /// Copy the payload without transferring the source cell's mutability
+  ValueSlot(const ValueSlot& initial) :
+    Value{static_cast<const Value&>(initial)}
+  {
+  }
+  
+  /// Replace a mutable cell without changing its slot attributes
+  ValueSlot& operator=(const Value& value)
+  {
+    if(isConst)
+      errorEmitter("cannot modify a constant slot");
+    
+    Value::operator=(value);
+    
+    return *this;
+  }
+  
+  /// Assign another cell's payload, preserving both cells' attributes
+  ValueSlot& operator=(const ValueSlot& value)
+  {
+    return *this=static_cast<const Value&>(value);
+  }
+  
+  /// Assign a runtime alternative through the same mutability check
+  ValueSlot& operator=(ValueT value)
+  {
+    return *this=Value{std::move(value)};
+  }
+};
+
 /// Recover the actual C++ type T from the given positional host-function argument
 /// Named script arguments have already been placed in their signature positions
 /// T is either a ValueT alternative or the concrete payload of an HObject
 /// Require an exact type match, except int64_t also accepts int by value
 /// Other returned references borrow the argument cells and must not outlive them
 template <typename T>
-decltype(auto) hostArgumentTypeConcretizer(const std::vector<std::shared_ptr<Value>>& arguments,
+decltype(auto) hostArgumentTypeConcretizer(const std::vector<std::shared_ptr<ValueSlot>>& arguments,
                                            const std::size_t index,
                                            const char* functionName)
 {
@@ -389,7 +444,7 @@ decltype(auto) hostArgumentTypeConcretizer(const std::vector<std::shared_ptr<Val
 /// Types follow signature order; every argument is required and extras are rejected
 /// Tuple elements borrow argument cells, except widened integers which are owned
 template <typename... T>
-auto hostArgumentsTypeConcretizer(const std::vector<std::shared_ptr<Value>>& arguments,
+auto hostArgumentsTypeConcretizer(const std::vector<std::shared_ptr<ValueSlot>>& arguments,
                                   const char* functionName)
 {
   if(arguments.size()>sizeof...(T))
@@ -431,6 +486,9 @@ struct HObjectMemberRef
   
   Accessors accessors;
   
+  /// Read-only access inherited from the host object's parent slot
+  bool isConst{false};
+  
   Value get() const
   {
     return accessors.first();
@@ -439,6 +497,9 @@ struct HObjectMemberRef
   void set(const AssignMode& mode,
            const Value& value)
   {
+    if(isConst)
+      errorEmitter("cannot modify a constant host member");
+    
     accessors.second(mode,value);
   }
 };
@@ -967,7 +1028,7 @@ inline std::ostream& operator<<(std::ostream& os,
 };
 
 inline Struct::Struct(const StructDef& def,
-                      std::vector<std::shared_ptr<Value>>& members) :
+                      std::vector<std::shared_ptr<ValueSlot>>& members) :
   structDefNode(def.structDefNode),
   members(members)
 {
@@ -1200,7 +1261,7 @@ struct Environment
 {
   std::shared_ptr<Environment> parent;
   
-  std::unordered_map<std::string,std::shared_ptr<Value>> varTable;
+  std::unordered_map<std::string,std::shared_ptr<ValueSlot>> varTable;
   
   /// Descriptions attached to bindings in this scope
   std::unordered_map<std::string,std::string> descriptions;
@@ -1268,6 +1329,9 @@ struct Environment
     EntityInfo info=
       value ? std::visit(EntityInfoVisitor{},value->data) : EntityInfo{"uninitialized variable"};
     
+    if(value and value->isConst)
+      info.kind="constant "+info.kind;
+    
     if(const auto found=scope->descriptions.find(name); found!=scope->descriptions.end())
       info.description=
         found->second;
@@ -1306,7 +1370,7 @@ struct Environment
   }
   
   /// Look up a name in this scope and its parents; return null when absent
-  std::shared_ptr<Value> find(const std::string& name)
+  std::shared_ptr<ValueSlot> find(const std::string& name)
   {
     if(auto it=varTable.find(name); it!=varTable.end())
       return it->second;
@@ -1319,7 +1383,7 @@ struct Environment
   /// Requires an existing value, reports an error if the name cannot be found
   Value& at(const std::string& name)
   {
-    std::shared_ptr<Value> f=
+    std::shared_ptr<ValueSlot> f=
       find(name);
     
     if(f==nullptr)
@@ -1330,20 +1394,35 @@ struct Environment
   
   /// Returns existing variable or insert an uninitialized cell, returning true
   /// if the cell was not existing
-  std::pair<std::shared_ptr<Value>,
+  std::pair<std::shared_ptr<ValueSlot>,
             bool>
   getRefOrInsert(const std::string& name)
   {
     if(auto f=find(name))
       return {f,false};
     else
-      return {varTable[name]=std::make_shared<Value>(std::monostate{}),true};
+      return {varTable[name]=std::make_shared<ValueSlot>(std::monostate{}),true};
   }
   
   /// Access a visible binding, creating an uninitialized local cell when needed
-  Value& operator[](const std::string& name)
+  ValueSlot& operator[](const std::string& name)
   {
     return *getRefOrInsert(name).first;
+  }
+  
+  /// Install a documented constant in this scope, rejecting duplicate local names
+  void defineConstant(const std::string& name,
+                      const Value& value,
+                      const std::string& description={})
+  {
+    auto slot=
+      std::make_shared<ValueSlot>(value);
+    slot->isConst=true;
+    
+    if(not varTable.try_emplace(name,std::move(slot)).second)
+      errorEmitter("constant already defined in this scope: ",name);
+    
+    describe(name,description);
   }
   
   // void print(const size_t& i=0)
@@ -1587,10 +1666,29 @@ struct Evaluator
         errorEmitter(std::forward<Args>(args)...);
     }
     
+    /// Whether this reference forbids writes, including its containing access path
+    bool isConst() const
+    {
+      if(const auto* slot=std::get_if<ValueRef>(&ref))
+        return slot->isConst or (slot->ref and slot->ref->isConst);
+      else if(const auto* member=std::get_if<HObjectMemberRef>(&ref))
+        return member->isConst;
+      else
+        return false;
+    }
+    
+    /// Reject writes through constant cells or a constant aggregate access path
+    void requireWritable() const
+    {
+      if(isConst())
+        error("cannot modify constant slot",name.empty()?"":" '",name,name.empty()?"":"'");
+    }
+    
     /// Assign through either reference kind; reject results that are not writable
     void set(const AssignMode& mode,
              const Value& v)
     {
+      requireWritable();
       const ScriptDiagnosticContext context(location ? &*location : nullptr);
       const ScriptDeferredCallContext invocation(calls.get());
       
@@ -1600,7 +1698,7 @@ struct Evaluator
           if(mode!=AssignMode::PLAIN)
             ensureInitialized(*vr.ref);
           
-          trySet(*vr.ref,mode,v);
+          trySet(static_cast<Value&>(*vr.ref),mode,v);
         },
         [&v,&mode](HObjectMemberRef& hr)
         {
@@ -1618,6 +1716,7 @@ struct Evaluator
     /// Host member accessors do not expose such a cell and must use set() instead
     Value& asLhs()
     {
+      requireWritable();
       ValueRef* _cRefP=
         std::get_if<ValueRef>(&ref);
       
@@ -1651,7 +1750,7 @@ struct Evaluator
         return std::visit(pp::internal::Overload{
           [this](const ValueRef& vr) -> Value
           {
-            if(const std::shared_ptr<Value>& r=vr.ref)
+            if(const std::shared_ptr<ValueSlot>& r=vr.ref)
               {
                 ensureInitialized(*r);
                 
@@ -1793,7 +1892,7 @@ struct Evaluator
   
   /// Construct a script struct from an argument vector already ordered by member
   EvalResult createStruct(const StructDef& def,
-                          std::vector<std::shared_ptr<Value>>& args)
+                          std::vector<std::shared_ptr<ValueSlot>>& args)
   {
     const std::string& name=
       def.structDefNode->name;
@@ -1815,7 +1914,7 @@ struct Evaluator
   
   /// Execute a script closure with arguments already arranged in parameter order
   EvalResult callEmbeddedFunction(const Function& f,
-                                  std::vector<std::shared_ptr<Value>>& args)
+                                  std::vector<std::shared_ptr<ValueSlot>>& args)
   {
     const FuncNode& fn=
       *f.funcNode;
@@ -1841,13 +1940,13 @@ struct Evaluator
         const FuncParNode& par=
           pars.list[iPar];
         
-        std::shared_ptr<Value> arg=
+        std::shared_ptr<ValueSlot> arg=
           args[iPar];
         
         if(par.isRef)
           {
             const auto referent=
-              [&par](const std::shared_ptr<Value>& argument)
+              [&par](const std::shared_ptr<ValueSlot>& argument)
               {
                 const auto* reference=
                   std::get_if<ValueRef>(&argument->data);
@@ -1874,7 +1973,7 @@ struct Evaluator
                   references.data.push_back(referent(argument));
                 
                 arg=
-                  std::make_shared<Value>(std::move(references));
+                  std::make_shared<ValueSlot>(std::move(references));
               }
             else
               arg=
@@ -1899,7 +1998,7 @@ struct Evaluator
   
   /// Dispatch prepared arguments; AST callers already registered their invocation
   EvalResult callFunction(const Value& vFun,
-                          std::vector<std::shared_ptr<Value>>& args,
+                          std::vector<std::shared_ptr<ValueSlot>>& args,
                           const bool recordInvocation=true)
   {
     std::optional<ScriptCallContext> invocation;
@@ -1931,7 +2030,7 @@ struct Evaluator
   
   /// Find a callable by name and invoke it with already prepared arguments
   EvalResult callFunction(const std::string& name,
-                          std::vector<std::shared_ptr<Value>>& args)
+                          std::vector<std::shared_ptr<ValueSlot>>& args)
   {
     const ScriptCallContext invocation(name);
     diagnostic("Going to call function ",name.c_str(),"\n");
@@ -1962,6 +2061,9 @@ struct Evaluator
   {
     EvalResult tmp=
       evaluate(*uRNode.arg);
+    
+    // Script reference parameters are mutable references; const-reference syntax is not exposed
+    tmp.requireWritable();
     
     ValueRef* _vr=
       std::get_if<ValueRef>(&tmp.ref);
@@ -1999,8 +2101,8 @@ struct Evaluator
       evaluate(*subscribeNode.base);
     const Value s=
       evaluate(*subscribeNode.subscr).asRhs();
-    Value& b=
-      _b.hasRef() ? _b.asLhs() : *_b.value;
+    Value b=
+      _b.asRhs();
     _b.ensureInitialized(b);
     
     if(ValuesList* vl=std::get_if<ValuesList>(&b.data))
@@ -2015,11 +2117,11 @@ struct Evaluator
           if(i>=vl->data.size())
             errorEmitter("trying to subscribe withindex ",i," greater than list size");
           
-          std::shared_ptr<Value> r=
+          std::shared_ptr<ValueSlot> r=
             vl->data[i];
           
           if(_b.hasRef())
-            return {.ref{ValueRef{r}}};
+            return {.ref{ValueRef{r,_b.isConst()}}};
           else
             return {.value=*r};
         }
@@ -2054,11 +2156,11 @@ struct Evaluator
           errorEmitter("trying to access to member ",memberName,
                        " not present in embedded struct of type: ",sd->name);
         
-        std::shared_ptr<Value> mf=
+        std::shared_ptr<ValueSlot> mf=
           es->members[iMember];
         
         if(_b.hasRef())
-          return {.ref={ValueRef{mf}}};
+          return {.ref={ValueRef{mf,_b.isConst()}}};
         else
           return {.value=*mf};
       }
@@ -2082,11 +2184,13 @@ struct Evaluator
         },[base=_b,memberName](const AssignMode& mode,
                                const Value& value) mutable
         {
+          base.requireWritable();
           Value parent=
             base.asRhs();
           unvariant<HObject>(parent.data).getMemberRef(memberName).set(mode,value);
           base.set(AssignMode::PLAIN,parent);
         }}};
+        nested.isConst=_b.isConst();
         
         return {.ref{nested}};
       }
@@ -2170,7 +2274,7 @@ struct Evaluator
     diagnostic("Preparing a list of ",nMembers," members\n");
     
     for(const StructMemberNode& structMemberNode : structMemberListNode.list)
-      memberList.data.push_back(std::make_shared<Value>((*this)(structMemberNode).asRhs()));
+      memberList.data.push_back(std::make_shared<ValueSlot>((*this)(structMemberNode).asRhs()));
     
     return {.value=Value{memberList}};
   }
@@ -2178,7 +2282,7 @@ struct Evaluator
   /// Evaluate an argument expression and retain its optional argument name
   EvalResult operator()(const FuncArgNode& argNode)
   {
-    FuncArg arg{.name=argNode.name,.value=std::make_shared<Value>(evaluate(*argNode.expr).asRhs())};
+    FuncArg arg{.name=argNode.name,.value=std::make_shared<ValueSlot>(evaluate(*argNode.expr).asRhs())};
     
     return {.value=Value{std::move(arg)}};
   }
@@ -2196,7 +2300,7 @@ struct Evaluator
     diagnostic("Preparing a list of ",nArgs," args\n");
     
     for(const FuncArgNode& argNode : argListNode.list)
-      argList.data.push_back(std::make_shared<Value>((*this)(argNode).asRhs()));
+      argList.data.push_back(std::make_shared<ValueSlot>((*this)(argNode).asRhs()));
     
     return {.value=Value{argList}};
   }
@@ -2222,7 +2326,7 @@ struct Evaluator
     
     diagnostic("Going to call function ",fName,"\n");
     
-    std::vector<std::shared_ptr<Value>> args;
+    std::vector<std::shared_ptr<ValueSlot>> args;
     
     if(not funcCallNode.callee and not curEnv->find(fName) and funcCallNode.location)
       funcCallNode.location->error("Trying to call unknown function ",fName);
@@ -2240,7 +2344,7 @@ struct Evaluator
     const auto insertArgument=
       [&args,&fName](const size_t index,
                      const std::string& name,
-                     const std::shared_ptr<Value>& value)
+                     const std::shared_ptr<ValueSlot>& value)
       {
         if(args[index])
           errorEmitter("argument ",name," specified twice to ",fName);
@@ -2257,7 +2361,7 @@ struct Evaluator
           args.resize(names.size());
         
         size_t positional{};
-        for(std::shared_ptr<Value> _arg : _args->data)
+        for(std::shared_ptr<ValueSlot> _arg : _args->data)
           {
             FuncArg& arg=
               unvariant<FuncArg>(_arg->data);
@@ -2308,16 +2412,16 @@ struct Evaluator
         
         if(isVariadic)
           args.back()=
-            std::make_shared<Value>(ValuesList{});
+            std::make_shared<ValueSlot>(ValuesList{});
         
         auto insertNamedOrUnnamed=
           [isVariadic,&args,&_args,&pars,&fName,&insertArgument](const bool insertNamed)
           {
-            for(const std::shared_ptr<Value>& __arg : _args->data)
+            for(const std::shared_ptr<ValueSlot>& __arg : _args->data)
               {
                 FuncArg& _arg=
                   unvariant<FuncArg>(__arg->data);
-                std::shared_ptr<Value> arg=
+                std::shared_ptr<ValueSlot> arg=
                   _arg.value;
                 
                 const std::string& aName=
@@ -2370,7 +2474,7 @@ struct Evaluator
               
               if(std::shared_ptr<ASTNode> optDef=par.def)
                 args[iPar]=
-                  std::make_shared<Value>(evaluate(*optDef).asRhs());
+                  std::make_shared<ValueSlot>(evaluate(*optDef).asRhs());
               else
                 errorEmitter("parameter \"",par.name,
                              "\" with no default value unspecified when calling the function");
@@ -2390,11 +2494,11 @@ struct Evaluator
         auto insertNamedOrUnnamed=
           [&args,&_args,&members,&fName,&insertArgument](const bool insertNamed)
           {
-            for(const std::shared_ptr<Value>& __arg : _args->data)
+            for(const std::shared_ptr<ValueSlot>& __arg : _args->data)
               {
                 FuncArg& _arg=
                   unvariant<FuncArg>(__arg->data);
-                std::shared_ptr<Value> arg=
+                std::shared_ptr<ValueSlot> arg=
                   _arg.value;
                 
                 const std::string& aName=
@@ -2445,7 +2549,7 @@ struct Evaluator
                   diagnostic("Member ",member.name," missing value, adding its default\n");
                   
                   args[iMember]=
-                    std::make_shared<Value>(evaluate(*optDef).asRhs());
+                    std::make_shared<ValueSlot>(evaluate(*optDef).asRhs());
                 }
               else
                 errorEmitter("member \"",member.name,
@@ -2726,7 +2830,7 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
   // The evaluator uses names to place positional and named arguments in args
   (*ev.curEnv)[name]=
     HostFunction{
-      [info,names,name](std::vector<std::shared_ptr<Value>>& args,
+      [info,names,name](std::vector<std::shared_ptr<ValueSlot>>& args,
                         Evaluator&) -> Value
       {
         if(args.size()>names.size())
@@ -2769,7 +2873,7 @@ struct HostCallableSignature<Return (Owner::*)(Arguments...) const>
   /// Concretize required arguments in signature order, then call the lambda
   template <typename Callable>
   static Value invoke(Callable& callable,
-                      const std::vector<std::shared_ptr<Value>>& values,
+                      const std::vector<std::shared_ptr<ValueSlot>>& values,
                       const char* functionName,
                       Evaluator& evaluator)
   {
@@ -2782,7 +2886,7 @@ struct HostCallableSignature<Return (Owner::*)(Arguments...) const>
         
         return {};
       }
-    else if constexpr(std::is_same_v<Result,Value>)
+    else if constexpr(std::is_same_v<Result,Value> or std::is_same_v<Result,ValueSlot>)
       return std::apply(callable,arguments);
     else if constexpr(std::is_constructible_v<ValueT,Return>)
       return {std::apply(callable,arguments)};
@@ -2807,7 +2911,7 @@ struct HostCallableSignature<Return (Owner::*)(Evaluator&,Arguments...) const> :
   /// Bind the evaluator, then reuse ordinary script argument concretization
   template <typename Callable>
   static Value invoke(Callable& callable,
-                      const std::vector<std::shared_ptr<Value>>& values,
+                      const std::vector<std::shared_ptr<ValueSlot>>& values,
                       const char* functionName,
                       Evaluator& evaluator)
   {
@@ -2849,7 +2953,8 @@ ValueTypeInfo hostResultType(const Evaluator& evaluator)
                     std::is_same_v<Result,double> or std::is_same_v<Result,std::string>)
     result.cppType=
       typeid(Result);
-  else if constexpr(not std::is_constructible_v<ValueT,Result> and not std::is_same_v<Result,Value>)
+  else if constexpr(not std::is_constructible_v<ValueT,Result> and
+                    not std::is_same_v<Result,Value> and not std::is_same_v<Result,ValueSlot>)
     {
       if(const auto found=evaluator.hostObjectTypes.find(typeid(Result));
          found!=evaluator.hostObjectTypes.end())
@@ -2899,7 +3004,7 @@ void registerHostFunction(Evaluator& evaluator,
   
   (*evaluator.curEnv)[name]=
     HostFunction{
-      [callable=std::move(callable),name](std::vector<std::shared_ptr<Value>>& values,
+      [callable=std::move(callable),name](std::vector<std::shared_ptr<ValueSlot>>& values,
                                           Evaluator& caller) mutable -> Value
       {
         return Signature::invoke(callable,values,name.c_str(),caller);

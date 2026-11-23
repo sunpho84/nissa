@@ -822,7 +822,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
                                    const char* description)
   {
     env[name]=HostFunction{
-      [selection,name](std::vector<std::shared_ptr<Value>>& args,
+      [selection,name](std::vector<std::shared_ptr<ValueSlot>>& args,
                        Evaluator& caller)->Value
       {
         const int verbose=args.empty() or not args[0]?1:
@@ -843,7 +843,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
   registerListing("listEntities",EntitySelection::All,"List all visible bindings (default: verbose=1)");
   
   env["help"]=HostFunction{
-    [](std::vector<std::shared_ptr<Value>>& args,
+    [](std::vector<std::shared_ptr<ValueSlot>>& args,
        Evaluator& caller)->Value
     {
       if(args.size()>1)
@@ -869,11 +869,11 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
   
   env["print"]=
     HostFunction{
-    [](std::vector<std::shared_ptr<Value>>& args,
+    [](std::vector<std::shared_ptr<ValueSlot>>& args,
 	 Evaluator&)->Value
     {
 	std::ostringstream output;
-	for(std::shared_ptr<Value>& arg : args)
+	for(std::shared_ptr<ValueSlot>& arg : args)
 	  std::visit([&output](const auto& v)
 	  {
 	    if constexpr(requires {output<<v;})
@@ -891,7 +891,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
   
   env["makeVec"]=
     HostFunction{
-    [](std::vector<std::shared_ptr<Value>>& args,
+    [](std::vector<std::shared_ptr<ValueSlot>>& args,
 	 Evaluator&)->Value
     {
 	return {ValuesList{.data{args}}};
@@ -899,15 +899,15 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
   
   env["forEachEl"]=
     HostFunction{
-    [](std::vector<std::shared_ptr<Value>>& args,
+    [](std::vector<std::shared_ptr<ValueSlot>>& args,
 	 Evaluator& ev)->Value
     {
 	if(const size_t n=args.size();n!=2)
 	  errorEmitter("trying to call forEachEl with ",n," elements in place of 2");
 	
-	std::vector<std::shared_ptr<Value>> v(1);
+	std::vector<std::shared_ptr<ValueSlot>> v(1);
 	if(ValuesList* list=std::get_if<ValuesList>(&args[0]->data))
-	  for(std::shared_ptr<Value> val : list->data)
+	  for(std::shared_ptr<ValueSlot> val : list->data)
 	    {
 	      v[0]=val;
 	      
@@ -921,7 +921,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
   
   env["seq"]=
     HostFunction{
-    [](std::vector<std::shared_ptr<Value>>& args,
+    [](std::vector<std::shared_ptr<ValueSlot>>& args,
 	 Evaluator&)->Value
     {
 	auto p=
@@ -968,12 +968,12 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
 	
 	ValuesList v;
 	for(int i=min;i<max;i+=delta)
-	  v.data.push_back(std::make_shared<Value>(i));
+	  v.data.push_back(std::make_shared<ValueSlot>(i));
 	
 	return {v};
     },{},false,"Create integers below max: seq(max), seq(min,max), or seq(min,step,max); omitted min=0 and step=1",{{"max"},{"min","max"},{"min","step","max"}}};
   
-  const auto requireArgCount=[](const std::vector<std::shared_ptr<Value>>& args,
+  const auto requireArgCount=[](const std::vector<std::shared_ptr<ValueSlot>>& args,
                                 const size_t expected,
                                 const char* name)
   {
@@ -996,7 +996,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
   };
   
   env["rand"]=
-    HostFunction{[requireArgCount](std::vector<std::shared_ptr<Value>>& args,
+    HostFunction{[requireArgCount](std::vector<std::shared_ptr<ValueSlot>>& args,
                                    Evaluator&)->Value
     {
       requireArgCount(args,0,"rand");
@@ -1005,7 +1005,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
     },{},false,"Draw an integer from the C library RNG, independently of the simulation RNG",{{}}};
   
   env["srand"]=
-    HostFunction{[requireArgCount,numericArg](std::vector<std::shared_ptr<Value>>& args,
+    HostFunction{[requireArgCount,numericArg](std::vector<std::shared_ptr<ValueSlot>>& args,
                                               Evaluator&)->Value
     {
       requireArgCount(args,1,"srand");
@@ -1019,7 +1019,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
                                                                  const char* description)
   {
     env[name]=
-      HostFunction{[name,function,requireArgCount,numericArg](std::vector<std::shared_ptr<Value>>& args,
+      HostFunction{[name,function,requireArgCount,numericArg](std::vector<std::shared_ptr<ValueSlot>>& args,
                                                                Evaluator&)->Value
       {
         requireArgCount(args,1,name);
@@ -1035,7 +1035,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
   registerUnaryMath("tan",static_cast<double (*)(double)>(std::tan),"Return the tangent of an angle in radians");
   
   env["pow"]=
-    HostFunction{[requireArgCount,numericArg](std::vector<std::shared_ptr<Value>>& args,
+    HostFunction{[requireArgCount,numericArg](std::vector<std::shared_ptr<ValueSlot>>& args,
                                               Evaluator&)->Value
     {
       requireArgCount(args,2,"pow");
@@ -1044,7 +1044,7 @@ void registerEvaluatorBuiltins(Evaluator& evaluator)
     },{},false,"Raise a numeric base to a numeric exponent",{{"base","exponent"}}};
   
   env["to_string"]=
-    HostFunction{[requireArgCount](std::vector<std::shared_ptr<Value>>& args,
+    HostFunction{[requireArgCount](std::vector<std::shared_ptr<ValueSlot>>& args,
                                    Evaluator&)->Value
     {
       requireArgCount(args,1,"to_string");

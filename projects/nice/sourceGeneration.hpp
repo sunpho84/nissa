@@ -13,7 +13,7 @@ namespace nissa::nice
   struct SourceGeneration
   {
     /// Supported random distributions and deterministic diagnostic fills
-    enum class Noise{Z4,Z2,Gauss,AllPlusOne,Point};
+    using Noise=NoiseType;
     
     /// Distribution selected before entering numerical kernels
     Noise noise;
@@ -39,27 +39,10 @@ namespace nissa::nice
     /// Imported lines consume no source-generation draws
     bool imported;
     
-    /// Decode a script-visible distribution name without passing strings to kernels
-    static Noise parseNoise(const std::string& name)
-    {
-      if(name=="Z4")
-        return Noise::Z4;
-      else if(name=="Z2")
-        return Noise::Z2;
-      else if(name=="Gauss")
-        return Noise::Gauss;
-      else if(name=="AllPlusOne")
-        return Noise::AllPlusOne;
-      else if(name=="Point")
-        return Noise::Point;
-      else
-        CRASH("Unknown NICE source noise '%s': expected Z4, Z2, Gauss, AllPlusOne, or Point",name.c_str());
-    }
-    
     /// Capture geometry and dilution, validating support and total draw arithmetic once
     SourceGeneration(const Source& source,
                      const RunOptions& options) :
-      noise(parseNoise(source.noise)),
+      noise(source.noise),
       spatialVolume(options.physics.volume()/options.physics.T),
       temporalExtent(options.physics.T),
       tSelect(source.tSelect),
@@ -69,6 +52,7 @@ namespace nissa::nice
       imported(source.ildgPath.has_value())
     {
       options.validate();
+      noiseTypeName(noise);
       
       if(tSelect<-1 or tSelect>=temporalExtent)
         CRASH("NICE source time %d is outside [-1,%d)",tSelect,temporalExtent);

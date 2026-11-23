@@ -528,26 +528,31 @@ namespace nissa::nice
       out<<std::any_cast<const SpatMomentum&>(data);
     };
     
+    // Typed selectors share one metadata object and have immutable native slots
+    const auto noiseInfo=
+      registerHObjectType<NoiseType>(evaluator,"NoiseType");
+    noiseInfo->streamOp=[](std::ostream& out,
+                           const std::any& data)
+    {
+      out<<noiseTypeName(std::any_cast<NoiseType>(data));
+    };
+    
+    for(const auto& [name,value] : {std::pair{"Z2",NoiseType::Z2},
+                                    std::pair{"Z4",NoiseType::Z4},
+                                    std::pair{"GAUSS",NoiseType::Gauss},
+                                    std::pair{"ALL_PLUS_ONE",NoiseType::AllPlusOne},
+                                    std::pair{"POINT",NoiseType::Point}})
+      evaluator.curEnv->defineConstant(name,Value{HObject{noiseInfo,value}},
+                                       std::format("Source noise selector: {} (constant NoiseType)",
+                                                   noiseTypeName(value)));
+    
     // A new Source() allocates an identity; copies retain it
     auto sourceInfo=
       registerHObject<Source>(evaluator,"Source",
                               std::make_tuple(HostMemberInfo{"tSelect",&Source::tSelect},
                                               HostMemberInfo{"noise",&Source::noise}),
-                              "Create a source (defaults: tSelect=-1, all times; noise=\"Z4\"). Noise choices: Z4, Z2, Gauss, AllPlusOne, Point. tSelect is an absolute time; DeltaT selects time relative to the hit origin");
+                              "Create a source (defaults: tSelect=-1, all times; noise=Z4). NoiseType selectors: Z4, Z2, GAUSS, ALL_PLUS_ONE, POINT; strings are not accepted. tSelect is an absolute time; DeltaT selects time relative to the hit origin");
     useDescription<Source>(sourceInfo);
-    
-    // Ordinary documented bindings also participate in discovery and completion
-    for(const auto& [name,value] : {std::pair{"Z2","Z2"},
-                                    std::pair{"Z4","Z4"},
-                                    std::pair{"GAUSS","Gauss"},
-                                    std::pair{"ALL_PLUS_ONE","AllPlusOne"},
-                                    std::pair{"POINT","Point"}})
-      {
-        (*evaluator.curEnv)[name]=
-          std::string(value);
-        evaluator.curEnv->describe(name,
-                                   std::format("Source noise selector: {} (ordinary string binding)",value));
-      }
     
     auto parameter=[&]<typename T>(const char* name,
                                    const char* description)

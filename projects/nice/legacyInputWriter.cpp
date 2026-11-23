@@ -254,10 +254,10 @@ namespace nissa::nice
             if(source->ildgPath)
               CRASH("legacy writer cannot represent a readILDGLine source");
             
-            if(source->noise=="Point")
+            if(source->noise==NoiseType::Point)
               CRASH("legacy writer cannot represent a Point source in its stochastic-source table");
             
-            sources.add({names[task.id],source->noise,
+            sources.add({names[task.id],noiseTypeName(source->noise),
                          std::to_string(source->tSelect),"0"});
             ++sourceCount;
           }

@@ -768,11 +768,11 @@ void validateScriptBindings(int argc,
   
   const auto value=[](const auto& data)
   {
-    return std::make_shared<Value>(Value{.data{data}});
+    return std::make_shared<ValueSlot>(Value{.data{data}});
   };
   
   const auto call=[&](const std::string& name,
-                      std::vector<std::shared_ptr<Value>> arguments)
+                      std::vector<std::shared_ptr<ValueSlot>> arguments)
   {
     const auto& function=
       std::get<HostFunction>(evaluator.curEnv->at(name).data);
@@ -792,7 +792,7 @@ void validateScriptBindings(int argc,
     }
   
   // Tuple extraction borrows the original host payload, without copying the line
-  const std::vector<std::shared_ptr<Value>> arguments{
+  const std::vector<std::shared_ptr<ValueSlot>> arguments{
     value(std::string("pion")),value(HObject{lineInfo,backward}),value(5)};
   const auto concrete=
     hostArgumentsTypeConcretizer<std::string,Line,int>(arguments,"tupleTest");
@@ -1016,6 +1016,91 @@ struct ExampleEnvelope
   ExampleGroup group;
 };
 
+/// Check typed native constants, mutable copies, and read-only aggregate access paths
+void validateConstantSlots(const std::string& failureScript={})
+{
+  Evaluator evaluator;
+  Correlations correlations;
+  setupNice(evaluator,correlations);
+  const auto environment=evaluator.curEnv;
+  const auto parameters=
+    registerHObject<ExamplePars>(evaluator,"ExamplePars",ExamplePars::members());
+  const auto group=
+    registerHObject<ExampleGroup>(evaluator,"ExampleGroup",
+      std::make_tuple(HostMemberInfo{"pars",&ExampleGroup::pars,parameters},
+                      HostMemberInfo{"tag",&ExampleGroup::tag}));
+  environment->defineConstant("N",Value{7},"Constant integer fixture");
+  environment->defineConstant("PARAMS",Value{HObject{group,ExampleGroup{}}});
+  ValuesList list{{std::make_shared<ValueSlot>(7)}};
+  environment->defineConstant("LIST",Value{list});
+  ValuesList nested{{std::make_shared<ValueSlot>(list)}};
+  environment->defineConstant("NESTED_LIST",Value{nested});
+  
+  // A script struct holds shared cells, so the access-path qualifier must survive projection
+  StructDefNode definition;
+  definition.name="ScriptBox";
+  definition.members.list.push_back(StructMemberNode{.name="value"});
+  std::vector<std::shared_ptr<ValueSlot>> members{std::make_shared<ValueSlot>(11)};
+  const Struct object(StructDef{&definition},members);
+  environment->defineConstant("BOX",Value{object});
+  
+  (*environment)["selected"]=0;
+  (*environment)["copied"]=0;
+  (*environment)["observed"]=0;
+  registerHostFunction(evaluator,"noiseCode",{"noise"},[](const NoiseType noise)
+  {
+    return static_cast<int>(noise);
+  });
+  registerHostFunction(evaluator,"nativeConstantCopy",{},[&environment]()
+  {
+    return (*environment)["N"];
+  });
+  const auto parser=getParser();
+  const auto executor=getParseTreeExecuctor(parser.actionStrings);
+  const auto execute=[&](const std::string& script)
+  {
+    const auto tree=createParseTree(parser,script);
+    const auto ast=executor.execParseTree(tree);
+    std::visit(evaluator,*ast);
+  };
+  
+  if(not failureScript.empty())
+    execute(failureScript);
+  else
+    {
+      execute(R"(
+        choice=Z2;
+        choice=GAUSS;
+        source=Source(.noise=choice);
+        source.noise=ALL_PLUS_ONE;
+        selected=noiseCode(source.noise);
+        copied=nativeConstantCopy();
+        copied++;
+        fun readConstant(){return N;}
+        copied+=readConstant();
+        observed=LIST[0]+NESTED_LIST[0][0]+PARAMS.pars.t+BOX.value;
+        fun change(&value){value+=1;}
+        change(&copied);
+      )");
+      assert(std::get<int>(environment->at("selected").data)==static_cast<int>(NoiseType::AllPlusOne));
+      assert(std::get<int>(environment->at("copied").data)==16);
+      assert(std::get<int>(environment->at("observed").data)==29);
+      assert(environment->find("N")->isConst);
+      assert(not environment->find("copied")->isConst);
+      assert(environment->entityInfo("GAUSS").kind.starts_with("constant "));
+      assert(formatHelp(*environment,"GAUSS").find("NoiseType")!=std::string::npos);
+      assert(std::any_cast<NoiseType>(std::get<HObject>(environment->at("Z2").data).data)==NoiseType::Z2);
+      
+      // Copying storage creates a mutable value; independently held shared aliases remain mutable
+      ValueSlot copiedSlot(*environment->find("N"));
+      assert(not copiedSlot.isConst);
+      copiedSlot=9;
+      assert(std::get<int>(environment->at("N").data)==7);
+      execute("alias=LIST; alias[0]=19; observed=LIST[0];");
+      assert(std::get<int>(environment->at("observed").data)==19);
+    }
+}
+
 /// Host type with binary subtraction and division but no compound operators
 struct ExampleNumber
 {
@@ -1163,7 +1248,7 @@ void validateEntityDiscovery()
   // A shadowing variable must not inherit documentation from its parent binding
   evaluator.curEnv->describe("M_PI","The circle constant");
   Environment child(evaluator.curEnv);
-  child.varTable["M_PI"]=std::make_shared<Value>(Value{0});
+  child.varTable["M_PI"]=std::make_shared<ValueSlot>(Value{0});
   assert(child.entityDetails("M_PI").find("circle constant")==std::string::npos);
 }
 
@@ -1317,7 +1402,7 @@ void validateFormattedDiscovery()
     // Help resolves shadowing even when a variable hides a callable from its parent
     Environment inner;
     inner.parent=caller.curEnv;
-    inner.varTable["sample"]=std::make_shared<Value>(17);
+    inner.varTable["sample"]=std::make_shared<ValueSlot>(17);
     inner.describe("sample","An inner variable");
     assert(formatHelp(inner,"sample").find("variable (int)\n    An inner variable\n")!=std::string::npos);
     const std::string listing=formatEntityListing(env,EntitySelection::All,true);
@@ -1642,7 +1727,7 @@ void validateCompletionResultTypes()
   assert(not called);
   
   // Automatic result wrapping preserves actual invocation for typed native payloads
-  std::vector<std::shared_ptr<Value>> arguments;
+  std::vector<std::shared_ptr<ValueSlot>> arguments;
   auto result=std::get<HostFunction>(evaluator.curEnv->at("native").data)(arguments,evaluator);
   assert(called and std::any_cast<ExampleNumber>(std::get<HObject>(result.data).data).value==12);
   
@@ -3810,7 +3895,7 @@ void validateNoiseSources()
   const auto initialState=rng.state;
   const GaugeRecipes recipes;
   
-  for(const std::string noise : {"Z4","Z2","Gauss","AllPlusOne"})
+  for(const NoiseType noise : {NoiseType::Z4,NoiseType::Z2,NoiseType::Gauss,NoiseType::AllPlusOne})
     for(const int time : {-1,2})
       for(const bool diluteSpin : {false,true})
         for(const bool diluteColor : {false,true})
@@ -3824,7 +3909,7 @@ void validateNoiseSources()
             source.noise=noise;
             const SourceGeneration generation(source,options);
             const uint64_t nSites=time<0?256:64;
-            const uint64_t nUniform=noise=="AllPlusOne"?0:(noise=="Z2"?1:2);
+            const uint64_t nUniform=noise==NoiseType::AllPlusOne?0:(noise==NoiseType::Z2?1:2);
             const uint64_t expectedCost=2*NDIRAC*NCOL*nSites*nUniform;
             assert(generation.doubleDrawCost()==expectedCost);
             
@@ -3868,7 +3953,7 @@ void validateNoiseSources()
                             
                             if(active)
                               {
-                                if(noise=="AllPlusOne")
+                                if(noise==NoiseType::AllPlusOne)
                                   expected[RE]=1;
                                 else
                                   {
@@ -3877,13 +3962,13 @@ void validateNoiseSources()
                                     const uint64_t first=component*nUniform*nSites+slot;
                                     const double u=range.uniformAt(first);
                                     
-                                    if(noise=="Z2")
+                                    if(noise==NoiseType::Z2)
                                       expected[RE]=u<0.5?-1:1;
                                     else
                                       {
                                         const double v=range.uniformAt(first+nSites);
                                         
-                                        if(noise=="Z4")
+                                        if(noise==NoiseType::Z4)
                                           {
                                             expected[RE]=(u<0.5?-1:1)*M_SQRT1_2;
                                             expected[IM]=(v<0.5?-1:1)*M_SQRT1_2;
@@ -3912,7 +3997,7 @@ void validateNoiseSources()
             assert(nValues*nUniform==expectedCost);
             
             // Gaussian real/imaginary components have variance one half, like normalized Z4
-            if(noise=="Gauss")
+            if(noise==NoiseType::Gauss)
               {
                 non_loc_reduce(&sum);
                 non_loc_reduce(&sumSquares);
@@ -3993,7 +4078,7 @@ void validateRngExecution()
                            const Coords& selectedOrigin)
   {
     Source source;
-    source.noise="Point";
+    source.noise=NoiseType::Point;
     LineValue point=selectedHandlers.source(source);
     auto shadow=point.field.shadow<nissa::spincolor,nissa::defaultSpaceTimeLayout,
                                     nissa::defaultMemorySpace>("rng point source",
@@ -4916,6 +5001,18 @@ int main(int narg,
   nissa::get_MPI_nranks();
   nissa::get_MPI_rank();
 
+  if(narg>1 and (std::string_view(arg[1])=="constant-slots" or
+                std::string_view(arg[1])=="constant-slot-failure"))
+    {
+      validateConstantSlots(narg>2?arg[2]:"");
+      
+#ifdef USE_MPI
+      MPI_Finalize();
+#endif
+      
+      return 0;
+    }
+  
   if(narg>1 and std::string_view(arg[1])=="function-discovery")
     {
       validateFunctionDiscovery();
@@ -4994,6 +5091,7 @@ int main(int narg,
   validateScriptBindings(narg,arg);
   validateFunctionDiscovery();
   validateEntityDiscovery();
+  validateConstantSlots();
   validateDocumentationComments();
   validateFormattedDiscovery();
   validateScriptLocationsAndCompletion();
