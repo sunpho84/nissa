@@ -1,59 +1,44 @@
 #include "scriptCompletion.hpp"
+#include "scriptAnalysis.hpp"
 
 #include <sstream>
 #include <map>
-#include <span>
-#include <charconv>
 
 namespace
 {
-  /// Match the ASCII identifier alphabet used by the grammar
-  bool identifierByte(const char c)
-  {
-    return (c>='a' and c<='z') or (c>='A' and c<='Z') or
-      (c>='0' and c<='9') or c=='_';
-  }
-  
-  struct CompletionFunction;
-  
-  /// Metadata for a visible value, without constructing or reading its payload
+  /// Static value metadata; no runtime payload or getter is accessed
   struct CompletionBinding
   {
-    /// Classification and declaration position offered to clients
+    /// Classification and declaration position
     EntityInfo info{"script variable (unknown type)"};
     
-    /// Help retained for existing registered entities and callable aliases
+    /// Complete help supplied to editor clients
     std::string documentation;
     
-    /// Members of this value, when its type is known
+    /// Statically available members
     std::map<std::string,EntityInfo> members;
     
-    /// Concrete scalar or host payload identity, when known
+    /// Native scalar or payload identity
     std::optional<std::type_index> cppType{};
     
-    /// Host metadata used to select binary overloads
-    std::shared_ptr<const HObjectInfo> hostType{};
+    /// Shared host type metadata
+    std::shared_ptr<const HObjectInfo> hostType;
     
-    /// Result of calling this binding, absent when its result is dynamic or unknown
+    /// Fixed result metadata for native functions and constructors
     std::shared_ptr<CompletionBinding> callResult;
     
-    /// Unevaluated body of a script factory, borrowed only during this query
-    std::shared_ptr<CompletionFunction> scriptFunction;
-  };
-  
-  /// Restricted script body whose local return expressions can be typed without execution
-  struct CompletionFunction
-  {
-    /// Complete body tokens, excluding its enclosing braces
-    std::span<const std::string_view> body;
+    /// Original AST body for a script callable
+    std::shared_ptr<const FuncNode> scriptFunction;
     
-    /// Fixed host callables visible at definition, checked again at the call site
-    std::map<std::string,std::shared_ptr<CompletionBinding>> hostResults;
+    /// Script constructor or instance identity, borrowed from this revision's AST
+    const StructDefNode* scriptStruct{nullptr};
+    
+    /// Inferred member types for this particular constructed value
+    std::map<std::string,std::shared_ptr<CompletionBinding>> memberTypes;
+    
+    /// Callable bindings visible at definition, checked again when inferring a call
+    std::map<std::string,std::shared_ptr<CompletionBinding>> definitionBindings;
   };
-  
-  /// Infer agreeing reachable returns; parameters and captured values remain unknown
-  CompletionBinding scriptReturn(const CompletionFunction& function,
-                                 const std::map<std::string,CompletionBinding>& bindings);
   
   /// Collect names from shared host metadata without binding or calling accessors
   std::map<std::string,EntityInfo> hostMembers(const HObjectInfo& type)
@@ -73,35 +58,6 @@ namespace
       members.emplace(member.name,EntityInfo{.kind="script member",.location=member.location});
     
     return members;
-  }
-  
-  /// Recognize a complete identifier rather than a numeric token or punctuation
-  bool identifier(const std::string_view token)
-  {
-    return not token.empty() and not (token.front()>='0' and token.front()<='9') and
-      std::all_of(token.begin(),token.end(),identifierByte);
-  }
-  
-  /// Locate a token in the supplied editor text
-  ScriptLocation completionLocation(const ScriptSource& source,
-                                    const std::string_view token)
-  {
-    const auto location=source.locate(SourceCursor{.offset=static_cast<size_t>(token.data()-source.text.data())});
-    
-    return {std::string(location.source),location.cursor};
-  }
-  
-  /// Reuse the language's immediately preceding documentation-comment rules
-  std::string completionDescription(const ScriptSource& source,
-                                   const std::span<const std::string_view> tokens,
-                                   const size_t index)
-  {
-    const size_t begin=index==0?0:tokens[index-1].data()+tokens[index-1].size()-source.text.data();
-    const size_t end=tokens[index].data()-source.text.data();
-    const auto cursor=source.locate(SourceCursor{.offset=begin}).cursor;
-    
-    return precedingDocumentation(pp::internal::ShiftNode{
-      .txt=tokens[index],.leadingTrivia=std::string_view(source.text).substr(begin,end-begin),.triviaCursor=cursor});
   }
   
   /// Format a statically recovered signature and its declaration documentation
@@ -124,98 +80,6 @@ namespace
     
     return output.str();
   }
-  
-  /// One syntactic parameter; defaults describe optionality, never an assumed value type
-  struct CompletionParameter
-  {
-    /// Name visible in the function body, including the reserved variadic binding
-    std::string name;
-    
-    /// Signature text retaining references, optionality, and the unevaluated default
-    std::string form;
-    
-    /// Parameter declaration position
-    ScriptLocation location;
-  };
-  
-  /// Recover comma-separated parameters, respecting nested calls, lists, and string tokens
-  std::vector<CompletionParameter> completionParameters(const std::span<const std::string_view> tokens,
-                                                        const ScriptSource& source)
-  {
-    std::vector<CompletionParameter> result;
-    size_t begin=0;
-    size_t depth=0;
-    for(size_t i=0;i<=tokens.size();i++)
-      {
-        if(i==tokens.size() or (tokens[i]=="," and depth==0))
-          {
-            const auto parameter=tokens.subspan(begin,i-begin);
-            const bool reference=not parameter.empty() and parameter.front()=="&";
-            const size_t nameIndex=reference?1:0;
-            if(nameIndex<parameter.size())
-              {
-                const bool variadic=parameter.size()==nameIndex+3 and
-                  parameter[nameIndex]=="." and parameter[nameIndex+1]=="." and parameter[nameIndex+2]==".";
-                if(variadic or identifier(parameter[nameIndex]))
-                  {
-                    const std::string name=variadic?FuncParNode::VARIADIC_PAR_NAME:std::string(parameter[nameIndex]);
-                    std::string form=(reference?"&":"")+(variadic?std::string("..."):name);
-                    if(parameter.size()>nameIndex+2 and parameter[nameIndex+1]=="=")
-                      {
-                        const auto first=parameter[nameIndex+2];
-                        const auto last=parameter.back();
-                        const std::string_view expression(first.data(),last.data()+last.size()-first.data());
-                        form="["+form+" = "+std::string(expression)+"]";
-                      }
-                    
-                    result.push_back({name,std::move(form),completionLocation(source,parameter[nameIndex])});
-                  }
-              }
-            
-            begin=i+1;
-          }
-        else if(tokens[i]=="(" or tokens[i]=="[")
-          depth++;
-        else if((tokens[i]==")" or tokens[i]=="]") and depth>0)
-          depth--;
-      }
-    
-    return result;
-  }
-  
-  /// Static scope reconstructed from the token prefix, separate from runtime storage
-  struct CompletionScope
-  {
-    /// Visible names, copied on entry so deferred bodies cannot change their parents
-    std::map<std::string,CompletionBinding> bindings;
-    
-    /// Names assigned in this scope, including writes to enclosing bindings
-    std::set<std::string> written;
-    
-    /// First token of the current statement
-    size_t begin{0};
-    
-    /// Enclosing expression depth restored after this block
-    size_t parentDepth{0};
-    
-    /// Plain blocks propagate assignments; conditional blocks discard inferred result types
-    enum class Kind{Plain,Conditional,Deferred};
-    
-    /// Whether this block executes directly, conditionally, or as a deferred function body
-    Kind kind{Kind::Plain};
-    
-    /// Named definition or direct lambda assignment published when its body closes
-    std::string definitionName;
-    
-    /// Callable metadata under construction for this deferred body
-    std::optional<CompletionBinding> definition;
-    
-    /// Whether semicolon-terminated statements declare struct members
-    bool structDefinition{false};
-    
-    /// A direct lambda initializer must end at its body to remain a callable alias
-    bool lambdaDefinition{false};
-  };
   
   /// Build a value description from static metadata, without constructing its payload
   CompletionBinding resultBinding(const ValueTypeInfo& type)
@@ -243,22 +107,10 @@ namespace
     return result;
   }
   
-  /// Match the arithmetic precedence levels shared by the script grammar
-  int arithmeticPrecedence(const std::string_view token)
-  {
-    int precedence=0;
-    if(token=="+" or token=="-")
-      precedence=1;
-    else if(token=="*" or token=="/" or token=="%")
-      precedence=2;
-    
-    return precedence;
-  }
-  
   /// Select the same registered overload as runtime dispatch, without invoking it
   template <typename Operator>
   CompletionBinding binaryResult(const CompletionBinding& left,
-                                const CompletionBinding& right)
+				 const CompletionBinding& right)
   {
     CompletionBinding result;
     if(left.cppType and right.cppType)
@@ -293,379 +145,806 @@ namespace
     return result;
   }
   
-  /// Small tolerant type reader for calls, grouping, and registered arithmetic expressions
-  struct CompletionExpression
+  /// Compare static value types, including the identity of callable values
+  bool sameBinding(const CompletionBinding& left,
+                   const CompletionBinding& right,
+                   size_t* budget=nullptr)
   {
-    /// Visible binding metadata borrowed for the duration of this query
-    const std::map<std::string,CompletionBinding>& bindings;
+    size_t remaining=4096;
+    if(not budget)
+      budget=&remaining;
+    bool same=*budget>0 and ((left.cppType and left.cppType==right.cppType) or
+               (left.callResult and left.callResult==right.callResult) or
+               (left.scriptFunction and left.scriptFunction==right.scriptFunction) or
+               (left.scriptStruct and left.scriptStruct==right.scriptStruct)) and
+      left.hostType==right.hostType and left.callResult==right.callResult and
+      left.scriptFunction==right.scriptFunction and left.scriptStruct==right.scriptStruct and
+      left.memberTypes.size()==right.memberTypes.size();
+    if(*budget>0)
+      (*budget)--;
+    for(const auto& [name,type] : left.memberTypes)
+      if(const auto other=right.memberTypes.find(name);same and
+         (other==right.memberTypes.end() or
+          (type!=other->second and not sameBinding(*type,*other->second,budget))))
+        same=false;
     
-    /// Complete initializer tokens; no parser or semantic actions are invoked
-    std::span<const std::string_view> tokens;
+    return same;
+  }
+  
+  /// Static AST visitor shared by scope reconstruction and script-return inference
+  struct CompletionAnalyzer
+  {
+    /// Owned AST and source ranges for this editor revision
+    const ParsedScript& script;
     
-    /// Next unconsumed token
-    size_t position{0};
+    /// Current lexical scope, independently of runtime storage
+    std::map<std::string,CompletionBinding> bindings;
     
-    /// Reject malformed expressions and cap recursion in untrusted editor input
-    bool valid{true};
+    /// Cursor target in the retained source, independent of AST mutation
+    std::optional<SourceRange> target{};
     
-    /// Read a primary, its calls and member types, or a numeric unary operation
-    CompletionBinding primary(const size_t nesting)
+    /// Range of the node currently being visited
+    std::optional<SourceRange> activeRange{};
+    
+    /// Check adjacency using source whitespace, without recognizing syntax again
+    bool whitespace(const size_t begin,
+                    const size_t end) const
     {
-      CompletionBinding value;
-      if(position==tokens.size() or nesting>128)
-        valid=false;
-      else
+      return begin<=end and end<=script.source.text.size() and
+        std::string_view(script.source.text).substr(begin,end-begin).find_first_not_of(" \t\r\n\f\v")==std::string_view::npos;
+    }
+    
+    /// Whether the current node contains a gap cursor
+    bool gapHere() const
+    {
+      return not returnMode and target and target->begin==target->end and activeRange and
+        activeRange->begin.offset<=target->begin.offset and target->end.offset<=activeRange->end.offset;
+    }
+    
+    /// Match actual identifier positions, or a recovery placeholder adjacent to a gap
+    bool matches(const std::string& name,
+                 const std::optional<ScriptLocation>& location={}) const
+    {
+      bool result=false;
+      if(not returnMode and target)
         {
-          const auto token=tokens[position++];
-          if(token=="(")
+          if(script.completion)
+            result=name==completionMarker;
+          else if(location and activeRange and
+                  (gapHere() or (activeRange->begin.offset<=target->begin.offset and
+                                 target->end.offset<=activeRange->end.offset) or
+                   (name==recoveryMarker and whitespace(target->end.offset,activeRange->begin.offset))))
             {
-              value=expression(1,nesting+1);
-              if(position<tokens.size() and tokens[position]==")")
-                position++;
-              else
-                valid=false;
-            }
-          else if(token=="+" or token=="-")
-            {
-              value=primary(nesting+1);
-              if(value.hostType or not value.cppType or
-                 (*value.cppType!=typeid(int) and *value.cppType!=typeid(int64_t) and *value.cppType!=typeid(double)))
-                value={};
-            }
-          else if(token.starts_with('"'))
-            value=resultBinding({typeid(std::string)});
-          else if(token.front()>='0' and token.front()<='9')
-            {
-              int64_t integer{};
-              const auto parsed=std::from_chars(token.data(),token.data()+token.size(),integer);
-              if(parsed.ec==std::errc{} and parsed.ptr==token.data()+token.size())
-                value=resultBinding({integer<=std::numeric_limits<int>::max()?typeid(int):typeid(int64_t)});
-              else if(token.find_first_of(".eE")!=std::string_view::npos)
-                value=resultBinding({typeid(double)});
-            }
-          else if(const auto found=bindings.find(std::string(token));found!=bindings.end())
-            value=found->second;
-          
-          while(valid and position<tokens.size() and (tokens[position]=="(" or tokens[position]=="."))
-            {
-              if(tokens[position]==".")
+              const auto position=script.source.locate(target->begin);
+              result=location->source==position.source and location->cursor.offset==position.cursor.offset;
+              if(name==recoveryMarker and target->begin==target->end)
                 {
-                  position++;
-                  CompletionBinding member;
-                  if(position<tokens.size() and identifier(tokens[position]))
-                    {
-                      const std::string name(tokens[position++]);
-                      if(value.hostType)
-                        {
-                          const auto found=value.hostType->memberAccessorsProvider.find(name);
-                          if(found!=value.hostType->memberAccessorsProvider.end())
-                            member=resultBinding(found->second.valueType);
-                        }
-                      else if(const auto found=value.members.find(name);found!=value.members.end())
-                        member.info=found->second;
-                    }
-                  else
-                    valid=false;
-                  
-                  value=std::move(member);
+                  // Synthetic names may follow the final newline added when pieces are joined
+                  const auto end=script.source.locate(activeRange->end);
+                  result=location->source==end.source and location->cursor.offset==end.cursor.offset and
+                    whitespace(target->begin.offset,activeRange->end.offset);
                 }
-              else
-                {
-                  // Fixed native return types do not require evaluating or typing individual arguments
-                  std::vector<std::string_view> closing;
-                  do
-                    {
-                      const auto argument=tokens[position++];
-                      if(argument=="(" or argument=="[")
-                        closing.push_back(argument=="("?")":"]");
-                      else if(argument==")" or argument=="]")
-                        {
-                          valid=not closing.empty() and closing.back()==argument;
-                          if(valid)
-                            closing.pop_back();
-                        }
-                    }
-                  while(valid and not closing.empty() and position<tokens.size());
-                  
-                  valid=valid and closing.empty();
-                  if(value.scriptFunction)
-                    value=scriptReturn(*value.scriptFunction,bindings);
-                  else
-                    value=value.callResult?*value.callResult:CompletionBinding{};
-                }
+            }
+        }
+      
+      return result;
+    }
+    
+    /// Marker was reached; bindings now describe its scope
+    bool found{false};
+    
+    /// Member or named-argument completion, rather than lexical names
+    bool restricted{false};
+    
+    /// Exact members or arguments offered at the marker
+    std::map<std::string,CompletionBinding> choices;
+    
+    /// Function-return analysis never captures a marker from a deferred body
+    bool returnMode{false};
+    
+    /// A reachable path still continues to the next statement
+    bool fallsThrough{true};
+    
+    /// Unsupported effects make return inference unknown
+    bool invalid{false};
+    
+    /// Common known type of all reachable return expressions
+    std::optional<CompletionBinding> returned;
+    
+    /// Bound recursive AST walks and return inference
+    size_t depth{0};
+    
+    /// Enclosing names whose assignment would mutate a captured binding
+    std::set<std::string> capturedNames;
+    
+    /// Captured bindings assigned by this body or a nested helper
+    std::set<std::string> capturedWrites;
+    
+    /// Shared work limit across call specializations and branches, protecting editor responsiveness
+    std::shared_ptr<size_t> remaining{std::make_shared<size_t>(16384)};
+    
+    /// Read a node using static metadata only
+    CompletionBinding visit(const std::shared_ptr<ASTNode>& node)
+    {
+      CompletionBinding result;
+      if(node and *remaining==0)
+        invalid=true;
+      if(node and not found and depth<128 and *remaining>0 and (not returnMode or fallsThrough))
+        {
+          const auto previous=activeRange;
+          const auto range=script.ranges.find(node.get());
+          activeRange=range==script.ranges.end()?std::optional<SourceRange>{}:range->second;
+          if(not returnMode and not script.completion and target and target->begin==target->end and activeRange and
+             whitespace(target->begin.offset,activeRange->begin.offset))
+            found=true;
+          depth++;
+          (*remaining)--;
+          if(not found)
+            result=std::visit([this](const auto& value)
+          {
+            return analyze(value);
+          },*node);
+          depth--;
+          const bool closedBlock=std::holds_alternative<ASTNodesNode>(*node) and activeRange and target and
+            target->begin.offset==activeRange->end.offset and target->begin.offset>0 and
+            script.source.text[target->begin.offset-1]=='}';
+          if(not script.completion and gapHere() and not closedBlock)
+            found=true;
+          activeRange=previous;
+        }
+      
+      return result;
+    }
+    
+    /// Require an overload when the AST gains a new node alternative
+    template <typename T>
+    CompletionBinding analyze(const T&)=delete;
+    
+    /// Resolve a name without creating or reading its runtime value
+    CompletionBinding analyze(const IdNode& node)
+    {
+      CompletionBinding result;
+      if(matches(node.name,node.location))
+        found=true;
+      else if(const auto entry=bindings.find(node.name);entry!=bindings.end())
+        result=entry->second;
+      
+      return result;
+    }
+    
+    /// Literal types require no value evaluation
+    CompletionBinding analyze(const ValueNode& node)
+    {
+      return std::visit([](const auto& value)
+      {
+        return resultBinding({typeid(value)});
+      },node.value.data);
+    }
+    
+    /// Traverse a statement list, optionally preserving lexical block boundaries
+    void statements(const ASTNodesNode& node,
+                    const bool block)
+    {
+      auto outer=bindings;
+      for(const auto& statement : node.list)
+        {
+          if(returnMode and fallsThrough and not std::holds_alternative<AssignNode>(*statement) and
+             not std::holds_alternative<ReturnNode>(*statement) and not std::holds_alternative<IfNode>(*statement) and
+             not std::holds_alternative<ASTNodesNode>(*statement) and not std::holds_alternative<ValueNode>(*statement))
+            invalid=true;
+          visit(statement);
+        }
+      if(not script.completion and gapHere() and
+         (not block or target->begin.offset<activeRange->end.offset))
+        found=true;
+      if(block and not found)
+        {
+          for(auto& [name,value] : outer)
+            value=bindings.at(name);
+          bindings=std::move(outer);
+        }
+    }
+    
+    /// Braces introduce a child scope, just as in the runtime evaluator
+    CompletionBinding analyze(const ASTNodesNode& node)
+    {
+      statements(node,true);
+      
+      return {};
+    }
+    
+    /// Retain assignment types and callable aliases, without storing script values
+    CompletionBinding analyze(const AssignNode& node)
+    {
+      auto value=visit(node.rhs);
+      const auto* name=std::get_if<IdNode>(node.lhs.get());
+      if(name and matches(name->name,name->location))
+        found=true;
+      else if(not found and name and name->name!=recoveryMarker)
+        {
+          if(returnMode and capturedNames.contains(name->name))
+            {
+              invalid=true;
+              capturedWrites.insert(name->name);
+            }
+          if(node.mode!=AssignMode::PLAIN)
+            value={};
+          if(not value.info.callable or not value.info.location)
+            value.info.location=name->location;
+          bindings[name->name]=value;
+        }
+      else if(not name)
+        {
+          visit(node.lhs);
+          if(std::holds_alternative<MemberAccessNode>(*node.lhs))
+            {
+              // Struct copies can share member cells; discard all potentially aliased shapes
+              for(auto& [visible,binding] : bindings)
+                binding.memberTypes.clear();
+              if(returnMode)
+                invalid=true;
             }
         }
       
       return value;
     }
     
-    /// Infer left-associative arithmetic with the grammar's precedence, without computing values
-    CompletionBinding expression(const int minimumPrecedence,
-                                 const size_t nesting)
+    /// Registered binary operators expose the same type-dispatch metadata as execution
+    CompletionBinding analyze(const BinOpNode& node)
     {
-      auto left=primary(nesting);
-      while(valid and position<tokens.size() and arithmeticPrecedence(tokens[position])>=minimumPrecedence)
+      const auto left=visit(node.arg1);
+      const auto right=visit(node.arg2);
+      CompletionBinding result;
+      if(node.operatorType==binaryOperatorType<SumOperator>())
+        result=binaryResult<SumOperator>(left,right);
+      else if(node.operatorType==binaryOperatorType<DifferenceOperator>())
+        result=binaryResult<DifferenceOperator>(left,right);
+      else if(node.operatorType==binaryOperatorType<ProductOperator>())
+        result=binaryResult<ProductOperator>(left,right);
+      else if(node.operatorType==binaryOperatorType<DivisionOperator>())
+        result=binaryResult<DivisionOperator>(left,right);
+      else if(node.operatorType==binaryOperatorType<RemainderOperator>())
+        result=binaryResult<RemainderOperator>(left,right);
+      
+      return result;
+    }
+    
+    /// Numeric unary operations preserve the argument type; logical negation returns an integer
+    CompletionBinding analyze(const UnOpNode& node)
+    {
+      auto value=visit(node.arg);
+      if(node.kind==UnOpNode::Kind::Not)
+        value=resultBinding({typeid(int)});
+      else if(value.hostType)
+        value={};
+      
+      return value;
+    }
+    
+    /// A reference value is not itself its referent; only explicit reference arguments specialize
+    CompletionBinding analyze(const UnaryRefNode& node)
+    {
+      visit(node.arg);
+      
+      return {};
+    }
+    
+    /// Mutation invalidates a known local type
+    CompletionBinding analyze(const PrePostfixOpNode& node)
+    {
+      visit(node.arg);
+      if(const auto* id=std::get_if<IdNode>(node.arg.get());id and bindings.contains(id->name))
+        bindings[id->name]={};
+      else if(std::holds_alternative<MemberAccessNode>(*node.arg))
         {
-          const auto operation=tokens[position++];
-          const auto right=expression(arithmeticPrecedence(operation)+1,nesting+1);
-          if(operation=="+")
-            left=binaryResult<SumOperator>(left,right);
-          else if(operation=="-")
-            left=binaryResult<DifferenceOperator>(left,right);
-          else if(operation=="*")
-            left=binaryResult<ProductOperator>(left,right);
-          else if(operation=="/")
-            left=binaryResult<DivisionOperator>(left,right);
-          else
-            left=binaryResult<RemainderOperator>(left,right);
+          for(auto& [name,binding] : bindings)
+            binding.memberTypes.clear();
+          if(returnMode)
+            invalid=true;
         }
       
-      return left;
+      return {};
     }
-  };
-  
-  /// Infer a complete initializer; unknown or malformed expressions retain no guessed result
-  CompletionBinding inferBinding(const std::map<std::string,CompletionBinding>& bindings,
-                                 const std::span<const std::string_view> expression)
-  {
-    CompletionExpression reader{bindings,expression};
-    auto result=reader.expression(1,0);
-    if(not reader.valid or reader.position!=expression.size())
-      result={};
     
-    return result;
-  }
-  
-  /// Compare known value types and preserve callable identity when merging local bindings
-  bool sameCompletionType(const CompletionBinding& left,
-                          const CompletionBinding& right)
-  {
-    return left.cppType and left.cppType==right.cppType and left.hostType==right.hostType and
-      left.callResult==right.callResult and left.scriptFunction==right.scriptFunction;
-  }
-  
-  /// Tolerant statement reader tracking return types and the remaining fallthrough path
-  struct CompletionBody
-  {
-    /// Body tokens borrowed for this completion query
-    std::span<const std::string_view> tokens;
+    /// Member lookup never invokes a registered accessor
+    CompletionBinding analyze(const MemberAccessNode& node)
+    {
+      const auto base=visit(node.base);
+      CompletionBinding result;
+      if(matches(node.member,node.memberLocation))
+        {
+          found=true;
+          restricted=true;
+          for(const auto& [name,info] : base.members)
+            choices.emplace(name,CompletionBinding{.info=info,.documentation=info.description});
+        }
+      else if(base.hostType)
+        {
+          if(const auto member=base.hostType->memberAccessorsProvider.find(node.member);
+             member!=base.hostType->memberAccessorsProvider.end())
+            result=resultBinding(member->second.valueType);
+        }
+      else if(const auto member=base.memberTypes.find(node.member);member!=base.memberTypes.end())
+        result=*member->second;
+      else if(const auto member=base.members.find(node.member);member!=base.members.end())
+        result.info=member->second;
+      
+      return result;
+    }
     
-    /// Next token to consume
-    size_t position{0};
+    /// Indexed container result types remain unknown
+    CompletionBinding analyze(const SubscribeNode& node)
+    {
+      visit(node.base);
+      visit(node.subscr);
+      
+      return {};
+    }
     
-    /// Unsupported reachable syntax makes the whole result unknown
-    bool valid{true};
+    /// Recover source spelling for unevaluated default expressions
+    std::string spelling(const std::shared_ptr<ASTNode>& node) const
+    {
+      std::string result="<expression>";
+      if(const auto range=script.ranges.find(node.get());range!=script.ranges.end())
+        result=script.source.text.substr(range->second.begin.offset,
+                                         range->second.end.offset-range->second.begin.offset);
+      
+      return result;
+    }
     
-    /// Common type of all reachable returns encountered so far
-    std::optional<CompletionBinding> returned;
+    /// Build a script callable from its original AST and retain visible callable metadata
+    CompletionBinding function(const std::shared_ptr<const FuncNode>& node,
+                               const std::string& name)
+    {
+      CompletionBinding result;
+      result.info={.kind=name.empty()?"script lambda":"embedded function '"+name+"'",
+        .description=node->description,.callable=true,.argumentForms=FunctionArgumentForms(1),.location=node->location};
+      for(const auto& parameter : node->pars.list)
+        {
+          std::string form=parameter.isRef?"&":"";
+          form+=parameter.name==FuncParNode::VARIADIC_PAR_NAME?"...":parameter.name;
+          if(parameter.def and parameter.name!=FuncParNode::VARIADIC_PAR_NAME)
+            form="["+form+" = "+spelling(parameter.def)+"]";
+          result.info.argumentForms[0].push_back(std::move(form));
+        }
+      result.documentation=completionDocumentation(name.empty()?"lambda":name,result.info);
+      result.scriptFunction=node;
+      for(const auto& [visible,binding] : bindings)
+        if(binding.callResult or binding.scriptFunction)
+          result.definitionBindings.emplace(visible,std::make_shared<CompletionBinding>(binding));
+      for(const auto& parameter : node->pars.list)
+        result.definitionBindings.erase(parameter.name);
+      
+      return result;
+    }
     
-    /// Add a return without treating a missing or conflicting type as agreement
-    void addReturn(const CompletionBinding& value)
+    /// Inspect a deferred body for the editor marker without affecting the enclosing scope
+    void inspectFunction(const FuncNode& node)
+    {
+      if(not returnMode)
+        {
+          auto body=*this;
+          for(const auto& parameter : node.pars.list)
+            {
+              body.visit(parameter.def);
+              if(not body.found)
+                body.bindings[parameter.name]=CompletionBinding{
+                  .info={.kind="function parameter",.location=parameter.location}};
+            }
+          body.visit(node.body);
+          if(body.found)
+            adopt(body);
+        }
+    }
+    
+    /// Copy the scope and completion target reached by a nested visitor
+    void adopt(const CompletionAnalyzer& child)
+    {
+      bindings=child.bindings;
+      found=child.found;
+      restricted=child.restricted;
+      choices=child.choices;
+    }
+    
+    /// Named declarations install the callable before inspecting its body
+    CompletionBinding analyze(const FuncDefNode& node)
+    {
+      auto value=function(node.fun,node.name);
+      if(matches(node.name,node.location))
+        found=true;
+      else if(node.name!=recoveryMarker)
+        bindings[node.name]=value;
+      inspectFunction(*node.fun);
+      
+      return value;
+    }
+    
+    /// Anonymous functions share the same declaration and return analysis
+    CompletionBinding analyze(const FuncNode& node)
+    {
+      auto value=function(std::make_shared<FuncNode>(node),"");
+      inspectFunction(node);
+      
+      return value;
+    }
+    
+    /// Argument metadata, computed once in source order through the normal AST visitor
+    struct Argument
+    {
+      /// Empty for a positional argument
+      std::string name;
+      
+      /// Metadata of the expression, without evaluating it
+      CompletionBinding type;
+      
+      /// Whether the AST explicitly passes a script reference
+      bool reference{false};
+    };
+    
+    /// Match script arguments in runtime order: positional first, then named, then defaults
+    template <typename Parameter>
+    std::optional<std::vector<CompletionBinding>> arguments(const std::vector<Parameter>& parameters,
+                                                          const bool variadic,
+                                                          const std::vector<Argument>& supplied)
+    {
+      std::vector<std::optional<CompletionBinding>> slots(parameters.size());
+      bool valid=true;
+      if(variadic)
+        slots.back()=resultBinding({typeid(ValuesList)});
+      for(const bool named : {false,true})
+        for(const auto& argument : supplied)
+          if(named==not argument.name.empty())
+            {
+              size_t index=0;
+              if(named)
+                while(index<parameters.size() and parameters[index].name!=argument.name)
+                  index++;
+              else
+                while(index<slots.size() and slots[index])
+                  index++;
+              if(index>=slots.size())
+                valid=valid and variadic and not named;
+              else if(slots[index])
+                valid=false;
+              else
+                {
+                  bool reference=false;
+                  if constexpr(requires {parameters[index].isRef;})
+                    reference=parameters[index].isRef;
+                  slots[index]=reference==argument.reference?argument.type:CompletionBinding{};
+                }
+            }
+      std::vector<CompletionBinding> result;
+      for(size_t i=0;i<parameters.size();i++)
+        result.push_back(slots[i]?*slots[i]:visit(parameters[i].def));
+      
+      return valid?std::optional{std::move(result)}:std::nullopt;
+    }
+    
+    /// Infer results from parameter-specialized AST bodies and per-instance struct fields
+    CompletionBinding callResult(const CompletionBinding& callable,
+                                 const std::vector<Argument>& supplied,
+                                 bool& uncertainEffects,
+                                 std::set<std::string>& writes)
+    {
+      CompletionBinding result;
+      bool validBody=true;
+      if(callable.scriptFunction)
+        if(const auto range=script.ranges.find(callable.scriptFunction->body.get());range!=script.ranges.end())
+          for(const auto& error : script.diagnostics)
+            if(error.range.begin.offset>=range->second.begin.offset and error.range.begin.offset<range->second.end.offset)
+              validBody=false;
+      if(callable.scriptFunction and validBody and depth<64)
+        {
+          const auto& parameters=callable.scriptFunction->pars;
+          const auto types=arguments(parameters.list,parameters.isVariadic(),supplied);
+          CompletionAnalyzer body{.script=script,.remaining=remaining};
+          body.returnMode=true;
+          body.depth=depth+1;
+          body.capturedNames=capturedNames;
+          for(const auto& [name,binding] : bindings)
+            body.capturedNames.insert(name);
+          for(const auto& parameter : parameters.list)
+            body.capturedNames.erase(parameter.name);
+          for(const auto& [name,binding] : callable.definitionBindings)
+            if(const auto current=bindings.find(name);current!=bindings.end() and sameBinding(current->second,*binding))
+              body.bindings.emplace(name,current->second);
+          if(types)
+            for(size_t i=0;i<parameters.list.size();i++)
+              body.bindings[parameters.list[i].name]=(*types)[i];
+          if(const auto* list=std::get_if<ASTNodesNode>(callable.scriptFunction->body.get()))
+            body.statements(*list,false);
+          else
+            body.visit(callable.scriptFunction->body);
+          uncertainEffects=body.invalid;
+          writes.insert(body.capturedWrites.begin(),body.capturedWrites.end());
+          if(types and not body.invalid and not body.fallsThrough and body.returned)
+            result=*body.returned;
+        }
+      else if(callable.scriptStruct and callable.info.callable and callable.callResult)
+        {
+          const auto& members=callable.scriptStruct->members.list;
+          if(const auto types=arguments(members,false,supplied))
+            {
+              result=*callable.callResult;
+              for(size_t i=0;i<members.size();i++)
+                result.memberTypes[members[i].name]=std::make_shared<CompletionBinding>((*types)[i]);
+            }
+        }
+      else if(callable.callResult)
+        result=*callable.callResult;
+      
+      return result;
+    }
+    
+    /// Call signatures and return types come from the named binding or expression callee
+    CompletionBinding analyze(const FuncCallNode& node)
+    {
+      CompletionBinding callable;
+      if(matches(node.fun,node.location))
+        found=true;
+      else if(node.callee)
+        callable=visit(node.callee);
+      else if(const auto entry=bindings.find(node.fun);entry!=bindings.end())
+        callable=entry->second;
+      std::vector<Argument> supplied;
+      for(const auto& argument : node.args.list)
+        {
+          if(matches(argument.name,argument.location))
+            {
+              found=true;
+              restricted=true;
+              for(const auto& form : callable.info.argumentForms)
+                for(auto name : form)
+                  {
+                    const size_t begin=name.find_first_not_of("[& ");
+                    name=begin==std::string::npos?"":name.substr(begin);
+                    name=name.substr(0,name.find_first_of(" =]"));
+                    if(not name.empty() and name!="..." and name.front()!='<')
+                      choices.emplace(name,CompletionBinding{.info={"parameter"},.documentation=callable.documentation});
+                  }
+            }
+          else
+            {
+              const auto* reference=std::get_if<UnaryRefNode>(argument.expr.get());
+              supplied.push_back({argument.name,visit(reference?reference->arg:argument.expr),reference!=nullptr});
+            }
+        }
+      
+      bool uncertainEffects=false;
+      std::set<std::string> writes;
+      const auto result=found?CompletionBinding{}:callResult(callable,supplied,uncertainEffects,writes);
+      if(not found)
+        {
+          for(const auto& name : writes)
+            {
+              if(bindings.contains(name))
+                bindings[name]={};
+              if(returnMode and capturedNames.contains(name))
+                {
+                  invalid=true;
+                  capturedWrites.insert(name);
+                }
+            }
+          for(const auto& argument : node.args.list)
+            if(const auto* reference=std::get_if<UnaryRefNode>(argument.expr.get()))
+              {
+                if(const auto* name=std::get_if<IdNode>(reference->arg.get()))
+                  {
+                    if(bindings.contains(name->name))
+                      bindings[name->name]={};
+                    if(returnMode and capturedNames.contains(name->name))
+                      {
+                        capturedWrites.insert(name->name);
+                        invalid=true;
+                      }
+                  }
+                else if(std::holds_alternative<MemberAccessNode>(*reference->arg))
+                  {
+                    for(auto& [name,binding] : bindings)
+                      binding.memberTypes.clear();
+                    if(returnMode)
+                      invalid=true;
+                  }
+              }
+          if(uncertainEffects)
+            {
+              for(auto& [name,binding] : bindings)
+                binding.memberTypes.clear();
+              if(returnMode)
+                invalid=true;
+            }
+        }
+      
+      return result;
+    }
+    
+    /// Retain constructor declarations; specialize member types only at each call
+    CompletionBinding analyze(const StructDefNode& node)
+    {
+      CompletionBinding value;
+      value.info={.kind="script struct constructor",.description=node.description,.callable=true,
+        .argumentForms=FunctionArgumentForms(1),.location=node.location};
+      value.scriptStruct=&node;
+      value.callResult=std::make_shared<CompletionBinding>();
+      value.callResult->scriptStruct=&node;
+      value.callResult->info.kind="script struct instance '"+node.name+"'";
+      for(const auto& member : node.members.list)
+        {
+          value.callResult->members.emplace(member.name,EntityInfo{
+            .kind="script member",.description=member.description,.location=member.location});
+          value.info.argumentForms[0].push_back(member.def?"["+member.name+" = "+spelling(member.def)+"]":member.name);
+          auto child=*this;
+          child.visit(member.def);
+          if(child.found)
+            adopt(child);
+        }
+      value.documentation=completionDocumentation(node.name,value.info);
+      if(not found and node.name!=recoveryMarker and node.name!=completionMarker)
+        bindings[node.name]=value;
+      
+      return value;
+    }
+    
+    /// Add one reachable return, discarding conflicting or unknown result types
+    CompletionBinding analyze(const ReturnNode& node)
+    {
+      const auto value=visit(node.arg);
+      if(returnMode)
+        {
+          mergeReturn(value);
+          fallsThrough=false;
+        }
+      
+      return value;
+    }
+    
+    /// Merge one known return into the function's result
+    void mergeReturn(const CompletionBinding& value)
     {
       if(not returned)
         returned=value;
-      else if(not sameCompletionType(*returned,value))
+      else if(not sameBinding(*returned,value))
         returned=CompletionBinding{};
     }
     
-    /// Read statements until the current block ends, ignoring unreachable return values
-    bool sequence(std::map<std::string,CompletionBinding>& locals,
-                  const bool reachable,
-                  const size_t nesting)
+    /// Identify condition effects conservatively using AST alternatives
+    bool pureCondition(const std::shared_ptr<ASTNode>& node) const
     {
-      bool fallsThrough=reachable;
-      while(valid and position<tokens.size() and tokens[position]!="}")
-        fallsThrough=statement(locals,fallsThrough,nesting+1);
+      bool pure=true;
+      if(const auto* binary=std::get_if<BinOpNode>(node.get()))
+        pure=pureCondition(binary->arg1) and pureCondition(binary->arg2);
+      else if(const auto* unary=std::get_if<UnOpNode>(node.get()))
+        pure=pureCondition(unary->arg);
+      else
+        pure=std::holds_alternative<IdNode>(*node) or std::holds_alternative<ValueNode>(*node);
       
-      return fallsThrough;
+      return pure;
     }
     
-    /// Read a block, conditional, return, or simple assignment without evaluating expressions
-    bool statement(std::map<std::string,CompletionBinding>& locals,
-                   const bool reachable,
-                   const size_t nesting)
+    /// Merge types only from paths which continue past the conditional
+    CompletionBinding analyze(const IfNode& node)
     {
-      bool fallsThrough=reachable;
-      if(position==tokens.size() or nesting>128)
-        valid=false;
-      else if(tokens[position]=="{")
+      visit(node.subNodes[0]);
+      if(returnMode and not pureCondition(node.subNodes[0]))
+        invalid=true;
+      auto left=*this;
+      auto right=*this;
+      left.returned.reset();
+      right.returned.reset();
+      left.visit(node.subNodes[1]);
+      if(node.subNodes.size()>2)
+        right.visit(node.subNodes[2]);
+      if(left.found)
+        adopt(left);
+      else if(right.found)
+        adopt(right);
+      else if(not found)
         {
-          position++;
-          auto inner=locals;
-          fallsThrough=sequence(inner,reachable,nesting);
-          if(position<tokens.size() and tokens[position]=="}")
-            position++;
-          else
-            valid=false;
-          
-          for(auto& [name,value] : locals)
-            value=inner.at(name);
-        }
-      else if(tokens[position]=="if")
-        {
-          position++;
-          if(position==tokens.size() or tokens[position]!="(")
-            valid=false;
-          else
+          for(auto& [name,value] : bindings)
             {
-              size_t depth=0;
-              do
-                {
-                  const auto token=tokens[position++];
-                  if(token=="(")
-                    depth++;
-                  else if(token==")")
-                    depth--;
-                  else if(token=="=" or token=="+=" or token=="-=" or token=="*=" or token=="/=" or
-                          token=="++" or token=="--" or
-                          (identifier(token) and position<tokens.size() and tokens[position]=="("))
-                    valid=false;
-                }
-              while(valid and depth>0 and position<tokens.size());
-              valid=valid and depth==0;
+              if(not returnMode or (left.fallsThrough and right.fallsThrough))
+                value=sameBinding(left.bindings.at(name),right.bindings.at(name))?left.bindings.at(name):CompletionBinding{};
+              else if(left.fallsThrough)
+                value=left.bindings.at(name);
+              else if(right.fallsThrough)
+                value=right.bindings.at(name);
             }
-          
-          if(valid)
+          if(returnMode)
             {
-              auto left=locals;
-              auto right=locals;
-              const bool leftFalls=statement(left,reachable,nesting+1);
-              bool rightFalls=reachable;
-              if(valid and position<tokens.size() and tokens[position]=="else")
-                {
-                  position++;
-                  rightFalls=statement(right,reachable,nesting+1);
-                }
-              
-              // Only paths reaching the next statement contribute its local types
-              for(auto& [name,value] : locals)
-                if(leftFalls and rightFalls)
-                  value=sameCompletionType(left.at(name),right.at(name))?left.at(name):CompletionBinding{};
-                else if(leftFalls)
-                  value=left.at(name);
-                else if(rightFalls)
-                  value=right.at(name);
-              
-              fallsThrough=leftFalls or rightFalls;
+              invalid=invalid or left.invalid or right.invalid;
+              capturedWrites.insert(left.capturedWrites.begin(),left.capturedWrites.end());
+              capturedWrites.insert(right.capturedWrites.begin(),right.capturedWrites.end());
+              if(left.returned)
+                mergeReturn(*left.returned);
+              if(right.returned)
+                mergeReturn(*right.returned);
+              fallsThrough=left.fallsThrough or right.fallsThrough;
             }
-        }
-      else
-        {
-          const size_t begin=position;
-          size_t depth=0;
-          while(valid and position<tokens.size() and not (tokens[position]==";" and depth==0))
-            {
-              const auto token=tokens[position++];
-              if(token=="(" or token=="[")
-                depth++;
-              else if(token==")" or token=="]")
-                {
-                  valid=depth>0;
-                  if(valid)
-                    depth--;
-                }
-              else if(token=="{" or token=="}")
-                valid=false;
-            }
-          
-          if(valid and position<tokens.size())
-            {
-              const auto expression=tokens.subspan(begin,position-begin);
-              position++;
-              if(reachable and not expression.empty())
-                {
-                  if(expression.front()=="return")
-                    {
-                      addReturn(inferBinding(locals,expression.subspan(1)));
-                      fallsThrough=false;
-                    }
-                  else if(expression.size()>2 and identifier(expression[0]) and expression[1]=="=")
-                    locals[std::string(expression[0])]=inferBinding(locals,expression.subspan(2));
-                  else
-                    valid=false;
-                }
-            }
-          else
-            valid=false;
         }
       
-      return fallsThrough;
+      return {};
+    }
+    
+    /// Loop-local names remain inside the loop; iteration-dependent types are unknown
+    CompletionBinding analyze(const ForNode& node)
+    {
+      auto body=*this;
+      for(const auto& child : node.subNodes)
+        body.visit(child);
+      if(body.found)
+        adopt(body);
+      else
+        for(auto& [name,value] : bindings)
+          if(not sameBinding(value,body.bindings.at(name)))
+            value={};
+      if(returnMode)
+        {
+          invalid=true;
+          capturedWrites.insert(body.capturedWrites.begin(),body.capturedWrites.end());
+        }
+      
+      return {};
+    }
+    
+    /// Intermediate grammar nodes can survive in a recovered forest
+    CompletionBinding analyze(const FuncArgNode& node)
+    {
+      return visit(node.expr);
+    }
+    
+    /// A parameter default remains an unevaluated AST expression
+    CompletionBinding analyze(const FuncParNode& node)
+    {
+      return visit(node.def);
+    }
+    
+    /// A member default remains an unevaluated AST expression
+    CompletionBinding analyze(const StructMemberNode& node)
+    {
+      return visit(node.def);
+    }
+    
+    /// Visit surviving argument-list fragments after recovery
+    CompletionBinding analyze(const FuncArgListNode& node)
+    {
+      for(const auto& child : node.list)
+        analyze(child);
+      
+      return {};
+    }
+    CompletionBinding analyze(const FuncParListNode& node)
+    {
+      for(const auto& child : node.list)
+        analyze(child);
+      
+      return {};
+    }
+    CompletionBinding analyze(const StructMemberListNode& node)
+    {
+      for(const auto& child : node.list)
+        analyze(child);
+      
+      return {};
     }
   };
-  
-  CompletionBinding scriptReturn(const CompletionFunction& function,
-                                 const std::map<std::string,CompletionBinding>& bindings)
+
+  /// Seed analysis from registered runtime metadata, preserving the original scope
+  std::map<std::string,CompletionBinding> environmentBindings(const Environment& environment)
   {
-    std::map<std::string,CompletionBinding> locals;
-    for(const auto& [name,result] : function.hostResults)
-      if(const auto found=bindings.find(name);found!=bindings.end() and found->second.callResult==result)
-        locals.emplace(name,found->second);
-    
-    CompletionBody reader{function.body};
-    const bool fallsThrough=reader.sequence(locals,true,0);
-    CompletionBinding result;
-    if(reader.valid and reader.position==function.body.size() and not fallsThrough and reader.returned)
-      result=*reader.returned;
-    
-    return result;
-  }
-  
-  /// Record completed assignments, forgetting type information for unsupported expressions
-  void recordAssignments(CompletionScope& scope,
-                         const std::span<const std::string_view> statement,
-                         const ScriptSource& source)
-  {
-    const bool conditional=not statement.empty() and
-      (statement.front()=="if" or statement.front()=="for" or statement.front()=="else");
-    size_t depth=0;
-    for(size_t i=0;i<statement.size();i++)
-      {
-        if(statement[i]=="(" or statement[i]=="[")
-          depth++;
-        else if((statement[i]==")" or statement[i]=="]") and depth>0)
-          depth--;
-        else if(i>0 and identifier(statement[i-1]) and
-                (i<2 or statement[i-2]!=".") and
-                (statement[i]=="=" or statement[i]=="+=" or statement[i]=="-=" or
-                 statement[i]=="*=" or statement[i]=="/=") and
-                (not conditional or scope.bindings.contains(std::string(statement[i-1]))))
-          {
-            const std::string name(statement[i-1]);
-            CompletionBinding binding;
-            if(depth==0 and i==1 and statement[i]=="=")
-              binding=inferBinding(scope.bindings,statement.subspan(i+1));
-            
-            const auto location=source.locate(SourceCursor{
-              .offset=static_cast<size_t>(statement[i-1].data()-source.text.data())});
-            if(not binding.info.callable or not binding.info.location)
-              binding.info.location=ScriptLocation{std::string(location.source),location.cursor};
-            
-            scope.bindings.insert_or_assign(name,std::move(binding));
-            scope.written.insert(name);
-          }
-      }
-  }
-  
-  /// Reconstruct straight-line bindings and brace visibility without invoking the parser or evaluator
-  std::map<std::string,CompletionBinding> completionBindings(const Environment& environment,
-                                                            const std::vector<std::string_view>& tokens,
-                                                            const ScriptSource& source)
-  {
-    std::vector<CompletionScope> scopes(1);
+    std::map<std::string,CompletionBinding> result;
     for(const auto& name : environment.entityNames())
       {
         CompletionBinding binding{.info=environment.entityInfo(name),.documentation=formatHelp(environment,name)};
         const Environment* scope=&environment;
         while(scope and not scope->varTable.contains(name))
           scope=scope->parent.get();
-        
         if(const auto& value=scope->varTable.at(name);value)
           {
             binding.cppType=std::visit([](const auto& payload)
             {
               return std::type_index(typeid(payload));
             },value->data);
-            
             if(const auto* object=std::get_if<HObject>(&value->data);object and object->info)
               {
                 binding.hostType=object->info;
@@ -678,187 +957,16 @@ namespace
               binding.callResult=std::make_shared<CompletionBinding>(resultBinding(function->resultType));
             else if(const auto* definition=std::get_if<StructDef>(&value->data);definition and definition->structDefNode)
               {
+                binding.scriptStruct=definition->structDefNode;
                 binding.callResult=std::make_shared<CompletionBinding>();
+                binding.callResult->scriptStruct=definition->structDefNode;
                 binding.callResult->members=scriptMembers(*definition->structDefNode);
-                binding.callResult->info.kind="script struct instance '"+definition->structDefNode->name+"'";
               }
           }
-        
-        scopes.back().bindings.emplace(name,std::move(binding));
+        result.emplace(name,std::move(binding));
       }
     
-    size_t depth=0;
-    const std::span<const std::string_view> all(tokens);
-    for(size_t i=0;i<tokens.size();i++)
-      {
-        if(tokens[i]=="{")
-          {
-            const auto header=all.subspan(scopes.back().begin,i-scopes.back().begin);
-            const bool deferred=std::find(header.begin(),header.end(),"fun")!=header.end() or
-              std::find(header.begin(),header.end(),"lambda")!=header.end() or
-              std::find(header.begin(),header.end(),"struct")!=header.end();
-            // Record the assigned name before scanning a deferred lambda body
-            if(deferred and header.size()>1 and header[1]=="=")
-              recordAssignments(scopes.back(),header,source);
-            
-            CompletionScope child{.bindings=scopes.back().bindings,.begin=i+1,.parentDepth=depth,
-              .kind=header.empty()?CompletionScope::Kind::Plain:
-              (deferred?CompletionScope::Kind::Deferred:CompletionScope::Kind::Conditional)};
-            
-            if(not deferred and not header.empty())
-              recordAssignments(child,header.subspan(1),source);
-            
-            if(deferred)
-              {
-                for(size_t j=0;j<header.size();j++)
-                  if(((header[j]=="fun" or header[j]=="struct") and j==0 and depth==0) or header[j]=="lambda")
-                    {
-                      const bool structure=header[j]=="struct";
-                      const bool lambda=header[j]=="lambda";
-                      size_t open=j+1;
-                      std::string name;
-                      if(not lambda and j==0 and open<header.size() and identifier(header[open]))
-                        name=header[open++];
-                      else if(lambda and j==2 and header[1]=="=" and identifier(header[0]))
-                        name=header[0];
-                      
-                      CompletionBinding definition;
-                      definition.info={.kind=structure?"script struct constructor":
-                        (lambda?"script lambda":"embedded function '"+name+"'"),
-                        .description=completionDescription(source,all,scopes.back().begin+j),
-                        .callable=true,.argumentForms=FunctionArgumentForms(1),
-                        .location=completionLocation(source,header[j])};
-                      if(lambda and j==2 and definition.info.description.empty())
-                        definition.info.description=completionDescription(source,all,scopes.back().begin);
-                      
-                      std::set<std::string> parameterNames;
-                      child.definitionName=name;
-                      child.structDefinition=structure;
-                      child.lambdaDefinition=lambda;
-                      if(structure)
-                        {
-                          definition.callResult=std::make_shared<CompletionBinding>();
-                          definition.callResult->info.kind="script struct instance '"+name+"'";
-                        }
-                      else if(open<header.size() and header[open]=="(" and header.back()==")")
-                        for(const auto& parameter : completionParameters(header.subspan(open+1,header.size()-open-2),source))
-                          {
-                            definition.info.argumentForms[0].push_back(parameter.form);
-                            parameterNames.insert(parameter.name);
-                            child.bindings[parameter.name]=CompletionBinding{
-                              .info={.kind="function parameter",.location=parameter.location}};
-                          }
-                      
-                      if(not structure)
-                        {
-                          definition.scriptFunction=std::make_shared<CompletionFunction>();
-                          definition.scriptFunction->body=all.subspan(i+1);
-                          for(const auto& [visible,binding] : child.bindings)
-                            if(binding.callResult and not binding.info.location)
-                              definition.scriptFunction->hostResults.emplace(visible,binding.callResult);
-                        }
-                      
-                      definition.documentation=completionDocumentation(name.empty()?"lambda":name,definition.info);
-                      if(not name.empty())
-                        {
-                          scopes.back().bindings[name]=definition;
-                          scopes.back().written.insert(name);
-                          if(not parameterNames.contains(name))
-                            child.bindings[name]=definition;
-                        }
-                      child.definition=std::move(definition);
-                    }
-              }
-            
-            scopes.push_back(std::move(child));
-            depth=0;
-          }
-        else if(tokens[i]=="}" and scopes.size()>1)
-          {
-            auto child=std::move(scopes.back());
-            scopes.pop_back();
-            auto& parent=scopes.back();
-            if(child.definition and not child.definitionName.empty())
-              {
-                if(child.definition->scriptFunction)
-                  {
-                    auto& body=child.definition->scriptFunction->body;
-                    body=body.first(all.data()+i-body.data());
-                  }
-                
-                if(child.lambdaDefinition and i+1<tokens.size() and tokens[i+1]!=";")
-                  child.definition=CompletionBinding{};
-                
-                child.definition->documentation=completionDocumentation(child.definitionName,child.definition->info);
-                parent.bindings[child.definitionName]=std::move(*child.definition);
-                parent.written.insert(child.definitionName);
-              }
-            
-            if(child.kind!=CompletionScope::Kind::Deferred)
-              for(const auto& name : child.written)
-                if(parent.bindings.contains(name))
-                  {
-                    parent.bindings[name]=child.kind==CompletionScope::Kind::Plain?
-                      child.bindings.at(name):CompletionBinding{};
-                    parent.written.insert(name);
-                  }
-            
-            parent.begin=i+1;
-            depth=child.parentDepth;
-          }
-        else if(tokens[i]=="(" or tokens[i]=="[")
-          depth++;
-        else if((tokens[i]==")" or tokens[i]=="]") and depth>0)
-          depth--;
-        else if(tokens[i]==";" and depth==0)
-          {
-            auto& scope=scopes.back();
-            const auto statement=all.subspan(scope.begin,i-scope.begin);
-            if(scope.structDefinition and scope.definition)
-              {
-                if(not statement.empty() and identifier(statement.front()) and
-                   (statement.size()==1 or (statement.size()>2 and statement[1]=="=")))
-                  {
-                    const std::string name(statement.front());
-                    EntityInfo member{.kind="script member",
-                      .description=completionDescription(source,all,scope.begin),
-                      .location=completionLocation(source,statement.front())};
-                    scope.definition->callResult->members.insert_or_assign(name,std::move(member));
-                    std::string form=name;
-                    if(statement.size()>2)
-                      {
-                        const auto first=statement[2];
-                        const auto last=statement.back();
-                        form="["+name+" = "+std::string(first.data(),last.data()+last.size()-first.data())+"]";
-                      }
-                    scope.definition->info.argumentForms[0].push_back(std::move(form));
-                  }
-              }
-            else
-              recordAssignments(scope,statement,source);
-            
-            scope.begin=i+1;
-          }
-      }
-    
-    return std::move(scopes.back().bindings);
-  }
-  
-  /// Escape text as a Lisp string, including control bytes
-  void writeLispString(std::ostream& output,
-                       const std::string& value)
-  {
-    output<<'"';
-    for(const unsigned char c : value)
-      {
-        if(c=='"' or c=='\\')
-          output<<'\\'<<c;
-        else if(c<32 or c==127)
-          output<<'\\'<<char('0'+((c>>6)&7))<<char('0'+((c>>3)&7))<<char('0'+(c&7));
-        else
-          output<<c;
-      }
-    output<<'"';
+    return result;
   }
 }
 
@@ -882,190 +990,64 @@ ScriptCompletion completeScriptAt(const Environment& environment,
                                   const size_t byteOffset)
 {
   ScriptCompletion result;
-  const std::string_view text=source.text;
-  if(byteOffset<=text.size())
+  if(byteOffset<=source.text.size())
     {
-      const std::string_view scanned=text;
-      result.begin=byteOffset;
-      result.end=byteOffset;
-      while(result.begin>0 and identifierByte(text[result.begin-1]))
-        result.begin--;
-      while(result.end<text.size() and identifierByte(text[result.end]))
-        result.end++;
-      
-      // Scan only the prefix, accepting unfinished calls and rejecting comments and strings
-      enum class State{Code,String,LineComment,BlockComment};
-      State state=State::Code;
-      bool escaped=false;
-      std::vector<std::string_view> tokens;
-      std::vector<size_t> delimiters;
-      for(size_t i=0;i<result.begin;i++)
+      const auto parsed=parseScriptForEditor(source);
+      result=completeScriptAt(environment,parsed,byteOffset);
+      if(not result.applicable and scriptCompletionRange(parsed,byteOffset))
+        result=completeScriptAt(environment,parseScriptForEditor(source,byteOffset),byteOffset);
+    }
+  
+  return result;
+}
+
+ScriptCompletion completeScriptAt(const Environment& environment,
+                                  const ParsedScript& parsed,
+                                  const size_t byteOffset)
+{
+  ScriptCompletion result;
+  const auto& source=parsed.source;
+  if(byteOffset<=source.text.size())
+    {
+      if(const auto target=parsed.completion?parsed.completion:scriptCompletionRange(parsed,byteOffset);
+         target and target->begin.offset<=byteOffset and byteOffset<=target->end.offset)
         {
-          const char c=text[i];
-          const char next=i+1<result.begin?text[i+1]:'\0';
-          
-          if(state==State::String)
+          result.begin=target->begin.offset;
+          result.end=target->end.offset;
+          CompletionAnalyzer visitor{parsed,environmentBindings(environment),target};
+          for(const auto& root : parsed.roots)
             {
-              if(c=='"' and not escaped)
-                {
-                  state=State::Code;
-                  const size_t begin=tokens.back().data()-scanned.data();
-                  tokens.back()=scanned.substr(begin,i+1-begin);
-                }
-              
-              escaped=c=='\\' and not escaped;
+              if(const auto range=parsed.ranges.find(root.get());range!=parsed.ranges.end())
+                visitor.activeRange=range->second;
+              if(const auto* list=std::get_if<ASTNodesNode>(root.get()))
+                visitor.statements(*list,false);
+              else
+                visitor.visit(root);
             }
-          else if(state==State::LineComment)
-            {
-              if(c=='\n' or c=='\r')
-                state=State::Code;
-            }
-          else if(state==State::BlockComment)
-            {
-              if(c=='*' and next=='/')
-                {
-                  state=State::Code;
-                  i++;
-                }
-            }
-          else if(c=='/' and (next=='/' or next=='*'))
-            {
-              state=next=='/'?State::LineComment:State::BlockComment;
-              i++;
-            }
-          else if(c=='"')
-            {
-              state=State::String;
-              tokens.push_back(scanned.substr(i,1));
-            }
-          else if(c>='0' and c<='9')
-            {
-              double number{};
-              const auto parsed=std::from_chars(text.data()+i,text.data()+result.begin,number);
-              const size_t length=parsed.ptr-(text.data()+i);
-              tokens.push_back(scanned.substr(i,length));
-              i+=length-1;
-            }
-          else if(identifierByte(c))
-            {
-              const size_t begin=i;
-              while(i+1<result.begin and identifierByte(text[i+1]))
-                i++;
-              
-              tokens.push_back(scanned.substr(begin,i+1-begin));
-            }
-          else if(c!=' ' and c!='\t' and c!='\r' and c!='\n' and c!='\f' and c!='\v')
-            {
-              if(c=='(' or c=='[' or c=='{')
-                delimiters.push_back(tokens.size());
-              else if((c==')' or c==']' or c=='}') and not delimiters.empty())
-                delimiters.pop_back();
-              
-              const size_t length=i+1<result.begin and
-                ((next=='=' and (c=='=' or c=='!' or c=='<' or c=='>' or c=='+' or c=='-' or c=='*' or c=='/')) or
-                 (next==c and (c=='+' or c=='-' or c=='&' or c=='|')))?2:1;
-              tokens.push_back(scanned.substr(i,length));
-              i+=length-1;
-            }
-        }
-      
-      const auto prefix=text.substr(result.begin,byteOffset-result.begin);
-      const bool numeric=not prefix.empty() and prefix.front()>='0' and prefix.front()<='9';
-      if(state==State::Code and not numeric)
-        {
-          result.applicable=true;
+          result.applicable=visitor.found;
+          const auto prefix=std::string_view(source.text).substr(result.begin,byteOffset-result.begin);
           const auto add=[&](const std::string& name,
-                            const EntityInfo& info,
-                            const std::string& documentation)
+                            const CompletionBinding& binding)
           {
-            if(name.starts_with(prefix))
-              result.candidates.push_back({name,info,documentation});
+            if(name.starts_with(prefix) and name!=recoveryMarker and name!=completionMarker)
+              result.candidates.push_back({name,binding.info,binding.documentation});
           };
-          const auto bindings=completionBindings(environment,tokens,source);
-          const auto infoOf=[&](const std::string_view name)->std::optional<EntityInfo>
+          for(const auto& [name,binding] : visitor.restricted?visitor.choices:visitor.bindings)
+            add(name,binding);
+          if(not visitor.restricted)
+            for(const auto& keyword : parsed.keywords)
+              if(not visitor.bindings.contains(keyword))
+                add(keyword,CompletionBinding{.info={"keyword"}});
+          std::sort(result.candidates.begin(),result.candidates.end(),[](const auto& left,
+                                                                       const auto& right)
           {
-            std::optional<EntityInfo> info;
-            if(const auto found=bindings.find(std::string(name));found!=bindings.end())
-              info=found->second.info;
-            
-            return info;
-          };
-          
-          if(not tokens.empty() and tokens.back()==".")
-            {
-              // Complete f(.parameter or f(value,.parameter from its registered signature
-              if(tokens.size()>1 and (tokens[tokens.size()-2]=="(" or tokens[tokens.size()-2]==","))
-                {
-                  if(not delimiters.empty())
-                    {
-                      const size_t open=delimiters.back();
-                      if(open>0 and tokens[open]=="(" and (open<2 or tokens[open-2]!="."))
-                        if(const auto info=infoOf(tokens[open-1]);info and info->callable)
-                          for(const auto& form : info->argumentForms)
-                            for(auto argument : form)
-                              {
-                                const size_t first=argument.find_first_not_of("[& ");
-                                argument=first==std::string::npos?"":argument.substr(first);
-                                argument=argument.substr(0,argument.find_first_of(" =]"));
-                                if(not argument.empty() and argument!="..." and argument.front()!='<')
-                                  add(argument,EntityInfo{"parameter"},bindings.at(std::string(tokens[open-1])).documentation);
-                              }
-                    }
-                }
-              else if(tokens.size()>1)
-                {
-                  // Find the receiver expression within its statement or enclosing call argument
-                  const size_t end=tokens.size()-1;
-                  size_t begin=end;
-                  size_t depth=0;
-                  bool searching=true;
-                  while(begin>0 and searching)
-                    {
-                      const auto token=tokens[begin-1];
-                      if(token==")" or token=="]")
-                        depth++;
-                      else if(token=="(" or token=="[")
-                        {
-                          if(depth>0)
-                            depth--;
-                          else
-                            searching=false;
-                        }
-                      else if(depth==0 and (token==";" or token=="{" or token=="}" or
-                                              token=="=" or token=="," or token=="return"))
-                        searching=false;
-                      
-                      if(searching)
-                        begin--;
-                    }
-                  
-                  const auto object=inferBinding(bindings,std::span<const std::string_view>(tokens).subspan(begin,end-begin));
-                  for(const auto& [name,info] : object.members)
-                    add(name,info,info.description);
-                }
-            }
-          else
-            {
-              for(const auto& [name,binding] : bindings)
-                add(name,binding.info,binding.documentation);
-              
-              for(const std::string keyword : {"fun","lambda","struct","if","else","for","return","and","or"})
-                if(not bindings.contains(keyword))
-                  add(keyword,EntityInfo{"keyword"},"");
-            }
-          
-          std::sort(result.candidates.begin(),result.candidates.end(),
-            [](const auto& lhs,
-               const auto& rhs)
-            {
-              return lhs.name<rhs.name;
-            });
-          result.candidates.erase(std::unique(result.candidates.begin(),result.candidates.end(),
-            [](const auto& lhs,
-               const auto& rhs)
-            {
-              return lhs.name==rhs.name;
-            }),result.candidates.end());
+            return left.name<right.name;
+          });
+          result.candidates.erase(std::unique(result.candidates.begin(),result.candidates.end(),[](const auto& left,
+                                                                                                 const auto& right)
+          {
+            return left.name==right.name;
+          }),result.candidates.end());
         }
     }
   
@@ -1083,17 +1065,65 @@ std::string formatScriptCompletionForEmacs(const ScriptCompletion& completion)
       for(const auto& candidate : completion.candidates)
         {
           output<<'(';
-          writeLispString(output,candidate.name);
+          writeScriptLispString(output,candidate.name);
           output<<' ';
-          writeLispString(output,candidate.info.kind);
+          writeScriptLispString(output,candidate.info.kind);
           output<<' ';
-          writeLispString(output,candidate.documentation);
+          writeScriptLispString(output,candidate.documentation);
           output<<' ';
-          writeLispString(output,candidate.info.location?candidate.info.location->source:"");
+          writeScriptLispString(output,candidate.info.location?candidate.info.location->source:"");
           const SourceCursor cursor=candidate.info.location?candidate.info.location->cursor:SourceCursor{};
           output<<' '<<cursor.line<<' '<<cursor.column<<' '<<cursor.offset<<')';
         }
       output<<"))";
+    }
+  
+  return output.str();
+}
+
+std::string formatScriptCompletionForBash(const ScriptCompletion& completion,
+                                         const std::string_view text,
+                                         const size_t byteOffset)
+{
+  std::ostringstream output;
+  if(completion.applicable)
+    {
+      output<<completion.begin<<'\0'<<completion.end<<'\0';
+      const size_t following=text.find_first_not_of(" \t\r\n",completion.end);
+      const bool insertCall=completion.candidates.size()==1 and byteOffset==completion.end and
+        (following==std::string_view::npos or text[following]!='(');
+      for(const auto& candidate : completion.candidates)
+        {
+          output<<candidate.name;
+          if(insertCall and candidate.info.callable and not candidate.info.argumentForms.empty())
+            {
+              output<<'(';
+              bool first=true;
+              for(std::string_view argument : candidate.info.argumentForms.front())
+                {
+                  // Reference markers describe binding, not an expression to insert
+                  if(argument.starts_with('&'))
+                    argument.remove_prefix(1);
+                  
+                  // Only plain names are required: bracketed defaults and ... are omitted
+                  const bool identifier=not argument.empty() and
+                    ((argument.front()>='a' and argument.front()<='z') or
+                     (argument.front()>='A' and argument.front()<='Z') or argument.front()=='_') and
+                    std::all_of(argument.begin(),argument.end(),[](const char c)
+                    {
+                      return (c>='a' and c<='z') or (c>='A' and c<='Z') or
+                        (c>='0' and c<='9') or c=='_';
+                    });
+                  if(identifier)
+                    {
+                      output<<(first?"":", ")<<argument;
+                      first=false;
+                    }
+                }
+              output<<')';
+            }
+          output<<'\0';
+        }
     }
   
   return output.str();
