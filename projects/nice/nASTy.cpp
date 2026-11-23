@@ -485,14 +485,69 @@ pp::Grammar getParser()
 #undef CPP_COMMENT
 #undef C_COMMENT
   
-  return pp::createGrammar(cGrammar);
+  auto grammar=pp::createGrammar(cGrammar);
+  
+  // Name lexical classes through their parsed semantic actions, without repeating regexes
+  constexpr std::array<std::pair<std::string_view,std::string_view>,4> terminalNames{{
+    {"convToId","identifier"},
+    {"convToInt","integer"},
+    {"convToFloat","number"},
+    {"convToStr","string"}}};
+  for(const auto& production : grammar.productions)
+    if(production.nRhs()==1 and production.iAction)
+      {
+        auto& terminal=grammar.symbols[production.iRhsList.front()];
+        if(terminal.type==BaseGrammarSymbol::Type::TERMINAL_SYMBOL)
+          {
+            const GrammarAction action(grammar.actionStrings[*production.iAction]);
+            for(const auto& [name,label] : terminalNames)
+              if(action.name==name)
+                terminal.displayName=label;
+          }
+      }
+  
+  return grammar;
+}
+
+const ScriptLocation* scriptNodeLocation(const ASTNode& node)
+{
+  return std::visit([](const auto& part)->const ScriptLocation*
+  {
+    const ScriptLocation* location=nullptr;
+    if constexpr(requires {part.location;})
+      if(part.location)
+        location=&*part.location;
+    
+    // Composite expressions reuse the first token retained by their operands
+    const auto inspect=[&location](const std::shared_ptr<ASTNode>& child)
+    {
+      if(not location and child)
+        location=scriptNodeLocation(*child);
+    };
+    if constexpr(requires {part.lhs;})
+      inspect(part.lhs);
+    else if constexpr(requires {part.arg1;})
+      inspect(part.arg1);
+    else if constexpr(requires {part.base;})
+      inspect(part.base);
+    else if constexpr(requires {part.arg;})
+      inspect(part.arg);
+    else if constexpr(requires {part.callee;})
+      inspect(part.callee);
+    else if constexpr(requires {part.subNodes;})
+      for(size_t i=0;i<part.subNodes.size() and not location;i++)
+        inspect(part.subNodes[i]);
+    
+    return location;
+  },node);
 }
 
 /// Associate grammar action names with functions that construct the
 /// AST The requiredActions comes from the parser; token values enter
 /// through ValueNode Operator functions visit runtime alternatives
 /// and reject unsupported C++ operations
-pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector<std::string_view>& requiredActions)
+pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector<std::string_view>& requiredActions,
+							       const bool editor)
 {
   using namespace pp::internal;
   
@@ -509,7 +564,7 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
 				      N,				\
 				      BODY...)				\
   providedActions[NAME]=						\
-    [](std::vector<std::shared_ptr<ASTNode>>& subNodes) -> std::shared_ptr<ASTNode> \
+    [=](std::vector<std::shared_ptr<ASTNode>>& subNodes) -> std::shared_ptr<ASTNode> \
     {									\
       ENSURE_N_SYMBOLS(NAME,N);						\
       									\
@@ -533,7 +588,8 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
     int64_t value{};
     const auto result=std::from_chars(text.data(),text.data()+text.size(),value);
     
-    if(result.ec!=std::errc{} or result.ptr!=text.data()+text.size())
+    const bool valid=result.ec==std::errc{} and result.ptr==text.data()+text.size();
+    if(not valid and not editor)
       {
         if(const auto& location=fetch<ValueNode>(subNodes,0).location)
           location->error("integer literal outside int64_t range: ",text);
@@ -543,7 +599,9 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
     
     Value literal;
     
-    if(value<=std::numeric_limits<int>::max())
+    if(not valid)
+      literal=Value{};
+    else if(value<=std::numeric_limits<int>::max())
       literal=Value{static_cast<int>(value)};
     else
       literal=Value{value};
@@ -564,12 +622,16 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
   PROVIDE_ACTION_WITH_N_SYMBOLS("return",1,return subNodes[0]);
   PROVIDE_ACTION_WITH_N_SYMBOLS("createFuncArg",2,
 				std::string name{};
+				std::optional<ScriptLocation> location;
 				if(IdNode* id=std::get_if<IdNode>(&*subNodes[0]))
-				  name=id->name;
-				return std::make_shared<ASTNode>(FuncArgNode{.name=name,.expr=subNodes[1]}));
+				  {
+				    name=id->name;
+				    location=id->location;
+				  }
+				return std::make_shared<ASTNode>(FuncArgNode{.name=name,.expr=subNodes[1],.location=location}));
   
 #define DEFINE_UNOP(OP,NAME)						\
-  PROVIDE_ACTION_WITH_N_SYMBOLS("unary" #NAME,1,return std::make_shared<ASTNode>(UnOpNode{.arg=subNodes[0], \
+  PROVIDE_ACTION_WITH_N_SYMBOLS("unary" #NAME,1,return std::make_shared<ASTNode>(UnOpNode{.arg=subNodes[0],.kind=UnOpNode::Kind::NAME, \
 	  .op=[](const Value& arg)					\
 	  {								\
 	    return std::visit([](const auto& arg) -> Value		\
@@ -614,7 +676,7 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
 #define DEFINE_REGISTERED_BINOP(NAME,OPERATOR) \
   PROVIDE_ACTION_WITH_N_SYMBOLS("binary" #NAME,2, \
     return std::make_shared<ASTNode>(BinOpNode{ \
-      .arg1=subNodes[0],.arg2=subNodes[1],.op=applyBinaryOperator<OPERATOR>}))
+      .arg1=subNodes[0],.arg2=subNodes[1],.operatorType=binaryOperatorType<OPERATOR>(),.op=applyBinaryOperator<OPERATOR>}))
   
   DEFINE_REGISTERED_BINOP(Sum,SumOperator);
   DEFINE_REGISTERED_BINOP(Diff,DifferenceOperator);
@@ -669,10 +731,10 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("structMemberCreate",1,
     const auto& id=fetch<IdNode>(subNodes,0);
-    return std::make_shared<ASTNode>(StructMemberNode{.name=id.name,.location=id.location}));
+    return std::make_shared<ASTNode>(StructMemberNode{.name=id.name,.location=id.location,.description=id.description}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("structMemberCreateWithDef",2,
     const auto& id=fetch<IdNode>(subNodes,0);
-    return std::make_shared<ASTNode>(StructMemberNode{.name=id.name,.def=subNodes[1],.location=id.location}));
+    return std::make_shared<ASTNode>(StructMemberNode{.name=id.name,.def=subNodes[1],.location=id.location,.description=id.description}));
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcParCreate",2,
     const auto& id=fetch<IdNode>(subNodes,1);
@@ -702,7 +764,8 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
       .name=fetch<IdNode>(subNodes,1).name,
       .fun=std::make_shared<FuncNode>(fetch<FuncParListNode>(subNodes,2),subNodes[3],
                                      fetch<ValueNode>(subNodes,0).description,
-                                     fetch<ValueNode>(subNodes,0).location)}));
+                                     fetch<ValueNode>(subNodes,0).location),
+      .location=fetch<IdNode>(subNodes,1).location}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("structDef",3,
     return std::make_shared<ASTNode>(StructDefNode{
       .name=fetch<IdNode>(subNodes,1).name,
@@ -715,12 +778,16 @@ pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector
       fetch<ValueNode>(subNodes,0).location}));
   
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcCall",2,
-    const auto& id=fetch<IdNode>(subNodes,0);
-    return std::make_shared<ASTNode>(FuncCallNode{
-      .fun=id.name,.args=fetch<FuncArgListNode>(subNodes,1),.location=id.location}));
+    if(const auto* id=std::get_if<IdNode>(subNodes[0].get()))
+      return std::make_shared<ASTNode>(FuncCallNode{
+        .fun=id->name,.args=fetch<FuncArgListNode>(subNodes,1),.location=id->location});
+    else
+      return std::make_shared<ASTNode>(FuncCallNode{
+        .args=fetch<FuncArgListNode>(subNodes,1),.callee=subNodes[0]}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("funcReturn",1,return std::make_shared<ASTNode>(ReturnNode{.arg=subNodes[0]}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("subscribe",2,return std::make_shared<ASTNode>(SubscribeNode{.base=subNodes[0],.subscr=subNodes[1]}));
-  PROVIDE_ACTION_WITH_N_SYMBOLS("memberAccess",2,return std::make_shared<ASTNode>(MemberAccessNode{.base=subNodes[0],.member=fetch<IdNode>(subNodes,1).name}));
+  PROVIDE_ACTION_WITH_N_SYMBOLS("memberAccess",2,return std::make_shared<ASTNode>(MemberAccessNode{
+    .base=subNodes[0],.member=fetch<IdNode>(subNodes,1).name,.memberLocation=fetch<IdNode>(subNodes,1).location}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("forStatement",4,return std::make_shared<ASTNode>(ForNode{.subNodes{subNodes}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("ifStatement",2,return std::make_shared<ASTNode>(IfNode{.subNodes{subNodes}}));
   PROVIDE_ACTION_WITH_N_SYMBOLS("ifElseStatement",3,return std::make_shared<ASTNode>(IfNode{.subNodes{subNodes}}));

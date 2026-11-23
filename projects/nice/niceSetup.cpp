@@ -10,6 +10,8 @@
 #include "schedulingStrategies.hpp"
 #include "runOptions.hpp"
 #include "scriptCompletion.hpp"
+#include "scriptAnalysis.hpp"
+#include "scriptSession.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 
@@ -31,6 +33,34 @@ namespace nissa::nice
 {
   namespace
   {
+    /// Own registration targets for both one-shot queries and a persistent editor worker
+    struct ScriptQueryEnvironment
+    {
+      /// Symbolic correlation registration target, never executed by editor queries
+      Nice nice;
+      
+      /// Run setters' storage
+      RunOptions options;
+      
+      /// Configuration-list registration target
+      ConfigurationSources sources;
+      
+      /// Gauge recipe registration target
+      GaugeRecipes recipes;
+      
+      /// Registered metadata, shared by every query in a worker
+      Evaluator evaluator;
+      
+      /// Register interfaces without calling any script or initializing MPI
+      ScriptQueryEnvironment()
+      {
+        setupNice(evaluator,nice.correlations);
+        registerRunOptions(evaluator,options);
+        registerConfigurationSources(evaluator,sources);
+        registerGaugeRecipes(evaluator,recipes);
+      }
+    };
+    
     /// Read an explicitly selected script before MPI exists; errors belong to the query stream
     std::optional<std::string> readScriptContextFile(const std::string& path,
 						     std::ostream& diagnostic,
@@ -78,17 +108,9 @@ namespace nissa::nice
   ScriptCompletion completeNiceScript(const ScriptSource& source,
                                       const size_t byteOffset)
   {
-    Nice nice;
-    RunOptions options;
-    ConfigurationSources sources;
-    GaugeRecipes recipes;
-    Evaluator evaluator;
-    setupNice(evaluator,nice.correlations);
-    registerRunOptions(evaluator,options);
-    registerConfigurationSources(evaluator,sources);
-    registerGaugeRecipes(evaluator,recipes);
+    ScriptQueryEnvironment query;
     
-    return completeScriptAt(*evaluator.curEnv,source,byteOffset);
+    return completeScriptAt(*query.evaluator.curEnv,source,byteOffset);
   }
   
   std::optional<int> runScriptQuery(const int narg,
@@ -99,7 +121,20 @@ namespace nissa::nice
   {
     std::optional<int> status;
     const bool checkSyntax=narg>1 and std::string_view(arg[1])=="--check-syntax";
-    if(checkSyntax or (narg>1 and std::string_view(arg[1])=="--complete-at"))
+    if(narg>1 and std::string_view(arg[1])=="--editor-server")
+      {
+        if(narg!=2)
+          {
+            diagnostic<<"NICE editor session: --editor-server takes no arguments\n";
+            status=1;
+          }
+        else
+          {
+            ScriptQueryEnvironment query;
+            status=runScriptSession(*query.evaluator.curEnv,input,output,diagnostic);
+          }
+      }
+    else if(checkSyntax or (narg>1 and std::string_view(arg[1])=="--complete-at"))
       {
         const std::string_view prefix=checkSyntax?"NICE syntax check: ":"NICE completion: ";
         status=1;
@@ -118,6 +153,7 @@ namespace nissa::nice
         
         ScriptSource source;
         std::string format="emacs";
+        std::string checkFormat="text";
         std::string origin="<script>";
         for(int i=checkSyntax?2:3;valid and i<narg;i++)
           {
@@ -137,6 +173,13 @@ namespace nissa::nice
                     valid=format=="emacs" or format=="bash";
                     if(not valid)
                       diagnostic<<"NICE completion: format must be emacs or bash\n";
+                  }
+                else if(checkSyntax and option=="--check-format")
+                  {
+                    checkFormat=value;
+                    valid=value=="text" or value=="emacs";
+                    if(not valid)
+                      diagnostic<<prefix<<"check format must be text or emacs\n";
                   }
                 else if(option=="--completion-source" or (checkSyntax and option=="--check-source"))
                   origin=value;
@@ -170,12 +213,20 @@ namespace nissa::nice
                 source.append(text,origin);
                 if(checkSyntax)
                   {
-                    const auto parser=getParser();
-                    createParseTree(parser,source.text,[&source](const SourceCursor& cursor)
-                    {
-                      return source.locate(cursor);
-                    });
-                    status=0;
+                    const auto parsed=parseScriptForEditor(source);
+                    if(checkFormat=="emacs")
+                      output<<formatScriptDiagnosticsForEmacs(parsed)<<'\n';
+                    else
+                      for(const auto& error : parsed.diagnostics)
+                        {
+                          const auto location=source.locate(error.range.begin);
+                          diagnostic<<"Error: "<<location.source<<':'<<location.cursor.line<<':'<<location.cursor.column
+                                    <<" (offset "<<location.cursor.offset<<"): "<<error.message<<'\n';
+                          auto excerpt=location;
+                          excerpt.extent=std::max(size_t{1},error.range.end.offset-error.range.begin.offset);
+                          writeErrorExcerpt(diagnostic,excerpt);
+                        }
+                    status=parsed.diagnostics.empty()?0:1;
                   }
                 else
                   {
@@ -188,12 +239,8 @@ namespace nissa::nice
                     
                     if(format=="emacs")
                       output<<formatScriptCompletionForEmacs(completion)<<'\n';
-                    else if(completion.applicable)
-                      {
-                        output<<completion.begin<<'\0'<<completion.end<<'\0';
-                        for(const auto& candidate : completion.candidates)
-                          output<<candidate.name<<'\0';
-                      }
+                    else
+                      output<<formatScriptCompletionForBash(completion,text,offset);
                     
                     if(output)
                       status=0;
@@ -396,7 +443,7 @@ namespace nissa::nice
     registerGaugeRecipes(evaluator,gaugeRecipes);
     
     // Populate all destinations, then validate the effective settings after overrides
-    std::visit(evaluator,ast);
+    evaluator.evaluate(ast);
     options.validate();
     validateGaugeRecipes(gaugeRecipes);
     

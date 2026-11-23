@@ -7,6 +7,8 @@
 (require 'cc-mode)
 
 (declare-function company-mode "company" (&optional arg))
+(declare-function lsp "lsp-mode" (&optional arg))
+(declare-function lsp-deferred "lsp-mode" ())
 
 (defvar nissa-script-mode-syntax-table
   (let ((table (copy-syntax-table c-mode-syntax-table)))

@@ -4,33 +4,33 @@
 /**
   General-purpose script grammar, abstract syntax tree, and evaluator for NISSA.
   Applications supply domain-specific host types, functions, and execution.
-
+  
   getParser() recognizes source text. getParseTreeExecuctor() maps parser
   actions to ASTNode values, which Evaluator executes through std::visit.
   Value stores runtime data; Environment gives names shared storage cells.
   HostFunction exposes C++ calls, while HObject and HObjectInfo expose concrete
   C++ values through registered member accessors and printing functions.
-
+  
   Keep the AST alive while using script functions or struct definitions:
   their runtime representations retain pointers into the tree.
 */
 
-#include <any>
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <cstdint>
-#include <functional>
-#include <optional>
-#include <set>
-#include <tuple>
-#include <utility>
-#include <type_traits>
-#include <typeindex>
-#include <limits>
+#include<any>
+#include<algorithm>
+#include<array>
+#include<cmath>
+#include<cstdint>
+#include<functional>
+#include<optional>
+#include<set>
+#include<tuple>
+#include<utility>
+#include<type_traits>
+#include<typeindex>
+#include<limits>
 
-#include <parsePact.hpp>
-#include <tuples/tupleHasType.hpp>
+#include<parsePact.hpp>
+#include<tuples/tupleHasType.hpp>
 
 #include "hostMembers.hpp"
 #include "scriptSource.hpp"
@@ -45,7 +45,14 @@ std::string precedingDocumentation(const pp::internal::ShiftNode& token);
 
 /// Assignment operations shared by script values and host member setters
 /// The enumerator order matches the integer tags emitted by the grammar
-enum class AssignMode{PLAIN,PROD,DIV,SUM,SUB};
+enum class AssignMode
+{
+  PLAIN,
+  PROD,
+  DIV,
+  SUM,
+  SUB
+};
 
 struct Evaluator;
 
@@ -101,28 +108,28 @@ struct MemberAccessNode;
 /// Child nodes use shared pointers to allow recursive variant definitions
 using ASTNode=
   std::variant<ASTNodesNode,
-	       UnaryRefNode,
-	       UnOpNode,
-	       BinOpNode,
-	       ForNode,
-	       IfNode,
-	       IdNode,
-	       PrePostfixOpNode,
-	       FuncNode,
-	       FuncDefNode,
-	       FuncCallNode,
-	       FuncParNode,
-	       FuncParListNode,
-	       SubscribeNode,
-	       FuncArgNode,
-	       FuncArgListNode,
-	       StructMemberNode,
-	       StructMemberListNode,
-	       StructDefNode,
-	       MemberAccessNode,
-	       ReturnNode,
-	       ValueNode,
-	       AssignNode>;
+               UnaryRefNode,
+               UnOpNode,
+               BinOpNode,
+               ForNode,
+               IfNode,
+               IdNode,
+               PrePostfixOpNode,
+               FuncNode,
+               FuncDefNode,
+               FuncCallNode,
+               FuncParNode,
+               FuncParListNode,
+               SubscribeNode,
+               FuncArgNode,
+               FuncArgListNode,
+               StructMemberNode,
+               StructMemberListNode,
+               StructDefNode,
+               MemberAccessNode,
+               ReturnNode,
+               ValueNode,
+               AssignNode>;
 
 struct ValueRef;
 
@@ -231,18 +238,30 @@ struct Struct
   std::vector<std::shared_ptr<Value>> members;
   
   inline Struct(const StructDef& def,
-		std::vector<std::shared_ptr<Value>>& members);
+                std::vector<std::shared_ptr<Value>>& members);
 };
 
 inline std::ostream& operator<<(std::ostream& os,
-				const Struct& s);
+                                const Struct& s);
 
 struct HObjectInfo;
 
 /// Runtime alternatives; monostate represents an uninitialized or absent value
 /// Integers use int or int64_t when larger; boolean results remain int
 using ValueT=
-  std::variant<std::monostate,std::string,int,int64_t,double,Function,FuncArg,HostFunction,ValueRef,ValuesList,StructDef,Struct,HObject>;
+  std::variant<std::monostate,
+               std::string,
+               int,
+               int64_t,
+               double,
+               Function,
+               FuncArg,
+               HostFunction,
+               ValueRef,
+               ValuesList,
+               StructDef,
+               Struct,
+               HObject>;
 
 /// Concrete C++ value stored in std::any, together with its shared type metadata
 /// Copying copies the value according to its C++ copy semantics; metadata is shared
@@ -256,7 +275,7 @@ struct HObject
 };
 
 inline std::ostream& operator<<(std::ostream& os,
-				const HObject& obj);
+                                const HObject& obj);
 
 /// Runtime value wrapper providing variant assignment and optional conversion
 /// Copying follows the semantics of the active alternative, including shared cells
@@ -269,7 +288,7 @@ struct Value
   /// support that cast
   /// T need not be a variant alternative; HObject values are handled separately
   template <typename T,
-	    VariantAlternative<ValueT>...From>
+            VariantAlternative<ValueT>... From>
   std::optional<T> tryAs() const
   {
     // Holds the converted value only when a proposed source type matches
@@ -279,22 +298,22 @@ struct Value
     auto attempt=
       [&]<typename S>()
       {
-	return std::visit([&](const auto& source)
-	{
-	  // Match the proposed source type, not any type convertible to T
-	  if constexpr(std::is_same_v<S,std::remove_cvref_t<decltype(source)>>)
-	    {
-	      result.emplace(static_cast<T>(source));
-	      return true;
-	    }
-	  else
-	    return false;
-	},data);
+        return std::visit([&](const auto& source)
+        {
+          // Match the proposed source type, not any type convertible to T
+          if constexpr(std::is_same_v<S,std::remove_cvref_t<decltype(source)>>)
+            {
+              result.emplace(static_cast<T>(source));
+              
+              return true;
+            }
+          else
+            return false;
+        },data);
       };
     
     // Try T first, then From in order, stopping at the first match
-    (attempt.template operator()<T>() or ... or
-     attempt.template operator()<From>());
+    (attempt.template operator()<T>() or ... or attempt.template operator()<From>());
     
     return result;
   }
@@ -309,13 +328,13 @@ struct Value
   // ValueT operator*(const Value& oth) const
   // {
   //   return {std::visit([](const auto& lhs,
-  // 			  const auto& rhs)->ValueT
+  //                      const auto& rhs)->ValueT
   //   {
   //      if constexpr(requires {lhs * rhs;})
-  // 	 return {lhs*rhs};
+  //     return {lhs*rhs};
   //      else
-  // 	 errorEmitter("Cannot "  "assign the types: ",typeid(lhs).name()," and ",typeid(rhs).name());
-       
+  //     errorEmitter("Cannot "  "assign the types: ",typeid(lhs).name()," and ",typeid(rhs).name());
+  
   //      return {};
   //   },this->data,oth.data)};
   // }
@@ -330,15 +349,16 @@ struct Value
 /// Other returned references borrow the argument cells and must not outlive them
 template <typename T>
 decltype(auto) hostArgumentTypeConcretizer(const std::vector<std::shared_ptr<Value>>& arguments,
-                                    const std::size_t index,
-                                    const char* functionName)
+                                           const std::size_t index,
+                                           const char* functionName)
 {
   if(index>=arguments.size() or not arguments[index])
     errorEmitter("missing argument ",index," to ",functionName);
   
   if constexpr(std::is_same_v<T,int64_t>)
     {
-      const auto value=arguments[index]->tryAs<int64_t,int>();
+      const auto value=
+        arguments[index]->tryAs<int64_t,int>();
       
       if(not value)
         errorEmitter("invalid argument ",index," to ",functionName," (expected integer)");
@@ -352,13 +372,14 @@ decltype(auto) hostArgumentTypeConcretizer(const std::vector<std::shared_ptr<Val
       const T* value=nullptr;
       
       if constexpr(VariantAlternative<T,ValueT>)
-        value=std::get_if<T>(&data);
+        value=
+          std::get_if<T>(&data);
       else if(const auto* object=std::get_if<HObject>(&data))
-        value=std::any_cast<T>(&object->data);
+        value=
+          std::any_cast<T>(&object->data);
       
       if(not value)
-        errorEmitter("invalid argument ",index," to ",functionName,
-                     " (expected ",typeid(T).name(),")");
+        errorEmitter("invalid argument ",index," to ",functionName," (expected ",typeid(T).name(),")");
       
       return *value;
     }
@@ -367,14 +388,14 @@ decltype(auto) hostArgumentTypeConcretizer(const std::vector<std::shared_ptr<Val
 /// Recover positional arguments as a tuple of their actual C++ types for std::apply
 /// Types follow signature order; every argument is required and extras are rejected
 /// Tuple elements borrow argument cells, except widened integers which are owned
-template <typename...T>
+template <typename... T>
 auto hostArgumentsTypeConcretizer(const std::vector<std::shared_ptr<Value>>& arguments,
-                                                   const char* functionName)
+                                  const char* functionName)
 {
   if(arguments.size()>sizeof...(T))
     errorEmitter("too many arguments to ",functionName);
   
-  return [&]<std::size_t...I>(std::index_sequence<I...>)
+  return [&]<std::size_t... I>(std::index_sequence<I...>)
   {
     return std::tuple<decltype(hostArgumentTypeConcretizer<T>(arguments,I,functionName))...>{
       hostArgumentTypeConcretizer<T>(arguments,I,functionName)...};
@@ -382,11 +403,11 @@ auto hostArgumentsTypeConcretizer(const std::vector<std::shared_ptr<Value>>& arg
 }
 
 inline std::ostream& operator<<(std::ostream& os,
-				const Value& v)
+                                const Value& v)
 {
   std::visit([&os](const auto& v)
   {
-    if constexpr(requires {os<<v;})
+    if constexpr(requires { os<<v; })
       os<<v;
     else
       os<<"unprintable type: "<<typeid(v).name()<<"\n";
@@ -416,7 +437,7 @@ struct HObjectMemberRef
   }
   
   void set(const AssignMode& mode,
-	   const Value& value)
+           const Value& value)
   {
     accessors.second(mode,value);
   }
@@ -432,8 +453,7 @@ template <typename L,
 void validateIntegerDivision(const L& lhs,
                              const R& rhs)
 {
-  if constexpr(performArithmeticValidation and
-               std::is_integral_v<L> and std::is_integral_v<R>)
+  if constexpr(performArithmeticValidation and std::is_integral_v<L> and std::is_integral_v<R>)
     {
       using Result=
         decltype(lhs/rhs);
@@ -450,19 +470,16 @@ void validateIntegerDivision(const L& lhs,
 
 /// Adapt a native binary functor and a diagnostic name to script dispatch
 /// std::array is a structural C++20 template argument for the name
-template <typename NativeOperator,
-          auto Name>
+template <typename NativeOperator,auto Name>
 struct BinaryOperator
 {
-  static constexpr const char* name=Name.data();
+  static constexpr const char* name=
+    Name.data();
   
   template <typename L,
             typename R>
-  requires requires(const L& lhs,
-                    const R& rhs)
-  {
-    NativeOperator{}(lhs,rhs);
-  }
+    requires requires(const L& lhs,
+                      const R& rhs) { NativeOperator{}(lhs,rhs); }
   auto operator()(const L& lhs,
                   const R& rhs) const
   {
@@ -481,11 +498,11 @@ using SumOperator=
 /// Subtraction with its script error name
 using DifferenceOperator=
   BinaryOperator<std::minus<>,std::to_array("difference")>;
-  
+
 /// Multiplication with its script error name
 using ProductOperator=
   BinaryOperator<std::multiplies<>,std::to_array("product")>;
-  
+
 /// Division with its script error name
 using DivisionOperator=
   BinaryOperator<std::divides<>,std::to_array("division")>;
@@ -493,6 +510,13 @@ using DivisionOperator=
 /// Integer remainder with its script error name
 using RemainderOperator=
   BinaryOperator<std::modulus<>,std::to_array("remainder")>;
+
+/// Keep structural-template operator RTTI dependent for nvcc's host-code generation
+template <typename Operator>
+std::type_index binaryOperatorType()
+{
+  return typeid(Operator);
+}
 
 /// Shared description of a registered host type and its supported operations
 /// Member providers bind accessors to an individual value supplied at access time
@@ -553,32 +577,38 @@ template <typename Operator>
 Value applyBinaryOperator(const Value& lhs,
                           const Value& rhs)
 {
-  return std::visit([]<typename L,
-                     typename R>(const L& left,
-                                 const R& right)->Value
+  return std::visit([]<typename L,typename R>(const L& left,
+                                              const R& right) -> Value
   {
-    const auto typeName=[](const auto& operand)->std::string
-    {
-      if constexpr(std::is_same_v<std::remove_cvref_t<decltype(operand)>,HObject>)
-        return operand.info->name;
-      else
-        return typeid(operand).name();
-    };
+    const auto typeName=
+      [](const auto& operand) -> std::string
+      {
+        if constexpr(std::is_same_v<std::remove_cvref_t<decltype(operand)>,HObject>)
+          return operand.info->name;
+        else
+          return typeid(operand).name();
+      };
     
     if constexpr(std::is_same_v<L,HObject>)
       {
-        const auto operation=left.info->binaryOperations.find(typeid(Operator));
+        const auto operation=
+          left.info->binaryOperations.find(typeid(Operator));
+        
         if(operation!=left.info->binaryOperations.end())
           {
             if constexpr(std::is_same_v<R,HObject>)
               {
-                const auto found=operation->second.rightOperands.find(right.data.type());
+                const auto found=
+                  operation->second.rightOperands.find(right.data.type());
+                
                 if(found!=operation->second.rightOperands.end())
                   return found->second(left.data,right.data);
               }
             else
               {
-                const auto found=operation->second.rightOperands.find(typeid(R));
+                const auto found=
+                  operation->second.rightOperands.find(typeid(R));
+                
                 if(found!=operation->second.rightOperands.end())
                   return found->second(left.data,std::any(right));
               }
@@ -586,19 +616,23 @@ Value applyBinaryOperator(const Value& lhs,
       }
     else if constexpr(std::is_same_v<R,HObject>)
       {
-        const auto operation=right.info->binaryOperations.find(typeid(Operator));
+        const auto operation=
+          right.info->binaryOperations.find(typeid(Operator));
+        
         if(operation!=right.info->binaryOperations.end())
           {
-            const auto found=operation->second.leftOperands.find(typeid(L));
+            const auto found=
+              operation->second.leftOperands.find(typeid(L));
+            
             if(found!=operation->second.leftOperands.end())
               return found->second(std::any(left),right.data);
           }
       }
-    else if constexpr(requires {Operator{}(left,right);})
+    else if constexpr(requires { Operator{}(left,right); })
       return {Operator{}(left,right)};
     
-    errorEmitter("unsupported ",Operator::name,": ",typeName(left),
-                 " and ",typeName(right));
+    errorEmitter("unsupported ",Operator::name,": ",typeName(left)," and ",typeName(right));
+    
     return {};
   },lhs.data,rhs.data);
 }
@@ -608,11 +642,8 @@ Value applyBinaryOperator(const Value& lhs,
 template <typename Operator,
           typename L,
           typename R>
-requires requires(const L& lhs,
-                  const R& rhs)
-{
-  Operator{}(lhs,rhs);
-}
+  requires requires(const L& lhs,
+                    const R& rhs) { Operator{}(lhs,rhs); }
 void registerHObjectBinaryOperator(const std::shared_ptr<HObjectInfo>& lhsInfo,
                                    const std::shared_ptr<HObjectInfo>& rhsInfo,
                                    const std::shared_ptr<HObjectInfo>& resultInfo)
@@ -620,17 +651,21 @@ void registerHObjectBinaryOperator(const std::shared_ptr<HObjectInfo>& lhsInfo,
   if(not resultInfo or (not lhsInfo and not rhsInfo))
     errorEmitter("a host binary operation requires operand and result metadata");
   
-  HObjectInfo::BinaryFunction function={
-    [result=std::weak_ptr<HObjectInfo>(resultInfo)](const std::any& lhs,
-                                                    const std::any& rhs)->Value
-  {
-    auto info=result.lock();
-    if(not info)
-      errorEmitter("binary operation result metadata is no longer registered");
-    
-    return {HObject{info,Operator{}(std::any_cast<const L&>(lhs),
-                                    std::any_cast<const R&>(rhs))}};
-  },{resultInfo->cppType,resultInfo}};
+  HObjectInfo::BinaryFunction function=
+    {
+      [result=std::weak_ptr<HObjectInfo>(resultInfo)](const std::any& lhs,
+                                                      const std::any& rhs) -> Value
+      {
+        auto info=
+          result.lock();
+        
+        if(not info)
+          errorEmitter("binary operation result metadata is no longer registered");
+        
+        return {HObject{info,Operator{}(std::any_cast<const L&>(lhs),std::any_cast<const R&>(rhs))}};
+      },
+      {resultInfo->cppType,resultInfo}
+    };
   
   if(lhsInfo)
     lhsInfo->binaryOperations[typeid(Operator)].rightOperands[typeid(R)]=
@@ -641,16 +676,16 @@ void registerHObjectBinaryOperator(const std::shared_ptr<HObjectInfo>& lhsInfo,
 }
 
 inline std::ostream& operator<<(std::ostream& os,
-				const HObject& obj)
+                                const HObject& obj)
 {
   if(const auto& sOp=obj.info->streamOp)
     sOp(os,obj.data);
   else
-    errorEmitter("Unable to print host object of type \"",obj.info->name,"\" (stream operator not registered)");
+    errorEmitter("Unable to print host object of type \"",obj.info->name,
+                 "\" (stream operator not registered)");
   
   return os;
 }
-
 
 /// Bind accessors to this value, reporting an unknown member name as an error
 inline HObjectMemberRef HObject::getMemberRef(const std::string& memberName)
@@ -662,7 +697,8 @@ inline HObjectMemberRef HObject::getMemberRef(const std::string& memberName)
     ap.find(memberName);
   
   if(rt==ap.end())
-    errorEmitter("Trying to subscribe member \"",memberName,"\" but the subscribed object does not have such member");
+    errorEmitter("Trying to subscribe member \"",memberName,
+                 "\" but the subscribed object does not have such member");
   
   return {rt->second(this->data)};
 }
@@ -687,6 +723,9 @@ struct FuncArgNode
   std::string name;
   
   std::shared_ptr<ASTNode> expr;
+  
+  /// Position of a named argument, retained after the identifier node is consumed
+  std::optional<ScriptLocation> location{};
 };
 
 /// Call arguments in source order, before evaluation and parameter binding
@@ -709,6 +748,9 @@ struct MemberAccessNode
   std::shared_ptr<ASTNode> base;
   
   std::string member;
+  
+  /// Position of the selected name, independent of the base expression
+  std::optional<ScriptLocation> memberLocation{};
 };
 
 /// Literal or parser token represented as a runtime Value
@@ -732,10 +774,14 @@ struct ValueNode
   /// Convert a shifted token while discarding ordinary skipped comments
   static ValueNode fromShift(const pp::internal::ShiftNode& token)
   {
-    const auto position=token.location.value_or(pp::internal::SourceLocation{{},token.cursor});
+    const auto position=
+      token.location.value_or(pp::internal::SourceLocation{{},token.cursor});
     
-    return {.value=Value{std::string(token.txt)},.description=precedingDocumentation(token),
-            .location=ScriptLocation{position.source.empty()?"<script>":std::string(position.source),position.cursor}};
+    return {.value=Value{std::string(token.txt)},
+            .description=
+              precedingDocumentation(token),
+            .location=
+              ScriptLocation::fromPosition(position,std::max(size_t{1},token.txt.size()))};
   }
 };
 
@@ -763,12 +809,16 @@ struct FuncParNode
   /// Position of a named parameter's declaration
   std::optional<ScriptLocation> location{};
   
-  static constexpr const char VARIADIC_PAR_NAME[]="__VA__ARGS__";
+  static constexpr const char VARIADIC_PAR_NAME[]=
+    "__VA__ARGS__";
   
   /// Build a variadic parameter whose reference policy applies to each element
   static FuncParNode getVariadic(const bool isRef)
   {
-    return {.name=VARIADIC_PAR_NAME,.isRef=isRef,.def=std::make_shared<ASTNode>(ValueNode{.value{ValuesList{}}})};
+    return {.name=VARIADIC_PAR_NAME,
+            .isRef=isRef,
+            .def=
+              std::make_shared<ASTNode>(ValueNode{.value{ValuesList{}}})};
   }
 };
 
@@ -783,19 +833,17 @@ struct Searchable
       ((const D*)this)->list;
     
     auto it=
-      std::find_if(list.begin(),
-		   list.end(),
-		   [&name](const auto& par)
-		   {
-		     return par.name==name;
-		   });
+      std::find_if(list.begin(),list.end(),[&name](const auto& par)
+    {
+      return par.name==name;
+    });
     
     return std::distance(list.begin(),it);
   }
 };
 
 /// Ordered function parameters, optionally ending in the reserved variadic parameter
-struct FuncParListNode:
+struct FuncParListNode :
   Searchable<FuncParListNode>
 {
   std::vector<FuncParNode> list;
@@ -812,7 +860,6 @@ struct FuncParListNode:
       errorEmitter("Cannot make a list of pars variadic twice");
     
     list.push_back(FuncParNode::getVariadic(isRef));
-    
   };
   
   /// Build a signature consisting only of a variadic parameter
@@ -852,6 +899,9 @@ struct FuncDefNode
   std::string name;
   
   std::shared_ptr<FuncNode> fun;
+  
+  /// Position of the declaration name, rather than the fun keyword
+  std::optional<ScriptLocation> location{};
 };
 
 /// Call to a named script function, host function, or script struct constructor
@@ -863,6 +913,9 @@ struct FuncCallNode
   
   /// Position of the called name
   std::optional<ScriptLocation> location{};
+  
+  /// Expression callee when the grammar accepts a call on something other than a name
+  std::shared_ptr<ASTNode> callee{};
 };
 
 /// Declared script struct member with an optional default expression
@@ -874,10 +927,13 @@ struct StructMemberNode
   
   /// Position of the member's declaration
   std::optional<ScriptLocation> location{};
+  
+  /// Documentation preceding the member declaration
+  std::string description{};
 };
 
 /// Ordered script struct members with lookup by member name
-struct StructMemberListNode:
+struct StructMemberListNode :
   Searchable<StructMemberListNode>
 {
   std::vector<StructMemberNode> list;
@@ -898,19 +954,20 @@ struct StructDefNode
 };
 
 inline std::ostream& operator<<(std::ostream& os,
-				const Struct& s)
+                                const Struct& s)
 {
-  const StructDefNode& def=*s.structDefNode;
+  const StructDefNode& def=
+    *s.structDefNode;
   
   os<<"Struct "<<def.name<<"\n";
-  for(size_t i=0;i<def.members.list.size();i++)
+  for(size_t i=0; i<def.members.list.size(); i++)
     os<<" "<<def.members.list[i].name<<" "<<*s.members[i]<<"\n";
   
   return os;
 };
 
 inline Struct::Struct(const StructDef& def,
-		      std::vector<std::shared_ptr<Value>>& members) :
+                      std::vector<std::shared_ptr<Value>>& members) :
   structDefNode(def.structDefNode),
   members(members)
 {
@@ -918,8 +975,9 @@ inline Struct::Struct(const StructDef& def,
     def.structDefNode->name;
   
   diagnostic("Creating struct ",name,"\n");
-    
-  const size_t nArgs=members.size();
+  
+  const size_t nArgs=
+    members.size();
   const size_t nMembers=
     def.structDefNode->members.list.size();
   
@@ -956,6 +1014,18 @@ struct UnOpNode
 {
   std::shared_ptr<ASTNode> arg;
   
+  /// Static operator identity, also used by non-executing AST visitors
+  enum class Kind
+  {
+    Unknown,
+    Not,
+    Plus,
+    Minus
+  };
+  
+  /// Operator applied to the argument
+  Kind kind{Kind::Unknown};
+  
   std::function<Value(const Value&)> op;
 };
 
@@ -981,6 +1051,9 @@ struct BinOpNode
   /// Right operand, evaluated only when required by the mode
   std::shared_ptr<ASTNode> arg2;
   
+  /// Registered operator identity, independent of its executable callable
+  std::type_index operatorType{typeid(void)};
+  
   /// Callable used by eager operations; logical modes produce Boolean results directly
   std::function<Value(const Value&,const Value&)> op;
   
@@ -993,6 +1066,10 @@ struct ReturnNode
 {
   std::shared_ptr<ASTNode> arg;
 };
+
+/// Locate an expression through its existing token metadata, without a second source map
+/// Composite expressions use their first located operand; calls retain the callee's position
+const ScriptLocation* scriptNodeLocation(const ASTNode& node);
 
 /// Discovery metadata shared by classification and verbose listings
 struct EntityInfo
@@ -1013,23 +1090,28 @@ struct EntityInfo
   std::optional<ScriptLocation> location{};
 };
 
-/// Describe native signatures without changing positional or named argument binding
+/// Describe native signatures without changing positional or named argument
+/// binding
 FunctionArgumentForms entityArgumentForms(const HostFunction& function);
 
-/// Describe script parameters, including references, defaults, and variadic arguments
+/// Describe script parameters, including references, defaults, and variadic
+/// arguments
 FunctionArgumentForms entityArgumentForms(const Function& function);
 
 /// Describe required and defaulted members of a script constructor
 FunctionArgumentForms entityArgumentForms(const StructDef& definition);
 
-/// Inspect every runtime value alternative; new alternatives require an overload
+/// Inspect every runtime value alternative; new alternatives require an
+/// overload
 struct EntityInfoVisitor
 {
-  /// Reject unhandled types, including types convertible to an existing alternative
+  /// Reject unhandled types, including types convertible to an existing
+  /// alternative
   template <typename T>
   EntityInfo operator()(const T&) const=delete;
   
-  // Define one exact visitor overload; the deleted fallback still rejects new types
+  // Define one exact visitor overload; the deleted fallback still rejects new
+  // types
 #define PROVIDE_ENTITY_INFO(TYPE,NAME,...) \
   EntityInfo operator()(const TYPE& NAME) const \
   { \
@@ -1052,13 +1134,22 @@ struct EntityInfoVisitor
   PROVIDE_ENTITY_INFO(double,,"variable (double)")
   
   /// Script functions and anonymous lambdas
-  PROVIDE_ENTITY_INFO(Function,function,function.name.empty()?"script lambda":"embedded function '"+function.name+"'",function.funcNode->description,true,entityArgumentForms(function),function.funcNode->location)
+  PROVIDE_ENTITY_INFO(Function,function,
+                      function.name.empty()
+                      ? "script lambda"
+                      : "embedded function '"+function.name+"'",
+                      function.funcNode->description,true,
+                      entityArgumentForms(function),
+                      function.funcNode->location)
   
   /// Named argument values
   PROVIDE_ENTITY_INFO(FuncArg,,"variable (named argument)")
   
   /// Native functions and constructors
-  PROVIDE_ENTITY_INFO(HostFunction,function,function.isConstructor?"host struct constructor":"host function",function.description,true,entityArgumentForms(function))
+  PROVIDE_ENTITY_INFO(HostFunction,function,
+                      function.isConstructor ? "host struct constructor"
+                      : "host function",
+                      function.description,true,entityArgumentForms(function))
   
   /// References to variable cells
   PROVIDE_ENTITY_INFO(ValueRef,,"variable (reference)")
@@ -1067,21 +1158,33 @@ struct EntityInfoVisitor
   PROVIDE_ENTITY_INFO(ValuesList,,"variable (list)")
   
   /// Script struct constructors
-  PROVIDE_ENTITY_INFO(StructDef,definition,"script struct constructor",definition.structDefNode->description,true,entityArgumentForms(definition),definition.structDefNode->location)
+  PROVIDE_ENTITY_INFO(StructDef,definition,"script struct constructor",
+                      definition.structDefNode->description,true,
+                      entityArgumentForms(definition),
+                      definition.structDefNode->location)
   
   /// Script struct instances
-  PROVIDE_ENTITY_INFO(Struct,object,"script struct instance '"+object.structDefNode->name+"'")
+  PROVIDE_ENTITY_INFO(Struct,object,
+                      "script struct instance '"+object.structDefNode->name+
+                      "'")
   
   /// Native object instances
-  PROVIDE_ENTITY_INFO(HObject,object,"host object '"+object.info->name+"'")
-  
+  PROVIDE_ENTITY_INFO(HObject,object,
+                      "host object '"+object.info->name+"'")
+
 #undef PROVIDE_ENTITY_INFO
 };
 
 /// Select the visible bindings included in a discovery listing
-enum class EntitySelection{Functions,Variables,All};
+enum class EntitySelection
+{
+  Functions,
+  Variables,
+  All
+};
 
-/// Format visible bindings; verbose mode groups variables and separates documented signatures
+/// Format visible bindings; verbose mode groups variables and separates
+/// documented signatures
 std::string formatEntityListing(const Environment& environment,
                                 const EntitySelection selection,
                                 const bool verbose);
@@ -1098,7 +1201,7 @@ struct Environment
   std::shared_ptr<Environment> parent;
   
   std::unordered_map<std::string,std::shared_ptr<Value>> varTable;
-
+  
   /// Descriptions attached to bindings in this scope
   std::unordered_map<std::string,std::string> descriptions;
   
@@ -1110,14 +1213,14 @@ struct Environment
   {
     std::set<std::string> seen;
     std::vector<std::string> names;
-    for(const Environment* scope=this;scope!=nullptr;scope=scope->parent.get())
+    for(const Environment* scope=this; scope!=nullptr; scope=scope->parent.get())
       for(const auto& [name,value] : scope->varTable)
         if(seen.insert(name).second)
           {
-            const bool callable=value and std::visit(EntityInfoVisitor{},value->data).callable;
+            const bool callable=
+              value and std::visit(EntityInfoVisitor{},value->data).callable;
             
-            if(selection==EntitySelection::All or
-               (selection==EntitySelection::Functions and callable) or
+            if(selection==EntitySelection::All or (selection==EntitySelection::Functions and callable) or
                (selection==EntitySelection::Variables and not callable))
               names.push_back(name);
           }
@@ -1139,7 +1242,8 @@ struct Environment
   {
     Environment* scope=this;
     while(scope!=nullptr and not scope->varTable.contains(name))
-      scope=scope->parent.get();
+      scope=
+        scope->parent.get();
     
     if(scope==nullptr)
       errorEmitter("Cannot describe unknown entity ",name);
@@ -1147,26 +1251,31 @@ struct Environment
     scope->descriptions[name]=description;
   }
   
-  /// Inspect a binding in its nearest scope, applying binding-specific documentation
+  /// Inspect a binding in its nearest scope, applying binding-specific
+  /// documentation
   EntityInfo entityInfo(const std::string& name) const
   {
     const Environment* scope=this;
     while(scope!=nullptr and not scope->varTable.contains(name))
-      scope=scope->parent.get();
+      scope=
+        scope->parent.get();
     
     if(scope==nullptr)
       errorEmitter("Cannot inspect unknown entity ",name);
     
-    const auto& value=scope->varTable.at(name);
+    const auto& value=
+      scope->varTable.at(name);
     EntityInfo info=
-      value?std::visit(EntityInfoVisitor{},value->data):EntityInfo{"uninitialized variable"};
+      value ? std::visit(EntityInfoVisitor{},value->data) : EntityInfo{"uninitialized variable"};
     
-    if(const auto found=scope->descriptions.find(name);found!=scope->descriptions.end())
-      info.description=found->second;
+    if(const auto found=scope->descriptions.find(name); found!=scope->descriptions.end())
+      info.description=
+        found->second;
     
     if(not info.location)
-      if(const auto found=scope->locations.find(name);found!=scope->locations.end())
-        info.location=found->second;
+      if(const auto found=scope->locations.find(name); found!=scope->locations.end())
+        info.location=
+          found->second;
     
     return info;
   }
@@ -1174,8 +1283,10 @@ struct Environment
   /// Explain a binding's kind and optional description in its nearest scope
   std::string entityDetails(const std::string& name) const
   {
-    const EntityInfo info=entityInfo(name);
-    std::string details=info.kind;
+    const EntityInfo info=
+      entityInfo(name);
+    std::string details=
+      info.kind;
     
     if(not info.description.empty())
       details+=" - "+info.description;
@@ -1197,19 +1308,19 @@ struct Environment
   /// Look up a name in this scope and its parents; return null when absent
   std::shared_ptr<Value> find(const std::string& name)
   {
-    if(auto it=varTable.find(name);it!=varTable.end())
+    if(auto it=varTable.find(name); it!=varTable.end())
       return it->second;
+    else if(parent)
+      return parent->find(name);
     else
-      if(parent)
-	return parent->find(name);
-      else
-	return {};
+      return {};
   }
   
   /// Requires an existing value, reports an error if the name cannot be found
   Value& at(const std::string& name)
   {
-    std::shared_ptr<Value> f=find(name);
+    std::shared_ptr<Value> f=
+      find(name);
     
     if(f==nullptr)
       errorEmitter("Trying to use uninitialized variable ",name);
@@ -1217,8 +1328,11 @@ struct Environment
     return *f;
   }
   
-  /// Returns existing variable or insert an uninitialized cell, returning true if the cell was not existing
-  std::pair<std::shared_ptr<Value>,bool> getRefOrInsert(const std::string& name)
+  /// Returns existing variable or insert an uninitialized cell, returning true
+  /// if the cell was not existing
+  std::pair<std::shared_ptr<Value>,
+            bool>
+  getRefOrInsert(const std::string& name)
   {
     if(auto f=find(name))
       return {f,false};
@@ -1240,12 +1354,13 @@ struct Environment
   //   for(const auto& [name,v] : varTable)
   //     std::visit([&name](const auto& v)
   //     {
-  // 	if constexpr(Streamable<decltype(v)>)
-  // 	  diagnostic(name,"=",v,"\n");
-  // 	else
-  // 	  diagnostic(name," of unprintable type: ",typeid(decltype(v)).name(),"\n");
+  //    if constexpr(Streamable<decltype(v)>)
+  //      diagnostic(name,"=",v,"\n");
+  //    else
+  //      diagnostic(name," of unprintable type:
+  // ",typeid(decltype(v)).name(),"\n");
   //     },*v);
-    
+  
   //   if(parent)
   //     parent->print(i+1);
   // }
@@ -1256,7 +1371,8 @@ struct Environment
   }
 };
 
-/// Function activation environment whose parent is the captured definition scope
+/// Function activation environment whose parent is the captured definition
+/// scope
 struct CallFrame
 {
   std::shared_ptr<Environment> env;
@@ -1267,29 +1383,32 @@ struct CallFrame
   }
 };
 
-/// Extract the expected AST alternative for a parser action, diagnosing a mismatch
-/// comm supplies optional context for the diagnostic; subNode must be non-null
+/// Extract the expected AST alternative for a parser action, diagnosing a
+/// mismatch comm supplies optional context for the diagnostic; subNode must be
+/// non-null
 template <typename T>
 T& fetch(std::shared_ptr<ASTNode>& subNode,
-	 const char* comm=nullptr)
+         const char* comm=nullptr)
 {
   T* s=
     std::get_if<T>(&*subNode);
   
   if(not s)
-    errorEmitter("subNode: ",(comm?comm:"")," is not of the required type ",typeid(T).name()," but is of type ",variantInnerTypeName(*subNode));
+    errorEmitter("subNode: ",(comm ? comm : "")," is not of the required type ",typeid(T).name(),
+                 " but is of type ",variantInnerTypeName(*subNode));
   
   return *s;
 }
 
-/// Extract a parser action child by index and require the expected AST alternative
+/// Extract a parser action child by index and require the expected AST
+/// alternative
 template <typename T>
 T& fetch(std::vector<std::shared_ptr<ASTNode>>& list,
-	 const size_t& i)
+         const size_t& i)
 {
   using namespace pp::internal;
   
-  if(const size_t n=list.size();n<i)
+  if(const size_t n=list.size(); n<i)
     errorEmitter(n," nodes received, aksed for node #",i);
   
   return fetch<T>(list[i],std::to_string(i).c_str());
@@ -1297,7 +1416,7 @@ T& fetch(std::vector<std::shared_ptr<ASTNode>>& list,
 
 /// Start a list node of type L with an element of AST alternative T
 template <typename T,
-	  typename L>
+          typename L>
 std::shared_ptr<ASTNode> makeFirstOfList(std::shared_ptr<ASTNode>& elem)
 {
   return std::make_shared<ASTNode>(L{.list{fetch<T>(elem)}});
@@ -1305,22 +1424,24 @@ std::shared_ptr<ASTNode> makeFirstOfList(std::shared_ptr<ASTNode>& elem)
 
 /// Move an AST element into an existing list node and return that list handle
 template <typename T,
-	  typename L>
+          typename L>
 std::shared_ptr<ASTNode>& appendToList(std::shared_ptr<ASTNode>& list,
-				       std::shared_ptr<ASTNode>& elem)
+                                       std::shared_ptr<ASTNode>& elem)
 {
- fetch<L>(list).list.push_back(std::move(fetch<T>(elem)));
- 
- return list;
+  fetch<L>(list).list.push_back(std::move(fetch<T>(elem)));
+  
+  return list;
 }
 
 /// Append the second list's elements by moving them into the first list
 template <typename L>
 std::shared_ptr<ASTNode>& mergeLists(std::shared_ptr<ASTNode>& list1,
-				     std::shared_ptr<ASTNode>& list2)
+                                     std::shared_ptr<ASTNode>& list2)
 {
-  auto& first=fetch<L>(list1).list;
-  auto& second=fetch<L>(list2).list;
+  auto& first=
+    fetch<L>(list1).list;
+  auto& second=
+    fetch<L>(list2).list;
   
   first.insert(first.end(),std::make_move_iterator(second.begin()),std::make_move_iterator(second.end()));
   
@@ -1328,36 +1449,39 @@ std::shared_ptr<ASTNode>& mergeLists(std::shared_ptr<ASTNode>& list1,
 }
 
 /// Associate grammar action names with AST construction functions
-pp::ParseTreeExecutor<ASTNode,ValueNode> getParseTreeExecuctor(const std::vector<std::string_view>& requiredActions);
+pp::ParseTreeExecutor<ASTNode,
+                      ValueNode>
+getParseTreeExecuctor(const std::vector<std::string_view>& requiredActions,
+                      const bool editor=false);
 
 /// Apply the requested C++ assignment expression when it is well formed
 /// Compound assignments retain native C++ promotion and conversion rules
 /// Unsupported operand combinations report an interpreter error
 template <typename L,
-	  typename R>
+          typename R>
 void trySet(L& lhs,
-	    const AssignMode& mode,
-	    const R& rhs)
+            const AssignMode& mode,
+            const R& rhs)
 {
   if(mode==AssignMode::DIV)
     validateIntegerDivision(lhs,rhs);
   
- switch(mode)
-   {
-#define CASE(MODE,SYMBOL,DESCR)						\
-     case AssignMode::MODE:						\
-       if constexpr(requires {lhs SYMBOL rhs;})				\
-	 lhs SYMBOL rhs;						\
-       else								\
-	 errorEmitter("Cannot " DESCR "assign the types: ",typeid(lhs).name()," and ",typeid(rhs).name()); \
-       break
-     
+  switch(mode)
+    {
+#define CASE(MODE,SYMBOL,DESCR) \
+  case AssignMode::MODE: \
+    if constexpr(requires { lhs SYMBOL rhs; }) \
+      lhs SYMBOL rhs; \
+    else \
+      errorEmitter("Cannot " DESCR "assign the types: ",typeid(lhs).name()," and ",typeid(rhs).name()); \
+    break
+      
       CASE(PLAIN,=,"");
       CASE(PROD,*=,"multiply-");
       CASE(DIV,/=,"divide-");
       CASE(SUM,+=,"sum-");
       CASE(SUB,-=,"sub-");
-      
+
 #undef CASE
     }
 }
@@ -1370,28 +1494,27 @@ inline void trySet(Value& lhs,
 {
   if(mode==AssignMode::PLAIN)
     lhs=rhs;
-  else if(std::holds_alternative<HObject>(lhs.data) or
-          std::holds_alternative<HObject>(rhs.data))
+  else if(std::holds_alternative<HObject>(lhs.data) or std::holds_alternative<HObject>(rhs.data))
     switch(mode)
       {
 #define CASE(MODE,OPERATOR) \
-      case AssignMode::MODE: \
-        lhs=applyBinaryOperator<OPERATOR>(lhs,rhs); \
-        break
+  case AssignMode::MODE: \
+    lhs=applyBinaryOperator<OPERATOR>(lhs,rhs); \
+    break
         
-      CASE(SUM,SumOperator);
-      CASE(SUB,DifferenceOperator);
-      CASE(PROD,ProductOperator);
-      CASE(DIV,DivisionOperator);
-      
+        CASE(SUM,SumOperator);
+        CASE(SUB,DifferenceOperator);
+        CASE(PROD,ProductOperator);
+        CASE(DIV,DivisionOperator);
+
 #undef CASE
       
       default:
-	errorEmitter("unsupported compound assignment for host objects");
+        errorEmitter("unsupported compound assignment for host objects");
       }
   else
     std::visit([&mode](auto& left,
-		       const auto& right)
+                       const auto& right)
     {
       trySet(left,mode,right);
     },lhs.data,rhs.data);
@@ -1430,96 +1553,185 @@ struct Evaluator
     /// Whether execution must unwind to the enclosing script function
     bool isReturn{false};
     
+    /// Position of the expression that produced this result, including deferred reads
+    std::optional<ScriptLocation> location{};
+    
+    /// Calls which produced a returned reference, shared across result copies
+    std::shared_ptr<const std::vector<ScriptCallSite>> calls{};
+    
+    /// Capture the originating chain once, before returning a deferred reference
+    void retainCalls()
+    {
+      if(hasRef() and not calls and ScriptCallContext::active)
+        {
+          auto captured=
+            std::make_shared<std::vector<ScriptCallSite>>();
+          for(auto* frame=ScriptCallContext::active; frame; frame=frame->previous)
+            captured->push_back({std::string(frame->name),
+                                 ScriptLocation::fromPosition(frame->position,frame->position.extent)});
+          calls=
+            std::move(captured);
+        }
+    }
+    
+    /// Identifier spelling when this result is a variable reference
+    std::string name{};
+    
+    /// Report a deferred read/write error at its originating expression
+    template <typename... Args>
+    [[noreturn]] void error(Args&&... args) const
+    {
+      if(location)
+        location->error(std::forward<Args>(args)...);
+      else
+        errorEmitter(std::forward<Args>(args)...);
+    }
+    
     /// Assign through either reference kind; reject results that are not writable
     void set(const AssignMode& mode,
-	     const Value& v)
+             const Value& v)
     {
-      std::visit(pp::internal::Overload{[&v,
-			   &mode](ValueRef& vr)
-      {
-	if(mode!=AssignMode::PLAIN)
-	  ensureInitialized(*vr.ref);
-	
-	trySet(*vr.ref,mode,v);
+      const ScriptDiagnosticContext context(location ? &*location : nullptr);
+      const ScriptDeferredCallContext invocation(calls.get());
+      
+      std::visit(pp::internal::Overload{
+        [this,&v,&mode](ValueRef& vr)
+        {
+          if(mode!=AssignMode::PLAIN)
+            ensureInitialized(*vr.ref);
+          
+          trySet(*vr.ref,mode,v);
+        },
+        [&v,&mode](HObjectMemberRef& hr)
+        {
+          hr.set(mode,v);
+        },
+        [](const std::monostate&)
+        {
+          errorEmitter("trying to set a non lhs");
+        }
       },
-	    [&v,
-	     &mode](HObjectMemberRef& hr)
-	    {
-	      hr.set(mode,v);
-	    },
-	    [](const std::monostate&)
-	    {
-	      errorEmitter("trying to set a non lhs");
-	    }},ref);
+                 ref);
     }
     
     /// Require a concrete script Value cell, for operations needing direct mutation
     /// Host member accessors do not expose such a cell and must use set() instead
     Value& asLhs()
     {
-      ValueRef* _cRefP=std::get_if<ValueRef>(&ref);
+      ValueRef* _cRefP=
+        std::get_if<ValueRef>(&ref);
       
       if(not _cRefP)
-	errorEmitter("trying to use a non-concrete type as lhs");
+        errorEmitter("trying to use a non-concrete type as lhs");
       
-      ValueRef& cRefP=*_cRefP;
+      ValueRef& cRefP=
+        *_cRefP;
       
       if(not cRefP.ref)
-	errorEmitter("trying to access an evaluation result as an lhs when it is not");
+        errorEmitter("trying to access an evaluation result as an lhs when it is not");
       
       return *cRefP.ref;
     }
     
     /// Reject a Value containing the uninitialized monostate alternative
-    static void ensureInitialized(const Value& v)
+    void ensureInitialized(const Value& v) const
     {
       if(std::get_if<std::monostate>(&v.data))
-	errorEmitter("using uninitialized value");
+        error("using uninitialized ",name.empty() ? "value" : "variable '",name,name.empty() ? "" : "'");
     }
     
     /// Read the current referent, or return the stored temporary value
     /// Reference reads are deferred so later writes are visible when this is called
     Value asRhs() const
     {
+      const ScriptDiagnosticContext context(location ? &*location : nullptr);
+      const ScriptDeferredCallContext invocation(calls.get());
+      
       if(hasRef())
-	return
-	  std::visit(pp::internal::Overload{[this](const ValueRef& vr)->Value
-	  {
-	    if(const std::shared_ptr<Value>& r=vr.ref)
-	      {
-		ensureInitialized(*r);
-		
-		return *r;
-	      }
-	    else
-	      {
-		if(not hasValue())
-		  errorEmitter("trying to read an empty evaluator result");
-		
-		ensureInitialized(*value);
-		
-		return *value;
-	      }
-	  },
-		[](const HObjectMemberRef& hr)->Value
-		{
-		  return hr.get();
-		},
-		[](const std::monostate&) ->Value
-		{
-		  errorEmitter("impossible");
-		  
-		  return {std::monostate{}};
-		}},ref);
+        return std::visit(pp::internal::Overload{
+          [this](const ValueRef& vr) -> Value
+          {
+            if(const std::shared_ptr<Value>& r=vr.ref)
+              {
+                ensureInitialized(*r);
+                
+                return *r;
+              }
+            else
+              {
+                if(not hasValue())
+                  errorEmitter("trying to read an empty evaluator result");
+                
+                ensureInitialized(*value);
+                
+                return *value;
+              }
+          },
+          [](const HObjectMemberRef& hr) -> Value
+          {
+            return hr.get();
+          },
+          [](const std::monostate&) -> Value
+          {
+            errorEmitter("impossible");
+            
+            return {std::monostate{}};
+          }
+        },
+                          ref);
       else
-	{
-	  if(not hasValue())
-	    errorEmitter("trying to read an empty evaluator result");
-	  
-	  return *value;
-	}
+        {
+          if(not hasValue())
+            errorEmitter("trying to read an empty evaluator result");
+          
+          return *value;
+        }
     }
   };
+  
+  /// Evaluate a node within its source context and retain that context for deferred reads
+  EvalResult evaluate(const ASTNode& node)
+  {
+    const ScriptLocation* location=
+      scriptNodeLocation(node);
+    const ScriptDiagnosticContext context(location);
+    EvalResult result=
+      std::visit(*this,node);
+    
+    if(not result.location and location)
+      result.location=
+        *location;
+    
+    return result;
+  }
+  
+  /// Discard an expression's value after checking reference reads; void statements remain valid
+  EvalResult evaluateStatement(const ASTNode& node)
+  {
+    EvalResult result=
+      evaluate(node);
+    
+    if(result.hasRef() and not result.isReturn)
+      {
+        result.asRhs();
+        
+        // A surrounding if/block must not read a discarded host member twice
+        result=
+          {};
+      }
+    
+    return result;
+  }
+  
+  /// Convert a condition within its own position, after child evaluation restores the parent
+  bool evaluateCondition(const ASTNode& node)
+  {
+    const EvalResult result=
+      evaluate(node);
+    const ScriptDiagnosticContext context(result.location ? &*result.location : nullptr);
+    
+    return asBool(result.asRhs());
+  }
   
   /// Convert a condition or logical operand using the script's Boolean conversion rules
   static bool asBool(const Value& value)
@@ -1552,8 +1764,9 @@ struct Evaluator
     std::shared_ptr<Environment> prevEnv;
     
     EnvironmentWindUnwinder(Evaluator& ev,
-			    std::shared_ptr<Environment> newEnv) :
-      ev{ev},prevEnv{ev.curEnv}
+                            std::shared_ptr<Environment> newEnv) :
+      ev{ev},
+      prevEnv{ev.curEnv}
     {
       ev.curEnv=newEnv;
     }
@@ -1573,24 +1786,28 @@ struct Evaluator
   /// Create the root scope and install constants, list utilities, printing, and math calls
   Evaluator()
   {
-    curEnv=callFrames.emplace_back().env;
+    curEnv=
+      callFrames.emplace_back().env;
     registerEvaluatorBuiltins(*this);
   }
   
   /// Construct a script struct from an argument vector already ordered by member
   EvalResult createStruct(const StructDef& def,
-			  std::vector<std::shared_ptr<Value>>& args)
+                          std::vector<std::shared_ptr<Value>>& args)
   {
-    const std::string& name=def.structDefNode->name;
+    const std::string& name=
+      def.structDefNode->name;
     
     diagnostic("Creating struct ",name,"\n");
     
-    const size_t nArgs=args.size();
-    const size_t nMembers=def.structDefNode->members.list.size();
+    const size_t nArgs=
+      args.size();
+    const size_t nMembers=
+      def.structDefNode->members.list.size();
     
     if(args.size()!=nMembers)
       errorEmitter("Calling struct ",name," constructor with ",nArgs," args when expecting ",nMembers);
-      
+    
     Struct res(def,args);
     
     return {.value=Value{res}};
@@ -1598,69 +1815,81 @@ struct Evaluator
   
   /// Execute a script closure with arguments already arranged in parameter order
   EvalResult callEmbeddedFunction(const Function& f,
-				  std::vector<std::shared_ptr<Value>>& args)
+                                  std::vector<std::shared_ptr<Value>>& args)
   {
-    const FuncNode& fn=*f.funcNode;
-    const FuncParListNode& pars=fn.pars;
+    const FuncNode& fn=
+      *f.funcNode;
+    const FuncParListNode& pars=
+      fn.pars;
     
-    const size_t nArgs=args.size();
-    const size_t nPars=pars.list.size();
+    const size_t nArgs=
+      args.size();
+    const size_t nPars=
+      pars.list.size();
     
     if(nArgs!=nPars)
-      errorEmitter("Calling ",(pars.isVariadic()?"variadic ":" "),"function with ",nArgs," args when expecting ",nArgs);
+      errorEmitter("Calling ",(pars.isVariadic() ? "variadic " : " "),"function with ",nArgs,
+                   " args when expecting ",nArgs);
     
-    CallFrame& cf=callFrames.emplace_back(f.env);
+    CallFrame& cf=
+      callFrames.emplace_back(f.env);
     
     EnvironmentWindUnwinder windUnwind(*this,cf.env);
     
-    for(size_t iPar=0;iPar<nPars;iPar++)
+    for(size_t iPar=0; iPar<nPars; iPar++)
       {
-	const FuncParNode& par=pars.list[iPar];
-	
-	std::shared_ptr<Value> arg=args[iPar];
-	
-	if(par.isRef)
-	  {
-	    const auto referent=[&par](const std::shared_ptr<Value>& argument)
-	    {
-	      const auto* reference=
-		std::get_if<ValueRef>(&argument->data);
-	      
-	      if(not reference or not reference->ref)
-		errorEmitter("parameter ",par.name," has to be taken by ref but passed argument is not a ref");
-	      
-	      return reference->ref;
-	    };
-	    
-	    if(pars.isVariadic() and iPar+1==nPars)
-	      {
-		const auto* arguments=
-		  std::get_if<ValuesList>(&arg->data);
-		
-		if(not arguments)
-		  errorEmitter("variadic parameter must receive an argument list");
-		
-		// Bind the pack's elements to caller cells without changing the supplied list
-		ValuesList references;
-		references.data.reserve(arguments->data.size());
-		for(const auto& argument : arguments->data)
-		  references.data.push_back(referent(argument));
-		
-		arg=std::make_shared<Value>(std::move(references));
-	      }
-	    else
-	      arg=referent(arg);
-	  }
-	
-	if(not curEnv->varTable.try_emplace(par.name,arg).second)
-	  errorEmitter("argument ",par.name," already specified");
+        const FuncParNode& par=
+          pars.list[iPar];
+        
+        std::shared_ptr<Value> arg=
+          args[iPar];
+        
+        if(par.isRef)
+          {
+            const auto referent=
+              [&par](const std::shared_ptr<Value>& argument)
+              {
+                const auto* reference=
+                  std::get_if<ValueRef>(&argument->data);
+                
+                if(not reference or not reference->ref)
+                  errorEmitter("parameter ",par.name,
+                               " has to be taken by ref but passed argument is not a ref");
+                
+                return reference->ref;
+              };
+            
+            if(pars.isVariadic() and iPar+1==nPars)
+              {
+                const auto* arguments=
+                  std::get_if<ValuesList>(&arg->data);
+                
+                if(not arguments)
+                  errorEmitter("variadic parameter must receive an argument list");
+                
+                // Bind the pack's elements to caller cells without changing the supplied list
+                ValuesList references;
+                references.data.reserve(arguments->data.size());
+                for(const auto& argument : arguments->data)
+                  references.data.push_back(referent(argument));
+                
+                arg=
+                  std::make_shared<Value>(std::move(references));
+              }
+            else
+              arg=
+                referent(arg);
+          }
+        
+        if(not curEnv->varTable.try_emplace(par.name,arg).second)
+          errorEmitter("argument ",par.name," already specified");
         
         if(par.location)
           curEnv->locations.emplace(par.name,*par.location);
       }
     
     EvalResult result=
-      std::visit(*this,*fn.body);
+      evaluate(*fn.body);
     
     // Consume any explicit return signal at the function-call boundary
     result.isReturn=false;
@@ -1668,31 +1897,46 @@ struct Evaluator
     return result;
   }
   
-  /// Dispatch prepared arguments to a script closure, host function, or struct constructor
+  /// Dispatch prepared arguments; AST callers already registered their invocation
   EvalResult callFunction(const Value& vFun,
-			  std::vector<std::shared_ptr<Value>>& args)
+                          std::vector<std::shared_ptr<Value>>& args,
+                          const bool recordInvocation=true)
   {
-    if(const Function* f=std::get_if<Function>(&vFun.data))
-      return callEmbeddedFunction(*f,args);
-    else
-      if(const HostFunction* hf=std::get_if<HostFunction>(&vFun.data))
-	return {.value=(*hf)(args,*this)};
-      else
-	if(const StructDef* sd=std::get_if<StructDef>(&vFun.data))
-	  return createStruct(*sd,args);
-	else
-	  errorEmitter("Variable is of type ",variantInnerTypeName(vFun.data)," not supported by the callFunction backend");
+    std::optional<ScriptCallContext> invocation;
+    const Function* function=
+      std::get_if<Function>(&vFun.data);
     
-    return {};
+    if(recordInvocation)
+      invocation.emplace(function ? function->name : std::string_view{});
+    
+    EvalResult result;
+    
+    if(function)
+      result=
+        callEmbeddedFunction(*function,args);
+    else if(const HostFunction* host=std::get_if<HostFunction>(&vFun.data))
+      result.value=
+        (*host)(args,*this);
+    else if(const StructDef* definition=std::get_if<StructDef>(&vFun.data))
+      result=
+        createStruct(*definition,args);
+    else
+      errorEmitter("Variable is of type ",variantInnerTypeName(vFun.data),
+                   " not supported by the callFunction backend");
+    
+    result.retainCalls();
+    
+    return result;
   }
   
   /// Find a callable by name and invoke it with already prepared arguments
   EvalResult callFunction(const std::string& name,
-			  std::vector<std::shared_ptr<Value>>& args)
+                          std::vector<std::shared_ptr<Value>>& args)
   {
+    const ScriptCallContext invocation(name);
     diagnostic("Going to call function ",name.c_str(),"\n");
     
-    return callFunction(curEnv->at(name),args);
+    return callFunction(curEnv->at(name),args,false);
   }
   
   /// Return the literal as a temporary value
@@ -1704,26 +1948,32 @@ struct Evaluator
   /// Resolve or create a variable cell and return its writable reference
   EvalResult operator()(const IdNode& idNode)
   {
-    auto [cell,inserted]=curEnv->getRefOrInsert(idNode.name);
+    auto [cell,inserted]=
+      curEnv->getRefOrInsert(idNode.name);
+    
     if(inserted and idNode.location)
       curEnv->locations.emplace(idNode.name,*idNode.location);
     
-    return {.ref=ValueRef(cell)};
+    return {.ref=ValueRef(cell),.location=idNode.location,.name=idNode.name};
   }
   
   /// Evaluate an explicit reference expression using a concrete script cell
   EvalResult operator()(const UnaryRefNode& uRNode)
   {
-    EvalResult tmp=std::visit(*this,*uRNode.arg);
+    EvalResult tmp=
+      evaluate(*uRNode.arg);
     
-    ValueRef* _vr=std::get_if<ValueRef>(&tmp.ref);
+    ValueRef* _vr=
+      std::get_if<ValueRef>(&tmp.ref);
+    
     if(not _vr)
       errorEmitter("cannot take the reference of a non-embedded object");
     
-    ValueRef& vr=*_vr;
+    ValueRef& vr=
+      *_vr;
     if(not vr.ref)
       errorEmitter("subNode has not returned a reference");
-      
+    
     return {.value=Value{vr}};
   }
   
@@ -1736,7 +1986,8 @@ struct Evaluator
     if(curEnv->find(name))
       errorEmitter("Redefining a struct which has a name ",name," already defined");
     
-    (*curEnv)[name]=StructDef{.structDefNode=&structDefNode};
+    (*curEnv)[name]=
+      StructDef{.structDefNode=&structDefNode};
     
     return {};
   }
@@ -1744,30 +1995,36 @@ struct Evaluator
   /// Index a list with a nonnegative integer, checking its bounds
   EvalResult operator()(const SubscribeNode& subscribeNode)
   {
-    EvalResult _b=std::visit(*this,*subscribeNode.base);
-    const Value s=std::visit(*this,*subscribeNode.subscr).asRhs();
-    Value& b=_b.hasRef()?_b.asLhs():*_b.value;
+    EvalResult _b=
+      evaluate(*subscribeNode.base);
+    const Value s=
+      evaluate(*subscribeNode.subscr).asRhs();
+    Value& b=
+      _b.hasRef() ? _b.asLhs() : *_b.value;
+    _b.ensureInitialized(b);
     
     if(ValuesList* vl=std::get_if<ValuesList>(&b.data))
       if(const auto mi=s.tryAs<int64_t,int>())
-	{
-	  const int64_t i=*mi;
-	  
-	  if(i<0)
-	    errorEmitter("trying to subscribe with negative index ",i);
-	  
-	  if(i>=vl->data.size())
-	    errorEmitter("trying to subscribe withindex ",i," greater than list size");
-	  
-	  std::shared_ptr<Value> r=vl->data[i];
-	  
-	  if(_b.hasRef())
-	    return {.ref{ValueRef{r}}};
-	  else
-	    return {.value=*r};
-	}
+        {
+          const int64_t i=
+            *mi;
+          
+          if(i<0)
+            errorEmitter("trying to subscribe with negative index ",i);
+          
+          if(i>=vl->data.size())
+            errorEmitter("trying to subscribe withindex ",i," greater than list size");
+          
+          std::shared_ptr<Value> r=
+            vl->data[i];
+          
+          if(_b.hasRef())
+            return {.ref{ValueRef{r}}};
+          else
+            return {.value=*r};
+        }
       else
-	errorEmitter("index of subscrition is not an integer but is of type: ",variantInnerTypeName(s.data));
+        errorEmitter("index of subscrition is not an integer but is of type: ",variantInnerTypeName(s.data));
     else
       errorEmitter("trying to subscribe non-list of type: ",variantInnerTypeName(b.data));
     
@@ -1777,52 +2034,65 @@ struct Evaluator
   /// Resolve a script or host member, preserving writability when the base has a reference
   EvalResult operator()(const MemberAccessNode& memberAccessNode)
   {
-    EvalResult _b=std::visit(*this,*memberAccessNode.base);
-    Value b=_b.asRhs();
+    EvalResult _b=
+      evaluate(*memberAccessNode.base);
+    Value b=
+      _b.asRhs();
     
-    const std::string& memberName=memberAccessNode.member;
+    const std::string& memberName=
+      memberAccessNode.member;
     
     if(Struct* es=std::get_if<Struct>(&b.data))
       {
-	const StructDefNode* sd=es->structDefNode;
-	
-	size_t iMember=sd->members.iParOfName(memberName);
-	
-	if(iMember==es->members.size())
-	  errorEmitter("trying to access to member ",memberName," not present in embedded struct of type: ",sd->name);
-	
-	std::shared_ptr<Value> mf=es->members[iMember];
-	if(_b.hasRef())
-	  return {.ref={ValueRef{mf}}};
-	else
-	  return {.value=*mf};
+        const StructDefNode* sd=
+          es->structDefNode;
+        
+        size_t iMember=
+          sd->members.iParOfName(memberName);
+        
+        if(iMember==es->members.size())
+          errorEmitter("trying to access to member ",memberName,
+                       " not present in embedded struct of type: ",sd->name);
+        
+        std::shared_ptr<Value> mf=
+          es->members[iMember];
+        
+        if(_b.hasRef())
+          return {.ref={ValueRef{mf}}};
+        else
+          return {.value=*mf};
+      }
+    else if(HObject* hObject=std::get_if<HObject>(&b.data))
+      {
+        // Validate the member even when this expression is only used as an lhs
+        HObjectMemberRef member=
+          hObject->getMemberRef(memberName);
+        
+        if(not _b.hasRef())
+          return {.value=member.get()};
+        
+        // Retain the parent reference, not a pointer into a temporary value
+        // Read it again on each access so RHS changes to siblings are preserved
+        HObjectMemberRef nested{{[base=_b,memberName]() -> Value
+        {
+          Value parent=
+            base.asRhs();
+          
+          return unvariant<HObject>(parent.data).getMemberRef(memberName).get();
+        },[base=_b,memberName](const AssignMode& mode,
+                               const Value& value) mutable
+        {
+          Value parent=
+            base.asRhs();
+          unvariant<HObject>(parent.data).getMemberRef(memberName).set(mode,value);
+          base.set(AssignMode::PLAIN,parent);
+        }}};
+        
+        return {.ref{nested}};
       }
     else
-      if(HObject* hObject=std::get_if<HObject>(&b.data))
-	{
-          // Validate the member even when this expression is only used as an lhs
-          HObjectMemberRef member=hObject->getMemberRef(memberName);
-          if(not _b.hasRef())
-            return {.value=member.get()};
-	  
-          // Retain the parent reference, not a pointer into a temporary value
-          // Read it again on each access so RHS changes to siblings are preserved
-          HObjectMemberRef nested{{
-            [base=_b,memberName]()->Value
-            {
-              Value parent=base.asRhs();
-              return unvariant<HObject>(parent.data).getMemberRef(memberName).get();
-            },
-            [base=_b,memberName](const AssignMode& mode,const Value& value) mutable
-            {
-              Value parent=base.asRhs();
-              unvariant<HObject>(parent.data).getMemberRef(memberName).set(mode,value);
-              base.set(AssignMode::PLAIN,parent);
-            }}};
-          return {.ref{nested}};
-        }
-      else
-	errorEmitter("trying to access member ",memberName," of a non-stuct of type: ",variantInnerTypeName(b.data));
+      errorEmitter("trying to access member ",memberName,
+                   " of a non-stuct of type: ",variantInnerTypeName(b.data));
     
     return {};
   }
@@ -1830,14 +2100,14 @@ struct Evaluator
   /// Execute the loop in a child scope, checking its condition each iteration
   EvalResult operator()(const ForNode& forNode)
   {
-    EnvironmentWindUnwinder windUnwind=pushNewEnvironment();
+    EnvironmentWindUnwinder windUnwind=
+      pushNewEnvironment();
     
-    for(std::visit(*this,*forNode.subNodes[0]);
-        asBool(std::visit(*this,*forNode.subNodes[1]).asRhs());
-	std::visit(*this,*forNode.subNodes[2]))
+    for(evaluateStatement(*forNode.subNodes[0]); evaluateCondition(*forNode.subNodes[1]);
+        evaluateStatement(*forNode.subNodes[2]))
       {
         EvalResult result=
-          std::visit(*this,*forNode.subNodes[3]);
+          evaluateStatement(*forNode.subNodes[3]);
         
         // Leave the loop before its increment and forward the return to the function
         if(result.isReturn)
@@ -1855,14 +2125,13 @@ struct Evaluator
     
     int iNodeToRun=0;
     
-    if(asBool(std::visit(*this,*ifNode.subNodes[0]).asRhs()))
+    if(evaluateCondition(*ifNode.subNodes[0]))
       iNodeToRun=1;
-    else
-      if(ifNode.subNodes.size()>=3)
-	iNodeToRun=2;
+    else if(ifNode.subNodes.size()>=3)
+      iNodeToRun=2;
     
     if(iNodeToRun)
-      return std::visit(*this,*ifNode.subNodes[iNodeToRun]);
+      return evaluateStatement(*ifNode.subNodes[iNodeToRun]);
     else
       return {};
   }
@@ -1883,7 +2152,7 @@ struct Evaluator
   EvalResult operator()(const StructMemberNode& structMemberNode)
   {
     if(std::shared_ptr<ASTNode> def=structMemberNode.def)
-      return {.value=Value{std::visit(*this,*def).asRhs().data}};
+      return {.value=Value{evaluate(*def).asRhs().data}};
     else
       return {.value=Value{std::monostate{}}};
   }
@@ -1893,7 +2162,8 @@ struct Evaluator
   {
     ValuesList memberList;
     
-    const size_t nMembers=structMemberListNode.list.size();
+    const size_t nMembers=
+      structMemberListNode.list.size();
     
     memberList.data.reserve(nMembers);
     
@@ -1908,9 +2178,8 @@ struct Evaluator
   /// Evaluate an argument expression and retain its optional argument name
   EvalResult operator()(const FuncArgNode& argNode)
   {
-    FuncArg arg{.name=argNode.name,
-		.value=std::make_shared<Value>(std::visit(*this,*argNode.expr).asRhs())};
-
+    FuncArg arg{.name=argNode.name,.value=std::make_shared<Value>(evaluate(*argNode.expr).asRhs())};
+    
     return {.value=Value{std::move(arg)}};
   }
   
@@ -1919,7 +2188,8 @@ struct Evaluator
   {
     ValuesList argList;
     
-    const size_t nArgs=argListNode.list.size();
+    const size_t nArgs=
+      argListNode.list.size();
     
     argList.data.reserve(nArgs);
     
@@ -1936,11 +2206,16 @@ struct Evaluator
   /// leave omitted slots null so the host constructor can retain its C++ defaults
   EvalResult operator()(const FuncCallNode& funcCallNode)
   {
-    Value __args=(*this)(funcCallNode.args).asRhs();
+    const ScriptCallContext invocation(funcCallNode.fun);
+    Value __args=
+      (*this)(funcCallNode.args).asRhs();
     
-    ValuesList* _args=std::get_if<ValuesList>(&__args.data);
+    ValuesList* _args=
+      std::get_if<ValuesList>(&__args.data);
+    
     if(not _args)
-      errorEmitter("FuncCallNode args did not evaluate to a ValuesList but of type ",variantInnerTypeName(__args.data));
+      errorEmitter("FuncCallNode args did not evaluate to a ValuesList but of type ",
+                   variantInnerTypeName(__args.data));
     
     const std::string fName=
       funcCallNode.fun;
@@ -1948,17 +2223,24 @@ struct Evaluator
     diagnostic("Going to call function ",fName,"\n");
     
     std::vector<std::shared_ptr<Value>> args;
-    if(not curEnv->find(fName) and funcCallNode.location)
+    
+    if(not funcCallNode.callee and not curEnv->find(fName) and funcCallNode.location)
       funcCallNode.location->error("Trying to call unknown function ",fName);
     
-    const Value& _fun=curEnv->at(fName);
+    std::optional<Value> callee;
+    
+    if(funcCallNode.callee)
+      callee=
+        evaluate(*funcCallNode.callee).asRhs();
+    
+    const Value& _fun=
+      callee ? *callee : curEnv->at(fName);
     
     /// Fill a parameter slot once, using the same diagnostic for every callable
     const auto insertArgument=
-      [&args,
-       &fName](const size_t index,
-               const std::string& name,
-               const std::shared_ptr<Value>& value)
+      [&args,&fName](const size_t index,
+                     const std::string& name,
+                     const std::shared_ptr<Value>& value)
       {
         if(args[index])
           errorEmitter("argument ",name," specified twice to ",fName);
@@ -1969,24 +2251,28 @@ struct Evaluator
     if([[maybe_unused]] const HostFunction* fun=std::get_if<HostFunction>(&_fun.data))
       {
         const auto& names=
-	  fun->argumentNames;
+          fun->argumentNames;
+        
         if(not names.empty())
           args.resize(names.size());
-	
+        
         size_t positional{};
-	for(std::shared_ptr<Value> _arg : _args->data)
-	  {
-	    FuncArg& arg=unvariant<FuncArg>(_arg->data);
-	    
+        for(std::shared_ptr<Value> _arg : _args->data)
+          {
+            FuncArg& arg=
+              unvariant<FuncArg>(_arg->data);
+            
             if(names.empty())
               {
                 if(arg.name!="")
                   errorEmitter("trying to call a host function with named arg ",arg.name);
+                
                 args.push_back(arg.value);
               }
             else
               {
                 size_t i=positional;
+                
                 if(arg.name.empty())
                   positional++;
                 else
@@ -1994,163 +2280,182 @@ struct Evaluator
                     i=0;
                     while(i<names.size() and names[i]!=arg.name)
                       i++;
+                    
                     if(i==names.size())
                       errorEmitter("unknown argument ",arg.name," to ",fName);
                   }
+                
                 if(i>=args.size())
                   errorEmitter("too many arguments to ",fName);
+                
                 insertArgument(i,names[i],arg.value);
               }
-	  }
+          }
+      }
+    else if(const Function* fun=std::get_if<Function>(&_fun.data))
+      {
+        const FuncNode& fn=
+          *fun->funcNode;
+        const FuncParListNode& pars=
+          fn.pars;
+        
+        const size_t nPars=
+          pars.list.size();
+        const bool isVariadic=
+          pars.isVariadic();
+        
+        args.resize(nPars);
+        
+        if(isVariadic)
+          args.back()=
+            std::make_shared<Value>(ValuesList{});
+        
+        auto insertNamedOrUnnamed=
+          [isVariadic,&args,&_args,&pars,&fName,&insertArgument](const bool insertNamed)
+          {
+            for(const std::shared_ptr<Value>& __arg : _args->data)
+              {
+                FuncArg& _arg=
+                  unvariant<FuncArg>(__arg->data);
+                std::shared_ptr<Value> arg=
+                  _arg.value;
+                
+                const std::string& aName=
+                  _arg.name;
+                
+                const bool isNamedArg=
+                  aName!="";
+                
+                if(not(isNamedArg xor insertNamed))
+                  {
+                    size_t iPar{};
+                    
+                    if(isNamedArg)
+                      {
+                        iPar=
+                          pars.iParOfName(aName);
+                        
+                        diagnostic("Plugging named argument: ",aName," as arg n.",iPar," of function ",
+                                   fName,"\n");
+                        
+                        if(iPar==pars.list.size())
+                          errorEmitter("trying to pass argument ",aName," not expected by the function ",
+                                       fName);
+                      }
+                    else
+                      while(iPar<args.size() and args[iPar])
+                        iPar++;
+                    
+                    if(iPar>=args.size())
+                      {
+                        if(isVariadic)
+                          std::get_if<ValuesList>(&args.back()->data)->data.push_back(arg);
+                        else
+                          errorEmitter("passing too many arguments to non-variadic function ",fName);
+                      }
+                    else
+                      insertArgument(iPar,pars.list[iPar].name,arg);
+                  }
+              }
+          };
+        
+        for(const int& namedUnnamed : {0,1})
+          insertNamedOrUnnamed(namedUnnamed);
+        
+        for(size_t iPar=0; iPar<pars.list.size(); iPar++)
+          if(not args[iPar])
+            {
+              const FuncParNode& par=
+                pars.list[iPar];
+              
+              if(std::shared_ptr<ASTNode> optDef=par.def)
+                args[iPar]=
+                  std::make_shared<Value>(evaluate(*optDef).asRhs());
+              else
+                errorEmitter("parameter \"",par.name,
+                             "\" with no default value unspecified when calling the function");
+            }
+      }
+    else if(const StructDef* _sd=std::get_if<StructDef>(&_fun.data))
+      {
+        const StructDefNode& sd=
+          *_sd->structDefNode;
+        const StructMemberListNode& members=
+          sd.members;
+        
+        const size_t nMembers=
+          members.list.size();
+        args.resize(nMembers);
+        
+        auto insertNamedOrUnnamed=
+          [&args,&_args,&members,&fName,&insertArgument](const bool insertNamed)
+          {
+            for(const std::shared_ptr<Value>& __arg : _args->data)
+              {
+                FuncArg& _arg=
+                  unvariant<FuncArg>(__arg->data);
+                std::shared_ptr<Value> arg=
+                  _arg.value;
+                
+                const std::string& aName=
+                  _arg.name;
+                
+                const bool isNamedArg=
+                  aName!="";
+                
+                if(not(isNamedArg xor insertNamed))
+                  {
+                    size_t iMember{};
+                    
+                    if(isNamedArg)
+                      {
+                        iMember=
+                          members.iParOfName(aName);
+                        
+                        diagnostic("Plugging named argument: ",aName," as member n.",iMember," of struct ",
+                                   fName,"\n");
+                        
+                        if(iMember==members.list.size())
+                          errorEmitter("trying to pass argument ",aName," not expected by the struct ",
+                                       fName);
+                      }
+                    else
+                      while(iMember<args.size() and args[iMember])
+                        iMember++;
+                    
+                    if(iMember>=args.size())
+                      errorEmitter("passing too many arguments to struct ",fName);
+                    else
+                      insertArgument(iMember,members.list[iMember].name,arg);
+                  }
+              }
+          };
+        
+        for(const int& namedUnnamed : {0,1})
+          insertNamedOrUnnamed(namedUnnamed);
+        
+        for(size_t iMember=0; iMember<members.list.size(); iMember++)
+          if(not args[iMember])
+            {
+              const StructMemberNode& member=
+                members.list[iMember];
+              
+              if(std::shared_ptr<ASTNode> optDef=member.def)
+                {
+                  diagnostic("Member ",member.name," missing value, adding its default\n");
+                  
+                  args[iMember]=
+                    std::make_shared<Value>(evaluate(*optDef).asRhs());
+                }
+              else
+                errorEmitter("member \"",member.name,
+                             "\" with no default value unspecified when calling the struct constructor");
+            }
       }
     else
-      if(const Function* fun=std::get_if<Function>(&_fun.data))
-	{
-	  const FuncNode& fn=*fun->funcNode;
-	  const FuncParListNode& pars=fn.pars;
-	  
-	  const size_t nPars=pars.list.size();
-	  const bool isVariadic=pars.isVariadic();
-	  
-	  args.resize(nPars);
-	  if(isVariadic)
-	    args.back()=std::make_shared<Value>(ValuesList{});
-	  
-	  auto insertNamedOrUnnamed=
-	    [isVariadic,
-	     &args,
-	     &_args,
-	     &pars,
-	     &fName,
-	     &insertArgument](const bool insertNamed)
-	    {
-	      for(const std::shared_ptr<Value>& __arg : _args->data)
-		{
-		  FuncArg& _arg=unvariant<FuncArg>(__arg->data);
-		  std::shared_ptr<Value> arg=_arg.value;
-		  
-		  const std::string& aName=_arg.name;
-		  
-		  const bool isNamedArg=aName!="";
-		  
-		  if(not (isNamedArg xor insertNamed))
-		    {
-		      size_t iPar{};
-		      
-		      if(isNamedArg)
-			{
-			  iPar=
-			    pars.iParOfName(aName);
-			  
-			  diagnostic("Plugging named argument: ",aName," as arg n.",iPar," of function ",fName,"\n");
-			  
-			  if(iPar==pars.list.size())
-			    errorEmitter("trying to pass argument ",aName," not expected by the function ",fName);
-			}
-		      else
-			while(iPar<args.size() and args[iPar])
-			  iPar++;
-		      
-		      if(iPar>=args.size())
-			{
-			  if(isVariadic)
-			    std::get_if<ValuesList>(&args.back()->data)->data.push_back(arg);
-			  else
-			    errorEmitter("passing too many arguments to non-variadic function ",fName);
-			}
-		      else
-			insertArgument(iPar,pars.list[iPar].name,arg);
-		    }
-		}
-	    };
-	  
-	  for(const int& namedUnnamed : {0,1})
-	    insertNamedOrUnnamed(namedUnnamed);
-	  
-	  for(size_t iPar=0;iPar<pars.list.size();iPar++)
-	    if(not args[iPar])
-	      {
-		const FuncParNode& par=pars.list[iPar];
-		
-		if(std::shared_ptr<ASTNode> optDef=par.def)
-		  args[iPar]=std::make_shared<Value>(std::visit(*this,*optDef).asRhs());
-		else
-		  errorEmitter("parameter \"",par.name,"\" with no default value unspecified when calling the function");
-	      }
-	}
-      else
-	if(const StructDef* _sd=std::get_if<StructDef>(&_fun.data))
-	  {
-	    const StructDefNode& sd=*_sd->structDefNode;
-	    const StructMemberListNode& members=sd.members;
-	    
-	    const size_t nMembers=members.list.size();
-	    args.resize(nMembers);
-	    
-	    auto insertNamedOrUnnamed=
-	      [&args,
-	       &_args,
-	       &members,
-	       &fName,
-	       &insertArgument](const bool insertNamed)
-	      {
-		for(const std::shared_ptr<Value>& __arg : _args->data)
-		  {
-		    FuncArg& _arg=unvariant<FuncArg>(__arg->data);
-		    std::shared_ptr<Value> arg=_arg.value;
-		    
-		    const std::string& aName=_arg.name;
-		    
-		    const bool isNamedArg=aName!="";
-		    
-		    if(not (isNamedArg xor insertNamed))
-		      {
-			size_t iMember{};
-			
-			if(isNamedArg)
-			  {
-			    iMember=
-			      members.iParOfName(aName);
-			    
-			    diagnostic("Plugging named argument: ",aName," as member n.",iMember," of struct ",fName,"\n");
-			    
-			    if(iMember==members.list.size())
-			      errorEmitter("trying to pass argument ",aName," not expected by the struct ",fName);
-			  }
-			else
-			  while(iMember<args.size() and args[iMember])
-			    iMember++;
-			
-			if(iMember>=args.size())
-			  errorEmitter("passing too many arguments to struct ",fName);
-			else
-			  insertArgument(iMember,members.list[iMember].name,arg);
-		      }
-		  }
-	      };
-	    
-	    for(const int& namedUnnamed : {0,1})
-	      insertNamedOrUnnamed(namedUnnamed);
-	    
-	    for(size_t iMember=0;iMember<members.list.size();iMember++)
-	      if(not args[iMember])
-		{
-		  const StructMemberNode& member=members.list[iMember];
-		  
-		  if(std::shared_ptr<ASTNode> optDef=member.def)
-		    {
-		      diagnostic("Member ",member.name," missing value, adding its default\n");
-		      
-		      args[iMember]=std::make_shared<Value>(std::visit(*this,*optDef).asRhs());
-		    }
-		  else
-		    errorEmitter("member \"",member.name,"\" with no default value unspecified when calling the struct constructor");
-		}
-	  }
-	else
-	  errorEmitter("trying to call a non-callable variable of kind: ",variantInnerTypeName(_fun.data));
+      errorEmitter("trying to call a non-callable variable of kind: ",variantInnerTypeName(_fun.data));
     
-    return callFunction(_fun,args);
+    return callFunction(_fun,args,false);
   }
   
   /// Bind a named closure, rejecting a name already visible in the environment
@@ -2162,9 +2467,11 @@ struct Evaluator
     if(curEnv->find(name))
       errorEmitter("Redefining a function which has a name ",name," already defined");
     
-    Value function=(*this)(*funcDefNode.fun).asRhs();
+    Value function=
+      (*this)(*funcDefNode.fun).asRhs();
     std::get<Function>(function.data).name=name;
-    (*curEnv)[name]=std::move(function);
+    (*curEnv)[name]=
+      std::move(function);
     
     return {};
   }
@@ -2172,20 +2479,19 @@ struct Evaluator
   /// Capture the current environment alongside a borrowed pointer to the function AST
   EvalResult operator()(const FuncNode& funcNode)
   {
-    return
-      {.value=Value{Function{.funcNode=&funcNode,
-		       .env=curEnv}}};
+    return {.value=Value{Function{.funcNode=&funcNode,.env=curEnv}}};
   }
   
   /// Execute a block in a child scope until a statement signals a return
   EvalResult operator()(const ASTNodesNode& astNodesNode)
   {
-    EnvironmentWindUnwinder windUnwind=pushNewEnvironment();
+    EnvironmentWindUnwinder windUnwind=
+      pushNewEnvironment();
     
     for(const auto& n : astNodesNode.list)
       {
         EvalResult result=
-          std::visit(*this,*n);
+          evaluateStatement(*n);
         
         // Stop this block and forward the return through its enclosing statements
         if(result.isReturn)
@@ -2199,7 +2505,12 @@ struct Evaluator
   EvalResult operator()(const ReturnNode& returnNode)
   {
     EvalResult result=
-      std::visit(*this,*returnNode.arg);
+      evaluate(*returnNode.arg);
+    
+    // A return reads a script cell even if its result is eventually discarded
+    // Preserve reference semantics and defer host getters to the eventual consumer
+    if(const auto* reference=std::get_if<ValueRef>(&result.ref); reference and reference->ref)
+      result.ensureInitialized(*reference->ref);
     
     // Mark the explicit return so enclosing statements stop executing
     result.isReturn=true;
@@ -2210,18 +2521,25 @@ struct Evaluator
   /// Apply increment/decrement to a concrete script cell and return the operation result
   EvalResult operator()(const PrePostfixOpNode& prePostfixOpNode)
   {
-    return{.value=prePostfixOpNode.op(std::visit(*this,*prePostfixOpNode.arg).asLhs())};
+    EvalResult argument=
+      evaluate(*prePostfixOpNode.arg);
+    Value& value=
+      argument.asLhs();
+    argument.ensureInitialized(value);
+    
+    return {.value=prePostfixOpNode.op(value)};
   }
   
   /// Resolve the left-hand reference, evaluate the RHS, then assign through the reference
   EvalResult operator()(const AssignNode& assignNode)
   {
-    EvalResult _lhs=std::visit(*this,*assignNode.lhs);
+    EvalResult _lhs=
+      evaluate(*assignNode.lhs);
     
-    _lhs.set(assignNode.mode,std::visit(*this,*assignNode.rhs).asRhs());
+    _lhs.set(assignNode.mode,evaluate(*assignNode.rhs).asRhs());
     
     if(assignNode.mode==AssignMode::PLAIN)
-      if(const auto* id=std::get_if<IdNode>(assignNode.lhs.get());id and not id->description.empty())
+      if(const auto* id=std::get_if<IdNode>(assignNode.lhs.get()); id and not id->description.empty())
         curEnv->describe(id->name,id->description);
     
     return _lhs;
@@ -2230,14 +2548,14 @@ struct Evaluator
   /// Evaluate the operand and invoke the unary operation function
   EvalResult operator()(const UnOpNode& unOpNode)
   {
-    return {.value=unOpNode.op(std::visit(*this,*unOpNode.arg).asRhs())};
+    return {.value=unOpNode.op(evaluate(*unOpNode.arg).asRhs())};
   }
   
   /// Evaluate left first and skip the right operand when the logical mode permits
   EvalResult operator()(const BinOpNode& binOpNode)
   {
     const Value left=
-      std::visit(*this,*binOpNode.arg1).asRhs();
+      evaluate(*binOpNode.arg1).asRhs();
     
     if(binOpNode.evaluationMode!=BinOpNode::EvaluationMode::EAGER)
       {
@@ -2248,11 +2566,11 @@ struct Evaluator
            (binOpNode.evaluationMode==BinOpNode::EvaluationMode::LOGICAL_OR and condition))
           return {.value=Value{condition}};
         
-        return {.value=Value{asBool(std::visit(*this,*binOpNode.arg2).asRhs())}};
+        return {.value=Value{evaluateCondition(*binOpNode.arg2)}};
       }
     
     const Value right=
-      std::visit(*this,*binOpNode.arg2).asRhs();
+      evaluate(*binOpNode.arg2).asRhs();
     
     return {.value=binOpNode.op(left,right)};
   }
@@ -2262,13 +2580,14 @@ struct Evaluator
 /// The evaluator keeps this metadata available while scripts are evaluated
 template <typename T>
 std::shared_ptr<HObjectInfo> registerHObjectType(Evaluator& ev,
-						 const std::string& name)
+                                                 const std::string& name)
 {
   auto info=
     std::make_shared<HObjectInfo>();
   
   info->name=name;
-  info->cppType=typeid(T);
+  info->cppType=
+    typeid(T);
   ev.hostObjectTypes.insert_or_assign(typeid(T),info);
   
   return info;
@@ -2285,111 +2604,119 @@ std::shared_ptr<HObjectInfo> registerHObjectType(Evaluator& ev,
 /// The optional description documents the constructor; otherwise a generic one is supplied
 /// The caller may attach additional functions, such as streamOp, to the result
 template <typename T,
-	  typename...Members>
+          typename... Members>
 std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
-					     const std::string& name,
-					     const std::tuple<Members...>& members,
+                                             const std::string& name,
+                                             const std::tuple<Members...>& members,
                                              const std::string& description={})
 {
   /// Metadata is retained by the evaluator, including for later product dispatch
-  auto info=registerHObjectType<T>(ev,name);
+  auto info=
+    registerHObjectType<T>(ev,name);
   
   // Constructor argument names, in the same order as the member tuple
   std::vector<std::string> names;
   
   // Register each member and the functions used to access it
-  std::apply([&](const auto&...field)
+  std::apply([&](const auto&... field)
   {
     auto add=
       [&](auto field)
       {
-	using M=
-	  std::remove_cvref_t<decltype(std::declval<T>().*(field.pointer))>;
-	
-	if(field.name.empty() or info->memberAccessorsProvider.contains(field.name))
-	  errorEmitter("empty or duplicate host member name in ",name,": ",field.name);
-	
-	/// Types which supports scalar
-	using ScalarMemberTypes=
-	  std::tuple<int,int64_t,double,bool,size_t,std::string>;
-	
-	/// Check whether the type is in the list
-	constexpr bool scalar=
-	  nissa::tupleHasType<ScalarMemberTypes,M>;
-	
-	// Reuse previously registered metadata for nested host members
-	if constexpr(not scalar)
-	  if(not field.memberType)
-	    {
-	      const auto nested=ev.hostObjectTypes.find(typeid(M));
-	      if(nested==ev.hostObjectTypes.end())
-		errorEmitter("missing host metadata for member ",field.name," in ",name);
-	      field.memberType=nested->second;
-	    }
-	
-	names.push_back(field.name);
-	
-	// Retain exactly the type returned by the getter, including integer normalization
-	using ScriptType=
-	  std::conditional_t<std::is_same_v<M,bool> or std::is_same_v<M,size_t>,int,M>;
-	const ValueTypeInfo memberType{typeid(ScriptType),scalar?nullptr:field.memberType};
-	
-	// Bind accessors to the value of the particular object being accessed
-	info->memberAccessorsProvider.emplace(field.name,
-					      HObjectInfo::MemberProvider{[field](std::any& data)
-					      {
-						// Read a scalar value or wrap a copy of the nested host member
-						auto getter=[&data,field]()->Value
-						{
-						    const M& value=
-						      std::any_cast<const T&>(data).*(field.pointer);
-						    Value result;
-						    
-						    if constexpr(scalar)
-						      {
-							// Script integers also represent booleans and size_t index fields
-							if constexpr(std::is_same_v<M,size_t>)
-							  if(value>static_cast<size_t>(std::numeric_limits<int>::max()))
-							    errorEmitter("host member ",field.name," exceeds the script integer range");
-							result=Value{ScriptType(value)};
-						      }
-						    else
-						      result=Value{HObject{field.memberType,value}};
-						    
-						    return result;
-						};
-						
-						// Apply plain or compound assignment to the concrete C++ member
-						auto setter=[&data,field](const AssignMode& mode,
-									  const Value& value)
-						{
-						  M& target=
-						    std::any_cast<T&>(data).*(field.pointer);
-						  
-						  // Host objects assign their payload when its type matches the member
-						  if(const HObject* object=std::get_if<HObject>(&value.data))
-						    {
-						      if(const M* payload=std::any_cast<M>(&object->data))
-							trySet(target,mode,*payload);
-						      else
-							errorEmitter("invalid value for host member ",field.name,
-								     " (expected ",typeid(M).name(),")");
-						    }
-						  else if constexpr(scalar)
-						    {
-						      // Preserve ordinary script scalar conversion rules
-						      std::visit([&](const auto& rhs)
-						      {
-							trySet(target,mode,rhs);
-						      },value.data);
-						    }
-						  else
-						    errorEmitter("invalid value for host member ",field.name,
-								 " (expected ",typeid(M).name(),")");
-						};
-						
-						return HObjectMemberRef::Accessors{getter,setter};
-					      },memberType});
+        using M=
+          std::remove_cvref_t<decltype(std::declval<T>().*(field.pointer))>;
+        
+        if(field.name.empty() or info->memberAccessorsProvider.contains(field.name))
+          errorEmitter("empty or duplicate host member name in ",name,": ",field.name);
+        
+        /// Types which supports scalar
+        using ScalarMemberTypes=
+          std::tuple<int,int64_t,double,bool,size_t,std::string>;
+        
+        /// Check whether the type is in the list
+        constexpr bool scalar=
+          nissa::tupleHasType<ScalarMemberTypes,M>;
+        
+        // Reuse previously registered metadata for nested host members
+        if constexpr(not scalar)
+          if(not field.memberType)
+            {
+              const auto nested=
+                ev.hostObjectTypes.find(typeid(M));
+              
+              if(nested==ev.hostObjectTypes.end())
+                errorEmitter("missing host metadata for member ",field.name," in ",name);
+              
+              field.memberType=
+                nested->second;
+            }
+        
+        names.push_back(field.name);
+        
+        // Retain exactly the type returned by the getter, including integer normalization
+        using ScriptType=
+          std::conditional_t<std::is_same_v<M,bool> or std::is_same_v<M,size_t>,int,M>;
+        const ValueTypeInfo memberType{typeid(ScriptType),scalar ? nullptr : field.memberType};
+        
+        // Bind accessors to the value of the particular object being accessed
+        info->memberAccessorsProvider.emplace(field.name,HObjectInfo::MemberProvider{[field](std::any& data)
+        {
+          // Read a scalar value or wrap a copy of the nested host member
+          auto getter=
+            [&data,field]() -> Value
+            {
+              const M& value=
+                std::any_cast<const T&>(data).*(field.pointer);
+              Value result;
+              
+              if constexpr(scalar)
+                {
+                  // Script integers also represent booleans and size_t index fields
+                  if constexpr(std::is_same_v<M,size_t>)
+                    if(value>static_cast<size_t>(std::numeric_limits<int>::max()))
+                      errorEmitter("host member ",field.name," exceeds the script integer range");
+                  
+                  result=
+                    Value{ScriptType(value)};
+                }
+              else
+                result=
+                  Value{HObject{field.memberType,value}};
+              
+              return result;
+            };
+          
+          // Apply plain or compound assignment to the concrete C++ member
+          auto setter=
+            [&data,field](const AssignMode& mode,
+                          const Value& value)
+            {
+              M& target=
+                std::any_cast<T&>(data).*(field.pointer);
+              
+              // Host objects assign their payload when its type matches the member
+              if(const HObject* object=std::get_if<HObject>(&value.data))
+                {
+                  if(const M* payload=std::any_cast<M>(&object->data))
+                    trySet(target,mode,*payload);
+                  else
+                    errorEmitter("invalid value for host member ",field.name," (expected ",typeid(M).name(),
+                                 ")");
+                }
+              else if constexpr(scalar)
+                {
+                  // Preserve ordinary script scalar conversion rules
+                  std::visit([&](const auto& rhs)
+                  {
+                    trySet(target,mode,rhs);
+                  },value.data);
+                }
+              else
+                errorEmitter("invalid value for host member ",field.name," (expected ",typeid(M).name(),")");
+            };
+          
+          return HObjectMemberRef::Accessors{getter,setter};
+        },memberType});
       };
     
     (add(field),...);
@@ -2397,23 +2724,30 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
   
   // Register the script-visible constructor under the requested type name
   // The evaluator uses names to place positional and named arguments in args
-  (*ev.curEnv)[name]=HostFunction{
-    [info,names,name](std::vector<std::shared_ptr<Value>>& args,
-		      Evaluator&)->Value
-    {
-      if(args.size()>names.size())
-	errorEmitter("too many arguments to ",name);
-      
-      // Start with T{} defaults; omitted arguments have null entries
-      HObject object{info,T{}};
-      
-      // Initialize supplied members through the same setters as assignment
-      for(size_t i=0;i<args.size();i++)
-	if(args[i])
-	  object.getMemberRef(names[i]).set(AssignMode::PLAIN,*args[i]);
-      
-      return {object};
-    },names,true,description.empty()?"Construct "+name+" from its named members":description,{},{typeid(T),info}};
+  (*ev.curEnv)[name]=
+    HostFunction{
+      [info,names,name](std::vector<std::shared_ptr<Value>>& args,
+                        Evaluator&) -> Value
+      {
+        if(args.size()>names.size())
+          errorEmitter("too many arguments to ",name);
+        
+        // Start with T{} defaults; omitted arguments have null entries
+        HObject object{info,T{}};
+        
+        // Initialize supplied members through the same setters as assignment
+        for(size_t i=0; i<args.size(); i++)
+          if(args[i])
+            object.getMemberRef(names[i]).set(AssignMode::PLAIN,*args[i]);
+        
+        return {object};
+      },
+      names,
+      true,
+      description.empty() ? "Construct "+name+" from its named members" : description,
+      {},
+      {typeid(T),info}
+    };
   
   return info;
 }
@@ -2422,12 +2756,11 @@ std::shared_ptr<HObjectInfo> registerHObject(Evaluator& ev,
 template <typename Signature>
 struct HostCallableSignature;
 
-template <typename Owner,
-          typename Return,
-          typename...Arguments>
+template <typename Owner,typename Return,typename... Arguments>
 struct HostCallableSignature<Return (Owner::*)(Arguments...) const>
 {
-  static constexpr std::size_t arity=sizeof...(Arguments);
+  static constexpr std::size_t arity=
+    sizeof...(Arguments);
   
   /// Native return type before conversion to a script value
   using Result=
@@ -2455,7 +2788,9 @@ struct HostCallableSignature<Return (Owner::*)(Arguments...) const>
       return {std::apply(callable,arguments)};
     else
       {
-        const auto found=evaluator.hostObjectTypes.find(typeid(Result));
+        const auto found=
+          evaluator.hostObjectTypes.find(typeid(Result));
+        
         if(found==evaluator.hostObjectTypes.end())
           errorEmitter("unregistered host result type in ",functionName);
         
@@ -2465,9 +2800,7 @@ struct HostCallableSignature<Return (Owner::*)(Arguments...) const>
 };
 
 /// Inject the calling evaluator without exposing it as a script argument
-template <typename Owner,
-          typename Return,
-          typename...Arguments>
+template <typename Owner,typename Return,typename... Arguments>
 struct HostCallableSignature<Return (Owner::*)(Evaluator&,Arguments...) const> :
   HostCallableSignature<Return (Owner::*)(Arguments...) const>
 {
@@ -2478,20 +2811,19 @@ struct HostCallableSignature<Return (Owner::*)(Evaluator&,Arguments...) const> :
                       const char* functionName,
                       Evaluator& evaluator)
   {
-    auto bound=[&](Arguments...arguments)->Return
-    {
-      return callable(evaluator,std::forward<Arguments>(arguments)...);
-    };
+    auto bound=
+      [&](Arguments... arguments) -> Return
+      {
+        return callable(evaluator,std::forward<Arguments>(arguments)...);
+      };
     
-    return HostCallableSignature<Return (Owner::*)(Arguments...) const>::invoke(
-      bound,values,functionName,evaluator);
+    return HostCallableSignature<Return (Owner::*)(Arguments...) const>::invoke(bound,values,functionName,
+                                                                                evaluator);
   }
 };
 
 /// Mutable lambdas have the same script argument contract
-template <typename Owner,
-          typename Return,
-          typename...Arguments>
+template <typename Owner,typename Return,typename... Arguments>
 struct HostCallableSignature<Return (Owner::*)(Arguments...)> :
   HostCallableSignature<Return (Owner::*)(Arguments...) const>
 {
@@ -2506,17 +2838,23 @@ ValueTypeInfo hostResultType(const Evaluator& evaluator)
   using Result=
     std::remove_cvref_t<T>;
   ValueTypeInfo result;
+  
   if constexpr(std::is_void_v<Result>)
-    result.cppType=typeid(std::monostate);
+    result.cppType=
+      typeid(std::monostate);
   else if constexpr(std::is_same_v<Result,bool>)
-    result.cppType=typeid(int);
+    result.cppType=
+      typeid(int);
   else if constexpr(std::is_same_v<Result,int> or std::is_same_v<Result,int64_t> or
                     std::is_same_v<Result,double> or std::is_same_v<Result,std::string>)
-    result.cppType=typeid(Result);
+    result.cppType=
+      typeid(Result);
   else if constexpr(not std::is_constructible_v<ValueT,Result> and not std::is_same_v<Result,Value>)
     {
-      if(const auto found=evaluator.hostObjectTypes.find(typeid(Result));found!=evaluator.hostObjectTypes.end())
-        result={typeid(Result),found->second};
+      if(const auto found=evaluator.hostObjectTypes.find(typeid(Result));
+         found!=evaluator.hostObjectTypes.end())
+        result=
+          {typeid(Result),found->second};
     }
   
   return result;
@@ -2545,32 +2883,38 @@ void registerHostFunction(Evaluator& evaluator,
   if(argumentNames.size()!=Signature::arity)
     errorEmitter("argument name count does not match signature of ",name);
   
-  for(size_t i=0;i<argumentNames.size();i++)
+  for(size_t i=0; i<argumentNames.size(); i++)
     {
       if(argumentNames[i].empty())
         errorEmitter("empty argument name in ",name);
       
-      for(size_t j=0;j<i;j++)
+      for(size_t j=0; j<i; j++)
         if(argumentNames[i]==argumentNames[j])
           errorEmitter("duplicate argument name ",argumentNames[i]," in ",name);
     }
   
   if(not resultType.cppType)
-    resultType=hostResultType<typename Signature::Result>(evaluator);
+    resultType=
+      hostResultType<typename Signature::Result>(evaluator);
   
-  (*evaluator.curEnv)[name]=HostFunction{
-    [callable=std::move(callable),name](std::vector<std::shared_ptr<Value>>& values,
-                                      Evaluator& caller) mutable -> Value
-    {
-      return Signature::invoke(callable,values,name.c_str(),caller);
-    },std::move(argumentNames),false,std::move(description),
-    Signature::arity==0?FunctionArgumentForms(1):FunctionArgumentForms{},std::move(resultType)};
+  (*evaluator.curEnv)[name]=
+    HostFunction{
+      [callable=std::move(callable),name](std::vector<std::shared_ptr<Value>>& values,
+                                          Evaluator& caller) mutable -> Value
+      {
+        return Signature::invoke(callable,values,name.c_str(),caller);
+      },
+      std::move(argumentNames),
+      false,
+      std::move(description),
+      Signature::arity==0 ? FunctionArgumentForms(1) : FunctionArgumentForms{},
+      std::move(resultType)
+    };
 }
 
 /// Registers Type under its C++ identifier, using its static members() function
 /// Use an unqualified type name or alias that is also a valid script identifier
 /// Returns the shared metadata, just like registerHObject
-#define REGISTER_HOBJECT(EV,TYPE) \
-  ::registerHObject<TYPE>((EV),#TYPE,TYPE::members())
+#define REGISTER_HOBJECT(EV,TYPE) ::registerHObject<TYPE>((EV),#TYPE,TYPE::members())
 
 #endif

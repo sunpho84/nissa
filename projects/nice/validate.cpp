@@ -16,6 +16,8 @@
 #include "runOptions.hpp"
 #include "nASTy.hpp"
 #include "scriptCompletion.hpp"
+#include "scriptAnalysis.hpp"
+#include "scriptSession.hpp"
 #include "new_types/dirac.hpp"
 #include "base/multiGridParams.hpp"
 #include "base/DDalphaAMG_bridge.hpp"
@@ -1375,6 +1377,68 @@ void validateScriptLocationsAndCompletion()
   const auto eof=source.locate(SourceCursor{.offset=source.text.size()});
   assert(eof.cursor.offset==8 and eof.cursor.line==1 and eof.cursor.column==9);
   
+  // Source excerpts survive the joined input and preserve tabs and token extents
+  auto retained=ScriptLocation::fromPosition(source.locate(SourceCursor{.offset=6}),1);
+  assert(retained.lineText=="value=1;" and retained.cursor.column==7);
+  ScriptSource tabbed;
+  tabbed.append("first=1;\r\n\tbroken;","tabs.nice");
+  const auto position=tabbed.locate(SourceCursor{.offset=11});
+  assert(position.cursor.line==2 and position.cursor.column==2 and position.lineText=="\tbroken;");
+  auto underlined=position;
+  underlined.extent=6;
+  std::ostringstream excerpt;
+  writeErrorExcerpt(excerpt,underlined);
+  assert(excerpt.str()=="  \tbroken;\n  \t^~~~~~\n");
+  
+  // Completed calls restore both the linked script stack and an embedding footer
+  const auto previousFooter=errorFooter;
+  {
+    const ScriptDiagnosticContext context(&retained);
+    const ScriptCallContext outer("outer");
+    {
+      const ScriptCallContext inner("inner");
+      std::ostringstream stack;
+      errorFooter(stack);
+      assert(stack.str().find("inner at single.nice:1:7")<stack.str().find("outer at single.nice:1:7"));
+    }
+    assert(ScriptCallContext::active==&outer);
+  }
+  assert(ScriptCallContext::active==nullptr and errorFooter==previousFooter);
+  
+  // Returning a host member keeps it lazy and retains its calls after they finish
+  {
+    Evaluator deferredEvaluator;
+    size_t reads=0;
+    std::string deferredStack;
+    const auto probe=std::make_shared<HObjectInfo>();
+    probe->name="DeferredProbe";
+    probe->memberAccessorsProvider["value"]=[&](std::any&)->HObjectMemberRef::Accessors
+    {
+      return {[&]()->Value
+      {
+        reads++;
+        std::ostringstream stack;
+        assert(errorFooter);
+        errorFooter(stack);
+        deferredStack=stack.str();
+        
+        return Value{3};
+      },[](const AssignMode&,
+           const Value&)
+      {
+      }};
+    };
+    (*deferredEvaluator.curEnv)["probe"]=HObject{probe,0};
+    const ASTNode deferredAst=parseProgramPieces({{"fun get(){return probe.value;} get();","deferred.nice"}});
+    const auto& statements=std::get<ASTNodesNode>(deferredAst);
+    deferredEvaluator.evaluateStatement(*statements.list.front());
+    const auto result=deferredEvaluator.evaluate(*statements.list.back());
+    assert(reads==0 and ScriptCallContext::active==nullptr and errorFooter==previousFooter);
+    assert(std::get<int>(result.asRhs().data)==3 and reads==1);
+    assert(deferredStack.find("get at deferred.nice:1:32")!=std::string::npos);
+    assert(ScriptCallContext::retained==nullptr and errorFooter==previousFooter);
+  }
+  
   const ASTNode ast=parseProgramPieces({
     {"//! documented","arg[1]"},
     {"fun placed(value=2){inspectParameter(); return value;}\r\n"
@@ -1474,6 +1538,17 @@ void validateStaticCompletionBindings()
   assert(has("local=NativeNumber(); local.va","value"));
   assert(has("make=NativeNumber; local=make(); local.va","value"));
   assert(has("local=NativeNumber(); alias=local; alias.va","value"));
+  // Recovery retains the actual AST and its lexical bindings on both sides of an error
+  assert(has("bad=; local=NativeNumber(); local.va","value"));
+  assert(has("local=NativeNumber(); bad=; local.va","value"));
+  assert(has("fun make(){return NativeNumber();} bad=; make().va","value"));
+  ScriptSource retainedSource;
+  const std::string retainedText="local=NativeNumber(); local.va";
+  retainedSource.append(retainedText,"retained.nice");
+  const auto retained=parseScriptForEditor(retainedSource,retainedText.size());
+  const auto retainedCompletion=completeScriptAt(*evaluator.curEnv,retained,retainedText.size());
+  assert(retainedCompletion.candidates.size()==1 and retainedCompletion.candidates.front().name=="value");
+  assert(completeScriptAt(*evaluator.curEnv,retained,retainedText.size()-1).candidates.front().name=="value");
   assert(has("make=NativeNumber; make(.va","value"));
   assert(has("local=NativeNumber(); { alias=local; alias.va","value"));
   assert(not has("{ local=NativeNumber(); } loc","local"));
@@ -1724,6 +1799,9 @@ void validateScriptDefinitionCompletion()
   assert(query("{fun transform(value){}} trans").candidates.empty());
   assert(query("fun transform(){return Prop();} transform().ka").candidates.empty());
   assert(query("handler=lambda(factor){return factor;}(1); handler(.fa").candidates.empty());
+  const auto nestedDefault=query("fun transform(value=lambda(x){return x;}){} transform(.va");
+  assert(nestedDefault.candidates.size()==1 and nestedDefault.candidates[0].name=="value");
+  assert(nestedDefault.candidates[0].documentation.find("lambda(x){return x;}")!=std::string::npos);
   
   // Factory returns are inferred from metadata and local bindings without calling the factory
   for(const std::string text : {
@@ -1747,9 +1825,69 @@ void validateScriptDefinitionCompletion()
       assert(completion.candidates.size()==1 and completion.candidates[0].name=="value");
     }
   
+  // Call-specific argument types flow through AST parameters and constructed members
+  for(const std::string text : {
+      "fun identity(x){return x;} identity(native()).va",
+      "p=native(); fun identity(p){return p;} identity(1); p.va",
+      "fun identity(x){return x;} v=identity(native()); v.va",
+      "fun identity(x){return x;} alias=identity; alias(.x=native()).va",
+      "fun pick(a,b){return b;} pick(.b=native(),.a=1).va",
+      "fun pick(a,b){return b;} pick(.b=native(),1).va",
+      "fun make(v=native()){return v;} make().va",
+      "fun make(v=2){return v;} make(native()).va",
+      "fun pass(x,...){return x;} pass(native(),1,2).va",
+      "fun apply(f,x){return f(x);} fun identity(x){return x;} apply(identity,native()).va",
+      "fun identity(x){return x;} fun wrapper(x){return identity(x);} wrapper(native()).va",
+      "f=lambda(x){return x;}; f(native()).va",
+      "fun get(&x){return x;} p=native(); get(&p).va",
+      "fun choose(flag,x){if(flag)return x;else return native();} choose(1,native()).va",
+      "struct Box { item; }; Box(native()).item.va",
+      "struct Box { item=native(); }; Box().item.va",
+      "struct Box { item=1; }; Box(.item=native()).item.va",
+      "struct Box { first; item; }; Box(.item=native(),1).item.va",
+      "struct Box { item; }; alias=Box; alias(native()).item.va",
+      "struct Box { item; }; fun get(x){return x.item;} get(Box(native())).va",
+      "struct Box { item; }; fun make(x){return Box(x);} make(native()).item.va",
+      "struct Box { item; }; Box(Box(native())).item.item.va",
+      "struct Box { item; }; fun identity(x){return x;} Box(identity).item(native()).va",
+      "struct Box { item; }; fun pick(flag){if(flag)return Box(native());else return Box(native());} pick(1).item.va"})
+    {
+      const auto completion=query(text);
+      assert(completion.candidates.size()==1 and completion.candidates[0].name=="value");
+    }
+  
+  // Specializations stay local to the call, and conflicts or mutations discard inferred fields
+  for(const std::string text : {
+      "fun identity(x){return x;} identity(native()); identity(1).va",
+      "fun identity(x){return x;} identity(.bad=native()).va",
+      "fun identity(x){return x;} identity(native(),.x=native()).va",
+      "fun identity(x){return x;} identity(native(),2).va",
+      "fun pick(x=1,y=x){return y;} pick(native()).va",
+      "fun get(&x){return x;} get(native()).va",
+      "fun get(x){return x;} p=native(); get(&p).va",
+      "fun replace(&x){x=1;return x;} p=native(); replace(&p); p.va",
+      "p=native(); r=&p; r.va",
+      "p=native(); fun replace(){p=1;return native();} replace(); p.va",
+      "p=native(); fun replace(){p=1;return native();} replace().va",
+      "p=native(); fun replace(){p=1;return native();} fun wrapper(x){return replace();} wrapper(1); p.va",
+      "p=native(); fun replace(flag){if(flag)p=1;return native();} replace(1); p.va",
+      "p=native(); fun replace(&x){x=1;return x;} fun outer(){return replace(&p);} outer(); p.va",
+      "struct Box { item; }; box=Box(native()); fun replace(&x){x=1;return x;} fun outer(){return replace(&box.item);} outer(); box.item.va",
+      "struct Box { item; }; fun replace(&x){x=1;return x;} box=Box(native()); replace(&box.item); box.item.va",
+      "struct Box { item; }; Box(native(),.item=native()).item.va",
+      "struct Box { item; }; Box(.bad=native()).item.va",
+      "struct Box { item; }; Box(native()); Box(1).item.va",
+      "struct Box { item; }; box=Box(native()); box.item=1; box.item.va",
+      "struct Box { item; }; box=Box(native()); alias=box; alias.item=1; box.item.va",
+      "struct Box { item; }; box=Box(native()); box.item++; box.item.va",
+      "struct Box { item; }; fun mutate(x){x.item=1;return x;} box=Box(native()); mutate(box); box.item.va",
+      "struct Box { item; }; fun pick(flag){if(flag)return Box(native());else return Box(1);} pick(1).item.va",
+      "fun identity(x){return identity(x);} identity(native()).va",
+      "fun identity(x){return x;} fun wrapper(x){return identity(x);} identity=2; wrapper(native()).va"})
+    assert(query(text).candidates.empty());
+  
   // Missing or conflicting returns and unsupported side effects do not acquire guessed types
   for(const std::string text : {
-      "fun make(v=native()){return v;} make().va",
       "v=native(); fun make(){return v;} make().va",
       "fun make(){if(1) return native();} make().va",
       "fun make(flag){if(flag)return native();else return 2;} make().va",
@@ -1770,6 +1908,15 @@ void validateScriptDefinitionCompletion()
       "fun make(){v=native(); v+=2; return v;} make().va"})
     assert(query(text).candidates.empty());
   
+  // Branching helper chains remain bounded and never turn exhaustion into a guessed type
+  std::string broad="fun layer0(flag,x){return x;} ";
+  for(size_t i=1;i<=18;i++)
+    {
+      const auto previous="layer"+std::to_string(i-1)+"(flag,x)";
+      broad+="fun layer"+std::to_string(i)+"(flag,x){if(flag)return "+previous+";else return "+previous+";} ";
+    }
+  assert(query(broad+"layer18(1,native()).va").candidates.empty());
+  
   const auto documented=query("/// transform documentation\r\nfun transform(value=\"a,b\") {} alias=transform; ali");
   assert(documented.candidates.size()==1 and documented.candidates[0].info.callable);
   assert(documented.candidates[0].info.description=="transform documentation");
@@ -1778,6 +1925,74 @@ void validateScriptDefinitionCompletion()
   const auto lambda=query("//! lambda documentation\nhandler=lambda(value=2){}; hand");
   assert(lambda.candidates[0].info.description=="lambda documentation");
   assert(not called and evaluator.curEnv->entityNames()==originalNames);
+}
+
+/// Retained revisions serve different cursor targets and diagnostics without parsing again
+void validateScriptSessions()
+{
+  Evaluator evaluator;
+  const auto type=registerHObject<ExampleNumber>(evaluator,"NativeNumber",
+    std::make_tuple(HostMemberInfo{"value",&ExampleNumber::value}));
+  bool called=false;
+  registerHostFunction(evaluator,"factory",{},[&called]()
+  {
+    called=true;
+    
+    return 1;
+  });
+  const std::string text="local=NativeNumber(); local.value; alias=local; alias.value; factory();";
+  ScriptSource source;
+  source.append(text,"persistent.nice");
+  ScriptAnalysisSession session;
+  session.update(source);
+  const auto root=session.parsed->roots.front();
+  for(const auto offset : {text.find("local.value")+8,text.find("alias.value")+8})
+    {
+      const auto completion=session.complete(*evaluator.curEnv,offset);
+      assert(completion.candidates.size()==1 and completion.candidates.front().name=="value");
+      assert(session.nParses==1 and session.revision==1 and session.parsed->roots.front()==root);
+    }
+  session.update(source);
+  assert(session.nParses==1 and session.parsed->diagnostics.empty() and not called);
+  ScriptSource renamed;
+  renamed.append(text,"renamed.nice");
+  session.update(renamed);
+  assert(session.nParses==2 and session.revision==2);
+  ScriptSource changed;
+  changed.append("local=1; local.value;","renamed.nice");
+  session.update(changed);
+  assert(session.complete(*evaluator.curEnv,18).candidates.empty());
+  assert(session.nParses==3 and session.revision==3);
+  
+  // Framing preserves newline-containing pieces and responds after an invalid request
+  std::ostringstream requests;
+  const auto request=[&](const size_t id,
+                        const std::string& operation,
+                        const size_t offset,
+                        const std::string& name,
+                        const std::string& body)
+  {
+    requests<<"NICE/1 "<<id<<' '<<operation<<' '<<offset<<" 1\n"
+            <<name.size()<<' '<<body.size()<<'\n'<<name<<body;
+  };
+  const std::string body="local=NativeNumber();\nlocal.value; alias=local; alias.value;";
+  request(1,"complete",body.find("local.value")+8,"π.nice",body);
+  request(2,"check",0,"π.nice",body);
+  request(3,"complete",body.find("alias.value")+8,"π.nice",body);
+  request(4,"complete",body.size()+1,"π.nice",body);
+  request(5,"check",0,"renamed.nice",body);
+  std::istringstream input(requests.str());
+  std::ostringstream output,errors;
+  assert(runScriptSession(*evaluator.curEnv,input,output,errors)==0 and errors.str().empty());
+  std::istringstream lines(output.str());
+  for(const std::string prefix : {"(1 0 1 1 ","(2 0 1 1 () ","(3 0 1 1 ","(4 1 1 1 nil ","(5 0 2 2 () "})
+    {
+      std::string line;
+      assert(std::getline(lines,line) and line.starts_with(prefix));
+    }
+  std::istringstream truncated("NICE/1 1 check 0 1\n3 99\nabcshort");
+  assert(runScriptSession(*evaluator.curEnv,truncated,output,errors)==1);
+  assert(errors.str().find("truncated")!=std::string::npos and not called);
 }
 
 /// Completion transport is usable before MPI initialization and never executes its input
@@ -1796,6 +2011,24 @@ void validateCompletionTransport()
   std::ostringstream shellOutput;
   assert(runScriptQuery(5,shell,shellInput,shellOutput,diagnostic)==0);
   assert(shellOutput.str()==std::string("6\0" "8\0" "kappa\0",10));
+  
+  // Bash inserts required argument names only after a unique callable match
+  const auto shellReplacement=[](const std::string& text,
+                                 const size_t offset)
+  {
+    const auto completion=nissa::nice::completeNiceScript(text,offset);
+    const auto response=formatScriptCompletionForBash(completion,text,offset);
+    const size_t names=response.find('\0',response.find('\0')+1)+1;
+    
+    return response.substr(names);
+  };
+  assert(shellReplacement("setGeo",6)==std::string("setGeometry(L, T)\0",18));
+  assert(shellReplacement("Pro",3)==std::string("Prop()\0",7));
+  assert(shellReplacement("setGeo(4,8)",6)==std::string("setGeometry\0",12));
+  assert(shellReplacement("setGeometry",6)==std::string("setGeometry\0",12));
+  const std::string function="fun custom(&value, optional=1, ...){} cust";
+  assert(shellReplacement(function,function.size())==std::string("custom(value)\0",14));
+  assert(shellReplacement("p=Prop(); p.ka",14)==std::string("kappa\0",6));
   
   // Deliberately invalid runtime settings and paths must remain unevaluated
   const std::string text="configurationsFromFile(\"/must-not-read\"); setGeometry(-1,0); Pro";
@@ -1831,6 +2064,45 @@ void validateCompletionTransport()
       assert(runScriptQuery(3,bad,source,result,error)==1);
       assert(result.str().empty() and not error.str().empty());
     }
+  
+  // Errors have full token ranges and the surviving program remains an owned AST
+  const std::string malformed="x=1 unexpectedName; broken=; retained=2;";
+  ScriptSource brokenSource;
+  brokenSource.append(malformed,"buffer.nice");
+  const auto parsed=parseScriptForEditor(brokenSource);
+  assert(parsed.roots.size()==1 and parsed.diagnostics.size()==2);
+  assert(not parsed.diagnostics.front().expected.empty());
+  assert(parsed.diagnostics.front().message.find("; expected ")!=std::string::npos);
+  
+  // Diagnostic labels belong to terminals; recognition and structured expected IDs stay unchanged
+  ScriptSource missingSource;
+  missingSource.append("x=;","missing.nice");
+  const auto missingValue=parseScriptForEditor(missingSource);
+  assert(not missingValue.diagnostics.empty());
+  const auto& message=missingValue.diagnostics.front().message;
+  for(const std::string_view label : {"identifier","integer","number","string"})
+    {
+      assert(message.find(label)!=std::string::npos);
+      const auto terminal=std::find_if(missingValue.grammar->symbols.begin(),missingValue.grammar->symbols.end(),
+        [label](const auto& symbol)
+        {
+          return symbol.displayName==label;
+        });
+      assert(terminal!=missingValue.grammar->symbols.end() and terminal->name!=label);
+      assert(terminal->diagnosticName()==label);
+    }
+  assert(message.find("[0-9]")==std::string::npos and message.find("[a-zA-Z_")==std::string::npos);
+  assert(parsed.diagnostics.front().range.begin.offset==malformed.find("unexpectedName"));
+  assert(parsed.diagnostics.front().range.end.offset==malformed.find("unexpectedName")+std::string_view("unexpectedName").size());
+  const auto& statements=std::get<ASTNodesNode>(*parsed.roots.front());
+  const auto& assignment=std::get<AssignNode>(*statements.list.back());
+  assert(std::get<IdNode>(*assignment.lhs).name=="retained");
+  const char* check[]{"NICE","--check-syntax","--check-source","buffer.nice","--check-format","emacs"};
+  std::istringstream source(malformed);
+  std::ostringstream result;
+  std::ostringstream error;
+  assert(runScriptQuery(6,check,source,result,error)==1);
+  assert(error.str().empty() and result.str()==formatScriptDiagnosticsForEmacs(parsed)+"\n");
 }
 
 /// Assemble ordered file/argument context while returning bounds local to the current input
@@ -1956,6 +2228,37 @@ void validateProgramGrammar(int argc,
   const auto* emptyBody=std::get_if<ASTNodesNode>(empty.get());
   assert(emptyBody and emptyBody->list.empty());
   std::visit(evaluator,*empty);
+  
+  // Discarding initialized references is valid, while skipped branches remain unevaluated
+  const auto readsTree=createParseTree(parser,
+    "a=1; a; if(1) a; for(i=0;i<2;i++){a;} "
+    "if(0) undefined; for(i=0;0;undefined) undefined; "
+    "0 && undefined; 1 || undefined; record(a); ;");
+  const auto reads=executor.execParseTree(readsTree);
+  evaluator.evaluate(*reads);
+  assert(observed==1 and pp::internal::errorLocation==nullptr);
+  
+  // Nested statement wrappers must not evaluate a discarded host getter twice
+  int memberReads=0;
+  auto& provider=numberInfo->memberAccessorsProvider.at("value");
+  provider=[original=provider,&memberReads](std::any& data)
+  {
+    auto accessors=original(data);
+    accessors.first=[get=accessors.first,&memberReads]()
+    {
+      memberReads++;
+      
+      return get();
+    };
+    
+    return accessors;
+  };
+  const auto membersTree=createParseTree(parser,
+    "n=ExampleNumber(3); n.value; if(1) n.value; for(i=0;i<2;i++) n.value; "
+    "fun get(){return n.value;} get();");
+  const auto members=executor.execParseTree(membersTree);
+  evaluator.evaluate(*members);
+  assert(memberReads==5);
   
   // String tokens retain escaped quotes and backslashes until decoding
   const std::pair<const char*,std::string> stringChecks[]{
@@ -4342,6 +4645,38 @@ void validateAsymmetricRemapping()
 int main(int narg,
          char** arg)
 {
+  // Fatal evaluator diagnostics are exercised in separate processes without MPI startup
+  if(narg==3 and std::string_view(arg[1])=="runtime-diagnostic")
+    {
+      Evaluator evaluator;
+      registerHostFunction(evaluator,"checked",{"value"},[](const int value)
+      {
+        if(value<0)
+          errorEmitter("checked requires a nonnegative value");
+        
+        return value;
+      });
+      const auto probe=std::make_shared<HObjectInfo>();
+      probe->name="DiagnosticProbe";
+      probe->memberAccessorsProvider["value"]=[](std::any&)->HObjectMemberRef::Accessors
+      {
+        return {[]()->Value
+        {
+          errorEmitter("probe getter failed");
+        },
+          [](const AssignMode&,
+             const Value&)
+          {
+            errorEmitter("probe setter failed");
+          }};
+      };
+      (*evaluator.curEnv)["probe"]=HObject{probe,0};
+      const ASTNode ast=parseProgramPieces({{arg[2],"runtime.nice"}});
+      evaluator.evaluate(ast);
+      
+      return 0;
+    }
+  
   if(narg>1 and std::string_view(arg[1])=="remap-execution")
     {
       nissa::initNissa(narg,arg);
@@ -4424,6 +4759,7 @@ int main(int narg,
       validateNestedMemberCompletion();
       validateScriptDefinitionCompletion();
       validateCompletionTransport();
+      validateScriptSessions();
       validateCompletionContext();
 #ifdef USE_MPI
       MPI_Finalize();
@@ -4497,6 +4833,7 @@ int main(int narg,
   validateNestedMemberCompletion();
   validateScriptDefinitionCompletion();
   validateCompletionTransport();
+  validateScriptSessions();
   validateCompletionContext();
   validateProgramGrammar(narg,arg);
   validateHostObjects(R"(

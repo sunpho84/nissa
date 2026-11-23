@@ -33,6 +33,10 @@ nice_common_sources= \
 	%D%/scriptSource.hpp \
 	%D%/scriptCompletion.hpp \
 	%D%/scriptCompletion.cpp \
+	%D%/scriptAnalysis.hpp \
+	%D%/scriptAnalysis.cpp \
+	%D%/scriptSession.hpp \
+	%D%/scriptSession.cpp \
 	%D%/niceSetup.cpp \
 	%D%/niceSetup.hpp \
 	%D%/correlationTaskGraph.hpp \

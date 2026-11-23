@@ -23,12 +23,13 @@ namespace nissa::nice
   ScriptCompletion completeNiceScript(const ScriptSource& source,
                                       const size_t byteOffset);
   
-  /// Handle --complete-at OFFSET [--completion-format emacs|bash] or --check-syntax before MPI startup
+  /// Handle --complete-at OFFSET, --check-syntax, or --editor-server before MPI startup
+  /// The server retains revisions and serves length-framed source pieces until input EOF
   /// Source text comes from input; offsets are local to it and output contains data only
   /// Ordered --context-file/--context-script options supply preceding pieces without execution
   /// --completion-source names the input piece; file errors are reported before MPI startup
-  /// Syntax checks accept --check-source and stop after parsing, without AST actions or evaluation
-  /// Parser errors report their mapped source position on stderr and exit with status one
+  /// Syntax checks build a recovered AST and accept --check-source and --check-format text|emacs
+  /// All diagnostics retain mapped source ranges; errors set exit status one without evaluating the AST
   /// Return no status for a normal launch, otherwise the query's exit status
   std::optional<int> runScriptQuery(const int narg,
                                         const char* const* arg,
