@@ -64,13 +64,13 @@ void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
 }
 
 //read parameters to study topology
-void read_top_meas_pars(top_meas_pars_t &pars,int flag=false)
+void read_top_meas_pars(TopMeasPars &pars,int flag=false)
 {
   if(!flag) read_str_int("MeasureTopology",&flag);
   if(flag)
     {
       pars.path=read_path();
-      read_smooth_pars(pars.smooth_pars,true);
+      read_smooth_pars(pars.smoothPars,true);
     }
 }
 
@@ -109,7 +109,7 @@ int main(int narg,char **arg)
   read_str_str("ConfPath",conf_path,1024);
   
   //read topo pars
-  top_meas_pars_t top_meas_pars;
+  TopMeasPars top_meas_pars;
   read_top_meas_pars(top_meas_pars,true);
   
   //////////////////////////// read the conf /////////////////////////////
