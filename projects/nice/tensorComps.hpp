@@ -222,9 +222,16 @@ namespace nissa::nice
     /// Components in tensor storage order
     std::vector<Comp> comps;
     
+    /// Adjacent logical elements per real or imaginary plane; one means interleaved
+    size_t scalarComponentStride{1};
+    
     /// Validate each component and reject repeated kind, orientation, and label
     void validate(const CompRegistry* registry=nullptr) const
     {
+      if(scalarComponentStride==0 or
+         (scalar==ScalarKind::Real and scalarComponentStride!=1))
+        CRASH("NICE tensor has an invalid scalar component stride");
+      
       for(size_t i=0;i<comps.size();i++)
         {
           const Comp& comp=comps[i];

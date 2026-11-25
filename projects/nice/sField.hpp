@@ -14,6 +14,47 @@
 
 namespace nissa::nice
 {
+  /// Borrow a real-valued projection with explicit site and inner-component strides
+  struct SFieldComponentView
+  {
+    /// Address of the first selected real-valued component
+    double* data;
+    
+    /// Number of allocated sites, including requested halos
+    size_t nSites;
+    
+    /// Number of inner elements per site
+    size_t nInner;
+    
+    /// Distance in doubles between neighboring site coordinates
+    size_t siteStride;
+    
+    /// Distance in doubles between neighboring inner coordinates
+    size_t innerStride;
+    
+    /// Memory space containing the borrowed projection
+    MemorySpace space;
+    
+    /// Locate a projected value without dereferencing it
+    CUDA_HOST_AND_DEVICE double* getPtrTo(const size_t site,
+                                          const size_t inner=0) const
+    {
+      if(site>=nSites or inner>=nInner)
+        CRASH("NICE field component view index is outside the selected field");
+      
+      return data+site*siteStride+inner*innerStride;
+    }
+    
+    /// Access one projected value on the processor owning this memory space
+    CUDA_HOST_AND_DEVICE double& operator()(const size_t site,
+                                            const size_t inner=0) const
+    {
+      assertRunningOnMemorySpace(space);
+      
+      return *getPtrTo(site,inner);
+    }
+  };
+  
   /// Non-owning generic view of one selected set of outer components
   struct SFieldView
   {
@@ -35,17 +76,50 @@ namespace nissa::nice
     /// Memory space containing the borrowed block
     MemorySpace space;
     
-    /// Locate an element; GPU pointers must be accessed by a device kernel
-    double* getPtrTo(const size_t site,
-                     const size_t inner) const
+    /// Borrow one scalar using the same fundamental-component order as library fields
+    CUDA_HOST_AND_DEVICE ScalarView operator()(const size_t site,
+                                               const size_t inner=0) const
     {
       if(site>=nSites or inner>=nInner)
         CRASH("NICE field reference index is outside the selected field");
       
       const size_t offset=layout==SpaceTimeLayout::CPU?
-        site*nInner+inner:inner*nSites+site;
+        (site*nInner+inner)*scalarWidth:inner*scalarWidth*nSites+site;
+      const size_t componentStride=layout==SpaceTimeLayout::CPU?1:nSites;
       
-      return data+offset*scalarWidth;
+      return {data+offset,componentStride,scalarWidth,space};
+    }
+    
+    /// Locate one numerical component; adjacent real and imaginary parts are not assumed
+    CUDA_HOST_AND_DEVICE double* getPtrTo(const size_t site,
+                                          const size_t inner=0,
+                                          const size_t component=0) const
+    {
+      return (*this)(site,inner).getPtrTo(component);
+    }
+    
+    /// Project one numerical component without copying or changing the logical indices
+    CUDA_HOST_AND_DEVICE SFieldComponentView component(const size_t index) const
+    {
+      if(index>=scalarWidth)
+        CRASH("NICE field projection is outside its scalar type");
+      
+      const bool cpu=layout==SpaceTimeLayout::CPU;
+      
+      return {data+index*(cpu?1:nSites),nSites,nInner,
+              cpu?nInner*scalarWidth:1,cpu?scalarWidth:nSites*scalarWidth,space};
+    }
+    
+    /// Borrow the real-valued field projection
+    CUDA_HOST_AND_DEVICE SFieldComponentView real() const
+    {
+      return component(0);
+    }
+    
+    /// Borrow the imaginary projection of a complex field
+    CUDA_HOST_AND_DEVICE SFieldComponentView imag() const
+    {
+      return component(1);
     }
   };
   
@@ -112,6 +186,7 @@ namespace nissa::nice
         {
           result.comps.insert(result.comps.end(),inner.begin(),inner.end());
           result.comps.push_back(site);
+          result.scalarComponentStride=scalar==ScalarKind::Complex?nSites:1;
         }
       else
         CRASH("NICE field has an unsupported site layout");

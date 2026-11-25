@@ -1510,7 +1510,8 @@ void validateScriptLocationsAndCompletion()
         
         return Value{3};
       },[](const AssignMode&,
-           const Value&)
+           const Value&,
+           std::string_view)
       {
       }};
     };
@@ -4564,6 +4565,136 @@ void validatePreparedExecution()
   assert(gaugeOnly.hits.empty());
 }
 
+/// Check generic views against library shadows, including outer blocks and allocated halos
+template <typename T,
+          nissa::nice::ScalarKind scalar,
+          nissa::SpaceTimeLayout layout>
+void validateHostFieldViews(const std::vector<nissa::nice::Comp>& inner)
+{
+  using namespace nissa;
+  using namespace nissa::nice;
+  SField field{scalar,inner,{{StandardComp::Copy,CompSide::None,2}},
+               MemorySpace::CPU,layout,WITH_HALO};
+  const TensorView tensor=field.tensor.view();
+  assert(field.tensor.descriptor.scalarComponentStride==
+         (scalar==ScalarKind::Complex and layout==SpaceTimeLayout::GPU?field.nSites:1));
+  
+  for(size_t copy=0;copy<2;copy++)
+    {
+      const std::array<size_t,1> coordinates{copy};
+      const SFieldView view=field.view(coordinates);
+      auto shadow=field.shadow<T,layout,MemorySpace::CPU>("view validation",coordinates);
+      const auto real=view.real();
+      
+      // Start with writes through the existing library indexing convention
+      for(size_t site=0;site<field.nSites;site++)
+        for(size_t component=0;component<field.nInner*field.scalarWidth;component++)
+          shadow(site,component)=10000*copy+100*component+site;
+      
+      for(size_t site=0;site<field.nSites;site++)
+        for(size_t element=0;element<field.nInner;element++)
+          {
+            const size_t flat=copy*field.nSites*field.nInner+
+              (layout==SpaceTimeLayout::CPU?site*field.nInner+element:element*field.nSites+site);
+            const ScalarView value=view(site,element);
+            assert(value.getPtrTo(0)==view.getPtrTo(site,element,0));
+            assert(value.real()==shadow(site,element*field.scalarWidth));
+            assert(tensor[flat].real()==value.real());
+            real(site,element)+=0.25;
+            assert(shadow(site,element*field.scalarWidth)==value.real());
+            
+            if constexpr(scalar==ScalarKind::Complex)
+              {
+                const auto imag=view.imag();
+                assert(value.imag()==shadow(site,element*2+1));
+                assert(tensor[flat].imag()==value.imag());
+                imag(site,element)-=0.5;
+                value.imag()+=0.125;
+                assert(shadow(site,element*2+1)==10000*copy+100*(element*2+1)+site-0.375);
+                assert(value.getPtrTo(1)==view.getPtrTo(site,element,1));
+              }
+          }
+    }
+}
+
+#ifdef USE_CUDA
+/// Fill scalars through device views and read them back through library fields
+template <typename T,
+          nissa::nice::ScalarKind scalar,
+          nissa::SpaceTimeLayout layout>
+void validateDeviceFieldViews(const std::vector<nissa::nice::Comp>& inner)
+{
+  using namespace nissa;
+  using namespace nissa::nice;
+  SField field{scalar,inner,{{StandardComp::Copy,CompSide::None,2}},
+               MemorySpace::GPU,layout,WITH_HALO};
+  const TensorView tensor=field.tensor.view();
+  
+  for(size_t copy=0;copy<2;copy++)
+    {
+      const std::array<size_t,1> coordinates{copy};
+      auto shadow=field.shadow<T,layout,MemorySpace::GPU>("device view validation",coordinates);
+      const SFieldView view=field.view(coordinates);
+      const auto real=view.real();
+      
+      // Raw non-owning views remain alive only while the owning field exists
+      PAR(0,locVol,CAPTURE(view,real,tensor,copy),site,
+      {
+        for(size_t element=0;element<view.nInner;element++)
+          {
+            const double expected=10000*copy+100*element+site;
+            const size_t flat=copy*view.nSites*view.nInner+
+              (layout==SpaceTimeLayout::CPU?site*view.nInner+element:element*view.nSites+site);
+            real(site,element)=expected;
+            view(site,element).real()=tensor[flat].real()+0.25;
+            
+            if constexpr(scalar==ScalarKind::Complex)
+              {
+                tensor[flat].imag()=-expected;
+                view.imag()(site,element)+=0.5;
+              }
+          }
+      });
+      
+      const auto host=shadow.template getSurelyReadableOn<MemorySpace::CPU>();
+      
+      for(int64_t site=0;site<locVol;site++)
+        for(size_t element=0;element<view.nInner;element++)
+          {
+            const double expected=10000*copy+100*element+site;
+            assert(host(site,element*view.scalarWidth)==expected+0.25);
+            
+            if constexpr(scalar==ScalarKind::Complex)
+              assert(host(site,element*2+1)==-expected+0.5);
+          }
+    }
+}
+#endif
+
+/// Exercise real/complex scalars and spincolor with both physical field layouts
+void validateFieldViews()
+{
+  using namespace nissa;
+  using namespace nissa::nice;
+  const std::vector<Comp> spincolorComps{{StandardComp::Spin,CompSide::Row,NDIRAC},
+                                        {StandardComp::Color,CompSide::Row,NCOL}};
+  validateHostFieldViews<double,ScalarKind::Real,SpaceTimeLayout::CPU>({});
+  validateHostFieldViews<double,ScalarKind::Real,SpaceTimeLayout::GPU>({});
+  validateHostFieldViews<complex,ScalarKind::Complex,SpaceTimeLayout::CPU>({});
+  validateHostFieldViews<complex,ScalarKind::Complex,SpaceTimeLayout::GPU>({});
+  validateHostFieldViews<spincolor,ScalarKind::Complex,SpaceTimeLayout::CPU>(spincolorComps);
+  validateHostFieldViews<spincolor,ScalarKind::Complex,SpaceTimeLayout::GPU>(spincolorComps);
+  
+#ifdef USE_CUDA
+  validateDeviceFieldViews<double,ScalarKind::Real,SpaceTimeLayout::CPU>({});
+  validateDeviceFieldViews<double,ScalarKind::Real,SpaceTimeLayout::GPU>({});
+  validateDeviceFieldViews<complex,ScalarKind::Complex,SpaceTimeLayout::CPU>({});
+  validateDeviceFieldViews<complex,ScalarKind::Complex,SpaceTimeLayout::GPU>({});
+  validateDeviceFieldViews<spincolor,ScalarKind::Complex,SpaceTimeLayout::CPU>(spincolorComps);
+  validateDeviceFieldViews<spincolor,ScalarKind::Complex,SpaceTimeLayout::GPU>(spincolorComps);
+#endif
+}
+
 /// Exercise loading, chained spatial APE, and field release between configuration entries
 void validateGaugeExecution()
 {
@@ -4576,6 +4707,7 @@ void validateGaugeExecution()
   validateRngExecution();
   validateTaskExecution(prepared.options);
   validatePreparedExecution();
+  validateFieldViews();
   
   // A line owns one tensor; selecting outer indices borrows a contiguous field block
   TaskValues values(6);
@@ -4664,8 +4796,9 @@ void validateGaugeExecution()
   auto& gpuLayout=gpuValue.field;
   assert(gpuValue.sameShapeAs(undilutedValue));
   const auto gpuView=gpuLayout.view(std::array<size_t,1>{0});
-  assert(gpuView.getPtrTo(1,0)==gpuView.data+2);
-  assert(gpuView.getPtrTo(1,1)==gpuView.data+(gpuLayout.nSites+1)*2);
+  assert(gpuView.getPtrTo(1,0)==gpuView.data+1);
+  assert(gpuView.getPtrTo(1,1)==gpuView.data+2*gpuLayout.nSites+1);
+  assert(gpuView.getPtrTo(1,1,1)==gpuView.data+3*gpuLayout.nSites+1);
   
   // An empty gamma selection has a valid shape and no allocated data
   const CompKind gammaKind=registry.intern("GammaPair");
@@ -4908,7 +5041,8 @@ int main(int narg,
           errorEmitter("probe getter failed");
         },
           [](const AssignMode&,
-             const Value&)
+             const Value&,
+             std::string_view)
           {
             errorEmitter("probe setter failed");
           }};
@@ -4943,6 +5077,31 @@ int main(int narg,
       return 0;
     }
 #endif
+  
+  if(narg>1 and (std::string_view(arg[1])=="field-views" or
+                std::string_view(arg[1])=="field-view-failure"))
+    {
+      nissa::initNissa(narg,arg);
+      nissa::initGrid(4,4);
+      
+      if(std::string_view(arg[1])=="field-view-failure")
+        {
+          nissa::nice::SField field{ScalarKind::Real,{},{},
+                                    nissa::MemorySpace::CPU,nissa::SpaceTimeLayout::GPU};
+          const auto view=field.view({});
+          
+          if(narg>2 and std::string_view(arg[2])=="index")
+            (void)view(field.nSites);
+          else
+            (void)view.imag();
+        }
+      else
+        validateFieldViews();
+      
+      nissa::closeNissa();
+      
+      return 0;
+    }
   
   if(narg>1 and std::string_view(arg[1])=="noise-sources")
     {
