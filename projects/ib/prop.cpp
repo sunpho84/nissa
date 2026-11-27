@@ -482,26 +482,33 @@ namespace nissa
   LxField<spin1field> getNET(const double bareMass,
 			     const double& _i)
   {
+    constexpr std::array<double,2> r{-1.0,+1.0};
+    
+    /// Identify the part of the trace to be taken
     const int i=
       round(_i);
     const int alpha=((i<2)?2:3);
     const int beta=((i%2)?1:0);
     
+    /// Result to be returned
     LxField<spin1field> l("l");
     l.reset();
     
-    const double poleMass=2*asinh(bareMass/2);
+    /// Kinematic invariants
+    const double poleMass=2*asinh(bareMass/2);/// <- shouldn't we use the tm_quark_energy to keep into account antiperiodic condition in time?
     const double M=sinh(poleMass);
+    
+    /// Build bareMass+gamma_0*M
     spinspin mMatr{};
     spinspin_dirac_summ_the_prod_double(mMatr,base_gamma[0],bareMass);
     spinspin_dirac_summ_the_prod_double(mMatr,base_gamma[4],M);
     
+    /// Builds bareMass+gamma_0*M+I*r*gamma_5
     std::array<spinspin,2> mMatrR;
     for(int iR=0;iR<2;iR++)
       {
-	const int r=(iR==0)?-1:+1;
 	spinspin_copy(mMatrR[iR],mMatr);
-	spinspin_dirac_summ_the_prod_idouble(mMatrR[iR],base_gamma[5],r*bareMass*bareMass/2);
+	spinspin_dirac_summ_the_prod_idouble(mMatrR[iR],base_gamma[5],r[iR]*bareMass*bareMass/2);
       }
     
     PAR(0,
@@ -511,26 +518,29 @@ namespace nissa
 		beta,
 		bareMass,
 		poleMass,
+		r,
 		mMatr,
 		mMatrR,
 		TO_WRITE(l)),
 	imom,
 	{
-using Compl=
+	  /// On GPU we need to use specific implementation of complex to support complex trigonometry
+	  using Compl=
 #ifdef USE_CUDA
-  cuda::std::complex<double>
+	    cuda::std::complex<double>
 #else
-  std::complex<double>
+	    std::complex<double>
 #endif
-  ;	  
+	    ;
 	  
 	  /// Photon momentum k is indexed by imom
-	  /// External lepton has imaginary momentum l=(iMPole,0,0,0)
+	  /// External lepton has imaginary momentum l=({pi/T,I*MPole},0,0,0)
 	  /// Momentum entering the propagtor: p=l-k
+	  const Compl l0{M_PI/glbSize[0],poleMass};
 	  MyArray<Compl,NDIRAC> p;
-	  p[0]=Compl{-(2.0*glbCoordOfLoclx[imom][0]+1.0 /*antiperiodic in time*/)*M_PI/glbSize[0],poleMass};
-	  for(int i=1;i<NDIM;i++)
-	    p[i]=Compl{-2.0*glbCoordOfLoclx[imom][i]*M_PI/glbSize[i],0.0};
+	  for(int mu=0;mu<NDIM;mu++)
+	    p[mu]=Compl{-2.0*glbCoordOfLoclx[imom][mu]*M_PI/glbSize[mu],0.0};
+	  p[0]+=l0;
 	  
 	  Compl p2tilde{};
 	  Compl p2hat{};
@@ -555,33 +565,31 @@ using Compl=
 	      /// Lepton propagator
 	      spinspin prop;
 	      
-	      const double r=(iR==0)?-1.0:+1.0;
-	      
 	      /// Part of the propagator proportional to identity
 	      const Compl c0=1.0/den;
 	      spinspin_put_to_diag_complex(prop,*(complex*)&c0);
 	      
 	      for(int mu=0;mu<NDIM;mu++)
 		{
-		  /// Sum -i*ptilde*gamma_mu
+		  /// Sum -I*ptilde*gamma_mu
 		  const Compl cmu=-Compl{0.0,1.0}*ptilde[mu]/den;
 		  spinspin_dirac_summ_the_prod_complex(prop,base_gamma[iGammaOfMu(mu)],*(complex*)&cmu);
 		}
 	      
-	      /// Combine with -i*r*Ap*gamma_5
-	      const Compl c5=-Compl{0.0,1.0}*r*Ap;
+	      /// Combine with -I*r*Ap*gamma_5
+	      const Compl c5=-Compl{0.0,1.0}*r[iR]*Ap;
 	      spinspin_dirac_summ_the_prod_complex(prop,base_gamma[5],*(complex*)&c5);
 	      
 	      /// Average of the momentum of the lepton before and after the interaction
 	      MyArray<Compl,NDIRAC> q;
 	      for(int mu=0;mu<NDIM;mu++)
 		q[mu]=p[mu]/2.0;
-	      q[0]+=Compl{0.0,poleMass/2.0};
+	      q[0]+=l0/2.0;
 	      
 	      for(int mu=0;mu<NDIM;mu++)
 		{
 		  const Compl c=cos(q[mu]);
-		  const Compl rs=r*sin(cos(q[mu]));
+		  const Compl rs=r[iR]*sin(cos(q[mu]));
 		  
 		  /// Current vertex in dir mu: cos(q_\mu)*gamma_\mu+r*sin(q_\mu)*gamma_5
 		  spinspin V{};
