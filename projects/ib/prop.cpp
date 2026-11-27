@@ -3,6 +3,10 @@
 #define EXTERN_PROP
 # include "prop.hpp"
 
+#ifdef USE_CUDA
+# include <cuda/std/complex>
+#endif
+
 #include <tuple>
 
 namespace nissa
@@ -502,7 +506,8 @@ namespace nissa
     
     PAR(0,
 	locVol,
-	CAPTURE(alpha,
+	CAPTURE(photon=nissa::photon,
+		alpha,
 		beta,
 		bareMass,
 		poleMass,
@@ -511,29 +516,37 @@ namespace nissa
 		TO_WRITE(l)),
 	imom,
 	{
+using Compl=
+#ifdef USE_CUDA
+  cuda::std::complex<double>
+#else
+  std::complex<double>
+#endif
+  ;	  
+	  
 	  /// Photon momentum k is indexed by imom
 	  /// External lepton has imaginary momentum l=(iMPole,0,0,0)
 	  /// Momentum entering the propagtor: p=l-k
-	  MyArray<std::complex<double>,NDIRAC> p;
-	  p[0]=std::complex<double>{-(2.0*glbCoordOfLoclx[imom][0]+1.0 /*antiperiodic in time*/)*M_PI/glbSize[0],poleMass};
+	  MyArray<Compl,NDIRAC> p;
+	  p[0]=Compl{-(2.0*glbCoordOfLoclx[imom][0]+1.0 /*antiperiodic in time*/)*M_PI/glbSize[0],poleMass};
 	  for(int i=1;i<NDIM;i++)
-	    p[i]=std::complex<double>{-2.0*glbCoordOfLoclx[imom][i]*M_PI/glbSize[i],0.0};
+	    p[i]=Compl{-2.0*glbCoordOfLoclx[imom][i]*M_PI/glbSize[i],0.0};
 	  
-	  std::complex<double> p2tilde{};
-	  std::complex<double> p2hat{};
-	  std::complex<double> ptilde[4];
+	  Compl p2tilde{};
+	  Compl p2hat{};
+	  Compl ptilde[4];
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
-	      const std::complex<double> phat=2.0*sin(p[mu]/2.0);
+	      const Compl phat=2.0*sin(p[mu]/2.0);
 	      ptilde[mu]=sin(p[mu]);
 	      p2tilde+=ptilde[mu]*ptilde[mu];
 	      p2hat+=phat*phat;
 	    }
 	  
-	  const std::complex<double> Ap=p2hat/2.0;
+	  const Compl Ap=p2hat/2.0;
 	  
 	  /// Propagator denominator
-	  const std::complex<double> den=bareMass*bareMass+Ap*Ap+p2tilde;
+	  const Compl den=bareMass*bareMass+Ap*Ap+p2tilde;
 	  
 	  /// Holds the sum over the two r
 	  std::array<spinspin,NDIM> rSum{};
@@ -545,30 +558,30 @@ namespace nissa
 	      const double r=(iR==0)?-1.0:+1.0;
 	      
 	      /// Part of the propagator proportional to identity
-	      const std::complex<double> c0=1.0/den;
+	      const Compl c0=1.0/den;
 	      spinspin_put_to_diag_complex(prop,*(complex*)&c0);
 	      
 	      for(int mu=0;mu<NDIM;mu++)
 		{
 		  /// Sum -i*ptilde*gamma_mu
-		  const std::complex<double> cmu=-std::complex<double>{0.0,1.0}*ptilde[mu]/den;
+		  const Compl cmu=-Compl{0.0,1.0}*ptilde[mu]/den;
 		  spinspin_dirac_summ_the_prod_complex(prop,base_gamma[iGammaOfMu(mu)],*(complex*)&cmu);
 		}
 	      
 	      /// Combine with -i*r*Ap*gamma_5
-	      const std::complex<double> c5=-std::complex<double>{0.0,1.0}*r*Ap;
+	      const Compl c5=-Compl{0.0,1.0}*r*Ap;
 	      spinspin_dirac_summ_the_prod_complex(prop,base_gamma[5],*(complex*)&c5);
 	      
 	      /// Average of the momentum of the lepton before and after the interaction
-	      MyArray<std::complex<double>,NDIRAC> q;
+	      MyArray<Compl,NDIRAC> q;
 	      for(int mu=0;mu<NDIM;mu++)
 		q[mu]=p[mu]/2.0;
-	      q[0]+=std::complex<double>{0.0,poleMass/2.0};
+	      q[0]+=Compl{0.0,poleMass/2.0};
 	      
 	      for(int mu=0;mu<NDIM;mu++)
 		{
-		  const std::complex<double> c=cos(q[mu]);
-		  const std::complex<double> rs=r*sin(cos(q[mu]));
+		  const Compl c=cos(q[mu]);
+		  const Compl rs=r*sin(cos(q[mu]));
 		  
 		  /// Current vertex in dir mu: cos(q_\mu)*gamma_\mu+r*sin(q_\mu)*gamma_5
 		  spinspin V{};
@@ -609,7 +622,7 @@ namespace nissa
 	  
 	  const complex ph={cos(arg),sin(arg)};
 	  for(int mu=0;mu<NDIM;mu++)
-	    complex_prodassign(l[imom][mu],ph[mu]);
+	    complex_prodassign(l[imom][mu],ph);
 	});
     
     constexpr Momentum bc{};
