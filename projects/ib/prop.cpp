@@ -417,7 +417,7 @@ namespace nissa
   
   
   /// Insert the lepton loop
-  LxField<complex> getNPP(const double& kappa)
+  LxField<complex> getNPP(const double& _i)
   {
     TmQuarkInfo lep(kappa_of_m0(0),0.0,0,{});
     
@@ -455,7 +455,7 @@ namespace nissa
       }
     
     const int i=
-      round(kappa);
+      round(_i);
     
     LxField<complex> NPP("NPP");
     const int alpha=((i<2)?2:3);
@@ -472,6 +472,150 @@ namespace nissa
 	});
     
     return NPP;
+  }
+  
+  /// Insert the lepton loop
+  LxField<spin1field> getNET(const double bareMass,
+			     const double& _i)
+  {
+    const int i=
+      round(_i);
+    const int alpha=((i<2)?2:3);
+    const int beta=((i%2)?1:0);
+    
+    LxField<spin1field> l("l");
+    l.reset();
+    
+    const double poleMass=2*asinh(bareMass/2);
+    const double M=sinh(poleMass);
+    spinspin mMatr{};
+    spinspin_dirac_summ_the_prod_double(mMatr,base_gamma[0],bareMass);
+    spinspin_dirac_summ_the_prod_double(mMatr,base_gamma[4],M);
+    
+    std::array<spinspin,2> mMatrR;
+    for(int iR=0;iR<2;iR++)
+      {
+	const int r=(iR==0)?-1:+1;
+	spinspin_copy(mMatrR[iR],mMatr);
+	spinspin_dirac_summ_the_prod_idouble(mMatrR[iR],base_gamma[5],r*bareMass*bareMass/2);
+      }
+    
+    PAR(0,
+	locVol,
+	CAPTURE(alpha,
+		beta,
+		bareMass,
+		poleMass,
+		mMatr,
+		mMatrR,
+		TO_WRITE(l)),
+	imom,
+	{
+	  /// Photon momentum k is indexed by imom
+	  /// External lepton has imaginary momentum l=(iMPole,0,0,0)
+	  /// Momentum entering the propagtor: p=l-k
+	  MyArray<std::complex<double>,NDIRAC> p;
+	  p[0]=std::complex<double>{-(2.0*glbCoordOfLoclx[imom][0]+1.0 /*antiperiodic in time*/)*M_PI/glbSize[0],poleMass};
+	  for(int i=1;i<NDIM;i++)
+	    p[i]=std::complex<double>{-2.0*glbCoordOfLoclx[imom][i]*M_PI/glbSize[i],0.0};
+	  
+	  std::complex<double> p2tilde{};
+	  std::complex<double> p2hat{};
+	  std::complex<double> ptilde[4];
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      const std::complex<double> phat=2.0*sin(p[mu]/2.0);
+	      ptilde[mu]=sin(p[mu]);
+	      p2tilde+=ptilde[mu]*ptilde[mu];
+	      p2hat+=phat*phat;
+	    }
+	  
+	  const std::complex<double> Ap=p2hat/2.0;
+	  
+	  /// Propagator denominator
+	  const std::complex<double> den=bareMass*bareMass+Ap*Ap+p2tilde;
+	  
+	  /// Holds the sum over the two r
+	  std::array<spinspin,NDIM> rSum{};
+	  for(int iR=0;iR<2;iR++)
+	    {
+	      /// Lepton propagator
+	      spinspin prop;
+	      
+	      const double r=(iR==0)?-1.0:+1.0;
+	      
+	      /// Part of the propagator proportional to identity
+	      const std::complex<double> c0=1.0/den;
+	      spinspin_put_to_diag_complex(prop,*(complex*)&c0);
+	      
+	      for(int mu=0;mu<NDIM;mu++)
+		{
+		  /// Sum -i*ptilde*gamma_mu
+		  const std::complex<double> cmu=-std::complex<double>{0.0,1.0}*ptilde[mu]/den;
+		  spinspin_dirac_summ_the_prod_complex(prop,base_gamma[iGammaOfMu(mu)],*(complex*)&cmu);
+		}
+	      
+	      /// Combine with -i*r*Ap*gamma_5
+	      const std::complex<double> c5=-std::complex<double>{0.0,1.0}*r*Ap;
+	      spinspin_dirac_summ_the_prod_complex(prop,base_gamma[5],*(complex*)&c5);
+	      
+	      /// Average of the momentum of the lepton before and after the interaction
+	      MyArray<std::complex<double>,NDIRAC> q;
+	      for(int mu=0;mu<NDIM;mu++)
+		q[mu]=p[mu]/2.0;
+	      q[0]+=std::complex<double>{0.0,poleMass/2.0};
+	      
+	      for(int mu=0;mu<NDIM;mu++)
+		{
+		  const std::complex<double> c=cos(q[mu]);
+		  const std::complex<double> rs=r*sin(cos(q[mu]));
+		  
+		  /// Current vertex in dir mu: cos(q_\mu)*gamma_\mu+r*sin(q_\mu)*gamma_5
+		  spinspin V{};
+		  spinspin_dirac_summ_the_prod_complex(V,base_gamma[iGammaOfMu(mu)],*(complex*)&c);
+		  spinspin_dirac_summ_the_prod_complex(V,base_gamma[5],*(complex*)&rs);
+		  spinspin_prodassign_idouble(V,1.0);
+		  
+		  /// Multiply the propagator by the vector current, then include the matrix projecting on the r-valued lepton
+		  spinspin tmp;
+		  safe_spinspin_prod_spinspin(tmp,prop,V);
+		  spinspin_summ_the_spinspin_prod(rSum[mu],tmp,mMatrR[iR]);
+		}
+	    }
+	  
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      // Put the final lepton propagation, already averaged over r
+	      safe_spinspin_prod_spinspin(rSum[mu],rSum[mu],mMatr);
+	      complex_summ_the_prod_double(l[imom][mu],rSum[mu][alpha][beta],1/(2*bareMass)/2 /*factor of 2 implementing r-average*/);
+	    }
+	  
+	  /// Multiply by the photon propagator
+	  spin1prop prop;
+	  mom_space_tlSym_gauge_propagator_of_imom(prop,photon,imom);
+	  safe_spinspin_prod_spin(l[imom],prop,l[imom]);
+	});
+    
+    /// Take into account the source position: x must become x-x0.
+    /// Fft implements \sum_p e^ip(x+\hat{\mu}/2) A_\mu(p), so we
+    /// incorporate e^-ipx0 before the call
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(l)),imom,
+	{
+	  double arg=0;
+	  for(int mu=0;mu<NDIM;mu++)
+	    arg=glbCoordOfLoclx[imom][mu]*oriCoords[mu]/glbSize[mu];
+	  arg*=-2.0*M_PI;
+	  
+	  const complex ph={cos(arg),sin(arg)};
+	  for(int mu=0;mu<NDIM;mu++)
+	    complex_prodassign(l[imom][mu],ph[mu]);
+	});
+    
+    constexpr Momentum bc{};
+    pass_spin1field_from_mom_to_x_space(l,l,bc,1/* sink of the photon propagator */,1 /* put the field in the middle of the link, i.e put e^ip/2*/);
+    
+    return l;
   }
   
   //phase the propagator
@@ -955,7 +1099,7 @@ namespace nissa
       case DEL_SPIN:select_spin(loop_source,ori,r);break;
       case DEL_COL:select_color(loop_source,ori,r);break;
       case LEP_LOOP:insert_external_source(loop_source,*conf,getLeptonLoop(mass,kappa,theta,residue),ori,rel_t,r,allDirs,loc_hadr_curr);break;
-      case NET:insert_external_source(loop_source,*conf,getLeptonLoop(mass,kappa,theta,residue),ori,rel_t,r,allDirs,loc_hadr_curr);break;
+      case NET:insert_external_source(loop_source,*conf,getNET(mass,kappa),ori,rel_t,r,allDirs,loc_hadr_curr);break;
       case NPP:multByScalar(loop_source,getNPP(kappa),ori,rel_t);break;
       case COV_DER:apply_nabla_i(loop_source,ori,*conf,r,rel_t);break;
       }
