@@ -5,119 +5,106 @@
 #include "new_types/su3.hpp"
 #include "routines/math_routines.hpp"
 
-#include <array>
 #include <cstddef>
-#include <limits>
+#include <optional>
 #include <string>
-#include <utility>
 #include <vector>
 
 namespace nissa::nice
 {
-  /// Numerical scalar carried at each combination of tensor indices
-  enum class ScalarKind{Real,Complex};
-  
-  /// Numeric identity of a component kind within one compiled NICE program
+  /// Index of a component definition in the runtime registry
   using CompKind=
     size_t;
   
-  /// Fixed identities for the components used by the initial NISSA kernels
-  namespace StandardComp
+  /// Definition shared by every occurrence of a registered component
+  struct CompDefinition
   {
-    /// Extent supplied by geometry, a run setting, or a script declaration
-    inline constexpr size_t ContextDependentSize=0;
+    /// Name used for registration and diagnostics
+    std::string name;
     
-    /// Compile-time extent of a standard kind, or ContextDependentSize
-    template<CompKind Kind>
-    inline constexpr size_t compSize=ContextDependentSize;
-    
-    /// Whether a standard kind requires row or column orientation
-    template<CompKind Kind>
-    inline constexpr bool compRequiresOrientation=false;
-    
-    /// Define one fixed kind together with its index, extent, and orientation rule
-#define PROVIDE_COMP_KIND(NAME,SIZE,INDEX,ORIENTED) \
-    inline constexpr CompKind NAME=INDEX; \
-    template<> \
-    inline constexpr size_t compSize<NAME> =SIZE; \
-    template<> \
-    inline constexpr bool compRequiresOrientation<NAME> =ORIENTED
-    
-    /// Local lattice-site index
-    PROVIDE_COMP_KIND(Site,ContextDependentSize,0,false);
-    
-    /// Dirac spin index
-    PROVIDE_COMP_KIND(Spin,NDIRAC,1,true);
-    
-    /// SU(3) color index
-    PROVIDE_COMP_KIND(Color,NCOL,2,true);
-    
-    /// Four-dimensional Lorentz index
-    PROVIDE_COMP_KIND(Lorentz,NDIM,3,false);
-    
-    /// Independent copy index
-    PROVIDE_COMP_KIND(Copy,ContextDependentSize,4,false);
-    
-    /// Time separation of a two-point result
-    PROVIDE_COMP_KIND(Time,ContextDependentSize,5,false);
-    
-    /// Index into the ordered gamma-pair list of a contraction
-    PROVIDE_COMP_KIND(GammaPair,ContextDependentSize,6,false);
-    
-#undef PROVIDE_COMP_KIND
-    
-    /// Number of registered standard comps
-    inline constexpr CompKind NStandardComps=GammaPair+1;
-    
-    /// Sentinel that cannot identify a registered component
-    inline constexpr CompKind Invalid=std::numeric_limits<CompKind>::max();
-    
-    /// Fixed extents indexed by the numeric identity of each standard kind
-    inline constexpr std::array<size_t,NStandardComps> compSizes=
-      []<size_t... I>(std::index_sequence<I...>)
-      {
-        return std::array<size_t,sizeof...(I)>{compSize<I>...};
-      }(std::make_index_sequence<NStandardComps>{});
-    
-    /// Orientation requirements indexed by standard component kind
-    inline constexpr std::array<bool,NStandardComps> compOrientationRequired=
-      []<size_t... I>(std::index_sequence<I...>)
-      {
-        return std::array<bool,sizeof...(I)>{compRequiresOrientation<I>...};
-      }(std::make_index_sequence<NStandardComps>{});
-  }
+    /// Fixed extent, or zero to use each occurrence's local extent
+    size_t size{0};
+  };
   
-  /// Assign numeric component kinds while retaining their names for diagnostics
+  /// Append-only component definitions with stable numeric identities
   struct CompRegistry
   {
-    /// Names in component-kind order, including the fixed standard kinds
-    std::vector<std::string> names{"Site","Spin","Color","Lorentz","Copy","Time","GammaPair"};
+    /// Definitions in registration order; existing entries must remain unchanged
+    std::vector<CompDefinition> definitions;
     
-    /// Reuse an existing kind or assign a new one at script compilation time
-    CompKind intern(const std::string& name)
+    /// Reuse or register a definition, rejecting conflicting explicit sizes
+    CompKind intern(const std::string& name,
+                    const std::optional<size_t> size=std::nullopt)
     {
       if(name.empty())
         CRASH("NICE component kind requires a name");
       
-      for(CompKind kind=0;kind<names.size();kind++)
-        if(names[kind]==name)
-          return kind;
+      for(CompKind kind=0;kind<definitions.size();kind++)
+        if(definitions[kind].name==name)
+          {
+            if(size and definitions[kind].size!=*size)
+              CRASH("NICE component %s is already registered with a different size",name.c_str());
+            
+            return kind;
+          }
       
-      const CompKind kind=names.size();
-      names.push_back(name);
+      const CompKind kind=definitions.size();
+      definitions.push_back({name,size.value_or(0)});
       
       return kind;
     }
     
-    /// Resolve a kind back to its name for script diagnostics
-    const std::string& name(const CompKind kind) const
+    /// Resolve a registered component definition
+    const CompDefinition& definition(const CompKind kind) const
     {
-      if(kind>=names.size())
+      if(kind>=definitions.size())
         CRASH("NICE component kind %zu is not registered",kind);
       
-      return names[kind];
+      return definitions[kind];
+    }
+    
+    /// Resolve a component name for diagnostics
+    const std::string& name(const CompKind kind) const
+    {
+      return definition(kind).name;
     }
   };
+  
+  /// Registry shared by initialization and subsequent script execution
+  inline CompRegistry& compRegistry()
+  {
+    static CompRegistry registry;
+    
+    return registry;
+  }
+  
+  /// Standard components registered through the same interface as script components
+  namespace StandardComp
+  {
+    /// Local lattice-site index
+    inline const CompKind Site=compRegistry().intern("Site",0);
+    
+    /// Dirac spin index
+    inline const CompKind Spin=compRegistry().intern("Spin",NDIRAC);
+    
+    /// SU(3) color index
+    inline const CompKind Color=compRegistry().intern("Color",NCOL);
+    
+    /// Four-dimensional Lorentz index
+    inline const CompKind Lorentz=compRegistry().intern("Lorentz",NDIM);
+    
+    /// Independent copy index
+    inline const CompKind Copy=compRegistry().intern("Copy",0);
+    
+    /// Time separation of a two-point result
+    inline const CompKind Time=compRegistry().intern("Time",0);
+    
+    /// Index into the ordered gamma-pair list
+    inline const CompKind GammaPair=compRegistry().intern("GammaPair",0);
+    
+    /// Real and imaginary parts of a complex value
+    inline const CompKind Complex=compRegistry().intern("Complex",2);
+  }
   
   /// Orientation used when determining products and contractions
   enum class CompSide{None,Row,Column};
@@ -140,58 +127,45 @@ namespace nissa::nice
       return kind==other.kind and side==other.side and label==other.label;
     }
     
-    /// Resolve the component name through its registry when available
-    std::string kindName(const CompRegistry* registry=nullptr) const
+    /// Resolve the registered component name
+    const std::string& kindName() const
     {
-      if(registry!=nullptr)
-        return registry->name(kind);
-      
-      static const CompRegistry standardRegistry;
-      
-      if(kind<standardRegistry.names.size())
-        return standardRegistry.name(kind);
-      
-      return "kind "+std::to_string(kind);
+      return compRegistry().name(kind);
     }
   };
   
-  /// One interned tensor component with its local extent
+  /// One occurrence of a registered component in a tensor
   struct Comp :
     CompIdentity
   {
-    /// Number of locally stored values along this component
+    /// Local extent, ignored when the registered definition has a fixed size
     size_t extent;
     
-    /// Keep the existing kind, side, extent, label construction order
+    /// Construct an occurrence with an optional local extent and tag
     Comp(const CompKind kind,
-         const CompSide side,
-         const size_t extent,
+         const CompSide side=CompSide::None,
+         const size_t extent=0,
          const size_t label=0) :
       CompIdentity{kind,side,label},
       extent(extent)
     {
     }
     
-    /// Validate this component independently of other tensor components
-    void validate(const CompRegistry* registry=nullptr) const
+    /// Resolve the fixed size or the occurrence's local extent
+    size_t size() const
     {
-      if(kind==StandardComp::Invalid)
-        CRASH("NICE component has an invalid kind");
+      const size_t fixed=compRegistry().definition(kind).size;
       
-      if(registry!=nullptr and kind>=registry->names.size())
-        CRASH("NICE component kind %zu is not registered",kind);
+      return fixed!=0?fixed:extent;
+    }
+    
+    /// Check registration and the occurrence's orientation
+    void validate() const
+    {
+      (void)compRegistry().definition(kind);
       
       if(side!=CompSide::None and side!=CompSide::Row and side!=CompSide::Column)
-        CRASH("NICE component %s has an unknown orientation",kindName(registry).c_str());
-      
-      if(kind<StandardComp::compSizes.size() and
-         StandardComp::compSizes[kind]!=StandardComp::ContextDependentSize and
-         extent!=StandardComp::compSizes[kind])
-        CRASH("NICE component %s has the wrong fixed extent",kindName(registry).c_str());
-      
-      if(kind<StandardComp::compOrientationRequired.size() and
-         (side!=CompSide::None)!=StandardComp::compOrientationRequired[kind])
-        CRASH("NICE component %s has an invalid orientation",kindName(registry).c_str());
+        CRASH("NICE component %s has an unknown orientation",kindName().c_str());
     }
   };
   
@@ -216,53 +190,42 @@ namespace nissa::nice
   /// Shape and storage order of one tensor
   struct TensorDescriptor
   {
-    /// Type of each tensor element
-    ScalarKind scalar;
-    
-    /// Components in tensor storage order
+    /// Components in storage order, including Complex when present
     std::vector<Comp> comps;
     
-    /// Adjacent logical elements per real or imaginary plane; one means interleaved
-    size_t scalarComponentStride{1};
-    
     /// Validate each component and reject repeated kind, orientation, and label
-    void validate(const CompRegistry* registry=nullptr) const
+    void validate() const
     {
-      if(scalarComponentStride==0 or
-         (scalar==ScalarKind::Real and scalarComponentStride!=1))
-        CRASH("NICE tensor has an invalid scalar component stride");
-      
       for(size_t i=0;i<comps.size();i++)
         {
           const Comp& comp=comps[i];
           
-          comp.validate(registry);
+          comp.validate();
           
           for(size_t earlier=0;earlier<i;earlier++)
             if(comps[earlier].sameAs(comp))
               CRASH("NICE tensor repeats component %s with the same orientation and label",
-                    comp.kindName(registry).c_str());
+                    comp.kindName().c_str());
         }
     }
     
-    /// Number of locally stored scalar values, checking multiplication overflow
+    /// Number of stored real values, checking multiplication overflow
     size_t nElements() const
     {
       validate();
       
       for(const Comp& comp : comps)
-        if(comp.extent==0)
+        if(comp.size()==0)
           return 0;
       
       size_t count=1;
       
       for(const Comp& comp : comps)
-        count=checkedMultiply(count,comp.extent,"NICE tensor element count overflow");
+        count=checkedMultiply(count,comp.size(),"NICE tensor element count overflow");
       
       return count;
     }
   };
-  
 }
 
 #endif
