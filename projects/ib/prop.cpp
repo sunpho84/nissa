@@ -577,7 +577,7 @@ namespace nissa
 		}
 	      
 	      /// Combine with -I*r*Ap*gamma_5
-	      const Compl c5=-Compl{0.0,1.0}*r[iR]*Ap;
+	      const Compl c5=-Compl{0.0,1.0}*r[iR]*Ap/den;
 	      spinspin_dirac_summ_the_prod_complex(prop,base_gamma[5],*(complex*)&c5);
 	      
 	      /// Average of the momentum of the lepton before and after the interaction
