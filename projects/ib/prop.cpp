@@ -589,7 +589,7 @@ namespace nissa
 	      for(int mu=0;mu<NDIM;mu++)
 		{
 		  const Compl c=cos(q[mu]);
-		  const Compl rs=r[iR]*sin(cos(q[mu]));
+		  const Compl rs=r[iR]*sin(q[mu]);
 		  
 		  /// Current vertex in dir mu: cos(q_\mu)*gamma_\mu+r*sin(q_\mu)*gamma_5
 		  spinspin V{};
